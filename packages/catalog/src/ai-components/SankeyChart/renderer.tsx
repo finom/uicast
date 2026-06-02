@@ -1,0 +1,23 @@
+import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { Sankey, Tooltip, ResponsiveContainer } from "recharts";
+import { SankeyChartDef } from "./def";
+
+export const SankeyChartRenderer = createAIComponentRenderer({
+  def: SankeyChartDef,
+  renderer: ({ nodes = [], links = [], height = 400, generatedKey }) => {
+    const sankeyData = { nodes, links };
+
+    return (
+      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
+        <Sankey
+          data={sankeyData}
+          nodePadding={30}
+          nodeWidth={10}
+          linkCurvature={0.5}
+        >
+          <Tooltip />
+        </Sankey>
+      </ResponsiveContainer>
+    );
+  },
+});

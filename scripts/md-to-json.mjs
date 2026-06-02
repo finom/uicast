@@ -1,0 +1,20 @@
+import { readFileSync, writeFileSync } from "fs";
+import { resolve, dirname, basename, join } from "path";
+import { glob } from "glob";
+
+const srcDir = resolve(
+  dirname(new URL(import.meta.url).pathname),
+  "../packages",
+);
+
+const mdFiles = await glob("**/*.md", { cwd: srcDir });
+console.log(`Found ${mdFiles.length} Markdown file(s) to convert:\n`);
+for (const relPath of mdFiles) {
+  const fullPath = join(srcDir, relPath);
+  const content = readFileSync(fullPath, "utf-8");
+  const jsonPath = fullPath.replace(/\.md$/, ".json");
+  writeFileSync(jsonPath, JSON.stringify(content));
+  console.log(`${relPath} -> ${basename(jsonPath)}`);
+}
+
+console.log(`\nConverted ${mdFiles.length} file(s).`);

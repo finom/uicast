@@ -1,0 +1,83 @@
+import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  ReferenceLine,
+} from "recharts";
+import { WaterfallChartDef } from "./def";
+
+export const WaterfallChartRenderer = createAIComponentRenderer({
+  def: WaterfallChartDef,
+  renderer: ({
+    data = [],
+    height = 300,
+    positiveColor = "#82ca9d",
+    negativeColor = "#ff6b6b",
+    totalColor = "#8884d8",
+    generatedKey,
+  }) => {
+    // Process data to create waterfall structure
+    let running = 0;
+    const processedData = data.map((item) => {
+      if (item.isTotal) {
+        const total = running;
+        return {
+          name: item.name,
+          base: 0,
+          value: total,
+          rawValue: total,
+          type: "total" as const,
+        };
+      }
+      const base = running;
+      running += item.value;
+      return {
+        name: item.name,
+        base: item.value >= 0 ? base : base + item.value,
+        value: Math.abs(item.value),
+        rawValue: item.value,
+        type: (item.value >= 0 ? "positive" : "negative") as
+          | "positive"
+          | "negative",
+      };
+    });
+
+    return (
+      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
+        <BarChart data={processedData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip
+            formatter={(val, name) => {
+              if (name === "base") return [undefined, undefined];
+              return [val, "Value"];
+            }}
+          />
+          <ReferenceLine y={0} stroke="#666" />
+          <Bar dataKey="base" stackId="waterfall" fill="transparent" />
+          <Bar dataKey="value" stackId="waterfall">
+            {processedData.map((entry, i) => (
+              <Cell
+                key={i}
+                fill={
+                  entry.type === "total"
+                    ? totalColor
+                    : entry.type === "positive"
+                      ? positiveColor
+                      : negativeColor
+                }
+              />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  },
+});

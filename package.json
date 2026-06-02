@@ -1,0 +1,55 @@
+{
+  "name": "ui-fired",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./core": "./packages/core/src/index.ts",
+    "./core/*": "./packages/core/src/*",
+    "./catalog/*": "./packages/catalog/src/*"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "cd packages/core && vitest run",
+    "test:watch": "cd packages/core && vitest",
+    "test:coverage": "cd packages/core && vitest run --coverage",
+    "md-to-json": "node scripts/md-to-json.mjs"
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.1.0",
+    "acorn": "^8.16.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-react": "^1.8.0",
+    "next-themes": "^0.4.6",
+    "radix-ui": "^1.4.3",
+    "react-day-picker": "^9.14.0",
+    "react-loading-skeleton": "^3.5.0",
+    "react-resizable-panels": "^4.10.0",
+    "recharts": "^3.8.1",
+    "sonner": "^2.0.7",
+    "standard-tool": "^0.0.4",
+    "tailwind-merge": "^3.5.0",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/node": "^25",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitest/coverage-v8": "^4.1.0",
+    "glob": "^13.0.6",
+    "happy-dom": "^20.9.0",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "typescript": "6.0.3",
+    "vitest": "^4.1.0"
+  }
+}

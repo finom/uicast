@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "paths": {
+      "ui-fired/core/*": ["./packages/core/src/*"],
+      "ui-fired/catalog/*": ["./packages/catalog/src/*"]
+    },
+    "experimentalDecorators": true
+  },
+  "include": [
+    "packages/core/**/*.ts",
+    "packages/core/**/*.tsx",
+    "packages/core/**/*.mts",
+    "packages/catalog/**/*.ts",
+    "packages/catalog/**/*.tsx",
+    "packages/catalog/**/*.mts"
+  ],
+  "exclude": ["node_modules", "**/node_modules", "dist"]
+}

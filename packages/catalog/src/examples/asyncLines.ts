@@ -1,0 +1,90 @@
+import { ChunkComponent } from "ui-fired/core/types";
+
+export const asyncLines: ChunkComponent[] = [
+  {
+    key: "users-table",
+    component: "Table",
+    op: "root",
+    kind: "element",
+    defaults: [
+      {
+        set: "scopes.root.users",
+        expr: "UserRPC_getUsers()",
+      },
+    ],
+    children: ["users-thead", "users-tbody"],
+  },
+  {
+    key: "users-thead",
+    component: "TableHeader",
+    op: "child",
+    kind: "element",
+    children: ["users-header-row"],
+  },
+  {
+    key: "users-header-row",
+    component: "TableRow",
+    op: "child",
+    kind: "element",
+    children: ["th-name", "th-email"],
+  },
+  {
+    key: "th-name",
+    component: "TableHead",
+    op: "child",
+    kind: "element",
+    props: { literal: { children: "Name" } },
+  },
+  {
+    key: "th-email",
+    component: "TableHead",
+    op: "child",
+    kind: "element",
+    props: { literal: { children: "Email" } },
+  },
+  {
+    key: "users-tbody",
+    component: "TableBody",
+    op: "child",
+    kind: "element",
+    children: ["user-rows"],
+  },
+  {
+    key: "user-rows",
+    component: "TableRow",
+    op: "child",
+    kind: "list",
+    itemIdKey: "id",
+    itemsSource: "scopes.root.users",
+    itemScope: "user",
+    children: ["td-name", "td-email"],
+  },
+  {
+    key: "td-name",
+    component: "TableCell",
+    op: "child",
+    kind: "element",
+    children: ["name-text"],
+  },
+  {
+    key: "name-text",
+    component: "Text",
+    op: "child",
+    kind: "element",
+    props: { expr: "({children: scopes.user.item.fullName})" },
+  },
+  {
+    key: "td-email",
+    component: "TableCell",
+    op: "child",
+    kind: "element",
+    children: ["email-text"],
+  },
+  {
+    key: "email-text",
+    component: "Text",
+    op: "child",
+    kind: "element",
+    props: { expr: "({children: scopes.user.item.email})" },
+  },
+] as const;
