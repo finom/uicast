@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Switch as ShadcnSwitch } from "ui-fired/catalog/components/ui/switch";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Switch as ShadcnSwitch } from "@ui-fired/catalog/components/ui/switch";
 import { SwitchDef } from "./def";
 
 export const SwitchRenderer = createAIComponentRenderer({

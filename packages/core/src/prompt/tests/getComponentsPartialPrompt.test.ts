@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createAIComponentDef } from "../render/createAIComponentDef";
-import { getComponentsPartialPrompt } from "./getComponentsPartialPrompt";
+import { createAIComponentDef } from "../../render/createAIComponentDef";
+import { getComponentsPartialPrompt } from "../getComponentsPartialPrompt";
 
 // The `hidden` flag exists so host-only components (like Fragment, the
 // synthetic wrapper used by `Renderer`'s `init` prop) can be registered

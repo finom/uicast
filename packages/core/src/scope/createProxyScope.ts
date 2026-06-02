@@ -35,32 +35,20 @@ function createEmitter(): Emitter {
 
 type ReactiveProxy<T extends object> = T & {
   $emitter: Emitter;
-  $set: (path: string, value: unknown) => void;
-  $setDefault: (path: string, value: unknown) => void;
+  $set: (path: string, value: unknown, options?: { default?: boolean }) => void;
 };
 
-function createReactiveProxy<T extends object>(
+function createProxyScope<T extends object>(
   target: T = {} as T,
 ): ReactiveProxy<T> {
   const emitter = createEmitter();
   const proxyCache = new WeakMap<object, object>();
 
-  function set(path: string, value: unknown): void {
-    const keys = path.split(".");
-    let current: any = proxy;
-
-    for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i];
-      if (current[key] === undefined || current[key] === null) {
-        current[key] = {};
-      }
-      current = current[key];
-    }
-
-    current[keys[keys.length - 1]] = value;
-  }
-
-  function setDefault(path: string, value: unknown): void {
+  function set(
+    path: string,
+    value: unknown,
+    options?: { default?: boolean },
+  ): void {
     const keys = path.split(".");
     let current: any = proxy;
 
@@ -73,9 +61,11 @@ function createReactiveProxy<T extends object>(
     }
 
     const lastKey = keys[keys.length - 1];
-    if (current[lastKey] === undefined) {
-      current[lastKey] = value;
-    }
+    // `default: true` → init-if-absent (first-writer-wins); never clobber an
+    // existing value. Used by `defaults` so two components seeding the same
+    // path don't overwrite each other, and user edits survive remounts.
+    if (options?.default && current[lastKey] !== undefined) return;
+    current[lastKey] = value;
   }
 
   function wrap<U>(obj: U, path: PropertyKey[] = []): U {
@@ -88,7 +78,6 @@ function createReactiveProxy<T extends object>(
         if (path.length === 0) {
           if (prop === "$emitter") return emitter;
           if (prop === "$set") return set;
-          if (prop === "$setDefault") return setDefault;
         }
         const value = Reflect.get(target, prop, receiver);
 
@@ -131,7 +120,7 @@ function createReactiveProxy<T extends object>(
 }
 
 export {
-  createReactiveProxy,
+  createProxyScope,
   createEmitter,
   type Emitter,
   type ChangePayload,

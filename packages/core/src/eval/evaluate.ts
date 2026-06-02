@@ -1,4 +1,4 @@
-import type { AssignableExpr, ValueExpr } from "../types";
+import type { ValueSource } from "../types";
 import { SafeEval } from "./SafeEval";
 
 const safeEval = new SafeEval({
@@ -48,15 +48,22 @@ export const getScopeReads = (expr: string): string[] =>
 // biome-ignore lint/suspicious/noExplicitAny: see comment above
 export type EvaluateFunctions = Record<string, (...args: any[]) => any>;
 
-export const evaluate = <T extends ValueExpr>(
-  expr: T,
+// Evaluate a ValueSource to its value: a `literal` is returned as-is, an `expr`
+// is run through SafeEval against `context` + host `functions`. Returns
+// `unknown` — an async `expr` resolves to a Promise, which callers detect with
+// `value instanceof Promise`. (There's no Promise-typed overload for the
+// assignable forms: a literal-form assignable returns synchronously, so a
+// conditional `… ? Promise<unknown> : unknown` return type would be a lie —
+// and that lie was what forced an `as any` on every return.)
+export const evaluate = (
+  expr: ValueSource,
   context: Record<string, any>,
   options?: { functions?: EvaluateFunctions },
-): T extends AssignableExpr ? Promise<unknown> : unknown => {
-  if (expr.literal !== undefined) return expr.literal as any;
-  if (!expr.expr) return null as any;
+): unknown => {
+  if ("literal" in expr) return expr.literal;
+  if (!expr.expr) return null;
   return safeEval.eval(expr.expr, {
     ...context,
     ...(options?.functions ?? {}),
-  }) as any;
+  });
 };

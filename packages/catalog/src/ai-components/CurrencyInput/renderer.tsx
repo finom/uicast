@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Input } from "ui-fired/catalog/components/ui/input";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Input } from "@ui-fired/catalog/components/ui/input";
 import { CurrencyInputDef } from "./def";
 
 const currencySymbols: Record<string, string> = {

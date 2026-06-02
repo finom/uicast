@@ -1,16 +1,16 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "ui-fired/catalog/components/ui/collapsible";
+} from "@ui-fired/catalog/components/ui/collapsible";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "ui-fired/catalog/components/ui/card";
+} from "@ui-fired/catalog/components/ui/card";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { FormSectionDef } from "./def";

@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
 import {
   Select,
@@ -6,8 +6,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "ui-fired/catalog/components/ui/select";
-import { Label } from "ui-fired/catalog/components/ui/label";
+} from "@ui-fired/catalog/components/ui/select";
+import { Label } from "@ui-fired/catalog/components/ui/label";
 import { CronBuilderDef } from "./def";
 
 function describeCron(cron: string): string {

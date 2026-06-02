@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JSONSchemaToTs } from "./JSONSchemaToTs";
+import { JSONSchemaToTs } from "../JSONSchemaToTs";
 
 describe("JSONSchemaToTs — primitives", () => {
 	it("renders primitive types", () => {

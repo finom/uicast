@@ -14,7 +14,7 @@ const cache = new WeakMap<ChunkComponent, string[]>();
  * Auto-detected reactive deps for a chunk.
  *
  * Walks every *reactive* expression on the chunk — `props.expr`,
- * `hidden.expr`, and (for list chunks) `itemsSource` — and unions the
+ * `hidden.expr`, and (for list chunks) `each` — and unions the
  * `scopes.X.Y` paths each one reads. The renderer subscribes to those
  * paths; any write to a matching path wakes the chunk for re-render.
  *
@@ -27,7 +27,7 @@ const cache = new WeakMap<ChunkComponent, string[]>();
  * The dep paths are the exact strings the chunk's runtime subscriber
  * passes to `parseScope(...)` and then `scopes[targetScope].$emitter.on(
  * targetPath, …)`. Subscription is path-exact (no parent fanout) — see
- * `createReactiveProxy.ts` set trap.
+ * `createProxyScope.ts` set trap.
  */
 export function extractDeps(chunk: ChunkComponent): string[] {
   const cached = cache.get(chunk);
@@ -35,21 +35,21 @@ export function extractDeps(chunk: ChunkComponent): string[] {
 
   const out = new Set<string>();
 
-  if (chunk.props?.expr) {
+  if (chunk.props && "expr" in chunk.props && chunk.props.expr) {
     for (const r of getScopeReads(chunk.props.expr)) out.add(r);
   }
-  if (chunk.hidden?.expr) {
+  if (chunk.hidden && "expr" in chunk.hidden && chunk.hidden.expr) {
     for (const r of getScopeReads(chunk.hidden.expr)) out.add(r);
   }
 
-  // List chunks carry `itemsSource` as a bare expression string (not a
-  // ValueExpr). Folding its reads into the dep set is what fixes the
+  // List chunks carry `each` as a bare expression string (not a
+  // ValueSource). Folding its reads into the dep set is what fixes the
   // search-filter case: a `scopes.inv.rows.filter(r => …scopes.root.
   // searchTerm…)` expression yields both `scopes.inv.rows` AND
   // `scopes.root.searchTerm`, so typing in the search input wakes the
   // list re-render.
-  if (chunk.kind === "list") {
-    for (const r of getScopeReads(chunk.itemsSource)) out.add(r);
+  if ("each" in chunk) {
+    for (const r of getScopeReads(chunk.each)) out.add(r);
   }
 
   const result = [...out];

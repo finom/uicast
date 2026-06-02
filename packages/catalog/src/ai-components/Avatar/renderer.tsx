@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
 import {
   Avatar as ShadcnAvatar,
   AvatarImage,
   AvatarFallback,
-} from "ui-fired/catalog/components/ui/avatar";
+} from "@ui-fired/catalog/components/ui/avatar";
 import { AvatarDef } from "./def";
 
 export const AvatarRenderer = createAIComponentRenderer({

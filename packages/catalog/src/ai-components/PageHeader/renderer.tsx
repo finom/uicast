@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -6,7 +6,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
-} from "ui-fired/catalog/components/ui/breadcrumb";
+} from "@ui-fired/catalog/components/ui/breadcrumb";
 import { PageHeaderDef } from "./def";
 
 export const PageHeaderRenderer = createAIComponentRenderer({

@@ -1,33 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent, ChunkComponentElement } from "../types";
-import { buildElementsById, parseScope } from "./utils";
-
-describe("parseScope", () => {
-  it("splits a top-level scoped key", () => {
-    expect(parseScope("scopes.root.count")).toEqual(["root", "count"]);
-  });
-
-  it("preserves dotted leaf paths", () => {
-    expect(parseScope("scopes.root.user.name")).toEqual([
-      "root",
-      "user.name",
-    ]);
-  });
-
-  it("accepts keys without the 'scopes.' prefix", () => {
-    expect(parseScope("root.count")).toEqual(["root", "count"]);
-  });
-
-  it("throws when no scope/leaf separator is present", () => {
-    expect(() => parseScope("noDots")).toThrow(/Invalid scope key/);
-  });
-});
+import type { ChunkComponent, ChunkComponentElement } from "../../types";
+import { buildElementsById } from "../utils";
 
 const e = (key: string, children?: string[]): ChunkComponentElement => ({
   key,
   component: "C",
-  op: "child",
-  kind: "element",
   children,
 });
 
@@ -42,7 +19,7 @@ describe("buildElementsById", () => {
   it("re-emitted chunk replaces and drops orphaned descendants", () => {
     // Initial tree: root -> [a -> [a1], b]
     const initial: ChunkComponent[] = [
-      { ...e("root", ["a", "b"]), op: "root" },
+      e("root", ["a", "b"]),
       e("a", ["a1"]),
       e("a1"),
       e("b"),

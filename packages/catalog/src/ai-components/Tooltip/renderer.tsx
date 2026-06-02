@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Tooltip as ShadcnTooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "ui-fired/catalog/components/ui/tooltip";
+} from "@ui-fired/catalog/components/ui/tooltip";
 import { TooltipDef } from "./def";
 
 export const TooltipRenderer = createAIComponentRenderer({

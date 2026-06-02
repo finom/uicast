@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { AspectRatio } from "ui-fired/catalog/components/ui/aspect-ratio";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { AspectRatio } from "@ui-fired/catalog/components/ui/aspect-ratio";
 import { AspectRatioDef } from "./def";
 
 export const AspectRatioRenderer = createAIComponentRenderer({

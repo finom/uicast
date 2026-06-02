@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState, useEffect } from "react";
-import { cn } from "ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/core/lib/utils";
 import { CountdownTimerDef } from "./def";
 
 function calculateTimeLeft(target: Date) {

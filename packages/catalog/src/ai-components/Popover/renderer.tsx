@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "ui-fired/catalog/components/ui/popover";
-import { Button } from "ui-fired/catalog/components/ui/button";
+} from "@ui-fired/catalog/components/ui/popover";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { PopoverDef } from "./def";
 
 export const PopoverRenderer = createAIComponentRenderer({

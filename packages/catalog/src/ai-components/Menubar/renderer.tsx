@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Menubar,
   MenubarMenu,
@@ -7,7 +7,7 @@ import {
   MenubarItem,
   MenubarSeparator,
   MenubarShortcut,
-} from "ui-fired/catalog/components/ui/menubar";
+} from "@ui-fired/catalog/components/ui/menubar";
 import { MenubarDef } from "./def";
 
 export const MenubarRenderer = createAIComponentRenderer({

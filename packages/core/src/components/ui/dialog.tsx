@@ -3,8 +3,8 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
-import { cn } from "ui-fired/core/lib/utils";
-import { Button } from "ui-fired/core/components/ui/button";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button } from "@ui-fired/core/components/ui/button";
 
 const XIcon = ({ className }: { className?: string }) => (
   <svg

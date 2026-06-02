@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { evaluate, getScopeReads } from "./evaluate";
+import type { ValueSource } from "../../types";
+import { evaluate, getScopeReads } from "../evaluate";
 
-describe("evaluate — ValueExpr", () => {
+describe("evaluate — ValueSource", () => {
   it("returns the literal when literal is set", () => {
     expect(evaluate({ literal: 42 }, {})).toBe(42);
     expect(evaluate({ literal: { a: 1 } }, {})).toEqual({ a: 1 });
@@ -17,7 +18,9 @@ describe("evaluate — ValueExpr", () => {
   });
 
   it("returns null when neither literal nor expr is set", () => {
-    expect(evaluate({}, {})).toBeNull();
+    // `{}` (neither expr nor literal) is type-invalid under the strict
+    // ValueSource union; cast to exercise the defensive runtime guard.
+    expect(evaluate({} as ValueSource, {})).toBeNull();
   });
 
   it("reads from a scopes-shaped context", () => {

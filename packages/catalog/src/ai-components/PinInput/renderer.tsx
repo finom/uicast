@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useRef } from "react";
-import { Input } from "ui-fired/catalog/components/ui/input";
-import { cn } from "ui-fired/core/lib/utils";
+import { Input } from "@ui-fired/catalog/components/ui/input";
+import { cn } from "@ui-fired/core/lib/utils";
 import { PinInputDef } from "./def";
 
 export const PinInputRenderer = createAIComponentRenderer({

@@ -1,10 +1,10 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ConfirmModalProvider } from "ui-fired/core/components/ConfirmModal";
-import { createAIComponentRenderers } from "ui-fired/core/render/createAIComponentRenderers";
-import type { InitFn } from "ui-fired/core/render/Fragment";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { defaultRenderers } from "../../test/renderHelpers";
+import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
+import { createAIComponentRenderers } from "@ui-fired/core/render/createAIComponentRenderers";
+import type { InitFn } from "@ui-fired/core/render/Fragment";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { defaultRenderers } from "../../../test/renderHelpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
 // on the synthetic Fragment wrapper's mount, before any LLM-emitted root
@@ -25,8 +25,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: scopes.root.greeting })" },
 			},
 		];
@@ -50,8 +48,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: scopes.root.headings })" },
 			},
 		];
@@ -103,8 +99,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'plain' })" },
 			},
 		];
@@ -139,8 +133,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "a",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
@@ -157,8 +149,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "b",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
@@ -185,15 +175,11 @@ describe("Renderer — init prop", () => {
 			{
 				key: "rootA",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'A=' + scopes.root.label })" },
 			},
 			{
 				key: "rootB",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'B=' + scopes.root.label })" },
 			},
 		];
@@ -216,8 +202,6 @@ describe("Renderer — init prop", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: {
 					expr: "({ text: scopes.root.headings.customers.email })",
 				},

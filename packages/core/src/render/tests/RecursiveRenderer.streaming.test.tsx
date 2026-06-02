@@ -1,10 +1,10 @@
-import { ConfirmModalProvider } from "ui-fired/core/components/ConfirmModal";
-import type { EvaluateFunctions } from "ui-fired/core/eval/evaluate";
-import { createAIComponentRenderers } from "ui-fired/core/render/createAIComponentRenderers";
-import type { ChunkComponent } from "ui-fired/core/types";
+import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
+import type { EvaluateFunctions } from "@ui-fired/core/eval/evaluate";
+import { createAIComponentRenderers } from "@ui-fired/core/render/createAIComponentRenderers";
+import type { ChunkComponent } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { defaultRenderers, mountChunks } from "../../test/renderHelpers";
+import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
@@ -13,8 +13,6 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				children: ["pending"],
 				// No `pending` chunk emitted yet — simulates a mid-stream state.
 			},
@@ -31,8 +29,6 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 				{
 					key: "root",
 					component: "Box",
-					op: "root",
-					kind: "element",
 					children: ["pending"],
 				},
 			],
@@ -56,8 +52,6 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				children: ["pending"],
 			},
 		]);
@@ -91,8 +85,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			{
 				key: "a",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				defaults: [{ set: "scopes.root.tickA", expr: "track()" }],
 				props: { expr: "({ text: 'A' })" },
 			},
@@ -103,8 +95,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			{
 				key: "b",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				props: { expr: "({ text: 'B' })" },
 			},
 		];
@@ -147,8 +137,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			{
 				key: "root",
 				component: "Box",
-				op: "root",
-				kind: "element",
 				defaults: [{ set: "scopes.root.tickRoot", expr: "track()" }],
 				children: ["child"],
 				// 'child' chunk hasn't streamed yet — placeholder fills its slot.
@@ -160,8 +148,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			{
 				key: "child",
 				component: "Box",
-				op: "child",
-				kind: "element",
 				props: { expr: "({ text: 'child-arrived' })" },
 			},
 		];

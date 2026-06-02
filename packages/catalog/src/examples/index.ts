@@ -1,4 +1,4 @@
-import type { ChunkComponent } from "ui-fired/core/types";
+import type { ChunkComponent } from "@ui-fired/core/types";
 import { asyncLines } from "./asyncLines";
 import { chartLines } from "./chartLines";
 import { claudeLines } from "./claudeLines";

@@ -1,12 +1,12 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
 import {
   Card as ShadcnCard,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from "ui-fired/catalog/components/ui/card";
+} from "@ui-fired/catalog/components/ui/card";
 import { CardDef } from "./def";
 
 export const CardRenderer = createAIComponentRenderer({

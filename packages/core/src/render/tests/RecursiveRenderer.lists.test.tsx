@@ -1,25 +1,21 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — lists", () => {
-  it("renders one child per item from itemsSource", () => {
+  it("renders one child per item from each", () => {
     const lines: ChunkComponent[] = [
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["rows"],
       },
       {
         key: "rows",
         component: "Box",
-        op: "child",
-        kind: "list",
-        itemScope: "row",
-        itemsSource: "scopes.root.items",
+        as: "row",
+        each: "scopes.root.items",
         props: { expr: "({ text: scopes.row.item.label })" },
       },
     ];
@@ -31,22 +27,18 @@ describe("RecursiveRenderer — lists", () => {
     expect(container.textContent).toContain("c");
   });
 
-  it("re-renders when itemsSource is replaced wholesale", () => {
+  it("re-renders when each is replaced wholesale", () => {
     const lines: ChunkComponent[] = [
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["rows"],
       },
       {
         key: "rows",
         component: "Box",
-        op: "child",
-        kind: "list",
-        itemScope: "row",
-        itemsSource: "scopes.root.items",
+        as: "row",
+        each: "scopes.root.items",
         props: { expr: "({ text: scopes.row.item.label })" },
       },
     ];
@@ -68,18 +60,14 @@ describe("RecursiveRenderer — lists", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["rows"],
         props: { expr: "({ text: 'parent-text' })" },
       },
       {
         key: "rows",
         component: "Box",
-        op: "child",
-        kind: "list",
-        itemScope: "row",
-        itemsSource: "scopes.root.items",
+        as: "row",
+        each: "scopes.root.items",
         props: { expr: "({ text: scopes.row.item })" },
       },
     ];
@@ -87,25 +75,21 @@ describe("RecursiveRenderer — lists", () => {
     expect(container.textContent).toContain("parent-text");
   });
 
-  it("itemsSource expressions that read OTHER scope paths react too", () => {
-    // Bug-class regression: a list whose itemsSource references another path
+  it("each expressions that read OTHER scope paths react too", () => {
+    // Bug-class regression: a list whose each references another path
     // (e.g. a search filter) must subscribe to that path so typing into a
     // search input re-renders the list.
     const lines: ChunkComponent[] = [
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["rows"],
       },
       {
         key: "rows",
         component: "Box",
-        op: "child",
-        kind: "list",
-        itemScope: "row",
-        itemsSource:
+        as: "row",
+        each:
           "scopes.root.items.filter(i => i.startsWith(scopes.root.search))",
         props: { expr: "({ text: scopes.row.item })" },
       },

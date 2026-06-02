@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -7,7 +7,7 @@ import {
   NavigationMenuContent,
   NavigationMenuLink,
   navigationMenuTriggerStyle,
-} from "ui-fired/catalog/components/ui/navigation-menu";
+} from "@ui-fired/catalog/components/ui/navigation-menu";
 import { NavigationMenuDef } from "./def";
 
 export const NavigationMenuRenderer = createAIComponentRenderer({

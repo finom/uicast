@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
 import { ImageDef } from "./def";
 
 export const ImageRenderer = createAIComponentRenderer({

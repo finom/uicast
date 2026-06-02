@@ -8,8 +8,8 @@ import {
   type Locale,
 } from "react-day-picker";
 
-import { cn } from "ui-fired/core/lib/utils";
-import { Button, buttonVariants } from "ui-fired/catalog/components/ui/button";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button, buttonVariants } from "@ui-fired/catalog/components/ui/button";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

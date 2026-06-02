@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Button as ShadcnButton } from "ui-fired/catalog/components/ui/button";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Button as ShadcnButton } from "@ui-fired/catalog/components/ui/button";
+import { pickClick } from "@ui-fired/core/render/shared";
 import { ButtonDef } from "./def";
 
 export const ButtonRenderer = createAIComponentRenderer({

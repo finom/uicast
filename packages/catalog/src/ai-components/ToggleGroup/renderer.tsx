@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { ToggleGroup, ToggleGroupItem } from "ui-fired/catalog/components/ui/toggle-group";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { ToggleGroup, ToggleGroupItem } from "@ui-fired/catalog/components/ui/toggle-group";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ToggleGroupDef } from "./def";

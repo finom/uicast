@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { ScrollArea, ScrollBar } from "ui-fired/catalog/components/ui/scroll-area";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { ScrollArea, ScrollBar } from "@ui-fired/catalog/components/ui/scroll-area";
 import { ScrollAreaDef } from "./def";
 
 export const ScrollAreaRenderer = createAIComponentRenderer({

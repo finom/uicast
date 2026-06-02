@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -6,7 +6,7 @@ import {
   ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from "ui-fired/catalog/components/ui/context-menu";
+} from "@ui-fired/catalog/components/ui/context-menu";
 import { ContextMenuDef } from "./def";
 
 export const ContextMenuRenderer = createAIComponentRenderer({

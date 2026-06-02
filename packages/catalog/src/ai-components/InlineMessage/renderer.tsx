@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Alert, AlertDescription } from "ui-fired/catalog/components/ui/alert";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Alert, AlertDescription } from "@ui-fired/catalog/components/ui/alert";
 import { Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { InlineMessageDef } from "./def";
 

@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { GaugeChartDef } from "./def";
 
 export const GaugeChartRenderer = createAIComponentRenderer({

@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { VirtualListDef } from "./def";
 

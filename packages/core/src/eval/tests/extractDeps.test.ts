@@ -1,24 +1,20 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponentElement, ChunkComponentList } from "../types";
-import { extractDeps } from "./extractDeps";
+import type { ChunkComponentElement, ChunkComponentList } from "../../types";
+import { extractDeps } from "../extractDeps";
 
 const element = (
   patch: Partial<ChunkComponentElement>,
 ): ChunkComponentElement => ({
   key: "x",
   component: "C",
-  op: "child",
-  kind: "element",
   ...patch,
 });
 
 const list = (patch: Partial<ChunkComponentList>): ChunkComponentList => ({
   key: "x",
   component: "Row",
-  op: "child",
-  kind: "list",
-  itemScope: "item",
-  itemsSource: "scopes.root.rows",
+  as: "item",
+  each: "scopes.root.rows",
   ...patch,
 });
 
@@ -154,17 +150,17 @@ describe("extractDeps — what is NOT scanned", () => {
   });
 });
 
-describe("extractDeps — list chunks read itemsSource too", () => {
-  it("captures itemsSource", () => {
-    expect(extractDeps(list({ itemsSource: "scopes.root.rows" }))).toEqual([
+describe("extractDeps — list chunks read each too", () => {
+  it("captures each", () => {
+    expect(extractDeps(list({ each: "scopes.root.rows" }))).toEqual([
       "scopes.root.rows",
     ]);
   });
 
-  it("captures both itemsSource and props.expr reads on a list", () => {
+  it("captures both each and props.expr reads on a list", () => {
     const deps = extractDeps(
       list({
-        itemsSource: "scopes.root.rows",
+        each: "scopes.root.rows",
         props: { expr: "({ title: scopes.root.heading })" },
       }),
     );

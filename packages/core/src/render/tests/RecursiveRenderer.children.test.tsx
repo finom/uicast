@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — children", () => {
   it("renders children in declared order", () => {
@@ -8,29 +8,21 @@ describe("RecursiveRenderer — children", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["a", "b", "c"],
       },
       {
         key: "a",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: 'first' })" },
       },
       {
         key: "b",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: 'second' })" },
       },
       {
         key: "c",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: 'third' })" },
       },
     ];
@@ -48,8 +40,6 @@ describe("RecursiveRenderer — children", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: [],
         props: { expr: "({ text: 'from-props' })" },
       },
@@ -63,8 +53,6 @@ describe("RecursiveRenderer — children", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: 'just-me' })" },
       },
     ];

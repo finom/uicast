@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { cn } from "ui-fired/core/lib/utils";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { cn } from "@ui-fired/core/lib/utils";
 import { CodeEditorDef } from "./def";
 
 export const CodeEditorRenderer = createAIComponentRenderer({

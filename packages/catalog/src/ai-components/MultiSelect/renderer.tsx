@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Checkbox } from "ui-fired/catalog/components/ui/checkbox";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
-import { Button } from "ui-fired/catalog/components/ui/button";
-import { ScrollArea } from "ui-fired/catalog/components/ui/scroll-area";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Checkbox } from "@ui-fired/catalog/components/ui/checkbox";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
+import { Button } from "@ui-fired/catalog/components/ui/button";
+import { ScrollArea } from "@ui-fired/catalog/components/ui/scroll-area";
 import { ChevronDown, X } from "lucide-react";
 import { MultiSelectDef } from "./def";
 

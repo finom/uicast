@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { cn } from "ui-fired/core/lib/utils";
-import { ScrollArea, ScrollBar } from "ui-fired/catalog/components/ui/scroll-area";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { cn } from "@ui-fired/core/lib/utils";
+import { ScrollArea, ScrollBar } from "@ui-fired/catalog/components/ui/scroll-area";
 import { DiffViewerDef } from "./def";
 
 function computeSimpleDiff(oldLines: string[], newLines: string[]) {

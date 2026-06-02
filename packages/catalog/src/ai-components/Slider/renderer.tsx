@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Slider } from "ui-fired/catalog/components/ui/slider";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Slider } from "@ui-fired/catalog/components/ui/slider";
 import { SliderDef } from "./def";
 
 export const SliderRenderer = createAIComponentRenderer({

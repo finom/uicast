@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SafeEval, SafeEvalError } from "./SafeEval";
+import { SafeEval, SafeEvalError } from "../SafeEval";
 
 const evalr = new SafeEval();
 

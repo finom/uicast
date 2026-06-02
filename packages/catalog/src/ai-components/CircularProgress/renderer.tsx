@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { CircularProgressDef } from "./def";
 
 export const CircularProgressRenderer = createAIComponentRenderer({

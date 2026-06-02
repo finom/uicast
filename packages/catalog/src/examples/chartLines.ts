@@ -1,10 +1,8 @@
-import { ChunkComponent } from "ui-fired/core/types";
+import { ChunkComponent } from "@ui-fired/core/types";
 
 export const chartLines: ChunkComponent[] = [
   {
     key: "chart-root",
-    op: "root",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     defaults: [
@@ -23,16 +21,12 @@ export const chartLines: ChunkComponent[] = [
   },
   {
     key: "bar-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: { literal: { title: "Tasks by Status" } },
     children: ["status-bar-chart"],
   },
   {
     key: "status-bar-chart",
-    op: "child",
-    kind: "element",
     component: "BarChart",
     props: {
       expr: '({data: scopes.root.barChartData, xKey: "status", yKeys: ["count"], height: 300})',
@@ -40,8 +34,6 @@ export const chartLines: ChunkComponent[] = [
   },
   {
     key: "pie-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: { literal: { title: "Tasks per User" } },
     defaults: [
@@ -54,8 +46,6 @@ export const chartLines: ChunkComponent[] = [
   },
   {
     key: "user-pie-chart",
-    op: "child",
-    kind: "element",
     component: "PieChart",
     props: {
       expr: "({data: scopes.root.pieChartData, height: 300, donut: true})",

@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
-import { cn } from "ui-fired/core/lib/utils";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
+import { cn } from "@ui-fired/core/lib/utils";
 import { NotificationBadgeDef } from "./def";
 
 export const NotificationBadgeRenderer = createAIComponentRenderer({

@@ -1,18 +1,18 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { cn } from "ui-fired/core/lib/utils";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { cn } from "@ui-fired/core/lib/utils";
 import { SidebarDef } from "./def";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Button } from "ui-fired/catalog/components/ui/button";
-import { ScrollArea } from "ui-fired/catalog/components/ui/scroll-area";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
+import { Button } from "@ui-fired/catalog/components/ui/button";
+import { ScrollArea } from "@ui-fired/catalog/components/ui/scroll-area";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "ui-fired/catalog/components/ui/tooltip";
+} from "@ui-fired/catalog/components/ui/tooltip";
 
 export const SidebarRenderer = createAIComponentRenderer({
   def: SidebarDef,

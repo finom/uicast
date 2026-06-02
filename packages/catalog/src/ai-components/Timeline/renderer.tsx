@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { cn } from "ui-fired/core/lib/utils";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { cn } from "@ui-fired/core/lib/utils";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { TimelineDef } from "./def";

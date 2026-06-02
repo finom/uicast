@@ -1,11 +1,11 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Select as ShadcnSelect,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "ui-fired/catalog/components/ui/select";
+} from "@ui-fired/catalog/components/ui/select";
 import { SelectDef } from "./def";
 
 export const SelectRenderer = createAIComponentRenderer({

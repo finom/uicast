@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { Input } from "ui-fired/catalog/components/ui/input";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { Input } from "@ui-fired/catalog/components/ui/input";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { PasswordInputDef } from "./def";
 

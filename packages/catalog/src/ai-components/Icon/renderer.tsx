@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { IconDef } from "./def";

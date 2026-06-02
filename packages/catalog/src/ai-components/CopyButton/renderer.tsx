@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Check, Copy } from "lucide-react";
 import { CopyButtonDef } from "./def";
 

@@ -1,8 +1,8 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { Button } from "ui-fired/catalog/components/ui/button";
-import { Card, CardContent, CardHeader } from "ui-fired/catalog/components/ui/card";
-import { ScrollArea, ScrollBar } from "ui-fired/catalog/components/ui/scroll-area";
+import { Button } from "@ui-fired/catalog/components/ui/button";
+import { Card, CardContent, CardHeader } from "@ui-fired/catalog/components/ui/card";
+import { ScrollArea, ScrollBar } from "@ui-fired/catalog/components/ui/scroll-area";
 import { Check, Copy } from "lucide-react";
 import { CodeBlockDef } from "./def";
 

@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Input as ShadcnInput } from "ui-fired/catalog/components/ui/input";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Input as ShadcnInput } from "@ui-fired/catalog/components/ui/input";
 import { InputDef } from "./def";
 
 export const InputRenderer = createAIComponentRenderer({

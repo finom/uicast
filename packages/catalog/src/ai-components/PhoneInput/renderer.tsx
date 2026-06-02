@@ -1,12 +1,12 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Input } from "ui-fired/catalog/components/ui/input";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Input } from "@ui-fired/catalog/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "ui-fired/catalog/components/ui/select";
+} from "@ui-fired/catalog/components/ui/select";
 import { PhoneInputDef } from "./def";
 
 const defaultCountryCodes = [

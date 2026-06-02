@@ -1,11 +1,11 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Sheet as ShadcnSheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "ui-fired/catalog/components/ui/sheet";
+} from "@ui-fired/catalog/components/ui/sheet";
 import { SheetDef } from "./def";
 
 export const SheetRenderer = createAIComponentRenderer({

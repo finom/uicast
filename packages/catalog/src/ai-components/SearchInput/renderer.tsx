@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Input } from "ui-fired/catalog/components/ui/input";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Input } from "@ui-fired/catalog/components/ui/input";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Search, X, Loader2 } from "lucide-react";
 import { SearchInputDef } from "./def";
 

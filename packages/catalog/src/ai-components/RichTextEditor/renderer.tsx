@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useRef } from "react";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import {
   Bold,
   Italic,
@@ -11,7 +11,7 @@ import {
   Undo,
   Redo,
 } from "lucide-react";
-import { cn } from "ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/core/lib/utils";
 import { RichTextEditorDef } from "./def";
 
 export const RichTextEditorRenderer = createAIComponentRenderer({

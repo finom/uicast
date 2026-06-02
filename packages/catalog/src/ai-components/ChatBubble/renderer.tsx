@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
-} from "ui-fired/catalog/components/ui/avatar";
-import { cn } from "ui-fired/core/lib/utils";
+} from "@ui-fired/catalog/components/ui/avatar";
+import { cn } from "@ui-fired/core/lib/utils";
 import { ChatBubbleDef } from "./def";
 
 export const ChatBubbleRenderer = createAIComponentRenderer({

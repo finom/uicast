@@ -1,22 +1,21 @@
 import { describe, expect, it, vi } from "vitest";
-import { createEmitter, createReactiveProxy } from "./createReactiveProxy";
+import { createEmitter, createProxyScope } from "../createProxyScope";
 
-describe("createReactiveProxy — reads", () => {
+describe("createProxyScope — reads", () => {
   it("returns the same proxy reference for the same source object", () => {
-    const state = createReactiveProxy({ user: { name: "Ada" } });
+    const state = createProxyScope({ user: { name: "Ada" } });
     expect(state.user).toBe(state.user);
   });
 
   it("returns raw values for primitives", () => {
-    const state = createReactiveProxy({ count: 0 });
+    const state = createProxyScope({ count: 0 });
     expect(state.count).toBe(0);
   });
 
-  it("exposes $emitter / $set / $setDefault on the root only", () => {
-    const state = createReactiveProxy({ nested: { a: 1 } });
+  it("exposes $emitter / $set on the root only", () => {
+    const state = createProxyScope({ nested: { a: 1 } });
     expect(typeof state.$emitter).toBe("object");
     expect(typeof state.$set).toBe("function");
-    expect(typeof state.$setDefault).toBe("function");
     // Sub-proxies should NOT expose root-only hooks
     expect((state.nested as unknown as { $emitter?: unknown }).$emitter).toBe(
       undefined,
@@ -24,9 +23,9 @@ describe("createReactiveProxy — reads", () => {
   });
 });
 
-describe("createReactiveProxy — writes and emits", () => {
+describe("createProxyScope — writes and emits", () => {
   it("emits on direct property assignment", () => {
-    const state = createReactiveProxy<{ count: number }>({ count: 0 });
+    const state = createProxyScope<{ count: number }>({ count: 0 });
     const spy = vi.fn();
     state.$emitter.on("count", spy);
     state.count = 1;
@@ -35,7 +34,7 @@ describe("createReactiveProxy — writes and emits", () => {
   });
 
   it("emits at the full dotted path for nested writes", () => {
-    const state = createReactiveProxy<{ user: { name: string } }>({
+    const state = createProxyScope<{ user: { name: string } }>({
       user: { name: "Ada" },
     });
     const spy = vi.fn();
@@ -49,7 +48,7 @@ describe("createReactiveProxy — writes and emits", () => {
   });
 
   it("does not emit when the value didn't change (idempotence)", () => {
-    const state = createReactiveProxy<{ count: number }>({ count: 5 });
+    const state = createProxyScope<{ count: number }>({ count: 5 });
     const spy = vi.fn();
     state.$emitter.on("count", spy);
     state.count = 5;
@@ -57,7 +56,7 @@ describe("createReactiveProxy — writes and emits", () => {
   });
 
   it("subscribes path-exact — parent subscriber does NOT see child writes", () => {
-    const state = createReactiveProxy<{ rows: { name: string }[] }>({
+    const state = createProxyScope<{ rows: { name: string }[] }>({
       rows: [{ name: "first" }],
     });
     const parentSpy = vi.fn();
@@ -67,7 +66,7 @@ describe("createReactiveProxy — writes and emits", () => {
   });
 
   it("subscribes path-exact — child subscriber sees only matching writes", () => {
-    const state = createReactiveProxy<{ rows: { name: string }[] }>({
+    const state = createProxyScope<{ rows: { name: string }[] }>({
       rows: [{ name: "first" }],
     });
     const childSpy = vi.fn();
@@ -77,25 +76,28 @@ describe("createReactiveProxy — writes and emits", () => {
   });
 });
 
-describe("createReactiveProxy — $set / $setDefault", () => {
+describe("createProxyScope — $set", () => {
   it("$set walks dotted segments, creating intermediates", () => {
-    const state = createReactiveProxy<{ a?: { b?: { c?: string } } }>({});
+    const state = createProxyScope<{ a?: { b?: { c?: string } } }>({});
     state.$set("a.b.c", "hello");
     expect(state.a?.b?.c).toBe("hello");
   });
 
-  it("$setDefault only writes when the leaf is undefined", () => {
-    const state = createReactiveProxy<{ count?: number }>({});
-    state.$setDefault("count", 1);
+  it("$set with { default: true } only writes when the leaf is undefined", () => {
+    const state = createProxyScope<{ count?: number }>({});
+    state.$set("count", 1, { default: true });
     expect(state.count).toBe(1);
-    state.$setDefault("count", 99);
+    state.$set("count", 99, { default: true });
     expect(state.count).toBe(1);
+    // without the flag it overwrites as usual
+    state.$set("count", 99);
+    expect(state.count).toBe(99);
   });
 });
 
-describe("createReactiveProxy — emitter unsubscribe", () => {
+describe("createProxyScope — emitter unsubscribe", () => {
   it("on() returns an unsubscribe function", () => {
-    const state = createReactiveProxy<{ count: number }>({ count: 0 });
+    const state = createProxyScope<{ count: number }>({ count: 0 });
     const spy = vi.fn();
     const off = state.$emitter.on("count", spy);
     state.count = 1;

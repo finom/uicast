@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   DropdownMenu as ShadcnDropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "ui-fired/catalog/components/ui/dropdown-menu";
-import { Button } from "ui-fired/catalog/components/ui/button";
+} from "@ui-fired/catalog/components/ui/dropdown-menu";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { DropdownMenuDef } from "./def";
 

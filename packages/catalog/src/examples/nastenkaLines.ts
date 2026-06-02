@@ -1,8 +1,6 @@
 export const nastenkaLines = [
   {
     key: "root",
-    op: "root",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4", align: "center" } },
     defaults: [
@@ -45,8 +43,6 @@ export const nastenkaLines = [
   },
   {
     key: "header-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -58,23 +54,17 @@ export const nastenkaLines = [
   },
   {
     key: "header-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "2", align: "center" } },
     children: ["welcome-heading", "welcome-text", "sparkle-row"],
   },
   {
     key: "welcome-heading",
-    op: "child",
-    kind: "element",
     component: "Heading",
     props: { literal: { level: "2", children: "Привет, Настенька! 🎀✨" } },
   },
   {
     key: "welcome-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       literal: {
@@ -86,16 +76,12 @@ export const nastenkaLines = [
   },
   {
     key: "sparkle-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "center", align: "center" } },
     children: ["sparkle-btn", "sparkle-count-badge"],
   },
   {
     key: "sparkle-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: {
@@ -115,8 +101,6 @@ export const nastenkaLines = [
   },
   {
     key: "sparkle-count-badge",
-    op: "child",
-    kind: "element",
     component: "Badge",
     props: {
       expr: "({ children: '✨ × ' + scopes.root.sparkleCount, variant: scopes.root.sparkleCount > 10 ? 'default' : 'secondary' })",
@@ -124,8 +108,6 @@ export const nastenkaLines = [
   },
   {
     key: "compliment-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -137,23 +119,17 @@ export const nastenkaLines = [
   },
   {
     key: "compliment-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "3", align: "center" } },
     children: ["compliment-alert", "compliment-btn"],
   },
   {
     key: "compliment-alert",
-    op: "child",
-    kind: "element",
     component: "Alert",
     props: { expr: "({ title: scopes.root.compliment, status: 'success' })" },
   },
   {
     key: "compliment-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: {
@@ -173,8 +149,6 @@ export const nastenkaLines = [
   },
   {
     key: "cat-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -186,31 +160,23 @@ export const nastenkaLines = [
   },
   {
     key: "cat-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "3", align: "center" } },
     children: ["cat-display", "cat-pet-row", "cat-status"],
   },
   {
     key: "cat-display",
-    op: "child",
-    kind: "element",
     component: "Heading",
     props: { expr: "({ level: '1', children: scopes.root.catMood })" },
   },
   {
     key: "cat-pet-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "center" } },
     children: ["pet-btn", "feed-btn"],
   },
   {
     key: "pet-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "🤗 Погладить котика", variant: "default" } },
     callbacks: {
@@ -225,8 +191,6 @@ export const nastenkaLines = [
   },
   {
     key: "feed-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "🐟 Покормить котика", variant: "secondary" },
@@ -240,8 +204,6 @@ export const nastenkaLines = [
   },
   {
     key: "cat-status",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.petCount === 0 ? 'Котик ждёт внимания...' : scopes.root.petCount < 5 ? 'Котик доволен! Мур~' : scopes.root.petCount < 10 ? 'Котик очень счастлив! Мур-мур-мур! 💕' : 'Котик в полном восторге от Настеньки!!! 😻💖✨', variant: 'muted' })",
@@ -249,8 +211,6 @@ export const nastenkaLines = [
   },
   {
     key: "flower-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -262,8 +222,6 @@ export const nastenkaLines = [
   },
   {
     key: "flower-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "3", align: "center" } },
     children: [
@@ -275,8 +233,6 @@ export const nastenkaLines = [
   },
   {
     key: "flower-buttons",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "center", wrap: true } },
     children: [
@@ -290,8 +246,6 @@ export const nastenkaLines = [
   },
   {
     key: "rose-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "🌹 Роза", variant: "outline", size: "sm" } },
     callbacks: {
@@ -303,8 +257,6 @@ export const nastenkaLines = [
   },
   {
     key: "tulip-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "🌷 Тюльпан", variant: "outline", size: "sm" },
@@ -318,8 +270,6 @@ export const nastenkaLines = [
   },
   {
     key: "sunflower-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "🌻 Подсолнух", variant: "outline", size: "sm" },
@@ -333,8 +283,6 @@ export const nastenkaLines = [
   },
   {
     key: "cherry-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "🌸 Сакура", variant: "outline", size: "sm" },
@@ -348,8 +296,6 @@ export const nastenkaLines = [
   },
   {
     key: "daisy-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "🌼 Ромашка", variant: "outline", size: "sm" },
@@ -363,8 +309,6 @@ export const nastenkaLines = [
   },
   {
     key: "lily-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "💐 Букетик", variant: "outline", size: "sm" },
@@ -378,8 +322,6 @@ export const nastenkaLines = [
   },
   {
     key: "flower-bouquet",
-    op: "child",
-    kind: "element",
     component: "Heading",
     props: {
       expr: "({ level: '3', children: scopes.root.flowers.length === 0 ? '🌱 Сад пока пуст...' : scopes.root.flowers.join(' ') })",
@@ -387,8 +329,6 @@ export const nastenkaLines = [
   },
   {
     key: "flower-count-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.flowerCount === 0 ? 'Добавь цветочков!' : 'В букете: ' + scopes.root.flowerCount + ' ' + (scopes.root.flowerCount === 1 ? 'цветок' : scopes.root.flowerCount < 5 ? 'цветка' : 'цветков') + ' 💕', variant: 'muted' })",
@@ -396,8 +336,6 @@ export const nastenkaLines = [
   },
   {
     key: "clear-flowers-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: {
@@ -415,8 +353,6 @@ export const nastenkaLines = [
   },
   {
     key: "hearts-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -428,16 +364,12 @@ export const nastenkaLines = [
   },
   {
     key: "hearts-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "3", align: "center" } },
     children: ["hearts-display", "hearts-buttons"],
   },
   {
     key: "hearts-display",
-    op: "child",
-    kind: "element",
     component: "Heading",
     props: {
       expr: "({ level: '3', children: scopes.root.hearts.length === 0 ? 'Нажми кнопку, чтобы собрать сердечки!' : scopes.root.hearts.join(' ') })",
@@ -445,8 +377,6 @@ export const nastenkaLines = [
   },
   {
     key: "hearts-buttons",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "center", wrap: true } },
     children: [
@@ -459,8 +389,6 @@ export const nastenkaLines = [
   },
   {
     key: "pink-heart-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "💗", size: "lg" } },
     callbacks: {
@@ -471,8 +399,6 @@ export const nastenkaLines = [
   },
   {
     key: "red-heart-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "❤️", size: "lg", variant: "destructive" } },
     callbacks: {
@@ -483,8 +409,6 @@ export const nastenkaLines = [
   },
   {
     key: "purple-heart-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "💜", size: "lg", variant: "secondary" } },
     callbacks: {
@@ -495,8 +419,6 @@ export const nastenkaLines = [
   },
   {
     key: "sparkling-heart-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "💖", size: "lg", variant: "outline" } },
     callbacks: {
@@ -507,8 +429,6 @@ export const nastenkaLines = [
   },
   {
     key: "clear-hearts-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       literal: { children: "Начать заново", variant: "ghost", size: "sm" },
@@ -517,8 +437,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: {
       literal: {
@@ -530,16 +448,12 @@ export const nastenkaLines = [
   },
   {
     key: "mood-content",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "3", align: "center" } },
     children: ["mood-select", "mood-result"],
   },
   {
     key: "mood-select",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "center", wrap: true } },
     children: [
@@ -553,8 +467,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-happy",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '😊 Счастье', variant: scopes.root.mood === 'happy' ? 'default' : 'outline' })",
@@ -563,8 +475,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-love",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '🥰 Любовь', variant: scopes.root.mood === 'love' ? 'default' : 'outline' })",
@@ -573,8 +483,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-star",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '🤩 Восторг', variant: scopes.root.mood === 'star' ? 'default' : 'outline' })",
@@ -583,8 +491,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-chill",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '😌 Спокойствие', variant: scopes.root.mood === 'chill' ? 'default' : 'outline' })",
@@ -593,8 +499,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-sleepy",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '😴 Сонливость', variant: scopes.root.mood === 'sleepy' ? 'default' : 'outline' })",
@@ -603,8 +507,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-party",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: {
       expr: "({ children: '🥳 Веселье', variant: scopes.root.mood === 'party' ? 'default' : 'outline' })",
@@ -613,8 +515,6 @@ export const nastenkaLines = [
   },
   {
     key: "mood-result",
-    op: "child",
-    kind: "element",
     component: "Alert",
     props: {
       expr: "({ title: scopes.root.mood === 'happy' ? '😊 Настенька счастлива — и весь мир улыбается!' : scopes.root.mood === 'love' ? '🥰 Настенька влюблена в жизнь — это прекрасно!' : scopes.root.mood === 'star' ? '🤩 Настенька в восторге — энергия зашкаливает!' : scopes.root.mood === 'chill' ? '😌 Настенька отдыхает — заслуженный покой 🍃' : scopes.root.mood === 'sleepy' ? '😴 Настенька хочет спать — сладких снов, солнышко! 🌙' : '🥳 Настенька веселится — праздник продолжается! 🎉', status: 'info' })",
@@ -622,16 +522,12 @@ export const nastenkaLines = [
   },
   {
     key: "stats-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "4", justify: "center", wrap: true } },
     children: ["stat-sparkles", "stat-pets", "stat-flowers", "stat-hearts"],
   },
   {
     key: "stat-sparkles",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: "({ label: 'Блесков ✨', value: scopes.root.sparkleCount, trend: 'up', trendValue: 'Больше блеска!' })",
@@ -639,8 +535,6 @@ export const nastenkaLines = [
   },
   {
     key: "stat-pets",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: "({ label: 'Погладила котика 🐱', value: scopes.root.petCount, trend: 'up', trendValue: 'Мур!' })",
@@ -648,8 +542,6 @@ export const nastenkaLines = [
   },
   {
     key: "stat-flowers",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: "({ label: 'Цветочков 🌸', value: scopes.root.flowerCount, trend: 'up', trendValue: 'Красота!' })",
@@ -657,8 +549,6 @@ export const nastenkaLines = [
   },
   {
     key: "stat-hearts",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: "({ label: 'Сердечек 💖', value: scopes.root.hearts.length, trend: 'up', trendValue: 'Любовь!' })",

@@ -1,7 +1,7 @@
 import { act, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
@@ -9,8 +9,6 @@ describe("RecursiveRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         defaults: [{ set: "scopes.root.count", literal: 5 }],
         props: { expr: "({ text: scopes.root.count })" },
       },
@@ -25,8 +23,6 @@ describe("RecursiveRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         defaults: [{ set: "scopes.root.total", expr: "2 + 2" }],
         props: { expr: "({ text: scopes.root.total })" },
       },
@@ -41,8 +37,6 @@ describe("RecursiveRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         defaults: [{ set: "scopes.root.x", expr: "track()" }],
         props: { expr: "({ text: scopes.root.x })" },
       },
@@ -70,8 +64,6 @@ describe("RecursiveRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         defaults: [{ set: "scopes.root.data", expr: "loadData()" }],
         props: { expr: "({ text: scopes.root.data })" },
       },

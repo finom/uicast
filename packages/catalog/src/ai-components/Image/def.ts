@@ -1,6 +1,6 @@
 import z from "zod";
-import { createAIComponentDef } from "ui-fired/core/render/createAIComponentDef";
-import { onClickSchema } from "ui-fired/core/render/shared";
+import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
+import { onClickSchema } from "@ui-fired/core/render/shared";
 
 export const ImageDef = createAIComponentDef({
   name: "Image",

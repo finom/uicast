@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createAIComponentDef } from "./createAIComponentDef";
-import { createAIComponentDefs } from "./createAIComponentDefs";
+import { createAIComponentDef } from "../createAIComponentDef";
+import { createAIComponentDefs } from "../createAIComponentDefs";
 
 // `createAIComponentDefs` is now a thin validating constructor: it returns the
 // def array unchanged, but throws on a duplicate `name` — the array form loses

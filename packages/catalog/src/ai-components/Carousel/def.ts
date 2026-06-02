@@ -1,5 +1,5 @@
 import z from "zod";
-import { createAIComponentDef } from "ui-fired/core/render/createAIComponentDef";
+import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 
 export const CarouselDef = createAIComponentDef({
   name: "Carousel",

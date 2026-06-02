@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "ui-fired/catalog/components/ui/dialog";
-import { Button } from "ui-fired/catalog/components/ui/button";
+} from "@ui-fired/catalog/components/ui/dialog";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { ConfirmDialogDef } from "./def";
 
 export const ConfirmDialogRenderer = createAIComponentRenderer({

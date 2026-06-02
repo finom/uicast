@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Progress } from "ui-fired/catalog/components/ui/progress";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Progress } from "@ui-fired/catalog/components/ui/progress";
 import { ProgressBarDef } from "./def";
 
 export const ProgressBarRenderer = createAIComponentRenderer({

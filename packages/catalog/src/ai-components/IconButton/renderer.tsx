@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { IconButtonDef } from "./def";

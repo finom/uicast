@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
-import { Input } from "ui-fired/catalog/components/ui/input";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
+import { Input } from "@ui-fired/catalog/components/ui/input";
 import { X } from "lucide-react";
 import { TagInputDef } from "./def";
 

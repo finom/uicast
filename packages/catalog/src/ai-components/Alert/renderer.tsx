@@ -1,9 +1,9 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Alert as ShadcnAlert,
   AlertTitle,
   AlertDescription,
-} from "ui-fired/catalog/components/ui/alert";
+} from "@ui-fired/catalog/components/ui/alert";
 import { AlertCircle, CheckCircle2, Info, AlertTriangle } from "lucide-react";
 import { AlertDef } from "./def";
 

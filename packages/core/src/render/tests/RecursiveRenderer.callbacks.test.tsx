@@ -1,7 +1,7 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — callbacks", () => {
   it("fires a callback that $sets a path the renderer reads", async () => {
@@ -9,15 +9,11 @@ describe("RecursiveRenderer — callbacks", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["btn", "label"],
       },
       {
         key: "btn",
         component: "Button",
-        op: "child",
-        kind: "element",
         props: { expr: "({ label: 'inc' })" },
         callbacks: {
           onClick: [{ set: "scopes.root.count", expr: "scopes.root.count + 1" }],
@@ -26,8 +22,6 @@ describe("RecursiveRenderer — callbacks", () => {
       {
         key: "label",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
@@ -55,8 +49,6 @@ describe("RecursiveRenderer — callbacks", () => {
       {
         key: "root",
         component: "Button",
-        op: "root",
-        kind: "element",
         props: { expr: "({ label: 'go' })" },
         callbacks: {
           onClick: [{ set: "scopes.root.eventPayload", expr: "captured(evt)" }],
@@ -87,15 +79,11 @@ describe("RecursiveRenderer — callbacks", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["btn", "labelA", "labelB"],
       },
       {
         key: "btn",
         component: "Button",
-        op: "child",
-        kind: "element",
         callbacks: {
           onClick: [
             { set: "scopes.root.a", literal: "first" },
@@ -106,15 +94,11 @@ describe("RecursiveRenderer — callbacks", () => {
       {
         key: "labelA",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.a })" },
       },
       {
         key: "labelB",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.b })" },
       },
     ];

@@ -1,10 +1,10 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "ui-fired/catalog/components/ui/collapsible";
-import { Button } from "ui-fired/catalog/components/ui/button";
+} from "@ui-fired/catalog/components/ui/collapsible";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 import { CollapsibleDef } from "./def";
 

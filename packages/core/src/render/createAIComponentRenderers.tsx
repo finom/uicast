@@ -1,6 +1,6 @@
 import type { AIComponentRenderer } from "./createAIComponentRenderer";
 import type { ChunkComponent, ChunkComponentElement } from "../types";
-import { createReactiveProxy } from "./createReactiveProxy";
+import { createProxyScope } from "../scope/createProxyScope";
 import { RecursiveRenderer } from "./RecursiveRenderer";
 import {
   RendererRegistryProvider,
@@ -22,7 +22,7 @@ export const createAIComponentRenderers = (
   renderers: AIComponentRenderer[],
   options?: { defaultPlaceholder?: DefaultPlaceholderComponent },
 ) => {
-  const root = createReactiveProxy({});
+  const root = createProxyScope({});
 
   // Validate uniqueness — the array form loses the keyed-object's free
   // duplicate protection, so fail fast at import time on a repeated name.
@@ -93,12 +93,19 @@ export const createAIComponentRenderers = (
         );
         const elementsById = buildElementsById(lines);
 
-        // Inline dedup-by-key (replaces lodash `uniqBy`): walk once, keep the
-        // first occurrence per key. Same semantics as `uniqBy(roots, "key")`.
+        // Root chunks are derived structurally (there is no `op` field): a
+        // chunk is a root iff no other chunk references its `key` in a
+        // `children` array. Collect every referenced child key first, then
+        // keep the chunks nothing points at. Walk in emission order and dedup
+        // by key (same first-occurrence semantics as the old `uniqBy`).
+        const childKeys = new Set<string>();
+        for (const line of lines) {
+          for (const childKey of line.children ?? []) childKeys.add(childKey);
+        }
         const seenRootKeys = new Set<string>();
         const rootKeys: string[] = [];
         for (const line of lines) {
-          if (line.op !== "root" || seenRootKeys.has(line.key)) continue;
+          if (childKeys.has(line.key) || seenRootKeys.has(line.key)) continue;
           seenRootKeys.add(line.key);
           rootKeys.push(line.key);
         }
@@ -112,8 +119,6 @@ export const createAIComponentRenderers = (
         const syntheticFragment: ChunkComponentElement = {
           key: RENDERER_FRAGMENT_KEY,
           component: "Fragment",
-          op: "root",
-          kind: "element",
           children: rootKeys,
         };
         const elementsWithFragment = {

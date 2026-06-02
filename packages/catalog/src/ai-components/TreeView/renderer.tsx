@@ -1,11 +1,11 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
 import {
   Collapsible,
   CollapsibleTrigger,
   CollapsibleContent,
-} from "ui-fired/catalog/components/ui/collapsible";
-import { Button } from "ui-fired/catalog/components/ui/button";
+} from "@ui-fired/catalog/components/ui/collapsible";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";

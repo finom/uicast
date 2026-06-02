@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Textarea as ShadcnTextarea } from "ui-fired/catalog/components/ui/textarea";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Textarea as ShadcnTextarea } from "@ui-fired/catalog/components/ui/textarea";
 import { TextareaDef } from "./def";
 
 export const TextareaRenderer = createAIComponentRenderer({

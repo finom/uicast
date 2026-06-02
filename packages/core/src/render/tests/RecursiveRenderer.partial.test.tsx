@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { buildElementsById } from "ui-fired/core/utils/utils";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 describe("RecursiveRenderer — partial replacement (buildElementsById contract)", () => {
   // The runtime contract is that re-emitting a chunk with the same `key` drops
@@ -13,22 +13,16 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["a"],
       },
       {
         key: "a",
         component: "Box",
-        op: "child",
-        kind: "element",
         children: ["a1"],
       },
       {
         key: "a1",
         component: "Box",
-        op: "child",
-        kind: "element",
       },
     ];
     const replaced: ChunkComponent[] = [
@@ -37,15 +31,11 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
       {
         key: "a",
         component: "Box",
-        op: "child",
-        kind: "element",
         children: ["a2"],
       },
       {
         key: "a2",
         component: "Box",
-        op: "child",
-        kind: "element",
       },
     ];
 
@@ -61,14 +51,12 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["a", "b"],
       },
-      { key: "a", component: "Box", op: "child", kind: "element" },
-      { key: "b", component: "Box", op: "child", kind: "element" },
+      { key: "a", component: "Box" },
+      { key: "b", component: "Box" },
       // Re-emit only `a`
-      { key: "a", component: "Box", op: "child", kind: "element" },
+      { key: "a", component: "Box" },
     ];
     const map = buildElementsById(lines);
     expect(map.b).toBeDefined();

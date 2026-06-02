@@ -4,12 +4,18 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     alias: [
+      // Bare barrel (`@ui-fired/core`) must precede the subpath rule so it
+      // resolves to the package index, not `src/` + empty capture.
       {
-        find: /^ui-fired\/core\/(.*)$/,
+        find: /^@ui-fired\/core$/,
+        replacement: resolve(__dirname, "./src/index.ts"),
+      },
+      {
+        find: /^@ui-fired\/core\/(.*)$/,
         replacement: resolve(__dirname, "./src/$1"),
       },
       {
-        find: /^ui-fired\/catalog\/(.*)$/,
+        find: /^@ui-fired\/catalog\/(.*)$/,
         replacement: resolve(__dirname, "../catalog/src/$1"),
       },
     ],

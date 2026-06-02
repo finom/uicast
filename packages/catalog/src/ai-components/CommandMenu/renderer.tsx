@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   CommandDialog,
   Command,
@@ -8,7 +8,7 @@ import {
   CommandGroup,
   CommandItem,
   CommandShortcut,
-} from "ui-fired/catalog/components/ui/command";
+} from "@ui-fired/catalog/components/ui/command";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { CommandMenuDef } from "./def";

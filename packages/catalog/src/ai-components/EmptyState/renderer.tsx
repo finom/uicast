@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
 import { InboxIcon } from "lucide-react";
 import { EmptyStateDef } from "./def";
 

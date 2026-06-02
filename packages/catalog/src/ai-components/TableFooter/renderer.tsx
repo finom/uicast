@@ -1,9 +1,9 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   TableFooter as ShadcnTableFooter,
   TableRow,
   TableCell,
-} from "ui-fired/catalog/components/ui/table";
+} from "@ui-fired/catalog/components/ui/table";
 import Skeleton from "react-loading-skeleton";
 import { TableFooterDef } from "./def";
 

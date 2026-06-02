@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { TableCell as ShadcnTableCell } from "ui-fired/catalog/components/ui/table";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { TableCell as ShadcnTableCell } from "@ui-fired/catalog/components/ui/table";
 import { TableCellDef } from "./def";
 
 export const TableCellRenderer = createAIComponentRenderer({

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — errors", () => {
   it("renders an inline fallback when the component is not in the registry", () => {
@@ -8,8 +8,6 @@ describe("RecursiveRenderer — errors", () => {
       {
         key: "root",
         component: "DoesNotExist",
-        op: "root",
-        kind: "element",
       },
     ];
     const { container } = mountChunks(lines);
@@ -27,21 +25,15 @@ describe("RecursiveRenderer — errors", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["bad", "good"],
       },
       {
         key: "bad",
         component: "Thrower",
-        op: "child",
-        kind: "element",
       },
       {
         key: "good",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: 'sibling-survives' })" },
       },
     ];
@@ -61,23 +53,17 @@ describe("RecursiveRenderer — errors", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["bad", "good"],
       },
       {
         key: "bad",
         component: "Box",
-        op: "child",
-        kind: "element",
         // Reads a path through `null`, triggering a runtime error inside evaluate().
         props: { expr: "({ text: scopes.root.missing.deeper.fragile })" },
       },
       {
         key: "good",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: 'still-here' })" },
       },
     ];

@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Card, CardContent } from "ui-fired/catalog/components/ui/card";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Card, CardContent } from "@ui-fired/catalog/components/ui/card";
 import { BarcodeDef } from "./def";
 
 /**

@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { cn } from "ui-fired/core/lib/utils";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { X, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";

@@ -1,10 +1,8 @@
-import { ChunkComponent } from "ui-fired/core/types";
+import { ChunkComponent } from "@ui-fired/core/types";
 
 export const claudeLines: ChunkComponent[] = [
   {
     key: "root",
-    op: "root",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "6" } },
     defaults: [
@@ -47,8 +45,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "heading",
-    op: "child",
-    kind: "element",
     component: "Heading",
     props: {
       literal: { level: "1", children: "Project Management Dashboard" },
@@ -56,16 +52,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "stats-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "4", wrap: true } },
     children: ["stat-users", "stat-tasks", "stat-progress", "stat-done"],
   },
   {
     key: "stat-users",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: '({label: "Total Users", value: scopes.root.users.length})',
@@ -73,8 +65,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "stat-tasks",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: '({label: "Total Tasks", value: scopes.root.tasks.length})',
@@ -82,8 +72,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "stat-progress",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: '({label: "In Progress", value: scopes.root.tasks.filter(t => t.status === "IN_PROGRESS").length, trend: "up", trendValue: scopes.root.tasks.filter(t => t.status === "IN_PROGRESS").length + " active"})',
@@ -91,8 +79,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "stat-done",
-    op: "child",
-    kind: "element",
     component: "Stat",
     props: {
       expr: '({label: "Completed", value: scopes.root.tasks.filter(t => t.status === "DONE").length, trend: "up", trendValue: scopes.root.tasks.filter(t => t.status === "DONE").length + " done"})',
@@ -100,24 +86,18 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "charts-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "4", equalWidth: true } },
     children: ["bar-chart-card", "pie-chart-card"],
   },
   {
     key: "bar-chart-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: { literal: { title: "Tasks by Status" } },
     children: ["bar-chart"],
   },
   {
     key: "bar-chart",
-    op: "child",
-    kind: "element",
     component: "BarChart",
     props: {
       expr: '({data: [{status: "TODO", count: String(scopes.root.tasks.filter(t => t.status === "TODO").length)}, {status: "In Progress", count: String(scopes.root.tasks.filter(t => t.status === "IN_PROGRESS").length)}, {status: "In Review", count: String(scopes.root.tasks.filter(t => t.status === "IN_REVIEW").length)}, {status: "Done", count: String(scopes.root.tasks.filter(t => t.status === "DONE").length)}], xKey: "status", yKeys: ["count"], height: 300, colors: ["#6366f1", "#f59e0b", "#8b5cf6", "#22c55e"]})',
@@ -125,16 +105,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "pie-chart-card",
-    op: "child",
-    kind: "element",
     component: "Card",
     props: { literal: { title: "Tasks per Team Member" } },
     children: ["pie-chart"],
   },
   {
     key: "pie-chart",
-    op: "child",
-    kind: "element",
     component: "PieChart",
     props: {
       expr: "({data: scopes.root.users.map(u => ({name: u.fullName, value: scopes.root.tasks.filter(t => t.userId === u.id).length})), height: 300, donut: true, showLabels: true})",
@@ -142,8 +118,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "tabs",
-    op: "child",
-    kind: "element",
     component: "Tabs",
     props: { expr: "({value: scopes.root.activeTab})" },
     callbacks: {
@@ -153,45 +127,33 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "tab-list",
-    op: "child",
-    kind: "element",
     component: "TabList",
     children: ["tab-trigger-tasks", "tab-trigger-team"],
   },
   {
     key: "tab-trigger-tasks",
-    op: "child",
-    kind: "element",
     component: "TabTrigger",
     props: { literal: { value: "tasks", children: "Tasks Board" } },
   },
   {
     key: "tab-trigger-team",
-    op: "child",
-    kind: "element",
     component: "TabTrigger",
     props: { literal: { value: "team", children: "Team Management" } },
   },
   {
     key: "tab-content-tasks",
-    op: "child",
-    kind: "element",
     component: "TabContent",
     props: { literal: { value: "tasks" } },
     children: ["tasks-toolbar", "tasks-table", "tasks-pagination-row"],
   },
   {
     key: "tasks-toolbar",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "4", justify: "between", align: "center" } },
     children: ["search-input", "add-task-btn"],
   },
   {
     key: "search-input",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.searchTerm, placeholder: "Search tasks by title...", kind: "search"})',
@@ -213,72 +175,52 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-task-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "+ Add Task" } },
     callbacks: { onClick: [{ set: "scopes.root.showAddTask", literal: true }] },
   },
   {
     key: "tasks-table",
-    op: "child",
-    kind: "element",
     component: "Table",
     children: ["tasks-thead", "tasks-tbody"],
   },
   {
     key: "tasks-thead",
-    op: "child",
-    kind: "element",
     component: "TableHeader",
     children: ["tasks-header-row"],
   },
   {
     key: "tasks-header-row",
-    op: "child",
-    kind: "element",
     component: "TableRow",
     children: ["th-title", "th-desc", "th-status", "th-user", "th-actions"],
   },
   {
     key: "th-title",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Title" } },
   },
   {
     key: "th-desc",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Description" } },
   },
   {
     key: "th-status",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Status" } },
   },
   {
     key: "th-user",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Assigned To" } },
   },
   {
     key: "th-actions",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Actions" } },
   },
   {
     key: "tasks-tbody",
-    op: "child",
-    kind: "element",
     component: "TableBody",
     defaults: [
       { set: "scopes.root.filteredTasks", expr: "scopes.root.tasks" },
@@ -291,39 +233,29 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "task-rows",
-    op: "child",
-    kind: "list",
     component: "TableRow",
-    itemScope: "taskRow",
-    itemIdKey: "id",
-    itemsSource: "scopes.root.paginatedTasks",
+    as: "taskRow",
+    keyBy: "id",
+    each: "scopes.root.paginatedTasks",
     children: ["td-title", "td-desc", "td-status", "td-user", "td-actions"],
   },
   {
     key: "td-title",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["title-text"],
   },
   {
     key: "title-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: { expr: "({children: scopes.taskRow.item.title})" },
   },
   {
     key: "td-desc",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["desc-text"],
   },
   {
     key: "desc-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: '({children: scopes.taskRow.item.description, variant: "muted"})',
@@ -331,15 +263,11 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "td-status",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["status-badge"],
   },
   {
     key: "status-badge",
-    op: "child",
-    kind: "element",
     component: "Badge",
     props: {
       expr: '({children: scopes.taskRow.item.status === "IN_PROGRESS" ? "In Progress" : (scopes.taskRow.item.status === "IN_REVIEW" ? "In Review" : (scopes.taskRow.item.status === "DONE" ? "Done" : "To Do")), variant: scopes.taskRow.item.status === "DONE" ? "default" : (scopes.taskRow.item.status === "IN_PROGRESS" ? "secondary" : (scopes.taskRow.item.status === "IN_REVIEW" ? "outline" : "destructive"))})',
@@ -347,15 +275,11 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "td-user",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["user-name-text"],
   },
   {
     key: "user-name-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: '({children: scopes.root.users.find(u => u.id === scopes.taskRow.item.userId)?.fullName ?? "Unassigned"})',
@@ -363,22 +287,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "td-actions",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["task-dropdown"],
   },
   {
     key: "task-dropdown",
-    op: "child",
-    kind: "element",
     component: "DropdownMenu",
     children: ["task-edit-item", "task-delete-item"],
   },
   {
     key: "task-edit-item",
-    op: "child",
-    kind: "element",
     component: "DropdownMenuItem",
     props: { literal: { children: "Edit" } },
     callbacks: {
@@ -403,8 +321,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "task-delete-item",
-    op: "child",
-    kind: "element",
     component: "DropdownMenuItem",
     props: { literal: { children: "Delete", variant: "destructive" } },
     callbacks: {
@@ -429,8 +345,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "tasks-pagination-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { justify: "center" } },
     hidden: {
@@ -440,8 +354,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "tasks-pagination",
-    op: "child",
-    kind: "element",
     component: "Pagination",
     props: {
       expr: "({currentPage: scopes.root.taskPage, totalPages: Math.ceil(scopes.root.filteredTasks.length / 25)})",
@@ -458,24 +370,18 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "tab-content-team",
-    op: "child",
-    kind: "element",
     component: "TabContent",
     props: { literal: { value: "team" } },
     children: ["team-toolbar", "users-table", "users-pagination-row"],
   },
   {
     key: "team-toolbar",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "4", justify: "between", align: "center" } },
     children: ["user-search-input", "add-user-btn"],
   },
   {
     key: "user-search-input",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.userSearchTerm, placeholder: "Search users by name...", kind: "search"})',
@@ -497,65 +403,47 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-user-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "+ Add User" } },
     callbacks: { onClick: [{ set: "scopes.root.showAddUser", literal: true }] },
   },
   {
     key: "users-table",
-    op: "child",
-    kind: "element",
     component: "Table",
     children: ["users-thead", "users-tbody"],
   },
   {
     key: "users-thead",
-    op: "child",
-    kind: "element",
     component: "TableHeader",
     children: ["users-header-row"],
   },
   {
     key: "users-header-row",
-    op: "child",
-    kind: "element",
     component: "TableRow",
     children: ["uth-name", "uth-email", "uth-tasks", "uth-actions"],
   },
   {
     key: "uth-name",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Full Name" } },
   },
   {
     key: "uth-email",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Email" } },
   },
   {
     key: "uth-tasks",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Task Count" } },
   },
   {
     key: "uth-actions",
-    op: "child",
-    kind: "element",
     component: "TableHead",
     props: { literal: { children: "Actions" } },
   },
   {
     key: "users-tbody",
-    op: "child",
-    kind: "element",
     component: "TableBody",
     defaults: [
       { set: "scopes.root.filteredUsers", expr: "scopes.root.users" },
@@ -568,39 +456,29 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "user-rows",
-    op: "child",
-    kind: "list",
     component: "TableRow",
-    itemScope: "userRow",
-    itemIdKey: "id",
-    itemsSource: "scopes.root.paginatedUsers",
+    as: "userRow",
+    keyBy: "id",
+    each: "scopes.root.paginatedUsers",
     children: ["utd-name", "utd-email", "utd-task-count", "utd-actions"],
   },
   {
     key: "utd-name",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["uname-text"],
   },
   {
     key: "uname-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: { expr: "({children: scopes.userRow.item.fullName})" },
   },
   {
     key: "utd-email",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["uemail-text"],
   },
   {
     key: "uemail-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: '({children: scopes.userRow.item.email, variant: "muted"})',
@@ -608,15 +486,11 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "utd-task-count",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["task-count-badge"],
   },
   {
     key: "task-count-badge",
-    op: "child",
-    kind: "element",
     component: "Badge",
     props: {
       expr: '({children: scopes.root.tasks.filter(t => t.userId === scopes.userRow.item.id).length, variant: "secondary"})',
@@ -624,22 +498,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "utd-actions",
-    op: "child",
-    kind: "element",
     component: "TableCell",
     children: ["user-dropdown"],
   },
   {
     key: "user-dropdown",
-    op: "child",
-    kind: "element",
     component: "DropdownMenu",
     children: ["user-edit-item", "user-delete-item"],
   },
   {
     key: "user-edit-item",
-    op: "child",
-    kind: "element",
     component: "DropdownMenuItem",
     props: { literal: { children: "Edit" } },
     callbacks: {
@@ -656,8 +524,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "user-delete-item",
-    op: "child",
-    kind: "element",
     component: "DropdownMenuItem",
     props: { literal: { children: "Delete", variant: "destructive" } },
     callbacks: {
@@ -691,8 +557,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "users-pagination-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { justify: "center" } },
     hidden: {
@@ -702,8 +566,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "users-pagination",
-    op: "child",
-    kind: "element",
     component: "Pagination",
     props: {
       expr: "({currentPage: scopes.root.userPage, totalPages: Math.ceil(scopes.root.filteredUsers.length / 25)})",
@@ -720,8 +582,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-task-modal",
-    op: "child",
-    kind: "element",
     component: "Modal",
     props: {
       expr: '({open: scopes.root.showAddTask, title: "Add New Task", description: "Fill in the details to create a new task."})',
@@ -733,8 +593,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-task-form",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     children: [
@@ -747,22 +605,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-task-title",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-task-title", "input-new-task-title"],
   },
   {
     key: "lbl-new-task-title",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Title" } },
   },
   {
     key: "input-new-task-title",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.newTaskTitle, placeholder: "Enter task title"})',
@@ -773,22 +625,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-task-desc",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-task-desc", "input-new-task-desc"],
   },
   {
     key: "lbl-new-task-desc",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Description" } },
   },
   {
     key: "input-new-task-desc",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.newTaskDesc, placeholder: "Enter task description"})',
@@ -799,22 +645,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-task-status",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-task-status", "select-new-task-status"],
   },
   {
     key: "lbl-new-task-status",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Status" } },
   },
   {
     key: "select-new-task-status",
-    op: "child",
-    kind: "element",
     component: "Select",
     props: {
       expr: '({value: scopes.root.newTaskStatus, placeholder: "Select status", options: [{label: "To Do", value: "TODO"}, {label: "In Progress", value: "IN_PROGRESS"}, {label: "In Review", value: "IN_REVIEW"}, {label: "Done", value: "DONE"}]})',
@@ -825,22 +665,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-task-user",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-task-user", "select-new-task-user"],
   },
   {
     key: "lbl-new-task-user",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Assign To" } },
   },
   {
     key: "select-new-task-user",
-    op: "child",
-    kind: "element",
     component: "Select",
     props: {
       expr: '({value: scopes.root.newTaskUserId, placeholder: "Select a user", options: scopes.root.users.map(u => ({label: u.fullName, value: u.id}))})',
@@ -851,16 +685,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-task-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "end" } },
     children: ["cancel-add-task-btn", "submit-add-task-btn"],
   },
   {
     key: "cancel-add-task-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Cancel", variant: "outline" } },
     callbacks: {
@@ -869,8 +699,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-add-task-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Create Task" } },
     callbacks: {
@@ -898,8 +726,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "edit-task-modal",
-    op: "child",
-    kind: "element",
     component: "Modal",
     props: {
       expr: '({open: scopes.root.showEditTask, title: "Edit Task", description: "Update the task details."})',
@@ -911,8 +737,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "edit-task-form",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     children: [
@@ -925,22 +749,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-task-title",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-task-title", "input-edit-task-title"],
   },
   {
     key: "lbl-edit-task-title",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Title" } },
   },
   {
     key: "input-edit-task-title",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.editTaskTitle, placeholder: "Enter task title"})',
@@ -951,22 +769,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-task-desc",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-task-desc", "input-edit-task-desc"],
   },
   {
     key: "lbl-edit-task-desc",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Description" } },
   },
   {
     key: "input-edit-task-desc",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.editTaskDesc, placeholder: "Enter task description"})',
@@ -977,22 +789,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-task-status",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-task-status", "select-edit-task-status"],
   },
   {
     key: "lbl-edit-task-status",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Status" } },
   },
   {
     key: "select-edit-task-status",
-    op: "child",
-    kind: "element",
     component: "Select",
     props: {
       expr: '({value: scopes.root.editTaskStatus, placeholder: "Select status", options: [{label: "To Do", value: "TODO"}, {label: "In Progress", value: "IN_PROGRESS"}, {label: "In Review", value: "IN_REVIEW"}, {label: "Done", value: "DONE"}]})',
@@ -1003,22 +809,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-task-user",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-task-user", "select-edit-task-user"],
   },
   {
     key: "lbl-edit-task-user",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Assign To" } },
   },
   {
     key: "select-edit-task-user",
-    op: "child",
-    kind: "element",
     component: "Select",
     props: {
       expr: '({value: scopes.root.editTaskUserId, placeholder: "Select a user", options: scopes.root.users.map(u => ({label: u.fullName, value: u.id}))})',
@@ -1029,16 +829,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-edit-task-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "end" } },
     children: ["cancel-edit-task-btn", "submit-edit-task-btn"],
   },
   {
     key: "cancel-edit-task-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Cancel", variant: "outline" } },
     callbacks: {
@@ -1047,8 +843,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-edit-task-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Save Changes" } },
     callbacks: {
@@ -1072,8 +866,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-user-modal",
-    op: "child",
-    kind: "element",
     component: "Modal",
     props: {
       expr: '({open: scopes.root.showAddUser, title: "Add New User", description: "Enter the user details."})',
@@ -1085,8 +877,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "add-user-form",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     children: [
@@ -1097,22 +887,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-user-name",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-user-name", "input-new-user-name"],
   },
   {
     key: "lbl-new-user-name",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Full Name" } },
   },
   {
     key: "input-new-user-name",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.newUserName, placeholder: "Enter full name"})',
@@ -1123,22 +907,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-new-user-email",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-new-user-email", "input-new-user-email"],
   },
   {
     key: "lbl-new-user-email",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Email" } },
   },
   {
     key: "input-new-user-email",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.newUserEmail, placeholder: "Enter email address", kind: "email"})',
@@ -1149,16 +927,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-user-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "end" } },
     children: ["cancel-add-user-btn", "submit-add-user-btn"],
   },
   {
     key: "cancel-add-user-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Cancel", variant: "outline" } },
     callbacks: {
@@ -1167,8 +941,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-add-user-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Create User" } },
     callbacks: {
@@ -1194,8 +966,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "edit-user-modal",
-    op: "child",
-    kind: "element",
     component: "Modal",
     props: {
       expr: '({open: scopes.root.showEditUser, title: "Edit User", description: "Update the user details."})',
@@ -1207,8 +977,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "edit-user-form",
-    op: "child",
-    kind: "element",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     children: [
@@ -1219,22 +987,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-user-name",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-user-name", "input-edit-user-name"],
   },
   {
     key: "lbl-edit-user-name",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Full Name" } },
   },
   {
     key: "input-edit-user-name",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.editUserName, placeholder: "Enter full name"})',
@@ -1245,22 +1007,16 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "field-edit-user-email",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["lbl-edit-user-email", "input-edit-user-email"],
   },
   {
     key: "lbl-edit-user-email",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Email" } },
   },
   {
     key: "input-edit-user-email",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({value: scopes.root.editUserEmail, placeholder: "Enter email address", kind: "email"})',
@@ -1271,16 +1027,12 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-edit-user-row",
-    op: "child",
-    kind: "element",
     component: "FlexRow",
     props: { literal: { gap: "2", justify: "end" } },
     children: ["cancel-edit-user-btn", "submit-edit-user-btn"],
   },
   {
     key: "cancel-edit-user-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Cancel", variant: "outline" } },
     callbacks: {
@@ -1289,8 +1041,6 @@ export const claudeLines: ChunkComponent[] = [
   },
   {
     key: "submit-edit-user-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Save Changes" } },
     callbacks: {

@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
-import { cn } from "ui-fired/core/lib/utils";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { TruncatedTextDef } from "./def";
 
 export const TruncatedTextRenderer = createAIComponentRenderer({

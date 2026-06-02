@@ -1,12 +1,12 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-} from "ui-fired/catalog/components/ui/card";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
-import { ScrollArea, ScrollBar } from "ui-fired/catalog/components/ui/scroll-area";
+} from "@ui-fired/catalog/components/ui/card";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
+import { ScrollArea, ScrollBar } from "@ui-fired/catalog/components/ui/scroll-area";
 import { KanbanBoardDef } from "./def";
 
 export const KanbanBoardRenderer = createAIComponentRenderer({

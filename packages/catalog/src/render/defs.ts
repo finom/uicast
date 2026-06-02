@@ -1,4 +1,4 @@
-import { createAIComponentDefs } from "ui-fired/core/render/createAIComponentDefs";
+import { createAIComponentDefs } from "@ui-fired/core/render/createAIComponentDefs";
 
 // Layout & Container
 import { CardDef } from "../ai-components/Card/def";

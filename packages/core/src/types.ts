@@ -3,58 +3,45 @@ import type {
   StandardSchemaV1,
 } from "@standard-schema/spec";
 
-export type ChunkComponentElement = {
+/**
+ * The base shape every component chunk shares. A plain (non-list) chunk is
+ * exactly this; a list chunk extends it with the iteration fields below. Put
+ * any field common to all chunks (props, defaults, hidden, callbacks,
+ * children, …) here so the two variants can't drift.
+ */
+export interface ChunkComponentElement {
   key: string;
   component: string;
-  op: "root" | "child";
-  kind: "element";
-  props?: ValueExpr;
-  defaults?: AssignableExpr[];
-  hidden?: ValueExpr;
-  callbacks?: Record<string, AssignableWithConfirmExpr[]>;
+  props?: ValueSource;
+  defaults?: ValueSourceAssignment[];
+  hidden?: ValueSource;
+  callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];
-};
+}
 
-export type ChunkComponentList = {
-  key: string;
-  component: string;
-  op: "child";
-  kind: "list";
-  itemIdKey?: (string & {}) | "_index" | "_item";
-  itemScope: string;
-  itemsSource: string;
-  props?: ValueExpr;
-  defaults?: AssignableExpr[];
-  hidden?: ValueExpr;
-  callbacks?: Record<string, AssignableWithConfirmExpr[]>;
-  children?: string[];
-};
+// A list chunk adds the iteration fields. `each` is the structural
+// discriminator for the `ChunkComponent` union below.
+export interface ChunkComponentList extends ChunkComponentElement {
+  keyBy?: (string & {}) | "_index" | "_item";
+  as: string;
+  each: string;
+}
 
+// A chunk is a **list** iff it has an `each` field; otherwise it's a regular
+// element. There is no `kind` discriminator — list-ness is derived structurally
+// from the presence of `each`, exactly like root-ness is derived from a chunk
+// being referenced by no other chunk's `children`. Narrow with `"each" in chunk`.
 export type ChunkComponent = ChunkComponentElement | ChunkComponentList;
 
-/**
- * Out-of-band metadata chunk emitted by streaming render endpoints before any
- * component chunks. Consumers (the renderer, persistence layer) must skip it.
- *
- * `pageId` is loose `string` here because `packages/core` is catalog-agnostic
- * and can't reach into a consumer's Prisma/Zod schemas. The producing service
- * and the consuming context brand it via their own `PageSchema.shape.id`.
- */
-export type ChunkMeta = {
-  kind: "meta";
-  pageId: string;
-};
+// NOTE: the out-of-band metadata envelope (`ChunkMeta`, kind: "meta") and the
+// meta-inclusive `Chunk = ChunkComponent | ChunkMeta` union are NOT defined
+// here. They're a streaming-protocol concern owned entirely by the consuming
+// app (neat-report's `@neat/types`); core is catalog-/transport-agnostic and
+// only knows about component chunks.
 
-/**
- * The full stream-chunk union. Use this on the wire / in iterators that may
- * carry meta. `ChunkComponent` stays the narrower type for anything that only
- * renders or persists components.
- */
-export type Chunk = ChunkComponent | ChunkMeta;
-
-export type ValueExpr = { expr?: string; literal?: unknown };
-export type AssignableExpr = { set: string } & ValueExpr;
-export type AssignableWithConfirmExpr = { confirm?: string } & AssignableExpr;
+export type ValueSource = { expr: string; } | { literal: unknown };
+export type ValueSourceAssignment = { set: string } & ValueSource;
+export type ConfirmableValueSourceAssignment = { confirm?: string } & ValueSourceAssignment;
 
 export interface CombinedProps<Input = unknown, Output = Input>
   extends
@@ -79,6 +66,6 @@ export namespace CombinedSpec {
 }
 
 // props: expr, literal
-// itemsSource: string (scope reference like scopes.root.myItems)
+// each: string (scope reference like scopes.root.myItems)
 // callbacks: set, expr, literal, async
 // defaults: set, expr, literal, async

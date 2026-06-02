@@ -1,10 +1,8 @@
-import { ChunkComponent } from "ui-fired/core/types";
+import { ChunkComponent } from "@ui-fired/core/types";
 
 export const formLines: ChunkComponent[] = [
   {
     key: "card2",
-    op: "root",
-    kind: "element",
     component: "Card",
     props: { literal: { title: "Form Example" } },
     defaults: [{ set: "scopes.root.count", literal: 0 }],
@@ -12,22 +10,16 @@ export const formLines: ChunkComponent[] = [
   },
   {
     key: "field1",
-    op: "child",
-    kind: "element",
     component: "Field",
     children: ["field1-label", "input1", "field1-desc"],
   },
   {
     key: "field1-label",
-    op: "child",
-    kind: "element",
     component: "FieldLabel",
     props: { literal: { children: "Count" } },
   },
   {
     key: "input1",
-    op: "child",
-    kind: "element",
     component: "Input",
     props: {
       expr: '({ value: scopes.root.count, kind: "number" })',
@@ -38,8 +30,6 @@ export const formLines: ChunkComponent[] = [
   },
   {
     key: "field1-desc",
-    op: "child",
-    kind: "element",
     component: "FieldDescription",
     props: { literal: { children: "Enter a number value" } },
   },

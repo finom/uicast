@@ -1,8 +1,8 @@
 "use client";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "ui-fired/core/components/ui/button";
-import { Textarea } from "ui-fired/core/components/ui/textarea";
+import { Button } from "@ui-fired/core/components/ui/button";
+import { Textarea } from "@ui-fired/core/components/ui/textarea";
 
 const CloseIcon = ({ className }: { className?: string }) => (
   <svg

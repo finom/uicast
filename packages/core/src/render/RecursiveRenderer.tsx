@@ -7,17 +7,12 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import { createReactiveProxy } from "./createReactiveProxy";
-import type {
-  AssignableExpr,
-  ChunkComponent,
-  ChunkComponentList,
-  ValueExpr,
-} from "../types";
+import { createProxyScope } from "../scope/createProxyScope";
+import type { ChunkComponent, ChunkComponentList } from "../types";
 import { useRendererRegistry } from "./RendererRegistry";
 import { evaluate } from "../eval/evaluate";
 import { extractDeps } from "../eval/extractDeps";
-import { parseScope } from "../utils/utils";
+import { parseScope } from "../scope/parseScope";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { InitFn } from "./Fragment";
 
@@ -29,7 +24,7 @@ export const RecursiveRenderer = ({
 }: {
   elementKey: string;
   elements: Record<string, ChunkComponent>;
-  scopes: Record<string, ReturnType<typeof createReactiveProxy>>;
+  scopes: Record<string, ReturnType<typeof createProxyScope>>;
   // One-shot side-effect callback. Set ONLY for the top-level mount of
   // the synthetic Fragment wrapper that `createAIComponentRenderers`
   // builds; recursive child mounts below intentionally omit this prop so
@@ -46,7 +41,7 @@ export const RecursiveRenderer = ({
 
   // Reactive subscriptions. The dep set is auto-derived from the chunk's
   // own expression text via static AST walk — `extractDeps` walks every
-  // `props.expr` / `hidden.expr` (and `itemsSource` on list chunks) for
+  // `props.expr` / `hidden.expr` (and `each` on list chunks) for
   // `scopes.X.Y` reads.
   useEffect(() => {
     if (!element) return () => {};
@@ -103,7 +98,7 @@ export const RecursiveRenderer = ({
         if (!childElement) {
           return <Placeholder key={childKey} />;
         }
-        if (childElement.kind === "list") {
+        if ("each" in childElement) {
           return (
             <ListRenderer
               key={childKey}
@@ -141,11 +136,7 @@ export const RecursiveRenderer = ({
     let hasAsync = false;
     element.defaults?.forEach((setExpr) => {
       if (setExpr.set) {
-        const value = evaluate<AssignableExpr>(
-          setExpr,
-          { scopes },
-          { functions },
-        );
+        const value = evaluate(setExpr, { scopes }, { functions });
         const [targetScope, targetPath] = parseScope(setExpr.set);
         if (value instanceof Promise) {
           hasAsync = true;
@@ -172,7 +163,9 @@ export const RecursiveRenderer = ({
             await entry.value;
             return;
           }
-          scopes[entry.targetScope].$set(entry.targetPath, await entry.value);
+          scopes[entry.targetScope].$set(entry.targetPath, await entry.value, {
+            default: true,
+          });
         }),
       ).then(() => {
         setTimeout(() => {
@@ -182,7 +175,9 @@ export const RecursiveRenderer = ({
     } else {
       for (const entry of collected) {
         if (entry.kind === "default") {
-          scopes[entry.targetScope].$set(entry.targetPath, entry.value);
+          scopes[entry.targetScope].$set(entry.targetPath, entry.value, {
+            default: true,
+          });
         }
         // Sync init writes have already landed via the Proxy `set`
         // trap — nothing further to do here.
@@ -226,11 +221,11 @@ export const RecursiveRenderer = ({
 };
 
 const getItemId = (
-  itemIdKey: string | undefined,
+  keyBy: string | undefined,
   item: unknown,
   index: number,
 ): string | number => {
-  const key = itemIdKey ?? "_index";
+  const key = keyBy ?? "_index";
   if (key === "_index") return index;
   if (key === "_item") return item as string | number;
   return ((item as Record<string, unknown>)?.[key] ?? index) as string | number;
@@ -244,7 +239,7 @@ export const ListRenderer = ({
 }: {
   elementKey: string;
   elements: Record<string, ChunkComponent>;
-  scopes: Record<string, ReturnType<typeof createReactiveProxy>>;
+  scopes: Record<string, ReturnType<typeof createProxyScope>>;
   line: ChunkComponentList;
 }): React.ReactElement => {
   const element = elements[elementKey];
@@ -252,19 +247,19 @@ export const ListRenderer = ({
   const { functions } = useRendererRegistry();
   // Cache item proxies by unique ID to preserve state across re-renders
   const itemProxiesRef = React.useRef<
-    Map<string | number, ReturnType<typeof createReactiveProxy>>
+    Map<string | number, ReturnType<typeof createProxyScope>>
   >(new Map());
 
   if (!element) return <></>;
 
-  if (element.kind !== "list")
+  if (!("each" in element))
     return (
       <div className="text-red-500">Element is not a list: {elementKey}</div>
     );
 
   // Reactive subscriptions for the list chunk. Auto-derived from the chunk's
-  // expressions — `itemsSource` plus any `props.expr` / `hidden.expr` on the
-  // list itself. The old code parseScope-d `itemsSource` directly and only
+  // expressions — `each` plus any `props.expr` / `hidden.expr` on the
+  // list itself. The old code parseScope-d `each` directly and only
   // subscribed to the leading static segment, which silently dropped reads
   // from filter/map sub-expressions (e.g. `scopes.inv.rows.filter(r =>
   // r.name.includes(scopes.root.searchTerm))` only ever woke on
@@ -291,19 +286,16 @@ export const ListRenderer = ({
   }, [element, scopes]);
 
   console.log(
-    `Rendering ListRenderer for ${elementKey} with itemsSource: ${line.itemsSource}`,
+    `Rendering ListRenderer for ${elementKey} with each: ${line.each}`,
   );
 
   const items =
-    (evaluate<ValueExpr>(
-      { expr: line.itemsSource },
-      { scopes },
-      { functions },
-    ) as unknown[]) ?? [];
+    (evaluate({ expr: line.each }, { scopes }, { functions }) as unknown[]) ??
+    [];
 
   // Clean up proxies for removed items (by ID)
   const currentIds = new Set(
-    items.map((item, index) => getItemId(line.itemIdKey, item, index)),
+    items.map((item, index) => getItemId(line.keyBy, item, index)),
   );
   itemProxiesRef.current.forEach((_, id) => {
     if (!currentIds.has(id)) {
@@ -315,7 +307,7 @@ export const ListRenderer = ({
 
   const childrenAndScopes = items.map((item, index) => {
     // Use item's id if available, otherwise fall back to index
-    const itemId = getItemId(line.itemIdKey, item, index);
+    const itemId = getItemId(line.keyBy, item, index);
 
     // Reuse existing proxy or create a new one (keyed by ID)
     const existingProxy = itemProxiesRef.current.get(itemId);
@@ -325,7 +317,7 @@ export const ListRenderer = ({
       (() => {
         // Create new proxy for new items
         const itemData = { item, index, id: itemId };
-        const newProxy = createReactiveProxy(itemData);
+        const newProxy = createProxyScope(itemData);
         itemProxiesRef.current.set(itemId, newProxy);
         return newProxy;
       })();
@@ -336,7 +328,7 @@ export const ListRenderer = ({
 
     const itemScopes = {
       ...scopes,
-      [line.itemScope]: itemProxy,
+      [line.as]: itemProxy,
     };
 
     return [
@@ -353,7 +345,7 @@ export const ListRenderer = ({
   const children = childrenAndScopes.map(([child]) => child);
   const itemScopesList = childrenAndScopes.map(([, scope]) => scope);
 
-  lastScope.$set(`childScopes.${line.itemScope}`, itemScopesList);
+  lastScope.$set(`childScopes.${line.as}`, itemScopesList);
 
   return <>{children}</>;
 };

@@ -1,13 +1,13 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "ui-fired/core/lib/utils";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "ui-fired/catalog/components/ui/popover";
+} from "@ui-fired/catalog/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -15,7 +15,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "ui-fired/catalog/components/ui/command";
+} from "@ui-fired/catalog/components/ui/command";
 import { ComboboxDef } from "./def";
 
 export const ComboboxRenderer = createAIComponentRenderer({

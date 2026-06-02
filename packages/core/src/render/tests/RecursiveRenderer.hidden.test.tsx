@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — hidden", () => {
   it("hides the chunk when hidden.expr evaluates truthy", () => {
@@ -9,8 +9,6 @@ describe("RecursiveRenderer — hidden", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         hidden: { expr: "scopes.root.hideIt" },
         props: { expr: "({ text: 'secret' })" },
       },
@@ -36,15 +34,11 @@ describe("RecursiveRenderer — hidden", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["panel"],
       },
       {
         key: "panel",
         component: "Box",
-        op: "child",
-        kind: "element",
         hidden: { expr: "scopes.root.hidden" },
         props: { expr: "({ text: 'panel-text' })" },
       },

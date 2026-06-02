@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Tabs as ShadcnTabs } from "ui-fired/catalog/components/ui/tabs";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Tabs as ShadcnTabs } from "@ui-fired/catalog/components/ui/tabs";
 import { TabsDef } from "./def";
 
 export const TabsRenderer = createAIComponentRenderer({

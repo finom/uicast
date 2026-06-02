@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { cn } from "ui-fired/core/lib/utils";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { cn } from "@ui-fired/core/lib/utils";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Star } from "lucide-react";
 import { RatingDef } from "./def";
 

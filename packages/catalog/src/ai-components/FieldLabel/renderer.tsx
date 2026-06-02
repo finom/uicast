@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Label } from "ui-fired/catalog/components/ui/label";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Label } from "@ui-fired/catalog/components/ui/label";
 import { FieldLabelDef } from "./def";
 
 export const FieldLabelRenderer = createAIComponentRenderer({

@@ -1,11 +1,11 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "ui-fired/catalog/components/ui/dialog";
+} from "@ui-fired/catalog/components/ui/dialog";
 import { ModalDef } from "./def";
 
 export const ModalRenderer = createAIComponentRenderer({

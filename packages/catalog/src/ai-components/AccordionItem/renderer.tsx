@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from "ui-fired/catalog/components/ui/accordion";
+} from "@ui-fired/catalog/components/ui/accordion";
 import { AccordionItemDef } from "./def";
 
 export const AccordionItemRenderer = createAIComponentRenderer({

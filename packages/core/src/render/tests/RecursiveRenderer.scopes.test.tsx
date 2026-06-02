@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — scopes", () => {
   it("reads from the root scope on mount", () => {
@@ -9,8 +9,6 @@ describe("RecursiveRenderer — scopes", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: scopes.root.label })" },
       },
     ];
@@ -25,8 +23,6 @@ describe("RecursiveRenderer — scopes", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
@@ -46,8 +42,6 @@ describe("RecursiveRenderer — scopes", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: scopes.root.a })" },
       },
     ];
@@ -69,8 +63,6 @@ describe("RecursiveRenderer — scopes", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: scopes.userCtx.name })" },
       },
     ];
@@ -86,15 +78,11 @@ describe("RecursiveRenderer — scopes", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["child"],
       },
       {
         key: "child",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.shared })" },
       },
     ];

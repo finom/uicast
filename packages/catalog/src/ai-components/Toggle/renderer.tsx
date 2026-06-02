@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Toggle } from "ui-fired/catalog/components/ui/toggle";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Toggle } from "@ui-fired/catalog/components/ui/toggle";
 import { ToggleDef } from "./def";
 
 export const ToggleRenderer = createAIComponentRenderer({

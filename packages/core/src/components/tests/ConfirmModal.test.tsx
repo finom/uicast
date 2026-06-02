@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
-import { ConfirmModalProvider, useConfirm } from "./ConfirmModal";
+import { ConfirmModalProvider, useConfirm } from "../ConfirmModal";
 
 function Harness({
   message,

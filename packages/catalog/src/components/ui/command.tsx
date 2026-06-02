@@ -3,15 +3,15 @@
 import * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 
-import { cn } from "ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/core/lib/utils";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "ui-fired/catalog/components/ui/dialog";
-import { InputGroup, InputGroupAddon } from "ui-fired/catalog/components/ui/input-group";
+} from "@ui-fired/catalog/components/ui/dialog";
+import { InputGroup, InputGroupAddon } from "@ui-fired/catalog/components/ui/input-group";
 import { SearchIcon, CheckIcon } from "lucide-react";
 
 function Command({

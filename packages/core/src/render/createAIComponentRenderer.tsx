@@ -1,12 +1,7 @@
 import { Activity, type ReactNode } from "react";
-import type {
-  AssignableWithConfirmExpr,
-  ChunkComponent,
-  CombinedSpec,
-  ValueExpr,
-} from "../types";
+import type { ChunkComponent, CombinedSpec } from "../types";
 import type { AIComponentDef } from "./createAIComponentDef";
-import { parseScope } from "../utils/utils";
+import { parseScope } from "../scope/parseScope";
 import { evaluate } from "../eval/evaluate";
 import { useConfirm } from "../components/ConfirmModal";
 import { useRendererRegistry } from "./RendererRegistry";
@@ -42,14 +37,14 @@ export const createAIComponentRenderer = <
     const confirm = useConfirm();
     const { functions } = useRendererRegistry();
     const props: CombinedSpec.InferOutput<TProps> = chunk.props
-      ? (evaluate<ValueExpr>(
+      ? (evaluate(
           chunk.props,
           { scopes: myprops.scopes },
           { functions },
         ) as CombinedSpec.InferOutput<TProps>)
       : ({} as CombinedSpec.InferOutput<TProps>);
     const hidden = chunk.hidden
-      ? evaluate<ValueExpr>(
+      ? evaluate(
           chunk.hidden,
           { scopes: myprops.scopes },
           { functions },
@@ -65,7 +60,7 @@ export const createAIComponentRenderer = <
               const confirmed = await confirm(setExpr.confirm);
               if (!confirmed) return;
             }
-            const result = await evaluate<AssignableWithConfirmExpr>(
+            const result = await evaluate(
               setExpr,
               { evt, scopes: myprops.scopes },
               { functions },

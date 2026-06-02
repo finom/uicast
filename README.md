@@ -17,15 +17,20 @@ step per generation.
 
 ## Consuming
 
-Today this ships as a single installable package named `ui-fired`, exposing the
-two libraries via subpath exports:
+This is a workspace of two scoped packages — `@ui-fired/core` (the engine) and
+`@ui-fired/catalog` (the components) — living in one repo. Import the engine's
+public surface from the `@ui-fired/core` barrel, or reach any module directly
+via a subpath:
 
 ```ts
-import { RecursiveRenderer } from "ui-fired/core/render/RecursiveRenderer";
-import { componentRenderers } from "ui-fired/catalog/render/renderers";
+import { createProxyScope } from "@ui-fired/core";
+import { RecursiveRenderer } from "@ui-fired/core/render/RecursiveRenderer";
+import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 ```
 
-A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`).
+A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,
+with `tsconfig` path aliases mapping the `@ui-fired/*` specifiers into the installed
+git-dependency tree — the repo package itself is still named `ui-fired`).
 
 ## Development
 

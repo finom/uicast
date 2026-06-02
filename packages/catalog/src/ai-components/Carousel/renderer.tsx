@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Button } from "ui-fired/catalog/components/ui/button";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Children, useState } from "react";
 import { CarouselDef } from "./def";

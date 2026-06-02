@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { mountChunks } from "../../test/renderHelpers";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — fine-grained reactivity", () => {
   it("only chunks subscribed to the changed path re-render", () => {
@@ -12,22 +12,16 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         children: ["readA", "readB"],
       },
       {
         key: "readA",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.a })" },
       },
       {
         key: "readB",
         component: "Box",
-        op: "child",
-        kind: "element",
         props: { expr: "({ text: scopes.root.b })" },
       },
     ];
@@ -49,8 +43,6 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
       {
         key: "root",
         component: "Box",
-        op: "root",
-        kind: "element",
         props: { expr: "({ text: scopes.root.count * 10 })" },
       },
     ];

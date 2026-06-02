@@ -3,11 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "exports": {
-    "./core": "./packages/core/src/index.ts",
-    "./core/*": "./packages/core/src/*",
-    "./catalog/*": "./packages/catalog/src/*"
-  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "cd packages/core && vitest run",

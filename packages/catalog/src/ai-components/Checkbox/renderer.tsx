@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Checkbox as ShadcnCheckbox } from "ui-fired/catalog/components/ui/checkbox";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Checkbox as ShadcnCheckbox } from "@ui-fired/catalog/components/ui/checkbox";
 import { CheckboxDef } from "./def";
 
 export const CheckboxRenderer = createAIComponentRenderer({

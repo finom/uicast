@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   Table,
   TableBody,
@@ -6,8 +6,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "ui-fired/catalog/components/ui/table";
-import { ScrollArea, ScrollBar } from "ui-fired/catalog/components/ui/scroll-area";
+} from "@ui-fired/catalog/components/ui/table";
+import { ScrollArea, ScrollBar } from "@ui-fired/catalog/components/ui/scroll-area";
 import { DataGridDef } from "./def";
 
 export const DataGridRenderer = createAIComponentRenderer({

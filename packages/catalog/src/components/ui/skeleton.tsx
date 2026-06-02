@@ -1,4 +1,4 @@
-import { cn } from "ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/core/lib/utils";
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
   return (

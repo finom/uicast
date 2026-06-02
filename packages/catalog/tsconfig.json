@@ -14,8 +14,9 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@catalog/*": ["./src/*"],
-      "@core/*": ["../core/src/*"]
+      "@ui-fired/catalog/*": ["./src/*"],
+      "@ui-fired/core": ["../core/src/index.ts"],
+      "@ui-fired/core/*": ["../core/src/*"]
     },
     "experimentalDecorators": true
   },

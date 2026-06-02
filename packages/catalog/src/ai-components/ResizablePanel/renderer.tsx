@@ -1,9 +1,9 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
 import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from "ui-fired/catalog/components/ui/resizable";
+} from "@ui-fired/catalog/components/ui/resizable";
 import { ResizablePanelDef } from "./def";
 import { Children } from "react";
 

@@ -1,7 +1,7 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { pickClick } from "@ui-fired/core/render/shared";
 import { X } from "lucide-react";
-import { Badge } from "ui-fired/catalog/components/ui/badge";
+import { Badge } from "@ui-fired/catalog/components/ui/badge";
 import { TagDef } from "./def";
 
 export const TagRenderer = createAIComponentRenderer({

@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Alert, AlertTitle, AlertDescription } from "ui-fired/catalog/components/ui/alert";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Alert, AlertTitle, AlertDescription } from "@ui-fired/catalog/components/ui/alert";
 import {
   Info,
   Lightbulb,

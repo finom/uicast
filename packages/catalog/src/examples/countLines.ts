@@ -1,10 +1,8 @@
-import { ChunkComponent } from "ui-fired/core/types";
+import { ChunkComponent } from "@ui-fired/core/types";
 
 export const countLines: ChunkComponent[] = [
   {
     key: "card1",
-    op: "root",
-    kind: "element",
     component: "Card",
     props: { expr: '({ title: "Counter" })' },
     defaults: [{ set: "scopes.root.count", literal: 0 }],
@@ -12,8 +10,6 @@ export const countLines: ChunkComponent[] = [
   },
   {
     key: "count-text",
-    op: "child",
-    kind: "element",
     component: "Text",
     props: {
       expr: '({ children: scopes.root.count, variant: "large" })',
@@ -21,8 +17,6 @@ export const countLines: ChunkComponent[] = [
   },
   {
     key: "count-btn",
-    op: "child",
-    kind: "element",
     component: "Button",
     props: { literal: { children: "Increment" } },
     callbacks: {

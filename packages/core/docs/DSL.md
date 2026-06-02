@@ -1,6 +1,6 @@
 # The chunk-protocol DSL
 
-This document is the **dev-facing** reference for how the chunk runtime works — what a chunk is, how it's evaluated, how state flows, how the renderer mounts a tree, how to register components, and what the boundaries of the package are. For the LLM-facing contract (the rules a chunk producer must obey), see [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md). For the underlying reactive state library, see [`STATE.md`](./STATE.md).
+This document is the **dev-facing** reference for how the chunk runtime works — what a chunk is, how it's evaluated, how state flows, how the renderer mounts a tree, how to register components, and what the boundaries of the package are. For the LLM-facing contract (the rules a chunk producer must obey), see [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md). For the underlying reactive state library, see [`SCOPES.md`](./SCOPES.md).
 
 Core is **catalog-agnostic**: it knows about chunks, expressions, scopes, and rendering, but knows nothing about specific components (Card, Input, Table). Components are registered into core at construction time and the runtime treats them as opaque registry entries.
 
@@ -11,7 +11,7 @@ Core is **catalog-agnostic**: it knows about chunks, expressions, scopes, and re
 A runtime that turns a **JSONL stream of "chunks"** (one JSON object per line) into a live React UI. Three properties that are load-bearing for the whole architecture:
 
 - **No codegen, no build step per generation.** Chunks are interpreted at render time. A new generated page is a new array of chunks — same runtime.
-- **Reactive state via Proxy.** Mutating `scopes.root.foo` notifies exactly the subscribers that read `scopes.root.foo`. No virtual DOM diffing of derived state; React re-renders the chunk that depends on the path that changed. See [`STATE.md`](./STATE.md).
+- **Reactive state via Proxy.** Mutating `scopes.root.foo` notifies exactly the subscribers that read `scopes.root.foo`. No virtual DOM diffing of derived state; React re-renders the chunk that depends on the path that changed. See [`SCOPES.md`](./SCOPES.md).
 - **Sandboxed expressions.** Every `expr` field is a JS micro-expression evaluated inside a stripped-down realm — no `eval`, no globals, no statements, no assignments. Only pure computation and a few allowed built-ins.
 
 The chunk producer is, in practice, an LLM streaming over a JSON-Lines responder — but the runtime treats input as plain data. A unit test feeds it a literal array; a saved page rehydrates from a DB; a live stream pushes chunks as they arrive. Same code path.
@@ -33,9 +33,9 @@ The chunk producer is, in practice, an LLM streaming over a JSON-Lines responder
    │   └─ RendererRegistryProvider {                  │
    │        renderers, defaultPlaceholder, functions  │
    │      }                                           │
-   │   └─ root scope = createReactiveProxy({})        │
+   │   └─ root scope = createProxyScope({})        │
    │   └─ buildElementsById(lines) → Record<key,chunk>│
-   │   └─ for each op:"root" line → RecursiveRenderer │
+   │   └─ for each root chunk → RecursiveRenderer     │
    └──────────────────┬───────────────────────────────┘
                       ▼
    ┌──────────────────────────────────────────────────┐
@@ -57,14 +57,16 @@ Inside each component, `createAIComponentRenderer` evaluates `chunk.props.expr` 
 
 ```
 packages/core/src/
-├── types.ts                         — ChunkComponent, ValueExpr, AssignableExpr, Chunk union
+├── types.ts                         — ChunkComponent (Element base | List), ValueSource, ValueSourceAssignment
 ├── eval/
 │   ├── SafeEval.ts                  — sandboxed expression evaluator (acorn-based)
 │   ├── evaluate.ts                  — `evaluate(expr, ctx, options)`; singleton SafeEval; getScopeReads()
 │   ├── extractDeps.ts               — auto-detected reactive deps per chunk (WeakMap-cached)
 │   └── JSONSchemaToTs.ts            — render JSON Schema to TS-like string for the prompt
+├── scope/
+│   ├── createProxyScope.ts          — the Proxy state container + path-keyed emitter (see SCOPES.md)
+│   └── parseScope.ts                — splits a `scopes.X.Y` key into [scopeName, leafPath]
 ├── render/
-│   ├── createReactiveProxy.ts       — the Proxy state container with $emitter (see STATE.md)
 │   ├── RecursiveRenderer.tsx        — RecursiveRenderer + ListRenderer (the tree walk)
 │   ├── createAIComponentDef.ts      — def factory: { description, propDefs, callbackDefs, hidden }
 │   ├── createAIComponentDefs.ts     — registry of defs + prompt-fragment generator (skips hidden)
@@ -84,56 +86,49 @@ packages/core/src/
 │   ├── INSTRUCTIONS.json            — generated; do not edit by hand
 │   ├── getCommonInstructionsPartialPrompt.ts — INSTRUCTIONS.json wrapped as a partial
 │   └── getComponentsPartialPrompt.ts / getFunctionsPartialPrompt.ts — partial-prompt builders the consuming app composes
-└── utils/utils.ts                   — parseScope() + buildElementsById()
+└── utils/utils.ts                   — buildElementsById() (chunk-tree flatten + partial-replacement)
 ```
 
 ---
 
 ## 4. The chunk protocol — `types.ts`
 
-A **chunk** is a `ChunkComponent` (= `ChunkComponentElement | ChunkComponentList`). The full type union including the meta envelope is `Chunk = ChunkComponent | ChunkMeta`.
+A **chunk** is a `ChunkComponent` (= `ChunkComponentElement | ChunkComponentList`). `ChunkComponentElement` is the base shape every chunk shares; `ChunkComponentList` extends it with the iteration fields. (The streaming meta envelope `ChunkMeta` and the `Chunk = ChunkComponent | ChunkMeta` union are **not** core types — core is transport-agnostic, so the consuming app owns them.)
 
-### `ChunkComponentElement`
+### `ChunkComponentElement` (base shape)
 
 ```ts
-type ChunkComponentElement = {
+interface ChunkComponentElement {
   key: string;                 // unique id; partial replacement keys off this
   component: string;           // registry name, e.g. "Card", "Input", "Table"
-  op: "root" | "child";        // exactly one chunk per page has op:"root"
-  kind: "element";
-  props?: ValueExpr;           // evaluates to the component's props object
-  defaults?: AssignableExpr[]; // initial state, one-shot
-  hidden?: ValueExpr;          // truthy → hide via <Activity mode="hidden">
-  callbacks?: Record<string, AssignableWithConfirmExpr[]>;
+  props?: ValueSource;           // evaluates to the component's props object
+  defaults?: ValueSourceAssignment[]; // initial state, one-shot
+  hidden?: ValueSource;          // truthy → hide via <Activity mode="hidden">
+  callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];         // child chunk keys, in render order
-};
+}
 ```
 
 ### `ChunkComponentList`
 
+A list chunk extends the base with the iteration fields:
+
 ```ts
-type ChunkComponentList = {
-  key: string;
-  component: string;           // rendered once per item (e.g. "TableRow")
-  op: "child";                 // lists cannot be root
-  kind: "list";
-  itemsSource: string;         // JS expression returning an array
-  itemScope: string;           // globally unique scope name
-  itemIdKey?: "_index" | "_item" | (string & {});  // stable identity per item
-  props?: ValueExpr;           // evaluated per-item with itemScope available
-  defaults?: AssignableExpr[];
-  hidden?: ValueExpr;
-  callbacks?: Record<string, AssignableWithConfirmExpr[]>;
-  children?: string[];         // child keys; children render per-item
-};
+interface ChunkComponentList extends ChunkComponentElement {
+  each: string;                // JS expression returning an array — its presence marks a list
+  as: string;                  // globally unique scope name
+  keyBy?: "_index" | "_item" | (string & {});  // stable identity per item
+}
 ```
 
-### `ValueExpr` and `AssignableExpr`
+A chunk is a list **iff** it carries `each`; otherwise it's an element. There's no `kind` discriminator — list-ness is structural (presence of `each`), the same way root-ness is (a chunk that no `children` array references). Narrow in TS with `"each" in chunk`.
+
+### `ValueSource` and `ValueSourceAssignment`
 
 ```ts
-type ValueExpr = { expr?: string; literal?: unknown };
-type AssignableExpr = { set: string } & ValueExpr;
-type AssignableWithConfirmExpr = { confirm?: string } & AssignableExpr;
+type ValueSource = { expr: string } | { literal: unknown };
+type ValueSourceAssignment = { set: string } & ValueSource;
+type ConfirmableValueSourceAssignment = { confirm?: string } & ValueSourceAssignment;
 ```
 
 - `{ literal: X }` — value is `X` verbatim. Use when nothing depends on state.
@@ -202,23 +197,22 @@ So inside an expression you have:
 
 ## 6. State — the reactive Proxy
 
-All mutable state lives in `createReactiveProxy`. Each *scope* is one instance: the root scope, one per list item, one per nested-list item.
+All mutable state lives in `createProxyScope`. Each *scope* is one instance: the root scope, one per list item, one per nested-list item.
 
-For the mechanics of the proxy itself — reads, writes, the emitter, identity, and the path-exact subscription model — see [`STATE.md`](./STATE.md). The rest of this section covers how the chunk runtime *uses* the proxy.
+For the mechanics of the proxy itself — reads, writes, the emitter, identity, and the path-exact subscription model — see [`SCOPES.md`](./SCOPES.md). The rest of this section covers how the chunk runtime *uses* the proxy.
 
-### `$set`, `$setDefault`, `$emitter` at the scope root
+### `$set`, `$emitter` at the scope root
 
 Only the proxy at `path.length === 0` exposes the framework hooks:
 
 - `proxy.$emitter` — the emitter ref. Subscribers do `scopes.<scopeName>.$emitter.on(path, handler)`.
-- `proxy.$set(path, value)` — walks the dotted path creating intermediate objects as needed; the final assignment goes through the `set` trap (so it emits). Used by `defaults` and `callbacks` from inside the renderer.
-- `proxy.$setDefault(path, value)` — same as `$set` but no-op if the leaf already has a value.
+- `proxy.$set(path, value, options?)` — walks the dotted path creating intermediate objects as needed; the final assignment goes through the `set` trap (so it emits). Used by `callbacks` from inside the renderer. Pass `{ default: true }` for init-if-absent: no-op if the leaf already has a value. `defaults` lower to `$set(..., { default: true })`, so two components seeding the same path don't clobber each other (first-writer-wins).
 
 Sub-proxies (`scopes.inv.rows`, `scopes.inv.rows[0]`, etc.) don't expose `$emitter` / `$set`; the emit goes to the parent scope's shared emitter.
 
 ### Writer convention
 
-The runtime is path-exact. **Replace arrays / objects wholesale** in callbacks so any reader of the parent path wakes. Granular leaf-writes (`$set("rows.0.name", "x")`) only wake readers that subscribed to that exact leaf path. See [`STATE.md`](./STATE.md) §3 for the full rules.
+The runtime is path-exact. **Replace arrays / objects wholesale** in callbacks so any reader of the parent path wakes. Granular leaf-writes (`proxy.$set("rows.0.name", "x")`) only wake readers that subscribed to that exact leaf path. See [`SCOPES.md`](./SCOPES.md) §3 for the full rules.
 
 ---
 
@@ -236,24 +230,24 @@ scopes = {
 }
 ```
 
-Each entry has its own emitter (one per `createReactiveProxy` call). So `scopes.root.$emitter` and `scopes.row.$emitter` are different objects — emits in one scope don't reach subscribers in another. But sub-proxies *within* a scope share the scope's emitter.
+Each entry has its own emitter (one per `createProxyScope` call). So `scopes.root.$emitter` and `scopes.row.$emitter` are different objects — emits in one scope don't reach subscribers in another. But sub-proxies *within* a scope share the scope's emitter.
 
-The top-level Renderer creates `root` once and passes `{ root }` as the initial `scopes`. Lists then extend this object with item proxies, scoped under the chunk's `itemScope` name.
+The top-level Renderer creates `root` once and passes `{ root }` as the initial `scopes`. Lists then extend this object with item proxies, scoped under the chunk's `as` name.
 
 ### Nested-list scopes
 
-Each list creates per-item proxies with `createReactiveProxy({ item, index, id })`. These proxies are **cached by item id** in a ref-held `Map` so they survive re-renders (preserving per-item state like input focus, edit buffers, expansion toggles).
+Each list creates per-item proxies with `createProxyScope({ item, index, id })`. These proxies are **cached by item id** in a ref-held `Map` so they survive re-renders (preserving per-item state like input focus, edit buffers, expansion toggles).
 
 For each item, the list builds an extended scopes object:
 
 ```ts
 const itemScopes = {
   ...scopes,                  // inherits parent scopes (e.g. root)
-  [line.itemScope]: itemProxy,
+  [line.as]: itemProxy,
 };
 ```
 
-…and passes it down. A chunk inside a list-item subtree sees `scopes.<itemScope>.item` / `.index` / `.id`, plus everything its ancestors saw.
+…and passes it down. A chunk inside a list-item subtree sees `scopes.<as>.item` / `.index` / `.id`, plus everything its ancestors saw.
 
 Nested lists work by stacking: a `row` list inside the root, then a `cell` list inside each row, gives item-scope chunks visibility of `scopes.root`, `scopes.row`, `scopes.cell`.
 
@@ -262,7 +256,7 @@ Nested lists work by stacking: a `row` list inside the root, then a `cell` list 
 Each list also stashes its per-item proxy array onto the **last scope before the list** so a parent can read across all items:
 
 ```ts
-lastScope.$set(`childScopes.${line.itemScope}`, itemScopesList);
+lastScope.$set(`childScopes.${line.as}`, itemScopesList);
 ```
 
 So a chunk at the root can sum every row's value via:
@@ -275,7 +269,7 @@ For nested lists, chain: `scopes.root.childScopes.row.childScopes.cell`.
 
 ### Scope-name discipline
 
-The constraint surfaced in [`INSTRUCTIONS.md` §4](../src/prompt/INSTRUCTIONS.md): **scope names must be globally unique across all lists**. If two different lists both used `itemScope: "item"`, the second would overwrite the first in the scopes object as you descend into the inner list, and outer-scope reads would silently break.
+The constraint surfaced in [`INSTRUCTIONS.md` §4](../src/prompt/INSTRUCTIONS.md): **scope names must be globally unique across all lists**. If two different lists both used `as: "item"`, the second would overwrite the first in the scopes object as you descend into the inner list, and outer-scope reads would silently break.
 
 ---
 
@@ -285,7 +279,7 @@ For each chunk, the renderer subscribes to every scope path the chunk *reads* in
 
 - `chunk.props.expr`
 - `chunk.hidden.expr`
-- `chunk.itemsSource` (list chunks)
+- `chunk.each` (list chunks)
 
 `defaults` and `callbacks` are NOT scanned: defaults run once at mount (gated by `hasBeenRenderedRef.current`); callbacks run on event and read current state at fire time.
 
@@ -307,9 +301,9 @@ The "missed dynamic-key access" case is real but currently a non-issue: the LLM 
 
 ### Path-exact subscription, no bubble
 
-Subscribers register on the *exact* dep string. Writers emit on the exact `set` path. Reader-writer agreement is by path equality. The renderer never tries to bubble or fan out by prefix — the `createReactiveProxy` set trap emits one event at one path, and `extractDeps` records the leaf path; both ends meet.
+Subscribers register on the *exact* dep string. Writers emit on the exact `set` path. Reader-writer agreement is by path equality. The renderer never tries to bubble or fan out by prefix — the `createProxyScope` set trap emits one event at one path, and `extractDeps` records the leaf path; both ends meet.
 
-This means **the LLM's writer convention matters**. If a callback does `$set("scopes.inv.rows", newArr)`, every reader of `scopes.inv.rows` (whether via `.length`, `.map`, `.filter`, etc.) wakes. If a callback does `$set("scopes.inv.rows.0.name", "x")`, only readers of that exact path wake. Current callbacks write wholesale.
+This means **the LLM's writer convention matters**. If a callback's `set` targets `scopes.inv.rows` with a new array (the runtime lowers that to `scopes.inv.$set("rows", newArr)`), every reader of `scopes.inv.rows` (whether via `.length`, `.map`, `.filter`, etc.) wakes. If it instead targets `scopes.inv.rows.0.name`, only readers of that exact path wake. Current callbacks write wholesale.
 
 ---
 
@@ -317,7 +311,7 @@ This means **the LLM's writer convention matters**. If a callback does `$set("sc
 
 ### `defaults`
 
-Run **once**, when the chunk first mounts. Gated by `hasBeenRenderedRef.current`. Each entry is an `AssignableExpr`:
+Run **once**, when the chunk first mounts. Gated by `hasBeenRenderedRef.current`. Each entry is an `ValueSourceAssignment`:
 
 ```ts
 { "set": "scopes.root.users", "expr": "UserRPC_getUsers()" }
@@ -328,7 +322,7 @@ Four things to notice:
 1. **All defaults in one chunk are evaluated BEFORE any value is written.** They're collected, then written. So a later default *cannot* read a value set by an earlier default in the same chunk. If you need that chaining, split across parent/child chunks (child mounts after parent finishes).
 2. **Async defaults suspend the chunk.** If any default expression returns a Promise, the chunk wraps itself in `<Suspense>` with `use(promise)` and renders the registered placeholder until all promises resolve.
 3. **No re-run on partial replacement.** A chunk re-emitted with the same key keeps its scope state — defaults don't fire again if the renderer instance survives.
-4. **Use `defaults` for state, not derivations.** The right things to put in `defaults` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden.expr` / `itemsSource`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `defaults` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
+4. **Use `defaults` for state, not derivations.** The right things to put in `defaults` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden.expr` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `defaults` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
 
 ### `init` — host-side seeding (not a chunk field)
 
@@ -345,11 +339,11 @@ Four things to notice:
 
 `init` is a **prop on `<Renderer>`**, not a chunk field. It runs exactly once, before any LLM-emitted root chunk evaluates its `props`/`defaults`. Three things to know:
 
-1. **Side effects only.** The callback's return value is ignored. Mutate via the reactive Proxy (`scopes.root.x = y`); the assignment routes through the same `set` trap as `$set` (see [`STATE.md`](./STATE.md)), so subscribers wake the same way.
+1. **Side effects only.** The callback's return value is ignored. Mutate via the reactive Proxy (`scopes.root.x = y`); the assignment routes through the same `set` trap as `$set` (see [`SCOPES.md`](./SCOPES.md)), so subscribers wake the same way.
 2. **Sync vs async.** Sync writes land before children mount. If the callback returns a Promise (`async ({ scopes }) => { scopes.root.x = await fetch(...) }`), the wrapper Suspends via the same path async string-form defaults use (§9 above) — children mount only after it resolves.
 3. **Fires once.** Same `hasBeenRenderedRef` guard that pins `defaults` to one shot. New chunks streaming in re-render the Renderer; `init` does NOT re-fire.
 
-Mechanically, the Renderer **always** wraps its root chunks in a synthetic `{ component: "Fragment", op: "root", … }` chunk; `init` lands on that wrapper. See §11 for the wrap details.
+Mechanically, the Renderer **always** wraps its root chunks in a synthetic `{ component: "Fragment", … }` chunk; `init` lands on that wrapper. See §11 for the wrap details.
 
 `init` is intentionally narrower than `defaults`:
 
@@ -359,7 +353,7 @@ Mechanically, the Renderer **always** wraps its root chunks in a synthetic `{ co
 
 ### `callbacks`
 
-Triggered by component events. Each callback name maps to an array of `AssignableWithConfirmExpr`:
+Triggered by component events. Each callback name maps to an array of `ConfirmableValueSourceAssignment`:
 
 ```ts
 "onChange": [
@@ -387,13 +381,13 @@ The LLM is prompted with this rule in [`INSTRUCTIONS.md` §2](../src/prompt/INST
 
 `ListRenderer` is the workhorse:
 
-1. **Subscribe to deps** (auto-extracted from `itemsSource` + the list chunk's own `props`/`hidden`) — typing in a search input drives a `$set` on the searchTerm path, which wakes the list, which re-evaluates `itemsSource` and re-renders.
-2. **Evaluate `itemsSource`**: `evaluate({ expr: line.itemsSource }, { scopes }, { functions })`. Returns the items array; `?? []` if undefined.
-3. **Compute item ids** via `getItemId(itemIdKey, item, index)`. Default is `_index` (positional); `_item` uses the value itself (good for primitive arrays); a string key reads `item[key]`. **Use a stable key when items are objects** — without it, edits-in-place can shift positions and lose per-item state.
+1. **Subscribe to deps** (auto-extracted from `each` + the list chunk's own `props`/`hidden`) — typing in a search input drives a `$set` on the searchTerm path, which wakes the list, which re-evaluates `each` and re-renders.
+2. **Evaluate `each`**: `evaluate({ expr: line.each }, { scopes }, { functions })`. Returns the items array; `?? []` if undefined.
+3. **Compute item ids** via `getItemId(keyBy, item, index)`. Default is `_index` (positional); `_item` uses the value itself (good for primitive arrays); a string key reads `item[key]`. **Use a stable key when items are objects** — without it, edits-in-place can shift positions and lose per-item state.
 4. **Prune the proxy cache** — items removed from the source array have their cached proxies dropped so memory is bounded.
 5. **For each item**, look up or create the per-item proxy. Mutate `(itemProxy as any).item = item` and `.index = index` so the values reflect the latest source array (existing item, new value or position).
-6. **Render** `<RecursiveRenderer>` once per item with `itemScopes = { ...scopes, [line.itemScope]: itemProxy }`. The same `elementKey` is passed for each — each item renders the list chunk *itself* as its root, with the item scope wired in.
-7. **Publish** `childScopes.${itemScope} = itemProxiesList` on the parent scope for cross-item aggregation.
+6. **Render** `<RecursiveRenderer>` once per item with `itemScopes = { ...scopes, [line.as]: itemProxy }`. The same `elementKey` is passed for each — each item renders the list chunk *itself* as its root, with the item scope wired in.
+7. **Publish** `childScopes.${as} = itemProxiesList` on the parent scope for cross-item aggregation.
 
 The list chunk's `component` is rendered **once per item**. There's no separate "list container" component for the list itself — the parent chunk that *contains* the list provides the container (e.g. a `TableBody` parent with a `TableRow` list child).
 
@@ -426,7 +420,7 @@ Internally:
 - Creates one `root` reactive proxy at module top-level.
 - **Auto-merges a `Fragment` renderer** into the consumer-supplied registry. Fragment is host-only (`hidden: true` in its def), renders `<>{children}</>` with no wrapping DOM, and is the one component the synthetic wrapper below references by name.
 - `buildElementsById(lines)` flattens the JSONL into a key→chunk map.
-- Filters root chunks (`op === "root"`), dedupes by key, and assembles them as the `children` of a **single synthetic Fragment chunk** (`key: "__renderer_fragment__"`). The Fragment becomes the lone top-level mount; the original AI roots are its children. Visually identical to the un-wrapped tree (Fragment renders children directly), but it gives the `init` prop (§9) exactly one mount point to attach to. The wrap happens whether or not `init` is provided — keeping tree topology consistent across init/no-init renders.
+- Derives root chunks structurally (those whose `key` no other chunk lists in its `children`), dedupes by key, and assembles them as the `children` of a **single synthetic Fragment chunk** (`key: "__renderer_fragment__"`). The Fragment becomes the lone top-level mount; the original AI roots are its children. Visually identical to the un-wrapped tree (Fragment renders children directly), but it gives the `init` prop (§9) exactly one mount point to attach to. The wrap happens whether or not `init` is provided — keeping tree topology consistent across init/no-init renders.
 - Mounts the Fragment via `<RecursiveRenderer init={init} … />`. The `init` prop is **not** propagated to recursive child mounts inside `RecursiveRenderer` — only the top-level synthetic Fragment runs the callback. Descendants always see `init=undefined`.
 - Wraps the whole tree in `RendererRegistryProvider` and `EditModeOverlay`.
 
@@ -558,7 +552,7 @@ Use host functions for **runtime CRUD against the user's data** or anything that
 
 ## 14. Partial replacement
 
-To fix a bug in an emitted chunk subtree, re-emit the chunk with the **same key**. `buildElementsById` detects the duplicate key, walks the *old* chunk's descendants via `collectDescendantIds`, deletes them from the map, then inserts the new chunk in place. Any new children the re-emitted chunk references must be emitted afterwards with `op:"child"` as usual.
+To fix a bug in an emitted chunk subtree, re-emit the chunk with the **same key**. `buildElementsById` detects the duplicate key, walks the *old* chunk's descendants via `collectDescendantIds`, deletes them from the map, then inserts the new chunk in place. Any new children the re-emitted chunk references must be emitted afterwards as usual.
 
 Properties to know:
 
@@ -571,7 +565,7 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 
 ## 15. Hidden — conditional visibility
 
-`chunk.hidden` is a `ValueExpr` evaluated every render. If truthy, the chunk wraps in `<Activity mode="hidden">`. React 19's Activity:
+`chunk.hidden` is a `ValueSource` evaluated every render. If truthy, the chunk wraps in `<Activity mode="hidden">`. React 19's Activity:
 
 - Keeps the subtree **mounted** with state intact.
 - Pauses effects and rendering until it goes visible again.
@@ -585,7 +579,7 @@ So `hidden` is *not* unmount/remount — it's display-toggle with state preserva
 
 - **Expression parse** — once per unique expression string, cached on `SafeEval.#cache` (LRU @ 500 entries default). Subsequent compiles / evaluates are O(1) cache hits. Acorn parse of a 30-100 char expression is ~10-25 μs; the cached path is sub-microsecond.
 - **`extractDeps`** — `WeakMap<ChunkComponent, string[]>`. One walk per chunk reference, free thereafter.
-- **Proxy cache** — `WeakMap<object, object>` (see [`STATE.md`](./STATE.md)). Same source object → same proxy reference. Cheap subscribe / unsubscribe across re-renders because handler-set membership is by reference.
+- **Proxy cache** — `WeakMap<object, object>` (see [`SCOPES.md`](./SCOPES.md)). Same source object → same proxy reference. Cheap subscribe / unsubscribe across re-renders because handler-set membership is by reference.
 - **Item proxies** — keyed by item id; survives re-renders so per-item state (input focus, edit mode) is preserved across source-array mutations.
 - **No virtual-DOM diffing of derived state** — instead of recomputing every prop every render, the proxy emits exactly one event per write, and only the chunks subscribed to that path re-render.
 - **Re-render granularity** — a forceRender on the chunk's `useReducer` triggers a React re-render of *that chunk only*. React then diffs the underlying component normally.
@@ -620,7 +614,7 @@ When in doubt, ask: "Would a different consumer of core (a future product line, 
 
 ## Cross-references
 
-- [`STATE.md`](./STATE.md) — the reactive proxy state library underneath all of this.
+- [`SCOPES.md`](./SCOPES.md) — the reactive proxy state library underneath all of this.
 - LLM-facing contract for chunks: [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md)
 - The expression evaluator and its allow-list: [`../src/eval/SafeEval.ts`](../src/eval/SafeEval.ts)
 - The auto-detection helper: [`../src/eval/extractDeps.ts`](../src/eval/extractDeps.ts)

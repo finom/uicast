@@ -1,5 +1,5 @@
 import z from "zod";
-import type { createReactiveProxy } from "./createReactiveProxy";
+import type { createProxyScope } from "../scope/createProxyScope";
 import { createAIComponentDef } from "./createAIComponentDef";
 import { createAIComponentRenderer } from "./createAIComponentRenderer";
 
@@ -11,7 +11,7 @@ import { createAIComponentRenderer } from "./createAIComponentRenderer";
  * re-render normally.
  */
 export type InitContext = {
-  scopes: Record<string, ReturnType<typeof createReactiveProxy>>;
+  scopes: Record<string, ReturnType<typeof createProxyScope>>;
 };
 
 /**

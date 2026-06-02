@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Accordion } from "ui-fired/catalog/components/ui/accordion";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Accordion } from "@ui-fired/catalog/components/ui/accordion";
 import { AccordionDef } from "./def";
 
 export const AccordionRenderer = createAIComponentRenderer({

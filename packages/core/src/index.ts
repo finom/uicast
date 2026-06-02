@@ -34,16 +34,18 @@ export {
 	createAIComponentRenderer,
 } from "./render/createAIComponentRenderer";
 export { createAIComponentRenderers } from "./render/createAIComponentRenderers";
-// Reactive state — `createReactiveProxy` plus the path-keyed emitter.
-// Independent of the chunk runtime; see docs/STATE.md.
+// Reactive state — `createProxyScope` plus the path-keyed emitter, and
+// `parseScope` (splits a `scopes.X.Y` key into `[scopeName, leafPath]`).
+// Independent of the chunk runtime; see docs/SCOPES.md.
 export {
 	type ChangePayload,
 	createEmitter,
-	createReactiveProxy,
+	createProxyScope,
 	type Emitter,
 	type EventHandler,
 	type ReactiveProxy,
-} from "./render/createReactiveProxy";
+} from "./scope/createProxyScope";
+export { parseScope } from "./scope/parseScope";
 export { ErrorBoundary } from "./render/ErrorBoundary";
 // Render orchestration.
 export { ListRenderer, RecursiveRenderer } from "./render/RecursiveRenderer";
@@ -56,15 +58,13 @@ export {
 } from "./render/RendererRegistry";
 export { onClickSchema, pickClick } from "./render/shared";
 export type {
-	AssignableExpr,
-	AssignableWithConfirmExpr,
-	Chunk,
 	ChunkComponent,
 	ChunkComponentElement,
 	ChunkComponentList,
-	ChunkMeta,
 	CombinedProps,
 	CombinedSpec,
-	ValueExpr,
+	ConfirmableValueSourceAssignment,
+	ValueSource,
+	ValueSourceAssignment,
 } from "./types";
-export { buildElementsById, parseScope } from "./utils/utils";
+export { buildElementsById } from "./utils/utils";

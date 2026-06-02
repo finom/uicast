@@ -1,8 +1,8 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Button } from "ui-fired/catalog/components/ui/button";
-import { Separator } from "ui-fired/catalog/components/ui/separator";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Button } from "@ui-fired/catalog/components/ui/button";
+import { Separator } from "@ui-fired/catalog/components/ui/separator";
 import { Check } from "lucide-react";
-import { cn } from "ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/core/lib/utils";
 import { StepperDef } from "./def";
 
 export const StepperRenderer = createAIComponentRenderer({

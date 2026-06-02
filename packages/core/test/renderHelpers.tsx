@@ -1,18 +1,18 @@
 import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import { ConfirmModalProvider } from "ui-fired/core/components/ConfirmModal";
-import type { EvaluateFunctions } from "ui-fired/core/eval/evaluate";
-import { createAIComponentDef } from "ui-fired/core/render/createAIComponentDef";
+import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
+import type { EvaluateFunctions } from "@ui-fired/core/eval/evaluate";
+import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 import {
   type AIComponentRenderer,
   createAIComponentRenderer,
-} from "ui-fired/core/render/createAIComponentRenderer";
-import { createReactiveProxy } from "ui-fired/core/render/createReactiveProxy";
-import { RecursiveRenderer } from "ui-fired/core/render/RecursiveRenderer";
-import { RendererRegistryProvider } from "ui-fired/core/render/RendererRegistry";
-import type { ChunkComponent } from "ui-fired/core/types";
-import { buildElementsById } from "ui-fired/core/utils/utils";
+} from "@ui-fired/core/render/createAIComponentRenderer";
+import { createProxyScope } from "@ui-fired/core";
+import { RecursiveRenderer } from "@ui-fired/core/render/RecursiveRenderer";
+import { RendererRegistryProvider } from "@ui-fired/core/render/RendererRegistry";
+import type { ChunkComponent } from "@ui-fired/core/types";
+import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 // Lightweight test renderers wired the same way real catalog components are.
 
@@ -103,16 +103,19 @@ type MountOptions = {
  */
 export function mountChunks(lines: ChunkComponent[], options: MountOptions = {}) {
   const elements = buildElementsById(lines);
-  const scopes: Record<string, ReturnType<typeof createReactiveProxy>> = {
-    root: createReactiveProxy(options.rootScope ?? {}),
+  const scopes: Record<string, ReturnType<typeof createProxyScope>> = {
+    root: createProxyScope(options.rootScope ?? {}),
   };
   for (const [name, seed] of Object.entries(options.scopes ?? {})) {
-    scopes[name] = createReactiveProxy(seed);
+    scopes[name] = createProxyScope(seed);
   }
 
-  // Find the root chunk
+  // Find the root chunk structurally (the `op` field is gone): the root is
+  // the chunk no other chunk references as a child. Fall back to the first
+  // chunk, then "root".
+  const childKeys = new Set(lines.flatMap((l) => l.children ?? []));
   const rootKey =
-    lines.find((l) => l.op === "root")?.key ?? lines[0]?.key ?? "root";
+    lines.find((l) => !childKeys.has(l.key))?.key ?? lines[0]?.key ?? "root";
 
   const inner = (
     <RendererRegistryProvider

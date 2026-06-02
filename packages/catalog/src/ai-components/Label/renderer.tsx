@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "ui-fired/core/render/createAIComponentRenderer";
-import { Label as ShadcnLabel } from "ui-fired/catalog/components/ui/label";
+import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { Label as ShadcnLabel } from "@ui-fired/catalog/components/ui/label";
 import { LabelDef } from "./def";
 
 export const LabelRenderer = createAIComponentRenderer({
