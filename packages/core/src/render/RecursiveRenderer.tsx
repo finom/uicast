@@ -41,7 +41,7 @@ export const RecursiveRenderer = ({
 
   // Reactive subscriptions. The dep set is auto-derived from the chunk's
   // own expression text via static AST walk — `extractDeps` walks every
-  // `props.expr` / `hidden.expr` (and `each` on list chunks) for
+  // `props.expr` / `hidden` (and `each` on list chunks) for
   // `scopes.X.Y` reads.
   useEffect(() => {
     if (!element) return () => {};
@@ -258,7 +258,7 @@ export const ListRenderer = ({
     );
 
   // Reactive subscriptions for the list chunk. Auto-derived from the chunk's
-  // expressions — `each` plus any `props.expr` / `hidden.expr` on the
+  // expressions — `each` plus any `props.expr` / `hidden` on the
   // list itself. The old code parseScope-d `each` directly and only
   // subscribed to the leading static segment, which silently dropped reads
   // from filter/map sub-expressions (e.g. `scopes.inv.rows.filter(r =>

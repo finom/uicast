@@ -4,12 +4,12 @@ import type { ChunkComponent } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — hidden", () => {
-  it("hides the chunk when hidden.expr evaluates truthy", () => {
+  it("hides the chunk when hidden evaluates truthy", () => {
     const lines: ChunkComponent[] = [
       {
         key: "root",
         component: "Box",
-        hidden: { expr: "scopes.root.hideIt" },
+        hidden: "scopes.root.hideIt",
         props: { expr: "({ text: 'secret' })" },
       },
     ];
@@ -39,7 +39,7 @@ describe("RecursiveRenderer — hidden", () => {
       {
         key: "panel",
         component: "Box",
-        hidden: { expr: "scopes.root.hidden" },
+        hidden: "scopes.root.hidden",
         props: { expr: "({ text: 'panel-text' })" },
       },
     ];

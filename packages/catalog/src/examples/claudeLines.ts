@@ -347,9 +347,7 @@ export const claudeLines: ChunkComponent[] = [
     key: "tasks-pagination-row",
     component: "FlexRow",
     props: { literal: { justify: "center" } },
-    hidden: {
-      expr: "scopes.root.filteredTasks.length <= 25",
-    },
+    hidden: "scopes.root.filteredTasks.length <= 25",
     children: ["tasks-pagination"],
   },
   {
@@ -559,9 +557,7 @@ export const claudeLines: ChunkComponent[] = [
     key: "users-pagination-row",
     component: "FlexRow",
     props: { literal: { justify: "center" } },
-    hidden: {
-      expr: "scopes.root.filteredUsers.length <= 25",
-    },
+    hidden: "scopes.root.filteredUsers.length <= 25",
     children: ["users-pagination"],
   },
   {

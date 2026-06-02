@@ -33,7 +33,7 @@ export const getScopeReads = (expr: string): string[] =>
   safeEval.scopeReads(expr);
 
 // Functions exposed as bare identifiers inside the eval scope. Consumers
-// (e.g. neat-report's google-tools `functions` map) wire them in via
+// (e.g. a consumer's host-function map) wire them in via
 // <Renderer functions={...} />, which threads them through the
 // RendererRegistry context to every evaluate() call site. Spread *after*
 // context so a consumer-provided function wins over an equally-named scope

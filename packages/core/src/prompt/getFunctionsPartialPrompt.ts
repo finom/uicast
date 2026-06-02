@@ -39,7 +39,7 @@ function schemaToTs(schema: ToolSchema, fallback: string): string {
  * renders `=> void`.
  *
  * Catalog-agnostic: a caller passes whatever tool set it exposes to the LLM
- * (e.g. neat-report's google-tools) and composes the returned block into the
+ * (whatever host functions it exposes) and composes the returned block into the
  * surrounding prompt it needs (extra calling conventions, examples, …).
  * Mirrors `getComponentsPartialPrompt` — same two-section shape.
  */

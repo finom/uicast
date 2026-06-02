@@ -37,10 +37,11 @@ Stream chunks in order: emit the root chunk first, then its children depth-first
 - Props are provided via a `ValueSource` object: either `{ "literal": { ... } }` for static values or `{ "expr": "..." }` for dynamic JavaScript expressions.
 - Use `literal` when all prop values are known at build time and never change. Use `expr` when any prop value depends on state.
 - A `literal` ValueSource passes its value directly as the component's props object: `"props": { "literal": { "children": "Hello" } }`.
+- A `literal` value is taken **verbatim** without any evaluation, and may be **any JSON value** — a string, number, boolean, `null`, or an arbitrarily nested object/array (e.g. `"props": { "literal": { "rows": [{ "id": 1, "tags": ["a", "b"] }] } }`). It is NOT parsed as a JavaScript expression, so `{ "literal": "scopes.x" }` renders the literal text `scopes.x`, not the value at that path — use `{ "expr": "scopes.x" }` for that.
 - An `expr` ValueSource is a JavaScript expression that must evaluate to an object matching the component's props shape: `"props": { "expr": "({ value: scopes.root.count })" }`.
 - When the expression IS an object literal, wrap it in parentheses to distinguish from a block statement: `"props": { "expr": "({ value: scopes.root.count, placeholder: \"Enter value\" })" }`.
 - Props expressions must NEVER call async functions (RPC calls). Props are evaluated synchronously during render.
-- **Expressions must NEVER produce side effects.** Expressions (in `props.expr`, `hidden.expr`, `defaults[].expr`, `callbacks[].expr`) are pure computations that return a value. The ONLY way to produce a side effect (writing state) is through the `"set"` field on `defaults` and `callbacks` entries. The `"set"` field receives the return value of the expression and writes it to the specified scope path. Never assign to `scopes.*` or mutate any external state inside an expression itself.
+- **Expressions must NEVER produce side effects.** Expressions (in `props.expr`, `hidden`, `defaults[].expr`, `callbacks[].expr`) are pure computations that return a value. The ONLY way to produce a side effect (writing state) is through the `"set"` field on `defaults` and `callbacks` entries. The `"set"` field receives the return value of the expression and writes it to the specified scope path. Never assign to `scopes.*` or mutate any external state inside an expression itself.
   - WRONG: `"props": { "expr": "(() => { scopes.root.sortedTasks = [...scopes.root.tasks].sort(...); return {}; })()" }` — this assigns to scope inside an expression.
   - CORRECT: Express the derived value directly in `props.expr` — the runtime auto-subscribes to every `scopes.X.Y` read, so the prop recomputes whenever any input changes: `"props": { "expr": "({ data: [...scopes.root.tasks].sort((a, b) => a[scopes.root.sortKey] - b[scopes.root.sortKey]) })" }`. No separate state slot, no manual recompute.
 - Some components accept a special `children` prop (e.g., Card, Text, Badge, Button). When set via `literal` or `expr`, this renders as inline text/content. This is distinct from the `children` array on the chunk, which references child chunks. Both can coexist: the `children` array renders child chunks, and if the component also reads `props.children`, inline content is rendered too. Typically you use one or the other.
@@ -54,7 +55,7 @@ Stream chunks in order: emit the root chunk first, then its children depth-first
 - **`defaults` are for storing user-mutable state and one-shot data fetches — NOT for derived state.** Each `defaults` entry runs once at mount and never recomputes. Use `defaults` to:
   - Initialize a value the user will later change (a form field, a selection, a search term, a pagination cursor).
   - Fetch data from an RPC on mount: `{ "set": "scopes.root.rows", "expr": "InvRPC_getRows()" }`.
-- **Do NOT use `defaults` to store a value computed from other state.** A filtered list, a sorted list, a paginated slice, a sum, a formatted string — anything that should change when its inputs change — belongs inline in a reactive site (`props.expr`, `hidden.expr`, or `each`), where it recomputes automatically. Putting derived state in `defaults` produces a stale snapshot.
+- **Do NOT use `defaults` to store a value computed from other state.** A filtered list, a sorted list, a paginated slice, a sum, a formatted string — anything that should change when its inputs change — belongs inline in a reactive site (`props.expr`, `hidden`, or `each`), where it recomputes automatically. Putting derived state in `defaults` produces a stale snapshot.
   - WRONG: `"defaults": [{ "set": "scopes.root.filteredRows", "expr": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))" }]` then `"each": "scopes.root.filteredRows"`. The filter runs once at mount; typing into the search input does nothing.
   - CORRECT: Leave `filteredRows` out of state. Set `"each": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))"` directly on the list chunk. The runtime subscribes to both `rows` and `searchTerm`; the list updates as the user types.
 - State paths are safe to assign deeply even if parent objects don't exist yet: `{ "set": "scopes.root.foo.bar.baz", "literal": 1 }` works because paths are backed by Proxy internally.
@@ -75,11 +76,11 @@ Stream chunks in order: emit the root chunk first, then its children depth-first
 
 ## 5. Reactivity
 
-- Reactivity is automatic. Any `scopes.X.Y` path read by a chunk's `props.expr`, `hidden.expr`, or (for list chunks) `each` is automatically subscribed — when any of those paths is written via a `"set"` from a `defaults` entry or a `callbacks` entry, the chunk re-renders and its expressions are re-evaluated.
+- Reactivity is automatic. Any `scopes.X.Y` path read by a chunk's `props.expr`, `hidden`, or (for list chunks) `each` is automatically subscribed — when any of those paths is written via a `"set"` from a `defaults` entry or a `callbacks` entry, the chunk re-renders and its expressions are re-evaluated.
 - You do NOT specify a `deps` array. The runtime extracts the read set from your expression text. Just write the expression as you'd naturally write JavaScript; the renderer figures out what state it depends on.
-- Reactivity only applies to `props.expr` and `hidden.expr` (and `each` on lists). `defaults` are one-shot at mount; `callbacks` run on event. Neither subscribes.
+- Reactivity only applies to `props.expr` and `hidden` (and `each` on lists). `defaults` are one-shot at mount; `callbacks` run on event. Neither subscribes.
 - Write paths in `"set"` must match read paths exactly for the read side to wake. Subscribing is path-exact (no parent fanout): writing `"set": "scopes.root.rows.0.name"` does NOT wake a reader of `scopes.root.rows`. Replace the array wholesale (`"set": "scopes.root.rows"` with a new array literal) when you want list-level readers to re-render.
-- **Therefore: derived state belongs inline in reactive sites, not in `defaults`.** Because `props.expr`, `hidden.expr`, and `each` auto-subscribe to every scope read, you can express filtered/sorted/paginated/aggregated values directly where they're consumed — no separate state slot, no manual recompute in callbacks. Reach for `defaults`/`callbacks` writes only when a value must persist across re-renders (user input, selection, mutable form data) or comes from an RPC.
+- **Therefore: derived state belongs inline in reactive sites, not in `defaults`.** Because `props.expr`, `hidden`, and `each` auto-subscribe to every scope read, you can express filtered/sorted/paginated/aggregated values directly where they're consumed — no separate state slot, no manual recompute in callbacks. Reach for `defaults`/`callbacks` writes only when a value must persist across re-renders (user input, selection, mutable form data) or comes from an RPC.
 
 ## 6. Lists
 
@@ -110,15 +111,15 @@ Stream chunks in order: emit the root chunk first, then its children depth-first
 
 ## 8. Hidden (Conditional Visibility)
 
-- Any chunk can have a `hidden` property as a `ValueSource`.
-- `{ "hidden": { "expr": "scopes.root.activeTab !== 'settings'" } }` hides the chunk when the expression evaluates to truthy.
+- Any chunk can have a `hidden` property: a **bare JavaScript expression string** — NOT a `ValueSource` (no `{ "expr": ... }` / `{ "literal": ... }` wrapper, and no `literal` form). A constant `hidden` is meaningless: constant-true would just mean "always hide" (omit the chunk instead), and constant-false is the same as having no `hidden` at all. This mirrors `each`, which is also a bare expression string.
+- `{ "hidden": "scopes.root.activeTab !== 'settings'" }` hides the chunk when the expression evaluates to truthy.
 - Hidden chunks are not rendered but retain their state. When unhidden, they reappear with their state intact.
 - `hidden` expressions must NOT call async functions (RPC calls). They are evaluated synchronously.
 
 ## 9. Async & RPC
 
 - RPC functions (e.g., `UserRPC_getUsers()`) are available in `defaults` expressions and `callbacks` expressions ONLY.
-- RPC calls are NEVER allowed in `props.expr` or `hidden.expr` — these are evaluated synchronously during render.
+- RPC calls are NEVER allowed in `props.expr` or `hidden` — these are evaluated synchronously during render.
 - RPC functions are called with a single object argument matching their documented input type. Functions with no input take no arguments.
   - Correct: `UserRPC_getUsers()` (no input)
   - Correct: `UserRPC_deleteUser({ params: { id: scopes.row.item.id } })` (with input)

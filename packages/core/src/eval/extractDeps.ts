@@ -14,7 +14,7 @@ const cache = new WeakMap<ChunkComponent, string[]>();
  * Auto-detected reactive deps for a chunk.
  *
  * Walks every *reactive* expression on the chunk — `props.expr`,
- * `hidden.expr`, and (for list chunks) `each` — and unions the
+ * `hidden`, and (for list chunks) `each` — and unions the
  * `scopes.X.Y` paths each one reads. The renderer subscribes to those
  * paths; any write to a matching path wakes the chunk for re-render.
  *
@@ -38,8 +38,8 @@ export function extractDeps(chunk: ChunkComponent): string[] {
   if (chunk.props && "expr" in chunk.props && chunk.props.expr) {
     for (const r of getScopeReads(chunk.props.expr)) out.add(r);
   }
-  if (chunk.hidden && "expr" in chunk.hidden && chunk.hidden.expr) {
-    for (const r of getScopeReads(chunk.hidden.expr)) out.add(r);
+  if (chunk.hidden) {
+    for (const r of getScopeReads(chunk.hidden)) out.add(r);
   }
 
   // List chunks carry `each` as a bare expression string (not a

@@ -45,7 +45,8 @@ export const createAIComponentRenderer = <
       : ({} as CombinedSpec.InferOutput<TProps>);
     const hidden = chunk.hidden
       ? evaluate(
-          chunk.hidden,
+          // `hidden` is a bare expr string — wrap as expr for `evaluate`, like `each`.
+          { expr: chunk.hidden },
           { scopes: myprops.scopes },
           { functions },
         )

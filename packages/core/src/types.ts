@@ -14,7 +14,7 @@ export interface ChunkComponentElement {
   component: string;
   props?: ValueSource;
   defaults?: ValueSourceAssignment[];
-  hidden?: ValueSource;
+  hidden?: Expression;
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];
 }
@@ -24,7 +24,7 @@ export interface ChunkComponentElement {
 export interface ChunkComponentList extends ChunkComponentElement {
   keyBy?: (string & {}) | "_index" | "_item";
   as: string;
-  each: string;
+  each: Expression;
 }
 
 // A chunk is a **list** iff it has an `each` field; otherwise it's a regular
@@ -33,13 +33,16 @@ export interface ChunkComponentList extends ChunkComponentElement {
 // being referenced by no other chunk's `children`. Narrow with `"each" in chunk`.
 export type ChunkComponent = ChunkComponentElement | ChunkComponentList;
 
-// NOTE: the out-of-band metadata envelope (`ChunkMeta`, kind: "meta") and the
-// meta-inclusive `Chunk = ChunkComponent | ChunkMeta` union are NOT defined
-// here. They're a streaming-protocol concern owned entirely by the consuming
-// app (neat-report's `@neat/types`); core is catalog-/transport-agnostic and
-// only knows about component chunks.
+// Core models only component chunks. Any streaming/metadata envelope around
+// them is the consumer's concern, not core's.
 
-export type ValueSource = { expr: string; } | { literal: unknown };
+// A bare JavaScript expression string, always evaluated as code (no literal
+// form). Used by `hidden` and `each`.
+export type Expression = string;
+
+// A value: `literal` is any JSON value used as-is (no evaluation); `expr` is
+// evaluated as code.
+export type ValueSource = { expr: Expression; } | { literal: unknown };
 export type ValueSourceAssignment = { set: string } & ValueSource;
 export type ConfirmableValueSourceAssignment = { confirm?: string } & ValueSourceAssignment;
 
@@ -64,8 +67,3 @@ export namespace CombinedSpec {
     StandardSchemaV1.InferOutput<T>;
   export type SuccessResult<T> = StandardSchemaV1.SuccessResult<T>;
 }
-
-// props: expr, literal
-// each: string (scope reference like scopes.root.myItems)
-// callbacks: set, expr, literal, async
-// defaults: set, expr, literal, async

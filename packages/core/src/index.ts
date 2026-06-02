@@ -16,8 +16,8 @@ export { SafeEval, SafeEvalError } from "./eval/SafeEval";
 export { cn } from "./lib/utils";
 // Prompt partials — catalog-/app-agnostic builders that a consuming app
 // composes into a full system prompt. core no longer ships an assembler itself;
-// each app owns its own assembly (e.g. neat-report joins these partials per
-// endpoint to form each request's `system` message).
+// each app owns its own assembly, joining these partials into each request's
+// `system` message.
 export { getCommonInstructionsPartialPrompt } from "./prompt/getCommonInstructionsPartialPrompt";
 export { getComponentsPartialPrompt } from "./prompt/getComponentsPartialPrompt";
 export { getExpressionsPartialPrompt } from "./prompt/getExpressionsPartialPrompt";
@@ -64,6 +64,7 @@ export type {
 	CombinedProps,
 	CombinedSpec,
 	ConfirmableValueSourceAssignment,
+	Expression,
 	ValueSource,
 	ValueSourceAssignment,
 } from "./types";

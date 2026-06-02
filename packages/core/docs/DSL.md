@@ -103,7 +103,7 @@ interface ChunkComponentElement {
   component: string;           // registry name, e.g. "Card", "Input", "Table"
   props?: ValueSource;           // evaluates to the component's props object
   defaults?: ValueSourceAssignment[]; // initial state, one-shot
-  hidden?: ValueSource;          // truthy → hide via <Activity mode="hidden">
+  hidden?: Expression;           // bare JS expr string; truthy → hide via <Activity mode="hidden">
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];         // child chunk keys, in render order
 }
@@ -115,7 +115,7 @@ A list chunk extends the base with the iteration fields:
 
 ```ts
 interface ChunkComponentList extends ChunkComponentElement {
-  each: string;                // JS expression returning an array — its presence marks a list
+  each: Expression;            // JS expression returning an array — its presence marks a list
   as: string;                  // globally unique scope name
   keyBy?: "_index" | "_item" | (string & {});  // stable identity per item
 }
@@ -126,12 +126,13 @@ A chunk is a list **iff** it carries `each`; otherwise it's an element. There's 
 ### `ValueSource` and `ValueSourceAssignment`
 
 ```ts
+type Expression = string; // bare JS expr (hidden, each) — always evaluated, no literal form
 type ValueSource = { expr: string } | { literal: unknown };
 type ValueSourceAssignment = { set: string } & ValueSource;
 type ConfirmableValueSourceAssignment = { confirm?: string } & ValueSourceAssignment;
 ```
 
-- `{ literal: X }` — value is `X` verbatim. Use when nothing depends on state.
+- `{ literal: X }` — value is `X` verbatim (any JSON value — nested objects/arrays included). Use when nothing depends on state.
 - `{ expr: "<JS>" }` — evaluate the expression against current scope; the result is the value.
 - `{ set: "scopes.X.Y", … }` — additionally write the result to a scope path.
 - `{ confirm: "Are you sure?", … }` — block the chained-callback walk on a modal Yes/No.
@@ -218,58 +219,9 @@ The runtime is path-exact. **Replace arrays / objects wholesale** in callbacks s
 
 ## 7. Scopes & nested scopes
 
-### The shape
+`scopes` is a flat, named bag of reactive proxies: `scopes.root` (page-wide) plus one scope per list item, named by the list's `as`. Nesting is expressed by naming and composition, not deep `scopes.a.b` objects — an inner subtree sees every enclosing scope, a list is *N* scope instances (one proxy per row, cached by item id), and a parent reads across rows via `childScopes.<as>`. Scope names must be globally unique across lists.
 
-`scopes` is a **plain object** (not a proxy) whose values are reactive proxies:
-
-```ts
-scopes = {
-  root: <reactiveProxy of {}>,
-  row:  <reactiveProxy of { item, index, id }>,   // inside a list
-  cell: <reactiveProxy of { item, index, id }>,   // inside a nested list under row
-}
-```
-
-Each entry has its own emitter (one per `createProxyScope` call). So `scopes.root.$emitter` and `scopes.row.$emitter` are different objects — emits in one scope don't reach subscribers in another. But sub-proxies *within* a scope share the scope's emitter.
-
-The top-level Renderer creates `root` once and passes `{ root }` as the initial `scopes`. Lists then extend this object with item proxies, scoped under the chunk's `as` name.
-
-### Nested-list scopes
-
-Each list creates per-item proxies with `createProxyScope({ item, index, id })`. These proxies are **cached by item id** in a ref-held `Map` so they survive re-renders (preserving per-item state like input focus, edit buffers, expansion toggles).
-
-For each item, the list builds an extended scopes object:
-
-```ts
-const itemScopes = {
-  ...scopes,                  // inherits parent scopes (e.g. root)
-  [line.as]: itemProxy,
-};
-```
-
-…and passes it down. A chunk inside a list-item subtree sees `scopes.<as>.item` / `.index` / `.id`, plus everything its ancestors saw.
-
-Nested lists work by stacking: a `row` list inside the root, then a `cell` list inside each row, gives item-scope chunks visibility of `scopes.root`, `scopes.row`, `scopes.cell`.
-
-### `childScopes` for aggregation
-
-Each list also stashes its per-item proxy array onto the **last scope before the list** so a parent can read across all items:
-
-```ts
-lastScope.$set(`childScopes.${line.as}`, itemScopesList);
-```
-
-So a chunk at the root can sum every row's value via:
-
-```ts
-scopes.root.childScopes.row.reduce((acc, r) => acc + r.item.value, 0)
-```
-
-For nested lists, chain: `scopes.root.childScopes.row.childScopes.cell`.
-
-### Scope-name discipline
-
-The constraint surfaced in [`INSTRUCTIONS.md` §4](../src/prompt/INSTRUCTIONS.md): **scope names must be globally unique across all lists**. If two different lists both used `as: "item"`, the second would overwrite the first in the scopes object as you descend into the inner list, and outer-scope reads would silently break.
+See [`SCOPES.md`](./SCOPES.md) — *Usage: the scope architecture* — for the full model: the flat-bag shape, per-item scopes, `childScopes` aggregation, and the lexical mental model.
 
 ---
 
@@ -278,7 +230,7 @@ The constraint surfaced in [`INSTRUCTIONS.md` §4](../src/prompt/INSTRUCTIONS.md
 For each chunk, the renderer subscribes to every scope path the chunk *reads* in its **reactive sites**:
 
 - `chunk.props.expr`
-- `chunk.hidden.expr`
+- `chunk.hidden`
 - `chunk.each` (list chunks)
 
 `defaults` and `callbacks` are NOT scanned: defaults run once at mount (gated by `hasBeenRenderedRef.current`); callbacks run on event and read current state at fire time.
@@ -322,7 +274,7 @@ Four things to notice:
 1. **All defaults in one chunk are evaluated BEFORE any value is written.** They're collected, then written. So a later default *cannot* read a value set by an earlier default in the same chunk. If you need that chaining, split across parent/child chunks (child mounts after parent finishes).
 2. **Async defaults suspend the chunk.** If any default expression returns a Promise, the chunk wraps itself in `<Suspense>` with `use(promise)` and renders the registered placeholder until all promises resolve.
 3. **No re-run on partial replacement.** A chunk re-emitted with the same key keeps its scope state — defaults don't fire again if the renderer instance survives.
-4. **Use `defaults` for state, not derivations.** The right things to put in `defaults` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden.expr` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `defaults` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
+4. **Use `defaults` for state, not derivations.** The right things to put in `defaults` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `defaults` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
 
 ### `init` — host-side seeding (not a chunk field)
 
@@ -371,7 +323,7 @@ Execution semantics:
 
 ### The purity rule
 
-Expressions in `props.expr`, `hidden.expr`, `defaults[].expr`, and `callbacks[].expr` must be **pure**. They return a value. The *only* way to write state is through the `"set"` field on `defaults` / `callbacks`. Mutating `scopes.X` from inside an expression body (e.g. via `(() => { scopes.x = y; return … })()`) creates write-during-render which the renderer re-evaluates and re-fires, producing infinite-loop or stale-state bugs.
+Expressions in `props.expr`, `hidden`, `defaults[].expr`, and `callbacks[].expr` must be **pure**. They return a value. The *only* way to write state is through the `"set"` field on `defaults` / `callbacks`. Mutating `scopes.X` from inside an expression body (e.g. via `(() => { scopes.x = y; return … })()`) creates write-during-render which the renderer re-evaluates and re-fires, producing infinite-loop or stale-state bugs.
 
 The LLM is prompted with this rule in [`INSTRUCTIONS.md` §2](../src/prompt/INSTRUCTIONS.md). The runtime doesn't enforce it directly — `safe-eval`'s ban on `AssignmentExpression` would catch direct `scopes.x = …` but not the IIFE form. Treat it as a contract.
 
@@ -565,13 +517,13 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 
 ## 15. Hidden — conditional visibility
 
-`chunk.hidden` is a `ValueSource` evaluated every render. If truthy, the chunk wraps in `<Activity mode="hidden">`. React 19's Activity:
+`chunk.hidden` is a bare expression string evaluated every render. If truthy, the chunk wraps in `<Activity mode="hidden">`. React 19's Activity:
 
 - Keeps the subtree **mounted** with state intact.
 - Pauses effects and rendering until it goes visible again.
 - Toggles visibility without losing input focus, scroll position, expanded toggles, etc.
 
-So `hidden` is *not* unmount/remount — it's display-toggle with state preservation. Useful for tabs, accordions, conditional panels. Auto-deps treats `hidden.expr` as reactive: writing the path it reads wakes the chunk and flips visibility.
+So `hidden` is *not* unmount/remount — it's display-toggle with state preservation. Useful for tabs, accordions, conditional panels. Auto-deps treats `hidden` as reactive: writing the path it reads wakes the chunk and flips visibility.
 
 ---
 
