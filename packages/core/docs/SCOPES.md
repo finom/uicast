@@ -1,6 +1,6 @@
 # Scopes — `createProxyScope`
 
-Scopes are the DSL's state model. This document has two halves: **Usage** — the scope architecture a chunk author (or LLM) works against — then the **low-level API** of the proxy that backs each scope. Read [`DSL.md`](./DSL.md) for how the chunk runtime mounts trees and subscribes; read this for what a scope *is* and how the proxy underneath behaves.
+Scopes are the render runtime's state model. This document has two halves: **Usage** — the scope architecture an element author (or LLM) works against — then the **low-level API** of the proxy that backs each scope. Read [`SPEC.md`](./SPEC.md) for the normative format contract (scopes are §1.5), [`OVERVIEW.md`](./OVERVIEW.md) for how the engine subscribes to scope changes (and [`REACT.md`](./REACT.md) for how the React binding wires that to re-renders); read this for what a scope *is* and how the proxy underneath behaves.
 
 ---
 
@@ -20,7 +20,7 @@ scopes.<scopeName>.<path>        // e.g. scopes.root.searchTerm
 
 ### Item scopes — created per list item
 
-A list chunk declares `each` (an expression returning an array) and `as` (a globally-unique name). For **each item**, the renderer:
+A list element declares `each` (an expression returning an array) and `as` (a globally-unique name). For **each item**, the renderer:
 
 1. builds a scope proxy over `{ item, index, id }` (reused across re-renders, keyed by the item's id), then
 2. hands that item's subtree a **merged bag** — the parent's scopes plus the item's own, keyed by the list's `as`:
@@ -41,7 +41,7 @@ Two consequences worth internalizing:
 
 ### The mental model — lexical scopes
 
-Start from the chunks. This array is the orders → lines screen — `component` names are illustrative, and on the wire it streams as JSONL (one object per line). There's no `op` field: `page` is the root because no other chunk lists it in a `children` array.
+Start from the elements. This array is the orders → lines screen — `component` names are illustrative, and on the wire it streams as JSONL (one object per line). There's no `op` field: `page` is the root because no other element lists it in a `children` array.
 
 ```json
 [
@@ -67,7 +67,7 @@ Start from the chunks. This array is the orders → lines screen — `component`
 ]
 ```
 
-Which means, in plain lexical-scoping terms: each list chunk (a chunk carrying `each`) introduces a new **named scope**, exactly like a block introduces locals — except the nesting is captured by scope *name*, not by nesting one scope object inside another.
+Which means, in plain lexical-scoping terms: each list element (an element carrying `each`) introduces a new **named scope**, exactly like a block introduces locals — except the nesting is captured by scope *name*, not by nesting one scope object inside another.
 
 ```js
 // imperative analogy                  // scope path it maps to
@@ -95,7 +95,7 @@ orders.forEach((order, index) => {
 });
 ```
 
-`search` reads/writes `scopes.root.searchTerm` (the top-level `let`); the two list chunks (those carrying `each`) are the two `forEach`s; `as` names each row's scope; `order-title` / `line-text` read `scopes.order.item` / `scopes.line.item`.
+`search` reads/writes `scopes.root.searchTerm` (the top-level `let`); the two list elements (those carrying `each`) are the two `forEach`s; `as` names each row's scope; `order-title` / `line-text` read `scopes.order.item` / `scopes.line.item`.
 
 Concretely, the `scopes` bag handed to the **innermost** subtree is the merge of every enclosing scope:
 
@@ -140,7 +140,7 @@ Note the nesting mirrors visibility: `childScopes.order` lives on `root`, but `c
 
 ## The proxy — low-level API
 
-This half describes the proxy primitive that backs each scope. **It exists for one purpose: state management** — a purpose-built reactive store, in the same role as Zustand/Redux/MobX, just scoped to this engine's needs. It's a self-contained, ~140-line library: a JavaScript Proxy over an arbitrary object plus a path-keyed event emitter. It is independent of the chunk protocol and the React renderer — if you only need a fine-grained reactive object you can use `createProxyScope` on its own.
+This half describes the proxy primitive that backs each scope. **It exists for one purpose: state management** — a purpose-built reactive store, in the same role as Zustand/Redux/MobX, just scoped to this engine's needs. It's a self-contained, ~140-line library: a JavaScript Proxy over an arbitrary object plus a path-keyed event emitter. It is independent of the element model and the React renderer — if you only need a fine-grained reactive object you can use `createProxyScope` on its own.
 
 ### The shape
 
@@ -243,7 +243,7 @@ Reader-writer agreement is by **path equality**. The runtime never tries to bubb
 - **Granular writes wake granular readers, not coarse ones.** `state.$set("rows.0.name", "x")` wakes a subscriber on `"rows.0.name"` but **not** a subscriber on `"rows"`.
 - **Coarse writes wake coarse readers, not granular ones.** `state.$set("rows", newArr)` wakes a subscriber on `"rows"` but **not** a subscriber on `"rows.0.name"` (even if the new array has a different name at index 0).
 
-The convention in core's chunk runtime is to **replace arrays / objects wholesale** in callbacks so any reader of the parent path wakes. If you use this primitive standalone, decide a convention up front — readers must subscribe to the exact path the writers will emit on.
+The convention in core's render runtime is to **replace arrays / objects wholesale** in callbacks so any reader of the parent path wakes. If you use this primitive standalone, decide a convention up front — readers must subscribe to the exact path the writers will emit on.
 
 #### `on` returns an unsubscribe
 
@@ -298,6 +298,6 @@ interface Emitter {
 
 ## Cross-references
 
-- [`DSL.md`](./DSL.md) — the chunk-protocol DSL that uses these scopes to build per-list-item state and reactive component trees.
+- [`OVERVIEW.md`](./OVERVIEW.md) — the render runtime that uses these scopes to build per-list-item state and reactive component trees.
 - [`createProxyScope.ts`](../src/scope/createProxyScope.ts) — the source. Short enough to read in one sitting.
 - [`../src/utils/utils.ts`](../src/utils/utils.ts) — `parseScope(key)` — splits a `"scopes.X.Y"` dep string into `[scopeName, leafPath]` for emitter subscription.
