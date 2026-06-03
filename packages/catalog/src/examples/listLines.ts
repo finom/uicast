@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const listLines: ChunkComponent[] = [
+export const listLines: Fired.Element[] = [
   {
     key: "list-card",
     component: "Card",

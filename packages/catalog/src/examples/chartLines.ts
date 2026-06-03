@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const chartLines: ChunkComponent[] = [
+export const chartLines: Fired.Element[] = [
   {
     key: "chart-root",
     component: "FlexCol",

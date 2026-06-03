@@ -1,8 +1,8 @@
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { asyncLines } from "./asyncLines";
 import { chartLines } from "./chartLines";
-import { claudeLines } from "./claudeLines";
 import { countLines } from "./countLines";
+import { demoLines } from "./demoLines";
 import { formLines } from "./formLines";
 import { listLines } from "./listLines";
 import { nastenkaLines } from "./nastenkaLines";
@@ -11,8 +11,8 @@ import { tableLines } from "./tableLines";
 export {
   asyncLines,
   chartLines,
-  claudeLines,
   countLines,
+  demoLines,
   formLines,
   listLines,
   nastenkaLines,
@@ -22,7 +22,7 @@ export {
 type PromptExample = {
   title: string;
   sourcePrompt: string;
-  lines: ChunkComponent[];
+  lines: Fired.Element[];
 };
 
 export const catalogExamples: PromptExample[] = [

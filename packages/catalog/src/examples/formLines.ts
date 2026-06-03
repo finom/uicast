@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const formLines: ChunkComponent[] = [
+export const formLines: Fired.Element[] = [
   {
     key: "card2",
     component: "Card",

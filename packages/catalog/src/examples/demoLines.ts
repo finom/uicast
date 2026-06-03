@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const claudeLines: ChunkComponent[] = [
+export const demoLines: Fired.Element[] = [
   {
     key: "root",
     component: "FlexCol",

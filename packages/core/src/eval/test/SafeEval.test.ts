@@ -46,6 +46,55 @@ describe("SafeEval — allowed expressions", () => {
     expect(d).toBeInstanceOf(Date);
     expect((d as Date).getFullYear()).toBe(2026);
   });
+
+  it("allows safe statements nested inside arrow-function bodies", () => {
+    // switch + break + local binding
+    expect(
+      evalr.eval(
+        'xs.map(n => { let r; switch (n) { case 1: r = "a"; break; case 2: r = "b"; break; default: r = "z"; } return r; })',
+        { xs: [1, 2, 3] },
+      ),
+    ).toEqual(["a", "b", "z"]);
+
+    // C-style for with i++ (ForStatement + UpdateExpression)
+    expect(
+      evalr.eval(
+        "(n => { let t = 0; for (let i = 0; i < n; i++) { t += i; } return t; })(4)",
+      ),
+    ).toBe(6);
+
+    // for-of + continue
+    expect(
+      evalr.eval(
+        "(arr => { let s = 0; for (const x of arr) { if (x % 2 === 0) continue; s += x; } return s; })(xs)",
+        { xs: [1, 2, 3, 4] },
+      ),
+    ).toBe(4);
+
+    // for-in
+    expect(
+      evalr.eval(
+        '(o => { const keys = []; for (const k in o) { keys.push(k); } return keys.join(","); })({ a: 1, b: 2 })',
+      ),
+    ).toBe("a,b");
+
+    // while + do-while
+    expect(
+      evalr.eval("(n => { let i = 0; while (i < n) { i++; } return i; })(3)"),
+    ).toBe(3);
+    expect(
+      evalr.eval(
+        "(n => { let i = 0; do { i++; } while (i < n); return i; })(3)",
+      ),
+    ).toBe(3);
+
+    // try / catch / throw
+    expect(
+      evalr.eval(
+        '(x => { try { if (!x) throw new Error("no"); return x; } catch { return -1; } })(0)',
+      ),
+    ).toBe(-1);
+  });
 });
 
 describe("SafeEval — disallowed expressions", () => {
@@ -64,9 +113,20 @@ describe("SafeEval — disallowed expressions", () => {
   });
 
   it("rejects new Function(...)", () => {
-    expect(() => evalr.eval("new Function('return 1')()")).toThrow(
-      SafeEvalError,
-    );
+    // `Function` is shadowed to undefined, so `new Function(...)` throws at
+    // runtime (TypeError) rather than failing AST validation.
+    expect(() => evalr.eval("new Function('return 1')()")).toThrow();
+  });
+
+  it("shadows ambient capability globals to undefined", () => {
+    // Code-exec + exfiltration globals resolve to `undefined` inside an
+    // expression, so any reference is inert.
+    for (const g of ["fetch", "Image", "Audio", "WebAssembly", "Deno", "Bun"]) {
+      expect(evalr.eval(`typeof ${g}`)).toBe("undefined");
+    }
+    // ...so the exfiltration / code-exec forms throw rather than run.
+    expect(() => evalr.eval("new Image()")).toThrow();
+    expect(() => evalr.eval("WebAssembly.instantiate(0)")).toThrow();
   });
 
   it("rejects throw, while, for, if at statement level", () => {
@@ -107,5 +167,58 @@ describe("SafeEval.validate — analysis without execution", () => {
     expect(evalr.validate("scopes.root.count").scopeReads).toEqual([
       "scopes.root.count",
     ]);
+  });
+});
+
+describe("SafeEval — function-expression bodies", () => {
+  it("allows safe statements inside a function-expression body, like arrows", () => {
+    expect(
+      evalr.eval("xs.map(function (n) { const r = n * 2; return r; })", {
+        xs: [1, 2, 3],
+      }),
+    ).toEqual([2, 4, 6]);
+  });
+
+  it("still blocks forbidden property access inside a function-expression body", () => {
+    expect(() =>
+      evalr.eval("xs.map(function (o) { return o.constructor; })", {
+        xs: [{}],
+      }),
+    ).toThrow(SafeEvalError);
+  });
+});
+
+describe("SafeEval — strict-mode validation", () => {
+  it("rejects strict-only syntax (octal literal) as a SafeEvalError", () => {
+    // Sloppy-legal, strict-illegal. Must surface as a SafeEvalError caught at
+    // validate, not a raw SyntaxError leaking from `new Function` at compile.
+    expect(() => evalr.validate("0777")).toThrow(SafeEvalError);
+    expect(() => evalr.eval("0777")).toThrow(SafeEvalError);
+  });
+
+  it("rejects strict-only duplicate parameter names as a SafeEvalError", () => {
+    expect(() => evalr.eval("(function (a, a) { return a; })(1, 2)")).toThrow(
+      SafeEvalError,
+    );
+  });
+});
+
+describe("SafeEval — compilation memoization", () => {
+  it("re-evaluates correctly across calls and context shapes", () => {
+    const ev = new SafeEval();
+    // Same context shape, different values → reuses the compiled function.
+    expect(ev.eval("a + b", { a: 1, b: 2 })).toBe(3);
+    expect(ev.eval("a + b", { a: 10, b: 20 })).toBe(30);
+    // Different key order → distinct signature, still correct.
+    expect(ev.eval("a + b", { b: 5, a: 100 })).toBe(105);
+    // Different key set entirely → distinct signature, still correct.
+    expect(ev.eval("a + b", { a: 7, b: 8, c: 9 })).toBe(15);
+  });
+
+  it("clearCache forces recompilation without changing results", () => {
+    const ev = new SafeEval();
+    expect(ev.eval("n * 2", { n: 21 })).toBe(42);
+    ev.clearCache();
+    expect(ev.eval("n * 2", { n: 21 })).toBe(42);
   });
 });

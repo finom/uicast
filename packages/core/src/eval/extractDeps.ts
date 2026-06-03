@@ -1,4 +1,4 @@
-import type { ChunkComponent } from "../types";
+import { Fired } from "../types";
 import { getScopeReads } from "./evaluate";
 
 /**
@@ -8,7 +8,7 @@ import { getScopeReads } from "./evaluate";
  * elements map (e.g. after a partial-subtree replacement — see
  * `buildElementsById` in `utils/utils.ts`).
  */
-const cache = new WeakMap<ChunkComponent, string[]>();
+const cache = new WeakMap<Fired.Element, string[]>();
 
 /**
  * Auto-detected reactive deps for a chunk.
@@ -29,7 +29,7 @@ const cache = new WeakMap<ChunkComponent, string[]>();
  * targetPath, …)`. Subscription is path-exact (no parent fanout) — see
  * `createProxyScope.ts` set trap.
  */
-export function extractDeps(chunk: ChunkComponent): string[] {
+export function extractDeps(chunk: Fired.Element): string[] {
   const cached = cache.get(chunk);
   if (cached) return cached;
 
@@ -48,7 +48,7 @@ export function extractDeps(chunk: ChunkComponent): string[] {
   // searchTerm…)` expression yields both `scopes.inv.rows` AND
   // `scopes.root.searchTerm`, so typing in the search input wakes the
   // list re-render.
-  if ("each" in chunk) {
+  if (Fired.isList(chunk)) {
     for (const r of getScopeReads(chunk.each)) out.add(r);
   }
 

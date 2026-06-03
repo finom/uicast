@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const asyncLines: ChunkComponent[] = [
+export const asyncLines: Fired.Element[] = [
   {
     key: "users-table",
     component: "Table",

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent, ChunkComponentElement } from "../../types";
+import type { Fired } from "../../types";
 import { buildElementsById } from "../utils";
 
-const e = (key: string, children?: string[]): ChunkComponentElement => ({
+const e = (key: string, children?: string[]): Fired.Element => ({
   key,
   component: "C",
   children,
@@ -10,7 +10,7 @@ const e = (key: string, children?: string[]): ChunkComponentElement => ({
 
 describe("buildElementsById", () => {
   it("indexes chunks by key", () => {
-    const lines: ChunkComponent[] = [e("a"), e("b"), e("c")];
+    const lines: Fired.Element[] = [e("a"), e("b"), e("c")];
     const map = buildElementsById(lines);
     expect(Object.keys(map).sort()).toEqual(["a", "b", "c"]);
     expect(map.a).toBe(lines[0]);
@@ -18,14 +18,14 @@ describe("buildElementsById", () => {
 
   it("re-emitted chunk replaces and drops orphaned descendants", () => {
     // Initial tree: root -> [a -> [a1], b]
-    const initial: ChunkComponent[] = [
+    const initial: Fired.Element[] = [
       e("root", ["a", "b"]),
       e("a", ["a1"]),
       e("a1"),
       e("b"),
     ];
     // Re-emit `a` with a new child `a2`; `a1` should be dropped from the map.
-    const reemitted: ChunkComponent[] = [
+    const reemitted: Fired.Element[] = [
       ...initial,
       e("a", ["a2"]),
       e("a2"),
@@ -40,7 +40,7 @@ describe("buildElementsById", () => {
   });
 
   it("treats the most recent occurrence of a key as the winner", () => {
-    const lines: ChunkComponent[] = [e("x"), { ...e("x"), component: "Y" }];
+    const lines: Fired.Element[] = [e("x"), { ...e("x"), component: "Y" }];
     const map = buildElementsById(lines);
     expect(map.x.component).toBe("Y");
   });

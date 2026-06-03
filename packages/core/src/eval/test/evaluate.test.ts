@@ -46,7 +46,17 @@ describe("evaluate — host functions and evt", () => {
     const result = evaluate(
       { expr: "double(3)" },
       {},
-      { functions: { double: (n: number) => n * 2 } },
+      {
+        functions: [
+          {
+            name: "double",
+            description: "",
+            execute(n: number) {
+              return n * 2;
+            },
+          },
+        ],
+      },
     );
     expect(result).toBe(6);
   });

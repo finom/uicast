@@ -1,26 +1,9 @@
+import type { StandardTool } from "standard-tool";
 import type { ValueSource } from "../types";
+import { ALLOWED_GLOBALS } from "./allowedGlobals";
 import { SafeEval } from "./SafeEval";
 
-const safeEval = new SafeEval({
-  allowGlobals: [
-    "Array",
-    "Object",
-    "Math",
-    "Date",
-    "JSON",
-    "String",
-    "Number",
-    "Boolean",
-    "RegExp",
-    "parseInt",
-    "parseFloat",
-    "isNaN",
-    "isFinite",
-    "undefined",
-    "NaN",
-    "Infinity",
-  ],
-});
+const safeEval = new SafeEval({ allowGlobals: ALLOWED_GLOBALS });
 
 /**
  * Return every `scopes.X.Y` path the given expression reads. Thin wrapper
@@ -32,38 +15,27 @@ const safeEval = new SafeEval({
 export const getScopeReads = (expr: string): string[] =>
   safeEval.scopeReads(expr);
 
-// Functions exposed as bare identifiers inside the eval scope. Consumers
-// (e.g. a consumer's host-function map) wire them in via
-// <Renderer functions={...} />, which threads them through the
-// RendererRegistry context to every evaluate() call site. Spread *after*
-// context so a consumer-provided function wins over an equally-named scope
-// variable — the LLM is prompted with these names and expects them to be
-// the host-provided callables.
-// `any` here (not `unknown`) is deliberate: with strict function types,
-// `(...args: unknown[]) => unknown` is contravariant on parameters and
-// rejects concrete signatures like `(input: { id: string }) => Promise<T>`
-// — which is exactly what consumers pass in (e.g. google-tools). The
-// runtime is fundamentally dynamic dispatch over LLM-emitted call sites;
-// the eval boundary can't constrain shapes the way a typed RPC can.
-// biome-ignore lint/suspicious/noExplicitAny: see comment above
-export type EvaluateFunctions = Record<string, (...args: any[]) => any>;
-
 // Evaluate a ValueSource to its value: a `literal` is returned as-is, an `expr`
-// is run through SafeEval against `context` + host `functions`. Returns
-// `unknown` — an async `expr` resolves to a Promise, which callers detect with
-// `value instanceof Promise`. (There's no Promise-typed overload for the
-// assignable forms: a literal-form assignable returns synchronously, so a
-// conditional `… ? Promise<unknown> : unknown` return type would be a lie —
-// and that lie was what forced an `as any` on every return.)
+// is run through SafeEval against `context` + the host `functions`. Returns
+// `unknown` — an async `expr` (or a tool whose `execute` is async) resolves to
+// a Promise, which callers detect with `value instanceof Promise`.
+//
+// `functions` is the same `StandardTool[]` the prompt is generated from (see
+// getFunctionsPartialPrompt). An expression calls `name(input)`, which maps to
+// `tool.execute(input)`. They're spread *after* context so a host function wins
+// over an equally-named scope variable — the LLM is prompted with these names.
 export const evaluate = (
   expr: ValueSource,
-  context: Record<string, any>,
-  options?: { functions?: EvaluateFunctions },
+  context: Record<string, unknown>,
+  options?: { functions?: StandardTool[] },
 ): unknown => {
   if ("literal" in expr) return expr.literal;
   if (!expr.expr) return null;
-  return safeEval.eval(expr.expr, {
-    ...context,
-    ...(options?.functions ?? {}),
-  });
+  const functions = Object.fromEntries(
+    (options?.functions ?? []).map((tool) => [
+      tool.name,
+      (input: unknown) => tool.execute(input),
+    ]),
+  );
+  return safeEval.eval(expr.expr, { ...context, ...functions });
 };

@@ -1,6 +1,6 @@
-import { ChunkComponent } from "@ui-fired/core/types";
+import { Fired } from "@ui-fired/core/types";
 
-export const tableLines: ChunkComponent[] = [
+export const tableLines: Fired.Element[] = [
   {
     key: "table-card",
     component: "Table",

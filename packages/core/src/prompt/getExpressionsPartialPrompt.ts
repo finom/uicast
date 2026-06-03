@@ -1,3 +1,5 @@
+import { ALLOWED_GLOBALS } from "../eval/allowedGlobals";
+
 /**
  * The `# JavaScript Expressions` block — the micro-expression syntax contract
  * the generation LLM follows when authoring `expr` values (props, hidden,
@@ -33,6 +35,7 @@ All \`expr\` values are JavaScript expressions evaluated with a provided context
 - Logical operators: \`&&\`, \`||\`, \`!\`
 - Comparison: \`===\`, \`!==\`, \`<\`, \`<=\`, \`>\`, \`>=\` (prefer strict equality \`===\`)
 - Math: \`Math.floor()\`, \`Math.ceil()\`, \`Math.round()\`, \`Math.max()\`, \`Math.min()\`, \`Math.abs()\`
+- Available globals (anything else is \`undefined\` — don't reference other globals): ${ALLOWED_GLOBALS.join(", ")}.
 - CRITICAL: All defaults in a single chunk are evaluated BEFORE any are written. A later default CANNOT read a value set by an earlier default in the same chunk. Split dependent defaults across parent/child chunks.
 
 Available context variables:
