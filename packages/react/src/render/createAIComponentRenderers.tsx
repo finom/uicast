@@ -1,12 +1,12 @@
 import type { AIComponentRenderer } from "./createAIComponentRenderer";
-import type { ChunkComponent, ChunkComponentElement } from "../types";
-import { createProxyScope } from "../scope/createProxyScope";
+import type { Fired } from "@ui-fired/core/types";
+import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
 import { RecursiveRenderer } from "./RecursiveRenderer";
 import {
   RendererRegistryProvider,
   type DefaultPlaceholderComponent,
 } from "./RendererRegistry";
-import { buildElementsById } from "../utils/utils";
+import { buildElementsById } from "@ui-fired/core/utils/utils";
 import { EditModeOverlay } from "../components/EditModeOverlay";
 import {
   FragmentRenderer,
@@ -14,7 +14,7 @@ import {
   type InitFn,
 } from "./Fragment";
 import { memo, useMemo } from "react";
-import type { EvaluateFunctions } from "../eval/evaluate";
+import type { StandardTool } from "standard-tool";
 
 export type { InitContext, InitFn } from "./Fragment";
 
@@ -74,10 +74,10 @@ export const createAIComponentRenderers = (
         // seeded state by the time they mount.
         init,
       }: {
-        lines: ChunkComponent[];
+        lines: Fired.Element[];
         editMode?: boolean;
         onEdit?: (elementId: string, editText: string) => void;
-        functions?: EvaluateFunctions;
+        functions?: StandardTool[];
         init?: InitFn;
       }) => {
         // Stable identity per `functions` reference — RendererRegistry
@@ -116,7 +116,7 @@ export const createAIComponentRenderers = (
         // roots become its children. Visually identical (Fragment
         // renders children directly via React.Fragment), but it gives
         // `init` exactly one mount point to attach to.
-        const syntheticFragment: ChunkComponentElement = {
+        const syntheticFragment: Fired.Element = {
           key: RENDERER_FRAGMENT_KEY,
           component: "Fragment",
           children: rootKeys,

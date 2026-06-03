@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { TableHead as ShadcnTableHead } from "@ui-fired/catalog/components/ui/table";
 import { TableHeadDef } from "./def";
 

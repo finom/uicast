@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { RadioGroup, RadioGroupItem } from "@ui-fired/catalog/components/ui/radio-group";
 import { Label } from "@ui-fired/catalog/components/ui/label";
 import { RadioDef } from "./def";

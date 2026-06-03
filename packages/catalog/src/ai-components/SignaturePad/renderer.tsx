@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { useRef, useCallback } from "react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Eraser } from "lucide-react";

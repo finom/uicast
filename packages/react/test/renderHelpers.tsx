@@ -1,17 +1,17 @@
 import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
-import type { EvaluateFunctions } from "@ui-fired/core/eval/evaluate";
+import type { StandardTool } from "standard-tool";
+import { ConfirmModalProvider } from "@ui-fired/react";
 import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 import {
   type AIComponentRenderer,
   createAIComponentRenderer,
-} from "@ui-fired/core/render/createAIComponentRenderer";
+} from "@ui-fired/react";
 import { createProxyScope } from "@ui-fired/core";
-import { RecursiveRenderer } from "@ui-fired/core/render/RecursiveRenderer";
-import { RendererRegistryProvider } from "@ui-fired/core/render/RendererRegistry";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import { RecursiveRenderer } from "@ui-fired/react";
+import { RendererRegistryProvider } from "@ui-fired/react";
+import type { Fired } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 // Lightweight test renderers wired the same way real catalog components are.
@@ -90,7 +90,7 @@ type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
   renderers?: Record<string, AIComponentRenderer>;
-  functions?: EvaluateFunctions;
+  functions?: StandardTool[];
   defaultPlaceholder?: () => ReactElement | null;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
@@ -101,7 +101,7 @@ type MountOptions = {
  * confirm-modal provider + root scope). Returns the @testing-library/react
  * render result plus the live scopes map so tests can drive state.
  */
-export function mountChunks(lines: ChunkComponent[], options: MountOptions = {}) {
+export function mountChunks(lines: Fired.Element[], options: MountOptions = {}) {
   const elements = buildElementsById(lines);
   const scopes: Record<string, ReturnType<typeof createProxyScope>> = {
     root: createProxyScope(options.rootScope ?? {}),

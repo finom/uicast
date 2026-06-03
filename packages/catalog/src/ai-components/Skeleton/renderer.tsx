@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Skeleton as ShadcnSkeleton } from "@ui-fired/catalog/components/ui/skeleton";
 import { SkeletonDef } from "./def";
 

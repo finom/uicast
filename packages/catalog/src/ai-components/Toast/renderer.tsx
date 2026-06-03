@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Alert, AlertTitle, AlertDescription } from "@ui-fired/catalog/components/ui/alert";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Card } from "@ui-fired/catalog/components/ui/card";

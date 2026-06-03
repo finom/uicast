@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { useState, useEffect } from "react";
 import { cn } from "@ui-fired/core/lib/utils";
 import { CountdownTimerDef } from "./def";

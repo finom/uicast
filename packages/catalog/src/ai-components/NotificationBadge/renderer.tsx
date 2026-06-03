@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Badge } from "@ui-fired/catalog/components/ui/badge";
 import { cn } from "@ui-fired/core/lib/utils";
 import { NotificationBadgeDef } from "./def";

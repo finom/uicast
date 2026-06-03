@@ -1,11 +1,11 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — callbacks", () => {
   it("fires a callback that $sets a path the renderer reads", async () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -45,7 +45,7 @@ describe("RecursiveRenderer — callbacks", () => {
 
   it("makes evt available inside callback expressions", async () => {
     const onClick = vi.fn();
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Button",
@@ -57,12 +57,16 @@ describe("RecursiveRenderer — callbacks", () => {
     ];
     const { container } = mountChunks(lines, {
       rootScope: {},
-      functions: {
-        captured: (evt: unknown) => {
-          onClick(evt);
-          return evt;
+      functions: [
+        {
+          name: "captured",
+          description: "",
+          execute(evt: unknown) {
+            onClick(evt);
+            return evt;
+          },
         },
-      },
+      ],
     });
 
     const btn = container.querySelector("button") as HTMLButtonElement;
@@ -75,7 +79,7 @@ describe("RecursiveRenderer — callbacks", () => {
   });
 
   it("runs multiple set-expressions in a single callback in order", async () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import {
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,

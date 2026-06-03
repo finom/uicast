@@ -13,8 +13,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@ui-fired/core/components/ui/dialog";
-import { Button } from "@ui-fired/core/components/ui/button";
+} from "./ui/dialog";
+import { Button } from "./ui/button";
 
 type ConfirmFn = (message: string) => Promise<boolean>;
 

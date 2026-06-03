@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Calendar as ShadcnCalendar } from "@ui-fired/catalog/components/ui/calendar";
 import { CalendarDef } from "./def";
 

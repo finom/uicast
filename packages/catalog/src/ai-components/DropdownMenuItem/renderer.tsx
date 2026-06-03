@@ -1,6 +1,6 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { DropdownMenuItem as ShadcnDropdownMenuItem } from "@ui-fired/catalog/components/ui/dropdown-menu";
-import { pickClick } from "@ui-fired/core/render/shared";
+import { pickClick } from "@ui-fired/catalog/render/shared";
 import { DropdownMenuItemDef } from "./def";
 
 export const DropdownMenuItemRenderer = createAIComponentRenderer({

@@ -8,9 +8,9 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "cd packages/core && vitest run",
-    "test:watch": "cd packages/core && vitest",
-    "test:coverage": "cd packages/core && vitest run --coverage",
+    "test": "npm run test --workspaces --if-present",
+    "test:watch": "npm run test:watch --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
     "md-to-json": "node scripts/md-to-json.mjs"
   },
   "dependencies": {

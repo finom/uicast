@@ -16,7 +16,9 @@
     "paths": {
       "@ui-fired/catalog/*": ["./src/*"],
       "@ui-fired/core": ["../core/src/index.ts"],
-      "@ui-fired/core/*": ["../core/src/*"]
+      "@ui-fired/core/*": ["../core/src/*"],
+      "@ui-fired/react": ["../react/src/index.ts"],
+      "@ui-fired/react/*": ["../react/src/*"]
     },
     "experimentalDecorators": true
   },

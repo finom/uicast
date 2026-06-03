@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { ToggleGroup, ToggleGroupItem } from "@ui-fired/catalog/components/ui/toggle-group";
 import { SegmentedControlDef } from "./def";
 

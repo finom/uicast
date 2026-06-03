@@ -1,11 +1,11 @@
 import { act, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -19,7 +19,7 @@ describe("RecursiveRenderer — defaults", () => {
   });
 
   it("seeds via expression", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -33,7 +33,7 @@ describe("RecursiveRenderer — defaults", () => {
 
   it("runs each default exactly once on mount", () => {
     let count = 0;
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -42,12 +42,16 @@ describe("RecursiveRenderer — defaults", () => {
       },
     ];
     const { container, scopes } = mountChunks(lines, {
-      functions: {
-        track: () => {
-          count += 1;
-          return count;
+      functions: [
+        {
+          name: "track",
+          description: "",
+          execute() {
+            count += 1;
+            return count;
+          },
         },
-      },
+      ],
     });
     expect(count).toBe(1);
 
@@ -60,7 +64,7 @@ describe("RecursiveRenderer — defaults", () => {
   });
 
   it("supports async defaults via Suspense (use(promise))", async () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -69,9 +73,15 @@ describe("RecursiveRenderer — defaults", () => {
       },
     ];
     const { container } = mountChunks(lines, {
-      functions: {
-        loadData: async () => "loaded-value",
-      },
+      functions: [
+        {
+          name: "loadData",
+          description: "",
+          async execute() {
+            return "loaded-value";
+          },
+        },
+      ],
     });
     await waitFor(() => {
       expect(container.textContent).toContain("loaded-value");

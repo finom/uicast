@@ -1,13 +1,12 @@
-// Types — the chunk-protocol shape and expression carriers consumers wire
-// through the runtime.
+// @ui-fired/core — the framework-agnostic engine. Everything exported here is
+// pure TypeScript with zero React (or any UI-framework) dependency: the element
+// model + expression carriers, the sandboxed expression evaluator, the reactive
+// Proxy scope store, the prompt-partial builders, and the component-definition
+// factories. The React bindings (the `<Renderer>`, the recursive renderer, the
+// registry context, confirm/edit-mode UI) live in the separate `@ui-fired/react`
+// package; the catalog event-payload helpers (`onClickSchema`/`pickClick`) live
+// in `@ui-fired/catalog`.
 
-// UI helpers shipped with core today. Slated to move out of core (see
-// the OSS-prep TODO in repo docs) — consumers will thread these in via
-// props/registry once that lands. Kept here for now so existing
-// consumers don't break.
-export { ConfirmModalProvider, useConfirm } from "./components/ConfirmModal";
-export { EditModeOverlay } from "./components/EditModeOverlay";
-export type { EvaluateFunctions } from "./eval/evaluate";
 // Expression evaluation — sandboxed eval + auto-dep extraction.
 export { evaluate, getScopeReads } from "./eval/evaluate";
 export { extractDeps } from "./eval/extractDeps";
@@ -23,49 +22,37 @@ export { getComponentsPartialPrompt } from "./prompt/getComponentsPartialPrompt"
 export { getExpressionsPartialPrompt } from "./prompt/getExpressionsPartialPrompt";
 export { getFunctionsPartialPrompt } from "./prompt/getFunctionsPartialPrompt";
 export { type JSONSchema, JSONSchemaToTs } from "./prompt-utils/JSONSchemaToTs";
-// Component-definition / renderer factories — the pair-creation pattern.
+// Component-definition factories — the partner-def half of the component-pair
+// pattern. The React renderer half (`createAIComponentRenderer` /
+// `createAIComponentRenderers`) lives in `@ui-fired/react`.
 export {
-	type AIComponentDef,
-	createAIComponentDef,
+  type AIComponentDef,
+  createAIComponentDef,
 } from "./render/createAIComponentDef";
 export { createAIComponentDefs } from "./render/createAIComponentDefs";
-export {
-	type AIComponentRenderer,
-	createAIComponentRenderer,
-} from "./render/createAIComponentRenderer";
-export { createAIComponentRenderers } from "./render/createAIComponentRenderers";
 // Reactive state — `createProxyScope` plus the path-keyed emitter, and
 // `parseScope` (splits a `scopes.X.Y` key into `[scopeName, leafPath]`).
-// Independent of the chunk runtime; see docs/SCOPES.md.
+// Independent of any render runtime; see docs/SCOPES.md.
 export {
-	type ChangePayload,
-	createEmitter,
-	createProxyScope,
-	type Emitter,
-	type EventHandler,
-	type ReactiveProxy,
+  type ChangePayload,
+  createEmitter,
+  createProxyScope,
+  type Emitter,
+  type EventHandler,
+  type ReactiveProxy,
 } from "./scope/createProxyScope";
 export { parseScope } from "./scope/parseScope";
-export { ErrorBoundary } from "./render/ErrorBoundary";
-// Render orchestration.
-export { ListRenderer, RecursiveRenderer } from "./render/RecursiveRenderer";
-export {
-	type DefaultPlaceholderComponent,
-	type RendererRegistry,
-	RendererRegistryProvider,
-	useDefaultPlaceholder,
-	useRendererRegistry,
-} from "./render/RendererRegistry";
-export { onClickSchema, pickClick } from "./render/shared";
+// `Fired` is a value-carrying namespace (it exports the `isList` guard
+// alongside the `Element` / `List` types), so it's a runtime export, not a
+// type-only one.
+export { Fired } from "./types";
 export type {
-	ChunkComponent,
-	ChunkComponentElement,
-	ChunkComponentList,
-	CombinedProps,
-	CombinedSpec,
-	ConfirmableValueSourceAssignment,
-	Expression,
-	ValueSource,
-	ValueSourceAssignment,
+  CombinedProps,
+  CombinedSpec,
+  ConfirmableValueSourceAssignment,
+  Expression,
+  ScopePath,
+  ValueSource,
+  ValueSourceAssignment,
 } from "./types";
 export { buildElementsById } from "./utils/utils";

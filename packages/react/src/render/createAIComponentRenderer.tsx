@@ -1,8 +1,8 @@
 import { Activity, type ReactNode } from "react";
-import type { ChunkComponent, CombinedSpec } from "../types";
-import type { AIComponentDef } from "./createAIComponentDef";
-import { parseScope } from "../scope/parseScope";
-import { evaluate } from "../eval/evaluate";
+import type { Fired, CombinedSpec } from "@ui-fired/core/types";
+import type { AIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
+import { parseScope } from "@ui-fired/core/scope/parseScope";
+import { evaluate } from "@ui-fired/core/eval/evaluate";
 import { useConfirm } from "../components/ConfirmModal";
 import { useRendererRegistry } from "./RendererRegistry";
 
@@ -29,7 +29,7 @@ export const createAIComponentRenderer = <
   placeholder?: () => React.ReactElement;
 }) => {
   const component = (myprops: {
-    chunk: ChunkComponent;
+    chunk: Fired.Element;
     children: ReactNode;
     scopes: Record<string, any>;
   }) => {

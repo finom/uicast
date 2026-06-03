@@ -1,6 +1,6 @@
 import z from "zod";
-import type { createProxyScope } from "../scope/createProxyScope";
-import { createAIComponentDef } from "./createAIComponentDef";
+import type { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
+import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 import { createAIComponentRenderer } from "./createAIComponentRenderer";
 
 /**

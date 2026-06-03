@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Label } from "@ui-fired/catalog/components/ui/label";
 import { FieldLabelDef } from "./def";
 

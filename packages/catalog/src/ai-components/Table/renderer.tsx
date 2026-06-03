@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Table as ShadcnTable } from "@ui-fired/catalog/components/ui/table";
 import { TableBody, TableRow, TableCell } from "@ui-fired/catalog/components/ui/table";
 import Skeleton from "react-loading-skeleton";

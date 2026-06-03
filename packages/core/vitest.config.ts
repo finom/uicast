@@ -14,10 +14,6 @@ export default defineConfig({
         find: /^@ui-fired\/core\/(.*)$/,
         replacement: resolve(__dirname, "./src/$1"),
       },
-      {
-        find: /^@ui-fired\/catalog\/(.*)$/,
-        replacement: resolve(__dirname, "../catalog/src/$1"),
-      },
     ],
   },
   test: {

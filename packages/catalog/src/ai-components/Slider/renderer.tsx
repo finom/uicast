@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Slider } from "@ui-fired/catalog/components/ui/slider";
 import { SliderDef } from "./def";
 

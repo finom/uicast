@@ -1,11 +1,11 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — scopes", () => {
   it("reads from the root scope on mount", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -19,7 +19,7 @@ describe("RecursiveRenderer — scopes", () => {
   });
 
   it("re-evaluates props when a subscribed scope path changes", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -38,7 +38,7 @@ describe("RecursiveRenderer — scopes", () => {
   });
 
   it("does not wake on unrelated path writes (path-exact subscription)", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -59,7 +59,7 @@ describe("RecursiveRenderer — scopes", () => {
   });
 
   it("reads from a non-root scope when one is wired in", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -74,7 +74,7 @@ describe("RecursiveRenderer — scopes", () => {
   });
 
   it("propagates root-scope state down to nested children", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

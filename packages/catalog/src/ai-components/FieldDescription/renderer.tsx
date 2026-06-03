@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { FieldDescriptionDef } from "./def";
 
 export const FieldDescriptionRenderer = createAIComponentRenderer({

@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "@ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/react";
+import { pickClick } from "@ui-fired/catalog/render/shared";
 import { FlexRowDef } from "./def";
 
 export const FlexRowRenderer = createAIComponentRenderer({

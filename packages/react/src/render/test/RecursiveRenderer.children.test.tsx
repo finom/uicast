@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — children", () => {
   it("renders children in declared order", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -36,7 +36,7 @@ describe("RecursiveRenderer — children", () => {
     // If the renderer leaks an empty `children: []` past the guard, it would
     // overwrite the `text` prop the renderer reads. The fix collapses empty
     // children to null so the props-supplied content survives.
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -49,7 +49,7 @@ describe("RecursiveRenderer — children", () => {
   });
 
   it("treats a missing children field as no children (leaf chunk)", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

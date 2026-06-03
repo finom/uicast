@@ -1,7 +1,7 @@
-import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
-import type { EvaluateFunctions } from "@ui-fired/core/eval/evaluate";
-import { createAIComponentRenderers } from "@ui-fired/core/render/createAIComponentRenderers";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { StandardTool } from "standard-tool";
+import { ConfirmModalProvider } from "@ui-fired/react";
+import { createAIComponentRenderers } from "@ui-fired/react";
+import type { Fired } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
@@ -9,7 +9,7 @@ import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
 describe("RecursiveRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
 		// Root references a child chunk by key that isn't in the elements map.
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -73,15 +73,19 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 describe("RecursiveRenderer — streaming + defaults", () => {
 	it("does not re-run an existing chunk's defaults when a sibling root chunk streams in later", () => {
 		let count = 0;
-		const functions: EvaluateFunctions = {
-			track: () => {
-				count += 1;
-				return count;
+		const functions: StandardTool[] = [
+			{
+				name: "track",
+				description: "",
+				execute() {
+					count += 1;
+					return count;
+				},
 			},
-		};
+		];
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const initial: ChunkComponent[] = [
+		const initial: Fired.Element[] = [
 			{
 				key: "a",
 				component: "Box",
@@ -90,7 +94,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const next: ChunkComponent[] = [
+		const next: Fired.Element[] = [
 			...initial,
 			{
 				key: "b",
@@ -123,17 +127,21 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 
 	it("does not re-run a parent's defaults when a child chunk streams in to fill a placeholder", () => {
 		let count = 0;
-		const functions: EvaluateFunctions = {
-			track: () => {
-				count += 1;
-				return count;
+		const functions: StandardTool[] = [
+			{
+				name: "track",
+				description: "",
+				execute() {
+					count += 1;
+					return count;
+				},
 			},
-		};
+		];
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers), {
 			defaultPlaceholder: () => <span data-test-placeholder>pending</span>,
 		});
 
-		const initial: ChunkComponent[] = [
+		const initial: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -143,7 +151,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const next: ChunkComponent[] = [
+		const next: Fired.Element[] = [
 			...initial,
 			{
 				key: "child",

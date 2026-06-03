@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Checkbox } from "@ui-fired/catalog/components/ui/checkbox";
 import { Badge } from "@ui-fired/catalog/components/ui/badge";
 import { Button } from "@ui-fired/catalog/components/ui/button";

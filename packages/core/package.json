@@ -16,11 +16,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
     "acorn": "^8.16.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "radix-ui": "^1.4.3",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
     "standard-tool": "^0.0.4",
     "tailwind-merge": "^3.5.0",
     "zod": "^4.3.6"

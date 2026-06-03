@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { TabsList } from "@ui-fired/catalog/components/ui/tabs";
 import Skeleton from "react-loading-skeleton";
 import { TabListDef } from "./def";

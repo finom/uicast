@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Toggle } from "@ui-fired/catalog/components/ui/toggle";
 import { ToggleDef } from "./def";
 

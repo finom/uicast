@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Input as ShadcnInput } from "@ui-fired/catalog/components/ui/input";
 import { InputDef } from "./def";
 

@@ -1,8 +1,8 @@
 "use client";
 import { createContext, useContext } from "react";
 import type React from "react";
+import type { StandardTool } from "standard-tool";
 import type { AIComponentRenderer } from "./createAIComponentRenderer";
-import type { EvaluateFunctions } from "../eval/evaluate";
 
 export type DefaultPlaceholderComponent = () => React.ReactElement | null;
 
@@ -13,7 +13,7 @@ export type RendererRegistry = {
   // evaluate() invocation under this provider. The wrapping <Renderer> prop
   // carries them in; every evaluate site reads them from useRendererRegistry
   // and passes them through as the third arg.
-  functions?: EvaluateFunctions;
+  functions?: StandardTool[];
 };
 
 const RendererRegistryContext = createContext<RendererRegistry | null>(null);

@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Progress } from "@ui-fired/catalog/components/ui/progress";
 import { ProgressBarDef } from "./def";
 

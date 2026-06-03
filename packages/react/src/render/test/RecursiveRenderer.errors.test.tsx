@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — errors", () => {
   it("renders an inline fallback when the component is not in the registry", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "DoesNotExist",
@@ -21,7 +21,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -49,7 +49,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

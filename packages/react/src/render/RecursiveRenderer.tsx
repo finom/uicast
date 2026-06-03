@@ -7,12 +7,12 @@ import React, {
   useReducer,
   useRef,
 } from "react";
-import { createProxyScope } from "../scope/createProxyScope";
-import type { ChunkComponent, ChunkComponentList } from "../types";
+import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
+import { Fired } from "@ui-fired/core/types";
 import { useRendererRegistry } from "./RendererRegistry";
-import { evaluate } from "../eval/evaluate";
-import { extractDeps } from "../eval/extractDeps";
-import { parseScope } from "../scope/parseScope";
+import { evaluate } from "@ui-fired/core/eval/evaluate";
+import { extractDeps } from "@ui-fired/core/eval/extractDeps";
+import { parseScope } from "@ui-fired/core/scope/parseScope";
 import { ErrorBoundary } from "./ErrorBoundary";
 import type { InitFn } from "./Fragment";
 
@@ -23,7 +23,7 @@ export const RecursiveRenderer = ({
   init,
 }: {
   elementKey: string;
-  elements: Record<string, ChunkComponent>;
+  elements: Record<string, Fired.Element>;
   scopes: Record<string, ReturnType<typeof createProxyScope>>;
   // One-shot side-effect callback. Set ONLY for the top-level mount of
   // the synthetic Fragment wrapper that `createAIComponentRenderers`
@@ -98,7 +98,7 @@ export const RecursiveRenderer = ({
         if (!childElement) {
           return <Placeholder key={childKey} />;
         }
-        if ("each" in childElement) {
+        if (Fired.isList(childElement)) {
           return (
             <ListRenderer
               key={childKey}
@@ -238,9 +238,9 @@ export const ListRenderer = ({
   line,
 }: {
   elementKey: string;
-  elements: Record<string, ChunkComponent>;
+  elements: Record<string, Fired.Element>;
   scopes: Record<string, ReturnType<typeof createProxyScope>>;
-  line: ChunkComponentList;
+  line: Fired.List;
 }): React.ReactElement => {
   const element = elements[elementKey];
   const [, forceRender] = useReducer((x) => x + 1, 0);
@@ -252,7 +252,7 @@ export const ListRenderer = ({
 
   if (!element) return <></>;
 
-  if (!("each" in element))
+  if (!Fired.isList(element))
     return (
       <div className="text-red-500">Element is not a list: {elementKey}</div>
     );

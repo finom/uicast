@@ -1,9 +1,9 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ConfirmModalProvider } from "@ui-fired/core/components/ConfirmModal";
-import { createAIComponentRenderers } from "@ui-fired/core/render/createAIComponentRenderers";
-import type { InitFn } from "@ui-fired/core/render/Fragment";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import { ConfirmModalProvider } from "@ui-fired/react";
+import { createAIComponentRenderers } from "@ui-fired/react";
+import type { InitFn } from "@ui-fired/react";
+import type { Fired } from "@ui-fired/core/types";
 import { defaultRenderers } from "../../../test/renderHelpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
@@ -21,7 +21,7 @@ describe("Renderer — init prop", () => {
 	it("sync init seeds scope before children mount", () => {
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -44,7 +44,7 @@ describe("Renderer — init prop", () => {
 	it("async init Suspends until the Promise resolves, then renders children", async () => {
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -95,7 +95,7 @@ describe("Renderer — init prop", () => {
 	it("renders normally when init is omitted (Fragment wrap is invisible)", () => {
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -129,7 +129,7 @@ describe("Renderer — init prop", () => {
 		});
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const initialLines: ChunkComponent[] = [
+		const initialLines: Fired.Element[] = [
 			{
 				key: "a",
 				component: "Box",
@@ -144,7 +144,7 @@ describe("Renderer — init prop", () => {
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
-		const nextLines: ChunkComponent[] = [
+		const nextLines: Fired.Element[] = [
 			...initialLines,
 			{
 				key: "b",
@@ -171,7 +171,7 @@ describe("Renderer — init prop", () => {
 		});
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "rootA",
 				component: "Box",
@@ -198,7 +198,7 @@ describe("Renderer — init prop", () => {
 	it("seeds nested object state — downstream chunk reads via string expression", () => {
 		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 
-		const lines: ChunkComponent[] = [
+		const lines: Fired.Element[] = [
 			{
 				key: "root",
 				component: "Box",

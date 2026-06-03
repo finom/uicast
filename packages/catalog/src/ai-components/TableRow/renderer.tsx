@@ -1,9 +1,9 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import {
   TableRow as ShadcnTableRow,
   TableCell,
 } from "@ui-fired/catalog/components/ui/table";
-import { pickClick } from "@ui-fired/core/render/shared";
+import { pickClick } from "@ui-fired/catalog/render/shared";
 import Skeleton from "react-loading-skeleton";
 import { TableRowDef } from "./def";
 

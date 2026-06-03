@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { useState } from "react";
 import { Input } from "@ui-fired/catalog/components/ui/input";
 import { FunctionSquare } from "lucide-react";

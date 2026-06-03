@@ -1,5 +1,5 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
-import { pickClick } from "@ui-fired/core/render/shared";
+import { createAIComponentRenderer } from "@ui-fired/react";
+import { pickClick } from "@ui-fired/catalog/render/shared";
 import { X } from "lucide-react";
 import { Badge } from "@ui-fired/catalog/components/ui/badge";
 import { TagDef } from "./def";

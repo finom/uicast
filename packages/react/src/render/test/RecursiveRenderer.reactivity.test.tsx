@@ -1,6 +1,6 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — fine-grained reactivity", () => {
@@ -8,7 +8,7 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
     // Two siblings reading different scope paths. We exercise this by
     // observing rendered output — after writing to `b`, the chunk reading
     // `a` keeps its old text and the chunk reading `b` updates.
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -39,7 +39,7 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
   });
 
   it("expression-evaluation runs against the latest state on every wake", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

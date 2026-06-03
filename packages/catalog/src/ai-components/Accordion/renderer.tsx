@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Accordion } from "@ui-fired/catalog/components/ui/accordion";
 import { AccordionDef } from "./def";
 

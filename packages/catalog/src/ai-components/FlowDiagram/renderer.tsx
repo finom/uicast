@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { cn } from "@ui-fired/core/lib/utils";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { FlowDiagramDef } from "./def";

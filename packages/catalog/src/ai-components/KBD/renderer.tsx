@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { KBDDef } from "./def";
 
 export const KBDRenderer = createAIComponentRenderer({

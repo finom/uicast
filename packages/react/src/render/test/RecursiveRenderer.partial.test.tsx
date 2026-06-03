@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ChunkComponent } from "@ui-fired/core/types";
+import type { Fired } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 describe("RecursiveRenderer — partial replacement (buildElementsById contract)", () => {
@@ -9,7 +9,7 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
   // next render. We test the contract at the `buildElementsById` layer since
   // it's the seam every persistence path goes through.
   it("re-emitting a chunk with the same key replaces and drops old descendants", () => {
-    const initial: ChunkComponent[] = [
+    const initial: Fired.Element[] = [
       {
         key: "root",
         component: "Box",
@@ -25,7 +25,7 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
         component: "Box",
       },
     ];
-    const replaced: ChunkComponent[] = [
+    const replaced: Fired.Element[] = [
       ...initial,
       // Re-emit `a` with a fresh child set
       {
@@ -47,7 +47,7 @@ describe("RecursiveRenderer — partial replacement (buildElementsById contract)
   });
 
   it("preserves siblings that weren't re-emitted", () => {
-    const lines: ChunkComponent[] = [
+    const lines: Fired.Element[] = [
       {
         key: "root",
         component: "Box",

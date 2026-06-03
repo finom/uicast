@@ -1,4 +1,4 @@
-import { createAIComponentRenderer } from "@ui-fired/core/render/createAIComponentRenderer";
+import { createAIComponentRenderer } from "@ui-fired/react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Separator } from "@ui-fired/catalog/components/ui/separator";
 import { Check } from "lucide-react";
