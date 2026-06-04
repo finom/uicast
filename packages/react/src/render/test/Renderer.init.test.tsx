@@ -1,6 +1,5 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ConfirmModalProvider } from "@ui-fired/react";
 import { createAIComponentRenderers } from "@ui-fired/react";
 import type { InitFn } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
@@ -33,11 +32,7 @@ describe("Renderer — init prop", () => {
 			(scopes.root as Record<string, unknown>).greeting = "hello";
 		};
 
-		const { container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={lines} init={init} />
-			</ConfirmModalProvider>,
-		);
+		const { container } = render(<Renderer lines={lines} init={init} />);
 		expect(container.textContent).toContain("hello");
 	});
 
@@ -71,11 +66,7 @@ describe("Renderer — init prop", () => {
 		// hang seeing only the fallback.
 		let container!: HTMLElement;
 		await act(async () => {
-			const result = render(
-				<ConfirmModalProvider>
-					<Renderer lines={lines} init={init} />
-				</ConfirmModalProvider>,
-			);
+			const result = render(<Renderer lines={lines} init={init} />);
 			container = result.container;
 		});
 
@@ -103,11 +94,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={lines} />
-			</ConfirmModalProvider>,
-		);
+		const { container } = render(<Renderer lines={lines} />);
 		expect(container.textContent).toContain("plain");
 
 		// The Fragment wrapper renders via React.Fragment — no extra DOM
@@ -136,11 +123,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
-		const { container, rerender } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={initialLines} init={initSpy} />
-			</ConfirmModalProvider>,
-		);
+		const { container, rerender } = render(<Renderer lines={initialLines} init={initSpy} />);
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
@@ -152,11 +135,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
-		rerender(
-			<ConfirmModalProvider>
-				<Renderer lines={nextLines} init={initSpy} />
-			</ConfirmModalProvider>,
-		);
+		rerender(<Renderer lines={nextLines} init={initSpy} />);
 
 		// The synthetic Fragment reconciled by stable key — init did NOT
 		// re-fire when a new sibling root chunk streamed in.
@@ -184,11 +163,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={lines} init={initSpy} />
-			</ConfirmModalProvider>,
-		);
+		const { container } = render(<Renderer lines={lines} init={initSpy} />);
 
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A=shared");
@@ -215,11 +190,7 @@ describe("Renderer — init prop", () => {
 			};
 		};
 
-		const { container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={lines} init={init} />
-			</ConfirmModalProvider>,
-		);
+		const { container } = render(<Renderer lines={lines} init={init} />);
 		expect(container.textContent).toContain("Email");
 	});
 });

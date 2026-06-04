@@ -6,8 +6,8 @@ evaluator, the reactive Proxy scopes, dependency extraction, prompt builders —
 is **framework-agnostic** and lives in [`@ui-fired/core`](./OVERVIEW.md) with
 **zero React imports**. This package (`@ui-fired/react`) is what actually mounts
 an element tree into a live React UI: the `<Renderer>`, the recursive tree
-walk, the registry context, the per-element error boundary, and the confirm /
-edit-mode UI.
+walk, the registry context, the per-element error boundary, the confirm seam (a
+`window.confirm` default + an override context), and the edit-mode UI.
 
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
 > concepts this binding realizes — the element model (§4), expressions +
@@ -36,9 +36,9 @@ packages/react/src/
 │   ├── ErrorBoundary.tsx              — per-element error boundary
 │   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
-│   ├── ConfirmModal.tsx               — useConfirm(); consulted by callbacks with a `confirm` field
+│   ├── confirm.tsx                    — useConfirm() + ConfirmProvider; defaults to window.confirm (shadcn modal lives in @ui-fired/catalog)
 │   ├── EditModeOverlay.tsx            — opt-in editor UI; not on the runtime render path
-│   └── ui/                            — shadcn primitives (dialog, button, textarea) used by ConfirmModal/EditModeOverlay
+│   └── ui/                            — shadcn primitives (button, textarea) used by EditModeOverlay
 └── index.ts                           — the package's React surface (the only public entry)
 ```
 
@@ -134,7 +134,8 @@ Inside the component, `createAIComponentRenderer`:
 2. **Evaluate `element.hidden`** → boolean (absence = `false`).
 3. **Build bound `callbacks`** — each handler closes over `element.callbacks[key]`
    and walks the steps when fired, with `evt` bound to the event payload. A step
-   carrying `confirm` consults `useConfirm()` (the `ConfirmModal`) first; on
+   carrying `confirm` consults `useConfirm()` — the `window.confirm` default, or
+   a provider-supplied modal (e.g. catalog's `ConfirmModalProvider`) — first; on
    cancel, that step and all later steps are skipped.
 4. **Build children prop**: a non-empty *array* from RecursiveRenderer wins;
    otherwise any `children` from `props` (text content) takes effect.

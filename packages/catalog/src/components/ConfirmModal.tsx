@@ -1,37 +1,30 @@
 "use client";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from "react";
+import { ConfirmProvider, type ConfirmFn } from "@ui-fired/react";
+import { type ReactNode, useCallback, useRef, useState } from "react";
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "./ui/dialog";
-import { Button } from "./ui/button";
 
-type ConfirmFn = (message: string) => Promise<boolean>;
-
-const ConfirmModalContext = createContext<ConfirmFn | null>(null);
-
-export const useConfirm = (): ConfirmFn => {
-  const confirm = useContext(ConfirmModalContext);
-  if (!confirm) {
-    throw new Error("useConfirm must be used within a ConfirmModalProvider");
-  }
-  return confirm;
-};
-
+/**
+ * Shadcn-styled confirm modal — the plug-and-play VISUAL half of the confirm
+ * flow, and an example of how to override `@ui-fired/react`'s system default.
+ *
+ * Wrap a subtree in `<ConfirmModalProvider>` and every `confirm:` carried by a
+ * generated callback resolves through this dialog instead of the browser-native
+ * `window.confirm`. It feeds its promise-based confirm fn into react's
+ * `ConfirmProvider`, which is exactly what the renderer's `useConfirm()` reads.
+ * Bring your own provider (or omit this one) to use a different modal.
+ */
 export const ConfirmModalProvider = ({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
@@ -58,7 +51,7 @@ export const ConfirmModalProvider = ({
   }, []);
 
   return (
-    <ConfirmModalContext.Provider value={confirm}>
+    <ConfirmProvider value={confirm}>
       {children}
       <Dialog open={open} onOpenChange={(v) => !v && handleCancel()}>
         <DialogContent>
@@ -76,6 +69,6 @@ export const ConfirmModalProvider = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </ConfirmModalContext.Provider>
+    </ConfirmProvider>
   );
 };

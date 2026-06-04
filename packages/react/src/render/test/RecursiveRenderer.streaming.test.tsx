@@ -1,5 +1,4 @@
 import type { StandardTool } from "standard-tool";
-import { ConfirmModalProvider } from "@ui-fired/react";
 import { createAIComponentRenderers } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
@@ -103,19 +102,11 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={initial} functions={functions} />
-			</ConfirmModalProvider>,
-		);
+		const { rerender, container } = render(<Renderer lines={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(
-			<ConfirmModalProvider>
-				<Renderer lines={next} functions={functions} />
-			</ConfirmModalProvider>,
-		);
+		rerender(<Renderer lines={next} functions={functions} />);
 
 		// A's defaults still ran exactly once. The new sibling chunk didn't
 		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
@@ -160,19 +151,11 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(
-			<ConfirmModalProvider>
-				<Renderer lines={initial} functions={functions} />
-			</ConfirmModalProvider>,
-		);
+		const { rerender, container } = render(<Renderer lines={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(
-			<ConfirmModalProvider>
-				<Renderer lines={next} functions={functions} />
-			</ConfirmModalProvider>,
-		);
+		rerender(<Renderer lines={next} functions={functions} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

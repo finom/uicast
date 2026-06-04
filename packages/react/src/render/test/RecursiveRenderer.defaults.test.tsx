@@ -1,7 +1,9 @@
-import { act, waitFor } from "@testing-library/react";
+import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import type { StandardTool } from "standard-tool";
+import { createAIComponentRenderers } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
-import { mountChunks } from "../../../test/renderHelpers";
+import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
@@ -64,6 +66,13 @@ describe("RecursiveRenderer — defaults", () => {
   });
 
   it("supports async defaults via Suspense (use(promise))", async () => {
+    // Uses the full <Renderer> rather than bare mountChunks: React 19 + RTL
+    // only flush a top-level Suspense recovery when the initial mount runs
+    // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
+    // The async default is gated so it resolves inside act().
+    const { Renderer } = createAIComponentRenderers(
+      Object.values(defaultRenderers),
+    );
     const lines: Fired.Element[] = [
       {
         key: "root",
@@ -72,16 +81,25 @@ describe("RecursiveRenderer — defaults", () => {
         props: { expr: "({ text: scopes.root.data })" },
       },
     ];
-    const { container } = mountChunks(lines, {
-      functions: [
-        {
-          name: "loadData",
-          description: "",
-          async execute() {
-            return "loaded-value";
-          },
-        },
-      ],
+    let resolveLoad!: (value: string) => void;
+    const gate = new Promise<string>((resolve) => {
+      resolveLoad = resolve;
+    });
+    const functions: StandardTool[] = [
+      { name: "loadData", description: "", execute: () => gate },
+    ];
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = render(
+        <Renderer lines={lines} functions={functions} />,
+      ).container;
+    });
+    // Suspended on the pending default — the value isn't shown yet.
+    expect(container.textContent ?? "").not.toContain("loaded-value");
+
+    await act(async () => {
+      resolveLoad("loaded-value");
     });
     await waitFor(() => {
       expect(container.textContent).toContain("loaded-value");

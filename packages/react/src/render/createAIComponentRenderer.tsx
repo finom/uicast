@@ -3,7 +3,7 @@ import type { Fired, CombinedSpec } from "@ui-fired/core/types";
 import type { AIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 import { parseScope } from "@ui-fired/core/scope/parseScope";
 import { evaluate } from "@ui-fired/core/eval/evaluate";
-import { useConfirm } from "../components/ConfirmModal";
+import { useConfirm } from "../components/confirm";
 import { useRendererRegistry } from "./RendererRegistry";
 
 type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {

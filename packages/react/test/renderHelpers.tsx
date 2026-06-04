@@ -2,7 +2,6 @@ import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardTool } from "standard-tool";
-import { ConfirmModalProvider } from "@ui-fired/react";
 import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
 import {
   type AIComponentRenderer,
@@ -97,8 +96,8 @@ type MountOptions = {
 };
 
 /**
- * Mount a chunk tree with the standard test scaffolding (registry +
- * confirm-modal provider + root scope). Returns the @testing-library/react
+ * Mount a chunk tree with the standard test scaffolding (registry + root
+ * scope). Returns the @testing-library/react
  * render result plus the live scopes map so tests can drive state.
  */
 export function mountChunks(lines: Fired.Element[], options: MountOptions = {}) {
@@ -125,13 +124,11 @@ export function mountChunks(lines: Fired.Element[], options: MountOptions = {}) 
         functions: options.functions,
       }}
     >
-      <ConfirmModalProvider>
-        <RecursiveRenderer
-          elementKey={rootKey}
-          elements={elements}
-          scopes={scopes}
-        />
-      </ConfirmModalProvider>
+      <RecursiveRenderer
+        elementKey={rootKey}
+        elements={elements}
+        scopes={scopes}
+      />
     </RendererRegistryProvider>
   );
 
