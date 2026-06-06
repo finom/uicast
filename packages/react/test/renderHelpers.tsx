@@ -9,7 +9,11 @@ import {
 } from "@ui-fired/react";
 import { createProxyScope } from "@ui-fired/core";
 import { RecursiveRenderer } from "@ui-fired/react";
-import { RendererRegistryProvider } from "@ui-fired/react";
+import {
+  RendererRegistryProvider,
+  type RendererComponents,
+} from "@ui-fired/react";
+import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 
@@ -90,7 +94,7 @@ type MountOptions = {
   scopes?: Record<string, Record<string, unknown>>;
   renderers?: Record<string, AIComponentRenderer>;
   functions?: StandardTool[];
-  defaultPlaceholder?: () => ReactElement | null;
+  components?: RendererComponents;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
 };
@@ -116,20 +120,19 @@ export function mountChunks(lines: Fired.Element[], options: MountOptions = {}) 
   const rootKey =
     lines.find((l) => !childKeys.has(l.key))?.key ?? lines[0]?.key ?? "root";
 
+  const store = createElementsStore(elements);
   const inner = (
-    <RendererRegistryProvider
-      value={{
-        renderers: options.renderers ?? defaultRenderers,
-        defaultPlaceholder: options.defaultPlaceholder,
-        functions: options.functions,
-      }}
-    >
-      <RecursiveRenderer
-        elementKey={rootKey}
-        elements={elements}
-        scopes={scopes}
-      />
-    </RendererRegistryProvider>
+    <ElementsStoreProvider value={store}>
+      <RendererRegistryProvider
+        value={{
+          renderers: options.renderers ?? defaultRenderers,
+          components: options.components,
+          functions: options.functions,
+        }}
+      >
+        <RecursiveRenderer elementKey={rootKey} scopes={scopes} />
+      </RendererRegistryProvider>
+    </ElementsStoreProvider>
   );
 
   const wrapped = options.wrapper ? options.wrapper(inner) : inner;

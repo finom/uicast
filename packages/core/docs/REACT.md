@@ -32,7 +32,7 @@ packages/react/src/
 │   ├── RecursiveRenderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
 │   ├── createAIComponentRenderer.tsx  — renderer factory: pairs a core def with a React component
 │   ├── createAIComponentRenderers.tsx — top-level <Renderer> + RendererRegistryProvider; auto-merges Fragment
-│   ├── RendererRegistry.tsx           — React context: { renderers, defaultPlaceholder, functions }
+│   ├── RendererRegistry.tsx           — React context: { renderers, components, functions }
 │   ├── ErrorBoundary.tsx              — per-element error boundary
 │   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
@@ -68,20 +68,26 @@ time:
 ```ts
 const { Renderer } = createAIComponentRenderers(
   componentRenderers,                    // Record<string, AIComponentRenderer>
-  { defaultPlaceholder: SomeSpinner },   // optional, used when a renderer's own placeholder isn't set
 );
 ```
 
 Usage time:
 
 ```tsx
-<Renderer lines={elements} functions={hostFns} init={hostInit} editMode={false} onEdit={…} />
+<Renderer
+  lines={elements}
+  functions={hostFns}
+  components={{ placeholder: SomeSpinner }}   // optional host-supplied chrome
+  init={hostInit}
+  editMode={false}
+  onEdit={…}
+/>
 ```
 
 Internally:
 
-- Memoizes the registry value (`{ renderers, defaultPlaceholder, functions }`)
-  so context identity only changes when `functions` changes.
+- Memoizes the registry value (`{ renderers, components, functions }`)
+  so context identity only changes when `functions` or `components` changes.
 - Creates one `root` reactive proxy (`createProxyScope({})` from core) at module
   top level.
 - **Auto-merges a `Fragment` renderer** into the consumer-supplied registry.
@@ -105,10 +111,21 @@ Internally:
 
 ### Middle — `RendererRegistry` context
 
-A React context carrying `{ renderers, defaultPlaceholder, functions }`. Every
+A React context carrying `{ renderers, components, functions }`. Every
 component in the tree calls `useRendererRegistry()` to look up its renderer by
-name, the placeholder fallback, and the host functions to pass into evaluator
-calls.
+name, the host-supplied chrome (`components`), and the host functions to pass
+into evaluator calls.
+
+`components` (`RendererComponents`) is the host's map of engine "chrome" —
+distinct from `renderers` (the catalog component implementations). Only
+`placeholder` is wired today: shown for a not-yet-streamed child and as the
+async-`defaults` suspense fallback (§5). Precedence is **renderer's own
+placeholder → `components.placeholder` → null** (render nothing). Like
+`functions`, pass a **stable reference** (module const or memoized): it folds
+into the registry-value memo deps, so a fresh object each render churns the
+context and re-renders the whole tree. The map is extensible — adding a slot is
+one field here plus one resolution site in `RecursiveRenderer` (next up: an
+`unknown` slot to replace the hard-coded "Unknown component" fallback).
 
 ### Inner — `RecursiveRenderer` + `createAIComponentRenderer`
 
@@ -208,7 +225,7 @@ host-vs-LLM seeding) are in [`OVERVIEW.md`](./OVERVIEW.md) §9. The **async**
 case is React-specific: if a default expression (or the `init` callback)
 returns a Promise, the element wraps itself in `<Suspense>` with `use(promise)`
 and renders the registered placeholder (the renderer's own, else the
-registry's `defaultPlaceholder`) until every promise resolves. Children mount
+host-supplied `components.placeholder`) until every promise resolves. Children mount
 only after resolution. This is the binding's single suspension path; both
 string-form async defaults and an async `init` flow through it.
 

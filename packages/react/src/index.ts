@@ -26,10 +26,20 @@ export { ErrorBoundary } from "./render/ErrorBoundary";
 export type { InitContext, InitFn } from "./render/Fragment";
 // Render orchestration.
 export { ListRenderer, RecursiveRenderer } from "./render/RecursiveRenderer";
+// Structural element store — the stable, per-key-subscribable source the
+// recursive renderer reads from (replaces threading the elements map as a
+// churning prop). `<Renderer>` wires this automatically; direct consumers of
+// `RecursiveRenderer` must wrap it in an `ElementsStoreProvider`.
 export {
-  type DefaultPlaceholderComponent,
+  createElementsStore,
+  type ElementsStore,
+  ElementsStoreProvider,
+  useElement,
+  useElementsStore,
+} from "./render/ElementsStore";
+export {
+  type RendererComponents,
   type RendererRegistry,
   RendererRegistryProvider,
-  useDefaultPlaceholder,
   useRendererRegistry,
 } from "./render/RendererRegistry";

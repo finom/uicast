@@ -4,7 +4,7 @@ import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
 import { RecursiveRenderer } from "./RecursiveRenderer";
 import {
   RendererRegistryProvider,
-  type DefaultPlaceholderComponent,
+  type RendererComponents,
 } from "./RendererRegistry";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 import { EditModeOverlay } from "../components/EditModeOverlay";
@@ -13,15 +13,13 @@ import {
   RENDERER_FRAGMENT_KEY,
   type InitFn,
 } from "./Fragment";
-import { memo, useMemo } from "react";
+import { memo, useLayoutEffect, useMemo, useRef } from "react";
 import type { StandardTool } from "standard-tool";
+import { createElementsStore, ElementsStoreProvider } from "./ElementsStore";
 
 export type { InitContext, InitFn } from "./Fragment";
 
-export const createAIComponentRenderers = (
-  renderers: AIComponentRenderer[],
-  options?: { defaultPlaceholder?: DefaultPlaceholderComponent },
-) => {
+export const createAIComponentRenderers = (renderers: AIComponentRenderer[]) => {
   const root = createProxyScope({});
 
   // Validate uniqueness — the array form loses the keyed-object's free
@@ -73,12 +71,20 @@ export const createAIComponentRenderers = (
         // wrapper Suspends until it resolves, so children see the
         // seeded state by the time they mount.
         init,
+        // Host-supplied visual components for the engine's own chrome
+        // (currently `placeholder`, shown while a node's chunk hasn't streamed
+        // in). Write inline — `<Renderer components={{ placeholder: MyPlaceholder }} />`
+        // — but pass a STABLE reference (module const or memoized), exactly like
+        // `functions`: it feeds the registry context value, whose identity must
+        // stay stable or every node re-renders.
+        components,
       }: {
         lines: Fired.Element[];
         editMode?: boolean;
         onEdit?: (elementId: string, editText: string) => void;
         functions?: StandardTool[];
         init?: InitFn;
+        components?: RendererComponents;
       }) => {
         // Stable identity per `functions` reference — RendererRegistry
         // value identity drives child re-renders, so we only want a new
@@ -86,11 +92,14 @@ export const createAIComponentRenderers = (
         const registryValue = useMemo(
           () => ({
             renderers: mergedRenderers,
-            defaultPlaceholder: options?.defaultPlaceholder,
+            components,
             functions,
           }),
-          [functions],
+          [functions, components],
         );
+        // Stable scopes object — passed unchanged to every node so memoized
+        // children can bail. `root` is created once per renderer factory.
+        const scopes = useMemo(() => ({ root }), []);
         const elementsById = buildElementsById(lines);
 
         // Root chunks are derived structurally (there is no `op` field): a
@@ -126,18 +135,33 @@ export const createAIComponentRenderers = (
           [RENDERER_FRAGMENT_KEY]: syntheticFragment,
         };
 
+        // Structural store lives across renders; the per-node `useElement`
+        // subscriptions read from it. We refresh it AFTER commit (layout
+        // effect) so swapping the map notifies only the keys that changed —
+        // settled nodes never re-render while later chunks stream in.
+        const storeRef = useRef<ReturnType<typeof createElementsStore> | null>(
+          null,
+        );
+        if (!storeRef.current) {
+          storeRef.current = createElementsStore(elementsWithFragment);
+        }
+        useLayoutEffect(() => {
+          storeRef.current?.setMap(elementsWithFragment);
+        });
+
         return (
-          <RendererRegistryProvider value={registryValue}>
-            <EditModeOverlay enabled={editMode} onEdit={onEdit}>
-              <RecursiveRenderer
-                key={RENDERER_FRAGMENT_KEY}
-                elementKey={RENDERER_FRAGMENT_KEY}
-                elements={elementsWithFragment}
-                scopes={{ root }}
-                init={init}
-              />
-            </EditModeOverlay>
-          </RendererRegistryProvider>
+          <ElementsStoreProvider value={storeRef.current}>
+            <RendererRegistryProvider value={registryValue}>
+              <EditModeOverlay enabled={editMode} onEdit={onEdit}>
+                <RecursiveRenderer
+                  key={RENDERER_FRAGMENT_KEY}
+                  elementKey={RENDERER_FRAGMENT_KEY}
+                  scopes={scopes}
+                  init={init}
+                />
+              </EditModeOverlay>
+            </RendererRegistryProvider>
+          </ElementsStoreProvider>
         );
       },
     ),

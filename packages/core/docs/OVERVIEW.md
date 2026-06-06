@@ -31,7 +31,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
    ┌──────────────────────────────────────────────────┐
    │ <Renderer lines={elements} functions={fns} />      │
    │   └─ RendererRegistryProvider {                  │
-   │        renderers, defaultPlaceholder, functions  │
+   │        renderers, components, functions          │
    │      }                                           │
    │   └─ root scope = createProxyScope({})        │
    │   └─ buildElementsById(lines) → Record<key,element>│

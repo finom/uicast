@@ -17,7 +17,7 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountChunks(lines, {
-			defaultPlaceholder: () => <span data-test-placeholder>loading…</span>,
+			components: { placeholder: () => <span data-test-placeholder>loading…</span> },
 		});
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 	});
@@ -38,9 +38,11 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
-				defaultPlaceholder: () => (
-					<span data-test-placeholder>default-placeholder</span>
-				),
+				components: {
+					placeholder: () => (
+						<span data-test-placeholder>default-placeholder</span>
+					),
+				},
 			},
 		);
 		expect(container.textContent).toContain("default-placeholder");
@@ -128,9 +130,10 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers), {
-			defaultPlaceholder: () => <span data-test-placeholder>pending</span>,
-		});
+		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
+		const components = {
+			placeholder: () => <span data-test-placeholder>pending</span>,
+		};
 
 		const initial: Fired.Element[] = [
 			{
@@ -151,11 +154,13 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer lines={initial} functions={functions} />);
+		const { rerender, container } = render(
+			<Renderer lines={initial} functions={functions} components={components} />,
+		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer lines={next} functions={functions} />);
+		rerender(<Renderer lines={next} functions={functions} components={components} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.
