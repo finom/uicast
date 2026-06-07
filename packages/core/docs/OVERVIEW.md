@@ -81,7 +81,7 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` factory (`createAIComponentRenderers`), `createAIComponentRenderer`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and `ConfirmModal` / `EditModeOverlay` / `ui/*` — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createAIComponentRenderer`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and `ConfirmModal` / `EditModeOverlay` / `ui/*` — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
 
 ---
 
@@ -291,7 +291,7 @@ The list element's `component` is rendered **once per item**. There's no separat
 
 ## 11. Rendering pipeline
 
-The pipeline that mounts an element tree — the `<Renderer>` factory (`createAIComponentRenderers`), the `RendererRegistry` context, the `RecursiveRenderer` + `createAIComponentRenderer` tree walk, the synthetic `Fragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
+The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `catalog` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createAIComponentRenderer` tree walk, the synthetic `Fragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
 
 ---
 
@@ -335,7 +335,7 @@ The renderer half of the pair is React and lives in `@ui-fired/react`, paired wi
 The consumer maintains two registries:
 
 - `componentDefs` — `createAIComponentDefs({...})` maps name → def. Drives the prompt. (core)
-- `componentRenderers` — plain record of name → renderer. Passed to `createAIComponentRenderers(...)`. (React binding)
+- `componentRenderers` — array of renderers passed to `<Renderer catalog={…}>`, which builds the name → renderer map. (React binding)
 
 **Adding a component requires updating both maps.** There's no codegen step linking them — discipline only.
 
@@ -343,7 +343,7 @@ The consumer maintains two registries:
 
 `createAIComponentDef` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getDefPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
 
-Today the only `hidden` def is `Fragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the renderer registry by `createAIComponentRenderers`, so consumers don't have to register it manually.
+Today the only `hidden` def is `Fragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the catalog map by `<Renderer>`, so consumers don't have to register it manually.
 
 ---
 

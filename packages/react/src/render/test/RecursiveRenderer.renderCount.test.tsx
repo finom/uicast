@@ -3,10 +3,7 @@ import React, { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
 import { createAIComponentDef } from "@ui-fired/core/render/createAIComponentDef";
-import {
-  createAIComponentRenderer,
-  createAIComponentRenderers,
-} from "@ui-fired/react";
+import { createAIComponentRenderer, Renderer } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
 import type { InitFn } from "@ui-fired/react";
 
@@ -30,7 +27,7 @@ const boxDef = createAIComponentDef({
   props: z.object({ text: z.string().optional() }),
 });
 
-/** Fresh renderer factory + a per-chunk render-count map, isolated per test. */
+/** Fresh box renderer + a per-chunk render-count map, isolated per test. */
 function countingSetup() {
   const counts: Record<string, number> = {};
   const boxRenderer = createAIComponentRenderer({
@@ -45,8 +42,8 @@ function countingSetup() {
       );
     },
   });
-  const { Renderer } = createAIComponentRenderers([boxRenderer]);
-  return { Renderer, counts };
+  const catalog = [boxRenderer];
+  return { catalog, counts };
 }
 
 // A root whose children are all declared up-front, revealed one chunk per tick
@@ -59,17 +56,17 @@ const REVEAL: Fired.Element[] = [
   { key: "d", component: "Box", props: { expr: "({ text: 'D' })" } },
 ];
 
-function streamReveal(Renderer: ReturnType<typeof countingSetup>["Renderer"]) {
-  const { rerender } = render(<Renderer lines={REVEAL.slice(0, 1)} />);
+function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
+  const { rerender } = render(<Renderer catalog={catalog} lines={REVEAL.slice(0, 1)} />);
   for (let i = 2; i <= REVEAL.length; i++) {
-    rerender(<Renderer lines={REVEAL.slice(0, i)} />);
+    rerender(<Renderer catalog={catalog} lines={REVEAL.slice(0, i)} />);
   }
 }
 
 describe("RecursiveRenderer — render-once during streaming", () => {
   it("renders every settled chunk EXACTLY once across the whole reveal", () => {
-    const { Renderer, counts } = countingSetup();
-    streamReveal(Renderer);
+    const { catalog, counts } = countingSetup();
+    streamReveal(catalog);
 
     // Each leaf mounts on the tick it streams in and is never re-rendered as
     // its siblings arrive afterwards.
@@ -83,16 +80,16 @@ describe("RecursiveRenderer — render-once during streaming", () => {
   });
 
   it("allows at most 2 renders per chunk under React StrictMode (dev double-invoke)", () => {
-    const { Renderer, counts } = countingSetup();
+    const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
-        <Renderer lines={REVEAL.slice(0, 1)} />
+        <Renderer catalog={catalog} lines={REVEAL.slice(0, 1)} />
       </StrictMode>,
     );
     for (let i = 2; i <= REVEAL.length; i++) {
       rerender(
         <StrictMode>
-          <Renderer lines={REVEAL.slice(0, i)} />
+          <Renderer catalog={catalog} lines={REVEAL.slice(0, i)} />
         </StrictMode>,
       );
     }
@@ -119,7 +116,7 @@ describe("RecursiveRenderer — render-once on state change", () => {
         );
       },
     });
-    const { Renderer } = createAIComponentRenderers([boxRenderer]);
+    const catalog = [boxRenderer];
 
     // Parent reads scopes.root.label; child reads nothing.
     const lines: Fired.Element[] = [
@@ -138,7 +135,7 @@ describe("RecursiveRenderer — render-once on state change", () => {
       captured = scopes;
     };
 
-    render(<Renderer lines={lines} init={init} />);
+    render(<Renderer catalog={catalog} lines={lines} init={init} />);
     expect(counts.root).toBe(1);
     expect(counts.child).toBe(1);
 

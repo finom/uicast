@@ -89,6 +89,12 @@ export const defaultRenderers: Record<string, AIComponentRenderer> = {
   Placeholder: placeholderRenderer,
 };
 
+// The array form of `defaultRenderers` for `<Renderer catalog={…}>` (the prop is
+// an array). A module const so the reference stays STABLE across re-renders —
+// tests that rerender depend on this; an inline `Object.values(...)` would churn
+// the registry and break the render-once / init-once guarantees.
+export const defaultRenderersList = Object.values(defaultRenderers);
+
 type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;

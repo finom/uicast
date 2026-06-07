@@ -1,9 +1,13 @@
 import type { StandardTool } from "standard-tool";
-import { createAIComponentRenderers } from "@ui-fired/react";
+import { Renderer } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
+import {
+	defaultRenderers,
+	defaultRenderersList,
+	mountChunks,
+} from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
@@ -84,8 +88,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const initial: Fired.Element[] = [
 			{
 				key: "a",
@@ -104,11 +106,11 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer lines={initial} functions={functions} />);
+		const { rerender, container } = render(<Renderer catalog={defaultRenderersList} lines={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<Renderer lines={next} functions={functions} />);
+		rerender(<Renderer catalog={defaultRenderersList} lines={next} functions={functions} />);
 
 		// A's defaults still ran exactly once. The new sibling chunk didn't
 		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
@@ -130,7 +132,6 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
 		const components = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
@@ -155,12 +156,12 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer lines={initial} functions={functions} components={components} />,
+			<Renderer catalog={defaultRenderersList} lines={initial} functions={functions} components={components} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer lines={next} functions={functions} components={components} />);
+		rerender(<Renderer catalog={defaultRenderersList} lines={next} functions={functions} components={components} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

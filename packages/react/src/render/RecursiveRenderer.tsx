@@ -22,7 +22,7 @@ type RecursiveRendererProps = {
   elementKey: string;
   scopes: Scopes;
   // One-shot side-effect callback. Set ONLY for the top-level mount of the
-  // synthetic Fragment wrapper that `createAIComponentRenderers` builds;
+  // synthetic Fragment wrapper that `<Renderer>` builds;
   // recursive child mounts below intentionally omit this prop so descendants
   // never re-fire `init`. Sync writes via the reactive Proxy (e.g.
   // `scopes.root.x = 1`) land immediately; async returns join the existing

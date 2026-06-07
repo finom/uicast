@@ -1,5 +1,3 @@
-import { createAIComponentRenderers } from "@ui-fired/react";
-
 // Layout & Container
 import { CardRenderer } from "../ai-components/Card/renderer";
 import { FlexRowRenderer } from "../ai-components/FlexRow/renderer";
@@ -185,7 +183,7 @@ import { FilterBuilderRenderer } from "../ai-components/FilterBuilder/renderer";
 import { FormulaBarRenderer } from "../ai-components/FormulaBar/renderer";
 import { DiffViewerRenderer } from "../ai-components/DiffViewer/renderer";
 
-export const componentRenderers = createAIComponentRenderers([
+export const componentRenderers = [
   // Layout & Container
   CardRenderer,
   FlexRowRenderer,
@@ -354,4 +352,4 @@ export const componentRenderers = createAIComponentRenderers([
   FilterBuilderRenderer,
   FormulaBarRenderer,
   DiffViewerRenderer,
-]);
+];

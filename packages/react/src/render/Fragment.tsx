@@ -23,16 +23,16 @@ export type InitContext = {
  */
 export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 
-// Host-only synthetic wrapper. Used by `createAIComponentRenderers`'s
-// `Renderer` to wrap all LLM-emitted root chunks in a single React subtree
-// whose mount runs the consumer-supplied `init` callback (see the `init`
-// prop on `Renderer`). Two reasons it lives here, not in the catalog:
+// Host-only synthetic wrapper. Used by `<Renderer>` to wrap all LLM-emitted
+// root chunks in a single React subtree whose mount runs the consumer-supplied
+// `init` callback (see the `init` prop on `Renderer`). Two reasons it lives
+// here, not in the catalog:
 //
 //  - `Renderer` constructs synthetic chunks with `component: "Fragment"` —
 //    the renderer registry must contain a match, or the catch-all "Unknown
-//    component" branch trips. Auto-merging in `createAIComponentRenderers`
-//    (and the matching def in `createAIComponentDefs`) means consumers
-//    don't have to register it manually.
+//    component" branch trips. `<Renderer>` always merges it into the catalog
+//    map (and the matching def is auto-merged in `createAIComponentDefs`), so
+//    consumers don't register it manually.
 //  - It carries `hidden: true` so the LLM never sees it in its component
 //    menu — the wrapper is host infrastructure, not a UI primitive.
 

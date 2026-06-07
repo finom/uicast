@@ -1,9 +1,9 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createAIComponentRenderers } from "@ui-fired/react";
+import { Renderer } from "@ui-fired/react";
 import type { InitFn } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
-import { defaultRenderers } from "../../../test/renderHelpers";
+import { defaultRenderersList } from "../../../test/renderHelpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
 // on the synthetic Fragment wrapper's mount, before any LLM-emitted root
@@ -18,8 +18,6 @@ import { defaultRenderers } from "../../../test/renderHelpers";
 
 describe("Renderer — init prop", () => {
 	it("sync init seeds scope before children mount", () => {
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const lines: Fired.Element[] = [
 			{
 				key: "root",
@@ -32,13 +30,11 @@ describe("Renderer — init prop", () => {
 			(scopes.root as Record<string, unknown>).greeting = "hello";
 		};
 
-		const { container } = render(<Renderer lines={lines} init={init} />);
+		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
 		expect(container.textContent).toContain("hello");
 	});
 
 	it("async init Suspends until the Promise resolves, then renders children", async () => {
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const lines: Fired.Element[] = [
 			{
 				key: "root",
@@ -66,7 +62,7 @@ describe("Renderer — init prop", () => {
 		// hang seeing only the fallback.
 		let container!: HTMLElement;
 		await act(async () => {
-			const result = render(<Renderer lines={lines} init={init} />);
+			const result = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
 			container = result.container;
 		});
 
@@ -84,8 +80,6 @@ describe("Renderer — init prop", () => {
 	});
 
 	it("renders normally when init is omitted (Fragment wrap is invisible)", () => {
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const lines: Fired.Element[] = [
 			{
 				key: "root",
@@ -94,7 +88,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer lines={lines} />);
+		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} />);
 		expect(container.textContent).toContain("plain");
 
 		// The Fragment wrapper renders via React.Fragment — no extra DOM
@@ -114,8 +108,6 @@ describe("Renderer — init prop", () => {
 		const initSpy = vi.fn<InitFn>(({ scopes }) => {
 			(scopes.root as Record<string, unknown>).seed = "once";
 		});
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const initialLines: Fired.Element[] = [
 			{
 				key: "a",
@@ -123,7 +115,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
-		const { container, rerender } = render(<Renderer lines={initialLines} init={initSpy} />);
+		const { container, rerender } = render(<Renderer catalog={defaultRenderersList} lines={initialLines} init={initSpy} />);
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
@@ -135,7 +127,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
-		rerender(<Renderer lines={nextLines} init={initSpy} />);
+		rerender(<Renderer catalog={defaultRenderersList} lines={nextLines} init={initSpy} />);
 
 		// The synthetic Fragment reconciled by stable key — init did NOT
 		// re-fire when a new sibling root chunk streamed in.
@@ -148,8 +140,6 @@ describe("Renderer — init prop", () => {
 		const initSpy = vi.fn<InitFn>(({ scopes }) => {
 			(scopes.root as Record<string, unknown>).label = "shared";
 		});
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const lines: Fired.Element[] = [
 			{
 				key: "rootA",
@@ -163,7 +153,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer lines={lines} init={initSpy} />);
+		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={initSpy} />);
 
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A=shared");
@@ -171,8 +161,6 @@ describe("Renderer — init prop", () => {
 	});
 
 	it("seeds nested object state — downstream chunk reads via string expression", () => {
-		const { Renderer } = createAIComponentRenderers(Object.values(defaultRenderers));
-
 		const lines: Fired.Element[] = [
 			{
 				key: "root",
@@ -190,7 +178,7 @@ describe("Renderer — init prop", () => {
 			};
 		};
 
-		const { container } = render(<Renderer lines={lines} init={init} />);
+		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
 		expect(container.textContent).toContain("Email");
 	});
 });

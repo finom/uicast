@@ -3,10 +3,8 @@ import Skeleton from "react-loading-skeleton";
 import { ConfirmModalProvider } from "@ui-fired/catalog/components/ConfirmModal";
 import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 import type { Fired } from "@ui-fired/core/types";
+import { Renderer } from "@ui-fired/react";
 import { inventoryFunctions } from "../lib/functions";
-
-// catalog ships a ready Renderer pre-wired with every component renderer.
-const { Renderer } = componentRenderers;
 
 // Host-supplied placeholder: shown while a chunk hasn't streamed in yet, and as
 // the Suspense fallback while a component's async `defaults` load. Components
@@ -47,6 +45,7 @@ export function RenderCanvas({ lines }: { lines: Fired.Element[] }) {
   return (
     <ConfirmModalProvider>
       <Renderer
+        catalog={componentRenderers}
         lines={lines}
         functions={inventoryFunctions}
         components={rendererComponents}

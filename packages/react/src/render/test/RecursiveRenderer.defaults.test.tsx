@@ -1,9 +1,9 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { StandardTool } from "standard-tool";
-import { createAIComponentRenderers } from "@ui-fired/react";
+import { Renderer } from "@ui-fired/react";
 import type { Fired } from "@ui-fired/core/types";
-import { defaultRenderers, mountChunks } from "../../../test/renderHelpers";
+import { defaultRenderersList, mountChunks } from "../../../test/renderHelpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
@@ -70,9 +70,6 @@ describe("RecursiveRenderer — defaults", () => {
     // only flush a top-level Suspense recovery when the initial mount runs
     // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
     // The async default is gated so it resolves inside act().
-    const { Renderer } = createAIComponentRenderers(
-      Object.values(defaultRenderers),
-    );
     const lines: Fired.Element[] = [
       {
         key: "root",
@@ -92,7 +89,7 @@ describe("RecursiveRenderer — defaults", () => {
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <Renderer lines={lines} functions={functions} />,
+        <Renderer catalog={defaultRenderersList} lines={lines} functions={functions} />,
       ).container;
     });
     // Suspended on the pending default — the value isn't shown yet.

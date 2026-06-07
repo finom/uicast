@@ -23,8 +23,8 @@ export { getExpressionsPartialPrompt } from "./prompt/getExpressionsPartialPromp
 export { getFunctionsPartialPrompt } from "./prompt/getFunctionsPartialPrompt";
 export { type JSONSchema, JSONSchemaToTs } from "./prompt-utils/JSONSchemaToTs";
 // Component-definition factories — the partner-def half of the component-pair
-// pattern. The React renderer half (`createAIComponentRenderer` /
-// `createAIComponentRenderers`) lives in `@ui-fired/react`.
+// pattern. The React renderer half (`createAIComponentRenderer`) lives in
+// `@ui-fired/react`.
 export {
   type AIComponentDef,
   createAIComponentDef,

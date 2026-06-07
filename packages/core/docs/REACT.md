@@ -30,8 +30,8 @@ sub-language is [`EXPRESSIONS.md`](./EXPRESSIONS.md); the reactive state model i
 packages/react/src/
 ├── render/
 │   ├── RecursiveRenderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
+│   ├── Renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the catalog array prop; per-instance root; wraps RendererRegistryProvider
 │   ├── createAIComponentRenderer.tsx  — renderer factory: pairs a core def with a React component
-│   ├── createAIComponentRenderers.tsx — top-level <Renderer> + RendererRegistryProvider; auto-merges Fragment
 │   ├── RendererRegistry.tsx           — React context: { renderers, components, functions }
 │   ├── ErrorBoundary.tsx              — per-element error boundary
 │   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
@@ -60,40 +60,52 @@ consuming app owns the single React instance.
 
 Three layers stack inside the binding.
 
-### Outer — `createAIComponentRenderers`
+### Outer — `<Renderer>`
 
-Bundles a registry of renderers with the `<Renderer>` component. Construction
-time:
-
-```ts
-const { Renderer } = createAIComponentRenderers(
-  componentRenderers,                    // Record<string, AIComponentRenderer>
-);
-```
-
-Usage time:
+The catalog is a **prop** — an **array of renderers**, symmetric with
+`functions`. `<Renderer>` builds the name→renderer lookup itself; there's no
+separate builder step:
 
 ```tsx
+import { componentRenderers } from "@ui-fired/catalog/render/renderers";
+import { Renderer } from "@ui-fired/react";
+
 <Renderer
+  catalog={componentRenderers}                 // AIComponentRenderer[]
   lines={elements}
   functions={hostFns}
-  components={{ placeholder: SomeSpinner }}   // optional host-supplied chrome
+  components={{ placeholder: SomeSpinner }}    // optional host-supplied chrome
   init={hostInit}
   editMode={false}
   onEdit={…}
 />
 ```
 
-Internally:
+`<Renderer>` turns the array into the `Record<string, AIComponentRenderer>` the
+registry needs — keyed by `renderer.name` (=== the component name the generator
+emits) — always merging in the host-only `Fragment` renderer. On a **duplicate
+name the later renderer wins** (so `[...componentRenderers, MyCard]` overrides
+`Card`) and a `console.error` is logged so accidental double-registration is
+still loud.
 
-- Memoizes the registry value (`{ renderers, components, functions }`)
-  so context identity only changes when `functions` or `components` changes.
-- Creates one `root` reactive proxy (`createProxyScope({})` from core) at module
-  top level.
-- **Auto-merges a `Fragment` renderer** into the consumer-supplied registry.
-  Fragment is host-only (`hidden: true` in its def), renders `<>{children}</>`
-  with no wrapping DOM, and is the one component the synthetic wrapper below
-  references by name.
+**Stable reference matters:** the built map feeds the registry context, whose
+identity must stay stable or every node re-renders. Pass a **module-const array**
+(like `functions`); a freshly-built array each render (inline `[...]` /
+`Object.values(...)`) would churn the context and re-render the whole tree. The
+catalog is as injectable as `functions` — override or extend components freely.
+
+Internally `<Renderer>`:
+
+- **Builds + memoizes the name→renderer map** from the `catalog` array (last
+  entry wins on a duplicate name + `console.error`; the host `Fragment` is merged
+  in last). Memoized on the array identity — hence the stable-reference rule
+  above. Fragment is host-only (`hidden: true` in its def), renders
+  `<>{children}</>` with no wrapping DOM, and is the one component the synthetic
+  wrapper below references by name.
+- Memoizes the registry value (`{ renderers, components, functions }`) so context
+  identity only changes when `catalog`, `functions`, or `components` changes.
+- Creates **one `root` reactive proxy per instance** (`createProxyScope({})` from
+  core, lazy-init via ref) — each mounted `<Renderer>` owns isolated state.
 - `buildElementsById(lines)` (from core) flattens the JSONL into a key→element
   map, applying partial-replacement on duplicate keys (see
   [`OVERVIEW.md`](./OVERVIEW.md) §14).
@@ -192,9 +204,9 @@ export const InputRenderer = createAIComponentRenderer({
 The renderer's signature is **typed against the def**: props are inferred from
 `propDefs`, callbacks become `(args) => Promise<void>` from `callbackDefs`, plus
 an implicit `children?: ReactNode` and `generatedKey: string`. Registration
-(both `componentDefs` and `componentRenderers` maps) is covered in
+(the `componentDefs` map + the `componentRenderers` array) is covered in
 [`OVERVIEW.md`](./OVERVIEW.md) §12 / §17 — the def map drives the prompt, the
-renderer map drives this binding.
+renderer array drives this binding.
 
 ---
 
@@ -245,7 +257,7 @@ cache) are in [`OVERVIEW.md`](./OVERVIEW.md) §16. React-binding specifics:
   item id, so per-item React state (input focus, edit mode) survives
   source-array mutations and re-renders. See [`OVERVIEW.md`](./OVERVIEW.md) §10.
 - **Context identity** — the registry value is memoized so context consumers
-  only re-render when `functions` actually changes.
+  only re-render when `catalog`, `functions`, or `components` actually changes.
 
 ---
 
