@@ -3,7 +3,7 @@
 // model + expression carriers, the sandboxed expression evaluator, the reactive
 // Proxy scope store, the prompt-partial builders, and the component-definition
 // factories. The React bindings (the `<Renderer>`, the recursive renderer, the
-// registry context, confirm/edit-mode UI) live in the separate `@ui-fired/react`
+// registry context, confirm UI) live in the separate `@ui-fired/react`
 // package; the catalog event-payload helpers (`onClickSchema`/`pickClick`) live
 // in `@ui-fired/catalog`.
 

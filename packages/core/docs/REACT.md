@@ -7,7 +7,7 @@ is **framework-agnostic** and lives in [`@ui-fired/core`](./OVERVIEW.md) with
 **zero React imports**. This package (`@ui-fired/react`) is what actually mounts
 an element tree into a live React UI: the `<Renderer>`, the recursive tree
 walk, the registry context, the per-element error boundary, the confirm seam (a
-`window.confirm` default + an override context), and the edit-mode UI.
+`window.confirm` default + an override context).
 
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
 > concepts this binding realizes — the element model (§4), expressions +
@@ -36,9 +36,7 @@ packages/react/src/
 │   ├── ErrorBoundary.tsx              — per-element error boundary
 │   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
-│   ├── confirm.tsx                    — useConfirm() + ConfirmProvider; defaults to window.confirm (shadcn modal lives in @ui-fired/catalog)
-│   ├── EditModeOverlay.tsx            — opt-in editor UI; not on the runtime render path
-│   └── ui/                            — shadcn primitives (button, textarea) used by EditModeOverlay
+│   └── confirm.tsx                    — useConfirm() + ConfirmProvider; defaults to window.confirm (shadcn modal lives in @ui-fired/catalog)
 └── index.ts                           — the package's React surface (the only public entry)
 ```
 
@@ -76,8 +74,6 @@ import { Renderer } from "@ui-fired/react";
   functions={hostFns}
   components={{ placeholder: SomeSpinner }}    // optional host-supplied chrome
   init={hostInit}
-  editMode={false}
-  onEdit={…}
 />
 ```
 
@@ -119,7 +115,7 @@ Internally `<Renderer>`:
 - Mounts the Fragment via `<RecursiveRenderer init={init} … />`. `init` is **not**
   propagated to recursive child mounts — only the top-level synthetic Fragment
   runs the callback; descendants always see `init=undefined`.
-- Wraps the whole tree in `RendererRegistryProvider` and `EditModeOverlay`.
+- Wraps the whole tree in `RendererRegistryProvider`.
 
 ### Middle — `RendererRegistry` context
 

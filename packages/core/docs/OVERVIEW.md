@@ -81,7 +81,7 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createAIComponentRenderer`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and `ConfirmModal` / `EditModeOverlay` / `ui/*` — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createAIComponentRenderer`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and `ConfirmModal` — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
 
 ---
 
@@ -422,7 +422,7 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 
 For boundary clarity:
 
-- **React (any UI framework)** — the renderer, the registry context, `<Suspense>` / `<Activity>` mechanics, confirm/edit UI live in `@ui-fired/react`, not core. Core has zero React imports. See [`REACT.md`](./REACT.md).
+- **React (any UI framework)** — the renderer, the registry context, `<Suspense>` / `<Activity>` mechanics, confirm UI live in `@ui-fired/react`, not core. Core has zero React imports. See [`REACT.md`](./REACT.md).
 - **Specific components** — Card, Input, Table, etc. live in the consuming catalog, not in core. Adding them in core is wrong even if you imagine they're "primitives."
 - **Persistence** — core doesn't know about Prisma, DB schemas, or persisted-row tables. Consumers handle the round-trip: serialize elements on stream, rehydrate from rows on cold load, feed back into `<Renderer lines={...} />`.
 - **Prompt assembly** — core ships catalog-agnostic partial-prompt builders (`getCommonInstructionsPartialPrompt`, `getComponentsPartialPrompt`, `getFunctionsPartialPrompt`); the consuming app composes them into its full system prompt — joining them per endpoint, inline, to form each `system` message. Any example element fixtures are catalog-flavoured content, not core.

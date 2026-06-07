@@ -4,7 +4,6 @@ import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
 import type { Fired } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 import type { StandardTool } from "standard-tool";
-import { EditModeOverlay } from "../components/EditModeOverlay";
 import type { AIComponentRenderer } from "./createAIComponentRenderer";
 import { createElementsStore, ElementsStoreProvider } from "./ElementsStore";
 import {
@@ -30,8 +29,6 @@ export type RendererProps = {
    */
   catalog: AIComponentRenderer[];
   lines: Fired.Element[];
-  editMode?: boolean;
-  onEdit?: (elementId: string, editText: string) => void;
   /**
    * Host runtime functions exposed as bare identifiers in every evaluate() call
    * inside this tree (callbacks invoke them as `name(input)`). Pass a stable
@@ -63,8 +60,6 @@ export type RendererProps = {
 export const Renderer = memo(function Renderer({
   catalog,
   lines,
-  editMode = false,
-  onEdit,
   functions,
   init,
   components,
@@ -148,14 +143,12 @@ export const Renderer = memo(function Renderer({
   return (
     <ElementsStoreProvider value={storeRef.current}>
       <RendererRegistryProvider value={registryValue}>
-        <EditModeOverlay enabled={editMode} onEdit={onEdit}>
-          <RecursiveRenderer
-            key={RENDERER_FRAGMENT_KEY}
-            elementKey={RENDERER_FRAGMENT_KEY}
-            scopes={scopes}
-            init={init}
-          />
-        </EditModeOverlay>
+        <RecursiveRenderer
+          key={RENDERER_FRAGMENT_KEY}
+          elementKey={RENDERER_FRAGMENT_KEY}
+          scopes={scopes}
+          init={init}
+        />
       </RendererRegistryProvider>
     </ElementsStoreProvider>
   );

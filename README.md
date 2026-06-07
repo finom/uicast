@@ -15,7 +15,7 @@ step per generation.
   [`packages/core/docs/SCOPES.md`](./packages/core/docs/SCOPES.md).
 - **`packages/react`** — the **React binding** for the engine: the `<Renderer>`,
   the recursive renderer + registry context, the per-element error boundary, and
-  the confirm / edit-mode UI. Depends on `core`; `react` / `react-dom` are peer
+  the confirm UI. Depends on `core`; `react` / `react-dom` are peer
   deps. See [`packages/core/docs/REACT.md`](./packages/core/docs/REACT.md).
 - **`packages/catalog`** — the component catalog. Component def/renderer pairs,
   the underlying shadcn/Radix UI primitives, the `componentDefs` / `componentRenderers`

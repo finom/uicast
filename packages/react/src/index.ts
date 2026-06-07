@@ -1,9 +1,9 @@
 // @ui-fired/react — the React binding for the framework-agnostic
 // @ui-fired/core engine. This package owns every React-specific surface:
 // the `<Renderer>` component + recursive renderer, the registry context, the
-// error boundary, the confirm seam (a `window.confirm` default + an override
-// context; the shadcn confirm modal lives in `@ui-fired/catalog`), and the
-// edit-mode overlay. Agnostic symbols (the
+// error boundary, and the confirm seam (a `window.confirm` default + an
+// override context; the shadcn confirm modal lives in `@ui-fired/catalog`).
+// Agnostic symbols (the
 // element model, expression eval, reactive scopes, prompt builders, the
 // component-def factories) live in `@ui-fired/core` and are imported from
 // there — this package never re-exports them (strict boundary).
@@ -13,7 +13,6 @@ export {
   ConfirmProvider,
   useConfirm,
 } from "./components/confirm";
-export { EditModeOverlay } from "./components/EditModeOverlay";
 // Component-renderer factory — the React half of the component-pair pattern
 // (`createAIComponentDef` stays in core).
 export {
