@@ -4,7 +4,10 @@ import { Providers } from "./providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ui-fired — live reference",
+  title: {
+    default: "ui-fired — live reference",
+    template: "%s — ui-fired",
+  },
   description:
     "A live visual and functional reference for the ui-fired render engine and component catalog.",
 };

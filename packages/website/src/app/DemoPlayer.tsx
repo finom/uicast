@@ -6,6 +6,7 @@ import {
   SkipBackIcon,
   SkipForwardIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import {
@@ -14,9 +15,7 @@ import {
   ResizablePanelGroup,
 } from "@ui-fired/catalog/components/ui/resizable";
 import type { Fired } from "@ui-fired/core/types";
-import { inventoryLines } from "../demo/inventory.lines";
-import { inventoryPrompt } from "../demo/inventory.prompt";
-import { resetInventory, seedIfEmpty } from "../lib/seed";
+import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./RenderCanvas";
 import { StreamPanel } from "./StreamPanel";
 import { ThemeToggle } from "./ThemeToggle";
@@ -29,7 +28,6 @@ import { ThemeToggle } from "./ThemeToggle";
 const MS_PER_CHAR = 8;
 const MIN_REVEAL_MS = 250;
 const MAX_REVEAL_MS = 6000;
-const TOTAL = inventoryLines.length;
 
 const revealDelay = (line: Fired.Element) =>
   Math.min(
@@ -57,7 +55,8 @@ function useIsWide() {
 // derived (`count >= TOTAL`), not a phase.
 type Phase = "idle" | "playing" | "paused";
 
-export function DemoPlayer() {
+export function DemoPlayer({ demo }: { demo: DemoConfig }) {
+  const TOTAL = demo.lines.length;
   // `count` chunks are revealed (indices 0..count-1); everything else derives
   // from it, so prev/next/pause are just `count` + `phase` edits.
   const [phase, setPhase] = useState<Phase>("idle");
@@ -73,7 +72,10 @@ export function DemoPlayer() {
   } | null>(null);
   const hoveredKey = hovered?.key ?? null;
   const outlineKey = hovered?.source === "line" ? hovered.key : null;
-  const revealed = useMemo(() => inventoryLines.slice(0, count), [count]);
+  const revealed = useMemo(
+    () => demo.lines.slice(0, count),
+    [demo.lines, count],
+  );
   const atEnd = count >= TOTAL;
   const wide = useIsWide();
 
@@ -89,13 +91,13 @@ export function DemoPlayer() {
     }
     const id = setTimeout(
       () => setCount((c) => c + 1),
-      revealDelay(inventoryLines[count]),
+      revealDelay(demo.lines[count]),
     );
     return () => clearTimeout(id);
   }, [phase, count, atEnd]);
 
   const play = async () => {
-    await seedIfEmpty();
+    await demo.onPlay?.();
     setCount(0);
     setPhase("playing");
   };
@@ -103,7 +105,7 @@ export function DemoPlayer() {
   const replay = async () => {
     setPhase("paused");
     setCount(0);
-    await resetInventory();
+    await demo.onReplay?.();
     setPhase("playing");
   };
 
@@ -121,6 +123,14 @@ export function DemoPlayer() {
   if (phase === "idle") {
     return (
       <main className="relative mx-auto max-w-4xl px-6 py-16">
+        <div className="absolute top-6 left-6">
+          <Link
+            href="/"
+            className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
+          >
+            ← All demos
+          </Link>
+        </div>
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
@@ -128,13 +138,9 @@ export function DemoPlayer() {
           <p className="text-sm font-medium text-muted-foreground">
             ui-fired · live reference
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight">
-            Watch a generated app assemble
-          </h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{demo.title}</h1>
           <p className="mx-auto max-w-2xl text-muted-foreground">
-            A model streams JSONLines; the engine renders each chunk with real
-            catalog components and live data functions. Press play to watch it
-            build one chunk at a time — then use the app for real.
+            {demo.tagline}
           </p>
         </div>
 
@@ -143,7 +149,7 @@ export function DemoPlayer() {
             THE PROMPT
           </p>
           <pre className="max-h-72 overflow-auto whitespace-pre-wrap text-sm text-foreground/80">
-            {inventoryPrompt}
+            {demo.prompt}
           </pre>
         </div>
 
@@ -165,7 +171,14 @@ export function DemoPlayer() {
     <main className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b border-border px-6 py-3">
         <div className="flex items-baseline gap-3">
-          <span className="font-semibold">Inventory</span>
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground transition hover:text-foreground"
+            aria-label="All demos"
+          >
+            ←
+          </Link>
+          <span className="font-semibold">{demo.title}</span>
           <span className="text-xs text-muted-foreground">
             {count}/{TOTAL} chunks
             {atEnd
@@ -251,6 +264,9 @@ export function DemoPlayer() {
             <div className="min-h-0 flex-1 overflow-auto p-6">
               <RenderCanvas
                 lines={revealed}
+                catalog={demo.catalog}
+                functions={demo.functions}
+                components={demo.components}
                 outlineKey={outlineKey}
                 onHoverKey={(key) =>
                   setHovered(key ? { key, source: "element" } : null)

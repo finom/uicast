@@ -1,10 +1,13 @@
 "use client";
 import Skeleton from "react-loading-skeleton";
 import { ConfirmModalProvider } from "@ui-fired/catalog/components/ConfirmModal";
-import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 import type { Fired } from "@ui-fired/core/types";
-import { Renderer } from "@ui-fired/react";
-import { inventoryFunctions } from "../lib/functions";
+import {
+  type AIComponentRenderer,
+  Renderer,
+  type RendererComponents,
+} from "@ui-fired/react";
+import type { StandardTool } from "standard-tool";
 
 // Host-supplied placeholder: shown while a chunk hasn't streamed in yet, and as
 // the Suspense fallback while a component's async `defaults` load. Components
@@ -37,16 +40,23 @@ const Placeholder = () => (
 const rendererComponents = { placeholder: Placeholder };
 
 /**
- * The right-hand pane: the engine rendering the revealed chunks with the real
- * catalog components + our Dexie-backed functions. `ConfirmModalProvider` (from
- * the catalog) routes every `confirm:` in a callback through the shadcn modal.
+ * The right-hand pane: the engine rendering the revealed chunks with the demo's
+ * catalog + host functions (both supplied by the active `DemoConfig`).
+ * `ConfirmModalProvider` (from the catalog) routes every `confirm:` in a callback
+ * through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
+  catalog,
+  functions,
+  components,
   outlineKey,
   onHoverKey,
 }: {
   lines: Fired.Element[];
+  catalog: AIComponentRenderer[];
+  functions: StandardTool[];
+  components?: RendererComponents;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
@@ -70,10 +80,10 @@ export function RenderCanvas({
         onMouseLeave={() => onHoverKey(null)}
       >
         <Renderer
-          catalog={componentRenderers}
+          catalog={catalog}
           lines={lines}
-          functions={inventoryFunctions}
-          components={rendererComponents}
+          functions={functions}
+          components={components ?? rendererComponents}
         />
       </div>
     </ConfirmModalProvider>
