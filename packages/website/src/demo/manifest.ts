@@ -30,6 +30,12 @@ export const demoManifest: DemoMeta[] = [
     tagline:
       "A color picker from bespoke field, swatch, and preview components — picking emits a structured { hex, h, s, l } payload.",
   },
+  {
+    slug: "board",
+    title: "Flow board",
+    tagline:
+      "A node canvas from one bespoke component — dragging emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to }.",
+  },
 ];
 
 export const demoSlugs = demoManifest.map((d) => d.slug);
