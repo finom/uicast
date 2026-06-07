@@ -1,10 +1,10 @@
 import type { Fired } from "@ui-fired/core/types";
 
 /**
- * The palette-studio artifact. One `scopes.color.*` namespace holds the current
+ * The palette-studio artifact. One `scopes.root.*` namespace holds the current
  * color (hex + h/s/l), alpha, and the saved swatches. ColorField and SwatchRail
  * both emit the *whole* color decomposition, so a single event restores every
- * channel; every callback also records itself in `scopes.color.lastEvt`.
+ * channel; every callback also records itself in `scopes.root.lastEvt`.
  */
 export const colorLines: Fired.Element[] = [
   {
@@ -12,16 +12,16 @@ export const colorLines: Fired.Element[] = [
     component: "FlexCol",
     props: { literal: { gap: "6" } },
     defaults: [
-      { set: "scopes.color.h", literal: 220 },
-      { set: "scopes.color.s", literal: 80 },
-      { set: "scopes.color.l", literal: 55 },
-      { set: "scopes.color.hex", literal: "#306ee8" },
-      { set: "scopes.color.alpha", literal: 100 },
+      { set: "scopes.root.h", literal: 220 },
+      { set: "scopes.root.s", literal: 80 },
+      { set: "scopes.root.l", literal: 55 },
+      { set: "scopes.root.hex", literal: "#306ee8" },
+      { set: "scopes.root.alpha", literal: 100 },
       {
-        set: "scopes.color.swatches",
+        set: "scopes.root.swatches",
         literal: ["#306ee8", "#e8a730", "#2bbd8e", "#d4426f", "#7c5cff"],
       },
-      { set: "scopes.color.lastEvt", literal: null },
+      { set: "scopes.root.lastEvt", literal: null },
     ],
     children: ["intro", "topRow", "swatchCard", "controls", "readoutRow"],
   },
@@ -67,16 +67,16 @@ export const colorLines: Fired.Element[] = [
     key: "colorField",
     component: "ColorField",
     props: {
-      expr: "({ h: scopes.color.h, s: scopes.color.s, l: scopes.color.l })",
+      expr: "({ h: scopes.root.h, s: scopes.root.s, l: scopes.root.l })",
     },
     callbacks: {
       onPick: [
-        { set: "scopes.color.hex", expr: "evt.hex" },
-        { set: "scopes.color.h", expr: "evt.h" },
-        { set: "scopes.color.s", expr: "evt.s" },
-        { set: "scopes.color.l", expr: "evt.l" },
+        { set: "scopes.root.hex", expr: "evt.hex" },
+        { set: "scopes.root.h", expr: "evt.h" },
+        { set: "scopes.root.s", expr: "evt.s" },
+        { set: "scopes.root.l", expr: "evt.l" },
         {
-          set: "scopes.color.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'ColorField.onPick', payload: evt })",
         },
       ],
@@ -98,18 +98,18 @@ export const colorLines: Fired.Element[] = [
     key: "colorPreview",
     component: "ColorPreview",
     props: {
-      expr: "({ hex: scopes.color.hex, alpha: scopes.color.alpha, label: scopes.color.hex + ' · ' + scopes.color.alpha + '%' })",
+      expr: "({ hex: scopes.root.hex, alpha: scopes.root.alpha, label: scopes.root.hex + ' · ' + scopes.root.alpha + '%' })",
     },
   },
   {
     key: "alphaKnob",
     component: "Knob",
-    props: { expr: "({ value: scopes.color.alpha, label: 'Alpha' })" },
+    props: { expr: "({ value: scopes.root.alpha, label: 'Alpha' })" },
     callbacks: {
       onTurn: [
-        { set: "scopes.color.alpha", expr: "evt.value" },
+        { set: "scopes.root.alpha", expr: "evt.value" },
         {
-          set: "scopes.color.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Knob.onTurn (alpha)', payload: evt })",
         },
       ],
@@ -127,16 +127,16 @@ export const colorLines: Fired.Element[] = [
     key: "swatchRail",
     component: "SwatchRail",
     props: {
-      expr: "({ swatches: scopes.color.swatches, selected: scopes.color.hex })",
+      expr: "({ swatches: scopes.root.swatches, selected: scopes.root.hex })",
     },
     callbacks: {
       onSelect: [
-        { set: "scopes.color.hex", expr: "evt.hex" },
-        { set: "scopes.color.h", expr: "evt.h" },
-        { set: "scopes.color.s", expr: "evt.s" },
-        { set: "scopes.color.l", expr: "evt.l" },
+        { set: "scopes.root.hex", expr: "evt.hex" },
+        { set: "scopes.root.h", expr: "evt.h" },
+        { set: "scopes.root.s", expr: "evt.s" },
+        { set: "scopes.root.l", expr: "evt.l" },
         {
-          set: "scopes.color.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'SwatchRail.onSelect', payload: evt })",
         },
       ],
@@ -157,11 +157,11 @@ export const colorLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.color.swatches",
-          expr: "await suggestPalette({ hex: scopes.color.hex })",
+          set: "scopes.root.swatches",
+          expr: "await suggestPalette({ hex: scopes.root.hex })",
         },
         {
-          set: "scopes.color.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'suggest' } })",
         },
       ],
@@ -174,12 +174,12 @@ export const colorLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.color.swatches",
-          expr: "scopes.color.swatches.concat([scopes.color.hex])",
+          set: "scopes.root.swatches",
+          expr: "scopes.root.swatches.concat([scopes.root.hex])",
         },
         {
-          set: "scopes.color.lastEvt",
-          expr: "({ event: 'Button.onClick', payload: { action: 'add', hex: scopes.color.hex } })",
+          set: "scopes.root.lastEvt",
+          expr: "({ event: 'Button.onClick', payload: { action: 'add', hex: scopes.root.hex } })",
         },
       ],
     },
@@ -191,12 +191,12 @@ export const colorLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.color.swatches",
+          set: "scopes.root.swatches",
           literal: ["#306ee8", "#e8a730", "#2bbd8e", "#d4426f", "#7c5cff"],
           confirm: "Reset the palette to its starting swatches?",
         },
         {
-          set: "scopes.color.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'reset' } })",
         },
       ],
@@ -220,7 +220,7 @@ export const colorLines: Fired.Element[] = [
     key: "cssText",
     component: "Text",
     props: {
-      expr: "({ children: scopes.color.hex + '  ·  hsl(' + scopes.color.h + ' ' + scopes.color.s + '% ' + scopes.color.l + '%)  ·  alpha ' + scopes.color.alpha + '%', variant: 'muted' })",
+      expr: "({ children: scopes.root.hex + '  ·  hsl(' + scopes.root.h + ' ' + scopes.root.s + '% ' + scopes.root.l + '%)  ·  alpha ' + scopes.root.alpha + '%', variant: 'muted' })",
     },
   },
   {
@@ -233,7 +233,7 @@ export const colorLines: Fired.Element[] = [
     key: "evtText",
     component: "Text",
     props: {
-      expr: "({ children: scopes.color.lastEvt ? JSON.stringify(scopes.color.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",
+      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",
     },
   },
 ];

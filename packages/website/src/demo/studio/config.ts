@@ -11,7 +11,7 @@ import { studioPrompt } from "./studio.prompt";
 /**
  * The studio demo: catalog components for layout + chrome, plus three bespoke
  * components (XYPad, Knob, StepSequencer) whose custom event payloads drive a
- * single reactive `scopes.synth` namespace. No data layer → no onPlay/onReplay.
+ * single reactive `scopes.root` namespace. No data layer → no onPlay/onReplay.
  */
 export const studioDemo: DemoConfig = {
   slug: "studio",

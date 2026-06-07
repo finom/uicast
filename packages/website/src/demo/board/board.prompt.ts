@@ -7,8 +7,8 @@ Component (one component, TWO custom event shapes):
     { from, to }.
 
 Wire both into one reactive "board" scope:
-- Dragging updates that node's position in scopes.board.nodes.
-- Connecting appends a link to scopes.board.links; the wire is drawn instantly.
+- Dragging updates that node's position in scopes.root.nodes.
+- Connecting appends a link to scopes.root.links; the wire is drawn instantly.
 - "Auto-arrange" calls a host function that lays the nodes out around a circle.
 - "Clear links" removes every connection behind a confirm prompt.
 - A readout shows the live node/link counts.

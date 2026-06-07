@@ -9,7 +9,7 @@ import { boardFunctions } from "./functions";
 /**
  * The board demo: a single bespoke NodeBoard component that emits two
  * differently-shaped events — spatial { id, x, y } on drag, relational
- * { from, to } on connect — both flowing into one reactive `scopes.board`.
+ * { from, to } on connect — both flowing into one reactive `scopes.root`.
  */
 export const boardDemo: DemoConfig = {
   slug: "board",

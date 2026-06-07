@@ -11,7 +11,7 @@ const throwOnError = <T>(result: T | Error): T => {
  * The color demo's host function: derive a small harmonious palette from a base
  * color (the base, two analogous neighbours, a complement, and a triadic). The
  * "Suggest palette" button's callback `await`s this and writes the result into
- * `scopes.color.swatches`.
+ * `scopes.root.swatches`.
  */
 const suggestPalette = standardTool({
   name: "suggestPalette",

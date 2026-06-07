@@ -12,7 +12,7 @@ import { colorFunctions } from "./functions";
 /**
  * The color demo: bespoke ColorField + SwatchRail + ColorPreview components,
  * plus the shared Knob (here driving alpha). Picking emits a structured
- * { hex, h, s, l } payload that updates the whole reactive `scopes.color`.
+ * { hex, h, s, l } payload that updates the whole reactive `scopes.root`.
  */
 export const colorDemo: DemoConfig = {
   slug: "color",

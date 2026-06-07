@@ -16,7 +16,7 @@ const NodeSchema = z.object({
 /**
  * The board's host function: arrange the given nodes evenly around a circle and
  * return them with updated positions. The "Auto-arrange" button `await`s this
- * and writes the laid-out nodes back into `scopes.board.nodes`.
+ * and writes the laid-out nodes back into `scopes.root.nodes`.
  */
 const autoLayout = standardTool({
   name: "autoLayout",

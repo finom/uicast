@@ -11,7 +11,7 @@ const throwOnError = <T>(result: T | Error): T => {
 /**
  * The studio's single host function — proof that a callback can `await` a host
  * call and write its result into scope. Returns a fresh random pattern grid;
- * the "Randomize" button's callback sets `scopes.synth.pattern` to the result.
+ * the "Randomize" button's callback sets `scopes.root.pattern` to the result.
  */
 const randomizePattern = standardTool({
   name: "randomizePattern",

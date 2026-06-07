@@ -1,11 +1,11 @@
 import type { Fired } from "@ui-fired/core/types";
 
 /**
- * The flow-board artifact. One `scopes.board.*` namespace holds the nodes and
+ * The flow-board artifact. One `scopes.root.*` namespace holds the nodes and
  * the links between them. NodeBoard is a single bespoke component that emits TWO
  * differently-shaped events — a spatial { id, x, y } on drag and a relational
  * { from, to } on connect — both wired declaratively into the same scope; every
- * callback also records itself in `scopes.board.lastEvt` so the "Last event"
+ * callback also records itself in `scopes.root.lastEvt` so the "Last event"
  * panel shows the payload shape change between a drag and a connect.
  */
 export const boardLines: Fired.Element[] = [
@@ -15,7 +15,7 @@ export const boardLines: Fired.Element[] = [
     props: { literal: { gap: "6" } },
     defaults: [
       {
-        set: "scopes.board.nodes",
+        set: "scopes.root.nodes",
         literal: [
           { id: "a", label: "Idea", x: 0.18, y: 0.28 },
           { id: "b", label: "Research", x: 0.5, y: 0.18 },
@@ -25,14 +25,14 @@ export const boardLines: Fired.Element[] = [
         ],
       },
       {
-        set: "scopes.board.links",
+        set: "scopes.root.links",
         literal: [
           { from: "a", to: "b" },
           { from: "b", to: "c" },
           { from: "c", to: "e" },
         ],
       },
-      { set: "scopes.board.lastEvt", literal: null },
+      { set: "scopes.root.lastEvt", literal: null },
     ],
     children: ["intro", "boardCard", "controls", "readoutRow"],
   },
@@ -77,26 +77,26 @@ export const boardLines: Fired.Element[] = [
     key: "board",
     component: "NodeBoard",
     props: {
-      expr: "({ nodes: scopes.board.nodes, links: scopes.board.links })",
+      expr: "({ nodes: scopes.root.nodes, links: scopes.root.links })",
     },
     callbacks: {
       onMoveNode: [
         {
-          set: "scopes.board.nodes",
-          expr: "scopes.board.nodes.map(n => n.id === evt.id ? ({ id: n.id, label: n.label, x: evt.x, y: evt.y }) : n)",
+          set: "scopes.root.nodes",
+          expr: "scopes.root.nodes.map(n => n.id === evt.id ? ({ id: n.id, label: n.label, x: evt.x, y: evt.y }) : n)",
         },
         {
-          set: "scopes.board.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'NodeBoard.onMoveNode', payload: evt })",
         },
       ],
       onConnect: [
         {
-          set: "scopes.board.links",
-          expr: "scopes.board.links.concat([{ from: evt.from, to: evt.to }])",
+          set: "scopes.root.links",
+          expr: "scopes.root.links.concat([{ from: evt.from, to: evt.to }])",
         },
         {
-          set: "scopes.board.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'NodeBoard.onConnect', payload: evt })",
         },
       ],
@@ -117,11 +117,11 @@ export const boardLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.board.nodes",
-          expr: "await autoLayout({ nodes: scopes.board.nodes })",
+          set: "scopes.root.nodes",
+          expr: "await autoLayout({ nodes: scopes.root.nodes })",
         },
         {
-          set: "scopes.board.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'auto-arrange' } })",
         },
       ],
@@ -134,12 +134,12 @@ export const boardLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.board.links",
+          set: "scopes.root.links",
           literal: [],
           confirm: "Remove every connection on the board?",
         },
         {
-          set: "scopes.board.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'clear-links' } })",
         },
       ],
@@ -157,7 +157,7 @@ export const boardLines: Fired.Element[] = [
     key: "graphStat",
     component: "Stat",
     props: {
-      expr: "({ label: 'Graph', value: scopes.board.nodes.length + ' nodes', helpText: scopes.board.links.length + ' connections' })",
+      expr: "({ label: 'Graph', value: scopes.root.nodes.length + ' nodes', helpText: scopes.root.links.length + ' connections' })",
     },
   },
   {
@@ -170,7 +170,7 @@ export const boardLines: Fired.Element[] = [
     key: "evtText",
     component: "Text",
     props: {
-      expr: "({ children: scopes.board.lastEvt ? JSON.stringify(scopes.board.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",
+      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",
     },
   },
 ];

@@ -39,7 +39,7 @@ All \`expr\` values are JavaScript expressions evaluated with a provided context
 - CRITICAL: All defaults in a single chunk are evaluated BEFORE any are written. A later default CANNOT read a value set by an earlier default in the same chunk. Split dependent defaults across parent/child chunks.
 
 Available context variables:
-- \`scopes\` - reactive state object with all scopes
+- \`scopes\` - reactive state object. Page-wide app state lives in the always-present **root** scope: read and write it as \`scopes.root.<path>\` (e.g. \`scopes.root.searchTerm\`), and initialize every root path in the root element's \`defaults\` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's \`as\` name becomes \`scopes.<as>\` inside that list's rows (\`scopes.<as>.item\`, \`scopes.<as>.index\`, \`scopes.<as>.id\`). Do NOT invent any other top-level scope name: only \`scopes.root\` and list \`as\` scopes exist — referencing e.g. \`scopes.foo\` yields \`undefined\`, and writing to it throws.
 - \`evt\` - event object (in callbacks only)
-- All RPC functions listed below are available as async function calls, so they need to be avaited with \`await\`.`;
+- All RPC functions listed below are available as async function calls, so they need to be awaited with \`await\`.`;
 }

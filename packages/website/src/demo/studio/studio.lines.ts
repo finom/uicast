@@ -3,8 +3,8 @@ import type { Fired } from "@ui-fired/core/types";
 /**
  * The groovebox artifact — the JSONLines a model would stream to build the synth
  * demo, hand-authored as a typed `Fired.Element[]`. Everything reactive lives in
- * one `scopes.synth.*` namespace; every bespoke component's callback writes the
- * event payload to `scopes.synth.lastEvt` (alongside its real effect) so the
+ * one `scopes.root.*` namespace; every bespoke component's callback writes the
+ * event payload to `scopes.root.lastEvt` (alongside its real effect) so the
  * "Last event" panel can show each payload shape verbatim.
  */
 export const studioLines: Fired.Element[] = [
@@ -13,20 +13,20 @@ export const studioLines: Fired.Element[] = [
     component: "FlexCol",
     props: { literal: { gap: "6" } },
     defaults: [
-      { set: "scopes.synth.x", literal: 0.5 },
-      { set: "scopes.synth.y", literal: 0.4 },
-      { set: "scopes.synth.cutoff", literal: 62 },
-      { set: "scopes.synth.resonance", literal: 28 },
-      { set: "scopes.synth.drive", literal: 45 },
+      { set: "scopes.root.x", literal: 0.5 },
+      { set: "scopes.root.y", literal: 0.4 },
+      { set: "scopes.root.cutoff", literal: 62 },
+      { set: "scopes.root.resonance", literal: 28 },
+      { set: "scopes.root.drive", literal: 45 },
       {
-        set: "scopes.synth.pattern",
+        set: "scopes.root.pattern",
         literal: [
           [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
           [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false],
           [true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false],
         ],
       },
-      { set: "scopes.synth.lastEvt", literal: null },
+      { set: "scopes.root.lastEvt", literal: null },
     ],
     children: ["intro", "topRow", "seqCard", "controls", "readoutRow"],
   },
@@ -72,14 +72,14 @@ export const studioLines: Fired.Element[] = [
     key: "xy",
     component: "XYPad",
     props: {
-      expr: "({ x: scopes.synth.x, y: scopes.synth.y, xLabel: 'Cutoff →', yLabel: 'Resonance ↑' })",
+      expr: "({ x: scopes.root.x, y: scopes.root.y, xLabel: 'Cutoff →', yLabel: 'Resonance ↑' })",
     },
     callbacks: {
       onMove: [
-        { set: "scopes.synth.x", expr: "evt.x" },
-        { set: "scopes.synth.y", expr: "evt.y" },
+        { set: "scopes.root.x", expr: "evt.x" },
+        { set: "scopes.root.y", expr: "evt.y" },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'XYPad.onMove', payload: evt })",
         },
       ],
@@ -100,12 +100,12 @@ export const studioLines: Fired.Element[] = [
   {
     key: "knobCutoff",
     component: "Knob",
-    props: { expr: "({ value: scopes.synth.cutoff, label: 'Cutoff' })" },
+    props: { expr: "({ value: scopes.root.cutoff, label: 'Cutoff' })" },
     callbacks: {
       onTurn: [
-        { set: "scopes.synth.cutoff", expr: "evt.value" },
+        { set: "scopes.root.cutoff", expr: "evt.value" },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Knob.onTurn (cutoff)', payload: evt })",
         },
       ],
@@ -114,12 +114,12 @@ export const studioLines: Fired.Element[] = [
   {
     key: "knobRes",
     component: "Knob",
-    props: { expr: "({ value: scopes.synth.resonance, label: 'Reso' })" },
+    props: { expr: "({ value: scopes.root.resonance, label: 'Reso' })" },
     callbacks: {
       onTurn: [
-        { set: "scopes.synth.resonance", expr: "evt.value" },
+        { set: "scopes.root.resonance", expr: "evt.value" },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Knob.onTurn (resonance)', payload: evt })",
         },
       ],
@@ -128,12 +128,12 @@ export const studioLines: Fired.Element[] = [
   {
     key: "knobDrive",
     component: "Knob",
-    props: { expr: "({ value: scopes.synth.drive, label: 'Drive' })" },
+    props: { expr: "({ value: scopes.root.drive, label: 'Drive' })" },
     callbacks: {
       onTurn: [
-        { set: "scopes.synth.drive", expr: "evt.value" },
+        { set: "scopes.root.drive", expr: "evt.value" },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Knob.onTurn (drive)', payload: evt })",
         },
       ],
@@ -151,16 +151,16 @@ export const studioLines: Fired.Element[] = [
     key: "seq",
     component: "StepSequencer",
     props: {
-      expr: "({ tracks: [{ id: 'kick', label: 'Kick' }, { id: 'snare', label: 'Snare' }, { id: 'hat', label: 'Hat' }], steps: 16, pattern: scopes.synth.pattern, playhead: -1 })",
+      expr: "({ tracks: [{ id: 'kick', label: 'Kick' }, { id: 'snare', label: 'Snare' }, { id: 'hat', label: 'Hat' }], steps: 16, pattern: scopes.root.pattern, playhead: -1 })",
     },
     callbacks: {
       onToggle: [
         {
-          set: "scopes.synth.pattern",
-          expr: "scopes.synth.pattern.map((row, ti) => ti === evt.trackIndex ? row.map((c, si) => si === evt.step ? evt.on : c) : row)",
+          set: "scopes.root.pattern",
+          expr: "scopes.root.pattern.map((row, ti) => ti === evt.trackIndex ? row.map((c, si) => si === evt.step ? evt.on : c) : row)",
         },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'StepSequencer.onToggle', payload: evt })",
         },
       ],
@@ -181,11 +181,11 @@ export const studioLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.synth.pattern",
+          set: "scopes.root.pattern",
           expr: "await randomizePattern({ tracks: 3, steps: 16 })",
         },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'randomize' } })",
         },
       ],
@@ -198,12 +198,12 @@ export const studioLines: Fired.Element[] = [
     callbacks: {
       onClick: [
         {
-          set: "scopes.synth.pattern",
-          expr: "scopes.synth.pattern.map(row => row.map(() => false))",
+          set: "scopes.root.pattern",
+          expr: "scopes.root.pattern.map(row => row.map(() => false))",
           confirm: "Clear the whole pattern?",
         },
         {
-          set: "scopes.synth.lastEvt",
+          set: "scopes.root.lastEvt",
           expr: "({ event: 'Button.onClick', payload: { action: 'clear' } })",
         },
       ],
@@ -221,7 +221,7 @@ export const studioLines: Fired.Element[] = [
     key: "filterStat",
     component: "Stat",
     props: {
-      expr: "({ label: 'Filter', value: Math.round(80 + scopes.synth.x * 7920) + ' Hz', helpText: 'Q ' + scopes.synth.y.toFixed(2) + ' · drive ' + scopes.synth.drive + '%' })",
+      expr: "({ label: 'Filter', value: Math.round(80 + scopes.root.x * 7920) + ' Hz', helpText: 'Q ' + scopes.root.y.toFixed(2) + ' · drive ' + scopes.root.drive + '%' })",
     },
   },
   {
@@ -234,7 +234,7 @@ export const studioLines: Fired.Element[] = [
     key: "evtText",
     component: "Text",
     props: {
-      expr: "({ children: scopes.synth.lastEvt ? JSON.stringify(scopes.synth.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
+      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
     },
   },
 ];
