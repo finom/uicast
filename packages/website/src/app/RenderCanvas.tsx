@@ -41,15 +41,40 @@ const rendererComponents = { placeholder: Placeholder };
  * catalog components + our Dexie-backed functions. `ConfirmModalProvider` (from
  * the catalog) routes every `confirm:` in a callback through the shadcn modal.
  */
-export function RenderCanvas({ lines }: { lines: Fired.Element[] }) {
+export function RenderCanvas({
+  lines,
+  hoveredKey,
+  onHoverKey,
+}: {
+  lines: Fired.Element[];
+  hoveredKey: string | null;
+  onHoverKey: (key: string | null) => void;
+}) {
+  // Bidirectional hover-highlight: every catalog renderer stamps its root node
+  // with `data-key={element.key}`, so a hovered DOM node maps back to its chunk
+  // key via the nearest `[data-key]` ancestor (event delegation on the wrapper).
+  // The parent syncs `hoveredKey`, which highlights the matching JSON line and —
+  // via the injected rule below — outlines the matching element here.
   return (
     <ConfirmModalProvider>
-      <Renderer
-        catalog={componentRenderers}
-        lines={lines}
-        functions={inventoryFunctions}
-        components={rendererComponents}
-      />
+      {hoveredKey != null && (
+        <style>{`[data-render-canvas] [data-key="${CSS.escape(hoveredKey)}"]{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}`}</style>
+      )}
+      <div
+        data-render-canvas=""
+        onMouseOver={(e) => {
+          const el = (e.target as HTMLElement).closest("[data-key]");
+          onHoverKey(el?.getAttribute("data-key") ?? null);
+        }}
+        onMouseLeave={() => onHoverKey(null)}
+      >
+        <Renderer
+          catalog={componentRenderers}
+          lines={lines}
+          functions={inventoryFunctions}
+          components={rendererComponents}
+        />
+      </div>
     </ConfirmModalProvider>
   );
 }

@@ -62,6 +62,10 @@ export function DemoPlayer() {
   // from it, so prev/next/pause are just `count` + `phase` edits.
   const [phase, setPhase] = useState<Phase>("idle");
   const [count, setCount] = useState(0);
+  // Bidirectional hover link between the two panels: the `key` of the element
+  // hovered in *either* panel highlights both the matching JSON line and the
+  // matching rendered element. `null` = nothing hovered.
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
   const revealed = useMemo(() => inventoryLines.slice(0, count), [count]);
   const atEnd = count >= TOTAL;
   const wide = useIsWide();
@@ -220,7 +224,11 @@ export function DemoPlayer() {
             <div className="shrink-0 border-b border-border px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground">
               STREAMED JSONLINES
             </div>
-            <StreamPanel lines={revealed} />
+            <StreamPanel
+              lines={revealed}
+              hoveredKey={hoveredKey}
+              onHoverKey={setHoveredKey}
+            />
           </ResizablePanel>
           <ResizableHandle withHandle />
           <ResizablePanel
@@ -232,7 +240,11 @@ export function DemoPlayer() {
               RENDERED APP
             </div>
             <div className="min-h-0 flex-1 overflow-auto p-6">
-              <RenderCanvas lines={revealed} />
+              <RenderCanvas
+                lines={revealed}
+                hoveredKey={hoveredKey}
+                onHoverKey={setHoveredKey}
+              />
             </div>
           </ResizablePanel>
         </ResizablePanelGroup>

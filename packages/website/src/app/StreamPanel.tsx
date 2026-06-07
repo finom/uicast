@@ -10,7 +10,15 @@ import { ChunkModal } from "./ChunkModal";
  * panel auto-scrolls as chunks arrive. Clicking a line opens {@link ChunkModal}
  * with that chunk pretty-printed and syntax-highlighted.
  */
-export function StreamPanel({ lines }: { lines: Fired.Element[] }) {
+export function StreamPanel({
+  lines,
+  hoveredKey,
+  onHoverKey,
+}: {
+  lines: Fired.Element[];
+  hoveredKey: string | null;
+  onHoverKey: (key: string | null) => void;
+}) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<{
     chunk: Fired.Element;
@@ -36,10 +44,14 @@ export function StreamPanel({ lines }: { lines: Fired.Element[] }) {
             variant="ghost"
             key={`${line.key}-${i}`}
             onClick={() => setSelected({ chunk: line, index: i })}
+            onMouseEnter={() => onHoverKey(line.key)}
+            onMouseLeave={() => onHoverKey(null)}
             title={`Inspect chunk ${i + 1}`}
             className={`h-auto w-full cursor-pointer items-start justify-start gap-0 whitespace-normal break-all rounded px-1 py-0.5 text-left font-mono text-xs font-normal ${
-              i === lines.length - 1 ? "text-primary" : "text-foreground/70"
-            }`}
+              hoveredKey === line.key
+                ? "bg-primary/10 ring-1 ring-primary/50"
+                : ""
+            } ${i === lines.length - 1 ? "text-primary" : "text-foreground/70"}`}
           >
             <span className="mr-2 select-none text-muted-foreground/50">
               {String(i + 1).padStart(2, "0")}
