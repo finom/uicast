@@ -18,6 +18,12 @@ export const demoManifest: DemoMeta[] = [
     tagline:
       "A CRUD dashboard streamed chunk-by-chunk, backed by a live in-browser database.",
   },
+  {
+    slug: "studio",
+    title: "Groovebox",
+    tagline:
+      "A beat studio built from bespoke XY-pad, knob, and step-sequencer components — every interaction a custom event.",
+  },
 ];
 
 export const demoSlugs = demoManifest.map((d) => d.slug);

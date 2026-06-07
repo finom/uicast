@@ -1,4 +1,5 @@
 import { inventoryDemo } from "./inventory/config";
+import { studioDemo } from "./studio/config";
 import type { DemoConfig } from "./types";
 
 /**
@@ -8,7 +9,7 @@ import type { DemoConfig } from "./types";
  * `manifest.ts` instead. Insertion order = home-page card order. **Keep slugs
  * in sync with `manifest.ts`.**
  */
-export const demos: DemoConfig[] = [inventoryDemo];
+export const demos: DemoConfig[] = [inventoryDemo, studioDemo];
 
 const demosBySlug: Record<string, DemoConfig> = Object.fromEntries(
   demos.map((d) => [d.slug, d]),
