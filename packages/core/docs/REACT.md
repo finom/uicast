@@ -204,6 +204,24 @@ an implicit `children?: ReactNode` and `generatedKey: string`. Registration
 [`OVERVIEW.md`](./OVERVIEW.md) §12 / §17 — the def map drives the prompt, the
 renderer array drives this binding.
 
+### The `data-key` convention
+
+Spread `generatedKey` onto the renderer's **root DOM node** as
+`data-key={generatedKey}` — the `Input` example above does. `generatedKey` is
+the element's own `key` (§2, step 5).
+
+This is **not required by the engine**: it never reads `data-key`, and a renderer
+that omits it still renders correctly. But **every catalog renderer follows it**,
+and new renderers should too — a stable `key → DOM node` mapping is what lets host
+tooling reach back from a rendered node to its source element. It powers element
+**selection**, **hover-highlight** (the reference website cross-links its
+JSONLines panel to the rendered output purely through `[data-key]` — hover a line,
+the element outlines, and vice-versa), inspector / devtools overlays, and
+test / automation targeting. Put it on the **outermost** element the renderer
+returns so the whole subtree resolves to a single key, and let it pass straight
+through to a real DOM element (host elements take `data-*` as-is; shadcn / Radix
+primitives forward it via `{...props}`).
+
 ---
 
 ## 4. Hidden — `<Activity>` mechanics
