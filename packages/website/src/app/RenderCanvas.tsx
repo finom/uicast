@@ -43,22 +43,23 @@ const rendererComponents = { placeholder: Placeholder };
  */
 export function RenderCanvas({
   lines,
-  hoveredKey,
+  outlineKey,
   onHoverKey,
 }: {
   lines: Fired.Element[];
-  hoveredKey: string | null;
+  outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
   // Bidirectional hover-highlight: every catalog renderer stamps its root node
   // with `data-key={element.key}`, so a hovered DOM node maps back to its chunk
   // key via the nearest `[data-key]` ancestor (event delegation on the wrapper).
-  // The parent syncs `hoveredKey`, which highlights the matching JSON line and —
-  // via the injected rule below — outlines the matching element here.
+  // `onHoverKey` reports element hovers (which highlight the matching JSON line);
+  // `outlineKey` is set by the parent *only* when the hover comes from a line, so
+  // pointing at the rendered app never outlines it — the live UI stays normal.
   return (
     <ConfirmModalProvider>
-      {hoveredKey != null && (
-        <style>{`[data-render-canvas] [data-key="${CSS.escape(hoveredKey)}"]{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}`}</style>
+      {outlineKey != null && (
+        <style>{`[data-render-canvas] [data-key="${CSS.escape(outlineKey)}"]{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}`}</style>
       )}
       <div
         data-render-canvas=""

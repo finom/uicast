@@ -62,10 +62,17 @@ export function DemoPlayer() {
   // from it, so prev/next/pause are just `count` + `phase` edits.
   const [phase, setPhase] = useState<Phase>("idle");
   const [count, setCount] = useState(0);
-  // Bidirectional hover link between the two panels: the `key` of the element
-  // hovered in *either* panel highlights both the matching JSON line and the
-  // matching rendered element. `null` = nothing hovered.
-  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
+  // Bidirectional hover link between the two panels, tracking *which side* the
+  // hover came from. The rendered element is outlined only when the hover
+  // originates from a JSON line (`source: "line"`); pointing at the rendered app
+  // itself only highlights the matching line, so the live UI keeps looking
+  // normal — no outline on the element you're already hovering. `null` = none.
+  const [hovered, setHovered] = useState<{
+    key: string;
+    source: "line" | "element";
+  } | null>(null);
+  const hoveredKey = hovered?.key ?? null;
+  const outlineKey = hovered?.source === "line" ? hovered.key : null;
   const revealed = useMemo(() => inventoryLines.slice(0, count), [count]);
   const atEnd = count >= TOTAL;
   const wide = useIsWide();
@@ -227,7 +234,9 @@ export function DemoPlayer() {
             <StreamPanel
               lines={revealed}
               hoveredKey={hoveredKey}
-              onHoverKey={setHoveredKey}
+              onHoverKey={(key) =>
+                setHovered(key ? { key, source: "line" } : null)
+              }
             />
           </ResizablePanel>
           <ResizableHandle withHandle />
@@ -242,8 +251,10 @@ export function DemoPlayer() {
             <div className="min-h-0 flex-1 overflow-auto p-6">
               <RenderCanvas
                 lines={revealed}
-                hoveredKey={hoveredKey}
-                onHoverKey={setHoveredKey}
+                outlineKey={outlineKey}
+                onHoverKey={(key) =>
+                  setHovered(key ? { key, source: "element" } : null)
+                }
               />
             </div>
           </ResizablePanel>
