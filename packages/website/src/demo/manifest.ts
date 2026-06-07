@@ -24,6 +24,12 @@ export const demoManifest: DemoMeta[] = [
     tagline:
       "A beat studio built from bespoke XY-pad, knob, and step-sequencer components — every interaction a custom event.",
   },
+  {
+    slug: "color",
+    title: "Palette studio",
+    tagline:
+      "A color picker from bespoke field, swatch, and preview components — picking emits a structured { hex, h, s, l } payload.",
+  },
 ];
 
 export const demoSlugs = demoManifest.map((d) => d.slug);
