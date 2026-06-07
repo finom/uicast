@@ -261,7 +261,7 @@ Triggered by component events. Each callback name maps to an array of `Confirmab
 Execution semantics:
 
 - Steps execute **sequentially**. Each `await`s its expression before the next runs.
-- Inside a callback expression, `evt` is bound to the event payload typed per the callback's def (`evt.value`, `evt.valueAsNumber`, etc.). The component renderer constructs the payload.
+- Inside a callback expression, `evt` is bound to the event payload typed per the callback's def (`evt.value`, `evt.valueAsNumber`, etc.). The component renderer constructs the payload, and can shape it however it likes — DOM fields, a typed scalar, a structured or spatial/relational record — so this single mechanism covers any event source (see [`LINES.md`](./LINES.md#callbacks) §callbacks).
 - `confirm`: if a step has `{ confirm: "Are you sure?", … }`, the binding opens a confirm modal before evaluating that step's expression (in React, the `ConfirmModal` via `useConfirm()` — see [`REACT.md`](./REACT.md) §2). On cancel, the step **and all subsequent steps** are skipped. Place `confirm` on the first dangerous step.
 - A small `await new Promise(resolve => setTimeout(resolve, 0))` yields between steps so the scheduler can pick up the previous `$set` before the next one fires — avoids a race where a derived dep update lags the next chained expression's read.
 

@@ -171,6 +171,18 @@ Authoring rules:
   step **and all later steps** are skipped. Put it on the first dangerous step.
 - A step with no `set` runs purely for its effect (e.g. a host-function call).
 
+**`evt` is component-defined.** A component constructs `evt` however it likes —
+its shape is declared in the component's callback def (a Zod schema, surfaced to
+the model in the prompt) and is whatever that component chooses to pass. It can
+carry DOM-style fields (`evt.value`, `evt.valueAsNumber`, click coordinates), a
+single typed scalar, a structured record (`{ hex, h, s, l }`), or a
+spatial/relational payload (`{ id, x, y }`, `{ from, to }`). There is **no
+separate "custom event" API** — this one `callbacks` mechanism handles DOM
+events, typed component events, and synthetic payloads uniformly; the expression
+just reads whatever the component put on `evt`. That is why callbacks cover the
+full range of event handling: a component can model any interaction as an event
+carrying exactly the payload its handler needs.
+
 ---
 
 ## List properties

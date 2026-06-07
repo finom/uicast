@@ -65,8 +65,9 @@ entry's `set` path:
 { "set": "scopes.form.today", "expr": "new Date().toISOString().slice(0, 10)" }
 ```
 
-**Callbacks** (`callbacks[].expr`) — read `evt`, call host functions (always
-`await`-ed), and write via `set`:
+**Callbacks** (`callbacks[].expr`) — read `evt` (whose shape is component-defined,
+not limited to DOM events — see [`LINES.md`](./LINES.md#callbacks)), call host
+functions (always `await`-ed), and write via `set`:
 
 ```jsonc
 // mirror an input's value into scope state
