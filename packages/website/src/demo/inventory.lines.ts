@@ -33,7 +33,7 @@ export const inventoryLines: Fired.Element[] = [
       { set: "scopes.root.draftPrice", literal: 0 },
       { set: "scopes.root.products", expr: "await listProducts()" },
     ],
-    children: ["header", "statsRow", "chartCard", "toolbar", "tableCard", "drawer"],
+    children: ["header", "stats-row", "chart-card", "toolbar", "table-card", "drawer"],
   },
 
   // Header: title block + primary "New product" action.
@@ -41,10 +41,10 @@ export const inventoryLines: Fired.Element[] = [
     key: "header",
     component: "FlexRow",
     props: { literal: { justify: "between", align: "center" } },
-    children: ["headerText", "newBtn"],
+    children: ["header-text", "new-btn"],
   },
   {
-    key: "headerText",
+    key: "header-text",
     component: "FlexCol",
     props: { literal: { gap: "1" } },
     children: ["title", "subtitle"],
@@ -65,7 +65,7 @@ export const inventoryLines: Fired.Element[] = [
     },
   },
   {
-    key: "newBtn",
+    key: "new-btn",
     component: "Button",
     props: { literal: { children: "New product" } },
     callbacks: {
@@ -83,10 +83,10 @@ export const inventoryLines: Fired.Element[] = [
 
   // Stats: derived inline from products → re-compute on every CRUD reload.
   {
-    key: "statsRow",
+    key: "stats-row",
     component: "Grid",
     props: { literal: { columns: "3", gap: "4" } },
-    children: ["statSkus", "statLow", "statValue"],
+    children: ["stat-skus", "stat-low", "stat-value"],
   },
   // Count through a method call (`.filter(Boolean).length`), not a bare
   // `scopes.root.products.length`. Dep extraction records a *method* chain as its
@@ -96,21 +96,21 @@ export const inventoryLines: Fired.Element[] = [
   // is path-exact, so a bare-`.length` reader would never wake. statLow/statValue
   // are reactive for the same reason — they read via `.filter(…)` / `.reduce(…)`.
   {
-    key: "statSkus",
+    key: "stat-skus",
     component: "Stat",
     props: {
       expr: "({ label: 'Total SKUs', value: scopes.root.products.filter(Boolean).length, helpText: 'products in catalog' })",
     },
   },
   {
-    key: "statLow",
+    key: "stat-low",
     component: "Stat",
     props: {
       expr: "({ label: 'Low stock', value: scopes.root.products.filter(p => p.stock <= 20).length, trend: scopes.root.products.filter(p => p.stock <= 20).length > 0 ? 'down' : 'neutral', helpText: 'at or below 20 units' })",
     },
   },
   {
-    key: "statValue",
+    key: "stat-value",
     component: "Stat",
     props: {
       expr: "({ label: 'Inventory value', value: '$' + Math.round(scopes.root.products.reduce((s, p) => s + p.price * p.stock, 0)).toLocaleString(), helpText: 'total stock value' })",
@@ -119,7 +119,7 @@ export const inventoryLines: Fired.Element[] = [
 
   // Chart: its own async default → a localized loading skeleton.
   {
-    key: "chartCard",
+    key: "chart-card",
     component: "Card",
     props: { literal: { title: "Stock by category" } },
     defaults: [{ set: "scopes.root.categories", expr: "await getCategoryBreakdown()" }],
@@ -154,50 +154,50 @@ export const inventoryLines: Fired.Element[] = [
 
   // Products table.
   {
-    key: "tableCard",
+    key: "table-card",
     component: "Card",
     props: { literal: { title: "Products" } },
     children: ["table", "empty"],
   },
   { key: "table", component: "Table", children: ["thead", "tbody"] },
-  { key: "thead", component: "TableHeader", children: ["headRow"] },
+  { key: "thead", component: "TableHeader", children: ["head-row"] },
   {
-    key: "headRow",
+    key: "head-row",
     component: "TableRow",
-    children: ["hName", "hSku", "hCat", "hStock", "hPrice", "hActions"],
+    children: ["h-name", "h-sku", "h-cat", "h-stock", "h-price", "h-actions"],
   },
-  { key: "hName", component: "TableHead", props: { literal: { children: "Product" } } },
-  { key: "hSku", component: "TableHead", props: { literal: { children: "SKU" } } },
-  { key: "hCat", component: "TableHead", props: { literal: { children: "Category" } } },
-  { key: "hStock", component: "TableHead", props: { literal: { children: "Stock" } } },
-  { key: "hPrice", component: "TableHead", props: { literal: { children: "Price" } } },
-  { key: "hActions", component: "TableHead", props: { literal: { children: "" } } },
-  { key: "tbody", component: "TableBody", children: ["rowList"] },
+  { key: "h-name", component: "TableHead", props: { literal: { children: "Product" } } },
+  { key: "h-sku", component: "TableHead", props: { literal: { children: "SKU" } } },
+  { key: "h-cat", component: "TableHead", props: { literal: { children: "Category" } } },
+  { key: "h-stock", component: "TableHead", props: { literal: { children: "Stock" } } },
+  { key: "h-price", component: "TableHead", props: { literal: { children: "Price" } } },
+  { key: "h-actions", component: "TableHead", props: { literal: { children: "" } } },
+  { key: "tbody", component: "TableBody", children: ["row-list"] },
 
   // The list: one TableRow per (filtered) product. Item scope is `scopes.row`.
   {
-    key: "rowList",
+    key: "row-list",
     component: "TableRow",
     each: "scopes.root.products.filter(p => !scopes.root.q || p.name.toLowerCase().includes(scopes.root.q.toLowerCase()) || p.sku.toLowerCase().includes(scopes.root.q.toLowerCase()))",
     as: "row",
     keyBy: "id",
-    children: ["cName", "cSku", "cCat", "cStock", "cPrice", "cActions"],
+    children: ["c-name", "c-sku", "c-cat", "c-stock", "c-price", "c-actions"],
   },
-  { key: "cName", component: "TableCell", props: { expr: "({ children: scopes.row.item.name })" } },
-  { key: "cSku", component: "TableCell", props: { expr: "({ children: scopes.row.item.sku })" } },
-  { key: "cCat", component: "TableCell", props: { expr: "({ children: scopes.row.item.category })" } },
-  { key: "cStock", component: "TableCell", children: ["stockBadge"] },
+  { key: "c-name", component: "TableCell", props: { expr: "({ children: scopes.row.item.name })" } },
+  { key: "c-sku", component: "TableCell", props: { expr: "({ children: scopes.row.item.sku })" } },
+  { key: "c-cat", component: "TableCell", props: { expr: "({ children: scopes.row.item.category })" } },
+  { key: "c-stock", component: "TableCell", children: ["stock-badge"] },
   {
-    key: "stockBadge",
+    key: "stock-badge",
     component: "Badge",
     props: {
       expr: "({ children: '' + scopes.row.item.stock, variant: scopes.row.item.stock <= 0 ? 'destructive' : (scopes.row.item.stock <= 20 ? 'outline' : 'secondary') })",
     },
   },
-  { key: "cPrice", component: "TableCell", props: { expr: "({ children: '$' + scopes.row.item.price })" } },
-  { key: "cActions", component: "TableCell", children: ["editBtn", "delBtn"] },
+  { key: "c-price", component: "TableCell", props: { expr: "({ children: '$' + scopes.row.item.price })" } },
+  { key: "c-actions", component: "TableCell", children: ["edit-btn", "del-btn"] },
   {
-    key: "editBtn",
+    key: "edit-btn",
     component: "IconButton",
     props: { literal: { icon: "Pencil", tooltip: "Edit", size: "sm" } },
     callbacks: {
@@ -213,7 +213,7 @@ export const inventoryLines: Fired.Element[] = [
     },
   },
   {
-    key: "delBtn",
+    key: "del-btn",
     component: "IconButton",
     props: { literal: { icon: "Trash2", tooltip: "Delete", size: "sm", variant: "ghost" } },
     callbacks: {
@@ -257,64 +257,64 @@ export const inventoryLines: Fired.Element[] = [
     key: "form",
     component: "FlexCol",
     props: { literal: { gap: "4" } },
-    children: ["fName", "fSku", "fCat", "fStock", "fPrice", "formActions"],
+    children: ["f-name", "f-sku", "f-cat", "f-stock", "f-price", "form-actions"],
   },
-  { key: "fName", component: "Field", children: ["lName", "iName"] },
-  { key: "lName", component: "FieldLabel", props: { literal: { children: "Name" } } },
+  { key: "f-name", component: "Field", children: ["l-name", "i-name"] },
+  { key: "l-name", component: "FieldLabel", props: { literal: { children: "Name" } } },
   {
-    key: "iName",
+    key: "i-name",
     component: "Input",
     props: { expr: "({ value: scopes.root.draftName, placeholder: 'Product name' })" },
     callbacks: { onChange: [{ set: "scopes.root.draftName", expr: "evt.value" }] },
   },
-  { key: "fSku", component: "Field", children: ["lSku", "iSku"] },
-  { key: "lSku", component: "FieldLabel", props: { literal: { children: "SKU" } } },
+  { key: "f-sku", component: "Field", children: ["l-sku", "i-sku"] },
+  { key: "l-sku", component: "FieldLabel", props: { literal: { children: "SKU" } } },
   {
-    key: "iSku",
+    key: "i-sku",
     component: "Input",
     props: { expr: "({ value: scopes.root.draftSku, placeholder: 'SKU-0000' })" },
     callbacks: { onChange: [{ set: "scopes.root.draftSku", expr: "evt.value" }] },
   },
-  { key: "fCat", component: "Field", children: ["lCat", "iCat"] },
-  { key: "lCat", component: "FieldLabel", props: { literal: { children: "Category" } } },
+  { key: "f-cat", component: "Field", children: ["l-cat", "i-cat"] },
+  { key: "l-cat", component: "FieldLabel", props: { literal: { children: "Category" } } },
   {
-    key: "iCat",
+    key: "i-cat",
     component: "Select",
     props: {
       expr: "({ value: scopes.root.draftCategory, placeholder: 'Select category', options: (scopes.root.categories || []).map(c => ({ label: c.name, value: c.name })) })",
     },
     callbacks: { onChange: [{ set: "scopes.root.draftCategory", expr: "evt.value" }] },
   },
-  { key: "fStock", component: "Field", children: ["lStock", "iStock"] },
-  { key: "lStock", component: "FieldLabel", props: { literal: { children: "Stock" } } },
+  { key: "f-stock", component: "Field", children: ["l-stock", "i-stock"] },
+  { key: "l-stock", component: "FieldLabel", props: { literal: { children: "Stock" } } },
   {
-    key: "iStock",
+    key: "i-stock",
     component: "NumberInput",
     props: { expr: "({ value: scopes.root.draftStock, min: 0 })" },
     callbacks: { onChange: [{ set: "scopes.root.draftStock", expr: "evt.value" }] },
   },
-  { key: "fPrice", component: "Field", children: ["lPrice", "iPrice"] },
-  { key: "lPrice", component: "FieldLabel", props: { literal: { children: "Price" } } },
+  { key: "f-price", component: "Field", children: ["l-price", "i-price"] },
+  { key: "l-price", component: "FieldLabel", props: { literal: { children: "Price" } } },
   {
-    key: "iPrice",
+    key: "i-price",
     component: "CurrencyInput",
     props: { expr: "({ value: scopes.root.draftPrice })" },
     callbacks: { onChange: [{ set: "scopes.root.draftPrice", expr: "evt.value" }] },
   },
   {
-    key: "formActions",
+    key: "form-actions",
     component: "FlexRow",
     props: { literal: { justify: "end", gap: "2" } },
-    children: ["cancelBtn", "saveBtn"],
+    children: ["cancel-btn", "save-btn"],
   },
   {
-    key: "cancelBtn",
+    key: "cancel-btn",
     component: "Button",
     props: { literal: { variant: "outline", children: "Cancel" } },
     callbacks: { onClick: [{ set: "scopes.root.draftOpen", literal: false }] },
   },
   {
-    key: "saveBtn",
+    key: "save-btn",
     component: "Button",
     props: { literal: { children: "Save product" } },
     callbacks: {

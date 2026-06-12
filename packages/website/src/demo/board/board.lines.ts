@@ -34,7 +34,7 @@ export const boardLines: Fired.Element[] = [
       },
       { set: "scopes.root.lastEvt", literal: null },
     ],
-    children: ["intro", "boardCard", "controls", "readoutRow"],
+    children: ["intro", "board-card", "controls", "readout-row"],
   },
 
   // Intro
@@ -63,7 +63,7 @@ export const boardLines: Fired.Element[] = [
 
   // The board itself
   {
-    key: "boardCard",
+    key: "board-card",
     component: "Card",
     props: {
       literal: {
@@ -108,10 +108,10 @@ export const boardLines: Fired.Element[] = [
     key: "controls",
     component: "FlexRow",
     props: { literal: { gap: "2" } },
-    children: ["autoBtn", "clearBtn"],
+    children: ["auto-btn", "clear-btn"],
   },
   {
-    key: "autoBtn",
+    key: "auto-btn",
     component: "Button",
     props: { literal: { children: "Auto-arrange", variant: "outline" } },
     callbacks: {
@@ -128,7 +128,7 @@ export const boardLines: Fired.Element[] = [
     },
   },
   {
-    key: "clearBtn",
+    key: "clear-btn",
     component: "Button",
     props: { literal: { children: "Clear links", variant: "ghost" } },
     callbacks: {
@@ -148,26 +148,26 @@ export const boardLines: Fired.Element[] = [
 
   // Readouts: derived graph stat + the live "Last event" panel
   {
-    key: "readoutRow",
+    key: "readout-row",
     component: "Grid",
     props: { literal: { columns: "2", gap: "4" } },
-    children: ["graphStat", "evtCard"],
+    children: ["graph-stat", "evt-card"],
   },
   {
-    key: "graphStat",
+    key: "graph-stat",
     component: "Stat",
     props: {
       expr: "({ label: 'Graph', value: scopes.root.nodes.length + ' nodes', helpText: scopes.root.links.length + ' connections' })",
     },
   },
   {
-    key: "evtCard",
+    key: "evt-card",
     component: "Card",
     props: { literal: { title: "Last event" } },
-    children: ["evtText"],
+    children: ["evt-text"],
   },
   {
-    key: "evtText",
+    key: "evt-text",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",

@@ -58,7 +58,7 @@ An element is one node:
 
 | Field | Required | Meaning |
 |---|---|---|
-| `key` | yes | Unique identity within the document. Partial replacement keys off this ([§2.2](#22-partial-replacement-patch)). |
+| `key` | yes | Unique identity within the document, in kebab-case (`"user-card"`). Partial replacement keys off this ([§2.2](#22-partial-replacement-patch)). |
 | `component` | yes | Name of the component to render; must exist in the consuming runtime's registry. |
 | `props` | no | A [value source](#12-value-sources--assignments) evaluating to the component's props. |
 | `defaults` | no | [Assignments](#12-value-sources--assignments) that seed scope state once, at mount. |

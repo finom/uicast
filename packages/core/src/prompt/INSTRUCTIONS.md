@@ -10,7 +10,7 @@ Output one JSON object per line (JSONL). Each line is a self-contained element. 
 
 Each line must be a valid JSON object with at minimum these fields:
 
-- `"key"`: a unique string identifier for this element.
+- `"key"`: a unique string identifier for this element. Use **kebab-case** — lowercase words joined by hyphens (e.g. `"stats-row"`, `"line-chart"`, `"save-btn"`), never camelCase or snake_case.
 - `"component"`: one of the registered component names listed below.
 
 Optional fields: `"props"`, `"defaults"`, `"hidden"`, `"callbacks"`, `"children"` (array of child element keys), and for lists: `"each"`, `"as"`, `"keyBy"`.

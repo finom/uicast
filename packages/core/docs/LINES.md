@@ -74,9 +74,11 @@ type ConfirmableValueSourceAssignment = { confirm?: string } & ValueSourceAssign
 ## Element properties
 
 ### `key` (required)
-A unique string id for the line. The tree is built by key reference, and
-**partial replacement** keys off this: re-emitting a line with the same `key`
-replaces that subtree in place (see [`OVERVIEW.md`](./OVERVIEW.md) §14).
+A unique string id for the line, written in **kebab-case** (lowercase words
+joined by hyphens — `"user-card"`, `"stats-row"`, never `"userCard"`). The tree
+is built by key reference, and **partial replacement** keys off this:
+re-emitting a line with the same `key` replaces that subtree in place (see
+[`OVERVIEW.md`](./OVERVIEW.md) §14).
 
 ```jsonc
 { "key": "user-card" }

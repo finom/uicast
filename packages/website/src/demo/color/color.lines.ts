@@ -23,7 +23,7 @@ export const colorLines: Fired.Element[] = [
       },
       { set: "scopes.root.lastEvt", literal: null },
     ],
-    children: ["intro", "topRow", "swatchCard", "controls", "readoutRow"],
+    children: ["intro", "top-row", "swatch-card", "controls", "readout-row"],
   },
 
   // Intro
@@ -52,19 +52,19 @@ export const colorLines: Fired.Element[] = [
 
   // Top row: color field + preview/alpha
   {
-    key: "topRow",
+    key: "top-row",
     component: "Grid",
     props: { literal: { columns: "2", gap: "4" } },
-    children: ["fieldCard", "previewCard"],
+    children: ["field-card", "preview-card"],
   },
   {
-    key: "fieldCard",
+    key: "field-card",
     component: "Card",
     props: { literal: { title: "Pick a color" } },
-    children: ["colorField"],
+    children: ["color-field"],
   },
   {
-    key: "colorField",
+    key: "color-field",
     component: "ColorField",
     props: {
       expr: "({ h: scopes.root.h, s: scopes.root.s, l: scopes.root.l })",
@@ -83,26 +83,26 @@ export const colorLines: Fired.Element[] = [
     },
   },
   {
-    key: "previewCard",
+    key: "preview-card",
     component: "Card",
     props: { literal: { title: "Preview" } },
-    children: ["previewInner"],
+    children: ["preview-inner"],
   },
   {
-    key: "previewInner",
+    key: "preview-inner",
     component: "FlexCol",
     props: { literal: { gap: "4", align: "center" } },
-    children: ["colorPreview", "alphaKnob"],
+    children: ["color-preview", "alpha-knob"],
   },
   {
-    key: "colorPreview",
+    key: "color-preview",
     component: "ColorPreview",
     props: {
       expr: "({ hex: scopes.root.hex, alpha: scopes.root.alpha, label: scopes.root.hex + ' · ' + scopes.root.alpha + '%' })",
     },
   },
   {
-    key: "alphaKnob",
+    key: "alpha-knob",
     component: "Knob",
     props: { expr: "({ value: scopes.root.alpha, label: 'Alpha' })" },
     callbacks: {
@@ -118,13 +118,13 @@ export const colorLines: Fired.Element[] = [
 
   // Swatches
   {
-    key: "swatchCard",
+    key: "swatch-card",
     component: "Card",
     props: { literal: { title: "Swatches" } },
-    children: ["swatchRail"],
+    children: ["swatch-rail"],
   },
   {
-    key: "swatchRail",
+    key: "swatch-rail",
     component: "SwatchRail",
     props: {
       expr: "({ swatches: scopes.root.swatches, selected: scopes.root.hex })",
@@ -148,10 +148,10 @@ export const colorLines: Fired.Element[] = [
     key: "controls",
     component: "FlexRow",
     props: { literal: { gap: "2" } },
-    children: ["suggestBtn", "addBtn", "resetBtn"],
+    children: ["suggest-btn", "add-btn", "reset-btn"],
   },
   {
-    key: "suggestBtn",
+    key: "suggest-btn",
     component: "Button",
     props: { literal: { children: "Suggest palette", variant: "outline" } },
     callbacks: {
@@ -168,7 +168,7 @@ export const colorLines: Fired.Element[] = [
     },
   },
   {
-    key: "addBtn",
+    key: "add-btn",
     component: "Button",
     props: { literal: { children: "Add current", variant: "outline" } },
     callbacks: {
@@ -185,7 +185,7 @@ export const colorLines: Fired.Element[] = [
     },
   },
   {
-    key: "resetBtn",
+    key: "reset-btn",
     component: "Button",
     props: { literal: { children: "Reset", variant: "ghost" } },
     callbacks: {
@@ -205,32 +205,32 @@ export const colorLines: Fired.Element[] = [
 
   // Readouts: derived CSS string + the live "Last event" panel
   {
-    key: "readoutRow",
+    key: "readout-row",
     component: "Grid",
     props: { literal: { columns: "2", gap: "4" } },
-    children: ["cssCard", "evtCard"],
+    children: ["css-card", "evt-card"],
   },
   {
-    key: "cssCard",
+    key: "css-card",
     component: "Card",
     props: { literal: { title: "CSS" } },
-    children: ["cssText"],
+    children: ["css-text"],
   },
   {
-    key: "cssText",
+    key: "css-text",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.hex + '  ·  hsl(' + scopes.root.h + ' ' + scopes.root.s + '% ' + scopes.root.l + '%)  ·  alpha ' + scopes.root.alpha + '%', variant: 'muted' })",
     },
   },
   {
-    key: "evtCard",
+    key: "evt-card",
     component: "Card",
     props: { literal: { title: "Last event" } },
-    children: ["evtText"],
+    children: ["evt-text"],
   },
   {
-    key: "evtText",
+    key: "evt-text",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",

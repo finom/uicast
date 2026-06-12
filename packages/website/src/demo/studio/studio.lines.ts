@@ -28,7 +28,7 @@ export const studioLines: Fired.Element[] = [
       },
       { set: "scopes.root.lastEvt", literal: null },
     ],
-    children: ["intro", "topRow", "seqCard", "controls", "readoutRow"],
+    children: ["intro", "top-row", "seq-card", "controls", "readout-row"],
   },
 
   // Intro
@@ -57,13 +57,13 @@ export const studioLines: Fired.Element[] = [
 
   // Top row: XY pad + knobs
   {
-    key: "topRow",
+    key: "top-row",
     component: "Grid",
     props: { literal: { columns: "2", gap: "4" } },
-    children: ["xyCard", "knobCard"],
+    children: ["xy-card", "knob-card"],
   },
   {
-    key: "xyCard",
+    key: "xy-card",
     component: "Card",
     props: { literal: { title: "Filter — XY pad" } },
     children: ["xy"],
@@ -86,19 +86,19 @@ export const studioLines: Fired.Element[] = [
     },
   },
   {
-    key: "knobCard",
+    key: "knob-card",
     component: "Card",
     props: { literal: { title: "Voice" } },
-    children: ["knobRow"],
+    children: ["knob-row"],
   },
   {
-    key: "knobRow",
+    key: "knob-row",
     component: "FlexRow",
     props: { literal: { gap: "4", justify: "around", align: "center" } },
-    children: ["knobCutoff", "knobRes", "knobDrive"],
+    children: ["knob-cutoff", "knob-res", "knob-drive"],
   },
   {
-    key: "knobCutoff",
+    key: "knob-cutoff",
     component: "Knob",
     props: { expr: "({ value: scopes.root.cutoff, label: 'Cutoff' })" },
     callbacks: {
@@ -112,7 +112,7 @@ export const studioLines: Fired.Element[] = [
     },
   },
   {
-    key: "knobRes",
+    key: "knob-res",
     component: "Knob",
     props: { expr: "({ value: scopes.root.resonance, label: 'Reso' })" },
     callbacks: {
@@ -126,7 +126,7 @@ export const studioLines: Fired.Element[] = [
     },
   },
   {
-    key: "knobDrive",
+    key: "knob-drive",
     component: "Knob",
     props: { expr: "({ value: scopes.root.drive, label: 'Drive' })" },
     callbacks: {
@@ -142,7 +142,7 @@ export const studioLines: Fired.Element[] = [
 
   // Step sequencer
   {
-    key: "seqCard",
+    key: "seq-card",
     component: "Card",
     props: { literal: { title: "Pattern — step sequencer" } },
     children: ["seq"],
@@ -172,10 +172,10 @@ export const studioLines: Fired.Element[] = [
     key: "controls",
     component: "FlexRow",
     props: { literal: { gap: "2" } },
-    children: ["randomizeBtn", "clearBtn"],
+    children: ["randomize-btn", "clear-btn"],
   },
   {
-    key: "randomizeBtn",
+    key: "randomize-btn",
     component: "Button",
     props: { literal: { children: "Randomize pattern", variant: "outline" } },
     callbacks: {
@@ -192,7 +192,7 @@ export const studioLines: Fired.Element[] = [
     },
   },
   {
-    key: "clearBtn",
+    key: "clear-btn",
     component: "Button",
     props: { literal: { children: "Clear", variant: "ghost" } },
     callbacks: {
@@ -212,26 +212,26 @@ export const studioLines: Fired.Element[] = [
 
   // Readouts: derived filter state + the live "Last event" panel
   {
-    key: "readoutRow",
+    key: "readout-row",
     component: "Grid",
     props: { literal: { columns: "2", gap: "4" } },
-    children: ["filterStat", "evtCard"],
+    children: ["filter-stat", "evt-card"],
   },
   {
-    key: "filterStat",
+    key: "filter-stat",
     component: "Stat",
     props: {
       expr: "({ label: 'Filter', value: Math.round(80 + scopes.root.x * 7920) + ' Hz', helpText: 'Q ' + scopes.root.y.toFixed(2) + ' · drive ' + scopes.root.drive + '%' })",
     },
   },
   {
-    key: "evtCard",
+    key: "evt-card",
     component: "Card",
     props: { literal: { title: "Last event" } },
-    children: ["evtText"],
+    children: ["evt-text"],
   },
   {
-    key: "evtText",
+    key: "evt-text",
     component: "Text",
     props: {
       expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
