@@ -1,7 +1,7 @@
 import type { StandardTool } from "standard-tool";
 import type { ValueSource } from "../types";
-import { ALLOWED_GLOBALS } from "./allowedGlobals";
-import { SafeEval } from "./SafeEval";
+import { ALLOWED_GLOBALS } from "./allowed-globals";
+import { SafeEval } from "./safe-eval";
 
 const safeEval = new SafeEval({ allowGlobals: ALLOWED_GLOBALS });
 

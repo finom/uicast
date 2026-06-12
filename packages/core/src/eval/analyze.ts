@@ -3,7 +3,7 @@ import { childNodes } from "./ast";
 
 /**
  * Static analysis of a parsed expression — this is NOT the security boundary
- * (that's `SafeEval.ts`). Two outputs feed the renderer:
+ * (that's `safe-eval.ts`). Two outputs feed the renderer:
  *
  * - `containsAwait` → whether to compile the expression as an `AsyncFunction`.
  * - `extractScopeReads` → the reactive subscription set for a chunk (which

@@ -48,8 +48,8 @@ npm run typecheck -w @ui-fired/website  # tsc --noEmit
 
 | Path | What |
 |---|---|
-| `src/app/page.tsx`, `DemoPlayer.tsx` | The page + Play/stream orchestration |
-| `src/app/StreamPanel.tsx`, `RenderCanvas.tsx` | Left (JSONLines) / right (rendered app) panes |
+| `src/app/page.tsx`, `demo-player.tsx` | The page + Play/stream orchestration |
+| `src/app/stream-panel.tsx`, `render-canvas.tsx` | Left (JSONLines) / right (rendered app) panes |
 | `src/demo/inventory.lines.ts` | The streamed artifact (`Fired.Element[]`) |
 | `src/demo/inventory.prompt.ts` | The illustrative prompt + embedded data sample |
 | `src/lib/functions.ts` | The async CRUD functions exposed to expressions |

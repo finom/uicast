@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { demoManifest } from "@/demo/manifest";
-import { ThemeToggle } from "./ThemeToggle";
+import { ThemeToggle } from "./theme-toggle";
 
 export default function Home() {
   return (

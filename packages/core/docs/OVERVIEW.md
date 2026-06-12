@@ -59,25 +59,25 @@ The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createAIC
 packages/core/src/                   — the framework-agnostic engine (zero React)
 ├── types.ts                         — Fired.Element + Fired.List (list = element with required each/as), ValueSource, ValueSourceAssignment
 ├── eval/
-│   ├── SafeEval.ts                  — the security boundary: validate + compile + shadow globals (acorn-based)
+│   ├── safe-eval.ts                  — the security boundary: validate + compile + shadow globals (acorn-based)
 │   ├── ast.ts                       — shared AST primitives (isNode, childNodes)
 │   ├── analyze.ts                   — static analysis: await detection + scope-read extraction (NOT security)
-│   ├── allowedGlobals.ts            — globals an expression may reference (also feeds the prompt)
+│   ├── allowed-globals.ts            — globals an expression may reference (also feeds the prompt)
 │   ├── evaluate.ts                  — `evaluate(expr, ctx, options)`; singleton SafeEval; getScopeReads()
-│   └── extractDeps.ts               — auto-detected reactive deps per element (WeakMap-cached)
+│   └── extract-deps.ts               — auto-detected reactive deps per element (WeakMap-cached)
 ├── scope/
-│   ├── createProxyScope.ts          — the Proxy state container + path-keyed emitter (see SCOPES.md)
-│   └── parseScope.ts                — splits a `scopes.X.Y` key into [scopeName, leafPath]
+│   ├── create-proxy-scope.ts          — the Proxy state container + path-keyed emitter (see SCOPES.md)
+│   └── parse-scope.ts                — splits a `scopes.X.Y` key into [scopeName, leafPath]
 ├── render/
-│   ├── createAIComponentDef.ts      — def factory: { description, propDefs, callbackDefs, hidden } (agnostic partner-def half)
-│   └── createAIComponentDefs.ts     — registry of defs + prompt-fragment generator (skips hidden)
+│   ├── create-ai-component-def.ts      — def factory: { description, propDefs, callbackDefs, hidden } (agnostic partner-def half)
+│   └── create-ai-component-defs.ts     — registry of defs + prompt-fragment generator (skips hidden)
 ├── prompt-utils/
-│   └── JSONSchemaToTs.ts            — render JSON Schema to TS-like string for the prompt
+│   └── json-schema-to-ts.ts            — render JSON Schema to TS-like string for the prompt
 ├── prompt/
 │   ├── INSTRUCTIONS.md              — LLM-facing element-authoring contract
 │   ├── INSTRUCTIONS.json            — generated; do not edit by hand
-│   ├── getCommonInstructionsPartialPrompt.ts — INSTRUCTIONS.json wrapped as a partial
-│   └── getComponentsPartialPrompt.ts / getFunctionsPartialPrompt.ts / getExpressionsPartialPrompt.ts — partial-prompt builders the consuming app composes
+│   ├── get-common-instructions-partial-prompt.ts — INSTRUCTIONS.json wrapped as a partial
+│   └── get-components-partial-prompt.ts / get-functions-partial-prompt.ts / get-expressions-partial-prompt.ts — partial-prompt builders the consuming app composes
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
@@ -99,7 +99,7 @@ The element's tree-shape (parent → children by key reference) lives in `buildE
 
 ## 5. Expressions — micro-expressions and `SafeEval`
 
-Every `expr` field is a **single JavaScript expression** evaluated by [`SafeEval`](../src/eval/SafeEval.ts). Not statements, not assignments, not declarations, no loops. Arrow-function bodies *may* contain block statements (so `.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)` works), but the top-level expression is always a single expression.
+Every `expr` field is a **single JavaScript expression** evaluated by [`SafeEval`](../src/eval/safe-eval.ts). Not statements, not assignments, not declarations, no loops. Arrow-function bodies *may* contain block statements (so `.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)` works), but the top-level expression is always a single expression.
 
 ### What's allowed / forbidden
 
@@ -441,5 +441,5 @@ When in doubt, ask: "Would a different consumer of core (a future product line, 
 - [`EXPRESSIONS.md`](./EXPRESSIONS.md) — expression syntax + the evaluator's security limits.
 - [`SCOPES.md`](./SCOPES.md) — the reactive proxy state library underneath all of this.
 - LLM-facing contract for elements: [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md)
-- The expression evaluator: [`../src/eval/SafeEval.ts`](../src/eval/SafeEval.ts) (+ `ast.ts`, `analyze.ts`)
-- The auto-detection helper: [`../src/eval/extractDeps.ts`](../src/eval/extractDeps.ts)
+- The expression evaluator: [`../src/eval/safe-eval.ts`](../src/eval/safe-eval.ts) (+ `ast.ts`, `analyze.ts`)
+- The auto-detection helper: [`../src/eval/extract-deps.ts`](../src/eval/extract-deps.ts)

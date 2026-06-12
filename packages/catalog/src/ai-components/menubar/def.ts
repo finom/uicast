@@ -1,0 +1,47 @@
+import z from "zod";
+import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+
+export const MenubarDef = createAIComponentDef({
+  name: "Menubar",
+  description:
+    "A top-level app menu bar (File, Edit, View, etc.). Renders a horizontal bar with dropdown menus. Use Menubar for desktop-style application menus with grouped actions.",
+  props: z.strictObject({
+    menus: z
+      .array(
+        z.object({
+          label: z
+            .string()
+            .meta({ description: "Menu trigger label (e.g. File, Edit)" }),
+          items: z
+            .array(
+              z.object({
+                label: z.string().meta({ description: "Menu item label" }),
+                shortcut: z.string().optional().meta({
+                  description: "Keyboard shortcut text (e.g. ⌘S)",
+                }),
+                disabled: z.boolean().optional().meta({
+                  description: "Whether the item is disabled",
+                }),
+                separator: z.boolean().optional().meta({
+                  description: "Whether to render a separator before this item",
+                }),
+              }),
+            )
+            .meta({ description: "Array of menu items" }),
+        }),
+      )
+      .meta({ description: "Array of top-level menu definitions" }),
+  }),
+  callbacks: {
+    onAction: z
+      .object({
+        menuLabel: z.string().meta({
+          description: "The label of the parent menu",
+        }),
+        itemLabel: z.string().meta({
+          description: "The label of the clicked menu item",
+        }),
+      })
+      .meta({ description: "Callback when a menu item is clicked" }),
+  },
+});

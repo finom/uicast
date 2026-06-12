@@ -299,5 +299,5 @@ interface Emitter {
 ## Cross-references
 
 - [`OVERVIEW.md`](./OVERVIEW.md) — the render runtime that uses these scopes to build per-list-item state and reactive component trees.
-- [`createProxyScope.ts`](../src/scope/createProxyScope.ts) — the source. Short enough to read in one sitting.
+- [`create-proxy-scope.ts`](../src/scope/create-proxy-scope.ts) — the source. Short enough to read in one sitting.
 - [`../src/utils/utils.ts`](../src/utils/utils.ts) — `parseScope(key)` — splits a `"scopes.X.Y"` dep string into `[scopeName, leafPath]` for emitter subscription.

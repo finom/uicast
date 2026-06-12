@@ -1,7 +1,7 @@
 import type * as acorn from "acorn";
 
 /**
- * Low-level AST helpers shared by the validator (`SafeEval.ts`) and the static
+ * Low-level AST helpers shared by the validator (`safe-eval.ts`) and the static
  * analyzers (`analyze.ts`).
  *
  * Node types come straight from acorn: `acorn.AnyNode` is the discriminated

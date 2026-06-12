@@ -3,7 +3,7 @@ import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
 import { boardPrompt } from "./board.prompt";
-import { NodeBoardRenderer } from "./components/NodeBoard/renderer";
+import { NodeBoardRenderer } from "./components/node-board/renderer";
 import { boardFunctions } from "./functions";
 
 /**

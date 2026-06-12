@@ -1,10 +1,10 @@
 "use client";
 import { componentRenderers } from "@ui-fired/catalog/render/renderers";
-import { KnobRenderer } from "../components/Knob/renderer";
+import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
-import { ColorFieldRenderer } from "./components/ColorField/renderer";
-import { ColorPreviewRenderer } from "./components/ColorPreview/renderer";
-import { SwatchRailRenderer } from "./components/SwatchRail/renderer";
+import { ColorFieldRenderer } from "./components/color-field/renderer";
+import { ColorPreviewRenderer } from "./components/color-preview/renderer";
+import { SwatchRailRenderer } from "./components/swatch-rail/renderer";
 import { colorLines } from "./color.lines";
 import { colorPrompt } from "./color.prompt";
 import { colorFunctions } from "./functions";

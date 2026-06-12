@@ -30,12 +30,12 @@ sub-language is [`EXPRESSIONS.md`](./EXPRESSIONS.md); the reactive state model i
 ```
 packages/react/src/
 ├── render/
-│   ├── RecursiveRenderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
-│   ├── Renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the catalog array prop; per-instance root; wraps RendererRegistryProvider
-│   ├── createAIComponentRenderer.tsx  — renderer factory: pairs a core def with a React component
-│   ├── RendererRegistry.tsx           — React context: { renderers, components, functions }
-│   ├── ErrorBoundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
-│   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
+│   ├── recursive-renderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
+│   ├── renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the catalog array prop; per-instance root; wraps RendererRegistryProvider
+│   ├── create-ai-component-renderer.tsx  — renderer factory: pairs a core def with a React component
+│   ├── renderer-registry.tsx           — React context: { renderers, components, functions }
+│   ├── error-boundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
+│   └── fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
 │   └── confirm.tsx                    — ConfirmHost (owns pending state) + ConfirmComponentProps (the public modal contract); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
 └── index.ts                           — the package's React surface (the only public entry)

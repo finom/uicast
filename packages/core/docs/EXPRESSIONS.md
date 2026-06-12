@@ -95,10 +95,10 @@ globals. We landed here after testing several alternatives:
   fluently and correctly, evaluation stays in-realm (so Proxy state just works),
   and a single static AST pass gives cheap, predictable safety. The trade-off —
   the validator is a security boundary maintained by hand — is documented at the
-  call site in [`../src/eval/SafeEval.ts`](../src/eval/SafeEval.ts).
+  call site in [`../src/eval/safe-eval.ts`](../src/eval/safe-eval.ts).
 
-`SafeEval.ts` holds the exact surface: forbidden node types, shadowed globals,
-and the allowed-globals list (`../src/eval/allowedGlobals.ts`), which is also the
+`safe-eval.ts` holds the exact surface: forbidden node types, shadowed globals,
+and the allowed-globals list (`../src/eval/allowed-globals.ts`), which is also the
 source the prompt's globals list is generated from.
 
 ## Prompt simplicity vs. validator tolerance
@@ -139,7 +139,7 @@ validator *attempts* to block — everywhere, not just at the top level:
 - and the top-level `expr` must still be an expression — statements are
   permitted _only_ nested inside an arrow body.
 
-The exact surface lives in `../src/eval/SafeEval.ts`: `FORBIDDEN_NODE_TYPES`
+The exact surface lives in `../src/eval/safe-eval.ts`: `FORBIDDEN_NODE_TYPES`
 (blocked at the top level), `ARROW_BODY_ALLOWED` (the statements re-permitted
 inside `=> { … }`), `GLOBALS_TO_SHADOW`, and `FORBIDDEN_PROPERTIES`.
 

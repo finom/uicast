@@ -9,27 +9,27 @@
 
 // Expression evaluation — sandboxed eval + auto-dep extraction.
 export { evaluate, getScopeReads } from "./eval/evaluate";
-export { extractDeps } from "./eval/extractDeps";
-export { SafeEval, SafeEvalError } from "./eval/SafeEval";
+export { extractDeps } from "./eval/extract-deps";
+export { SafeEval, SafeEvalError } from "./eval/safe-eval";
 // Utilities.
 export { cn } from "./lib/utils";
 // Prompt partials — catalog-/app-agnostic builders that a consuming app
 // composes into a full system prompt. core no longer ships an assembler itself;
 // each app owns its own assembly, joining these partials into each request's
 // `system` message.
-export { getCommonInstructionsPartialPrompt } from "./prompt/getCommonInstructionsPartialPrompt";
-export { getComponentsPartialPrompt } from "./prompt/getComponentsPartialPrompt";
-export { getExpressionsPartialPrompt } from "./prompt/getExpressionsPartialPrompt";
-export { getFunctionsPartialPrompt } from "./prompt/getFunctionsPartialPrompt";
-export { type JSONSchema, JSONSchemaToTs } from "./prompt-utils/JSONSchemaToTs";
+export { getCommonInstructionsPartialPrompt } from "./prompt/get-common-instructions-partial-prompt";
+export { getComponentsPartialPrompt } from "./prompt/get-components-partial-prompt";
+export { getExpressionsPartialPrompt } from "./prompt/get-expressions-partial-prompt";
+export { getFunctionsPartialPrompt } from "./prompt/get-functions-partial-prompt";
+export { type JSONSchema, JSONSchemaToTs } from "./prompt-utils/json-schema-to-ts";
 // Component-definition factories — the partner-def half of the component-pair
 // pattern. The React renderer half (`createAIComponentRenderer`) lives in
 // `@ui-fired/react`.
 export {
   type AIComponentDef,
   createAIComponentDef,
-} from "./render/createAIComponentDef";
-export { createAIComponentDefs } from "./render/createAIComponentDefs";
+} from "./render/create-ai-component-def";
+export { createAIComponentDefs } from "./render/create-ai-component-defs";
 // Reactive state — `createProxyScope` plus the path-keyed emitter, and
 // `parseScope` (splits a `scopes.X.Y` key into `[scopeName, leafPath]`).
 // Independent of any render runtime; see docs/SCOPES.md.
@@ -40,8 +40,8 @@ export {
   type Emitter,
   type EventHandler,
   type ReactiveProxy,
-} from "./scope/createProxyScope";
-export { parseScope } from "./scope/parseScope";
+} from "./scope/create-proxy-scope";
+export { parseScope } from "./scope/parse-scope";
 // `Fired` is a value-carrying namespace (it exports the `isList` guard
 // alongside the `Element` / `List` types), so it's a runtime export, not a
 // type-only one.

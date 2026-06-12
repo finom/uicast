@@ -17,13 +17,13 @@ export type { ConfirmComponentProps } from "./components/confirm";
 export {
   type AIComponentRenderer,
   createAIComponentRenderer,
-} from "./render/createAIComponentRenderer";
-export { Renderer, type RendererProps } from "./render/Renderer";
-export { ErrorBoundary } from "./render/ErrorBoundary";
+} from "./render/create-ai-component-renderer";
+export { Renderer, type RendererProps } from "./render/renderer";
+export { ErrorBoundary } from "./render/error-boundary";
 // Host-seeding (`init`) types, surfaced by the synthetic Fragment renderer.
-export type { InitContext, InitFn } from "./render/Fragment";
+export type { InitContext, InitFn } from "./render/fragment";
 // Render orchestration.
-export { ListRenderer, RecursiveRenderer } from "./render/RecursiveRenderer";
+export { ListRenderer, RecursiveRenderer } from "./render/recursive-renderer";
 // Structural element store — the stable, per-key-subscribable source the
 // recursive renderer reads from (replaces threading the elements map as a
 // churning prop). `<Renderer>` wires this automatically; direct consumers of
@@ -34,7 +34,7 @@ export {
   ElementsStoreProvider,
   useElement,
   useElementsStore,
-} from "./render/ElementsStore";
+} from "./render/elements-store";
 export {
   type ErrorComponentProps,
   type RendererComponents,
@@ -42,4 +42,4 @@ export {
   RendererRegistryProvider,
   type UnknownComponentProps,
   useRendererRegistry,
-} from "./render/RendererRegistry";
+} from "./render/renderer-registry";

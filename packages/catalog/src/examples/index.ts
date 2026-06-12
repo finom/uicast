@@ -1,12 +1,12 @@
 import type { Fired } from "@ui-fired/core/types";
-import { asyncLines } from "./asyncLines";
-import { chartLines } from "./chartLines";
-import { countLines } from "./countLines";
-import { demoLines } from "./demoLines";
-import { formLines } from "./formLines";
-import { listLines } from "./listLines";
-import { nastenkaLines } from "./nastenkaLines";
-import { tableLines } from "./tableLines";
+import { asyncLines } from "./async-lines";
+import { chartLines } from "./chart-lines";
+import { countLines } from "./count-lines";
+import { demoLines } from "./demo-lines";
+import { formLines } from "./form-lines";
+import { listLines } from "./list-lines";
+import { nastenkaLines } from "./nastenka-lines";
+import { tableLines } from "./table-lines";
 
 export {
   asyncLines,

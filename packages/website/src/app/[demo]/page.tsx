@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { demoManifest, demoSlugs } from "@/demo/manifest";
-import { DemoRoute } from "./DemoRoute";
+import { DemoRoute } from "./demo-route";
 
 // Pre-render one route per known demo. `dynamicParams = false` turns any other
 // slug into a 404 at the routing layer (so `/nope` never reaches the client).

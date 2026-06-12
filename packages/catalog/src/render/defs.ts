@@ -1,189 +1,189 @@
-import { createAIComponentDefs } from "@ui-fired/core/render/createAIComponentDefs";
+import { createAIComponentDefs } from "@ui-fired/core/render/create-ai-component-defs";
 
 // Layout & Container
-import { CardDef } from "../ai-components/Card/def";
-import { FlexRowDef } from "../ai-components/FlexRow/def";
-import { FlexColDef } from "../ai-components/FlexCol/def";
-import { DividerDef } from "../ai-components/Divider/def";
-import { AccordionDef } from "../ai-components/Accordion/def";
-import { AccordionItemDef } from "../ai-components/AccordionItem/def";
-import { DrawerDef } from "../ai-components/Drawer/def";
-import { GridDef } from "../ai-components/Grid/def";
-import { StackDef } from "../ai-components/Stack/def";
-import { SpacerDef } from "../ai-components/Spacer/def";
+import { CardDef } from "../ai-components/card/def";
+import { FlexRowDef } from "../ai-components/flex-row/def";
+import { FlexColDef } from "../ai-components/flex-col/def";
+import { DividerDef } from "../ai-components/divider/def";
+import { AccordionDef } from "../ai-components/accordion/def";
+import { AccordionItemDef } from "../ai-components/accordion-item/def";
+import { DrawerDef } from "../ai-components/drawer/def";
+import { GridDef } from "../ai-components/grid/def";
+import { StackDef } from "../ai-components/stack/def";
+import { SpacerDef } from "../ai-components/spacer/def";
 
 // Typography & Display
-import { HeadingDef } from "../ai-components/Heading/def";
-import { TextDef } from "../ai-components/Text/def";
-import { BadgeDef } from "../ai-components/Badge/def";
-import { LabelDef } from "../ai-components/Label/def";
-import { IconDef } from "../ai-components/Icon/def";
-import { TagDef } from "../ai-components/Tag/def";
-import { StatDef } from "../ai-components/Stat/def";
+import { HeadingDef } from "../ai-components/heading/def";
+import { TextDef } from "../ai-components/text/def";
+import { BadgeDef } from "../ai-components/badge/def";
+import { LabelDef } from "../ai-components/label/def";
+import { IconDef } from "../ai-components/icon/def";
+import { TagDef } from "../ai-components/tag/def";
+import { StatDef } from "../ai-components/stat/def";
 
 // Tabs
-import { TabsDef } from "../ai-components/Tabs/def";
-import { TabListDef } from "../ai-components/TabList/def";
-import { TabTriggerDef } from "../ai-components/TabTrigger/def";
-import { TabContentDef } from "../ai-components/TabContent/def";
+import { TabsDef } from "../ai-components/tabs/def";
+import { TabListDef } from "../ai-components/tab-list/def";
+import { TabTriggerDef } from "../ai-components/tab-trigger/def";
+import { TabContentDef } from "../ai-components/tab-content/def";
 
 // Feedback
-import { AlertDef } from "../ai-components/Alert/def";
-import { SkeletonDef } from "../ai-components/Skeleton/def";
-import { EmptyStateDef } from "../ai-components/EmptyState/def";
-import { ToastDef } from "../ai-components/Toast/def";
-import { SpinnerDef } from "../ai-components/Spinner/def";
+import { AlertDef } from "../ai-components/alert/def";
+import { SkeletonDef } from "../ai-components/skeleton/def";
+import { EmptyStateDef } from "../ai-components/empty-state/def";
+import { ToastDef } from "../ai-components/toast/def";
+import { SpinnerDef } from "../ai-components/spinner/def";
 
 // Form
-import { InputDef } from "../ai-components/Input/def";
-import { TextareaDef } from "../ai-components/Textarea/def";
-import { NumberInputDef } from "../ai-components/NumberInput/def";
-import { SelectDef } from "../ai-components/Select/def";
-import { MultiSelectDef } from "../ai-components/MultiSelect/def";
-import { DatePickerDef } from "../ai-components/DatePicker/def";
-import { DateRangePickerDef } from "../ai-components/DateRangePicker/def";
-import { TimePickerDef } from "../ai-components/TimePicker/def";
-import { CheckboxDef } from "../ai-components/Checkbox/def";
-import { RadioDef } from "../ai-components/Radio/def";
-import { SwitchDef } from "../ai-components/Switch/def";
-import { FileUploadDef } from "../ai-components/FileUpload/def";
-import { ColorPickerDef } from "../ai-components/ColorPicker/def";
-import { ButtonDef } from "../ai-components/Button/def";
-import { IconButtonDef } from "../ai-components/IconButton/def";
-import { ButtonGroupDef } from "../ai-components/ButtonGroup/def";
-import { FieldDef } from "../ai-components/Field/def";
-import { FieldLabelDef } from "../ai-components/FieldLabel/def";
-import { FieldDescriptionDef } from "../ai-components/FieldDescription/def";
+import { InputDef } from "../ai-components/input/def";
+import { TextareaDef } from "../ai-components/textarea/def";
+import { NumberInputDef } from "../ai-components/number-input/def";
+import { SelectDef } from "../ai-components/select/def";
+import { MultiSelectDef } from "../ai-components/multi-select/def";
+import { DatePickerDef } from "../ai-components/date-picker/def";
+import { DateRangePickerDef } from "../ai-components/date-range-picker/def";
+import { TimePickerDef } from "../ai-components/time-picker/def";
+import { CheckboxDef } from "../ai-components/checkbox/def";
+import { RadioDef } from "../ai-components/radio/def";
+import { SwitchDef } from "../ai-components/switch/def";
+import { FileUploadDef } from "../ai-components/file-upload/def";
+import { ColorPickerDef } from "../ai-components/color-picker/def";
+import { ButtonDef } from "../ai-components/button/def";
+import { IconButtonDef } from "../ai-components/icon-button/def";
+import { ButtonGroupDef } from "../ai-components/button-group/def";
+import { FieldDef } from "../ai-components/field/def";
+import { FieldLabelDef } from "../ai-components/field-label/def";
+import { FieldDescriptionDef } from "../ai-components/field-description/def";
 
 // Overlay
-import { ModalDef } from "../ai-components/Modal/def";
-import { ConfirmDialogDef } from "../ai-components/ConfirmDialog/def";
-import { DropdownMenuDef } from "../ai-components/DropdownMenu/def";
-import { DropdownMenuItemDef } from "../ai-components/DropdownMenuItem/def";
-import { PopoverDef } from "../ai-components/Popover/def";
+import { ModalDef } from "../ai-components/modal/def";
+import { ConfirmDialogDef } from "../ai-components/confirm-dialog/def";
+import { DropdownMenuDef } from "../ai-components/dropdown-menu/def";
+import { DropdownMenuItemDef } from "../ai-components/dropdown-menu-item/def";
+import { PopoverDef } from "../ai-components/popover/def";
 
 // Data Display
-import { ListDef } from "../ai-components/List/def";
-import { DataGridDef } from "../ai-components/DataGrid/def";
-import { AvatarDef } from "../ai-components/Avatar/def";
-import { TooltipDef } from "../ai-components/Tooltip/def";
-import { ProgressBarDef } from "../ai-components/ProgressBar/def";
-import { ImageDef } from "../ai-components/Image/def";
+import { ListDef } from "../ai-components/list/def";
+import { DataGridDef } from "../ai-components/data-grid/def";
+import { AvatarDef } from "../ai-components/avatar/def";
+import { TooltipDef } from "../ai-components/tooltip/def";
+import { ProgressBarDef } from "../ai-components/progress-bar/def";
+import { ImageDef } from "../ai-components/image/def";
 
 // Table
-import { TableDef } from "../ai-components/Table/def";
-import { TableHeaderDef } from "../ai-components/TableHeader/def";
-import { TableBodyDef } from "../ai-components/TableBody/def";
-import { TableFooterDef } from "../ai-components/TableFooter/def";
-import { TableRowDef } from "../ai-components/TableRow/def";
-import { TableHeadDef } from "../ai-components/TableHead/def";
-import { TableCellDef } from "../ai-components/TableCell/def";
+import { TableDef } from "../ai-components/table/def";
+import { TableHeaderDef } from "../ai-components/table-header/def";
+import { TableBodyDef } from "../ai-components/table-body/def";
+import { TableFooterDef } from "../ai-components/table-footer/def";
+import { TableRowDef } from "../ai-components/table-row/def";
+import { TableHeadDef } from "../ai-components/table-head/def";
+import { TableCellDef } from "../ai-components/table-cell/def";
 
 // Navigation
-import { PaginationDef } from "../ai-components/Pagination/def";
-import { BreadcrumbDef } from "../ai-components/Breadcrumb/def";
-import { StepperDef } from "../ai-components/Stepper/def";
+import { PaginationDef } from "../ai-components/pagination/def";
+import { BreadcrumbDef } from "../ai-components/breadcrumb/def";
+import { StepperDef } from "../ai-components/stepper/def";
 
 // Charts
-import { BarChartDef } from "../ai-components/BarChart/def";
-import { LineChartDef } from "../ai-components/LineChart/def";
-import { PieChartDef } from "../ai-components/PieChart/def";
-import { AreaChartDef } from "../ai-components/AreaChart/def";
-import { FunnelChartDef } from "../ai-components/FunnelChart/def";
+import { BarChartDef } from "../ai-components/bar-chart/def";
+import { LineChartDef } from "../ai-components/line-chart/def";
+import { PieChartDef } from "../ai-components/pie-chart/def";
+import { AreaChartDef } from "../ai-components/area-chart/def";
+import { FunnelChartDef } from "../ai-components/funnel-chart/def";
 
 // Navigation & Wayfinding (new)
-import { SidebarDef } from "../ai-components/Sidebar/def";
-import { NavigationMenuDef } from "../ai-components/NavigationMenu/def";
-import { MenubarDef } from "../ai-components/Menubar/def";
-import { CommandMenuDef } from "../ai-components/CommandMenu/def";
-import { LinkDef } from "../ai-components/Link/def";
-import { ContextMenuDef } from "../ai-components/ContextMenu/def";
+import { SidebarDef } from "../ai-components/sidebar/def";
+import { NavigationMenuDef } from "../ai-components/navigation-menu/def";
+import { MenubarDef } from "../ai-components/menubar/def";
+import { CommandMenuDef } from "../ai-components/command-menu/def";
+import { LinkDef } from "../ai-components/link/def";
+import { ContextMenuDef } from "../ai-components/context-menu/def";
 
 // Form & Input (new)
-import { ComboboxDef } from "../ai-components/Combobox/def";
-import { SliderDef } from "../ai-components/Slider/def";
-import { RangeSliderDef } from "../ai-components/RangeSlider/def";
-import { PasswordInputDef } from "../ai-components/PasswordInput/def";
-import { SearchInputDef } from "../ai-components/SearchInput/def";
-import { PhoneInputDef } from "../ai-components/PhoneInput/def";
-import { CurrencyInputDef } from "../ai-components/CurrencyInput/def";
-import { MaskedInputDef } from "../ai-components/MaskedInput/def";
-import { PinInputDef } from "../ai-components/PinInput/def";
-import { TagInputDef } from "../ai-components/TagInput/def";
-import { RatingDef } from "../ai-components/Rating/def";
-import { RichTextEditorDef } from "../ai-components/RichTextEditor/def";
-import { CodeEditorDef } from "../ai-components/CodeEditor/def";
-import { SignaturePadDef } from "../ai-components/SignaturePad/def";
-import { ToggleDef } from "../ai-components/Toggle/def";
-import { ToggleGroupDef } from "../ai-components/ToggleGroup/def";
-import { SegmentedControlDef } from "../ai-components/SegmentedControl/def";
-import { FormSectionDef } from "../ai-components/FormSection/def";
+import { ComboboxDef } from "../ai-components/combobox/def";
+import { SliderDef } from "../ai-components/slider/def";
+import { RangeSliderDef } from "../ai-components/range-slider/def";
+import { PasswordInputDef } from "../ai-components/password-input/def";
+import { SearchInputDef } from "../ai-components/search-input/def";
+import { PhoneInputDef } from "../ai-components/phone-input/def";
+import { CurrencyInputDef } from "../ai-components/currency-input/def";
+import { MaskedInputDef } from "../ai-components/masked-input/def";
+import { PinInputDef } from "../ai-components/pin-input/def";
+import { TagInputDef } from "../ai-components/tag-input/def";
+import { RatingDef } from "../ai-components/rating/def";
+import { RichTextEditorDef } from "../ai-components/rich-text-editor/def";
+import { CodeEditorDef } from "../ai-components/code-editor/def";
+import { SignaturePadDef } from "../ai-components/signature-pad/def";
+import { ToggleDef } from "../ai-components/toggle/def";
+import { ToggleGroupDef } from "../ai-components/toggle-group/def";
+import { SegmentedControlDef } from "../ai-components/segmented-control/def";
+import { FormSectionDef } from "../ai-components/form-section/def";
 
 // Layout & Structure (new)
-import { ContainerDef } from "../ai-components/Container/def";
-import { AspectRatioDef } from "../ai-components/AspectRatio/def";
-import { ScrollAreaDef } from "../ai-components/ScrollArea/def";
-import { CollapsibleDef } from "../ai-components/Collapsible/def";
-import { ResizablePanelDef } from "../ai-components/ResizablePanel/def";
-import { SheetDef } from "../ai-components/Sheet/def";
-import { StickyHeaderDef } from "../ai-components/StickyHeader/def";
-import { PageHeaderDef } from "../ai-components/PageHeader/def";
-import { ToolbarDef } from "../ai-components/Toolbar/def";
+import { ContainerDef } from "../ai-components/container/def";
+import { AspectRatioDef } from "../ai-components/aspect-ratio/def";
+import { ScrollAreaDef } from "../ai-components/scroll-area/def";
+import { CollapsibleDef } from "../ai-components/collapsible/def";
+import { ResizablePanelDef } from "../ai-components/resizable-panel/def";
+import { SheetDef } from "../ai-components/sheet/def";
+import { StickyHeaderDef } from "../ai-components/sticky-header/def";
+import { PageHeaderDef } from "../ai-components/page-header/def";
+import { ToolbarDef } from "../ai-components/toolbar/def";
 
 // Data Display (new)
-import { CalendarDef } from "../ai-components/Calendar/def";
-import { TimelineDef } from "../ai-components/Timeline/def";
-import { TreeViewDef } from "../ai-components/TreeView/def";
-import { DescriptionListDef } from "../ai-components/DescriptionList/def";
-import { CodeBlockDef } from "../ai-components/CodeBlock/def";
-import { MarkdownViewerDef } from "../ai-components/MarkdownViewer/def";
-import { AvatarGroupDef } from "../ai-components/AvatarGroup/def";
-import { StatusIndicatorDef } from "../ai-components/StatusIndicator/def";
-import { CarouselDef } from "../ai-components/Carousel/def";
-import { CalloutDef } from "../ai-components/Callout/def";
-import { KBDDef } from "../ai-components/KBD/def";
-import { HighlightDef } from "../ai-components/Highlight/def";
-import { RelativeTimeDef } from "../ai-components/RelativeTime/def";
-import { TruncatedTextDef } from "../ai-components/TruncatedText/def";
-import { CopyButtonDef } from "../ai-components/CopyButton/def";
-import { QRCodeDef } from "../ai-components/QRCode/def";
-import { BarcodeDef } from "../ai-components/Barcode/def";
+import { CalendarDef } from "../ai-components/calendar/def";
+import { TimelineDef } from "../ai-components/timeline/def";
+import { TreeViewDef } from "../ai-components/tree-view/def";
+import { DescriptionListDef } from "../ai-components/description-list/def";
+import { CodeBlockDef } from "../ai-components/code-block/def";
+import { MarkdownViewerDef } from "../ai-components/markdown-viewer/def";
+import { AvatarGroupDef } from "../ai-components/avatar-group/def";
+import { StatusIndicatorDef } from "../ai-components/status-indicator/def";
+import { CarouselDef } from "../ai-components/carousel/def";
+import { CalloutDef } from "../ai-components/callout/def";
+import { KBDDef } from "../ai-components/kbd/def";
+import { HighlightDef } from "../ai-components/highlight/def";
+import { RelativeTimeDef } from "../ai-components/relative-time/def";
+import { TruncatedTextDef } from "../ai-components/truncated-text/def";
+import { CopyButtonDef } from "../ai-components/copy-button/def";
+import { QRCodeDef } from "../ai-components/qr-code/def";
+import { BarcodeDef } from "../ai-components/barcode/def";
 
 // Charts (new)
-import { ScatterChartDef } from "../ai-components/ScatterChart/def";
-import { RadarChartDef } from "../ai-components/RadarChart/def";
-import { DonutChartDef } from "../ai-components/DonutChart/def";
-import { GaugeChartDef } from "../ai-components/GaugeChart/def";
-import { SparklineDef } from "../ai-components/Sparkline/def";
-import { HeatmapDef } from "../ai-components/Heatmap/def";
-import { TreemapChartDef } from "../ai-components/TreemapChart/def";
-import { WaterfallChartDef } from "../ai-components/WaterfallChart/def";
-import { SankeyChartDef } from "../ai-components/SankeyChart/def";
-import { ComboChartDef } from "../ai-components/ComboChart/def";
-import { GanttChartDef } from "../ai-components/GanttChart/def";
-import { BubbleChartDef } from "../ai-components/BubbleChart/def";
+import { ScatterChartDef } from "../ai-components/scatter-chart/def";
+import { RadarChartDef } from "../ai-components/radar-chart/def";
+import { DonutChartDef } from "../ai-components/donut-chart/def";
+import { GaugeChartDef } from "../ai-components/gauge-chart/def";
+import { SparklineDef } from "../ai-components/sparkline/def";
+import { HeatmapDef } from "../ai-components/heatmap/def";
+import { TreemapChartDef } from "../ai-components/treemap-chart/def";
+import { WaterfallChartDef } from "../ai-components/waterfall-chart/def";
+import { SankeyChartDef } from "../ai-components/sankey-chart/def";
+import { ComboChartDef } from "../ai-components/combo-chart/def";
+import { GanttChartDef } from "../ai-components/gantt-chart/def";
+import { BubbleChartDef } from "../ai-components/bubble-chart/def";
 
 // Feedback & Status (new)
-import { BannerDef } from "../ai-components/Banner/def";
-import { InlineMessageDef } from "../ai-components/InlineMessage/def";
-import { AlertDialogDef } from "../ai-components/AlertDialog/def";
-import { CircularProgressDef } from "../ai-components/CircularProgress/def";
-import { CountdownTimerDef } from "../ai-components/CountdownTimer/def";
-import { NotificationBadgeDef } from "../ai-components/NotificationBadge/def";
+import { BannerDef } from "../ai-components/banner/def";
+import { InlineMessageDef } from "../ai-components/inline-message/def";
+import { AlertDialogDef } from "../ai-components/alert-dialog/def";
+import { CircularProgressDef } from "../ai-components/circular-progress/def";
+import { CountdownTimerDef } from "../ai-components/countdown-timer/def";
+import { NotificationBadgeDef } from "../ai-components/notification-badge/def";
 
 // Specialized / Business-Specific (new)
-import { KanbanBoardDef } from "../ai-components/KanbanBoard/def";
-import { SortableListDef } from "../ai-components/SortableList/def";
-import { VirtualListDef } from "../ai-components/VirtualList/def";
-import { MapDef } from "../ai-components/Map/def";
-import { OrgChartDef } from "../ai-components/OrgChart/def";
-import { FlowDiagramDef } from "../ai-components/FlowDiagram/def";
-import { ChatBubbleDef } from "../ai-components/ChatBubble/def";
-import { VideoPlayerDef } from "../ai-components/VideoPlayer/def";
-import { CronBuilderDef } from "../ai-components/CronBuilder/def";
-import { FilterBuilderDef } from "../ai-components/FilterBuilder/def";
-import { FormulaBarDef } from "../ai-components/FormulaBar/def";
-import { DiffViewerDef } from "../ai-components/DiffViewer/def";
+import { KanbanBoardDef } from "../ai-components/kanban-board/def";
+import { SortableListDef } from "../ai-components/sortable-list/def";
+import { VirtualListDef } from "../ai-components/virtual-list/def";
+import { MapDef } from "../ai-components/map/def";
+import { OrgChartDef } from "../ai-components/org-chart/def";
+import { FlowDiagramDef } from "../ai-components/flow-diagram/def";
+import { ChatBubbleDef } from "../ai-components/chat-bubble/def";
+import { VideoPlayerDef } from "../ai-components/video-player/def";
+import { CronBuilderDef } from "../ai-components/cron-builder/def";
+import { FilterBuilderDef } from "../ai-components/filter-builder/def";
+import { FormulaBarDef } from "../ai-components/formula-bar/def";
+import { DiffViewerDef } from "../ai-components/diff-viewer/def";
 
 export const componentDefs = createAIComponentDefs([
   // Layout & Container

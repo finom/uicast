@@ -1,9 +1,9 @@
 "use client";
 import { componentRenderers } from "@ui-fired/catalog/render/renderers";
-import { KnobRenderer } from "../components/Knob/renderer";
+import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
-import { StepSequencerRenderer } from "./components/StepSequencer/renderer";
-import { XYPadRenderer } from "./components/XYPad/renderer";
+import { StepSequencerRenderer } from "./components/step-sequencer/renderer";
+import { XYPadRenderer } from "./components/xy-pad/renderer";
 import { studioFunctions } from "./functions";
 import { studioLines } from "./studio.lines";
 import { studioPrompt } from "./studio.prompt";
