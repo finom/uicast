@@ -1,17 +1,41 @@
 "use client";
-import { createContext, useContext } from "react";
+import {
+  createContext,
+  type ReactElement,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react";
 
 /**
- * Confirm seam — the SYSTEM half of the confirm flow.
+ * Confirm seam — the engine half of the confirm flow.
  *
  * `createAIComponentRenderer` calls `useConfirm()` before running any callback
- * `set` entry that carries a `confirm:` message. By default that resolves to
- * the browser-native `window.confirm`, so the engine works with zero UI
- * dependencies. A consumer overrides it by wrapping the tree in
- * `<ConfirmProvider value={…}>` with any async `(message) => Promise<boolean>`
- * — e.g. the shadcn `ConfirmModalProvider` shipped from `@ui-fired/catalog`.
+ * step that carries a `confirm:` message. The fn resolves through the
+ * host-supplied modal when `<Renderer components={{ confirm: … }}>` provides
+ * one, and falls back to the browser-native `window.confirm` otherwise — so
+ * the engine works with zero UI dependencies. The seam itself is internal:
+ * hosts only supply the visual component (see `ConfirmComponentProps`);
+ * `<ConfirmHost>`, mounted by `<Renderer>`, owns the pending-confirm state and
+ * the context, so a modal never carries state of its own.
  */
 export type ConfirmFn = (message: string) => Promise<boolean>;
+
+/**
+ * The contract a host confirm modal implements. The engine keeps the component
+ * mounted and drives it like a controlled dialog: `open` flips while a confirm
+ * is pending, `message` keeps its last value so a closing dialog doesn't blank
+ * out mid-animation, and exactly one of `onConfirm` / `onCancel` settles the
+ * pending step.
+ */
+export type ConfirmComponentProps = {
+  open: boolean;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+};
 
 // `window` is only touched when the fn is *called* (always from a client-side
 // callback), but the guard keeps the module import-safe during SSR.
@@ -22,8 +46,56 @@ const windowConfirm: ConfirmFn = (message) =>
 
 const ConfirmContext = createContext<ConfirmFn>(windowConfirm);
 
-/** The active confirm fn — `window.confirm` unless a provider overrides it. */
+/** The active confirm fn — `window.confirm` unless a host modal is mounted. */
 export const useConfirm = (): ConfirmFn => useContext(ConfirmContext);
 
-/** Override seam: supply a custom `ConfirmFn` (e.g. a modal-backed one). */
-export const ConfirmProvider = ConfirmContext.Provider;
+type Pending = { message: string; resolve: (confirmed: boolean) => void };
+
+/**
+ * Mounted by `<Renderer>` around the element tree. Owns the pending-confirm
+ * state: `confirm()` parks a `Promise.withResolvers()` pair in state, the
+ * modal's buttons settle it.
+ */
+export const ConfirmHost = ({
+  confirm: Confirm,
+  children,
+}: {
+  confirm?: (props: ConfirmComponentProps) => ReactElement | null;
+  children: ReactNode;
+}) => {
+  const [pending, setPending] = useState<Pending | null>(null);
+
+  // Outlives `pending` so the dialog text doesn't blank mid-close-animation.
+  const lastMessage = useRef("");
+  if (pending) lastMessage.current = pending.message;
+
+  const modalConfirm = useCallback<ConfirmFn>((message) => {
+    const { promise, resolve } = Promise.withResolvers<boolean>();
+    // A newer confirm supersedes an unanswered one — resolve it `false` so its
+    // awaiting callback chain unblocks instead of hanging forever.
+    setPending((prev) => {
+      prev?.resolve(false);
+      return { message, resolve };
+    });
+    return promise;
+  }, []);
+
+  const settle = (confirmed: boolean) => {
+    pending?.resolve(confirmed);
+    setPending(null);
+  };
+
+  return (
+    <ConfirmContext.Provider value={Confirm ? modalConfirm : windowConfirm}>
+      {children}
+      {Confirm && (
+        <Confirm
+          open={pending !== null}
+          message={lastMessage.current}
+          onConfirm={() => settle(true)}
+          onCancel={() => settle(false)}
+        />
+      )}
+    </ConfirmContext.Provider>
+  );
+};

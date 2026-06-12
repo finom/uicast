@@ -14,6 +14,67 @@ describe("RecursiveRenderer — errors", () => {
     expect(container.textContent).toContain("Unknown component: DoesNotExist");
   });
 
+  it("renders the components.unknown slot when supplied", () => {
+    const lines: Fired.Element[] = [
+      {
+        key: "root",
+        component: "DoesNotExist",
+      },
+    ];
+    const { container } = mountChunks(lines, {
+      components: {
+        unknown: ({ componentName, elementKey }) => (
+          <div>
+            {elementKey} misses {componentName}
+          </div>
+        ),
+      },
+    });
+    expect(container.textContent).toContain("root misses DoesNotExist");
+  });
+
+  it("default error fallback shows the thrown message", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const lines: Fired.Element[] = [
+      {
+        key: "root",
+        component: "Thrower",
+      },
+    ];
+    const { container } = mountChunks(lines);
+    expect(container.textContent).toContain(
+      "Render error: BOOM_FROM_THROWER",
+    );
+    consoleError.mockRestore();
+  });
+
+  it("renders the components.error slot when a renderer throws", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+
+    const lines: Fired.Element[] = [
+      {
+        key: "root",
+        component: "Thrower",
+      },
+    ];
+    const { container } = mountChunks(lines, {
+      components: {
+        error: ({ error, elementKey }) => (
+          <div>
+            {elementKey} failed: {error.message}
+          </div>
+        ),
+      },
+    });
+    expect(container.textContent).toContain("root failed: BOOM_FROM_THROWER");
+    consoleError.mockRestore();
+  });
+
   it("ErrorBoundary contains throws inside a renderer (siblings keep rendering)", () => {
     // Silence the expected error noise from React's dev-mode logger so the
     // test output stays clean. We're explicitly exercising an error path.

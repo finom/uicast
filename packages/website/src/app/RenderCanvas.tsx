@@ -1,6 +1,8 @@
 "use client";
 import Skeleton from "react-loading-skeleton";
-import { ConfirmModalProvider } from "@ui-fired/catalog/components/ConfirmModal";
+import { ConfirmModal } from "@ui-fired/catalog/components/ConfirmModal";
+import { RenderError } from "@ui-fired/catalog/components/RenderError";
+import { UnknownComponent } from "@ui-fired/catalog/components/UnknownComponent";
 import type { Fired } from "@ui-fired/core/types";
 import {
   type AIComponentRenderer,
@@ -37,13 +39,18 @@ const Placeholder = () => (
     containerClassName="block w-full [&_br]:hidden"
   />
 );
-const rendererComponents = { placeholder: Placeholder };
+const rendererComponents = {
+  placeholder: Placeholder,
+  confirm: ConfirmModal,
+  unknown: UnknownComponent,
+  error: RenderError,
+};
 
 /**
  * The right-hand pane: the engine rendering the revealed chunks with the demo's
- * catalog + host functions (both supplied by the active `DemoConfig`).
- * `ConfirmModalProvider` (from the catalog) routes every `confirm:` in a callback
- * through the shadcn modal.
+ * catalog + host functions (both supplied by the active `DemoConfig`). The
+ * catalog's `ConfirmModal`, passed via the `components.confirm` slot, routes
+ * every `confirm:` in a callback through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
@@ -67,7 +74,7 @@ export function RenderCanvas({
   // `outlineKey` is set by the parent *only* when the hover comes from a line, so
   // pointing at the rendered app never outlines it — the live UI stays normal.
   return (
-    <ConfirmModalProvider>
+    <>
       {outlineKey != null && (
         <style>{`[data-render-canvas] [data-key="${CSS.escape(outlineKey)}"]{outline:2px solid var(--primary);outline-offset:2px;border-radius:4px}`}</style>
       )}
@@ -86,6 +93,6 @@ export function RenderCanvas({
           components={components ?? rendererComponents}
         />
       </div>
-    </ConfirmModalProvider>
+    </>
   );
 }

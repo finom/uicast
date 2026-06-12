@@ -6,8 +6,9 @@ evaluator, the reactive Proxy scopes, dependency extraction, prompt builders —
 is **framework-agnostic** and lives in [`@ui-fired/core`](./OVERVIEW.md) with
 **zero React imports**. This package (`@ui-fired/react`) is what actually mounts
 an element tree into a live React UI: the `<Renderer>`, the recursive tree
-walk, the registry context, the per-element error boundary, the confirm seam (a
-`window.confirm` default + an override context).
+walk, the registry context, the per-element error boundary, the confirm host
+(`window.confirm` by default, a host-supplied modal via the `components.confirm`
+slot).
 
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
 > concepts this binding realizes — the element model (§4), expressions +
@@ -33,10 +34,10 @@ packages/react/src/
 │   ├── Renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the catalog array prop; per-instance root; wraps RendererRegistryProvider
 │   ├── createAIComponentRenderer.tsx  — renderer factory: pairs a core def with a React component
 │   ├── RendererRegistry.tsx           — React context: { renderers, components, functions }
-│   ├── ErrorBoundary.tsx              — per-element error boundary
+│   ├── ErrorBoundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
 │   └── Fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
-│   └── confirm.tsx                    — useConfirm() + ConfirmProvider; defaults to window.confirm (shadcn modal lives in @ui-fired/catalog)
+│   └── confirm.tsx                    — ConfirmHost (owns pending state) + ConfirmComponentProps (the public modal contract); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
 └── index.ts                           — the package's React surface (the only public entry)
 ```
 
@@ -65,6 +66,7 @@ The catalog is a **prop** — an **array of renderers**, symmetric with
 separate builder step:
 
 ```tsx
+import { ConfirmModal } from "@ui-fired/catalog/components/ConfirmModal";
 import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 import { Renderer } from "@ui-fired/react";
 
@@ -72,7 +74,7 @@ import { Renderer } from "@ui-fired/react";
   catalog={componentRenderers}                 // AIComponentRenderer[]
   lines={elements}
   functions={hostFns}
-  components={{ placeholder: SomeSpinner }}    // optional host-supplied chrome
+  components={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied chrome
   init={hostInit}
 />
 ```
@@ -115,7 +117,12 @@ Internally `<Renderer>`:
 - Mounts the Fragment via `<RecursiveRenderer init={init} … />`. `init` is **not**
   propagated to recursive child mounts — only the top-level synthetic Fragment
   runs the callback; descendants always see `init=undefined`.
-- Wraps the whole tree in `RendererRegistryProvider`.
+- Wraps the whole tree in `RendererRegistryProvider`, with a `<ConfirmHost>`
+  between the provider and the tree. The host owns the pending-confirm state
+  (one `Promise.withResolvers()` pair parked in state per open question) and
+  keeps the `components.confirm` modal mounted next to the tree, driving it as
+  a controlled dialog — so the modal itself stays stateless. No slot →
+  `window.confirm`.
 
 ### Middle — `RendererRegistry` context
 
@@ -125,15 +132,34 @@ name, the host-supplied chrome (`components`), and the host functions to pass
 into evaluator calls.
 
 `components` (`RendererComponents`) is the host's map of engine "chrome" —
-distinct from `renderers` (the catalog component implementations). Only
-`placeholder` is wired today: shown for a not-yet-streamed child and as the
-async-`defaults` suspense fallback (§5). Precedence is **renderer's own
-placeholder → `components.placeholder` → null** (render nothing). Like
-`functions`, pass a **stable reference** (module const or memoized): it folds
-into the registry-value memo deps, so a fresh object each render churns the
-context and re-renders the whole tree. The map is extensible — adding a slot is
-one field here plus one resolution site in `RecursiveRenderer` (next up: an
-`unknown` slot to replace the hard-coded "Unknown component" fallback).
+distinct from `renderers` (the catalog component implementations). Four slots
+are wired today:
+
+- **`placeholder`** — shown for a not-yet-streamed child and as the
+  async-`defaults` suspense fallback (§5). Precedence is **renderer's own
+  placeholder → `components.placeholder` → null** (render nothing). Resolved
+  per-node in `RecursiveRenderer`.
+- **`confirm`** — the modal that resolves callback steps carrying `confirm:`
+  (`ConfirmComponentProps`: `open` / `message` / `onConfirm` / `onCancel`).
+  Resolved once, by `<Renderer>`'s `ConfirmHost`. Omitted → the browser-native
+  `window.confirm`, so the engine renders with zero UI deps.
+- **`unknown`** — replaces an element whose `component` has no renderer in the
+  catalog (`UnknownComponentProps`: `componentName` / `elementKey`). Resolved
+  per-node in `RecursiveRenderer`.
+- **`error`** — replaces an element whose render threw, plus the not-a-list
+  misuse of a list key (`ErrorComponentProps`: `error` / `elementKey?`).
+  Rendered by the per-element `ErrorBoundary`.
+
+The `unknown` / `error` defaults are bare inline-styled divs (zero CSS
+dependencies); nicely-styled versions ship in `@ui-fired/catalog`
+(`UnknownComponent`, `RenderError`) for hosts to attach manually, exactly like
+the catalog's `ConfirmModal`.
+
+Like `functions`, pass a **stable reference** (module const or memoized): it
+folds into the registry-value memo deps, so a fresh object each render churns
+the context and re-renders the whole tree. The map is extensible — adding a
+slot is one field here plus one resolution site (`RecursiveRenderer` for
+per-node chrome, `<Renderer>` for tree-level chrome).
 
 ### Inner — `RecursiveRenderer` + `createAIComponentRenderer`
 
@@ -159,8 +185,8 @@ Inside the component, `createAIComponentRenderer`:
 2. **Evaluate `element.hidden`** → boolean (absence = `false`).
 3. **Build bound `callbacks`** — each handler closes over `element.callbacks[key]`
    and walks the steps when fired, with `evt` bound to the event payload. A step
-   carrying `confirm` consults `useConfirm()` — the `window.confirm` default, or
-   a provider-supplied modal (e.g. catalog's `ConfirmModalProvider`) — first; on
+   carrying `confirm` asks the confirm host first — the `components.confirm`
+   modal (e.g. catalog's `ConfirmModal`), else the `window.confirm` default; on
    cancel, that step and all later steps are skipped.
 4. **Build children prop**: a non-empty *array* from RecursiveRenderer wins;
    otherwise any `children` from `props` (text content) takes effect.

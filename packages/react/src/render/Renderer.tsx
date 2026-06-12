@@ -4,6 +4,7 @@ import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
 import type { Fired } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 import type { StandardTool } from "standard-tool";
+import { ConfirmHost } from "../components/confirm";
 import type { AIComponentRenderer } from "./createAIComponentRenderer";
 import { createElementsStore, ElementsStoreProvider } from "./ElementsStore";
 import {
@@ -44,10 +45,11 @@ export type RendererProps = {
    */
   init?: InitFn;
   /**
-   * Host-supplied visual components for the engine's own chrome (currently
-   * `placeholder`, shown while a node's chunk hasn't streamed in). Distinct from
-   * `catalog` (the AI-renderable components). Pass a stable reference, like
-   * `functions`.
+   * Host-supplied visual components for the engine's own chrome: `placeholder`
+   * (shown while a node's chunk hasn't streamed in) and `confirm` (the modal
+   * resolving callback steps that carry `confirm:`; defaults to
+   * `window.confirm`). Distinct from `catalog` (the AI-renderable components).
+   * Pass a stable reference, like `functions`.
    */
   components?: RendererComponents;
 };
@@ -143,12 +145,14 @@ export const Renderer = memo(function Renderer({
   return (
     <ElementsStoreProvider value={storeRef.current}>
       <RendererRegistryProvider value={registryValue}>
-        <RecursiveRenderer
-          key={RENDERER_FRAGMENT_KEY}
-          elementKey={RENDERER_FRAGMENT_KEY}
-          scopes={scopes}
-          init={init}
-        />
+        <ConfirmHost confirm={components?.confirm}>
+          <RecursiveRenderer
+            key={RENDERER_FRAGMENT_KEY}
+            elementKey={RENDERER_FRAGMENT_KEY}
+            scopes={scopes}
+            init={init}
+          />
+        </ConfirmHost>
       </RendererRegistryProvider>
     </ElementsStoreProvider>
   );

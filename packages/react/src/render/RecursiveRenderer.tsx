@@ -2,11 +2,14 @@
 import React, { memo, Suspense, use, useEffect, useReducer, useRef } from "react";
 import { createProxyScope } from "@ui-fired/core/scope/createProxyScope";
 import { Fired } from "@ui-fired/core/types";
-import { useRendererRegistry } from "./RendererRegistry";
+import {
+  type UnknownComponentProps,
+  useRendererRegistry,
+} from "./RendererRegistry";
 import { evaluate } from "@ui-fired/core/eval/evaluate";
 import { extractDeps } from "@ui-fired/core/eval/extractDeps";
 import { parseScope } from "@ui-fired/core/scope/parseScope";
-import { ErrorBoundary } from "./ErrorBoundary";
+import { DefaultErrorComponent, ErrorBoundary } from "./ErrorBoundary";
 import { useElement } from "./ElementsStore";
 import type { InitFn } from "./Fragment";
 
@@ -17,6 +20,18 @@ type PlaceholderComponent = () => React.ReactElement | null;
 // slots keeps a constant identity (a fresh `() => null` each render would
 // defeat the `React.memo` bail below).
 const NullPlaceholder: PlaceholderComponent = () => null;
+
+// Zero-dependency default for the `components.unknown` slot — like the error
+// default, a bare inline-styled div (the shadcn-styled version ships in
+// @ui-fired/catalog as `UnknownComponent`).
+const DefaultUnknown = ({
+  componentName,
+  elementKey,
+}: UnknownComponentProps) => (
+  <div style={{ color: "yellow" }} data-key={elementKey}>
+    Unknown component: {componentName}
+  </div>
+);
 
 type RecursiveRendererProps = {
   elementKey: string;
@@ -103,12 +118,12 @@ const RecursiveRendererImpl = ({
 
   const rendererEntry = renderers[element.component];
   const Component = rendererEntry?.component;
-  if (!Component)
+  if (!Component) {
+    const Unknown = components?.unknown ?? DefaultUnknown;
     return (
-      <div className="text-red-500" data-key={elementKey}>
-        Unknown component: {element.component}
-      </div>
+      <Unknown componentName={element.component} elementKey={elementKey} />
     );
+  }
 
   const Placeholder =
     rendererEntry?.placeholder ?? components?.placeholder ?? NullPlaceholder;
@@ -212,7 +227,7 @@ const RecursiveRendererImpl = ({
       );
     };
     return (
-      <ErrorBoundary>
+      <ErrorBoundary errorComponent={components?.error} elementKey={elementKey}>
         <Suspense
           fallback={
             <Component chunk={element} scopes={scopes}>
@@ -227,7 +242,7 @@ const RecursiveRendererImpl = ({
   }
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary errorComponent={components?.error} elementKey={elementKey}>
       <Component chunk={element} scopes={scopes}>
         {children}
       </Component>
@@ -262,7 +277,7 @@ const ListRendererImpl = ({
 }): React.ReactElement => {
   const element = useElement(elementKey);
   const [, forceRender] = useReducer((x) => x + 1, 0);
-  const { functions } = useRendererRegistry();
+  const { functions, components } = useRendererRegistry();
   // Cache item proxies + item scopes by unique ID to preserve state across
   // re-renders AND to hand each item a STABLE `scopes` prop — without that the
   // per-item RecursiveRenderer could never memo-bail when the list re-renders.
@@ -304,10 +319,17 @@ const ListRendererImpl = ({
 
   if (!element) return <></>;
 
-  if (!Fired.isList(element))
+  if (!Fired.isList(element)) {
+    // A key that mounted as a list was replaced by a non-list element — an
+    // invariant break, surfaced through the same `error` slot as render throws.
+    const ErrorComponent = components?.error ?? DefaultErrorComponent;
     return (
-      <div className="text-red-500">Element is not a list: {elementKey}</div>
+      <ErrorComponent
+        error={new Error(`Element is not a list: ${elementKey}`)}
+        elementKey={elementKey}
+      />
     );
+  }
 
   const line = element;
 
