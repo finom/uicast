@@ -1,5 +1,5 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { useRef } from "react";
 import { KnobDef } from "./def";
 
@@ -8,9 +8,9 @@ import { KnobDef } from "./def";
  * value range. `data-key={generatedKey}` on the root keeps the demo's
  * hover-highlight working (line ⇄ element) — the universal catalog convention.
  */
-export const KnobRenderer = createAIComponentRenderer({
+export const KnobRenderer = createComponentImplementation({
   def: KnobDef,
-  renderer: ({ value = 50, min = 0, max = 100, label, onTurn, generatedKey }) => {
+  render: ({ value = 50, min = 0, max = 100, label, onTurn, generatedKey }) => {
     const drag = useRef<{ startY: number; startVal: number } | null>(null);
     const range = max - min || 1;
     const angle = -135 + ((value - min) / range) * 270;

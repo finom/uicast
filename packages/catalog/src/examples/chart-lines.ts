@@ -1,6 +1,6 @@
-import { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
-export const chartLines: Fired.Element[] = [
+export const chartLines: ComponentEntry[] = [
   {
     key: "chart-root",
     component: "FlexCol",

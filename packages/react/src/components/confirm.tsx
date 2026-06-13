@@ -12,7 +12,7 @@ import {
 /**
  * Confirm seam — the engine half of the confirm flow.
  *
- * `createAIComponentRenderer` calls `useConfirm()` before running any callback
+ * `createComponentImplementation` calls `useConfirm()` before running any callback
  * step that carries a `confirm:` message. The fn resolves through the
  * host-supplied modal when `<Renderer components={{ confirm: … }}>` provides
  * one, and falls back to the browser-native `window.confirm` otherwise — so

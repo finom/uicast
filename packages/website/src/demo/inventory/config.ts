@@ -1,5 +1,5 @@
 "use client";
-import { componentRenderers } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/renderers";
 import { inventoryFunctions } from "@/lib/functions";
 import { resetInventory, seedIfEmpty } from "@/lib/seed";
 import { inventoryLines } from "../inventory.lines";
@@ -20,7 +20,7 @@ export const inventoryDemo: DemoConfig = {
   prompt: inventoryPrompt,
   lines: inventoryLines,
   functions: inventoryFunctions,
-  catalog: [...componentRenderers],
+  catalog: [...componentImplementations],
   onPlay: seedIfEmpty,
   onReplay: resetInventory,
 };

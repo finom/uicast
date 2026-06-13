@@ -1,11 +1,11 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — hidden", () => {
   it("hides the chunk when hidden evaluates truthy", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -30,7 +30,7 @@ describe("RecursiveRenderer — hidden", () => {
   });
 
   it("flips visibility reactively when the hidden path changes", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",

@@ -1,13 +1,13 @@
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 /**
  * The groovebox artifact — the JSONLines a model would stream to build the synth
- * demo, hand-authored as a typed `Fired.Element[]`. Everything reactive lives in
+ * demo, hand-authored as a typed `ComponentEntry[]`. Everything reactive lives in
  * one `scopes.root.*` namespace; every bespoke component's callback writes the
  * event payload to `scopes.root.lastEvt` (alongside its real effect) so the
  * "Last event" panel can show each payload shape verbatim.
  */
-export const studioLines: Fired.Element[] = [
+export const studioLines: ComponentEntry[] = [
   {
     key: "root",
     component: "FlexCol",

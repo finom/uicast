@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -7,7 +7,7 @@ import z from "zod";
  * ({ from, to }). One component, two payload shapes — both flowing through the
  * same declarative callback mechanism.
  */
-export const NodeBoardDef = createAIComponentDef({
+export const NodeBoardDef = createComponentDefinition({
   name: "NodeBoard",
   description:
     "A free-form board of draggable nodes with connection wires. Dragging a node emits { id, x, y } (0..1 fractions of the board); clicking one node's port then another's emits { from, to } node ids.",

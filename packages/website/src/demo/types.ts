@@ -1,5 +1,5 @@
-import type { Fired } from "@ui-fired/core/types";
-import type { AIComponentRenderer, RendererComponents } from "@ui-fired/react";
+import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentImplementation, RendererComponents } from "@ui-fired/react";
 import type { StandardTool } from "standard-tool";
 
 /**
@@ -19,11 +19,11 @@ export interface DemoConfig {
   /** Landing "THE PROMPT" body text. */
   prompt: string;
   /** The hand-authored JSONLines artifact, revealed one chunk at a time. */
-  lines: Fired.Element[];
+  lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
   functions: StandardTool[];
-  /** Base catalog + the demo's bespoke renderers: `[...componentRenderers, ...bespoke]`. */
-  catalog: AIComponentRenderer[];
+  /** Base catalog + the demo's bespoke renderers: `[...componentImplementations, ...bespoke]`. */
+  catalog: ComponentImplementation[];
   /** Engine chrome override (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
   components?: RendererComponents;
   /** Runs on first Play, before the count resets. Inventory → `seedIfEmpty`. */

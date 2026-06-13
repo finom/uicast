@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -6,7 +6,7 @@ import z from "zod";
  * index plus the full color decomposition `{ index, hex, h, s, l }`, so the
  * callback can restore every channel at once.
  */
-export const SwatchRailDef = createAIComponentDef({
+export const SwatchRailDef = createComponentDefinition({
   name: "SwatchRail",
   description:
     "A row of color swatches. Click one to select it; emits { index, hex, h, s, l }.",

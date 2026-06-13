@@ -1,355 +1,355 @@
 // Layout & Container
-import { CardRenderer } from "../ai-components/card/renderer";
-import { FlexRowRenderer } from "../ai-components/flex-row/renderer";
-import { FlexColRenderer } from "../ai-components/flex-col/renderer";
-import { DividerRenderer } from "../ai-components/divider/renderer";
-import { AccordionRenderer } from "../ai-components/accordion/renderer";
-import { AccordionItemRenderer } from "../ai-components/accordion-item/renderer";
-import { DrawerRenderer } from "../ai-components/drawer/renderer";
-import { GridRenderer } from "../ai-components/grid/renderer";
-import { StackRenderer } from "../ai-components/stack/renderer";
-import { SpacerRenderer } from "../ai-components/spacer/renderer";
+import { CardImpl } from "../catalog/card/impl";
+import { FlexRowImpl } from "../catalog/flex-row/impl";
+import { FlexColImpl } from "../catalog/flex-col/impl";
+import { DividerImpl } from "../catalog/divider/impl";
+import { AccordionImpl } from "../catalog/accordion/impl";
+import { AccordionItemImpl } from "../catalog/accordion-item/impl";
+import { DrawerImpl } from "../catalog/drawer/impl";
+import { GridImpl } from "../catalog/grid/impl";
+import { StackImpl } from "../catalog/stack/impl";
+import { SpacerImpl } from "../catalog/spacer/impl";
 
 // Typography & Display
-import { HeadingRenderer } from "../ai-components/heading/renderer";
-import { TextRenderer } from "../ai-components/text/renderer";
-import { BadgeRenderer } from "../ai-components/badge/renderer";
-import { LabelRenderer } from "../ai-components/label/renderer";
-import { IconRenderer } from "../ai-components/icon/renderer";
-import { TagRenderer } from "../ai-components/tag/renderer";
-import { StatRenderer } from "../ai-components/stat/renderer";
+import { HeadingImpl } from "../catalog/heading/impl";
+import { TextImpl } from "../catalog/text/impl";
+import { BadgeImpl } from "../catalog/badge/impl";
+import { LabelImpl } from "../catalog/label/impl";
+import { IconImpl } from "../catalog/icon/impl";
+import { TagImpl } from "../catalog/tag/impl";
+import { StatImpl } from "../catalog/stat/impl";
 
 // Tabs
-import { TabsRenderer } from "../ai-components/tabs/renderer";
-import { TabListRenderer } from "../ai-components/tab-list/renderer";
-import { TabTriggerRenderer } from "../ai-components/tab-trigger/renderer";
-import { TabContentRenderer } from "../ai-components/tab-content/renderer";
+import { TabsImpl } from "../catalog/tabs/impl";
+import { TabListImpl } from "../catalog/tab-list/impl";
+import { TabTriggerImpl } from "../catalog/tab-trigger/impl";
+import { TabContentImpl } from "../catalog/tab-content/impl";
 
 // Feedback
-import { AlertRenderer } from "../ai-components/alert/renderer";
-import { SkeletonRenderer } from "../ai-components/skeleton/renderer";
-import { EmptyStateRenderer } from "../ai-components/empty-state/renderer";
-import { ToastRenderer } from "../ai-components/toast/renderer";
-import { SpinnerRenderer } from "../ai-components/spinner/renderer";
+import { AlertImpl } from "../catalog/alert/impl";
+import { SkeletonImpl } from "../catalog/skeleton/impl";
+import { EmptyStateImpl } from "../catalog/empty-state/impl";
+import { ToastImpl } from "../catalog/toast/impl";
+import { SpinnerImpl } from "../catalog/spinner/impl";
 
 // Form
-import { InputRenderer } from "../ai-components/input/renderer";
-import { TextareaRenderer } from "../ai-components/textarea/renderer";
-import { NumberInputRenderer } from "../ai-components/number-input/renderer";
-import { SelectRenderer } from "../ai-components/select/renderer";
-import { MultiSelectRenderer } from "../ai-components/multi-select/renderer";
-import { DatePickerRenderer } from "../ai-components/date-picker/renderer";
-import { DateRangePickerRenderer } from "../ai-components/date-range-picker/renderer";
-import { TimePickerRenderer } from "../ai-components/time-picker/renderer";
-import { CheckboxRenderer } from "../ai-components/checkbox/renderer";
-import { RadioRenderer } from "../ai-components/radio/renderer";
-import { SwitchRenderer } from "../ai-components/switch/renderer";
-import { FileUploadRenderer } from "../ai-components/file-upload/renderer";
-import { ColorPickerRenderer } from "../ai-components/color-picker/renderer";
-import { ButtonRenderer } from "../ai-components/button/renderer";
-import { IconButtonRenderer } from "../ai-components/icon-button/renderer";
-import { ButtonGroupRenderer } from "../ai-components/button-group/renderer";
-import { FieldRenderer } from "../ai-components/field/renderer";
-import { FieldLabelRenderer } from "../ai-components/field-label/renderer";
-import { FieldDescriptionRenderer } from "../ai-components/field-description/renderer";
+import { InputImpl } from "../catalog/input/impl";
+import { TextareaImpl } from "../catalog/textarea/impl";
+import { NumberInputImpl } from "../catalog/number-input/impl";
+import { SelectImpl } from "../catalog/select/impl";
+import { MultiSelectImpl } from "../catalog/multi-select/impl";
+import { DatePickerImpl } from "../catalog/date-picker/impl";
+import { DateRangePickerImpl } from "../catalog/date-range-picker/impl";
+import { TimePickerImpl } from "../catalog/time-picker/impl";
+import { CheckboxImpl } from "../catalog/checkbox/impl";
+import { RadioImpl } from "../catalog/radio/impl";
+import { SwitchImpl } from "../catalog/switch/impl";
+import { FileUploadImpl } from "../catalog/file-upload/impl";
+import { ColorPickerImpl } from "../catalog/color-picker/impl";
+import { ButtonImpl } from "../catalog/button/impl";
+import { IconButtonImpl } from "../catalog/icon-button/impl";
+import { ButtonGroupImpl } from "../catalog/button-group/impl";
+import { FieldImpl } from "../catalog/field/impl";
+import { FieldLabelImpl } from "../catalog/field-label/impl";
+import { FieldDescriptionImpl } from "../catalog/field-description/impl";
 
 // Overlay
-import { ModalRenderer } from "../ai-components/modal/renderer";
-import { ConfirmDialogRenderer } from "../ai-components/confirm-dialog/renderer";
-import { DropdownMenuRenderer } from "../ai-components/dropdown-menu/renderer";
-import { DropdownMenuItemRenderer } from "../ai-components/dropdown-menu-item/renderer";
-import { PopoverRenderer } from "../ai-components/popover/renderer";
+import { ModalImpl } from "../catalog/modal/impl";
+import { ConfirmDialogImpl } from "../catalog/confirm-dialog/impl";
+import { DropdownMenuImpl } from "../catalog/dropdown-menu/impl";
+import { DropdownMenuItemImpl } from "../catalog/dropdown-menu-item/impl";
+import { PopoverImpl } from "../catalog/popover/impl";
 
 // Data Display
-import { ListRenderer } from "../ai-components/list/renderer";
-import { DataGridRenderer } from "../ai-components/data-grid/renderer";
-import { AvatarRenderer } from "../ai-components/avatar/renderer";
-import { TooltipRenderer } from "../ai-components/tooltip/renderer";
-import { ProgressBarRenderer } from "../ai-components/progress-bar/renderer";
-import { ImageRenderer } from "../ai-components/image/renderer";
+import { ListImpl } from "../catalog/list/impl";
+import { DataGridImpl } from "../catalog/data-grid/impl";
+import { AvatarImpl } from "../catalog/avatar/impl";
+import { TooltipImpl } from "../catalog/tooltip/impl";
+import { ProgressBarImpl } from "../catalog/progress-bar/impl";
+import { ImageImpl } from "../catalog/image/impl";
 
 // Table
-import { TableRenderer } from "../ai-components/table/renderer";
-import { TableHeaderRenderer } from "../ai-components/table-header/renderer";
-import { TableBodyRenderer } from "../ai-components/table-body/renderer";
-import { TableFooterRenderer } from "../ai-components/table-footer/renderer";
-import { TableRowRenderer } from "../ai-components/table-row/renderer";
-import { TableHeadRenderer } from "../ai-components/table-head/renderer";
-import { TableCellRenderer } from "../ai-components/table-cell/renderer";
+import { TableImpl } from "../catalog/table/impl";
+import { TableHeaderImpl } from "../catalog/table-header/impl";
+import { TableBodyImpl } from "../catalog/table-body/impl";
+import { TableFooterImpl } from "../catalog/table-footer/impl";
+import { TableRowImpl } from "../catalog/table-row/impl";
+import { TableHeadImpl } from "../catalog/table-head/impl";
+import { TableCellImpl } from "../catalog/table-cell/impl";
 
 // Navigation
-import { PaginationRenderer } from "../ai-components/pagination/renderer";
-import { BreadcrumbRenderer } from "../ai-components/breadcrumb/renderer";
-import { StepperRenderer } from "../ai-components/stepper/renderer";
+import { PaginationImpl } from "../catalog/pagination/impl";
+import { BreadcrumbImpl } from "../catalog/breadcrumb/impl";
+import { StepperImpl } from "../catalog/stepper/impl";
 
 // Charts
-import { BarChartRenderer } from "../ai-components/bar-chart/renderer";
-import { LineChartRenderer } from "../ai-components/line-chart/renderer";
-import { PieChartRenderer } from "../ai-components/pie-chart/renderer";
-import { AreaChartRenderer } from "../ai-components/area-chart/renderer";
-import { FunnelChartRenderer } from "../ai-components/funnel-chart/renderer";
+import { BarChartImpl } from "../catalog/bar-chart/impl";
+import { LineChartImpl } from "../catalog/line-chart/impl";
+import { PieChartImpl } from "../catalog/pie-chart/impl";
+import { AreaChartImpl } from "../catalog/area-chart/impl";
+import { FunnelChartImpl } from "../catalog/funnel-chart/impl";
 
 // Navigation & Wayfinding (new)
-import { SidebarRenderer } from "../ai-components/sidebar/renderer";
-import { NavigationMenuRenderer } from "../ai-components/navigation-menu/renderer";
-import { MenubarRenderer } from "../ai-components/menubar/renderer";
-import { CommandMenuRenderer } from "../ai-components/command-menu/renderer";
-import { LinkRenderer } from "../ai-components/link/renderer";
-import { ContextMenuRenderer } from "../ai-components/context-menu/renderer";
+import { SidebarImpl } from "../catalog/sidebar/impl";
+import { NavigationMenuImpl } from "../catalog/navigation-menu/impl";
+import { MenubarImpl } from "../catalog/menubar/impl";
+import { CommandMenuImpl } from "../catalog/command-menu/impl";
+import { LinkImpl } from "../catalog/link/impl";
+import { ContextMenuImpl } from "../catalog/context-menu/impl";
 
 // Form & Input (new)
-import { ComboboxRenderer } from "../ai-components/combobox/renderer";
-import { SliderRenderer } from "../ai-components/slider/renderer";
-import { RangeSliderRenderer } from "../ai-components/range-slider/renderer";
-import { PasswordInputRenderer } from "../ai-components/password-input/renderer";
-import { SearchInputRenderer } from "../ai-components/search-input/renderer";
-import { PhoneInputRenderer } from "../ai-components/phone-input/renderer";
-import { CurrencyInputRenderer } from "../ai-components/currency-input/renderer";
-import { MaskedInputRenderer } from "../ai-components/masked-input/renderer";
-import { PinInputRenderer } from "../ai-components/pin-input/renderer";
-import { TagInputRenderer } from "../ai-components/tag-input/renderer";
-import { RatingRenderer } from "../ai-components/rating/renderer";
-import { RichTextEditorRenderer } from "../ai-components/rich-text-editor/renderer";
-import { CodeEditorRenderer } from "../ai-components/code-editor/renderer";
-import { SignaturePadRenderer } from "../ai-components/signature-pad/renderer";
-import { ToggleRenderer } from "../ai-components/toggle/renderer";
-import { ToggleGroupRenderer } from "../ai-components/toggle-group/renderer";
-import { SegmentedControlRenderer } from "../ai-components/segmented-control/renderer";
-import { FormSectionRenderer } from "../ai-components/form-section/renderer";
+import { ComboboxImpl } from "../catalog/combobox/impl";
+import { SliderImpl } from "../catalog/slider/impl";
+import { RangeSliderImpl } from "../catalog/range-slider/impl";
+import { PasswordInputImpl } from "../catalog/password-input/impl";
+import { SearchInputImpl } from "../catalog/search-input/impl";
+import { PhoneInputImpl } from "../catalog/phone-input/impl";
+import { CurrencyInputImpl } from "../catalog/currency-input/impl";
+import { MaskedInputImpl } from "../catalog/masked-input/impl";
+import { PinInputImpl } from "../catalog/pin-input/impl";
+import { TagInputImpl } from "../catalog/tag-input/impl";
+import { RatingImpl } from "../catalog/rating/impl";
+import { RichTextEditorImpl } from "../catalog/rich-text-editor/impl";
+import { CodeEditorImpl } from "../catalog/code-editor/impl";
+import { SignaturePadImpl } from "../catalog/signature-pad/impl";
+import { ToggleImpl } from "../catalog/toggle/impl";
+import { ToggleGroupImpl } from "../catalog/toggle-group/impl";
+import { SegmentedControlImpl } from "../catalog/segmented-control/impl";
+import { FormSectionImpl } from "../catalog/form-section/impl";
 
 // Layout & Structure (new)
-import { ContainerRenderer } from "../ai-components/container/renderer";
-import { AspectRatioRenderer } from "../ai-components/aspect-ratio/renderer";
-import { ScrollAreaRenderer } from "../ai-components/scroll-area/renderer";
-import { CollapsibleRenderer } from "../ai-components/collapsible/renderer";
-import { ResizablePanelRenderer } from "../ai-components/resizable-panel/renderer";
-import { SheetRenderer } from "../ai-components/sheet/renderer";
-import { StickyHeaderRenderer } from "../ai-components/sticky-header/renderer";
-import { PageHeaderRenderer } from "../ai-components/page-header/renderer";
-import { ToolbarRenderer } from "../ai-components/toolbar/renderer";
+import { ContainerImpl } from "../catalog/container/impl";
+import { AspectRatioImpl } from "../catalog/aspect-ratio/impl";
+import { ScrollAreaImpl } from "../catalog/scroll-area/impl";
+import { CollapsibleImpl } from "../catalog/collapsible/impl";
+import { ResizablePanelImpl } from "../catalog/resizable-panel/impl";
+import { SheetImpl } from "../catalog/sheet/impl";
+import { StickyHeaderImpl } from "../catalog/sticky-header/impl";
+import { PageHeaderImpl } from "../catalog/page-header/impl";
+import { ToolbarImpl } from "../catalog/toolbar/impl";
 
 // Data Display (new)
-import { CalendarRenderer } from "../ai-components/calendar/renderer";
-import { TimelineRenderer } from "../ai-components/timeline/renderer";
-import { TreeViewRenderer } from "../ai-components/tree-view/renderer";
-import { DescriptionListRenderer } from "../ai-components/description-list/renderer";
-import { CodeBlockRenderer } from "../ai-components/code-block/renderer";
-import { MarkdownViewerRenderer } from "../ai-components/markdown-viewer/renderer";
-import { AvatarGroupRenderer } from "../ai-components/avatar-group/renderer";
-import { StatusIndicatorRenderer } from "../ai-components/status-indicator/renderer";
-import { CarouselRenderer } from "../ai-components/carousel/renderer";
-import { CalloutRenderer } from "../ai-components/callout/renderer";
-import { KBDRenderer } from "../ai-components/kbd/renderer";
-import { HighlightRenderer } from "../ai-components/highlight/renderer";
-import { RelativeTimeRenderer } from "../ai-components/relative-time/renderer";
-import { TruncatedTextRenderer } from "../ai-components/truncated-text/renderer";
-import { CopyButtonRenderer } from "../ai-components/copy-button/renderer";
-import { QRCodeRenderer } from "../ai-components/qr-code/renderer";
-import { BarcodeRenderer } from "../ai-components/barcode/renderer";
+import { CalendarImpl } from "../catalog/calendar/impl";
+import { TimelineImpl } from "../catalog/timeline/impl";
+import { TreeViewImpl } from "../catalog/tree-view/impl";
+import { DescriptionListImpl } from "../catalog/description-list/impl";
+import { CodeBlockImpl } from "../catalog/code-block/impl";
+import { MarkdownViewerImpl } from "../catalog/markdown-viewer/impl";
+import { AvatarGroupImpl } from "../catalog/avatar-group/impl";
+import { StatusIndicatorImpl } from "../catalog/status-indicator/impl";
+import { CarouselImpl } from "../catalog/carousel/impl";
+import { CalloutImpl } from "../catalog/callout/impl";
+import { KBDImpl } from "../catalog/kbd/impl";
+import { HighlightImpl } from "../catalog/highlight/impl";
+import { RelativeTimeImpl } from "../catalog/relative-time/impl";
+import { TruncatedTextImpl } from "../catalog/truncated-text/impl";
+import { CopyButtonImpl } from "../catalog/copy-button/impl";
+import { QRCodeImpl } from "../catalog/qr-code/impl";
+import { BarcodeImpl } from "../catalog/barcode/impl";
 
 // Charts (new)
-import { ScatterChartRenderer } from "../ai-components/scatter-chart/renderer";
-import { RadarChartRenderer } from "../ai-components/radar-chart/renderer";
-import { DonutChartRenderer } from "../ai-components/donut-chart/renderer";
-import { GaugeChartRenderer } from "../ai-components/gauge-chart/renderer";
-import { SparklineRenderer } from "../ai-components/sparkline/renderer";
-import { HeatmapRenderer } from "../ai-components/heatmap/renderer";
-import { TreemapChartRenderer } from "../ai-components/treemap-chart/renderer";
-import { WaterfallChartRenderer } from "../ai-components/waterfall-chart/renderer";
-import { SankeyChartRenderer } from "../ai-components/sankey-chart/renderer";
-import { ComboChartRenderer } from "../ai-components/combo-chart/renderer";
-import { GanttChartRenderer } from "../ai-components/gantt-chart/renderer";
-import { BubbleChartRenderer } from "../ai-components/bubble-chart/renderer";
+import { ScatterChartImpl } from "../catalog/scatter-chart/impl";
+import { RadarChartImpl } from "../catalog/radar-chart/impl";
+import { DonutChartImpl } from "../catalog/donut-chart/impl";
+import { GaugeChartImpl } from "../catalog/gauge-chart/impl";
+import { SparklineImpl } from "../catalog/sparkline/impl";
+import { HeatmapImpl } from "../catalog/heatmap/impl";
+import { TreemapChartImpl } from "../catalog/treemap-chart/impl";
+import { WaterfallChartImpl } from "../catalog/waterfall-chart/impl";
+import { SankeyChartImpl } from "../catalog/sankey-chart/impl";
+import { ComboChartImpl } from "../catalog/combo-chart/impl";
+import { GanttChartImpl } from "../catalog/gantt-chart/impl";
+import { BubbleChartImpl } from "../catalog/bubble-chart/impl";
 
 // Feedback & Status (new)
-import { BannerRenderer } from "../ai-components/banner/renderer";
-import { InlineMessageRenderer } from "../ai-components/inline-message/renderer";
-import { AlertDialogRenderer } from "../ai-components/alert-dialog/renderer";
-import { CircularProgressRenderer } from "../ai-components/circular-progress/renderer";
-import { CountdownTimerRenderer } from "../ai-components/countdown-timer/renderer";
-import { NotificationBadgeRenderer } from "../ai-components/notification-badge/renderer";
+import { BannerImpl } from "../catalog/banner/impl";
+import { InlineMessageImpl } from "../catalog/inline-message/impl";
+import { AlertDialogImpl } from "../catalog/alert-dialog/impl";
+import { CircularProgressImpl } from "../catalog/circular-progress/impl";
+import { CountdownTimerImpl } from "../catalog/countdown-timer/impl";
+import { NotificationBadgeImpl } from "../catalog/notification-badge/impl";
 
 // Specialized / Business-Specific (new)
-import { KanbanBoardRenderer } from "../ai-components/kanban-board/renderer";
-import { SortableListRenderer } from "../ai-components/sortable-list/renderer";
-import { VirtualListRenderer } from "../ai-components/virtual-list/renderer";
-import { MapRenderer } from "../ai-components/map/renderer";
-import { OrgChartRenderer } from "../ai-components/org-chart/renderer";
-import { FlowDiagramRenderer } from "../ai-components/flow-diagram/renderer";
-import { ChatBubbleRenderer } from "../ai-components/chat-bubble/renderer";
-import { VideoPlayerRenderer } from "../ai-components/video-player/renderer";
-import { CronBuilderRenderer } from "../ai-components/cron-builder/renderer";
-import { FilterBuilderRenderer } from "../ai-components/filter-builder/renderer";
-import { FormulaBarRenderer } from "../ai-components/formula-bar/renderer";
-import { DiffViewerRenderer } from "../ai-components/diff-viewer/renderer";
+import { KanbanBoardImpl } from "../catalog/kanban-board/impl";
+import { SortableListImpl } from "../catalog/sortable-list/impl";
+import { VirtualListImpl } from "../catalog/virtual-list/impl";
+import { MapImpl } from "../catalog/map/impl";
+import { OrgChartImpl } from "../catalog/org-chart/impl";
+import { FlowDiagramImpl } from "../catalog/flow-diagram/impl";
+import { ChatBubbleImpl } from "../catalog/chat-bubble/impl";
+import { VideoPlayerImpl } from "../catalog/video-player/impl";
+import { CronBuilderImpl } from "../catalog/cron-builder/impl";
+import { FilterBuilderImpl } from "../catalog/filter-builder/impl";
+import { FormulaBarImpl } from "../catalog/formula-bar/impl";
+import { DiffViewerImpl } from "../catalog/diff-viewer/impl";
 
-export const componentRenderers = [
+export const componentImplementations = [
   // Layout & Container
-  CardRenderer,
-  FlexRowRenderer,
-  FlexColRenderer,
-  DividerRenderer,
-  AccordionRenderer,
-  AccordionItemRenderer,
-  DrawerRenderer,
-  GridRenderer,
-  StackRenderer,
-  SpacerRenderer,
+  CardImpl,
+  FlexRowImpl,
+  FlexColImpl,
+  DividerImpl,
+  AccordionImpl,
+  AccordionItemImpl,
+  DrawerImpl,
+  GridImpl,
+  StackImpl,
+  SpacerImpl,
   // Typography & Display
-  HeadingRenderer,
-  TextRenderer,
-  BadgeRenderer,
-  LabelRenderer,
-  IconRenderer,
-  TagRenderer,
-  StatRenderer,
+  HeadingImpl,
+  TextImpl,
+  BadgeImpl,
+  LabelImpl,
+  IconImpl,
+  TagImpl,
+  StatImpl,
   // Tabs
-  TabsRenderer,
-  TabListRenderer,
-  TabTriggerRenderer,
-  TabContentRenderer,
+  TabsImpl,
+  TabListImpl,
+  TabTriggerImpl,
+  TabContentImpl,
   // Feedback
-  AlertRenderer,
-  SkeletonRenderer,
-  EmptyStateRenderer,
-  ToastRenderer,
-  SpinnerRenderer,
+  AlertImpl,
+  SkeletonImpl,
+  EmptyStateImpl,
+  ToastImpl,
+  SpinnerImpl,
   // Form
-  InputRenderer,
-  TextareaRenderer,
-  NumberInputRenderer,
-  SelectRenderer,
-  MultiSelectRenderer,
-  DatePickerRenderer,
-  DateRangePickerRenderer,
-  TimePickerRenderer,
-  CheckboxRenderer,
-  RadioRenderer,
-  SwitchRenderer,
-  FileUploadRenderer,
-  ColorPickerRenderer,
-  ButtonRenderer,
-  IconButtonRenderer,
-  ButtonGroupRenderer,
-  FieldRenderer,
-  FieldLabelRenderer,
-  FieldDescriptionRenderer,
+  InputImpl,
+  TextareaImpl,
+  NumberInputImpl,
+  SelectImpl,
+  MultiSelectImpl,
+  DatePickerImpl,
+  DateRangePickerImpl,
+  TimePickerImpl,
+  CheckboxImpl,
+  RadioImpl,
+  SwitchImpl,
+  FileUploadImpl,
+  ColorPickerImpl,
+  ButtonImpl,
+  IconButtonImpl,
+  ButtonGroupImpl,
+  FieldImpl,
+  FieldLabelImpl,
+  FieldDescriptionImpl,
   // Overlay
-  ModalRenderer,
-  ConfirmDialogRenderer,
-  DropdownMenuRenderer,
-  DropdownMenuItemRenderer,
-  PopoverRenderer,
+  ModalImpl,
+  ConfirmDialogImpl,
+  DropdownMenuImpl,
+  DropdownMenuItemImpl,
+  PopoverImpl,
   // Data Display
-  ListRenderer,
-  DataGridRenderer,
-  AvatarRenderer,
-  TooltipRenderer,
-  ProgressBarRenderer,
-  ImageRenderer,
+  ListImpl,
+  DataGridImpl,
+  AvatarImpl,
+  TooltipImpl,
+  ProgressBarImpl,
+  ImageImpl,
   // Table
-  TableRenderer,
-  TableHeaderRenderer,
-  TableBodyRenderer,
-  TableFooterRenderer,
-  TableRowRenderer,
-  TableHeadRenderer,
-  TableCellRenderer,
+  TableImpl,
+  TableHeaderImpl,
+  TableBodyImpl,
+  TableFooterImpl,
+  TableRowImpl,
+  TableHeadImpl,
+  TableCellImpl,
   // Navigation
-  PaginationRenderer,
-  BreadcrumbRenderer,
-  StepperRenderer,
+  PaginationImpl,
+  BreadcrumbImpl,
+  StepperImpl,
   // Charts
-  BarChartRenderer,
-  LineChartRenderer,
-  PieChartRenderer,
-  AreaChartRenderer,
-  FunnelChartRenderer,
+  BarChartImpl,
+  LineChartImpl,
+  PieChartImpl,
+  AreaChartImpl,
+  FunnelChartImpl,
   // Navigation & Wayfinding (new)
-  SidebarRenderer,
-  NavigationMenuRenderer,
-  MenubarRenderer,
-  CommandMenuRenderer,
-  LinkRenderer,
-  ContextMenuRenderer,
+  SidebarImpl,
+  NavigationMenuImpl,
+  MenubarImpl,
+  CommandMenuImpl,
+  LinkImpl,
+  ContextMenuImpl,
   // Form & Input (new)
-  ComboboxRenderer,
-  SliderRenderer,
-  RangeSliderRenderer,
-  PasswordInputRenderer,
-  SearchInputRenderer,
-  PhoneInputRenderer,
-  CurrencyInputRenderer,
-  MaskedInputRenderer,
-  PinInputRenderer,
-  TagInputRenderer,
-  RatingRenderer,
-  RichTextEditorRenderer,
-  CodeEditorRenderer,
-  SignaturePadRenderer,
-  ToggleRenderer,
-  ToggleGroupRenderer,
-  SegmentedControlRenderer,
-  FormSectionRenderer,
+  ComboboxImpl,
+  SliderImpl,
+  RangeSliderImpl,
+  PasswordInputImpl,
+  SearchInputImpl,
+  PhoneInputImpl,
+  CurrencyInputImpl,
+  MaskedInputImpl,
+  PinInputImpl,
+  TagInputImpl,
+  RatingImpl,
+  RichTextEditorImpl,
+  CodeEditorImpl,
+  SignaturePadImpl,
+  ToggleImpl,
+  ToggleGroupImpl,
+  SegmentedControlImpl,
+  FormSectionImpl,
   // Layout & Structure (new)
-  ContainerRenderer,
-  AspectRatioRenderer,
-  ScrollAreaRenderer,
-  CollapsibleRenderer,
-  ResizablePanelRenderer,
-  SheetRenderer,
-  StickyHeaderRenderer,
-  PageHeaderRenderer,
-  ToolbarRenderer,
+  ContainerImpl,
+  AspectRatioImpl,
+  ScrollAreaImpl,
+  CollapsibleImpl,
+  ResizablePanelImpl,
+  SheetImpl,
+  StickyHeaderImpl,
+  PageHeaderImpl,
+  ToolbarImpl,
   // Data Display (new)
-  CalendarRenderer,
-  TimelineRenderer,
-  TreeViewRenderer,
-  DescriptionListRenderer,
-  CodeBlockRenderer,
-  MarkdownViewerRenderer,
-  AvatarGroupRenderer,
-  StatusIndicatorRenderer,
-  CarouselRenderer,
-  CalloutRenderer,
-  KBDRenderer,
-  HighlightRenderer,
-  RelativeTimeRenderer,
-  TruncatedTextRenderer,
-  CopyButtonRenderer,
-  QRCodeRenderer,
-  BarcodeRenderer,
+  CalendarImpl,
+  TimelineImpl,
+  TreeViewImpl,
+  DescriptionListImpl,
+  CodeBlockImpl,
+  MarkdownViewerImpl,
+  AvatarGroupImpl,
+  StatusIndicatorImpl,
+  CarouselImpl,
+  CalloutImpl,
+  KBDImpl,
+  HighlightImpl,
+  RelativeTimeImpl,
+  TruncatedTextImpl,
+  CopyButtonImpl,
+  QRCodeImpl,
+  BarcodeImpl,
   // Charts (new)
-  ScatterChartRenderer,
-  RadarChartRenderer,
-  DonutChartRenderer,
-  GaugeChartRenderer,
-  SparklineRenderer,
-  HeatmapRenderer,
-  TreemapChartRenderer,
-  WaterfallChartRenderer,
-  SankeyChartRenderer,
-  ComboChartRenderer,
-  GanttChartRenderer,
-  BubbleChartRenderer,
+  ScatterChartImpl,
+  RadarChartImpl,
+  DonutChartImpl,
+  GaugeChartImpl,
+  SparklineImpl,
+  HeatmapImpl,
+  TreemapChartImpl,
+  WaterfallChartImpl,
+  SankeyChartImpl,
+  ComboChartImpl,
+  GanttChartImpl,
+  BubbleChartImpl,
   // Feedback & Status (new)
-  BannerRenderer,
-  InlineMessageRenderer,
-  AlertDialogRenderer,
-  CircularProgressRenderer,
-  CountdownTimerRenderer,
-  NotificationBadgeRenderer,
+  BannerImpl,
+  InlineMessageImpl,
+  AlertDialogImpl,
+  CircularProgressImpl,
+  CountdownTimerImpl,
+  NotificationBadgeImpl,
   // Specialized / Business-Specific (new)
-  KanbanBoardRenderer,
-  SortableListRenderer,
-  VirtualListRenderer,
-  MapRenderer,
-  OrgChartRenderer,
-  FlowDiagramRenderer,
-  ChatBubbleRenderer,
-  VideoPlayerRenderer,
-  CronBuilderRenderer,
-  FilterBuilderRenderer,
-  FormulaBarRenderer,
-  DiffViewerRenderer,
+  KanbanBoardImpl,
+  SortableListImpl,
+  VirtualListImpl,
+  MapImpl,
+  OrgChartImpl,
+  FlowDiagramImpl,
+  ChatBubbleImpl,
+  VideoPlayerImpl,
+  CronBuilderImpl,
+  FilterBuilderImpl,
+  FormulaBarImpl,
+  DiffViewerImpl,
 ];

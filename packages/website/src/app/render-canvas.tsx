@@ -3,9 +3,9 @@ import Skeleton from "react-loading-skeleton";
 import { ConfirmModal } from "@ui-fired/catalog/components/confirm-modal";
 import { RenderError } from "@ui-fired/catalog/components/render-error";
 import { UnknownComponent } from "@ui-fired/catalog/components/unknown-component";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import {
-  type AIComponentRenderer,
+  type ComponentImplementation,
   Renderer,
   type RendererComponents,
 } from "@ui-fired/react";
@@ -60,8 +60,8 @@ export function RenderCanvas({
   outlineKey,
   onHoverKey,
 }: {
-  lines: Fired.Element[];
-  catalog: AIComponentRenderer[];
+  lines: ComponentEntry[];
+  catalog: ComponentImplementation[];
   functions: StandardTool[];
   components?: RendererComponents;
   outlineKey: string | null;
@@ -87,7 +87,7 @@ export function RenderCanvas({
         onMouseLeave={() => onHoverKey(null)}
       >
         <Renderer
-          catalog={catalog}
+          implementations={catalog}
           lines={lines}
           functions={functions}
           components={components ?? rendererComponents}

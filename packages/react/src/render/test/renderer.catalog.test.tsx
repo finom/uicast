@@ -1,9 +1,9 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
-import type { Fired } from "@ui-fired/core/types";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import {
-  createAIComponentRenderer,
+  createComponentImplementation,
   type InitFn,
   Renderer,
 } from "@ui-fired/react";
@@ -18,7 +18,7 @@ describe("Renderer — catalog prop", () => {
     // `defaultRenderersList` carries no `Fragment` entry, so a successful render
     // also proves <Renderer>'s Fragment merge — without it the synthetic root
     // wrapper would hit the Unknown-component branch and nothing would show.
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "k1",
         component: "Box",
@@ -26,7 +26,7 @@ describe("Renderer — catalog prop", () => {
       },
     ];
     const { container } = render(
-      <Renderer catalog={defaultRenderersList} lines={lines} />,
+      <Renderer implementations={defaultRenderersList} lines={lines} />,
     );
     expect(container.textContent).toContain("from-catalog-prop");
   });
@@ -43,19 +43,19 @@ describe("Renderer — catalog prop", () => {
     const initB: InitFn = ({ scopes }) => {
       rootB = scopes.root;
     };
-    const box = (key: string): Fired.Element[] => [
+    const box = (key: string): ComponentEntry[] => [
       { key, component: "Box", props: { expr: "({ text: 'x' })" } },
     ];
 
     render(
       <>
         <Renderer
-          catalog={defaultRenderersList}
+          implementations={defaultRenderersList}
           lines={box("rA")}
           init={initA}
         />
         <Renderer
-          catalog={defaultRenderersList}
+          implementations={defaultRenderersList}
           lines={box("rB")}
           init={initB}
         />
@@ -71,24 +71,24 @@ describe("Renderer — catalog prop", () => {
     // Two renderers share the def name "Box". <Renderer> builds its map
     // last-wins (so `[...base, Override]` overrides), logging a console.error so
     // an *accidental* double-registration is still loud.
-    const boxDef = createAIComponentDef({
+    const boxDef = createComponentDefinition({
       name: "Box",
       description: "test box",
       props: z.object({}),
     });
-    const first = createAIComponentRenderer({
+    const first = createComponentImplementation({
       def: boxDef,
-      renderer: () => <span>first</span>,
+      render: () => <span>first</span>,
     });
-    const second = createAIComponentRenderer({
+    const second = createComponentImplementation({
       def: boxDef,
-      renderer: () => <span>second</span>,
+      render: () => <span>second</span>,
     });
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    const lines: Fired.Element[] = [{ key: "k", component: "Box" }];
+    const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     const { container } = render(
-      <Renderer catalog={[first, second]} lines={lines} />,
+      <Renderer implementations={[first, second]} lines={lines} />,
     );
 
     // The later renderer wins the name; the earlier one never renders.

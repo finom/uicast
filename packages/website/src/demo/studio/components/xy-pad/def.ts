@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -6,7 +6,7 @@ import z from "zod";
  * *spatial* payload `{ x, y }` — the kind of event a generic form catalog can't
  * produce, but the one `callbacks` mechanism handles it like any other.
  */
-export const XYPadDef = createAIComponentDef({
+export const XYPadDef = createComponentDefinition({
   name: "XYPad",
   description:
     "A two-dimensional control surface. Drag the puck anywhere in the pad; emits its position as { x, y }, each axis from 0 (left / bottom) to 1 (right / top).",

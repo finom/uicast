@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -6,7 +6,7 @@ import z from "zod";
  * `onPick` carries a *structured, multi-channel* payload — `{ hex, h, s, l }` all
  * at once — the clearest proof that `evt` is whatever the component decides.
  */
-export const ColorFieldDef = createAIComponentDef({
+export const ColorFieldDef = createComponentDefinition({
   name: "ColorField",
   description:
     "A 2-D color field (saturation × lightness) plus a hue strip. Click or drag either surface; emits the chosen color as { hex, h, s, l }.",

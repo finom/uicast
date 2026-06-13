@@ -1,7 +1,7 @@
 # Lines — the element properties
 
 A generated page is a stream of **lines**: one JSON object per line (JSONLines),
-each an **element** (`Fired.Element`). This document is the **per-property
+each an **element** (`ComponentEntry`). This document is the **per-property
 reference** — what every field on a line is, and how to author it.
 
 Scope of the sibling docs:
@@ -23,10 +23,10 @@ Scope of the sibling docs:
 
 ## The shape
 
-A line is a `Fired.Element`. One element type describes every line — the list
+A line is a `ComponentEntry`. One element type describes every line — the list
 fields are optional, so a line **is a list iff it carries `each`**. The list
-refinement is `Fired.List` (`each`/`as` required); narrow in TS with
-`Fired.isList(el)`.
+refinement is `ComponentListEntry` (`each`/`as` required); narrow in TS with
+`isComponentListEntry(el)`.
 
 ```ts
 interface Element {

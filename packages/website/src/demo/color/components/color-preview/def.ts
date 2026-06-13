@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -6,7 +6,7 @@ import z from "zod";
  * scope: a swatch over a checkerboard so the alpha channel is visible. Proves
  * the other half of the loop — events write scope, reactive props read it back.
  */
-export const ColorPreviewDef = createAIComponentDef({
+export const ColorPreviewDef = createComponentDefinition({
   name: "ColorPreview",
   description:
     "A read-only swatch previewing the current color at a given alpha, over a checkerboard.",

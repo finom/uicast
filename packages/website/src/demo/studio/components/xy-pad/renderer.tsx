@@ -1,12 +1,12 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { useRef } from "react";
 import { XYPadDef } from "./def";
 
 /** Drag anywhere on the pad; `y` is inverted so "up" = 1. */
-export const XYPadRenderer = createAIComponentRenderer({
+export const XYPadRenderer = createComponentImplementation({
   def: XYPadDef,
-  renderer: ({
+  render: ({
     x = 0.5,
     y = 0.5,
     xLabel,

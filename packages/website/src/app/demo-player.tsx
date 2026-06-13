@@ -14,7 +14,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@ui-fired/catalog/components/ui/resizable";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";
@@ -29,7 +29,7 @@ const MS_PER_CHAR = 8;
 const MIN_REVEAL_MS = 250;
 const MAX_REVEAL_MS = 6000;
 
-const revealDelay = (line: Fired.Element) =>
+const revealDelay = (line: ComponentEntry) =>
   Math.min(
     MAX_REVEAL_MS,
     Math.max(MIN_REVEAL_MS, JSON.stringify(line).length * MS_PER_CHAR),

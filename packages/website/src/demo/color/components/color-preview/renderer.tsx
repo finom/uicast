@@ -1,13 +1,13 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { ColorPreviewDef } from "./def";
 
 const CHECKER =
   "linear-gradient(45deg,#bbb 25%,transparent 25%),linear-gradient(-45deg,#bbb 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#bbb 75%),linear-gradient(-45deg,transparent 75%,#bbb 75%)";
 
-export const ColorPreviewRenderer = createAIComponentRenderer({
+export const ColorPreviewRenderer = createComponentImplementation({
   def: ColorPreviewDef,
-  renderer: ({ hex = "#000000", alpha = 100, label, generatedKey }) => {
+  render: ({ hex = "#000000", alpha = 100, label, generatedKey }) => {
     return (
       <div
         data-key={generatedKey}

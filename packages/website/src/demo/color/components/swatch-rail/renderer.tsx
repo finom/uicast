@@ -1,11 +1,11 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { hexToHsl } from "../../colors";
 import { SwatchRailDef } from "./def";
 
-export const SwatchRailRenderer = createAIComponentRenderer({
+export const SwatchRailRenderer = createComponentImplementation({
   def: SwatchRailDef,
-  renderer: ({ swatches = [], selected, onSelect, generatedKey }) => {
+  render: ({ swatches = [], selected, onSelect, generatedKey }) => {
     return (
       <div data-key={generatedKey} className="flex flex-wrap gap-2">
         {swatches.map((hex, i) => {

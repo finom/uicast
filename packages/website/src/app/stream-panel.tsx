@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { ChunkModal } from "./chunk-modal";
 
 /**
@@ -15,13 +15,13 @@ export function StreamPanel({
   hoveredKey,
   onHoverKey,
 }: {
-  lines: Fired.Element[];
+  lines: ComponentEntry[];
   hoveredKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<{
-    chunk: Fired.Element;
+    chunk: ComponentEntry;
     index: number;
   } | null>(null);
 

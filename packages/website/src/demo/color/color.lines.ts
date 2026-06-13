@@ -1,4 +1,4 @@
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 /**
  * The palette-studio artifact. One `scopes.root.*` namespace holds the current
@@ -6,7 +6,7 @@ import type { Fired } from "@ui-fired/core/types";
  * both emit the *whole* color decomposition, so a single event restores every
  * channel; every callback also records itself in `scopes.root.lastEvt`.
  */
-export const colorLines: Fired.Element[] = [
+export const colorLines: ComponentEntry[] = [
   {
     key: "root",
     component: "FlexCol",

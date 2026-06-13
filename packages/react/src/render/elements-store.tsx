@@ -5,7 +5,7 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 // ---------------------------------------------------------------------------
 // ElementsStore — the structural source of truth for a render tree.
@@ -27,11 +27,11 @@ import type { Fired } from "@ui-fired/core/types";
 
 export interface ElementsStore {
   /** Current element for a key (stable reference until that key changes). */
-  get(key: string): Fired.Element | undefined;
+  get(key: string): ComponentEntry | undefined;
   /** Subscribe to changes for a single key. Returns an unsubscribe fn. */
   subscribe(key: string, listener: () => void): () => void;
   /** Swap in a new map, notifying only the keys whose element identity changed. */
-  setMap(next: Record<string, Fired.Element>): void;
+  setMap(next: Record<string, ComponentEntry>): void;
 }
 
 function notify(listeners: Map<string, Set<() => void>>, key: string): void {
@@ -42,7 +42,7 @@ function notify(listeners: Map<string, Set<() => void>>, key: string): void {
 }
 
 export function createElementsStore(
-  initial: Record<string, Fired.Element>,
+  initial: Record<string, ComponentEntry>,
 ): ElementsStore {
   let map = initial;
   const listeners = new Map<string, Set<() => void>>();
@@ -102,7 +102,7 @@ export function useElementsStore(): ElementsStore {
  * Subscribe to a single element by key. Re-renders the caller only when that
  * key's element identity changes — independent of any parent re-render.
  */
-export function useElement(elementKey: string): Fired.Element | undefined {
+export function useElement(elementKey: string): ComponentEntry | undefined {
   const store = useElementsStore();
   const subscribe = useCallback(
     (listener: () => void) => store.subscribe(elementKey, listener),

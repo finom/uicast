@@ -31,8 +31,8 @@ sub-language is [`EXPRESSIONS.md`](./EXPRESSIONS.md); the reactive state model i
 packages/react/src/
 ├── render/
 │   ├── recursive-renderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
-│   ├── renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the catalog array prop; per-instance root; wraps RendererRegistryProvider
-│   ├── create-ai-component-renderer.tsx  — renderer factory: pairs a core def with a React component
+│   ├── renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
+│   ├── create-component-implementation.tsx  — renderer factory: pairs a core def with a React component
 │   ├── renderer-registry.tsx           — React context: { renderers, components, functions }
 │   ├── error-boundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
 │   └── fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
@@ -42,15 +42,15 @@ packages/react/src/
 ```
 
 Everything agnostic is imported from `@ui-fired/core`: the element types
-(`Fired`), `evaluate` / `extractDeps` / `parseScope`, `createProxyScope`, the
-def factory `createAIComponentDef`, and `buildElementsById`. The binding
+(`ComponentEntry` / `ComponentListEntry`), `evaluate` / `extractDeps` / `parseScope`, `createProxyScope`, the
+def factory `createComponentDefinition`, and `buildElementsById`. The binding
 adds **only** React. `react` / `react-dom` are **peer** dependencies — the
 consuming app owns the single React instance.
 
 > **Strict boundary.** This package does **not** re-export anything from
 > `@ui-fired/core`. Import agnostic symbols from `@ui-fired/core`, React symbols
-> from `@ui-fired/react`. A catalog `renderer.tsx` therefore imports
-> `createAIComponentRenderer` from `@ui-fired/react`, `createAIComponentDef`
+> from `@ui-fired/react`. A catalog `impl.tsx` therefore imports
+> `createComponentImplementation` from `@ui-fired/react`, `createComponentDefinition`
 > from `@ui-fired/core`, and `cn` / `pickClick` from `@ui-fired/catalog`.
 
 ---
@@ -61,17 +61,17 @@ Three layers stack inside the binding.
 
 ### Outer — `<Renderer>`
 
-The catalog is a **prop** — an **array of renderers**, symmetric with
+The implementations are a **prop** — an **array of `ComponentImplementation`**, symmetric with
 `functions`. `<Renderer>` builds the name→renderer lookup itself; there's no
 separate builder step:
 
 ```tsx
 import { ConfirmModal } from "@ui-fired/catalog/components/ConfirmModal";
-import { componentRenderers } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/renderers";
 import { Renderer } from "@ui-fired/react";
 
 <Renderer
-  catalog={componentRenderers}                 // AIComponentRenderer[]
+  implementations={componentImplementations}                 // ComponentImplementation[]
   lines={elements}
   functions={hostFns}
   components={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied chrome
@@ -79,10 +79,10 @@ import { Renderer } from "@ui-fired/react";
 />
 ```
 
-`<Renderer>` turns the array into the `Record<string, AIComponentRenderer>` the
+`<Renderer>` turns the array into the `Record<string, ComponentImplementation>` the
 registry needs — keyed by `renderer.name` (=== the component name the generator
 emits) — always merging in the host-only `Fragment` renderer. On a **duplicate
-name the later renderer wins** (so `[...componentRenderers, MyCard]` overrides
+name the later renderer wins** (so `[...componentImplementations, MyCard]` overrides
 `Card`) and a `console.error` is logged so accidental double-registration is
 still loud.
 
@@ -90,18 +90,18 @@ still loud.
 identity must stay stable or every node re-renders. Pass a **module-const array**
 (like `functions`); a freshly-built array each render (inline `[...]` /
 `Object.values(...)`) would churn the context and re-render the whole tree. The
-catalog is as injectable as `functions` — override or extend components freely.
+implementations are as injectable as `functions` — override or extend components freely.
 
 Internally `<Renderer>`:
 
-- **Builds + memoizes the name→renderer map** from the `catalog` array (last
+- **Builds + memoizes the name→renderer map** from the `implementations` array (last
   entry wins on a duplicate name + `console.error`; the host `Fragment` is merged
   in last). Memoized on the array identity — hence the stable-reference rule
   above. Fragment is host-only (`hidden: true` in its def), renders
   `<>{children}</>` with no wrapping DOM, and is the one component the synthetic
   wrapper below references by name.
 - Memoizes the registry value (`{ renderers, components, functions }`) so context
-  identity only changes when `catalog`, `functions`, or `components` changes.
+  identity only changes when `implementations`, `functions`, or `components` changes.
 - Creates **one `root` reactive proxy per instance** (`createProxyScope({})` from
   core, lazy-init via ref) — each mounted `<Renderer>` owns isolated state.
 - `buildElementsById(lines)` (from core) flattens the JSONL into a key→element
@@ -161,7 +161,7 @@ the context and re-renders the whole tree. The map is extensible — adding a
 slot is one field here plus one resolution site (`RecursiveRenderer` for
 per-node chrome, `<Renderer>` for tree-level chrome).
 
-### Inner — `RecursiveRenderer` + `createAIComponentRenderer`
+### Inner — `RecursiveRenderer` + `createComponentImplementation`
 
 `RecursiveRenderer` walks the element tree. For each element:
 
@@ -178,7 +178,7 @@ per-node chrome, `<Renderer>` for tree-level chrome).
 4. **Render** `<Component element={element} scopes={scopes}>{children}</Component>`,
    where `Component` is the registered renderer entry.
 
-Inside the component, `createAIComponentRenderer`:
+Inside the component, `createComponentImplementation`:
 
 1. **Evaluate `element.props`** (core `evaluate`) against the current scopes →
    props object.
@@ -195,22 +195,22 @@ Inside the component, `createAIComponentRenderer`:
 
 ---
 
-## 3. Component renderer — `renderer.tsx`
+## 3. Component implementation — `impl.tsx`
 
 A renderable component is a **pair**: a `def.ts` (the partner module the LLM
-reads) and a `renderer.tsx` (the React component). The def half —
-`createAIComponentDef` — is **agnostic and lives in core**
-([`OVERVIEW.md`](./OVERVIEW.md) §12). The renderer half is React and pairs with
-the def via `createAIComponentRenderer` from this package:
+reads) and an `impl.tsx` (the React component). The def half —
+`createComponentDefinition` — is **agnostic and lives in core**
+([`OVERVIEW.md`](./OVERVIEW.md) §12). The implementation half is React and pairs with
+the def via `createComponentImplementation` from this package:
 
 ```tsx
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { Input as ShadcnInput } from "./shadcn-input";
-import { InputDef } from "./def"; // createAIComponentDef(...) — from @ui-fired/core
+import { InputDef } from "./def"; // createComponentDefinition(...) — from @ui-fired/core
 
-export const InputRenderer = createAIComponentRenderer({
+export const InputImpl = createComponentImplementation({
   def: InputDef,
-  renderer: ({ value, type = "text", placeholder, disabled, onChange, generatedKey }) => (
+  render: ({ value, type = "text", placeholder, disabled, onChange, generatedKey }) => (
     <ShadcnInput
       type={type}
       value={value as string}
@@ -226,7 +226,7 @@ export const InputRenderer = createAIComponentRenderer({
 The renderer's signature is **typed against the def**: props are inferred from
 `propDefs`, callbacks become `(args) => Promise<void>` from `callbackDefs`, plus
 an implicit `children?: ReactNode` and `generatedKey: string`. Registration
-(the `componentDefs` map + the `componentRenderers` array) is covered in
+(the `componentDefinitions` map + the `componentImplementations` array) is covered in
 [`OVERVIEW.md`](./OVERVIEW.md) §12 / §17 — the def map drives the prompt, the
 renderer array drives this binding.
 
@@ -297,7 +297,7 @@ cache) are in [`OVERVIEW.md`](./OVERVIEW.md) §16. React-binding specifics:
   item id, so per-item React state (input focus, edit mode) survives
   source-array mutations and re-renders. See [`OVERVIEW.md`](./OVERVIEW.md) §10.
 - **Context identity** — the registry value is memoized so context consumers
-  only re-render when `catalog`, `functions`, or `components` actually changes.
+  only re-render when `implementations`, `functions`, or `components` actually changes.
 
 ---
 
@@ -315,13 +315,13 @@ binding re-implements §2–§6 by calling exactly these, all from
 | `parseScope(dep)` | Split `scopes.X.Y` into `[scopeName, leafPath]` for subscription. |
 | `evaluate(valueSource, { scopes, evt? }, { functions })` | Run a `props` / `hidden` / `each` / `defaults` / `callbacks` expression against current state. Returns a value (or a Promise the binding suspends on). |
 | `buildElementsById(lines)` | Flatten the JSONL into a key→element map with partial-replacement. |
-| `Fired.isList(el)` | Branch element vs list during the tree walk. |
-| `createAIComponentDef` | Author the agnostic partner def (shared by every binding). |
+| `isComponentListEntry(el)` | Branch element vs list during the tree walk. |
+| `createComponentDefinition` | Author the agnostic partner def (shared by every binding). |
 
 The React-only pieces a binding **replaces**: the `useReducer`/`forceRender`
 subscription, `<Suspense>`/`use()` for async, `<Activity>` for `hidden`, the
 context registry, and the component-pair renderer factory
-(`createAIComponentRenderer`). None of those live in core.
+(`createComponentImplementation`). None of those live in core.
 
 ---
 

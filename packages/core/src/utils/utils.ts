@@ -1,4 +1,4 @@
-import type { Fired } from "../types";
+import type { ComponentEntry } from "../types";
 
 /**
  * Collect all descendant IDs of a given chunk (not including the chunk itself)
@@ -6,7 +6,7 @@ import type { Fired } from "../types";
  */
 function collectDescendantIds(
   id: string,
-  map: Record<string, Fired.Element>,
+  map: Record<string, ComponentEntry>,
 ): Set<string> {
   const result = new Set<string>();
   const stack = [id];
@@ -35,9 +35,9 @@ function collectDescendantIds(
  * regenerating the entire tree.
  */
 export function buildElementsById(
-  lines: Fired.Element[],
-): Record<string, Fired.Element> {
-  const map: Record<string, Fired.Element> = {};
+  lines: ComponentEntry[],
+): Record<string, ComponentEntry> {
+  const map: Record<string, ComponentEntry> = {};
 
   for (const line of lines) {
     if (map[line.key]) {

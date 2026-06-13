@@ -2,10 +2,10 @@ import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardTool } from "standard-tool";
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import {
-  type AIComponentRenderer,
-  createAIComponentRenderer,
+  type ComponentImplementation,
+  createComponentImplementation,
 } from "@ui-fired/react";
 import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
@@ -14,12 +14,12 @@ import {
   type RendererComponents,
 } from "@ui-fired/react";
 import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 // Lightweight test renderers wired the same way real catalog components are.
 
-const boxDef = createAIComponentDef({
+const boxDef = createComponentDefinition({
   name: "Box",
   description: "A plain div with optional text",
   props: z.object({
@@ -28,9 +28,9 @@ const boxDef = createAIComponentDef({
   }),
 });
 
-export const boxRenderer = createAIComponentRenderer({
+export const boxRenderer = createComponentImplementation({
   def: boxDef,
-  renderer: ({ text, className, children, generatedKey }) => (
+  render: ({ text, className, children, generatedKey }) => (
     <div data-key={generatedKey} className={className}>
       {text}
       {children}
@@ -38,16 +38,16 @@ export const boxRenderer = createAIComponentRenderer({
   ),
 });
 
-const buttonDef = createAIComponentDef({
+const buttonDef = createComponentDefinition({
   name: "Button",
   description: "Click target",
   props: z.object({ label: z.string().optional() }),
   callbacks: { onClick: z.object({}).optional() },
 });
 
-export const buttonRenderer = createAIComponentRenderer({
+export const buttonRenderer = createComponentImplementation({
   def: buttonDef,
-  renderer: ({ label, onClick, generatedKey }) => (
+  render: ({ label, onClick, generatedKey }) => (
     <button
       type="button"
       data-key={generatedKey}
@@ -58,38 +58,38 @@ export const buttonRenderer = createAIComponentRenderer({
   ),
 });
 
-const throwerDef = createAIComponentDef({
+const throwerDef = createComponentDefinition({
   name: "Thrower",
   description: "Always throws — used to exercise the error boundary",
   props: z.object({}),
 });
 
-export const throwerRenderer = createAIComponentRenderer({
+export const throwerRenderer = createComponentImplementation({
   def: throwerDef,
-  renderer: () => {
+  render: () => {
     throw new Error("BOOM_FROM_THROWER");
   },
 });
 
-const placeholderDef = createAIComponentDef({
+const placeholderDef = createComponentDefinition({
   name: "Placeholder",
   description: "Test placeholder rendered while children are unstreamed",
   props: z.object({}),
 });
 
-export const placeholderRenderer = createAIComponentRenderer({
+export const placeholderRenderer = createComponentImplementation({
   def: placeholderDef,
-  renderer: () => <span data-placeholder>placeholder</span>,
+  render: () => <span data-placeholder>placeholder</span>,
 });
 
-export const defaultRenderers: Record<string, AIComponentRenderer> = {
+export const defaultRenderers: Record<string, ComponentImplementation> = {
   Box: boxRenderer,
   Button: buttonRenderer,
   Thrower: throwerRenderer,
   Placeholder: placeholderRenderer,
 };
 
-// The array form of `defaultRenderers` for `<Renderer catalog={…}>` (the prop is
+// The array form of `defaultRenderers` for `<Renderer implementations={…}>` (the prop is
 // an array). A module const so the reference stays STABLE across re-renders —
 // tests that rerender depend on this; an inline `Object.values(...)` would churn
 // the registry and break the render-once / init-once guarantees.
@@ -98,7 +98,7 @@ export const defaultRenderersList = Object.values(defaultRenderers);
 type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
-  renderers?: Record<string, AIComponentRenderer>;
+  renderers?: Record<string, ComponentImplementation>;
   functions?: StandardTool[];
   components?: RendererComponents;
   /** Wrap the renderer in an additional element. */
@@ -110,7 +110,7 @@ type MountOptions = {
  * scope). Returns the @testing-library/react
  * render result plus the live scopes map so tests can drive state.
  */
-export function mountChunks(lines: Fired.Element[], options: MountOptions = {}) {
+export function mountChunks(lines: ComponentEntry[], options: MountOptions = {}) {
   const elements = buildElementsById(lines);
   const scopes: Record<string, ReturnType<typeof createProxyScope>> = {
     root: createProxyScope(options.rootScope ?? {}),

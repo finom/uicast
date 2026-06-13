@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -6,7 +6,7 @@ import z from "zod";
  * *grid-coordinate* payload — another shape the generic catalog has no notion
  * of, flowing through the same declarative callback pipeline.
  */
-export const StepSequencerDef = createAIComponentDef({
+export const StepSequencerDef = createComponentDefinition({
   name: "StepSequencer",
   description:
     "A step-sequencer grid: one row per track, one cell per step. Click a cell to toggle it. Emits the toggled cell's coordinates and its new on/off state.",

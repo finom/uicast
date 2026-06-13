@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import React, { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
-import { createAIComponentRenderer, Renderer } from "@ui-fired/react";
-import type { Fired } from "@ui-fired/core/types";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentImplementation, Renderer } from "@ui-fired/react";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import type { InitFn } from "@ui-fired/react";
 
 // ---------------------------------------------------------------------------
@@ -21,7 +21,7 @@ import type { InitFn } from "@ui-fired/react";
 // would have read 4, not 1.
 // ---------------------------------------------------------------------------
 
-const boxDef = createAIComponentDef({
+const boxDef = createComponentDefinition({
   name: "Box",
   description: "A plain div that records each render keyed by chunk id.",
   props: z.object({ text: z.string().optional() }),
@@ -30,9 +30,9 @@ const boxDef = createAIComponentDef({
 /** Fresh box renderer + a per-chunk render-count map, isolated per test. */
 function countingSetup() {
   const counts: Record<string, number> = {};
-  const boxRenderer = createAIComponentRenderer({
+  const boxRenderer = createComponentImplementation({
     def: boxDef,
-    renderer: ({ text, children, generatedKey }) => {
+    render: ({ text, children, generatedKey }) => {
       counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
       return (
         <div data-key={generatedKey}>
@@ -48,7 +48,7 @@ function countingSetup() {
 
 // A root whose children are all declared up-front, revealed one chunk per tick
 // (the slice() simulates the streaming JSONLines reveal `<Renderer>` is fed).
-const REVEAL: Fired.Element[] = [
+const REVEAL: ComponentEntry[] = [
   { key: "root", component: "Box", children: ["a", "b", "c", "d"] },
   { key: "a", component: "Box", props: { expr: "({ text: 'A' })" } },
   { key: "b", component: "Box", props: { expr: "({ text: 'B' })" } },
@@ -57,9 +57,9 @@ const REVEAL: Fired.Element[] = [
 ];
 
 function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
-  const { rerender } = render(<Renderer catalog={catalog} lines={REVEAL.slice(0, 1)} />);
+  const { rerender } = render(<Renderer implementations={catalog} lines={REVEAL.slice(0, 1)} />);
   for (let i = 2; i <= REVEAL.length; i++) {
-    rerender(<Renderer catalog={catalog} lines={REVEAL.slice(0, i)} />);
+    rerender(<Renderer implementations={catalog} lines={REVEAL.slice(0, i)} />);
   }
 }
 
@@ -83,13 +83,13 @@ describe("RecursiveRenderer — render-once during streaming", () => {
     const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
-        <Renderer catalog={catalog} lines={REVEAL.slice(0, 1)} />
+        <Renderer implementations={catalog} lines={REVEAL.slice(0, 1)} />
       </StrictMode>,
     );
     for (let i = 2; i <= REVEAL.length; i++) {
       rerender(
         <StrictMode>
-          <Renderer catalog={catalog} lines={REVEAL.slice(0, i)} />
+          <Renderer implementations={catalog} lines={REVEAL.slice(0, i)} />
         </StrictMode>,
       );
     }
@@ -104,9 +104,9 @@ describe("RecursiveRenderer — render-once during streaming", () => {
 describe("RecursiveRenderer — render-once on state change", () => {
   it("a parent re-rendering on its own state change does NOT cascade to a child", () => {
     const counts: Record<string, number> = {};
-    const boxRenderer = createAIComponentRenderer({
+    const boxRenderer = createComponentImplementation({
       def: boxDef,
-      renderer: ({ text, children, generatedKey }) => {
+      render: ({ text, children, generatedKey }) => {
         counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
         return (
           <div data-key={generatedKey}>
@@ -119,7 +119,7 @@ describe("RecursiveRenderer — render-once on state change", () => {
     const catalog = [boxRenderer];
 
     // Parent reads scopes.root.label; child reads nothing.
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -135,7 +135,7 @@ describe("RecursiveRenderer — render-once on state change", () => {
       captured = scopes;
     };
 
-    render(<Renderer catalog={catalog} lines={lines} init={init} />);
+    render(<Renderer implementations={catalog} lines={lines} init={init} />);
     expect(counts.root).toBe(1);
     expect(counts.child).toBe(1);
 

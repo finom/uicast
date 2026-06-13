@@ -1,6 +1,6 @@
-import { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
-export const countLines: Fired.Element[] = [
+export const countLines: ComponentEntry[] = [
   {
     key: "card1",
     component: "Card",

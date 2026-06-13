@@ -1,5 +1,5 @@
 import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
-import type { AIComponentDef } from "../render/create-ai-component-def";
+import type { ComponentDefinition } from "../render/create-component-definition";
 
 /**
  * Render an array of component defs into the prompt's component section — a
@@ -14,7 +14,7 @@ import type { AIComponentDef } from "../render/create-ai-component-def";
  * Mirrors `getFunctionsPartialPrompt` — same `# Available X` / `# X Details`
  * two-section shape.
  */
-export function getComponentsPartialPrompt(defs: AIComponentDef[]): string {
+export function getComponentsPartialPrompt(defs: ComponentDefinition[]): string {
 	const visible = defs.filter((def) => !def.hidden);
 	return (
 		"# Available Components\n\n" +

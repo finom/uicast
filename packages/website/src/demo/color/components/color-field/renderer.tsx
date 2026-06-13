@@ -1,13 +1,13 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { useRef } from "react";
 import { hslToHex } from "../../colors";
 import { ColorFieldDef } from "./def";
 
 /** Two drag surfaces: the SL square (x = saturation, y = lightness, top = light) and a hue strip. */
-export const ColorFieldRenderer = createAIComponentRenderer({
+export const ColorFieldRenderer = createComponentImplementation({
   def: ColorFieldDef,
-  renderer: ({ h = 220, s = 80, l = 55, onPick, generatedKey }) => {
+  render: ({ h = 220, s = 80, l = 55, onPick, generatedKey }) => {
     const sqRef = useRef<HTMLDivElement>(null);
     const sqDrag = useRef(false);
     const hueRef = useRef<HTMLDivElement>(null);

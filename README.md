@@ -17,8 +17,8 @@ step per generation.
   the recursive renderer + registry context, the per-element error boundary, and
   the confirm UI. Depends on `core`; `react` / `react-dom` are peer
   deps. See [`packages/core/docs/REACT.md`](./packages/core/docs/REACT.md).
-- **`packages/catalog`** — the component catalog. Component def/renderer pairs,
-  the underlying shadcn/Radix UI primitives, the `componentDefs` / `componentRenderers`
+- **`packages/catalog`** — the component catalog. Component def/impl pairs,
+  the underlying shadcn/Radix UI primitives, the `componentDefinitions` / `componentImplementations`
   registries, and the example element arrays. Depends on `core` + `react`.
 
 ## Consuming
@@ -32,7 +32,7 @@ modules directly via subpaths:
 ```ts
 import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
-import { componentRenderers } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/renderers";
 ```
 
 A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,

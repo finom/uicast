@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ui-fired/catalog/components/ui/dialog";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 // JSON token → Tailwind color. Tuned to read on the dialog's `bg-muted/40` code
 // panel in both light and dark themes.
@@ -51,7 +51,7 @@ function tokenizeJson(json: string): Token[] {
 }
 
 /**
- * Inspect one streamed chunk: the raw `Fired.Element` pretty-printed and
+ * Inspect one streamed chunk: the raw `ComponentEntry` pretty-printed and
  * syntax-highlighted, in a shadcn `Dialog`. Opened by clicking a line in
  * {@link StreamPanel}; the Dialog provides the overlay, the close button, and
  * close-on-Escape / click-outside.
@@ -61,7 +61,7 @@ export function ChunkModal({
   index,
   onClose,
 }: {
-  chunk: Fired.Element | null;
+  chunk: ComponentEntry | null;
   index: number | null;
   onClose: () => void;
 }) {

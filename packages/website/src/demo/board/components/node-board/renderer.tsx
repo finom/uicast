@@ -1,5 +1,5 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { useRef, useState } from "react";
 import { NodeBoardDef } from "./def";
 
@@ -8,9 +8,9 @@ import { NodeBoardDef } from "./def";
  * another node's port, to wire them (emits onConnect). The pending "from" node
  * is purely local UI state — the committed graph lives in scope.
  */
-export const NodeBoardRenderer = createAIComponentRenderer({
+export const NodeBoardRenderer = createComponentImplementation({
   def: NodeBoardDef,
-  renderer: ({ nodes = [], links = [], onMoveNode, onConnect, generatedKey }) => {
+  render: ({ nodes = [], links = [], onMoveNode, onConnect, generatedKey }) => {
     const boardRef = useRef<HTMLDivElement>(null);
     const dragId = useRef<string | null>(null);
     const [pendingFrom, setPendingFrom] = useState<string | null>(null);

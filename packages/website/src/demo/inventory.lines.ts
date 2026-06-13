@@ -1,8 +1,8 @@
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 /**
  * The generated artifact — the JSONLines a model would stream to build the
- * inventory app, hand-authored here as a typed `Fired.Element[]`. The demo
+ * inventory app, hand-authored here as a typed `ComponentEntry[]`. The demo
  * reveals these one element at a time to simulate streaming, feeding the
  * growing array to the engine's `<Renderer lines={…} />`.
  *
@@ -16,7 +16,7 @@ import type { Fired } from "@ui-fired/core/types";
  * - `defaults` whose expr returns a Promise suspend that element (Suspense),
  *   showing a placeholder until the data resolves — the async-defaults showcase.
  */
-export const inventoryLines: Fired.Element[] = [
+export const inventoryLines: ComponentEntry[] = [
   // Root: seeds all UI state + the async product load everything derives from.
   {
     key: "root",

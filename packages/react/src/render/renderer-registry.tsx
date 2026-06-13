@@ -3,7 +3,7 @@ import { createContext, useContext } from "react";
 import type React from "react";
 import type { StandardTool } from "standard-tool";
 import type { ConfirmComponentProps } from "../components/confirm";
-import type { AIComponentRenderer } from "./create-ai-component-renderer";
+import type { ComponentImplementation } from "./create-component-implementation";
 
 // Props for the `unknown` slot — the element's `component` name had no match
 // in the catalog.
@@ -47,7 +47,7 @@ export type RendererComponents = {
 };
 
 export type RendererRegistry = {
-  renderers: Record<string, AIComponentRenderer>;
+  renderers: Record<string, ComponentImplementation>;
   // Host-supplied system/chrome component overrides (see `RendererComponents`).
   // Stabilised by `<Renderer>` so its identity doesn't churn this context value
   // (which would re-render every node).

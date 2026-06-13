@@ -1,4 +1,4 @@
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
 /**
  * The flow-board artifact. One `scopes.root.*` namespace holds the nodes and
@@ -8,7 +8,7 @@ import type { Fired } from "@ui-fired/core/types";
  * callback also records itself in `scopes.root.lastEvt` so the "Last event"
  * panel shows the payload shape change between a drag and a connect.
  */
-export const boardLines: Fired.Element[] = [
+export const boardLines: ComponentEntry[] = [
   {
     key: "root",
     component: "FlexCol",

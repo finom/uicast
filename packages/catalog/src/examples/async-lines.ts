@@ -1,6 +1,6 @@
-import { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
-export const asyncLines: Fired.Element[] = [
+export const asyncLines: ComponentEntry[] = [
   {
     key: "users-table",
     component: "Table",

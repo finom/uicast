@@ -1,0 +1,31 @@
+import { createComponentImplementation } from "@ui-fired/react";
+import { Input } from "@ui-fired/catalog/components/ui/input";
+import { NumberInputDef } from "./def";
+
+export const NumberInputImpl = createComponentImplementation({
+  def: NumberInputDef,
+  render: ({
+    value,
+    min,
+    max,
+    step,
+    disabled = false,
+    placeholder,
+    onChange,
+    generatedKey,
+  }) => {
+    return (
+      <Input
+        type="number"
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        disabled={disabled}
+        placeholder={placeholder}
+        onChange={(e) => onChange?.({ value: e.target.valueAsNumber || 0 })}
+        data-key={generatedKey}
+      />
+    );
+  },
+});

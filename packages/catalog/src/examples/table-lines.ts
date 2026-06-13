@@ -1,6 +1,6 @@
-import { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
-export const tableLines: Fired.Element[] = [
+export const tableLines: ComponentEntry[] = [
   {
     key: "table-card",
     component: "Table",

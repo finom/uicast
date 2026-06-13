@@ -1,11 +1,11 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — lists", () => {
   it("renders one child per item from each", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -28,7 +28,7 @@ describe("RecursiveRenderer — lists", () => {
   });
 
   it("re-renders when each is replaced wholesale", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -56,7 +56,7 @@ describe("RecursiveRenderer — lists", () => {
   });
 
   it("renders nothing for an empty list", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -79,7 +79,7 @@ describe("RecursiveRenderer — lists", () => {
     // Bug-class regression: a list whose each references another path
     // (e.g. a search filter) must subscribe to that path so typing into a
     // search input re-renders the list.
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",

@@ -1,4 +1,4 @@
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
 /**
@@ -7,7 +7,7 @@ import z from "zod";
  * component whose event payload is whatever it needs. Here: a rotary knob whose
  * `onTurn` reports the new scalar value.
  */
-export const KnobDef = createAIComponentDef({
+export const KnobDef = createComponentDefinition({
   name: "Knob",
   description:
     "A rotary knob. Drag up to increase, down to decrease. Emits the new value on every change.",

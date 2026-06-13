@@ -1,4 +1,4 @@
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { asyncLines } from "./async-lines";
 import { chartLines } from "./chart-lines";
 import { countLines } from "./count-lines";
@@ -22,7 +22,7 @@ export {
 type PromptExample = {
   title: string;
   sourcePrompt: string;
-  lines: Fired.Element[];
+  lines: ComponentEntry[];
 };
 
 export const catalogExamples: PromptExample[] = [

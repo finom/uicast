@@ -1,7 +1,7 @@
 import z from "zod";
 import type { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
-import { createAIComponentRenderer } from "./create-ai-component-renderer";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentImplementation } from "./create-component-implementation";
 
 /**
  * Context passed to the consumer's `init` callback. `scopes` is the live
@@ -31,12 +31,12 @@ export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 //  - `Renderer` constructs synthetic chunks with `component: "Fragment"` —
 //    the renderer registry must contain a match, or the catch-all "Unknown
 //    component" branch trips. `<Renderer>` always merges it into the catalog
-//    map (and the matching def is auto-merged in `createAIComponentDefs`), so
+//    map (and the matching def is auto-merged in `createComponentDefinitions`), so
 //    consumers don't register it manually.
 //  - It carries `hidden: true` so the LLM never sees it in its component
 //    menu — the wrapper is host infrastructure, not a UI primitive.
 
-export const FragmentDef = createAIComponentDef({
+export const FragmentDef = createComponentDefinition({
   name: "Fragment",
   description:
     "Host-only wrapper that renders its children directly with no DOM. Not emitted by the LLM.",
@@ -44,9 +44,9 @@ export const FragmentDef = createAIComponentDef({
   hidden: true,
 });
 
-export const FragmentRenderer = createAIComponentRenderer({
+export const FragmentRenderer = createComponentImplementation({
   def: FragmentDef,
-  renderer: ({ children }) => <>{children}</>,
+  render: ({ children }) => <>{children}</>,
 });
 
 /** Stable key used by `Renderer` for its synthetic Fragment chunk. */

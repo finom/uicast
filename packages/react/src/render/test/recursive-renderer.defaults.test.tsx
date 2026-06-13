@@ -2,12 +2,12 @@ import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { StandardTool } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { defaultRenderersList, mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -21,7 +21,7 @@ describe("RecursiveRenderer — defaults", () => {
   });
 
   it("seeds via expression", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -35,7 +35,7 @@ describe("RecursiveRenderer — defaults", () => {
 
   it("runs each default exactly once on mount", () => {
     let count = 0;
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -70,7 +70,7 @@ describe("RecursiveRenderer — defaults", () => {
     // only flush a top-level Suspense recovery when the initial mount runs
     // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
     // The async default is gated so it resolves inside act().
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -89,7 +89,7 @@ describe("RecursiveRenderer — defaults", () => {
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <Renderer catalog={defaultRenderersList} lines={lines} functions={functions} />,
+        <Renderer implementations={defaultRenderersList} lines={lines} functions={functions} />,
       ).container;
     });
     // Suspended on the pending default — the value isn't shown yet.

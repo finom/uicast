@@ -1,7 +1,7 @@
 "use client";
 import React, { memo, Suspense, use, useEffect, useReducer, useRef } from "react";
 import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import { Fired } from "@ui-fired/core/types";
+import { isComponentListEntry } from "@ui-fired/core/types";
 import {
   type UnknownComponentProps,
   useRendererRegistry,
@@ -72,7 +72,7 @@ const RecursiveRendererImpl = ({
   // A list chunk reached as a child slot must render as a LIST (iterate items);
   // the same chunk reached per-item (`asListItem`) renders as a normal
   // component in the item scope.
-  const isListContainer = !!element && Fired.isList(element) && !asListItem;
+  const isListContainer = !!element && isComponentListEntry(element) && !asListItem;
 
   // Reactive subscriptions. The dep set is auto-derived from the chunk's own
   // expression text via static AST walk — `extractDeps` walks every
@@ -132,7 +132,7 @@ const RecursiveRendererImpl = ({
   // as `[]` rather than `null`, so the truthy `[]` would otherwise leak past
   // this guard and produce an empty React-children array. Downstream that
   // empty array clobbers any `children` value supplied through `chunk.props`
-  // (createAIComponentRenderer spreads it second). Collapse to `null` for leaf
+  // (createComponentImplementation spreads it second). Collapse to `null` for leaf
   // chunks so the props-supplied children survive.
   //
   // Each child is rendered unconditionally as its own slot — the child decides
@@ -319,7 +319,7 @@ const ListRendererImpl = ({
 
   if (!element) return <></>;
 
-  if (!Fired.isList(element)) {
+  if (!isComponentListEntry(element)) {
     // A key that mounted as a list was replaced by a non-list element — an
     // invariant break, surfaced through the same `error` slot as render throws.
     const ErrorComponent = components?.error ?? DefaultErrorComponent;

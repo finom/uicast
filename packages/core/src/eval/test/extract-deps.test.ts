@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import type { Fired } from "../../types";
+import type { ComponentEntry, ComponentListEntry } from "../../types";
 import { extractDeps } from "../extract-deps";
 
 const element = (
-  patch: Partial<Fired.Element>,
-): Fired.Element => ({
+  patch: Partial<ComponentEntry>,
+): ComponentEntry => ({
   key: "x",
   component: "C",
   ...patch,
 });
 
-const list = (patch: Partial<Fired.List>): Fired.List => ({
+const list = (patch: Partial<ComponentListEntry>): ComponentListEntry => ({
   key: "x",
   component: "Row",
   as: "item",
@@ -181,7 +181,7 @@ describe("extractDeps — caching and purity", () => {
     // carries a legacy `deps: [...]` field, it MUST be ignored by the
     // extractor — auto-detection is the only source of truth.
     const c = element({ props: { expr: "scopes.root.real" } }) as unknown as
-      Fired.Element & { deps: string[] };
+      ComponentEntry & { deps: string[] };
     c.deps = ["scopes.root.LEGACY_SHOULD_NOT_LEAK"];
     expect(extractDeps(c)).toEqual(["scopes.root.real"]);
   });

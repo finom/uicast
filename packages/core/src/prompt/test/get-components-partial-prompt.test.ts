@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createAIComponentDef } from "../../render/create-ai-component-def";
+import { createComponentDefinition } from "../../render/create-component-definition";
 import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
 
 // The `hidden` flag exists so host-only components (like Fragment, the
@@ -10,7 +10,7 @@ import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
 
 describe("getComponentsPartialPrompt — hidden filter", () => {
 	it("includes visible defs", () => {
-		const Visible = createAIComponentDef({
+		const Visible = createComponentDefinition({
 			name: "Visible",
 			description: "A regular LLM-visible component",
 			props: z.object({}),
@@ -19,12 +19,12 @@ describe("getComponentsPartialPrompt — hidden filter", () => {
 	});
 
 	it("excludes defs marked hidden: true", () => {
-		const Visible = createAIComponentDef({
+		const Visible = createComponentDefinition({
 			name: "Visible",
 			description: "advertised",
 			props: z.object({}),
 		});
-		const Hidden = createAIComponentDef({
+		const Hidden = createComponentDefinition({
 			name: "Hidden",
 			description: "host-only",
 			props: z.object({}),

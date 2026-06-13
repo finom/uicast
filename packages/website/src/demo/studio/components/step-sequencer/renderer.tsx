@@ -1,10 +1,10 @@
 "use client";
-import { createAIComponentRenderer } from "@ui-fired/react";
+import { createComponentImplementation } from "@ui-fired/react";
 import { StepSequencerDef } from "./def";
 
-export const StepSequencerRenderer = createAIComponentRenderer({
+export const StepSequencerRenderer = createComponentImplementation({
   def: StepSequencerDef,
-  renderer: ({
+  render: ({
     tracks = [],
     steps = 16,
     pattern = [],

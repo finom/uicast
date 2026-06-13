@@ -22,7 +22,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
 
 ```
    ┌────────────────────┐       ┌─────────────────────┐
-   │ Fired.Element[]   │       │ host functions      │
+   │ ComponentEntry[]   │       │ host functions      │
    │ (stream / array /  │       │ (RPC calls, runtime │
    │  rehydrated DB)    │       │  helpers)           │
    └──────────┬─────────┘       └──────────┬──────────┘
@@ -49,7 +49,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
    └──────────────────────────────────────────────────┘
 ```
 
-The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createAIComponentRenderer` layers shown here are the **reference React binding** — full pipeline detail (including the `<Suspense>` / `<Activity>` mechanics) is in [`REACT.md`](./REACT.md) §2. From the engine's side, what crosses the seam is `createProxyScope`, `buildElementsById`, `extractDeps`, and `evaluate` — see §7 of [`REACT.md`](./REACT.md) for the exact surface a non-React binding implements.
+The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createComponentImplementation` layers shown here are the **reference React binding** — full pipeline detail (including the `<Suspense>` / `<Activity>` mechanics) is in [`REACT.md`](./REACT.md) §2. From the engine's side, what crosses the seam is `createProxyScope`, `buildElementsById`, `extractDeps`, and `evaluate` — see §7 of [`REACT.md`](./REACT.md) for the exact surface a non-React binding implements.
 
 ---
 
@@ -57,7 +57,7 @@ The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createAIC
 
 ```
 packages/core/src/                   — the framework-agnostic engine (zero React)
-├── types.ts                         — Fired.Element + Fired.List (list = element with required each/as), ValueSource, ValueSourceAssignment
+├── types.ts                         — ComponentEntry + ComponentListEntry (list = element with required each/as), ValueSource, ValueSourceAssignment
 ├── eval/
 │   ├── safe-eval.ts                  — the security boundary: validate + compile + shadow globals (acorn-based)
 │   ├── ast.ts                       — shared AST primitives (isNode, childNodes)
@@ -69,8 +69,8 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 │   ├── create-proxy-scope.ts          — the Proxy state container + path-keyed emitter (see SCOPES.md)
 │   └── parse-scope.ts                — splits a `scopes.X.Y` key into [scopeName, leafPath]
 ├── render/
-│   ├── create-ai-component-def.ts      — def factory: { description, propDefs, callbackDefs, hidden } (agnostic partner-def half)
-│   └── create-ai-component-defs.ts     — registry of defs + prompt-fragment generator (skips hidden)
+│   ├── create-component-definition.ts      — def factory: { description, propDefs, callbackDefs, hidden } (agnostic partner-def half)
+│   └── create-component-definitions.ts     — registry of defs + prompt-fragment generator (skips hidden)
 ├── prompt-utils/
 │   └── json-schema-to-ts.ts            — render JSON Schema to TS-like string for the prompt
 ├── prompt/
@@ -81,19 +81,19 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createAIComponentRenderer`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
 
 ---
 
 ## 4. The element model — `types.ts`
 
-An **element** (one JSONL line) is a `Fired.Element`. The shape carries `key`, `component`, and the optional `props` / `defaults` / `hidden` / `callbacks` / `children`, plus the optional list fields `each` / `as` / `keyBy`. An element is a **list** (`Fired.List`) **iff** it carries `each` — list-ness is structural, the same way root-ness is (an element that no `children` array references). There's no `kind` discriminator; narrow in TS with `Fired.isList(el)`.
+An **element** (one JSONL line) is a `ComponentEntry`. The shape carries `key`, `component`, and the optional `props` / `defaults` / `hidden` / `callbacks` / `children`, plus the optional list fields `each` / `as` / `keyBy`. An element is a **list** (`ComponentListEntry`) **iff** it carries `each` — list-ness is structural, the same way root-ness is (an element that no `children` array references). There's no `kind` discriminator; narrow in TS with `isComponentListEntry(el)`.
 
 > **Per-property reference → [`LINES.md`](./LINES.md).** Every field, its type, its value forms (`literal` / `expr` / `set` / `confirm`), and its authoring semantics live there. This section covers only how the runtime treats the element model as a whole.
 
-(Any streaming envelope around elements — a per-line meta object, or a union of `Fired.Element` with such an envelope — is **not** a core type. Core is transport-agnostic: the consuming app owns whatever it wraps elements in on the wire.)
+(Any streaming envelope around elements — a per-line meta object, or a union of `ComponentEntry` with such an envelope — is **not** a core type. Core is transport-agnostic: the consuming app owns whatever it wraps elements in on the wire.)
 
-The element's tree-shape (parent → children by key reference) lives in `buildElementsById` ([`utils.ts`](../src/utils/utils.ts)) which flattens the JSONL array into a `Record<key, Fired.Element>` map, applying partial-replacement semantics on duplicate keys (§14).
+The element's tree-shape (parent → children by key reference) lives in `buildElementsById` ([`utils.ts`](../src/utils/utils.ts)) which flattens the JSONL array into a `Record<key, ComponentEntry>` map, applying partial-replacement semantics on duplicate keys (§14).
 
 ---
 
@@ -181,7 +181,7 @@ For each element, the renderer subscribes to every scope path the element *reads
 
 1. `SafeEval.validate(expr)` runs the acorn parse + AST walk. Same pass extracts every `scopes.X.Y` chain it sees. Stops a chain at the first `CallExpression` callee segment (`.filter` etc.), `ComputedMember`, or non-Identifier property. Recurses into call arguments and computed-key sub-expressions so reads inside `.filter(r => …scopes.root.x…)` are still captured.
 2. `safeEval.scopeReads(expression)` returns the cached `string[]`.
-3. `extractDeps(element)` unions the read sets across all reactive sites of one element and caches the union in a `WeakMap<Fired.Element, string[]>` so the per-render lookup is O(1).
+3. `extractDeps(element)` unions the read sets across all reactive sites of one element and caches the union in a `WeakMap<ComponentEntry, string[]>` so the per-render lookup is O(1).
 4. The binding subscribes: for each dep, `parseScope(dep)` → `[scope, path]`, then `scopes[scope].$emitter.on(path, notify)`. In the React binding `notify` is a `forceRender` (see [`REACT.md`](./REACT.md) §2); a different binding wires its own reactivity to the same `$emitter`.
 
 ### Why static AST
@@ -291,21 +291,21 @@ The list element's `component` is rendered **once per item**. There's no separat
 
 ## 11. Rendering pipeline
 
-The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `catalog` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createAIComponentRenderer` tree walk, the synthetic `Fragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
+The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `implementations` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createComponentImplementation` tree walk, the synthetic `Fragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
 
 ---
 
-## 12. Component registration — def + renderer
+## 12. Component registration — def + impl
 
-A renderable component is a pair of declarations, conventionally co-located in the consuming catalog. The **def** half is agnostic and lives in core; the **renderer** half is React and lives in `@ui-fired/react`.
+A renderable component is a pair of declarations, conventionally co-located in the consuming catalog. The **def** half is agnostic and lives in core; the **implementation** half is React and lives in `@ui-fired/react`.
 
 ### `def.ts` — the *partner module* the LLM reads
 
 ```ts
-import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
 import z from "zod";
 
-export const InputDef = createAIComponentDef({
+export const InputDef = createComponentDefinition({
   description: "A text input field…",
   propDefs: z.strictObject({
     value: z.any().meta({ description: "The current input value" }),
@@ -324,24 +324,24 @@ export const InputDef = createAIComponentDef({
 });
 ```
 
-The def's `description` and the JSON-Schema of `propDefs` / `callbackDefs` get serialized into the LLM prompt via `createAIComponentDefs.getDefPartialPrompt()`, which renders Zod schemas to TypeScript-like type strings using `JSONSchemaToTs`.
+The def's `description` and the JSON-Schema of `propDefs` / `callbackDefs` get serialized into the LLM prompt via `createComponentDefinitions.getDefPartialPrompt()`, which renders Zod schemas to TypeScript-like type strings using `JSONSchemaToTs`.
 
-### `renderer.tsx` — the actual React component
+### `impl.tsx` — the actual React component
 
-The renderer half of the pair is React and lives in `@ui-fired/react`, paired with the def via `createAIComponentRenderer`. See [`REACT.md`](./REACT.md) §3 for the `renderer.tsx` shape and how its signature is typed against the def.
+The implementation half of the pair is React and lives in `@ui-fired/react`, paired with the def via `createComponentImplementation`. See [`REACT.md`](./REACT.md) §3 for the `impl.tsx` shape and how its signature is typed against the def.
 
 ### Registration
 
 The consumer maintains two registries:
 
-- `componentDefs` — `createAIComponentDefs({...})` maps name → def. Drives the prompt. (core)
-- `componentRenderers` — array of renderers passed to `<Renderer catalog={…}>`, which builds the name → renderer map. (React binding)
+- `componentDefinitions` — `createComponentDefinitions({...})` maps name → def. Drives the prompt. (core)
+- `componentImplementations` — array of renderers passed to `<Renderer implementations={…}>`, which builds the name → renderer map. (React binding)
 
 **Adding a component requires updating both maps.** There's no codegen step linking them — discipline only.
 
 ### Hiding host-only defs from the LLM
 
-`createAIComponentDef` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getDefPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
+`createComponentDefinition` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getDefPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
 
 Today the only `hidden` def is `Fragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the catalog map by `<Renderer>`, so consumers don't have to register it manually.
 
@@ -399,7 +399,7 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 ## 16. Performance notes
 
 - **Expression parse** — once per unique expression string, cached on `SafeEval.#cache` (LRU @ 500 entries default). Subsequent compiles / evaluates are O(1) cache hits. Acorn parse of a 30-100 char expression is ~10-25 μs; the cached path is sub-microsecond.
-- **`extractDeps`** — `WeakMap<Fired.Element, string[]>`. One walk per element reference, free thereafter.
+- **`extractDeps`** — `WeakMap<ComponentEntry, string[]>`. One walk per element reference, free thereafter.
 - **Proxy cache** — `WeakMap<object, object>` (see [`SCOPES.md`](./SCOPES.md)). Same source object → same proxy reference. Cheap subscribe / unsubscribe across re-renders because handler-set membership is by reference.
 - **No virtual-DOM diffing of derived state** — instead of recomputing every prop every render, the proxy emits exactly one event per write, and only the elements subscribed to that path re-render.
 - **Re-render granularity & item-proxy durability** — binding-specific; see [`REACT.md`](./REACT.md) §6. (The engine emits one event per write; the binding decides what re-renders.)
@@ -410,7 +410,7 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 
 1. Pick a name (PascalCase, matches the LLM-visible component string).
 2. Create `<Name>/def.ts` with `description`, `propDefs`, `callbackDefs`.
-3. Create `<Name>/renderer.tsx` pairing the def with the React render function.
+3. Create `<Name>/impl.tsx` pairing the def with the React render function.
 4. Register in your catalog's `defs.ts` and `renderers.ts`. Both maps must include the new entry — without both, the LLM either can't produce the component or can produce but not render it.
 5. If the component has nontrivial events, define the event payload schema with Zod meta-descriptions so the LLM knows the field names it'll see in `evt`.
 

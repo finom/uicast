@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — errors", () => {
   it("renders an inline fallback when the component is not in the registry", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "DoesNotExist",
@@ -15,7 +15,7 @@ describe("RecursiveRenderer — errors", () => {
   });
 
   it("renders the components.unknown slot when supplied", () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "DoesNotExist",
@@ -38,7 +38,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Thrower",
@@ -56,7 +56,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Thrower",
@@ -82,7 +82,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -110,7 +110,7 @@ describe("RecursiveRenderer — errors", () => {
       .spyOn(console, "error")
       .mockImplementation(() => {});
 
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",

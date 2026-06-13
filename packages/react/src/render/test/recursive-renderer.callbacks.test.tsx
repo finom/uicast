@@ -1,11 +1,11 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — callbacks", () => {
   it("fires a callback that $sets a path the renderer reads", async () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
@@ -45,7 +45,7 @@ describe("RecursiveRenderer — callbacks", () => {
 
   it("makes evt available inside callback expressions", async () => {
     const onClick = vi.fn();
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Button",
@@ -79,7 +79,7 @@ describe("RecursiveRenderer — callbacks", () => {
   });
 
   it("runs multiple set-expressions in a single callback in order", async () => {
-    const lines: Fired.Element[] = [
+    const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",

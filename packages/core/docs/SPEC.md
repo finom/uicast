@@ -30,11 +30,11 @@
   from and write to. Not a protocol: there is no interactive request/response
   exchange — a producer emits a document, a runtime renders it.
 - **element** — the unit of the format. One node of the UI tree, of type
-  `Fired.Element`. Carries an identity (`key`), a `component` to render, and
+  `ComponentEntry`. Carries an identity (`key`), a `component` to render, and
   optional inputs (`props`), state seeds (`defaults`), visibility (`hidden`),
   event handlers (`callbacks`), and `children`.
 - **list** — an element that **repeats**: it carries an `each` (the collection)
-  and an `as` (the per-iteration scope name). Type `Fired.List`. Each repetition
+  and an `as` (the per-iteration scope name). Type `ComponentListEntry`. Each repetition
   is an **item**.
 - **document** — a complete set of elements describing one UI tree (exactly one
   root, every other element referenced as a child exactly once).
@@ -50,7 +50,7 @@
 The model is **encoding-independent**: a set of elements forming a tree, plus the
 value/expression sub-language they use. It says nothing about JSONL, line order,
 or how the document arrives. The canonical type definitions live in
-[`types.ts`](../src/types.ts) under the `Fired` namespace.
+[`types.ts`](../src/types.ts) as `ComponentEntry` / `ComponentListEntry` (with the `isComponentListEntry` guard).
 
 ### 1.1 Element
 
@@ -70,7 +70,7 @@ An element is one node:
 | `keyBy` | no | **List only.** Per-item identity: `"_index"`, `"_item"`, or a property name. |
 
 There is **one** element type. `each` / `as` / `keyBy` are optional on every
-element; a `Fired.List` is the same shape with `each` and `as` required. There
+element; a `ComponentListEntry` is the same shape with `each` and `as` required. There
 is no `kind` discriminator — see [§1.3](#13-the-tree).
 
 ### 1.2 Value sources & assignments
@@ -98,7 +98,7 @@ structural rules, both with **no marker field**:
 - **Root** — the single element whose `key` appears in no other element's
   `children`. Derived structurally, not flagged.
 - **List-ness** — an element is a list **iff** it carries `each`. Derived
-  structurally, not flagged (`Fired.isList(el)` ⇔ `each` present).
+  structurally, not flagged (`isComponentListEntry(el)` ⇔ `each` present).
 
 A document MUST have exactly one root; every non-root element MUST be referenced
 as a child exactly once. A list MUST NOT be the root.

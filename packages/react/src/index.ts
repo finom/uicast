@@ -13,11 +13,11 @@
 // of the confirm seam; the context + host live behind `<Renderer>`.
 export type { ConfirmComponentProps } from "./components/confirm";
 // Component-renderer factory — the React half of the component-pair pattern
-// (`createAIComponentDef` stays in core).
+// (`createComponentDefinition` stays in core).
 export {
-  type AIComponentRenderer,
-  createAIComponentRenderer,
-} from "./render/create-ai-component-renderer";
+  type ComponentImplementation,
+  createComponentImplementation,
+} from "./render/create-component-implementation";
 export { Renderer, type RendererProps } from "./render/renderer";
 export { ErrorBoundary } from "./render/error-boundary";
 // Host-seeding (`init`) types, surfaced by the synthetic Fragment renderer.

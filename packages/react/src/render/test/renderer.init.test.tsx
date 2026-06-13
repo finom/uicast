@@ -2,7 +2,7 @@ import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Renderer } from "@ui-fired/react";
 import type { InitFn } from "@ui-fired/react";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { defaultRenderersList } from "../../../test/render-helpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
@@ -18,7 +18,7 @@ import { defaultRenderersList } from "../../../test/render-helpers";
 
 describe("Renderer — init prop", () => {
 	it("sync init seeds scope before children mount", () => {
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -30,12 +30,12 @@ describe("Renderer — init prop", () => {
 			(scopes.root as Record<string, unknown>).greeting = "hello";
 		};
 
-		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
+		const { container } = render(<Renderer implementations={defaultRenderersList} lines={lines} init={init} />);
 		expect(container.textContent).toContain("hello");
 	});
 
 	it("async init Suspends until the Promise resolves, then renders children", async () => {
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -62,7 +62,7 @@ describe("Renderer — init prop", () => {
 		// hang seeing only the fallback.
 		let container!: HTMLElement;
 		await act(async () => {
-			const result = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
+			const result = render(<Renderer implementations={defaultRenderersList} lines={lines} init={init} />);
 			container = result.container;
 		});
 
@@ -80,7 +80,7 @@ describe("Renderer — init prop", () => {
 	});
 
 	it("renders normally when init is omitted (Fragment wrap is invisible)", () => {
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -88,7 +88,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} />);
+		const { container } = render(<Renderer implementations={defaultRenderersList} lines={lines} />);
 		expect(container.textContent).toContain("plain");
 
 		// The Fragment wrapper renders via React.Fragment — no extra DOM
@@ -108,18 +108,18 @@ describe("Renderer — init prop", () => {
 		const initSpy = vi.fn<InitFn>(({ scopes }) => {
 			(scopes.root as Record<string, unknown>).seed = "once";
 		});
-		const initialLines: Fired.Element[] = [
+		const initialLines: ComponentEntry[] = [
 			{
 				key: "a",
 				component: "Box",
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
-		const { container, rerender } = render(<Renderer catalog={defaultRenderersList} lines={initialLines} init={initSpy} />);
+		const { container, rerender } = render(<Renderer implementations={defaultRenderersList} lines={initialLines} init={initSpy} />);
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
-		const nextLines: Fired.Element[] = [
+		const nextLines: ComponentEntry[] = [
 			...initialLines,
 			{
 				key: "b",
@@ -127,7 +127,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
-		rerender(<Renderer catalog={defaultRenderersList} lines={nextLines} init={initSpy} />);
+		rerender(<Renderer implementations={defaultRenderersList} lines={nextLines} init={initSpy} />);
 
 		// The synthetic Fragment reconciled by stable key — init did NOT
 		// re-fire when a new sibling root chunk streamed in.
@@ -140,7 +140,7 @@ describe("Renderer — init prop", () => {
 		const initSpy = vi.fn<InitFn>(({ scopes }) => {
 			(scopes.root as Record<string, unknown>).label = "shared";
 		});
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "rootA",
 				component: "Box",
@@ -153,7 +153,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={initSpy} />);
+		const { container } = render(<Renderer implementations={defaultRenderersList} lines={lines} init={initSpy} />);
 
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A=shared");
@@ -161,7 +161,7 @@ describe("Renderer — init prop", () => {
 	});
 
 	it("seeds nested object state — downstream chunk reads via string expression", () => {
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -178,7 +178,7 @@ describe("Renderer — init prop", () => {
 			};
 		};
 
-		const { container } = render(<Renderer catalog={defaultRenderersList} lines={lines} init={init} />);
+		const { container } = render(<Renderer implementations={defaultRenderersList} lines={lines} init={init} />);
 		expect(container.textContent).toContain("Email");
 	});
 });

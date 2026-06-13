@@ -1,6 +1,6 @@
-import { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 
-export const demoLines: Fired.Element[] = [
+export const demoLines: ComponentEntry[] = [
   {
     key: "root",
     component: "FlexCol",

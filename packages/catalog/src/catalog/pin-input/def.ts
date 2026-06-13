@@ -1,0 +1,34 @@
+import z from "zod";
+import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+
+export const PinInputDef = createComponentDefinition({
+  name: "PinInput",
+  description:
+    "A verification/OTP code entry with segmented digit inputs. Renders a row of individual character inputs. Use PinInput for two-factor authentication, verification codes, or OTP entry.",
+  props: z.strictObject({
+    value: z.string().default("").meta({
+      description: "The current pin value",
+    }),
+    length: z.number().default(6).meta({
+      description: "Number of digits/characters in the pin",
+    }),
+    mask: z.boolean().default(false).meta({
+      description:
+        "Whether to mask the input (show dots instead of characters)",
+    }),
+    disabled: z.boolean().default(false).meta({
+      description: "Whether the input is disabled",
+    }),
+    type: z.enum(["numeric", "alphanumeric"]).default("numeric").meta({
+      description: "Type of characters allowed",
+    }),
+  }),
+  callbacks: {
+    onChange: z.strictObject({
+      value: z.string().meta({ description: "The current pin value" }),
+    }),
+    onComplete: z.strictObject({
+      value: z.string().meta({ description: "The complete pin value" }),
+    }),
+  },
+});

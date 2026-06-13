@@ -1,11 +1,11 @@
 "use client";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
 import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 import type { StandardTool } from "standard-tool";
 import { ConfirmHost } from "../components/confirm";
-import type { AIComponentRenderer } from "./create-ai-component-renderer";
+import type { ComponentImplementation } from "./create-component-implementation";
 import { createElementsStore, ElementsStoreProvider } from "./elements-store";
 import {
   FragmentRenderer,
@@ -20,20 +20,21 @@ import {
 
 export type RendererProps = {
   /**
-   * The component catalog: an array of renderers. `<Renderer>` builds the
-   * name→renderer lookup itself (`element.component` is matched to
-   * `renderer.name`) — symmetric with `functions`. Pass a STABLE reference (a
-   * module const, not a fresh array each render) because it feeds the registry
-   * context, whose identity must stay stable or every node re-renders. On a
-   * duplicate name the later renderer wins (so `[...base, Override]` overrides)
-   * and a `console.error` is logged.
+   * The component implementations: an array of `ComponentImplementation`.
+   * `<Renderer>` builds the name→implementation lookup itself
+   * (`element.component` is matched to `implementation.name`) — symmetric with
+   * `functions`. Pass a STABLE reference (a module const, not a fresh array each
+   * render) because it feeds the registry context, whose identity must stay
+   * stable or every node re-renders. On a duplicate name the later
+   * implementation wins (so `[...base, Override]` overrides) and a
+   * `console.error` is logged.
    */
-  catalog: AIComponentRenderer[];
-  lines: Fired.Element[];
+  implementations: ComponentImplementation[];
+  lines: ComponentEntry[];
   /**
    * Host runtime functions exposed as bare identifiers in every evaluate() call
    * inside this tree (callbacks invoke them as `name(input)`). Pass a stable
-   * reference, like `catalog`. `undefined` means expressions can only reference
+   * reference, like `implementations`. `undefined` means expressions can only reference
    * built-ins + scopes.
    */
   functions?: StandardTool[];
@@ -48,19 +49,19 @@ export type RendererProps = {
    * Host-supplied visual components for the engine's own chrome: `placeholder`
    * (shown while a node's chunk hasn't streamed in) and `confirm` (the modal
    * resolving callback steps that carry `confirm:`; defaults to
-   * `window.confirm`). Distinct from `catalog` (the AI-renderable components).
+   * `window.confirm`). Distinct from `implementations` (the AI-renderable components).
    * Pass a stable reference, like `functions`.
    */
   components?: RendererComponents;
 };
 
 /**
- * Renders a JSONLines chunk tree from a host-supplied component `catalog` (an
- * array of renderers). Each mounted Renderer owns an isolated reactive `root`
- * scope.
+ * Renders a JSONLines chunk tree from a host-supplied `implementations` array
+ * (the component implementations). Each mounted Renderer owns an isolated
+ * reactive `root` scope.
  */
 export const Renderer = memo(function Renderer({
-  catalog,
+  implementations,
   lines,
   functions,
   init,
@@ -72,27 +73,28 @@ export const Renderer = memo(function Renderer({
   if (!rootRef.current) rootRef.current = createProxyScope({});
   const scopes = useMemo(() => ({ root: rootRef.current! }), []);
 
-  // Build the name→renderer lookup the registry needs from the catalog array
-  // (the shape `element.component` is matched against). Last entry wins on a
-  // duplicate name — so `[...base, Override]` overrides — and we log it. The
-  // host Fragment renderer is always merged in last (host infrastructure;
-  // overrides any consumer-supplied one). Memoised so identity tracks `catalog`.
+  // Build the name→implementation lookup the registry needs from the
+  // `implementations` array (the shape `element.component` is matched against).
+  // Last entry wins on a duplicate name — so `[...base, Override]` overrides —
+  // and we log it. The host Fragment renderer is always merged in last (host
+  // infrastructure; overrides any consumer-supplied one). Memoised so identity
+  // tracks `implementations`.
   const renderers = useMemo(() => {
-    const map: Record<string, AIComponentRenderer> = {};
-    for (const renderer of catalog) {
-      if (renderer.name in map) {
+    const map: Record<string, ComponentImplementation> = {};
+    for (const impl of implementations) {
+      if (impl.name in map) {
         console.error(
-          `[ui-fired] Duplicate component name "${renderer.name}" in catalog — the later renderer wins.`,
+          `[ui-fired] Duplicate component name "${impl.name}" in implementations — the later one wins.`,
         );
       }
-      map[renderer.name] = renderer;
+      map[impl.name] = impl;
     }
     map.Fragment = FragmentRenderer;
     return map;
-  }, [catalog]);
+  }, [implementations]);
 
   // Stable registry value — its identity drives child re-renders, so we only
-  // want a new object when the host actually swaps catalog/functions/components.
+  // want a new object when the host actually swaps implementations/functions/components.
   const registryValue = useMemo(
     () => ({ renderers, components, functions }),
     [renderers, components, functions],
@@ -120,7 +122,7 @@ export const Renderer = memo(function Renderer({
   // undefined — so tree topology stays consistent and `init` has exactly one
   // mount point to attach to. Visually identical (Fragment renders children
   // directly via React.Fragment).
-  const syntheticFragment: Fired.Element = {
+  const syntheticFragment: ComponentEntry = {
     key: RENDERER_FRAGMENT_KEY,
     component: "Fragment",
     children: rootKeys,

@@ -1,6 +1,6 @@
 import type { StandardTool } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
-import type { Fired } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
@@ -12,7 +12,7 @@ import {
 describe("RecursiveRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
 		// Root references a child chunk by key that isn't in the elements map.
-		const lines: Fired.Element[] = [
+		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -38,7 +38,7 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 			{
 				renderers: {
 					...defaultRenderers,
-					// Component-level placeholders attach via createAIComponentRenderer's
+					// Component-level placeholders attach via createComponentImplementation's
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
@@ -88,7 +88,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const initial: Fired.Element[] = [
+		const initial: ComponentEntry[] = [
 			{
 				key: "a",
 				component: "Box",
@@ -97,7 +97,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const next: Fired.Element[] = [
+		const next: ComponentEntry[] = [
 			...initial,
 			{
 				key: "b",
@@ -106,11 +106,11 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer catalog={defaultRenderersList} lines={initial} functions={functions} />);
+		const { rerender, container } = render(<Renderer implementations={defaultRenderersList} lines={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<Renderer catalog={defaultRenderersList} lines={next} functions={functions} />);
+		rerender(<Renderer implementations={defaultRenderersList} lines={next} functions={functions} />);
 
 		// A's defaults still ran exactly once. The new sibling chunk didn't
 		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
@@ -136,7 +136,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
 
-		const initial: Fired.Element[] = [
+		const initial: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
@@ -146,7 +146,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const next: Fired.Element[] = [
+		const next: ComponentEntry[] = [
 			...initial,
 			{
 				key: "child",
@@ -156,12 +156,12 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer catalog={defaultRenderersList} lines={initial} functions={functions} components={components} />,
+			<Renderer implementations={defaultRenderersList} lines={initial} functions={functions} components={components} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer catalog={defaultRenderersList} lines={next} functions={functions} components={components} />);
+		rerender(<Renderer implementations={defaultRenderersList} lines={next} functions={functions} components={components} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.
