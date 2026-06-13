@@ -25,12 +25,12 @@ step per generation.
 
 This is a workspace of three scoped packages — `@ui-fired/core` (the agnostic
 engine), `@ui-fired/react` (the React binding), and `@ui-fired/catalog` (the
-components) — living in one repo. Import agnostic symbols from the
-`@ui-fired/core` barrel, React symbols from `@ui-fired/react`, or reach any
-module directly via a subpath:
+components) — living in one repo. Import React symbols from the
+`@ui-fired/react` barrel; reach `@ui-fired/core` and `@ui-fired/catalog`
+modules directly via subpaths:
 
 ```ts
-import { createProxyScope } from "@ui-fired/core";
+import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
 import { componentRenderers } from "@ui-fired/catalog/render/renderers";
 ```

@@ -145,7 +145,7 @@ This half describes the proxy primitive that backs each scope. **It exists for o
 ### The shape
 
 ```ts
-import { createProxyScope } from "@ui-fired/core";
+import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 
 const state = createProxyScope({
   count: 0,

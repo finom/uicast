@@ -14,7 +14,6 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@ui-fired/core": ["../core/src/index.ts"],
       "@ui-fired/core/*": ["../core/src/*"],
       "@ui-fired/react": ["./src/index.ts"],
       "@ui-fired/react/*": ["./src/*"]

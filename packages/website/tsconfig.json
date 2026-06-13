@@ -26,9 +26,6 @@
       "@/*": [
         "./src/*"
       ],
-      "@ui-fired/core": [
-        "../core/src/index.ts"
-      ],
       "@ui-fired/core/*": [
         "../core/src/*"
       ],

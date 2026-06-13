@@ -7,7 +7,7 @@ import {
   type AIComponentRenderer,
   createAIComponentRenderer,
 } from "@ui-fired/react";
-import { createProxyScope } from "@ui-fired/core";
+import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
 import {
   RendererRegistryProvider,

@@ -302,7 +302,7 @@ A renderable component is a pair of declarations, conventionally co-located in t
 ### `def.ts` — the *partner module* the LLM reads
 
 ```ts
-import { createAIComponentDef } from "@ui-fired/core";
+import { createAIComponentDef } from "@ui-fired/core/render/create-ai-component-def";
 import z from "zod";
 
 export const InputDef = createAIComponentDef({
