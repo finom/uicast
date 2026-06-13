@@ -138,4 +138,155 @@ describe("JSONSchemaToTs — arrays", () => {
 	it("falls back to unknown[] when items missing", () => {
 		expect(JSONSchemaToTs({ type: "array" })).toBe("unknown[]");
 	});
+
+	it("renders boolean `items: true` as unknown[]", () => {
+		expect(JSONSchemaToTs({ type: "array", items: true })).toBe("unknown[]");
+	});
+
+	it("renders legacy draft-07 tuple `items` arrays", () => {
+		expect(
+			JSONSchemaToTs({
+				items: [{ type: "string" }, { type: "number" }],
+				additionalItems: false,
+			}),
+		).toBe("[string, number]");
+		expect(
+			JSONSchemaToTs({
+				items: [{ type: "string" }],
+				additionalItems: { type: "number" },
+			}),
+		).toBe("[string, ...number[]]");
+	});
+});
+
+describe("JSONSchemaToTs — type unions & nesting", () => {
+	it("renders a type-array that includes a structured type", () => {
+		expect(
+			JSONSchemaToTs({ type: ["string", "array"], items: { type: "number" } }),
+		).toBe("(string | number[])");
+	});
+
+	it("recurses into nested object properties", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					a: {
+						type: "object",
+						properties: { b: { type: "number" } },
+						required: ["b"],
+					},
+				},
+				required: ["a"],
+			}),
+		).toBe("{ a: { b: number } }");
+	});
+
+	it("renders an index signature for additionalProperties without properties", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				additionalProperties: { type: "number" },
+			}),
+		).toBe("{ [key: string]: number }");
+	});
+
+	it("ignores refinement keywords that don't change the TS type", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "string",
+				format: "email",
+				pattern: "^x",
+				minLength: 3,
+				maxLength: 9,
+			}),
+		).toBe("string");
+	});
+});
+
+describe("JSONSchemaToTs — lossy / unhandled (documented limits)", () => {
+	it("renders `not` as unknown (no negation type in TS)", () => {
+		expect(JSONSchemaToTs({ not: { type: "string" } })).toBe("unknown");
+	});
+
+	it("renders an empty schema as unknown", () => {
+		expect(JSONSchemaToTs({})).toBe("unknown");
+	});
+});
+
+describe("JSONSchemaToTs — $ref resolution", () => {
+	it("resolves a $ref against the document's $defs", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: { user: { $ref: "#/$defs/User" } },
+				required: ["user"],
+				$defs: {
+					User: {
+						type: "object",
+						properties: { id: { type: "string" } },
+						required: ["id"],
+					},
+				},
+			}),
+		).toBe("{ user: { id: string } }");
+	});
+
+	it("resolves draft-07 `definitions` refs too", () => {
+		expect(
+			JSONSchemaToTs({
+				$ref: "#/definitions/S",
+				definitions: { S: { type: "string" } },
+			}),
+		).toBe("string");
+	});
+
+	it("expands a shared $ref fully in every position (not a false cycle)", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: { a: { $ref: "#/$defs/P" }, b: { $ref: "#/$defs/P" } },
+				required: ["a", "b"],
+				$defs: {
+					P: {
+						type: "object",
+						properties: { x: { type: "number" } },
+						required: ["x"],
+					},
+				},
+			}),
+		).toBe("{ a: { x: number }; b: { x: number } }");
+	});
+
+	it("terminates a recursive schema at the cycle back-edge", () => {
+		// The recursive `children` back-edge becomes `unknown[]`; everything
+		// above it stays fully typed. (This is the shape Zod v4 emits for a
+		// `z.lazy` recursive schema — $defs + self-$ref.)
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: { root: { $ref: "#/$defs/Node" } },
+				required: ["root"],
+				$defs: {
+					Node: {
+						type: "object",
+						properties: {
+							label: { type: "string" },
+							children: { type: "array", items: { $ref: "#/$defs/Node" } },
+						},
+						required: ["label"],
+					},
+				},
+			}),
+		).toBe("{ root: { label: string; children?: unknown[] } }");
+	});
+
+	it("renders an unresolvable / non-local $ref as unknown", () => {
+		// Missing target.
+		expect(JSONSchemaToTs({ $ref: "#/$defs/Missing" })).toBe("unknown");
+		// Remote ref — no document loader, so it can't be resolved.
+		expect(JSONSchemaToTs({ $ref: "https://example.com/s.json" })).toBe(
+			"unknown",
+		);
+	});
 });
