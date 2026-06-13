@@ -4,7 +4,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@ui-fired/catalog/components/ui/avatar";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { AvatarGroupDef } from "./def";
 
 export const AvatarGroupRenderer = createAIComponentRenderer({

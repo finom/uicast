@@ -1,5 +1,5 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { TimelineDef } from "./def";

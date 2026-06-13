@@ -1,6 +1,6 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
 import { useState } from "react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { TruncatedTextDef } from "./def";
 

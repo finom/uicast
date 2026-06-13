@@ -11,8 +11,6 @@
 export { evaluate, getScopeReads } from "./eval/evaluate";
 export { extractDeps } from "./eval/extract-deps";
 export { SafeEval, SafeEvalError } from "./eval/safe-eval";
-// Utilities.
-export { cn } from "./lib/utils";
 // Prompt partials — catalog-/app-agnostic builders that a consuming app
 // composes into a full system prompt. core no longer ships an assembler itself;
 // each app owns its own assembly, joining these partials into each request's

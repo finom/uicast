@@ -43,15 +43,15 @@ packages/react/src/
 
 Everything agnostic is imported from `@ui-fired/core`: the element types
 (`Fired`), `evaluate` / `extractDeps` / `parseScope`, `createProxyScope`, the
-def factory `createAIComponentDef`, `buildElementsById`, and `cn`. The binding
+def factory `createAIComponentDef`, and `buildElementsById`. The binding
 adds **only** React. `react` / `react-dom` are **peer** dependencies — the
 consuming app owns the single React instance.
 
 > **Strict boundary.** This package does **not** re-export anything from
 > `@ui-fired/core`. Import agnostic symbols from `@ui-fired/core`, React symbols
 > from `@ui-fired/react`. A catalog `renderer.tsx` therefore imports
-> `createAIComponentRenderer` from `@ui-fired/react` and `cn` / `pickClick` from
-> `@ui-fired/core` / `@ui-fired/catalog`.
+> `createAIComponentRenderer` from `@ui-fired/react`, `createAIComponentDef`
+> from `@ui-fired/core`, and `cn` / `pickClick` from `@ui-fired/catalog`.
 
 ---
 

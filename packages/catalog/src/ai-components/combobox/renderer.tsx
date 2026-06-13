@@ -1,7 +1,7 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
 import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import {
   Popover,

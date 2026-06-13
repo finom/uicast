@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { XIcon } from "lucide-react";
 

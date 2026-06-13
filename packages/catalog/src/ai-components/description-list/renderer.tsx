@@ -1,5 +1,5 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { DescriptionListDef } from "./def";
 
 export const DescriptionListRenderer = createAIComponentRenderer({

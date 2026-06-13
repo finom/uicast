@@ -3,7 +3,7 @@ import { Alert, AlertTitle, AlertDescription } from "@ui-fired/catalog/component
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Card } from "@ui-fired/catalog/components/ui/card";
 import { X, CheckCircle2, AlertCircle, AlertTriangle } from "lucide-react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { ToastDef } from "./def";
 
 export const ToastRenderer = createAIComponentRenderer({

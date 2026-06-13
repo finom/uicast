@@ -1,6 +1,6 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { ExternalLink } from "lucide-react";
 import { LinkDef } from "./def";
 

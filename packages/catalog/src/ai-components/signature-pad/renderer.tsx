@@ -2,7 +2,7 @@ import { createAIComponentRenderer } from "@ui-fired/react";
 import { useRef, useCallback } from "react";
 import { Button } from "@ui-fired/catalog/components/ui/button";
 import { Eraser } from "lucide-react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { SignaturePadDef } from "./def";
 
 export const SignaturePadRenderer = createAIComponentRenderer({

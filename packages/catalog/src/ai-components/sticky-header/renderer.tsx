@@ -1,5 +1,5 @@
 import { createAIComponentRenderer } from "@ui-fired/react";
-import { cn } from "@ui-fired/core/lib/utils";
+import { cn } from "@ui-fired/catalog/lib/utils";
 import { StickyHeaderDef } from "./def";
 
 export const StickyHeaderRenderer = createAIComponentRenderer({
