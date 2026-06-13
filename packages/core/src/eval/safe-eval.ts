@@ -471,7 +471,7 @@ export class SafeEval {
       // so memoize it by the context-key signature. The common case (the same
       // expression re-evaluated as state changes, with a stable context shape)
       // then pays `new Function(...)` once, not once per evaluation.
-      const sig = contextKeys.join(" ");
+      const sig = contextKeys.join("\u0000");
       const compiledBySig = (entry.compiledBySig ??= new Map());
       let compiled = compiledBySig.get(sig);
       if (!compiled) {
