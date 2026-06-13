@@ -45,7 +45,7 @@ git-dependency tree — the repo package itself is still named `ui-fired`).
 npm install
 npm run typecheck   # tsc --noEmit across core + react + catalog
 npm test            # core + react vitest suites
-npm run md-to-json  # regenerate INSTRUCTIONS.json from its .md sibling
+npm run md-to-json  # regenerate the prompt-fragment JSON mirrors from packages/core/src/prompt/md/*.md
 ```
 
 > Package naming and the public API surface are being finalized.

@@ -1,8 +1,8 @@
-import INSTRUCTIONS from "./INSTRUCTIONS.json" with { type: "json" };
+import INSTRUCTIONS from "./md/INSTRUCTIONS.json" with { type: "json" };
 
 /**
  * The LLM-facing chunk-protocol instruction block — the contract authored in
- * `INSTRUCTIONS.md` and imported here as a JSON string via the md-to-json
+ * `md/INSTRUCTIONS.md` and imported here as a JSON string via the md-to-json
  * pipeline (`npm run md-to-json` regenerates the `.json` sibling after edits).
  *
  * A partial-prompt primitive: the consuming app's prompt assembler composes
