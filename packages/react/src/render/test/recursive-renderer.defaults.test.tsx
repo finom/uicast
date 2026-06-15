@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { StandardTool } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core/types";
-import { defaultRenderersList, mountChunks } from "../../../test/render-helpers";
+import { defaultImplementationsList, mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
@@ -89,7 +89,7 @@ describe("RecursiveRenderer — defaults", () => {
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <Renderer implementations={defaultRenderersList} lines={lines} functions={functions} />,
+        <Renderer implementations={defaultImplementationsList} lines={lines} functions={functions} />,
       ).container;
     });
     // Suspended on the pending default — the value isn't shown yet.

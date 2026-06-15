@@ -32,7 +32,7 @@ modules directly via subpaths:
 ```ts
 import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
-import { componentImplementations } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/impls";
 ```
 
 A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,

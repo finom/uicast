@@ -1,4 +1,4 @@
-import { ALLOWED_GLOBALS } from "../eval/allowed-globals";
+import { ALLOWED_GLOBALS } from "../expr/allowed-globals";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 
 /**

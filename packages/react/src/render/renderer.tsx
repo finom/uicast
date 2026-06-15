@@ -79,7 +79,7 @@ export const Renderer = memo(function Renderer({
   // and we log it. The host Fragment renderer is always merged in last (host
   // infrastructure; overrides any consumer-supplied one). Memoised so identity
   // tracks `implementations`.
-  const renderers = useMemo(() => {
+  const implementationsByName = useMemo(() => {
     const map: Record<string, ComponentImplementation> = {};
     for (const impl of implementations) {
       if (impl.name in map) {
@@ -96,8 +96,8 @@ export const Renderer = memo(function Renderer({
   // Stable registry value — its identity drives child re-renders, so we only
   // want a new object when the host actually swaps implementations/functions/components.
   const registryValue = useMemo(
-    () => ({ renderers, components, functions }),
-    [renderers, components, functions],
+    () => ({ implementations: implementationsByName, components, functions }),
+    [implementationsByName, components, functions],
   );
 
   const elementsById = buildElementsById(lines);

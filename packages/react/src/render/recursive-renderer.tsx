@@ -6,8 +6,8 @@ import {
   type UnknownComponentProps,
   useRendererRegistry,
 } from "./renderer-registry";
-import { evaluate } from "@ui-fired/core/eval/evaluate";
-import { extractDeps } from "@ui-fired/core/eval/extract-deps";
+import { evaluate } from "@ui-fired/core/expr/evaluate";
+import { extractDeps } from "@ui-fired/core/expr/extract-deps";
 import { parseScope } from "@ui-fired/core/scope/parse-scope";
 import { DefaultErrorComponent, ErrorBoundary } from "./error-boundary";
 import { useElement } from "./elements-store";
@@ -67,7 +67,7 @@ const RecursiveRendererImpl = ({
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const hasBeenRenderedRef = useRef(false);
   const setDefaultsPromiseRef = useRef<Promise<void> | null>(null);
-  const { renderers, components, functions } = useRendererRegistry();
+  const { implementations, components, functions } = useRendererRegistry();
 
   // A list chunk reached as a child slot must render as a LIST (iterate items);
   // the same chunk reached per-item (`asListItem`) renders as a normal
@@ -116,8 +116,8 @@ const RecursiveRendererImpl = ({
     return <ListRenderer elementKey={elementKey} scopes={scopes} />;
   }
 
-  const rendererEntry = renderers[element.component];
-  const Component = rendererEntry?.component;
+  const implEntry = implementations[element.component];
+  const Component = implEntry?.component;
   if (!Component) {
     const Unknown = components?.unknown ?? DefaultUnknown;
     return (
@@ -126,7 +126,7 @@ const RecursiveRendererImpl = ({
   }
 
   const Placeholder =
-    rendererEntry?.placeholder ?? components?.placeholder ?? NullPlaceholder;
+    implEntry?.placeholder ?? components?.placeholder ?? NullPlaceholder;
 
   // `element.children?.length` — Prisma rehydrates an unset `children` column
   // as `[]` rather than `null`, so the truthy `[]` would otherwise leak past

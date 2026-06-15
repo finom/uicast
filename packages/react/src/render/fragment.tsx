@@ -1,6 +1,6 @@
 import z from "zod";
 import type { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
 import { createComponentImplementation } from "./create-component-implementation";
 
 /**
@@ -30,9 +30,10 @@ export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 //
 //  - `Renderer` constructs synthetic chunks with `component: "Fragment"` —
 //    the renderer registry must contain a match, or the catch-all "Unknown
-//    component" branch trips. `<Renderer>` always merges it into the catalog
-//    map (and the matching def is auto-merged in `createComponentDefinitions`), so
-//    consumers don't register it manually.
+//    component" branch trips. `<Renderer>` always merges its impl into the
+//    implementations map, so consumers don't register it manually. `FragmentDef`
+//    (below) exists only to type the impl — it's `hidden: true`, so it never
+//    needs to join a prompt def registry.
 //  - It carries `hidden: true` so the LLM never sees it in its component
 //    menu — the wrapper is host infrastructure, not a UI primitive.
 

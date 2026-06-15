@@ -1,5 +1,3 @@
-import { createComponentDefinitions } from "@ui-fired/core/render/create-component-definitions";
-
 // Layout & Container
 import { CardDef } from "../catalog/card/def";
 import { FlexRowDef } from "../catalog/flex-row/def";
@@ -185,7 +183,7 @@ import { FilterBuilderDef } from "../catalog/filter-builder/def";
 import { FormulaBarDef } from "../catalog/formula-bar/def";
 import { DiffViewerDef } from "../catalog/diff-viewer/def";
 
-export const componentDefinitions = createComponentDefinitions([
+export const componentDefinitions = [
   // Layout & Container
   CardDef,
   FlexRowDef,
@@ -354,4 +352,4 @@ export const componentDefinitions = createComponentDefinitions([
   FilterBuilderDef,
   FormulaBarDef,
   DiffViewerDef,
-]);
+];

@@ -31,7 +31,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
    ┌──────────────────────────────────────────────────┐
    │ <Renderer lines={elements} functions={fns} />      │
    │   └─ RendererRegistryProvider {                  │
-   │        renderers, components, functions          │
+   │        implementations, components, functions    │
    │      }                                           │
    │   └─ root scope = createProxyScope({})        │
    │   └─ buildElementsById(lines) → Record<key,element>│
@@ -58,8 +58,8 @@ The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createCom
 ```
 packages/core/src/                   — the framework-agnostic engine (zero React)
 ├── types.ts                         — ComponentEntry + ComponentListEntry (list = element with required each/as), ValueSource, ValueSourceAssignment
-├── eval/
-│   ├── safe-eval.ts                  — the security boundary: validate + compile + shadow globals (acorn-based)
+├── expr/
+│   ├── safe-eval.ts                  — the expression guardrail: validate + compile + shadow globals (acorn-based)
 │   ├── ast.ts                       — shared AST primitives (isNode, childNodes)
 │   ├── analyze.ts                   — static analysis: await detection + scope-read extraction (NOT security)
 │   ├── allowed-globals.ts            — globals an expression may reference (also feeds the prompt)
@@ -68,9 +68,8 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 ├── scope/
 │   ├── create-proxy-scope.ts          — the Proxy state container + path-keyed emitter (see SCOPES.md)
 │   └── parse-scope.ts                — splits a `scopes.X.Y` key into [scopeName, leafPath]
-├── render/
-│   ├── create-component-definition.ts      — def factory: { description, propDefs, callbackDefs, hidden } (agnostic partner-def half)
-│   └── create-component-definitions.ts     — registry of defs + prompt-fragment generator (skips hidden)
+├── def/
+│   └── create-component-definition.ts      — def factory: { name, description, props, callbacks, hidden } (agnostic partner-def half)
 ├── prompt-utils/
 │   └── json-schema-to-ts.ts            — render JSON Schema to TS-like string for the prompt
 ├── prompt/
@@ -99,7 +98,7 @@ The element's tree-shape (parent → children by key reference) lives in `buildE
 
 ## 5. Expressions — micro-expressions and `SafeEval`
 
-Every `expr` field is a **single JavaScript expression** evaluated by [`SafeEval`](../src/eval/safe-eval.ts). Not statements, not assignments, not declarations, no loops. Arrow-function bodies *may* contain block statements (so `.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)` works), but the top-level expression is always a single expression.
+Every `expr` field is a **single JavaScript expression** evaluated by [`SafeEval`](../src/expr/safe-eval.ts). Not statements, not assignments, not declarations, no loops. Arrow-function bodies *may* contain block statements (so `.reduce((acc, item) => { const x = item.v; return acc + x; }, 0)` works), but the top-level expression is always a single expression.
 
 ### What's allowed / forbidden
 
@@ -302,7 +301,7 @@ A renderable component is a pair of declarations, conventionally co-located in t
 ### `def.ts` — the *partner module* the LLM reads
 
 ```ts
-import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
 import z from "zod";
 
 export const InputDef = createComponentDefinition({
@@ -324,7 +323,7 @@ export const InputDef = createComponentDefinition({
 });
 ```
 
-The def's `description` and the JSON-Schema of `propDefs` / `callbackDefs` get serialized into the LLM prompt via `createComponentDefinitions.getDefPartialPrompt()`, which renders Zod schemas to TypeScript-like type strings using `JSONSchemaToTs`.
+The def's `description` and the JSON-Schema of its props / callbacks get serialized into the LLM prompt via `getComponentsPartialPrompt()`, which renders Zod schemas to TypeScript-like type strings using `JSONSchemaToTs`.
 
 ### `impl.tsx` — the actual React component
 
@@ -334,8 +333,8 @@ The implementation half of the pair is React and lives in `@ui-fired/react`, pai
 
 The consumer maintains two registries:
 
-- `componentDefinitions` — `createComponentDefinitions({...})` maps name → def. Drives the prompt. (core)
-- `componentImplementations` — array of renderers passed to `<Renderer implementations={…}>`, which builds the name → renderer map. (React binding)
+- `componentDefinitions` — a flat array of defs (`[InputDef, …]`, assembled in the consumer's `defs.ts`). Drives the prompt; `getComponentsPartialPrompt` throws on a duplicate `name`. (core)
+- `componentImplementations` — array of implementations passed to `<Renderer implementations={…}>`, which builds the name → implementation map. (React binding)
 
 **Adding a component requires updating both maps.** There's no codegen step linking them — discipline only.
 
@@ -411,7 +410,7 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 1. Pick a name (PascalCase, matches the LLM-visible component string).
 2. Create `<Name>/def.ts` with `description`, `propDefs`, `callbackDefs`.
 3. Create `<Name>/impl.tsx` pairing the def with the React render function.
-4. Register in your catalog's `defs.ts` and `renderers.ts`. Both maps must include the new entry — without both, the LLM either can't produce the component or can produce but not render it.
+4. Register in your catalog's `defs.ts` and `impls.ts`. Both maps must include the new entry — without both, the LLM either can't produce the component or can produce but not render it.
 5. If the component has nontrivial events, define the event payload schema with Zod meta-descriptions so the LLM knows the field names it'll see in `evt`.
 
 `propDefs` is the contract with the LLM. Use `.meta({ description: "…" })` on every field so the LLM has enough information to fill it in correctly. Mark optional fields with `.optional()` and supply sensible `.default()` values where applicable.
@@ -441,5 +440,5 @@ When in doubt, ask: "Would a different consumer of core (a future product line, 
 - [`EXPRESSIONS.md`](./EXPRESSIONS.md) — expression syntax + the evaluator's security limits.
 - [`SCOPES.md`](./SCOPES.md) — the reactive proxy state library underneath all of this.
 - LLM-facing contract for elements: [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md)
-- The expression evaluator: [`../src/eval/safe-eval.ts`](../src/eval/safe-eval.ts) (+ `ast.ts`, `analyze.ts`)
-- The auto-detection helper: [`../src/eval/extract-deps.ts`](../src/eval/extract-deps.ts)
+- The expression evaluator: [`../src/expr/safe-eval.ts`](../src/expr/safe-eval.ts) (+ `ast.ts`, `analyze.ts`)
+- The auto-detection helper: [`../src/expr/extract-deps.ts`](../src/expr/extract-deps.ts)

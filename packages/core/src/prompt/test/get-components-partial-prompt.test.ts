@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createComponentDefinition } from "../../render/create-component-definition";
+import { createComponentDefinition } from "../../def/create-component-definition";
 import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
+
+describe("getComponentsPartialPrompt — duplicate names", () => {
+	// The catalog registry is a flat `ComponentDefinition[]` (`defs.ts`), which
+	// lost the keyed-object registry's free name-uniqueness. This builder — the
+	// one place every def is consumed by name — re-imposes it as a fail-fast
+	// throw (relocated here when `createComponentDefinitions` was removed).
+	it("throws on a duplicate component name", () => {
+		const A = createComponentDefinition({
+			name: "Dup",
+			description: "first",
+			props: z.object({}),
+		});
+		const B = createComponentDefinition({
+			name: "Dup",
+			description: "second",
+			props: z.object({}),
+		});
+		expect(() => getComponentsPartialPrompt([A, B])).toThrow(
+			'Duplicate component name: "Dup"',
+		);
+	});
+});
 
 // The `hidden` flag exists so host-only components (like Fragment, the
 // synthetic wrapper used by `Renderer`'s `init` prop) can be registered

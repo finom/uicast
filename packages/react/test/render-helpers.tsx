@@ -2,7 +2,7 @@ import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardTool } from "standard-tool";
-import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
 import {
   type ComponentImplementation,
   createComponentImplementation,
@@ -17,7 +17,7 @@ import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core/types";
 import { buildElementsById } from "@ui-fired/core/utils/utils";
 
-// Lightweight test renderers wired the same way real catalog components are.
+// Lightweight test implementations wired the same way real catalog components are.
 
 const boxDef = createComponentDefinition({
   name: "Box",
@@ -82,23 +82,23 @@ export const placeholderRenderer = createComponentImplementation({
   render: () => <span data-placeholder>placeholder</span>,
 });
 
-export const defaultRenderers: Record<string, ComponentImplementation> = {
+export const defaultImplementations: Record<string, ComponentImplementation> = {
   Box: boxRenderer,
   Button: buttonRenderer,
   Thrower: throwerRenderer,
   Placeholder: placeholderRenderer,
 };
 
-// The array form of `defaultRenderers` for `<Renderer implementations={…}>` (the prop is
+// The array form of `defaultImplementations` for `<Renderer implementations={…}>` (the prop is
 // an array). A module const so the reference stays STABLE across re-renders —
 // tests that rerender depend on this; an inline `Object.values(...)` would churn
 // the registry and break the render-once / init-once guarantees.
-export const defaultRenderersList = Object.values(defaultRenderers);
+export const defaultImplementationsList = Object.values(defaultImplementations);
 
 type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
-  renderers?: Record<string, ComponentImplementation>;
+  implementations?: Record<string, ComponentImplementation>;
   functions?: StandardTool[];
   components?: RendererComponents;
   /** Wrap the renderer in an additional element. */
@@ -131,7 +131,7 @@ export function mountChunks(lines: ComponentEntry[], options: MountOptions = {})
     <ElementsStoreProvider value={store}>
       <RendererRegistryProvider
         value={{
-          renderers: options.renderers ?? defaultRenderers,
+          implementations: options.implementations ?? defaultImplementations,
           components: options.components,
           functions: options.functions,
         }}

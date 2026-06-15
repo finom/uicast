@@ -22,7 +22,7 @@ export type ErrorComponentProps = {
 
 // Host-supplied visual components ("chrome"): named overrides for the engine's
 // own system UI, passed in via the `<Renderer components={...}>` prop. Distinct
-// from `renderers` (the catalog component implementations) — these are the
+// from `implementations` (the catalog component implementations) — these are the
 // engine's own fallback UI. Extensible: add a field here + one resolution site
 // (RecursiveRenderer for per-node chrome, `<Renderer>` for tree-level chrome
 // like `confirm`).
@@ -32,8 +32,8 @@ export type ErrorComponentProps = {
 //   omitted → the browser-native `window.confirm`. Stateless: the engine owns
 //   the pending state and drives it as a controlled dialog (see
 //   `ConfirmComponentProps`).
-// - `unknown` replaces an element whose `component` has no renderer in the
-//   catalog.
+// - `unknown` replaces an element whose `component` has no implementation in
+//   the catalog.
 // - `error` replaces an element whose render threw (and the not-a-list misuse
 //   of a list key).
 // The `unknown`/`error` defaults are bare inline-styled divs — zero CSS
@@ -47,7 +47,7 @@ export type RendererComponents = {
 };
 
 export type RendererRegistry = {
-  renderers: Record<string, ComponentImplementation>;
+  implementations: Record<string, ComponentImplementation>;
   // Host-supplied system/chrome component overrides (see `RendererComponents`).
   // Stabilised by `<Renderer>` so its identity doesn't churn this context value
   // (which would re-render every node).

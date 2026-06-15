@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
 
 export const BadgeDef = createComponentDefinition({
   name: "Badge",

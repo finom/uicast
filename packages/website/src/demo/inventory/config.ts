@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/impls";
 import { inventoryFunctions } from "@/lib/functions";
 import { resetInventory, seedIfEmpty } from "@/lib/seed";
 import { inventoryLines } from "../inventory.lines";

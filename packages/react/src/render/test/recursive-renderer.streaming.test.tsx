@@ -4,8 +4,8 @@ import type { ComponentEntry } from "@ui-fired/core/types";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
-	defaultRenderers,
-	defaultRenderersList,
+	defaultImplementations,
+	defaultImplementationsList,
 	mountChunks,
 } from "../../../test/render-helpers";
 
@@ -36,8 +36,8 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 				},
 			],
 			{
-				renderers: {
-					...defaultRenderers,
+				implementations: {
+					...defaultImplementations,
 					// Component-level placeholders attach via createComponentImplementation's
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
@@ -106,11 +106,11 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer implementations={defaultRenderersList} lines={initial} functions={functions} />);
+		const { rerender, container } = render(<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<Renderer implementations={defaultRenderersList} lines={next} functions={functions} />);
+		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} />);
 
 		// A's defaults still ran exactly once. The new sibling chunk didn't
 		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
@@ -156,12 +156,12 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer implementations={defaultRenderersList} lines={initial} functions={functions} components={components} />,
+			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} components={components} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer implementations={defaultRenderersList} lines={next} functions={functions} components={components} />);
+		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} components={components} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

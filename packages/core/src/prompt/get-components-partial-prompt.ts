@@ -1,5 +1,5 @@
 import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
-import type { ComponentDefinition } from "../render/create-component-definition";
+import type { ComponentDefinition } from "../types";
 
 /**
  * Render an array of component defs into the prompt's component section — a
@@ -13,8 +13,20 @@ import type { ComponentDefinition } from "../render/create-component-definition"
  *
  * Mirrors `getFunctionsPartialPrompt` — same `# Available X` / `# X Details`
  * two-section shape.
+ *
+ * Throws on a duplicate `name` across `defs`. The catalog registry is a flat
+ * array (`defs.ts`), which lost the keyed-object registry's free uniqueness —
+ * since this is the one place every def is consumed by name, it's the
+ * enforcement point.
  */
 export function getComponentsPartialPrompt(defs: ComponentDefinition[]): string {
+	const seen = new Set<string>();
+	for (const def of defs) {
+		if (seen.has(def.name)) {
+			throw new Error(`Duplicate component name: "${def.name}"`);
+		}
+		seen.add(def.name);
+	}
 	const visible = defs.filter((def) => !def.hidden);
 	return (
 		"# Available Components\n\n" +

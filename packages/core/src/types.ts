@@ -76,3 +76,33 @@ export function isComponentListEntry(
  * */
 export type CombinedSpec<Input = unknown, Output = Input> = StandardSchemaV1<Input, Output> &
   StandardJSONSchemaV1<Input, Output>;
+
+/**
+ * The partner module the LLM reads for a component: a props spec plus optional
+ * callback specs (its `description` + `props` schema are serialized into the
+ * prompt). Parameterized over the concrete `props` / `callbacks` specs so an
+ * implementation can recover their exact types — `createComponentImplementation`
+ * infers `TProps` / `TCallbacks` straight off the `def` it's handed to type its
+ * `render` callback. Both params default to the widened base, so a bare
+ * `ComponentDefinition` is the heterogeneous form used in collections
+ * (`ComponentDefinition[]`, the `componentDefinitions` registry, the prompt
+ * serializer). The `createComponentDefinition` factory (in
+ * `def/create-component-definition.ts`) is the value-side constructor for this.
+ */
+export type ComponentDefinition<
+  TProps extends CombinedSpec = CombinedSpec,
+  TCallbacks extends Record<string, CombinedSpec> = Record<string, CombinedSpec>,
+> = {
+  name: string;
+  description: string;
+  props: TProps;
+  callbacks?: TCallbacks;
+  /**
+   * Host-only component. Registered in the renderer registry so chunks
+   * referencing it mount correctly, but filtered out of the LLM-facing
+   * prompt list in `getComponentsPartialPrompt`. Use for internal infrastructure
+   * (e.g. Fragment — the synthetic wrapper used by `Renderer`'s `init`
+   * prop machinery) that the LLM should never emit.
+   */
+  hidden?: boolean;
+};

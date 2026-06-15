@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/impls";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
 import { boardPrompt } from "./board.prompt";

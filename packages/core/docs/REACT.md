@@ -31,9 +31,9 @@ sub-language is [`EXPRESSIONS.md`](./EXPRESSIONS.md); the reactive state model i
 packages/react/src/
 ├── render/
 │   ├── recursive-renderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
-│   ├── renderer.tsx                   — the <Renderer> component: builds the name→renderer map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
+│   ├── renderer.tsx                   — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
 │   ├── create-component-implementation.tsx  — renderer factory: pairs a core def with a React component
-│   ├── renderer-registry.tsx           — React context: { renderers, components, functions }
+│   ├── renderer-registry.tsx           — React context: { implementations, components, functions }
 │   ├── error-boundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
 │   └── fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
 ├── components/
@@ -62,12 +62,12 @@ Three layers stack inside the binding.
 ### Outer — `<Renderer>`
 
 The implementations are a **prop** — an **array of `ComponentImplementation`**, symmetric with
-`functions`. `<Renderer>` builds the name→renderer lookup itself; there's no
+`functions`. `<Renderer>` builds the name→implementation lookup itself; there's no
 separate builder step:
 
 ```tsx
 import { ConfirmModal } from "@ui-fired/catalog/components/ConfirmModal";
-import { componentImplementations } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/impls";
 import { Renderer } from "@ui-fired/react";
 
 <Renderer
@@ -94,13 +94,13 @@ implementations are as injectable as `functions` — override or extend componen
 
 Internally `<Renderer>`:
 
-- **Builds + memoizes the name→renderer map** from the `implementations` array (last
+- **Builds + memoizes the name→implementation map** from the `implementations` array (last
   entry wins on a duplicate name + `console.error`; the host `Fragment` is merged
   in last). Memoized on the array identity — hence the stable-reference rule
   above. Fragment is host-only (`hidden: true` in its def), renders
   `<>{children}</>` with no wrapping DOM, and is the one component the synthetic
   wrapper below references by name.
-- Memoizes the registry value (`{ renderers, components, functions }`) so context
+- Memoizes the registry value (`{ implementations, components, functions }`) so context
   identity only changes when `implementations`, `functions`, or `components` changes.
 - Creates **one `root` reactive proxy per instance** (`createProxyScope({})` from
   core, lazy-init via ref) — each mounted `<Renderer>` owns isolated state.
@@ -126,13 +126,13 @@ Internally `<Renderer>`:
 
 ### Middle — `RendererRegistry` context
 
-A React context carrying `{ renderers, components, functions }`. Every
-component in the tree calls `useRendererRegistry()` to look up its renderer by
-name, the host-supplied chrome (`components`), and the host functions to pass
+A React context carrying `{ implementations, components, functions }`. Every
+component in the tree calls `useRendererRegistry()` to look up its implementation
+by name, the host-supplied chrome (`components`), and the host functions to pass
 into evaluator calls.
 
 `components` (`RendererComponents`) is the host's map of engine "chrome" —
-distinct from `renderers` (the catalog component implementations). Four slots
+distinct from `implementations` (the catalog components). Four slots
 are wired today:
 
 - **`placeholder`** — shown for a not-yet-streamed child and as the
@@ -232,13 +232,13 @@ renderer array drives this binding.
 
 ### The `data-key` convention
 
-Spread `generatedKey` onto the renderer's **root DOM node** as
+Spread `generatedKey` onto the implementation's **root DOM node** as
 `data-key={generatedKey}` — the `Input` example above does. `generatedKey` is
 the element's own `key` (§2, step 5).
 
-This is **not required by the engine**: it never reads `data-key`, and a renderer
-that omits it still renders correctly. But **every catalog renderer follows it**,
-and new renderers should too — a stable `key → DOM node` mapping is what lets host
+This is **not required by the engine**: it never reads `data-key`, and an implementation
+that omits it still renders correctly. But **every catalog implementation follows it**,
+and new implementations should too — a stable `key → DOM node` mapping is what lets host
 tooling reach back from a rendered node to its source element. It powers element
 **selection**, **hover-highlight** (the reference website cross-links its
 JSONLines panel to the rendered output purely through `[data-key]` — hover a line,

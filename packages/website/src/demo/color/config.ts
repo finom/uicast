@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/renderers";
+import { componentImplementations } from "@ui-fired/catalog/render/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { ColorFieldRenderer } from "./components/color-field/renderer";

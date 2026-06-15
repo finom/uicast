@@ -1,9 +1,12 @@
 import { Activity, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type { ComponentEntry, CombinedSpec } from "@ui-fired/core/types";
-import type { ComponentDefinition } from "@ui-fired/core/render/create-component-definition";
+import type {
+  ComponentEntry,
+  CombinedSpec,
+  ComponentDefinition,
+} from "@ui-fired/core/types";
 import { parseScope } from "@ui-fired/core/scope/parse-scope";
-import { evaluate } from "@ui-fired/core/eval/evaluate";
+import { evaluate } from "@ui-fired/core/expr/evaluate";
 import { useConfirm } from "../components/confirm";
 import { useRendererRegistry } from "./renderer-registry";
 
@@ -19,7 +22,7 @@ export const createComponentImplementation = <
   render,
   placeholder,
 }: {
-  def: ComponentDefinition & { props: TProps; callbacks?: TCallbacks };
+  def: ComponentDefinition<TProps, TCallbacks>;
   render: (
     props: {
       children?: ReactNode;
