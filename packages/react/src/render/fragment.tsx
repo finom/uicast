@@ -1,6 +1,5 @@
 import z from "zod";
-import type { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition, type createProxyScope } from "@ui-fired/core";
 import { createComponentImplementation } from "./create-component-implementation";
 
 /**

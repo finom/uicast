@@ -1,14 +1,7 @@
 import type * as acorn from "acorn";
 
-/**
- * Low-level AST helpers shared by the validator (`safe-eval.ts`) and the static
- * analyzers (`analyze.ts`).
- *
- * Node types come straight from acorn: `acorn.AnyNode` is the discriminated
- * union `parse()` produces (narrowing on `.type`). We don't hand-roll a node
- * type — acorn ships first-party types that match its own output exactly,
- * including the `start`/`end` offsets that `@types/estree` omits.
- */
+// Low-level acorn-AST helpers shared by validate.ts and analyze.ts. NOT a parser
+// — acorn parses; these are a node type-guard and a child-traversal helper.
 
 /** Runtime guard: does `x` look like an AST node (object with a string `type`)? */
 export function isNode(x: unknown): x is acorn.AnyNode {
@@ -19,11 +12,7 @@ export function isNode(x: unknown): x is acorn.AnyNode {
   );
 }
 
-/**
- * Direct child nodes of `node`, flattening array-valued fields. For generic,
- * key-agnostic walks — the discriminated union has no index signature, so we
- * read the runtime shape (`Object.values`) and keep only the real nodes.
- */
+// Direct child nodes, flattening array-valued fields — for key-agnostic walks.
 export function childNodes(node: acorn.AnyNode): acorn.AnyNode[] {
   const out: acorn.AnyNode[] = [];
   for (const value of Object.values(

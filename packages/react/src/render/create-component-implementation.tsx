@@ -1,12 +1,12 @@
 import { Activity, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
-import type {
-  ComponentEntry,
-  CombinedSpec,
-  ComponentDefinition,
-} from "@ui-fired/core/types";
-import { parseScope } from "@ui-fired/core/scope/parse-scope";
-import { evaluate } from "@ui-fired/core/expr/evaluate";
+import {
+  parseScope,
+  evaluate,
+  type ComponentEntry,
+  type CombinedSpec,
+  type ComponentDefinition,
+} from "@ui-fired/core";
 import { useConfirm } from "../components/confirm";
 import { useRendererRegistry } from "./renderer-registry";
 

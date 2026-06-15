@@ -2,20 +2,17 @@ import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardTool } from "standard-tool";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition, createProxyScope, buildElementsById, type ComponentEntry } from "@ui-fired/core";
 import {
   type ComponentImplementation,
   createComponentImplementation,
 } from "@ui-fired/react";
-import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
 import { RecursiveRenderer } from "@ui-fired/react";
 import {
   RendererRegistryProvider,
   type RendererComponents,
 } from "@ui-fired/react";
 import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
-import type { ComponentEntry } from "@ui-fired/core/types";
-import { buildElementsById } from "@ui-fired/core/utils/utils";
 
 // Lightweight test implementations wired the same way real catalog components are.
 

@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core";
 import { onClickSchema } from "@ui-fired/catalog/render/shared";
 
 export const GridDef = createComponentDefinition({

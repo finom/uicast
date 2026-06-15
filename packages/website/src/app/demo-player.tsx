@@ -14,7 +14,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@ui-fired/catalog/components/ui/resizable";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";

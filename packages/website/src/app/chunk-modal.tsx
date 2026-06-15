@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@ui-fired/catalog/components/ui/dialog";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 
 // JSON token → Tailwind color. Tuned to read on the dialog's `bg-muted/40` code
 // panel in both light and dark themes.

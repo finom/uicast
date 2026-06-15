@@ -2,7 +2,7 @@ import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { StandardTool } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 import { defaultImplementationsList, mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — defaults", () => {

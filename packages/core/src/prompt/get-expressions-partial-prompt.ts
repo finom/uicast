@@ -1,4 +1,4 @@
-import { ALLOWED_GLOBALS } from "../expr/allowed-globals";
+import { ALLOWED_GLOBALS } from "../expr/globals";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 
 /**
@@ -11,9 +11,9 @@ import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
  * Authored in `md/EXPRESSIONS.md` and imported as a JSON string via the
  * md-to-json pipeline (`npm run md-to-json` regenerates the `.json` sibling
  * after edits). The doc carries a visible `🔴ALLOWED_GLOBALS🔴` slot that this
- * builder fills from `allowed-globals.ts` (the single source of truth for the
- * sandbox allow-list) so the prompt can never drift from what the evaluator
- * actually permits.
+ * builder fills from `globals.ts` (the single source of truth for the sandbox
+ * allow-list) so the prompt can never drift from what the evaluator actually
+ * permits.
  *
  * A partial-prompt primitive: the consuming app's prompt assembler composes
  * this — alongside the other `get*PartialPrompt` builders — into the full

@@ -1,7 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import { createComponentDefinition, type ComponentEntry } from "@ui-fired/core";
 import {
   createComponentImplementation,
   type InitFn,

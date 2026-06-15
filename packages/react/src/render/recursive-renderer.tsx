@@ -1,14 +1,10 @@
 "use client";
 import React, { memo, Suspense, use, useEffect, useReducer, useRef } from "react";
-import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import { isComponentListEntry } from "@ui-fired/core/types";
+import { createProxyScope, isComponentListEntry, evaluate, extractDeps, parseScope } from "@ui-fired/core";
 import {
   type UnknownComponentProps,
   useRendererRegistry,
 } from "./renderer-registry";
-import { evaluate } from "@ui-fired/core/expr/evaluate";
-import { extractDeps } from "@ui-fired/core/expr/extract-deps";
-import { parseScope } from "@ui-fired/core/scope/parse-scope";
 import { DefaultErrorComponent, ErrorBoundary } from "./error-boundary";
 import { useElement } from "./elements-store";
 import type { InitFn } from "./fragment";

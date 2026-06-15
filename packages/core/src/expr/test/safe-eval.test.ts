@@ -118,6 +118,24 @@ describe("SafeEval — disallowed expressions", () => {
     expect(() => evalr.eval("new Function('return 1')()")).toThrow();
   });
 
+  it("rejects dynamic import(), even nested inside a callback body", () => {
+    // import("…") is a valid *expression*, so it survives the `void (…)` parse
+    // wrapper, and `import` is a keyword that global shadowing can't touch — it
+    // has to be blocked structurally, everywhere (not just at the top level).
+    expect(() => evalr.eval('import("evil")')).toThrow(SafeEvalError);
+    expect(() =>
+      evalr.eval('xs.map(() => import("evil"))', { xs: [1] }),
+    ).toThrow(SafeEvalError);
+  });
+
+  it("rejects meta-properties (new.target) inside a callback body", () => {
+    // `new.target` parses only inside a function, so it can't reach the top
+    // level, but it must still be blocked where it can appear.
+    expect(() =>
+      evalr.eval("xs.map(function () { return new.target; })", { xs: [1] }),
+    ).toThrow(SafeEvalError);
+  });
+
   it("shadows ambient capability globals to undefined", () => {
     // Code-exec + exfiltration globals resolve to `undefined` inside an
     // expression, so any reference is inert.

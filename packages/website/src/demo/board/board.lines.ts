@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 
 /**
  * The flow-board artifact. One `scopes.root.*` namespace holds the nodes and

@@ -1,34 +1,13 @@
 import { ComponentEntry, isComponentListEntry } from "../types";
 import { getScopeReads } from "./evaluate";
 
-/**
- * Per-chunk cache for the union of `scopes.X.Y` paths the chunk reads.
- * Chunks are immutable after arrival, so the cache never goes stale.
- * `WeakMap` lets the GC reclaim entries when chunks fall out of the
- * elements map (e.g. after a partial-subtree replacement — see
- * `buildElementsById` in `utils/utils.ts`).
- */
+// Chunks are immutable, so cached reads never go stale; WeakMap so a dropped
+// chunk's entry can be collected.
 const cache = new WeakMap<ComponentEntry, string[]>();
 
-/**
- * Auto-detected reactive deps for a chunk.
- *
- * Walks every *reactive* expression on the chunk — `props.expr`,
- * `hidden`, and (for list chunks) `each` — and unions the
- * `scopes.X.Y` paths each one reads. The renderer subscribes to those
- * paths; any write to a matching path wakes the chunk for re-render.
- *
- * Explicitly NOT scanned:
- * - `defaults` — one-shot, gated by `hasBeenRenderedRef`. Re-render
- *   doesn't re-run them; no subscription needed.
- * - `callbacks` — event-triggered. Reads happen at fire time against
- *   the current scope state; no reactive subscription required.
- *
- * The dep paths are the exact strings the chunk's runtime subscriber
- * passes to `parseScope(...)` and then `scopes[targetScope].$emitter.on(
- * targetPath, …)`. Subscription is path-exact (no parent fanout) — see
- * `create-proxy-scope.ts` set trap.
- */
+// The reactive scopes.X.Y paths a chunk reads, across its props, hidden, and each
+// expressions — the renderer subscribes to these. (defaults run once and
+// callbacks read at fire time, so neither is scanned.)
 export function extractDeps(chunk: ComponentEntry): string[] {
   const cached = cache.get(chunk);
   if (cached) return cached;
@@ -42,12 +21,7 @@ export function extractDeps(chunk: ComponentEntry): string[] {
     for (const r of getScopeReads(chunk.hidden)) out.add(r);
   }
 
-  // List chunks carry `each` as a bare expression string (not a
-  // ValueSource). Folding its reads into the dep set is what fixes the
-  // search-filter case: a `scopes.inv.rows.filter(r => …scopes.root.
-  // searchTerm…)` expression yields both `scopes.inv.rows` AND
-  // `scopes.root.searchTerm`, so typing in the search input wakes the
-  // list re-render.
+  // `each` reads both the list and anything its filter touches (e.g. a search term).
   if (isComponentListEntry(chunk)) {
     for (const r of getScopeReads(chunk.each)) out.add(r);
   }

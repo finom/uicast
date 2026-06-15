@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core";
 
 export const ListDef = createComponentDefinition({
   name: "List",

@@ -95,11 +95,13 @@ globals. We landed here after testing several alternatives:
   fluently and correctly, evaluation stays in-realm (so Proxy state just works),
   and a single static AST pass gives cheap, predictable safety. The trade-off —
   the validator is a security boundary maintained by hand — is documented at the
-  call site in [`../src/expr/safe-eval.ts`](../src/expr/safe-eval.ts).
+  call site in [`../src/expr/validate.ts`](../src/expr/validate.ts).
 
-`safe-eval.ts` holds the exact surface: forbidden node types, shadowed globals,
-and the allowed-globals list (`../src/expr/allowed-globals.ts`), which is also the
-source the prompt's globals list is generated from.
+The `expr/` engine keeps each job in its own small file: `validate.ts` is the
+guardrail (the forbidden-expression sets + the AST walk), `safe-eval.ts` compiles
+and runs what it approves, and `globals.ts` (`../src/expr/globals.ts`) holds both
+the allowed- and shadowed-globals lists — the allow-list also being the source
+the prompt's globals section is generated from.
 
 ## Prompt simplicity vs. validator tolerance
 
@@ -139,9 +141,15 @@ validator *attempts* to block — everywhere, not just at the top level:
 - and the top-level `expr` must still be an expression — statements are
   permitted _only_ nested inside an arrow body.
 
-The exact surface lives in `../src/expr/safe-eval.ts`: `FORBIDDEN_NODE_TYPES`
-(blocked at the top level), `ARROW_BODY_ALLOWED` (the statements re-permitted
-inside `=> { … }`), `GLOBALS_TO_SHADOW`, and `FORBIDDEN_PROPERTIES`.
+The validation surface lives in `../src/expr/validate.ts`. Statements are blocked
+*structurally* — every expression is parsed wrapped as `void ( … )`, so a
+statement at the top level is a syntax error and the validator keeps no list of
+them; the statements that survive (nested inside a `=> { … }` body, where the
+grammar allows them) are deliberately tolerated. What it still checks by hand is
+small: `FORBIDDEN_EXPRESSIONS` (dynamic `import()` / `import.meta`, blocked
+everywhere), `BODY_ONLY_EXPRESSIONS` (assignment / update / comma, allowed only
+inside a function body), `FORBIDDEN_PROPERTIES`, and `FORBIDDEN_IDENTIFIERS`
+(`eval` / `arguments`) — plus the `GLOBALS_TO_SHADOW` list over in `globals.ts`.
 
 ## Security — what this does and doesn't stop
 

@@ -5,8 +5,8 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@ui-fired\/core\/(.*)$/,
-        replacement: resolve(__dirname, "../core/src/$1"),
+        find: /^@ui-fired\/core$/,
+        replacement: resolve(__dirname, "../core/src/index.ts"),
       },
       {
         find: /^@ui-fired\/react$/,

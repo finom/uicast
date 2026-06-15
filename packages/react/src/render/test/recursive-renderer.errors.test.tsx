@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 import { mountChunks } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — errors", () => {

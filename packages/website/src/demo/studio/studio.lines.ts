@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 
 /**
  * The groovebox artifact — the JSONLines a model would stream to build the synth

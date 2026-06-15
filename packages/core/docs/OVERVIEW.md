@@ -59,10 +59,11 @@ The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createCom
 packages/core/src/                   — the framework-agnostic engine (zero React)
 ├── types.ts                         — ComponentEntry + ComponentListEntry (list = element with required each/as), ValueSource, ValueSourceAssignment
 ├── expr/
-│   ├── safe-eval.ts                  — the expression guardrail: validate + compile + shadow globals (acorn-based)
-│   ├── ast.ts                       — shared AST primitives (isNode, childNodes)
+│   ├── validate.ts                  — the guardrail: walk the parsed AST, reject what must not run
+│   ├── safe-eval.ts                 — SafeEval: compile + cache + run what validate.ts approves (acorn-based)
+│   ├── ast-utils.ts                 — acorn-AST helpers (isNode, childNodes) — NOT a parser
 │   ├── analyze.ts                   — static analysis: await detection + scope-read extraction (NOT security)
-│   ├── allowed-globals.ts            — globals an expression may reference (also feeds the prompt)
+│   ├── globals.ts                   — global-name policy: allow-list + shadow-list (allow-list also feeds the prompt)
 │   ├── evaluate.ts                  — `evaluate(expr, ctx, options)`; singleton SafeEval; getScopeReads()
 │   └── extract-deps.ts               — auto-detected reactive deps per element (WeakMap-cached)
 ├── scope/
@@ -301,7 +302,7 @@ A renderable component is a pair of declarations, conventionally co-located in t
 ### `def.ts` — the *partner module* the LLM reads
 
 ```ts
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core";
 import z from "zod";
 
 export const InputDef = createComponentDefinition({
@@ -440,5 +441,5 @@ When in doubt, ask: "Would a different consumer of core (a future product line, 
 - [`EXPRESSIONS.md`](./EXPRESSIONS.md) — expression syntax + the evaluator's security limits.
 - [`SCOPES.md`](./SCOPES.md) — the reactive proxy state library underneath all of this.
 - LLM-facing contract for elements: [`../src/prompt/INSTRUCTIONS.md`](../src/prompt/INSTRUCTIONS.md)
-- The expression evaluator: [`../src/expr/safe-eval.ts`](../src/expr/safe-eval.ts) (+ `ast.ts`, `analyze.ts`)
+- The expression guardrail + evaluator: [`../src/expr/validate.ts`](../src/expr/validate.ts) (the checks) and [`../src/expr/safe-eval.ts`](../src/expr/safe-eval.ts) (compile + run) (+ `ast-utils.ts`, `analyze.ts`, `globals.ts`)
 - The auto-detection helper: [`../src/expr/extract-deps.ts`](../src/expr/extract-deps.ts)

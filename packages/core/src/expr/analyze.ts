@@ -1,17 +1,12 @@
 import type * as acorn from "acorn";
-import { childNodes } from "./ast";
+import { childNodes } from "./ast-utils";
 
-/**
- * Static analysis of a parsed expression — this is NOT the security boundary
- * (that's `safe-eval.ts`). Two outputs feed the renderer:
- *
- * - `containsAwait` → whether to compile the expression as an `AsyncFunction`.
- * - `extractScopeReads` → the reactive subscription set for a chunk (which
- *   `scopes.X.Y` paths the expression reads), so the LLM never hand-writes a
- *   `deps` array.
- */
+// Static analysis of a parsed expression (not the security check — that's
+// validate.ts). Two things the renderer needs: whether the expr is async
+// (containsAwait), and which scopes.X.Y paths it reads (extractScopeReads), so it
+// can subscribe without the LLM writing a deps array.
 
-/** Check whether the AST contains any AwaitExpression node. */
+/** Does the expression `await` anything? */
 export function containsAwait(node: acorn.AnyNode | null | undefined): boolean {
   if (!node || typeof node !== "object") return false;
   if (node.type === "AwaitExpression") return true;
@@ -21,29 +16,13 @@ export function containsAwait(node: acorn.AnyNode | null | undefined): boolean {
   return false;
 }
 
-// --- Scope-read extraction ---
-//
-// Walks the AST collecting every `scopes.X.Y…` chain the expression reads,
-// stopping at the first non-static segment (computed-key, call, non-Identifier
-// property). The output drives the reactive subscription set for a chunk —
-// the LLM no longer specifies `deps` manually; it's auto-derived here.
-//
-// Chains that appear as the callee of a CallExpression are recorded WITHOUT
-// the final segment — `scopes.inv.rows.filter(...)` yields `scopes.inv.rows`,
-// not `scopes.inv.rows.filter`. The trailing identifier is a method call, not
-// a data dependency. Edge cases:
-//   - `scopes.x[scopes.y.z]`        → adds `scopes.x` AND `scopes.y.z`
-//   - `scopes.x[i].y`               → adds `scopes.x` (mid-chain dynamic; `.y`
-//                                     is unreachable without resolving `i`)
-//   - `scopes` alone                → nothing (bare identifier, no path)
-//   - `({a: scopes.x.y, b: scopes.x.z})` → adds both
-//   - `\`${scopes.x.y}\``           → adds `scopes.x.y` (template literal walked)
+// Collect every static scopes.X.Y chain the expression reads, stopping at the
+// first dynamic segment (computed key, call, non-identifier property). A method
+// call drops its last segment (rows.filter(...) depends on rows, not .filter).
+// The test file pins the trickier cases.
 
-/**
- * Walk down a MemberExpression chain collecting static identifier segments.
- * Returns null if the chain hits a computed-key access or a non-Identifier
- * property anywhere along the way.
- */
+// Read a member chain into its identifier segments (`a.b.c` -> ["a","b","c"]), or
+// null if it hits a computed / non-identifier segment.
 function collectChain(node: acorn.AnyNode | null | undefined): string[] | null {
   const parts: string[] = [];
   let cur: acorn.AnyNode | null | undefined = node;
@@ -64,11 +43,8 @@ function collectChain(node: acorn.AnyNode | null | undefined): string[] | null {
   return null;
 }
 
-/**
- * Walk the children of a MemberExpression looking for computed-key
- * sub-expressions. Each computed key may itself contain `scopes.X.Y` reads
- * we need to capture.
- */
+// A computed key can read scopes itself (`scopes.x[scopes.y]`), so walk the
+// computed parts of a chain too.
 function walkComputedKeysWithin(memberExpr: acorn.AnyNode, out: Set<string>): void {
   let cur: acorn.AnyNode = memberExpr;
   while (cur.type === "MemberExpression") {
@@ -79,25 +55,21 @@ function walkComputedKeysWithin(memberExpr: acorn.AnyNode, out: Set<string>): vo
   }
 }
 
-/**
- * Recursive AST walker. Public entry point is `extractScopeReads(ast)`.
- */
+// The recursive walker behind extractScopeReads().
 function walkScopeReads(
   node: acorn.AnyNode | null | undefined,
   out: Set<string>,
 ): void {
   if (!node || typeof node !== "object") return;
 
-  // CallExpression: if callee is a MemberExpression like `scopes.X.Y.method`,
-  // record `scopes.X.Y` (drop the method name). The trailing segment is a
-  // method dispatch, not a data read.
+  // A method call depends on the chain, not the method name — record the chain
+  // without the method, then recurse args.
   if (node.type === "CallExpression") {
     const callee = node.callee;
     if (callee.type === "MemberExpression" && !callee.computed) {
       const chain = collectChain(callee.object);
       if (chain && chain[0] === "scopes" && chain.length > 1) {
         out.add(chain.join("."));
-        // The callee's object may itself contain computed sub-keys we missed.
         walkComputedKeysWithin(callee.object, out);
       } else {
         walkScopeReads(callee.object, out);
@@ -111,7 +83,7 @@ function walkScopeReads(
     return;
   }
 
-  // MemberExpression: try to collect a static chain rooted at `scopes`.
+  // A plain member read: take the chain if it's rooted at `scopes`.
   if (node.type === "MemberExpression") {
     const chain = collectChain(node);
     if (chain && chain[0] === "scopes" && chain.length > 1) {
@@ -119,8 +91,7 @@ function walkScopeReads(
       walkComputedKeysWithin(node, out);
       return;
     }
-    // Chain didn't reach `scopes` (or hit a computed segment). Walk children
-    // so we catch nested `scopes.X.Y` reads inside computed keys / object refs.
+    // Not a scopes chain (or it hit a computed segment) — recurse for nested reads.
     walkScopeReads(node.object, out);
     if (node.computed) {
       walkScopeReads(node.property, out);
@@ -128,8 +99,6 @@ function walkScopeReads(
     return;
   }
 
-  // Generic recursion for everything else (ArrowFunction body, Object/Array
-  // literals, conditional/logical expressions, template literals, etc.).
   for (const child of childNodes(node)) {
     walkScopeReads(child, out);
   }

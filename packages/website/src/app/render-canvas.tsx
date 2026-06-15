@@ -3,7 +3,7 @@ import Skeleton from "react-loading-skeleton";
 import { ConfirmModal } from "@ui-fired/catalog/components/confirm-modal";
 import { RenderError } from "@ui-fired/catalog/components/render-error";
 import { UnknownComponent } from "@ui-fired/catalog/components/unknown-component";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 import {
   type ComponentImplementation,
   Renderer,

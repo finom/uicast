@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 
 export const formLines: ComponentEntry[] = [
   {

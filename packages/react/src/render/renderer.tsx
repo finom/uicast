@@ -1,8 +1,6 @@
 "use client";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
-import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
-import type { ComponentEntry } from "@ui-fired/core/types";
-import { buildElementsById } from "@ui-fired/core/utils/utils";
+import { createProxyScope, buildElementsById, type ComponentEntry } from "@ui-fired/core";
 import type { StandardTool } from "standard-tool";
 import { ConfirmHost } from "../components/confirm";
 import type { ComponentImplementation } from "./create-component-implementation";

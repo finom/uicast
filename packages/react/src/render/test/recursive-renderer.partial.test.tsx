@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "@ui-fired/core/types";
-import { buildElementsById } from "@ui-fired/core/utils/utils";
+import { buildElementsById, type ComponentEntry } from "@ui-fired/core";
 
 describe("RecursiveRenderer — partial replacement (buildElementsById contract)", () => {
   // The runtime contract is that re-emitting a chunk with the same `key` drops

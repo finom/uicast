@@ -2,9 +2,8 @@ import { describe, expect, it } from "vitest";
 import React, { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition, type ComponentEntry } from "@ui-fired/core";
 import { createComponentImplementation, Renderer } from "@ui-fired/react";
-import type { ComponentEntry } from "@ui-fired/core/types";
 import type { InitFn } from "@ui-fired/react";
 
 // ---------------------------------------------------------------------------

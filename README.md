@@ -30,7 +30,7 @@ components) — living in one repo. Import React symbols from the
 modules directly via subpaths:
 
 ```ts
-import { createProxyScope } from "@ui-fired/core/scope/create-proxy-scope";
+import { createProxyScope } from "@ui-fired/core";
 import { RecursiveRenderer } from "@ui-fired/react";
 import { componentImplementations } from "@ui-fired/catalog/render/impls";
 ```

@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 import type { ComponentImplementation, RendererComponents } from "@ui-fired/react";
 import type { StandardTool } from "standard-tool";
 

@@ -5,7 +5,7 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
-import type { ComponentEntry } from "@ui-fired/core/types";
+import type { ComponentEntry } from "@ui-fired/core";
 
 // ---------------------------------------------------------------------------
 // ElementsStore — the structural source of truth for a render tree.

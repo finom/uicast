@@ -1,29 +1,19 @@
 import type { StandardTool } from "standard-tool";
 import type { ValueSource } from "../types";
-import { ALLOWED_GLOBALS } from "./allowed-globals";
+import { ALLOWED_GLOBALS } from "./globals";
 import { SafeEval } from "./safe-eval";
 
 const safeEval = new SafeEval({ allowGlobals: ALLOWED_GLOBALS });
 
-/**
- * Return every `scopes.X.Y` path the given expression reads. Thin wrapper
- * around the module-private SafeEval singleton so consumers (e.g.
- * `extractDeps`) don't have to reach into the evaluator. Uses the same
- * parse-and-validate cache that `safeEval.eval()` does — first call parses
- * once, subsequent calls are O(1) cache hits.
- */
+// Every scopes.X.Y path an expression reads, via the shared SafeEval singleton
+// (so extractDeps doesn't reach into the evaluator). Same parse cache as eval().
 export const getScopeReads = (expr: string): string[] =>
   safeEval.scopeReads(expr);
 
-// Evaluate a ValueSource to its value: a `literal` is returned as-is, an `expr`
-// is run through SafeEval against `context` + the host `functions`. Returns
-// `unknown` — an async `expr` (or a tool whose `execute` is async) resolves to
-// a Promise, which callers detect with `value instanceof Promise`.
-//
-// `functions` is the same `StandardTool[]` the prompt is generated from (see
-// getFunctionsPartialPrompt). An expression calls `name(input)`, which maps to
-// `tool.execute(input)`. They're spread *after* context so a host function wins
-// over an equally-named scope variable — the LLM is prompted with these names.
+// Evaluate a ValueSource: a `literal` is returned as-is, an `expr` runs through
+// SafeEval against context + host functions. Returns unknown — an async expr
+// resolves to a Promise (callers check `value instanceof Promise`). `functions`
+// (a StandardTool[]) are spread after context, so a host fn wins a name clash.
 export const evaluate = (
   expr: ValueSource,
   context: Record<string, unknown>,

@@ -1,4 +1,4 @@
-import { createComponentDefinition } from "@ui-fired/core/def/create-component-definition";
+import { createComponentDefinition } from "@ui-fired/core";
 import z from "zod";
 
 /**
