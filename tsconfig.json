@@ -15,6 +15,7 @@
     "incremental": true,
     "paths": {
       "@ui-fired/core": ["./packages/core/src/index.ts"],
+      "@ui-fired/core/prompt": ["./packages/core/src/prompt/index.ts"],
       "@ui-fired/react": ["./packages/react/src/index.ts"],
       "@ui-fired/react/*": ["./packages/react/src/*"],
       "@ui-fired/catalog/*": ["./packages/catalog/src/*"]

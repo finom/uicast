@@ -1,4 +1,4 @@
-// @ui-fired/core public API — import from here, not from subpaths.
+// @ui-fired/core public API. Prompt-partial builders live in @ui-fired/core/prompt.
 
 export { createComponentDefinition } from "./def/create-component-definition";
 
@@ -16,8 +16,3 @@ export {
   type CombinedSpec,
   isComponentListEntry,
 } from "./types";
-
-export { getCommonInstructionsPartialPrompt } from "./prompt/get-common-instructions-partial-prompt";
-export { getComponentsPartialPrompt } from "./prompt/get-components-partial-prompt";
-export { getExpressionsPartialPrompt } from "./prompt/get-expressions-partial-prompt";
-export { getFunctionsPartialPrompt } from "./prompt/get-functions-partial-prompt";
