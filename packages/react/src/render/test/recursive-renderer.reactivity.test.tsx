@@ -1,13 +1,13 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — fine-grained reactivity", () => {
-  it("only chunks subscribed to the changed path re-render", () => {
+  it("only entries subscribed to the changed path re-render", () => {
     // Two siblings reading different scope paths. We exercise this by
-    // observing rendered output — after writing to `b`, the chunk reading
-    // `a` keeps its old text and the chunk reading `b` updates.
+    // observing rendered output — after writing to `b`, the entry reading
+    // `a` keeps its old text and the entry reading `b` updates.
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -25,7 +25,7 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
         props: { expr: "({ text: scopes.root.b })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { a: "AAA", b: "BBB" },
     });
     expect(container.textContent).toContain("AAA");
@@ -46,7 +46,7 @@ describe("RecursiveRenderer — fine-grained reactivity", () => {
         props: { expr: "({ text: scopes.root.count * 10 })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { count: 1 },
     });
     expect(container.textContent).toContain("10");

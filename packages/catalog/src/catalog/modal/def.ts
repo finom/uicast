@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@ui-fired/core";
 export const ModalDef = createComponentDefinition({
   name: "Modal",
   description:
-    "A modal dialog overlay that appears on top of the page content. Controlled by the 'open' prop. Contains a title, optional description, and any children components in the body. Use Modal for forms, detail views, confirmations, or any content that requires user focus. Use the 'hidden' chunk property or the 'open' prop to control visibility. The onOpenChange callback fires when the user closes the modal (clicks overlay or X button).",
+    "A modal dialog overlay that appears on top of the page content. Controlled by the 'open' prop. Contains a title, optional description, and any children components in the body. Use Modal for forms, detail views, confirmations, or any content that requires user focus. Use the 'hidden' entry property or the 'open' prop to control visibility. The onOpenChange callback fires when the user closes the modal (clicks overlay or X button).",
   props: z.strictObject({
     open: z
       .boolean()

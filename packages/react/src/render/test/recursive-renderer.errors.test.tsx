@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — errors", () => {
   it("renders an inline fallback when the component is not in the registry", () => {
@@ -10,7 +10,7 @@ describe("RecursiveRenderer — errors", () => {
         component: "DoesNotExist",
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     expect(container.textContent).toContain("Unknown component: DoesNotExist");
   });
 
@@ -21,7 +21,7 @@ describe("RecursiveRenderer — errors", () => {
         component: "DoesNotExist",
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       systemVisuals: {
         unknown: ({ componentName, elementKey }) => (
           <div>
@@ -44,7 +44,7 @@ describe("RecursiveRenderer — errors", () => {
         component: "Thrower",
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     expect(container.textContent).toContain(
       "Render error: BOOM_FROM_THROWER",
     );
@@ -62,7 +62,7 @@ describe("RecursiveRenderer — errors", () => {
         component: "Thrower",
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       systemVisuals: {
         error: ({ error, elementKey }) => (
           <div>
@@ -98,9 +98,9 @@ describe("RecursiveRenderer — errors", () => {
         props: { expr: "({ text: 'sibling-survives' })" },
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     // The thrower is wrapped in <ErrorBoundary>, so the parent + sibling
-    // chunks still render.
+    // entries still render.
     expect(container.textContent).toContain("sibling-survives");
     consoleError.mockRestore();
   });
@@ -128,7 +128,7 @@ describe("RecursiveRenderer — errors", () => {
         props: { expr: "({ text: 'still-here' })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { missing: null },
     });
     expect(container.textContent).toContain("still-here");

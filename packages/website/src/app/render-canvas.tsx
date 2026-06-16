@@ -13,7 +13,7 @@ import {
 } from "@ui-fired/react";
 import type { StandardTool } from "standard-tool";
 
-// Host-supplied placeholder: shown while a chunk hasn't streamed in yet, and as
+// Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
 // the Suspense fallback while a component's async `defaults` load. Components
 // that ship their own placeholder (the Table family) keep theirs; everything
 // else (Card / Stat / Chart / layout containers) falls back to this shimmer.
@@ -49,7 +49,7 @@ const defaultSystemVisuals = {
 };
 
 /**
- * The right-hand pane: the engine rendering the revealed chunks with the demo's
+ * The right-hand pane: the engine rendering the revealed entries with the demo's
  * catalog + host functions (both supplied by the active `DemoConfig`). The
  * catalog's `ConfirmModal`, passed via the `systemVisuals.confirm` slot, routes
  * every `confirm:` in a callback through the shadcn modal.
@@ -70,7 +70,7 @@ export function RenderCanvas({
   onHoverKey: (key: string | null) => void;
 }) {
   // Bidirectional hover-highlight: every catalog renderer stamps its root node
-  // with `data-key={element.key}`, so a hovered DOM node maps back to its chunk
+  // with `data-key={element.key}`, so a hovered DOM node maps back to its entry
   // key via the nearest `[data-key]` ancestor (event delegation on the wrapper).
   // `onHoverKey` reports element hovers (which highlight the matching JSON line);
   // `outlineKey` is set by the parent *only* when the hover comes from a line, so

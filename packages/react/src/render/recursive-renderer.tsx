@@ -36,7 +36,7 @@ type RecursiveRendererProps = {
   // `scopes.root.x = 1`) land immediately; async returns join the existing
   // `setDefaultsPromiseRef` Suspense pipeline.
   init?: InitFn;
-  // Placeholder shown while THIS node's chunk hasn't streamed in yet. Supplied
+  // Placeholder shown while THIS node's entry hasn't streamed in yet. Supplied
   // by the parent (its per-component placeholder, else the registry default)
   // so an unstreamed child slot looks the same as it did when the parent owned
   // the decision. A stable reference, so it doesn't break memoization.
@@ -54,22 +54,22 @@ const RecursiveRendererImpl = ({
   fallback,
   asListItem = false,
 }: RecursiveRendererProps): React.ReactElement => {
-  // Subscribe to THIS node's element only. Re-renders when this key's chunk
-  // streams in / changes — never because a sibling or unrelated chunk did.
+  // Subscribe to THIS node's element only. Re-renders when this key's entry
+  // streams in / changes — never because a sibling or unrelated entry did.
   const element = useElement(elementKey);
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const hasBeenRenderedRef = useRef(false);
   const setDefaultsPromiseRef = useRef<Promise<void> | null>(null);
   const { implementations, systemVisuals, functions } = useRendererRegistry();
 
-  // A list chunk reached as a child slot must render as a LIST (iterate items);
-  // the same chunk reached per-item (`asListItem`) renders as a normal
+  // A list entry reached as a child slot must render as a LIST (iterate items);
+  // the same entry reached per-item (`asListItem`) renders as a normal
   // component in the item scope.
   const isListContainer = !!element && isComponentListEntry(element) && !asListItem;
 
-  // Reactive subscriptions. The dep set is auto-derived from the chunk's own
+  // Reactive subscriptions. The dep set is auto-derived from the entry's own
   // expression text via static AST walk — `extractDeps` walks every
-  // `props.expr` / `hidden` for `scopes.X.Y` reads. Skipped while the chunk
+  // `props.expr` / `hidden` for `scopes.X.Y` reads. Skipped while the entry
   // hasn't streamed in, and for the list-container pass (ListRenderer owns the
   // list's own deps).
   useEffect(() => {
@@ -81,7 +81,7 @@ const RecursiveRendererImpl = ({
     for (const dep of deps) {
       const [targetScope, targetPath] = parseScope(dep);
       const targetScopeProxy = scopes[targetScope];
-      // Item-scoped chunks render before their item proxy is wired into the
+      // Item-scoped entries render before their item proxy is wired into the
       // scopes map for the very first time on a fresh list — guard so we don't
       // crash on a missing scope key. The next render after mount catches up.
       if (!targetScopeProxy) continue;
@@ -97,7 +97,7 @@ const RecursiveRendererImpl = ({
   }, [element, scopes, isListContainer]);
 
   // Not streamed yet — show the parent-provided placeholder (or registry
-  // default). The child component instance stays mounted; when its chunk
+  // default). The child component instance stays mounted; when its entry
   // arrives, the `useElement` subscription wakes it and it renders for real.
   if (!element) {
     const Fallback = fallback ?? systemVisuals?.placeholder ?? NullPlaceholder;
@@ -110,7 +110,7 @@ const RecursiveRendererImpl = ({
   }
 
   const implEntry = implementations[element.component];
-  const Component = implEntry?.component;
+  const Component = implEntry?.render;
   if (!Component) {
     const Unknown = systemVisuals?.unknown ?? DefaultUnknown;
     return (
@@ -124,12 +124,12 @@ const RecursiveRendererImpl = ({
   // `element.children?.length` — Prisma rehydrates an unset `children` column
   // as `[]` rather than `null`, so the truthy `[]` would otherwise leak past
   // this guard and produce an empty React-children array. Downstream that
-  // empty array clobbers any `children` value supplied through `chunk.props`
+  // empty array clobbers any `children` value supplied through `entry.props`
   // (createComponentImplementation spreads it second). Collapse to `null` for leaf
-  // chunks so the props-supplied children survive.
+  // entries so the props-supplied children survive.
   //
   // Each child is rendered unconditionally as its own slot — the child decides
-  // for itself whether it's pending (placeholder), a list, or a normal chunk by
+  // for itself whether it's pending (placeholder), a list, or a normal entry by
   // reading its own element from the store. That's why streaming a child in
   // doesn't re-render this parent: the slot is already mounted, and the child's
   // own subscription wakes it.
@@ -214,7 +214,7 @@ const RecursiveRendererImpl = ({
     const Comp = () => {
       use(p!);
       return (
-        <Component chunk={element} scopes={scopes}>
+        <Component entry={element} scopes={scopes}>
           {children}
         </Component>
       );
@@ -223,7 +223,7 @@ const RecursiveRendererImpl = ({
       <ErrorBoundary errorComponent={systemVisuals?.error} elementKey={elementKey}>
         <Suspense
           fallback={
-            <Component chunk={element} scopes={scopes}>
+            <Component entry={element} scopes={scopes}>
               <Placeholder />
             </Component>
           }
@@ -236,7 +236,7 @@ const RecursiveRendererImpl = ({
 
   return (
     <ErrorBoundary errorComponent={systemVisuals?.error} elementKey={elementKey}>
-      <Component chunk={element} scopes={scopes}>
+      <Component entry={element} scopes={scopes}>
         {children}
       </Component>
     </ErrorBoundary>
@@ -287,7 +287,7 @@ const ListRendererImpl = ({
   // If the parent scope identity changes, every cached item scope is stale.
   const prevScopesRef = useRef<Scopes | null>(null);
 
-  // Reactive subscriptions for the list chunk. Auto-derived from the chunk's
+  // Reactive subscriptions for the list entry. Auto-derived from the entry's
   // expressions — `each` plus any `props.expr` / `hidden` on the list itself.
   useEffect(() => {
     if (!element) return () => {};

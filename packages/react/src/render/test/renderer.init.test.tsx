@@ -7,14 +7,14 @@ import { defaultImplementationsList } from "../../../test/render-helpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
 // on the synthetic RootFragment wrapper's mount, before any LLM-emitted root
-// chunk evaluates. The wrapper is always inserted (init or not) so tree
+// entry evaluates. The wrapper is always inserted (init or not) so tree
 // topology stays consistent — the RootFragment renders children directly via
 // React.Fragment, no extra DOM.
 //
 // These tests pin the contract: writes via the reactive Proxy land before
 // children mount (sync), Suspense gates children on async init Promises,
 // and the streaming-defaults one-shot invariant (`hasBeenRenderedRef`)
-// carries over so init does NOT re-fire when new chunks stream in.
+// carries over so init does NOT re-fire when new entries stream in.
 
 describe("Renderer — init prop", () => {
 	it("sync init seeds scope before children mount", () => {
@@ -104,7 +104,7 @@ describe("Renderer — init prop", () => {
 		).toBeNull();
 	});
 
-	it("init fires exactly once even as new chunks stream in (rerender)", () => {
+	it("init fires exactly once even as new entries stream in (rerender)", () => {
 		const initSpy = vi.fn<InitFn>(({ scopes }) => {
 			(scopes.root as Record<string, unknown>).seed = "once";
 		});
@@ -130,7 +130,7 @@ describe("Renderer — init prop", () => {
 		rerender(<Renderer implementations={defaultImplementationsList} lines={nextLines} init={initSpy} />);
 
 		// The synthetic RootFragment reconciled by stable key — init did NOT
-		// re-fire when a new sibling root chunk streamed in.
+		// re-fire when a new sibling root entry streamed in.
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 		expect(container.textContent).toContain("B:once");
@@ -160,7 +160,7 @@ describe("Renderer — init prop", () => {
 		expect(container.textContent).toContain("B=shared");
 	});
 
-	it("seeds nested object state — downstream chunk reads via string expression", () => {
+	it("seeds nested object state — downstream entry reads via string expression", () => {
 		const lines: ComponentEntry[] = [
 			{
 				key: "root",

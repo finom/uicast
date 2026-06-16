@@ -150,7 +150,7 @@ describe("extractDeps — what is NOT scanned", () => {
   });
 });
 
-describe("extractDeps — list chunks read each too", () => {
+describe("extractDeps — list entries read each too", () => {
   it("captures each", () => {
     expect(extractDeps(list({ each: "scopes.root.rows" }))).toEqual([
       "scopes.root.rows",
@@ -171,13 +171,13 @@ describe("extractDeps — list chunks read each too", () => {
 });
 
 describe("extractDeps — caching and purity", () => {
-  it("returns the same array reference for the same chunk", () => {
+  it("returns the same array reference for the same entry", () => {
     const c = element({ props: { expr: "scopes.root.count" } });
     expect(extractDeps(c)).toBe(extractDeps(c));
   });
 
   it("ignores stray top-level deps fields (deps is no longer accepted)", () => {
-    // Belt-and-suspenders guard: if someone hand-writes a chunk that
+    // Belt-and-suspenders guard: if someone hand-writes an entry that
     // carries a legacy `deps: [...]` field, it MUST be ignored by the
     // extractor — auto-detection is the only source of truth.
     const c = element({ props: { expr: "scopes.root.real" } }) as unknown as

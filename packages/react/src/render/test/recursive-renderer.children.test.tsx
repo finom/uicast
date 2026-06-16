@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — children", () => {
   it("renders children in declared order", () => {
@@ -26,7 +26,7 @@ describe("RecursiveRenderer — children", () => {
         props: { expr: "({ text: 'third' })" },
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     const text = container.textContent ?? "";
     expect(text.indexOf("first")).toBeLessThan(text.indexOf("second"));
     expect(text.indexOf("second")).toBeLessThan(text.indexOf("third"));
@@ -44,11 +44,11 @@ describe("RecursiveRenderer — children", () => {
         props: { expr: "({ text: 'from-props' })" },
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     expect(container.textContent).toContain("from-props");
   });
 
-  it("treats a missing children field as no children (leaf chunk)", () => {
+  it("treats a missing children field as no children (leaf entry)", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -56,7 +56,7 @@ describe("RecursiveRenderer — children", () => {
         props: { expr: "({ text: 'just-me' })" },
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     expect(container.textContent).toContain("just-me");
   });
 });

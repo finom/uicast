@@ -103,11 +103,11 @@ type MountOptions = {
 };
 
 /**
- * Mount a chunk tree with the standard test scaffolding (registry + root
+ * Mount an entry tree with the standard test scaffolding (registry + root
  * scope). Returns the @testing-library/react
  * render result plus the live scopes map so tests can drive state.
  */
-export function mountChunks(lines: ComponentEntry[], options: MountOptions = {}) {
+export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}) {
   const elements = buildElementsById(lines);
   const scopes: Record<string, ReturnType<typeof createProxyScope>> = {
     root: createProxyScope(options.rootScope ?? {}),
@@ -116,9 +116,9 @@ export function mountChunks(lines: ComponentEntry[], options: MountOptions = {})
     scopes[name] = createProxyScope(seed);
   }
 
-  // Find the root chunk structurally (the `op` field is gone): the root is
-  // the chunk no other chunk references as a child. Fall back to the first
-  // chunk, then "root".
+  // Find the root entry structurally (the `op` field is gone): the root is
+  // the entry no other entry references as a child. Fall back to the first
+  // entry, then "root".
   const childKeys = new Set(lines.flatMap((l) => l.children ?? []));
   const rootKey =
     lines.find((l) => !childKeys.has(l.key))?.key ?? lines[0]?.key ?? "root";

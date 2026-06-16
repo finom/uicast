@@ -34,34 +34,34 @@ export const createComponentImplementation = <
   placeholder?: () => React.ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
   const component = (myprops: {
-    chunk: ComponentEntry;
+    entry: ComponentEntry;
     children: ReactNode;
     scopes: Record<string, any>;
   }) => {
-    const { chunk, children } = myprops;
+    const { entry, children } = myprops;
     const confirm = useConfirm();
     const { functions } = useRendererRegistry();
-    const props: StandardSchemaV1.InferOutput<TProps> = chunk.props
+    const props: StandardSchemaV1.InferOutput<TProps> = entry.props
       ? (evaluate(
-          chunk.props,
+          entry.props,
           { scopes: myprops.scopes },
           { functions },
         ) as StandardSchemaV1.InferOutput<TProps>)
       : ({} as StandardSchemaV1.InferOutput<TProps>);
-    const hidden = chunk.hidden
+    const hidden = entry.hidden
       ? evaluate(
           // `hidden` is a bare expr string — wrap as expr for `evaluate`, like `each`.
-          { expr: chunk.hidden },
+          { expr: entry.hidden },
           { scopes: myprops.scopes },
           { functions },
         )
       : false;
-    const chunkCallbacks = chunk.callbacks ? chunk.callbacks : {};
+    const entryCallbacks = entry.callbacks ? entry.callbacks : {};
     const callbacks = Object.fromEntries(
-      Object.keys(chunkCallbacks).map((key) => [
+      Object.keys(entryCallbacks).map((key) => [
         key,
         async (evt: unknown) => {
-          for (const setExpr of chunkCallbacks[key]) {
+          for (const setExpr of entryCallbacks[key]) {
             if (setExpr.confirm) {
               const confirmed = await confirm(setExpr.confirm);
               if (!confirmed) return;
@@ -83,7 +83,7 @@ export const createComponentImplementation = <
 
     // Empty arrays are truthy in JS, so `children ? …` would happily spread
     // a zero-length children array on top of any `children` supplied via
-    // `chunk.props` (e.g. an evaluated expression like
+    // `entry.props` (e.g. an evaluated expression like
     // `({ children: scopes.inv.item.name })`). RecursiveRenderer already
     // collapses missing/empty `element.children` to `null` upstream — this
     // is belt-and-suspenders for any non-recursive entry path.
@@ -94,15 +94,15 @@ export const createComponentImplementation = <
       ...(props as object),
       ...(hasReactChildren ? { children } : {}),
       ...callbacks,
-      generatedKey: chunk.key,
+      generatedKey: entry.key,
     });
 
-    if (chunk.hidden) {
+    if (entry.hidden) {
       return <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity>;
     }
 
     return result;
   };
 
-  return { component, placeholder: placeholder ?? null, ...def };
+  return { def, render: component, placeholder: placeholder ?? null };
 };

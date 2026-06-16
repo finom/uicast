@@ -1,7 +1,7 @@
 import INSTRUCTIONS from "./md/INSTRUCTIONS.json" with { type: "json" };
 
 /**
- * The LLM-facing chunk-protocol instruction block — the contract authored in
+ * The LLM-facing instruction block — the contract authored in
  * `md/INSTRUCTIONS.md` and imported here as a JSON string via the md-to-json
  * pipeline (`npm run md-to-json` regenerates the `.json` sibling after edits).
  *

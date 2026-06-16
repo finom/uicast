@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { StandardTool } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
-import { defaultImplementationsList, mountChunks } from "../../../test/render-helpers";
+import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
@@ -15,7 +15,7 @@ describe("RecursiveRenderer — defaults", () => {
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines);
+    const { container, scopes } = mountEntries(lines);
     expect((scopes.root as Record<string, unknown>).count).toBe(5);
     expect(container.textContent).toContain("5");
   });
@@ -29,7 +29,7 @@ describe("RecursiveRenderer — defaults", () => {
         props: { expr: "({ text: scopes.root.total })" },
       },
     ];
-    const { container } = mountChunks(lines);
+    const { container } = mountEntries(lines);
     expect(container.textContent).toContain("4");
   });
 
@@ -43,7 +43,7 @@ describe("RecursiveRenderer — defaults", () => {
         props: { expr: "({ text: scopes.root.x })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       functions: [
         {
           name: "track",
@@ -66,7 +66,7 @@ describe("RecursiveRenderer — defaults", () => {
   });
 
   it("supports async defaults via Suspense (use(promise))", async () => {
-    // Uses the full <Renderer> rather than bare mountChunks: React 19 + RTL
+    // Uses the full <Renderer> rather than bare mountEntries: React 19 + RTL
     // only flush a top-level Suspense recovery when the initial mount runs
     // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
     // The async default is gated so it resolves inside act().

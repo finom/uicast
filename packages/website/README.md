@@ -7,11 +7,11 @@ async data functions. (This will grow into the official site later.)
 
 ## What it shows
 
-Press **Play** and the page reveals the artifact one chunk at a time, simulating
+Press **Play** and the page reveals the artifact one entry at a time, simulating
 a model emitting JSONLines:
 
-- **Left** — the raw chunks as they stream, one JSON object per line.
-- **Right** — the engine rendering those chunks live: an inventory dashboard
+- **Left** — the raw entries as they stream, one JSON object per line.
+- **Right** — the engine rendering those entries live: an inventory dashboard
   with summary stats, a category chart, and a searchable products table you can
   actually use.
 

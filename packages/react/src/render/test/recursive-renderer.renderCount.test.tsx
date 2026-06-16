@@ -9,8 +9,8 @@ import type { InitFn } from "@ui-fired/react";
 // ---------------------------------------------------------------------------
 // Render-once guarantee.
 //
-// The reactivity model promises that a *settled* chunk renders exactly once and
-// is not re-rendered when an UNRELATED chunk streams in later, or when an
+// The reactivity model promises that a *settled* entry renders exactly once and
+// is not re-rendered when an UNRELATED entry streams in later, or when an
 // ancestor re-renders for its own reasons. (Under React StrictMode in dev,
 // every render is intentionally double-invoked, so the cap there is 2.)
 //
@@ -22,11 +22,11 @@ import type { InitFn } from "@ui-fired/react";
 
 const boxDef = createComponentDefinition({
   name: "Box",
-  description: "A plain div that records each render keyed by chunk id.",
+  description: "A plain div that records each render keyed by entry id.",
   props: z.object({ text: z.string().optional() }),
 });
 
-/** Fresh box renderer + a per-chunk render-count map, isolated per test. */
+/** Fresh box renderer + a per-entry render-count map, isolated per test. */
 function countingSetup() {
   const counts: Record<string, number> = {};
   const boxRenderer = createComponentImplementation({
@@ -45,7 +45,7 @@ function countingSetup() {
   return { catalog, counts };
 }
 
-// A root whose children are all declared up-front, revealed one chunk per tick
+// A root whose children are all declared up-front, revealed one entry per tick
 // (the slice() simulates the streaming JSONLines reveal `<Renderer>` is fed).
 const REVEAL: ComponentEntry[] = [
   { key: "root", component: "Box", children: ["a", "b", "c", "d"] },
@@ -63,7 +63,7 @@ function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
 }
 
 describe("RecursiveRenderer — render-once during streaming", () => {
-  it("renders every settled chunk EXACTLY once across the whole reveal", () => {
+  it("renders every settled entry EXACTLY once across the whole reveal", () => {
     const { catalog, counts } = countingSetup();
     streamReveal(catalog);
 
@@ -78,7 +78,7 @@ describe("RecursiveRenderer — render-once during streaming", () => {
     expect(counts.root).toBe(1);
   });
 
-  it("allows at most 2 renders per chunk under React StrictMode (dev double-invoke)", () => {
+  it("allows at most 2 renders per entry under React StrictMode (dev double-invoke)", () => {
     const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
@@ -94,8 +94,8 @@ describe("RecursiveRenderer — render-once during streaming", () => {
     }
 
     for (const key of ["root", "a", "b", "c", "d"]) {
-      expect(counts[key], `chunk ${key}`).toBeGreaterThanOrEqual(1);
-      expect(counts[key], `chunk ${key}`).toBeLessThanOrEqual(2);
+      expect(counts[key], `entry ${key}`).toBeGreaterThanOrEqual(1);
+      expect(counts[key], `entry ${key}`).toBeLessThanOrEqual(2);
     }
   });
 });

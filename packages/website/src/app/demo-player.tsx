@@ -20,9 +20,9 @@ import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";
 import { ThemeToggle } from "./theme-toggle";
 
-// Reveal pacing is proportional to each chunk's serialized size: a bigger line
+// Reveal pacing is proportional to each entry's serialized size: a bigger line
 // "takes longer to stream in", mirroring real token-by-token generation. At
-// 8ms/char the smallest chunks land in ~0.5s and the largest in a few seconds.
+// 8ms/char the smallest entries land in ~0.5s and the largest in a few seconds.
 // MIN/MAX are guards against pathological lines — for the current artifact
 // nothing clamps, so the delay is purely `JSON.stringify(line).length × rate`.
 const MS_PER_CHAR = 8;
@@ -57,7 +57,7 @@ type Phase = "idle" | "playing" | "paused";
 
 export function DemoPlayer({ demo }: { demo: DemoConfig }) {
   const TOTAL = demo.lines.length;
-  // `count` chunks are revealed (indices 0..count-1); everything else derives
+  // `count` entries are revealed (indices 0..count-1); everything else derives
   // from it, so prev/next/pause are just `count` + `phase` edits.
   const [phase, setPhase] = useState<Phase>("idle");
   const [count, setCount] = useState(0);
@@ -79,7 +79,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
   const atEnd = count >= TOTAL;
   const wide = useIsWide();
 
-  // Autoplay: while "playing", schedule the next chunk paced by *its* serialized
+  // Autoplay: while "playing", schedule the next entry paced by *its* serialized
   // length (see `revealDelay`). Re-runs on every `count` change (chaining the
   // reveal) and on pause/resume — the cleanup cancels any pending tick, which is
   // what makes Pause / Prev / Next stop the auto-advance. Settles at the end.
@@ -180,7 +180,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
           </Link>
           <span className="font-semibold">{demo.title}</span>
           <span className="text-xs text-muted-foreground">
-            {count}/{TOTAL} chunks
+            {count}/{TOTAL} entries
             {atEnd
               ? " · ready"
               : phase === "playing"
@@ -194,7 +194,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
             size="icon-sm"
             onClick={prev}
             disabled={count <= 0}
-            aria-label="Previous chunk"
+            aria-label="Previous entry"
           >
             <SkipBackIcon />
           </Button>
@@ -212,7 +212,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
             size="icon-sm"
             onClick={next}
             disabled={atEnd}
-            aria-label="Next chunk"
+            aria-label="Next entry"
           >
             <SkipForwardIcon />
           </Button>

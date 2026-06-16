@@ -13,16 +13,16 @@ import type { ElementsStore } from "../types";
 //
 // Why this exists: `<Renderer>` rebuilds the elements map (`buildElementsById`)
 // on every render, so the map's *identity* churns every streaming tick. If that
-// map were threaded down as a prop, `React.memo` could never bail — every chunk
+// map were threaded down as a prop, `React.memo` could never bail — every entry
 // would re-render on every tick (the streaming "storm"). Instead the map lives
 // here behind a stable store, and each node subscribes to ITS OWN key via
-// `useSyncExternalStore`. `buildElementsById` preserves the per-chunk object
-// identity of unchanged chunks, so `setMap` only notifies the keys that
+// `useSyncExternalStore`. `buildElementsById` preserves the per-entry object
+// identity of unchanged entries, so `setMap` only notifies the keys that
 // actually changed — settled subtrees are never woken, and `memo` keeps them at
 // a single render while siblings stream in.
 //
-// This handles *structural* updates (a chunk appears / changes / is removed).
-// Reactive *state* updates are orthogonal: they flow through each chunk's proxy
+// This handles *structural* updates (an entry appears / changes / is removed).
+// Reactive *state* updates are orthogonal: they flow through each entry's proxy
 // `forceRender` subscription, exactly as before.
 // ---------------------------------------------------------------------------
 

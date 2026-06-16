@@ -1,7 +1,7 @@
 import type { ComponentEntry } from "../types";
 
 /**
- * Collect all descendant IDs of a given chunk (not including the chunk itself)
+ * Collect all descendant IDs of a given entry (not including the entry itself)
  * by walking its children array recursively.
  */
 function collectDescendantIds(
@@ -12,9 +12,9 @@ function collectDescendantIds(
   const stack = [id];
   while (stack.length > 0) {
     const current = stack.pop()!;
-    const chunk = map[current];
-    if (chunk?.children) {
-      for (const childId of chunk.children) {
+    const entry = map[current];
+    if (entry?.children) {
+      for (const childId of entry.children) {
         if (!result.has(childId)) {
           result.add(childId);
           stack.push(childId);
@@ -28,10 +28,10 @@ function collectDescendantIds(
 /**
  * Build an elements-by-key map from the NDJSON lines array.
  *
- * When a chunk with a duplicate key is encountered (i.e. the LLM re-emits a
- * chunk to correct a mistake), all old descendants of that chunk are removed
+ * When an entry with a duplicate key is encountered (i.e. the LLM re-emits a
+ * entry to correct a mistake), all old descendants of that entry are removed
  * from the map before inserting the replacement. This lets the LLM fix a
- * subtree by re-emitting just the broken chunk and its new children, without
+ * subtree by re-emitting just the broken entry and its new children, without
  * regenerating the entire tree.
  */
 export function buildElementsById(
@@ -41,7 +41,7 @@ export function buildElementsById(
 
   for (const line of lines) {
     if (map[line.key]) {
-      // Chunk already exists — remove all its old descendants before replacing
+      // Entry already exists — remove all its old descendants before replacing
       const oldDescendants = collectDescendantIds(line.key, map);
       for (const descId of oldDescendants) {
         delete map[descId];

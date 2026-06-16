@@ -16,7 +16,7 @@ export const demoManifest: DemoMeta[] = [
     slug: "inventory",
     title: "Inventory",
     tagline:
-      "A CRUD dashboard streamed chunk-by-chunk, backed by a live in-browser database.",
+      "A CRUD dashboard streamed entry-by-entry, backed by a live in-browser database.",
   },
   {
     slug: "studio",

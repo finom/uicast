@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — scopes", () => {
   it("reads from the root scope on mount", () => {
@@ -12,7 +12,7 @@ describe("RecursiveRenderer — scopes", () => {
         props: { expr: "({ text: scopes.root.label })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { label: "hello" },
     });
     expect(container.textContent).toContain("hello");
@@ -26,7 +26,7 @@ describe("RecursiveRenderer — scopes", () => {
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { count: 0 },
     });
     expect(container.textContent).toContain("0");
@@ -45,13 +45,13 @@ describe("RecursiveRenderer — scopes", () => {
         props: { expr: "({ text: scopes.root.a })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { a: "first", b: "ignored" },
     });
     expect(container.textContent).toContain("first");
 
     // Write to a sibling path; the renderer shouldn't re-render because the
-    // chunk doesn't read `b`.
+    // entry doesn't read `b`.
     act(() => {
       scopes.root.$set("b", "still-ignored");
     });
@@ -66,7 +66,7 @@ describe("RecursiveRenderer — scopes", () => {
         props: { expr: "({ text: scopes.userCtx.name })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: {},
       scopes: { userCtx: { name: "Hopper" } },
     });
@@ -86,7 +86,7 @@ describe("RecursiveRenderer — scopes", () => {
         props: { expr: "({ text: scopes.root.shared })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { shared: "from-root" },
     });
     expect(container.textContent).toContain("from-root");

@@ -1,7 +1,7 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — callbacks", () => {
   it("fires a callback that $sets a path the renderer reads", async () => {
@@ -25,7 +25,7 @@ describe("RecursiveRenderer — callbacks", () => {
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { count: 0 },
     });
 
@@ -55,7 +55,7 @@ describe("RecursiveRenderer — callbacks", () => {
         },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: {},
       functions: [
         {
@@ -106,7 +106,7 @@ describe("RecursiveRenderer — callbacks", () => {
         props: { expr: "({ text: scopes.root.b })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { a: "", b: "" },
     });
 

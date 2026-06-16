@@ -98,7 +98,7 @@ export type ComponentDefinition<
   props: TProps;
   callbacks?: TCallbacks;
   /**
-   * Host-only component. Registered in the renderer registry so chunks
+   * Host-only component. Registered in the renderer registry so entries
    * referencing it mount correctly, but filtered out of the LLM-facing
    * prompt list in `getComponentsPartialPrompt`. Use for internal infrastructure
    * (e.g. RootFragment — the synthetic wrapper used by `Renderer`'s `init`

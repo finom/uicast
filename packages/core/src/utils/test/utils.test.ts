@@ -9,14 +9,14 @@ const e = (key: string, children?: string[]): ComponentEntry => ({
 });
 
 describe("buildElementsById", () => {
-  it("indexes chunks by key", () => {
+  it("indexes entries by key", () => {
     const lines: ComponentEntry[] = [e("a"), e("b"), e("c")];
     const map = buildElementsById(lines);
     expect(Object.keys(map).sort()).toEqual(["a", "b", "c"]);
     expect(map.a).toBe(lines[0]);
   });
 
-  it("re-emitted chunk replaces and drops orphaned descendants", () => {
+  it("re-emitted entry replaces and drops orphaned descendants", () => {
     // Initial tree: root -> [a -> [a1], b]
     const initial: ComponentEntry[] = [
       e("root", ["a", "b"]),

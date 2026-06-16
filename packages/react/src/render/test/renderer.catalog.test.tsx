@@ -13,7 +13,7 @@ import { defaultImplementationsList } from "../../../test/render-helpers";
 // implementations, symmetric with `functions`. <Renderer> builds the name→renderer
 // lookup itself. These tests pin that prop path directly.
 describe("Renderer — catalog prop", () => {
-  it("renders a chunk tree from a catalog array passed as a prop (merging RootFragment when absent)", () => {
+  it("renders an entry tree from a catalog array passed as a prop (merging RootFragment when absent)", () => {
     // `defaultImplementationsList` carries no `RootFragment` entry, so a successful render
     // also proves <Renderer>'s RootFragment merge — without it the synthetic root
     // wrapper would hit the Unknown-component branch and nothing would show.

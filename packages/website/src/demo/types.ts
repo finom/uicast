@@ -18,7 +18,7 @@ export interface DemoConfig {
   tagline: string;
   /** Landing "THE PROMPT" body text. */
   prompt: string;
-  /** The hand-authored JSONLines artifact, revealed one chunk at a time. */
+  /** The hand-authored JSONLines artifact, revealed one entry at a time. */
   lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
   functions: StandardTool[];

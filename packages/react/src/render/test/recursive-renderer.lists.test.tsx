@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — lists", () => {
   it("renders one child per item from each", () => {
@@ -19,7 +19,7 @@ describe("RecursiveRenderer — lists", () => {
         props: { expr: "({ text: scopes.row.item.label })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { items: [{ label: "a" }, { label: "b" }, { label: "c" }] },
     });
     expect(container.textContent).toContain("a");
@@ -42,7 +42,7 @@ describe("RecursiveRenderer — lists", () => {
         props: { expr: "({ text: scopes.row.item.label })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { items: [{ label: "x" }] },
     });
     expect(container.textContent).toContain("x");
@@ -71,7 +71,7 @@ describe("RecursiveRenderer — lists", () => {
         props: { expr: "({ text: scopes.row.item })" },
       },
     ];
-    const { container } = mountChunks(lines, { rootScope: { items: [] } });
+    const { container } = mountEntries(lines, { rootScope: { items: [] } });
     expect(container.textContent).toContain("parent-text");
   });
 
@@ -94,7 +94,7 @@ describe("RecursiveRenderer — lists", () => {
         props: { expr: "({ text: scopes.row.item })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { items: ["apple", "banana", "avocado"], search: "" },
     });
     expect(container.textContent).toContain("apple");

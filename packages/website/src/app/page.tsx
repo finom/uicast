@@ -18,7 +18,7 @@ export default function Home() {
         <p className="mx-auto max-w-2xl text-muted-foreground">
           Each demo streams JSONLines that the engine renders with real catalog
           components and live data functions — then you use the app for real.
-          Pick one to watch it build, one chunk at a time.
+          Pick one to watch it build, one entry at a time.
         </p>
       </header>
 

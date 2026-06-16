@@ -36,7 +36,7 @@ packages/react/src/
 │   ├── renderer.tsx             — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
 │   └── root-fragment.tsx        — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
 ├── store/
-│   ├── elements-store.tsx       — structural element store: per-key subscriptions so settled nodes don't re-render as later chunks stream in
+│   ├── elements-store.tsx       — structural element store: per-key subscriptions so settled nodes don't re-render as later entries stream in
 │   └── renderer-registry.tsx    — React context: { implementations, systemVisuals, functions }
 ├── visuals/
 │   ├── confirm.tsx              — ConfirmHost (owns pending-confirm state); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)

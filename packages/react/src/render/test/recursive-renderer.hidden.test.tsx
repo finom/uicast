@@ -1,10 +1,10 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
-import { mountChunks } from "../../../test/render-helpers";
+import { mountEntries } from "../../../test/render-helpers";
 
 describe("RecursiveRenderer — hidden", () => {
-  it("hides the chunk when hidden evaluates truthy", () => {
+  it("hides the entry when hidden evaluates truthy", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -13,7 +13,7 @@ describe("RecursiveRenderer — hidden", () => {
         props: { expr: "({ text: 'secret' })" },
       },
     ];
-    const { container } = mountChunks(lines, {
+    const { container } = mountEntries(lines, {
       rootScope: { hideIt: true },
     });
     // `Activity mode="hidden"` keeps the node mounted but visually hidden via
@@ -43,7 +43,7 @@ describe("RecursiveRenderer — hidden", () => {
         props: { expr: "({ text: 'panel-text' })" },
       },
     ];
-    const { container, scopes } = mountChunks(lines, {
+    const { container, scopes } = mountEntries(lines, {
       rootScope: { hidden: false },
     });
 

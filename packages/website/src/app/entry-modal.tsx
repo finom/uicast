@@ -21,7 +21,7 @@ const TOKEN_CLASS = {
 
 type Token = { text: string; cls: keyof typeof TOKEN_CLASS };
 
-// Minimal JSON tokenizer — enough to colorize a pretty-printed chunk: object
+// Minimal JSON tokenizer — enough to colorize a pretty-printed entry: object
 // keys, string / number / boolean / null values, and everything else (braces,
 // commas, colons, indentation) as punctuation. A key is a string immediately
 // followed by `:`. The embedded `expr` / `set` JavaScript stays a single string
@@ -51,40 +51,40 @@ function tokenizeJson(json: string): Token[] {
 }
 
 /**
- * Inspect one streamed chunk: the raw `ComponentEntry` pretty-printed and
+ * Inspect one streamed entry: the raw `ComponentEntry` pretty-printed and
  * syntax-highlighted, in a shadcn `Dialog`. Opened by clicking a line in
  * {@link StreamPanel}; the Dialog provides the overlay, the close button, and
  * close-on-Escape / click-outside.
  */
-export function ChunkModal({
-  chunk,
+export function EntryModal({
+  entry,
   index,
   onClose,
 }: {
-  chunk: ComponentEntry | null;
+  entry: ComponentEntry | null;
   index: number | null;
   onClose: () => void;
 }) {
   return (
     <Dialog
-      open={chunk != null}
+      open={entry != null}
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
     >
-      {chunk && (
+      {entry && (
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-mono text-sm">{chunk.key}</DialogTitle>
+            <DialogTitle className="font-mono text-sm">{entry.key}</DialogTitle>
             <DialogDescription className="font-mono text-xs">
-              chunk{" "}
+              entry{" "}
               {index != null ? String(index + 1).padStart(2, "0") : "—"} ·{" "}
-              {chunk.component}
+              {entry.component}
             </DialogDescription>
           </DialogHeader>
           <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed">
             <code>
-              {tokenizeJson(JSON.stringify(chunk, null, 2)).map((t, i) => (
+              {tokenizeJson(JSON.stringify(entry, null, 2)).map((t, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: static per-render token list
                 <span key={i} className={TOKEN_CLASS[t.cls]}>
                   {t.text}
