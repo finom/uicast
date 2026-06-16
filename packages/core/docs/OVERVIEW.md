@@ -31,7 +31,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
    ┌──────────────────────────────────────────────────┐
    │ <Renderer lines={elements} functions={fns} />      │
    │   └─ RendererRegistryProvider {                  │
-   │        implementations, components, functions    │
+   │        implementations, systemVisuals, functions │
    │      }                                           │
    │   └─ root scope = createProxyScope({})        │
    │   └─ buildElementsById(lines) → Record<key,element>│
@@ -81,7 +81,7 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `Fragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `RootFragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
 
 ---
 
@@ -239,13 +239,13 @@ Four things to notice:
 2. **Sync vs async.** Sync writes land before children mount. If the callback returns a Promise (`async ({ scopes }) => { scopes.root.x = await fetch(...) }`), the wrapper suspends via the same async path string-form defaults use (above) — children mount only after it resolves.
 3. **Fires once.** Same `hasBeenRenderedRef` guard that pins `defaults` to one shot. New elements streaming in re-render the Renderer; `init` does NOT re-fire.
 
-Mechanically, the binding **always** wraps its root elements in a synthetic `{ component: "Fragment", … }` element; `init` lands on that wrapper. See [`REACT.md`](./REACT.md) §2 for the wrap details.
+Mechanically, the binding **always** wraps its root elements in a synthetic `{ component: "RootFragment", … }` element; `init` lands on that wrapper. See [`REACT.md`](./REACT.md) §2 for the wrap details.
 
 `init` is intentionally narrower than `defaults`:
 
 - **No `set` field.** The callback is a pure side-effect — hosts in TS can write arbitrarily complex objects to multiple paths in one call, no need to enumerate `{ set, expr }` pairs.
 - **No reactivity.** Once `init` runs, it's gone. The state it wrote is reactive; the callback itself is not re-triggered by scope changes.
-- **No LLM authoring.** The element model doesn't include `init` — it's a Renderer prop only. The LLM can't emit it and shouldn't try; `Fragment` itself is registered with `hidden: true` so it never appears in the LLM-facing component menu (§12).
+- **No LLM authoring.** The element model doesn't include `init` — it's a Renderer prop only. The LLM can't emit it and shouldn't try; `RootFragment` itself is registered with `hidden: true` so it never appears in the LLM-facing component menu (§12).
 
 ### `callbacks`
 
@@ -262,7 +262,7 @@ Execution semantics:
 
 - Steps execute **sequentially**. Each `await`s its expression before the next runs.
 - Inside a callback expression, `evt` is bound to the event payload typed per the callback's def (`evt.value`, `evt.valueAsNumber`, etc.). The component renderer constructs the payload, and can shape it however it likes — DOM fields, a typed scalar, a structured or spatial/relational record — so this single mechanism covers any event source (see [`LINES.md`](./LINES.md#callbacks) §callbacks).
-- `confirm`: if a step has `{ confirm: "Are you sure?", … }`, the binding opens a confirm modal before evaluating that step's expression (in React, the host-supplied `components.confirm` modal — the catalog ships `ConfirmModal` — else the browser-native `window.confirm`; see [`REACT.md`](./REACT.md) §2). On cancel, the step **and all subsequent steps** are skipped. Place `confirm` on the first dangerous step.
+- `confirm`: if a step has `{ confirm: "Are you sure?", … }`, the binding opens a confirm modal before evaluating that step's expression (in React, the host-supplied `systemVisuals.confirm` modal — the catalog ships `ConfirmModal` — else the browser-native `window.confirm`; see [`REACT.md`](./REACT.md) §2). On cancel, the step **and all subsequent steps** are skipped. Place `confirm` on the first dangerous step.
 - A small `await new Promise(resolve => setTimeout(resolve, 0))` yields between steps so the scheduler can pick up the previous `$set` before the next one fires — avoids a race where a derived dep update lags the next chained expression's read.
 
 ### The purity rule
@@ -291,7 +291,7 @@ The list element's `component` is rendered **once per item**. There's no separat
 
 ## 11. Rendering pipeline
 
-The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `implementations` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createComponentImplementation` tree walk, the synthetic `Fragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
+The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `implementations` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createComponentImplementation` tree walk, the synthetic `RootFragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
 
 ---
 
@@ -343,7 +343,7 @@ The consumer maintains two registries:
 
 `createComponentDefinition` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getDefPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
 
-Today the only `hidden` def is `Fragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the catalog map by `<Renderer>`, so consumers don't have to register it manually.
+Today the only `hidden` def is `RootFragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the catalog map by `<Renderer>`, so consumers don't have to register it manually.
 
 ---
 

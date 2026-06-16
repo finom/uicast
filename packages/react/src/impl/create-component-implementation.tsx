@@ -7,8 +7,9 @@ import {
   type CombinedSpec,
   type ComponentDefinition,
 } from "@ui-fired/core";
-import { useConfirm } from "../components/confirm";
-import { useRendererRegistry } from "./renderer-registry";
+import { useConfirm } from "../visuals/confirm";
+import { useRendererRegistry } from "../store/renderer-registry";
+import type { ComponentImplementation } from "../types";
 
 type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {
   [K in keyof T]: (args: StandardSchemaV1.InferOutput<T[K]>) => Promise<void>;
@@ -31,7 +32,7 @@ export const createComponentImplementation = <
       CallbacksToFunctions<TCallbacks>,
   ) => React.ReactElement;
   placeholder?: () => React.ReactElement;
-}) => {
+}): ComponentImplementation<TProps, TCallbacks> => {
   const component = (myprops: {
     chunk: ComponentEntry;
     children: ReactNode;
@@ -105,5 +106,3 @@ export const createComponentImplementation = <
 
   return { component, placeholder: placeholder ?? null, ...def };
 };
-
-export type ComponentImplementation = ReturnType<typeof createComponentImplementation>;

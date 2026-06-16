@@ -25,7 +25,7 @@ describe("getComponentsPartialPrompt — duplicate names", () => {
 	});
 });
 
-// The `hidden` flag exists so host-only components (like Fragment, the
+// The `hidden` flag exists so host-only components (like RootFragment, the
 // synthetic wrapper used by `Renderer`'s `init` prop) can be registered
 // without being advertised to the LLM. The filter in
 // `getComponentsPartialPrompt` is the enforcement point.

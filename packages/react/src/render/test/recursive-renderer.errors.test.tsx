@@ -14,7 +14,7 @@ describe("RecursiveRenderer — errors", () => {
     expect(container.textContent).toContain("Unknown component: DoesNotExist");
   });
 
-  it("renders the components.unknown slot when supplied", () => {
+  it("renders the systemVisuals.unknown slot when supplied", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -22,7 +22,7 @@ describe("RecursiveRenderer — errors", () => {
       },
     ];
     const { container } = mountChunks(lines, {
-      components: {
+      systemVisuals: {
         unknown: ({ componentName, elementKey }) => (
           <div>
             {elementKey} misses {componentName}
@@ -51,7 +51,7 @@ describe("RecursiveRenderer — errors", () => {
     consoleError.mockRestore();
   });
 
-  it("renders the components.error slot when a renderer throws", () => {
+  it("renders the systemVisuals.error slot when a renderer throws", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
@@ -63,7 +63,7 @@ describe("RecursiveRenderer — errors", () => {
       },
     ];
     const { container } = mountChunks(lines, {
-      components: {
+      systemVisuals: {
         error: ({ error, elementKey }) => (
           <div>
             {elementKey} failed: {error.message}

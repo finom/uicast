@@ -7,7 +7,7 @@ is **framework-agnostic** and lives in [`@ui-fired/core`](./OVERVIEW.md) with
 **zero React imports**. This package (`@ui-fired/react`) is what actually mounts
 an element tree into a live React UI: the `<Renderer>`, the recursive tree
 walk, the registry context, the per-element error boundary, the confirm host
-(`window.confirm` by default, a host-supplied modal via the `components.confirm`
+(`window.confirm` by default, a host-supplied modal via the `systemVisuals.confirm`
 slot).
 
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
@@ -29,16 +29,20 @@ sub-language is [`EXPRESSIONS.md`](./EXPRESSIONS.md); the reactive state model i
 
 ```
 packages/react/src/
+├── impl/
+│   └── create-component-implementation.tsx  — renderer factory: pairs a core def with a React component
 ├── render/
-│   ├── recursive-renderer.tsx          — RecursiveRenderer + ListRenderer (the tree walk)
-│   ├── renderer.tsx                   — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
-│   ├── create-component-implementation.tsx  — renderer factory: pairs a core def with a React component
-│   ├── renderer-registry.tsx           — React context: { implementations, components, functions }
-│   ├── error-boundary.tsx              — per-element error boundary; renders the components.error slot (inline-styled zero-dep default)
-│   └── fragment.tsx                   — host-only wrapper component + InitContext / InitFn types
-├── components/
-│   └── confirm.tsx                    — ConfirmHost (owns pending state) + ConfirmComponentProps (the public modal contract); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
-└── index.ts                           — the package's React surface (the only public entry)
+│   ├── recursive-renderer.tsx   — RecursiveRenderer + ListRenderer (the tree walk)
+│   ├── renderer.tsx             — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
+│   └── root-fragment.tsx        — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
+├── store/
+│   ├── elements-store.tsx       — structural element store: per-key subscriptions so settled nodes don't re-render as later chunks stream in
+│   └── renderer-registry.tsx    — React context: { implementations, systemVisuals, functions }
+├── visuals/
+│   ├── confirm.tsx              — ConfirmHost (owns pending-confirm state); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
+│   └── error-boundary.tsx       — per-element error boundary; renders the systemVisuals.error slot (inline-styled zero-dep default)
+├── types.ts                     — the package's whole public type surface (ComponentImplementation, RendererProps, RendererSystemVisuals, the slot prop types, InitContext / InitFn, …)
+└── index.ts                     — the package's React surface (the only public entry)
 ```
 
 Everything agnostic is imported from `@ui-fired/core`: the element types
@@ -74,14 +78,14 @@ import { Renderer } from "@ui-fired/react";
   implementations={componentImplementations}                 // ComponentImplementation[]
   lines={elements}
   functions={hostFns}
-  components={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied chrome
+  systemVisuals={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied system visuals
   init={hostInit}
 />
 ```
 
 `<Renderer>` turns the array into the `Record<string, ComponentImplementation>` the
 registry needs — keyed by `renderer.name` (=== the component name the generator
-emits) — always merging in the host-only `Fragment` renderer. On a **duplicate
+emits) — always merging in the host-only `RootFragment` renderer. On a **duplicate
 name the later renderer wins** (so `[...componentImplementations, MyCard]` overrides
 `Card`) and a `console.error` is logged so accidental double-registration is
 still loud.
@@ -95,13 +99,13 @@ implementations are as injectable as `functions` — override or extend componen
 Internally `<Renderer>`:
 
 - **Builds + memoizes the name→implementation map** from the `implementations` array (last
-  entry wins on a duplicate name + `console.error`; the host `Fragment` is merged
+  entry wins on a duplicate name + `console.error`; the host `RootFragment` is merged
   in last). Memoized on the array identity — hence the stable-reference rule
-  above. Fragment is host-only (`hidden: true` in its def), renders
+  above. RootFragment is host-only (`hidden: true` in its def), renders
   `<>{children}</>` with no wrapping DOM, and is the one component the synthetic
   wrapper below references by name.
-- Memoizes the registry value (`{ implementations, components, functions }`) so context
-  identity only changes when `implementations`, `functions`, or `components` changes.
+- Memoizes the registry value (`{ implementations, systemVisuals, functions }`) so context
+  identity only changes when `implementations`, `functions`, or `systemVisuals` changes.
 - Creates **one `root` reactive proxy per instance** (`createProxyScope({})` from
   core, lazy-init via ref) — each mounted `<Renderer>` owns isolated state.
 - `buildElementsById(lines)` (from core) flattens the JSONL into a key→element
@@ -109,35 +113,35 @@ Internally `<Renderer>`:
   [`OVERVIEW.md`](./OVERVIEW.md) §14).
 - Derives root elements structurally (those whose `key` no other element lists
   in its `children`), dedupes by key, and assembles them as the `children` of a
-  **single synthetic Fragment element** (`key: "__renderer_fragment__"`). The
-  Fragment becomes the lone top-level mount; the AI roots are its children.
+  **single synthetic RootFragment element** (`key: "__root_fragment__"`). The
+  RootFragment becomes the lone top-level mount; the AI roots are its children.
   Visually identical to the un-wrapped tree, but it gives the `init` prop
   exactly one mount point. The wrap happens whether or not `init` is provided —
   keeping tree topology consistent across init/no-init renders.
-- Mounts the Fragment via `<RecursiveRenderer init={init} … />`. `init` is **not**
-  propagated to recursive child mounts — only the top-level synthetic Fragment
+- Mounts the RootFragment via `<RecursiveRenderer init={init} … />`. `init` is **not**
+  propagated to recursive child mounts — only the top-level synthetic RootFragment
   runs the callback; descendants always see `init=undefined`.
 - Wraps the whole tree in `RendererRegistryProvider`, with a `<ConfirmHost>`
   between the provider and the tree. The host owns the pending-confirm state
   (one `Promise.withResolvers()` pair parked in state per open question) and
-  keeps the `components.confirm` modal mounted next to the tree, driving it as
+  keeps the `systemVisuals.confirm` modal mounted next to the tree, driving it as
   a controlled dialog — so the modal itself stays stateless. No slot →
   `window.confirm`.
 
 ### Middle — `RendererRegistry` context
 
-A React context carrying `{ implementations, components, functions }`. Every
+A React context carrying `{ implementations, systemVisuals, functions }`. Every
 component in the tree calls `useRendererRegistry()` to look up its implementation
-by name, the host-supplied chrome (`components`), and the host functions to pass
+by name, the host-supplied system visuals (`systemVisuals`), and the host functions to pass
 into evaluator calls.
 
-`components` (`RendererComponents`) is the host's map of engine "chrome" —
-distinct from `implementations` (the catalog components). Four slots
+`systemVisuals` (`RendererSystemVisuals`) is the host's map of the engine's own
+UI — distinct from `implementations` (the catalog components). Four slots
 are wired today:
 
 - **`placeholder`** — shown for a not-yet-streamed child and as the
   async-`defaults` suspense fallback (§5). Precedence is **renderer's own
-  placeholder → `components.placeholder` → null** (render nothing). Resolved
+  placeholder → `systemVisuals.placeholder` → null** (render nothing). Resolved
   per-node in `RecursiveRenderer`.
 - **`confirm`** — the modal that resolves callback steps carrying `confirm:`
   (`ConfirmComponentProps`: `open` / `message` / `onConfirm` / `onCancel`).
@@ -159,7 +163,7 @@ Like `functions`, pass a **stable reference** (module const or memoized): it
 folds into the registry-value memo deps, so a fresh object each render churns
 the context and re-renders the whole tree. The map is extensible — adding a
 slot is one field here plus one resolution site (`RecursiveRenderer` for
-per-node chrome, `<Renderer>` for tree-level chrome).
+per-node visuals, `<Renderer>` for tree-level visuals).
 
 ### Inner — `RecursiveRenderer` + `createComponentImplementation`
 
@@ -185,7 +189,7 @@ Inside the component, `createComponentImplementation`:
 2. **Evaluate `element.hidden`** → boolean (absence = `false`).
 3. **Build bound `callbacks`** — each handler closes over `element.callbacks[key]`
    and walks the steps when fired, with `evt` bound to the event payload. A step
-   carrying `confirm` asks the confirm host first — the `components.confirm`
+   carrying `confirm` asks the confirm host first — the `systemVisuals.confirm`
    modal (e.g. catalog's `ConfirmModal`), else the `window.confirm` default; on
    cancel, that step and all later steps are skipped.
 4. **Build children prop**: a non-empty *array* from RecursiveRenderer wins;
@@ -277,7 +281,7 @@ host-vs-LLM seeding) are in [`OVERVIEW.md`](./OVERVIEW.md) §9. The **async**
 case is React-specific: if a default expression (or the `init` callback)
 returns a Promise, the element wraps itself in `<Suspense>` with `use(promise)`
 and renders the registered placeholder (the renderer's own, else the
-host-supplied `components.placeholder`) until every promise resolves. Children mount
+host-supplied `systemVisuals.placeholder`) until every promise resolves. Children mount
 only after resolution. This is the binding's single suspension path; both
 string-form async defaults and an async `init` flow through it.
 

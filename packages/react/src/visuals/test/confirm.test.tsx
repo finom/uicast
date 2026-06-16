@@ -1,15 +1,12 @@
 import { act, fireEvent, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import {
-  type ConfirmComponentProps,
-  ConfirmHost,
-  useConfirm,
-} from "../confirm";
+import { ConfirmHost, useConfirm } from "../confirm";
+import type { ConfirmComponentProps } from "../../types";
 
 // The engine half of the confirm flow: `ConfirmHost` (mounted by <Renderer>)
 // owns the pending-confirm state and the internal context; a host supplies only
-// a stateless modal via the `components.confirm` slot. The shadcn modal itself
+// a stateless modal via the `systemVisuals.confirm` slot. The shadcn modal itself
 // lives in `@ui-fired/catalog` (tested there once that package grows a test
 // harness).
 const Modal = ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) =>

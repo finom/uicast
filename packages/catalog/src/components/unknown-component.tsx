@@ -3,9 +3,9 @@ import type { UnknownComponentProps } from "@ui-fired/react";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 /**
- * Shadcn-styled `components.unknown` slot — shown in place of an element whose
+ * Shadcn-styled `systemVisuals.unknown` slot — shown in place of an element whose
  * `component` name has no implementation in the catalog. Attach it manually:
- * `<Renderer components={{ unknown: UnknownComponent }}>`; without it the
+ * `<Renderer systemVisuals={{ unknown: UnknownComponent }}>`; without it the
  * engine falls back to a bare inline-styled div.
  */
 export const UnknownComponent = ({

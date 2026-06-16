@@ -21,7 +21,7 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountChunks(lines, {
-			components: { placeholder: () => <span data-test-placeholder>loading…</span> },
+			systemVisuals: { placeholder: () => <span data-test-placeholder>loading…</span> },
 		});
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 	});
@@ -42,7 +42,7 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
-				components: {
+				systemVisuals: {
 					placeholder: () => (
 						<span data-test-placeholder>default-placeholder</span>
 					),
@@ -132,7 +132,7 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const components = {
+		const systemVisuals = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
 
@@ -156,12 +156,12 @@ describe("RecursiveRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} components={components} />,
+			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} systemVisuals={systemVisuals} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} components={components} />);
+		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} systemVisuals={systemVisuals} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

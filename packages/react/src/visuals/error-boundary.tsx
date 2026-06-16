@@ -1,8 +1,8 @@
 "use client";
 import React, { Component, type ReactNode } from "react";
-import type { ErrorComponentProps } from "./renderer-registry";
+import type { ErrorComponentProps } from "../types";
 
-// Zero-dependency default for the `components.error` slot: a bare inline-styled
+// Zero-dependency default for the `systemVisuals.error` slot: a bare inline-styled
 // div, so it renders sensibly without Tailwind or any host CSS. The
 // shadcn-styled version ships in @ui-fired/catalog (`RenderError`).
 export const DefaultErrorComponent = ({
@@ -16,7 +16,7 @@ export const DefaultErrorComponent = ({
 
 interface ErrorBoundaryProps {
   // Static-node escape hatch for direct consumers. `errorComponent` (the
-  // engine's `components.error` slot) wins when both are set — it receives the
+  // engine's `systemVisuals.error` slot) wins when both are set — it receives the
   // caught error.
   fallback?: ReactNode;
   errorComponent?: (props: ErrorComponentProps) => React.ReactElement | null;

@@ -7,7 +7,7 @@ import type { ComponentDefinition } from "../types";
  * Markdown entry per visible def (its prop schema rendered to a TypeScript-ish
  * type via `JSONSchemaToTs`, its description, and any callback signatures).
  *
- * Host-only defs (`hidden: true`, e.g. Fragment) are filtered out so the LLM
+ * Host-only defs (`hidden: true`, e.g. RootFragment) are filtered out so the LLM
  * never sees host infrastructure in its component menu. Catalog-agnostic: the
  * caller passes whatever def set it exposes.
  *

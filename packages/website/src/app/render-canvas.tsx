@@ -1,13 +1,15 @@
 "use client";
 import Skeleton from "react-loading-skeleton";
-import { ConfirmModal } from "@ui-fired/catalog/components/confirm-modal";
-import { RenderError } from "@ui-fired/catalog/components/render-error";
-import { UnknownComponent } from "@ui-fired/catalog/components/unknown-component";
+import {
+  ConfirmModal,
+  RenderError,
+  UnknownComponent,
+} from "@ui-fired/catalog/visuals";
 import type { ComponentEntry } from "@ui-fired/core";
 import {
   type ComponentImplementation,
   Renderer,
-  type RendererComponents,
+  type RendererSystemVisuals,
 } from "@ui-fired/react";
 import type { StandardTool } from "standard-tool";
 
@@ -39,7 +41,7 @@ const Placeholder = () => (
     containerClassName="block w-full [&_br]:hidden"
   />
 );
-const rendererComponents = {
+const defaultSystemVisuals = {
   placeholder: Placeholder,
   confirm: ConfirmModal,
   unknown: UnknownComponent,
@@ -49,21 +51,21 @@ const rendererComponents = {
 /**
  * The right-hand pane: the engine rendering the revealed chunks with the demo's
  * catalog + host functions (both supplied by the active `DemoConfig`). The
- * catalog's `ConfirmModal`, passed via the `components.confirm` slot, routes
+ * catalog's `ConfirmModal`, passed via the `systemVisuals.confirm` slot, routes
  * every `confirm:` in a callback through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
   catalog,
   functions,
-  components,
+  systemVisuals,
   outlineKey,
   onHoverKey,
 }: {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
   functions: StandardTool[];
-  components?: RendererComponents;
+  systemVisuals?: RendererSystemVisuals;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
@@ -90,7 +92,7 @@ export function RenderCanvas({
           implementations={catalog}
           lines={lines}
           functions={functions}
-          components={components ?? rendererComponents}
+          systemVisuals={systemVisuals ?? defaultSystemVisuals}
         />
       </div>
     </>

@@ -1,13 +1,10 @@
 "use client";
 import React, { memo, Suspense, use, useEffect, useReducer, useRef } from "react";
 import { createProxyScope, isComponentListEntry, evaluate, extractDeps, parseScope } from "@ui-fired/core";
-import {
-  type UnknownComponentProps,
-  useRendererRegistry,
-} from "./renderer-registry";
-import { DefaultErrorComponent, ErrorBoundary } from "./error-boundary";
-import { useElement } from "./elements-store";
-import type { InitFn } from "./fragment";
+import { useRendererRegistry } from "../store/renderer-registry";
+import { DefaultErrorComponent, ErrorBoundary } from "../visuals/error-boundary";
+import { useElement } from "../store/elements-store";
+import type { InitFn, UnknownComponentProps } from "../types";
 
 type Scopes = Record<string, ReturnType<typeof createProxyScope>>;
 type PlaceholderComponent = () => React.ReactElement | null;
@@ -17,7 +14,7 @@ type PlaceholderComponent = () => React.ReactElement | null;
 // defeat the `React.memo` bail below).
 const NullPlaceholder: PlaceholderComponent = () => null;
 
-// Zero-dependency default for the `components.unknown` slot — like the error
+// Zero-dependency default for the `systemVisuals.unknown` slot — like the error
 // default, a bare inline-styled div (the shadcn-styled version ships in
 // @ui-fired/catalog as `UnknownComponent`).
 const DefaultUnknown = ({
@@ -33,7 +30,7 @@ type RecursiveRendererProps = {
   elementKey: string;
   scopes: Scopes;
   // One-shot side-effect callback. Set ONLY for the top-level mount of the
-  // synthetic Fragment wrapper that `<Renderer>` builds;
+  // synthetic RootFragment wrapper that `<Renderer>` builds;
   // recursive child mounts below intentionally omit this prop so descendants
   // never re-fire `init`. Sync writes via the reactive Proxy (e.g.
   // `scopes.root.x = 1`) land immediately; async returns join the existing
@@ -63,7 +60,7 @@ const RecursiveRendererImpl = ({
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const hasBeenRenderedRef = useRef(false);
   const setDefaultsPromiseRef = useRef<Promise<void> | null>(null);
-  const { implementations, components, functions } = useRendererRegistry();
+  const { implementations, systemVisuals, functions } = useRendererRegistry();
 
   // A list chunk reached as a child slot must render as a LIST (iterate items);
   // the same chunk reached per-item (`asListItem`) renders as a normal
@@ -103,7 +100,7 @@ const RecursiveRendererImpl = ({
   // default). The child component instance stays mounted; when its chunk
   // arrives, the `useElement` subscription wakes it and it renders for real.
   if (!element) {
-    const Fallback = fallback ?? components?.placeholder ?? NullPlaceholder;
+    const Fallback = fallback ?? systemVisuals?.placeholder ?? NullPlaceholder;
     return <Fallback />;
   }
 
@@ -115,14 +112,14 @@ const RecursiveRendererImpl = ({
   const implEntry = implementations[element.component];
   const Component = implEntry?.component;
   if (!Component) {
-    const Unknown = components?.unknown ?? DefaultUnknown;
+    const Unknown = systemVisuals?.unknown ?? DefaultUnknown;
     return (
       <Unknown componentName={element.component} elementKey={elementKey} />
     );
   }
 
   const Placeholder =
-    implEntry?.placeholder ?? components?.placeholder ?? NullPlaceholder;
+    implEntry?.placeholder ?? systemVisuals?.placeholder ?? NullPlaceholder;
 
   // `element.children?.length` — Prisma rehydrates an unset `children` column
   // as `[]` rather than `null`, so the truthy `[]` would otherwise leak past
@@ -223,7 +220,7 @@ const RecursiveRendererImpl = ({
       );
     };
     return (
-      <ErrorBoundary errorComponent={components?.error} elementKey={elementKey}>
+      <ErrorBoundary errorComponent={systemVisuals?.error} elementKey={elementKey}>
         <Suspense
           fallback={
             <Component chunk={element} scopes={scopes}>
@@ -238,7 +235,7 @@ const RecursiveRendererImpl = ({
   }
 
   return (
-    <ErrorBoundary errorComponent={components?.error} elementKey={elementKey}>
+    <ErrorBoundary errorComponent={systemVisuals?.error} elementKey={elementKey}>
       <Component chunk={element} scopes={scopes}>
         {children}
       </Component>
@@ -273,7 +270,7 @@ const ListRendererImpl = ({
 }): React.ReactElement => {
   const element = useElement(elementKey);
   const [, forceRender] = useReducer((x) => x + 1, 0);
-  const { functions, components } = useRendererRegistry();
+  const { functions, systemVisuals } = useRendererRegistry();
   // Cache item proxies + item scopes by unique ID to preserve state across
   // re-renders AND to hand each item a STABLE `scopes` prop — without that the
   // per-item RecursiveRenderer could never memo-bail when the list re-renders.
@@ -318,7 +315,7 @@ const ListRendererImpl = ({
   if (!isComponentListEntry(element)) {
     // A key that mounted as a list was replaced by a non-list element — an
     // invariant break, surfaced through the same `error` slot as render throws.
-    const ErrorComponent = components?.error ?? DefaultErrorComponent;
+    const ErrorComponent = systemVisuals?.error ?? DefaultErrorComponent;
     return (
       <ErrorComponent
         error={new Error(`Element is not a list: ${elementKey}`)}

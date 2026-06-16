@@ -6,6 +6,7 @@ import {
   useSyncExternalStore,
 } from "react";
 import type { ComponentEntry } from "@ui-fired/core";
+import type { ElementsStore } from "../types";
 
 // ---------------------------------------------------------------------------
 // ElementsStore — the structural source of truth for a render tree.
@@ -24,15 +25,6 @@ import type { ComponentEntry } from "@ui-fired/core";
 // Reactive *state* updates are orthogonal: they flow through each chunk's proxy
 // `forceRender` subscription, exactly as before.
 // ---------------------------------------------------------------------------
-
-export interface ElementsStore {
-  /** Current element for a key (stable reference until that key changes). */
-  get(key: string): ComponentEntry | undefined;
-  /** Subscribe to changes for a single key. Returns an unsubscribe fn. */
-  subscribe(key: string, listener: () => void): () => void;
-  /** Swap in a new map, notifying only the keys whose element identity changed. */
-  setMap(next: Record<string, ComponentEntry>): void;
-}
 
 function notify(listeners: Map<string, Set<() => void>>, key: string): void {
   const set = listeners.get(key);

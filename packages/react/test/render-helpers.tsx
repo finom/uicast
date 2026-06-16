@@ -10,7 +10,7 @@ import {
 import { RecursiveRenderer } from "@ui-fired/react";
 import {
   RendererRegistryProvider,
-  type RendererComponents,
+  type RendererSystemVisuals,
 } from "@ui-fired/react";
 import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
 
@@ -97,7 +97,7 @@ type MountOptions = {
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
   functions?: StandardTool[];
-  components?: RendererComponents;
+  systemVisuals?: RendererSystemVisuals;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
 };
@@ -129,7 +129,7 @@ export function mountChunks(lines: ComponentEntry[], options: MountOptions = {})
       <RendererRegistryProvider
         value={{
           implementations: options.implementations ?? defaultImplementations,
-          components: options.components,
+          systemVisuals: options.systemVisuals,
           functions: options.functions,
         }}
       >
