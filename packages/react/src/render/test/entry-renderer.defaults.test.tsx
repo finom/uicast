@@ -5,7 +5,7 @@ import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
 import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — defaults", () => {
+describe("EntryRenderer — defaults", () => {
   it("seeds root scope at mount via literal", () => {
     const lines: ComponentEntry[] = [
       {

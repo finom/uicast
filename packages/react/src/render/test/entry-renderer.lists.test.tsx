@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — lists", () => {
+describe("EntryRenderer — lists", () => {
   it("renders one child per item from each", () => {
     const lines: ComponentEntry[] = [
       {

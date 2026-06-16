@@ -62,7 +62,7 @@ function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
   }
 }
 
-describe("RecursiveRenderer — render-once during streaming", () => {
+describe("EntryRenderer — render-once during streaming", () => {
   it("renders every settled entry EXACTLY once across the whole reveal", () => {
     const { catalog, counts } = countingSetup();
     streamReveal(catalog);
@@ -100,7 +100,7 @@ describe("RecursiveRenderer — render-once during streaming", () => {
   });
 });
 
-describe("RecursiveRenderer — render-once on state change", () => {
+describe("EntryRenderer — render-once on state change", () => {
   it("a parent re-rendering on its own state change does NOT cascade to a child", () => {
     const counts: Record<string, number> = {};
     const boxRenderer = createComponentImplementation({

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — errors", () => {
+describe("EntryRenderer — errors", () => {
   it("renders an inline fallback when the component is not in the registry", () => {
     const lines: ComponentEntry[] = [
       {

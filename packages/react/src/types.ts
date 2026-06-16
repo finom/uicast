@@ -1,13 +1,13 @@
 // @ui-fired/react public types — the package's whole type surface in one place.
 // Runtime values (factories, components, contexts, hooks) live in the subsystem
-// folders (impl/ render/ store/ visuals/) and import their types from here.
+// folders (impl/ render/ store/ providers/) and import their types from here.
 
 import type { ReactElement, ReactNode } from "react";
 import type {
   CombinedSpec,
   ComponentDefinition,
   ComponentEntry,
-  createProxyScope,
+  ReactiveProxy,
 } from "@ui-fired/core";
 import type { StandardTool } from "standard-tool";
 
@@ -61,7 +61,7 @@ export type ErrorComponentProps = {
 // passed in via the `<Renderer systemVisuals={...}>` prop. Distinct from
 // `implementations` (the catalog component implementations) — these are the
 // engine's own fallback UI. Extensible: add a field here + one resolution site
-// (RecursiveRenderer for per-node visuals, `<Renderer>` for tree-level ones
+// (EntryRenderer for per-node visuals, `<Renderer>` for tree-level ones
 // like `confirm`).
 // - `placeholder` renders while a node's entry hasn't streamed in yet (and as
 //   the Suspense fallback while async defaults load); null = render nothing.
@@ -96,6 +96,11 @@ export type RendererRegistry = {
   functions?: StandardTool[];
 };
 
+// The reactive scope map threaded through the render tree: the always-present
+// `root` scope plus one entry per active list `as` name. Each value is a
+// `ReactiveProxy` from `createProxyScope`.
+export type Scopes = Record<string, ReactiveProxy>;
+
 /**
  * Context passed to the consumer's `init` callback. `scopes` is the live
  * reactive Proxy tree — assignments like `scopes.root.headings = X` route
@@ -104,7 +109,7 @@ export type RendererRegistry = {
  * re-render normally.
  */
 export type InitContext = {
-  scopes: Record<string, ReturnType<typeof createProxyScope>>;
+  scopes: Scopes;
 };
 
 /**

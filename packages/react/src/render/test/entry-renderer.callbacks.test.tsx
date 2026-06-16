@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — callbacks", () => {
+describe("EntryRenderer — callbacks", () => {
   it("fires a callback that $sets a path the renderer reads", async () => {
     const lines: ComponentEntry[] = [
       {

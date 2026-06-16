@@ -32,13 +32,16 @@ packages/react/src/
 ├── impl/
 │   └── create-component-implementation.tsx  — renderer factory: pairs a core def with a React component
 ├── render/
-│   ├── recursive-renderer.tsx   — RecursiveRenderer + ListRenderer (the tree walk)
+│   ├── entry-renderer.tsx       — EntryRenderer + ListEntryRenderer (the tree walk)
+│   ├── use-reactive-deps.ts     — subscribes a node to the reactive paths its entry reads
+│   ├── use-seed-defaults.ts     — one-shot defaults + init seeding; returns the Suspense promise
+│   ├── use-item-scopes.ts       — per-list-item proxy + scope cache (stable identities for memo)
 │   ├── renderer.tsx             — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
-│   └── root-fragment.tsx        — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
+│   └── root-fragment-impl.tsx   — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
 ├── store/
 │   ├── elements-store.tsx       — structural element store: per-key subscriptions so settled nodes don't re-render as later entries stream in
 │   └── renderer-registry.tsx    — React context: { implementations, systemVisuals, functions }
-├── visuals/
+├── providers/
 │   ├── confirm.tsx              — ConfirmHost (owns pending-confirm state); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
 │   └── error-boundary.tsx       — per-element error boundary; renders the systemVisuals.error slot (inline-styled zero-dep default)
 ├── types.ts                     — the package's whole public type surface (ComponentImplementation, RendererProps, RendererSystemVisuals, the slot prop types, InitContext / InitFn, …)
@@ -118,7 +121,7 @@ Internally `<Renderer>`:
   Visually identical to the un-wrapped tree, but it gives the `init` prop
   exactly one mount point. The wrap happens whether or not `init` is provided —
   keeping tree topology consistent across init/no-init renders.
-- Mounts the RootFragment via `<RecursiveRenderer init={init} … />`. `init` is **not**
+- Mounts the RootFragment via `<EntryRenderer init={init} … />`. `init` is **not**
   propagated to recursive child mounts — only the top-level synthetic RootFragment
   runs the callback; descendants always see `init=undefined`.
 - Wraps the whole tree in `RendererRegistryProvider`, with a `<ConfirmHost>`
@@ -142,14 +145,14 @@ are wired today:
 - **`placeholder`** — shown for a not-yet-streamed child and as the
   async-`defaults` suspense fallback (§5). Precedence is **renderer's own
   placeholder → `systemVisuals.placeholder` → null** (render nothing). Resolved
-  per-node in `RecursiveRenderer`.
+  per-node in `EntryRenderer`.
 - **`confirm`** — the modal that resolves callback steps carrying `confirm:`
   (`ConfirmComponentProps`: `open` / `message` / `onConfirm` / `onCancel`).
   Resolved once, by `<Renderer>`'s `ConfirmHost`. Omitted → the browser-native
   `window.confirm`, so the engine renders with zero UI deps.
 - **`unknown`** — replaces an element whose `component` has no renderer in the
   catalog (`UnknownComponentProps`: `componentName` / `elementKey`). Resolved
-  per-node in `RecursiveRenderer`.
+  per-node in `EntryRenderer`.
 - **`error`** — replaces an element whose render threw, plus the not-a-list
   misuse of a list key (`ErrorComponentProps`: `error` / `elementKey?`).
   Rendered by the per-element `ErrorBoundary`.
@@ -162,19 +165,19 @@ the catalog's `ConfirmModal`.
 Like `functions`, pass a **stable reference** (module const or memoized): it
 folds into the registry-value memo deps, so a fresh object each render churns
 the context and re-renders the whole tree. The map is extensible — adding a
-slot is one field here plus one resolution site (`RecursiveRenderer` for
+slot is one field here plus one resolution site (`EntryRenderer` for
 per-node visuals, `<Renderer>` for tree-level visuals).
 
-### Inner — `RecursiveRenderer` + `createComponentImplementation`
+### Inner — `EntryRenderer` + `createComponentImplementation`
 
-`RecursiveRenderer` walks the element tree. For each element:
+`EntryRenderer` walks the element tree. For each element:
 
 1. **Subscribe to auto-detected deps** ([`OVERVIEW.md`](./OVERVIEW.md) §8). For
    each dep, `parseScope(dep)` → `[scope, path]`, then
    `scopes[scope].$emitter.on(path, forceRender)`, where `forceRender` bumps a
    `useReducer` counter. This `$emitter` subscription is the seam (§7).
-2. **Build children**: map `element.children` to `<RecursiveRenderer>` (or
-   `<ListRenderer>` for list children). A falsy `element.children?.length`
+2. **Build children**: map `element.children` to `<EntryRenderer>` (or
+   `<ListEntryRenderer>` for list children). A falsy `element.children?.length`
    yields `null` children — the array-aware guard prevents a rehydrated empty
    `children: []` from clobbering `element.props.children` text downstream.
 3. **Run defaults** (one-shot, gated by `hasBeenRenderedRef`). If any default
@@ -192,7 +195,7 @@ Inside the component, `createComponentImplementation`:
    carrying `confirm` asks the confirm host first — the `systemVisuals.confirm`
    modal (e.g. catalog's `ConfirmModal`), else the `window.confirm` default; on
    cancel, that step and all later steps are skipped.
-4. **Build children prop**: a non-empty *array* from RecursiveRenderer wins;
+4. **Build children prop**: a non-empty *array* from EntryRenderer wins;
    otherwise any `children` from `props` (text content) takes effect.
 5. **Render** `renderer({ ...props, ...callbacks, children?, generatedKey: element.key })`.
 6. If `element.hidden` was specified, wrap in `<Activity>` (§4).
@@ -297,7 +300,7 @@ cache) are in [`OVERVIEW.md`](./OVERVIEW.md) §16. React-binding specifics:
   normally. There is no virtual-DOM diffing of derived state — the proxy emits
   exactly one event per write, and only elements subscribed to that path
   re-render.
-- **Item proxies as durable state** — `ListRenderer` keys per-item proxies by
+- **Item proxies as durable state** — `ListEntryRenderer` keys per-item proxies by
   item id, so per-item React state (input focus, edit mode) survives
   source-array mutations and re-renders. See [`OVERVIEW.md`](./OVERVIEW.md) §10.
 - **Context identity** — the registry value is memoized so context consumers

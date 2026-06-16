@@ -33,7 +33,7 @@ function createEmitter(): Emitter {
   };
 }
 
-type ReactiveProxy<T extends object> = T & {
+type ReactiveProxy<T extends object = object> = T & {
   $emitter: Emitter;
   $set: (path: string, value: unknown, options?: { default?: boolean }) => void;
 };

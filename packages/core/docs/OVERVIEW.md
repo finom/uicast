@@ -35,21 +35,21 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
    │      }                                           │
    │   └─ root scope = createProxyScope({})        │
    │   └─ buildElementsById(lines) → Record<key,element>│
-   │   └─ for each root element → RecursiveRenderer     │
+   │   └─ for each root element → EntryRenderer         │
    └──────────────────┬───────────────────────────────┘
                       ▼
    ┌──────────────────────────────────────────────────┐
-   │ RecursiveRenderer (per element)                    │
+   │ EntryRenderer (per element)                        │
    │   1. evaluate `defaults` once (suspends if async)│
    │   2. subscribe to extractDeps(element) on $emitter │
    │   3. lookup renderer in registry                 │
    │   4. render <Component element scopes>{children}/> │
    │      ├ children resolved recursively             │
-   │      └ list children dispatched to ListRenderer  │
+   │      └ list children → ListEntryRenderer           │
    └──────────────────────────────────────────────────┘
 ```
 
-The `<Renderer>` / `RendererRegistryProvider` / `RecursiveRenderer` / `createComponentImplementation` layers shown here are the **reference React binding** — full pipeline detail (including the `<Suspense>` / `<Activity>` mechanics) is in [`REACT.md`](./REACT.md) §2. From the engine's side, what crosses the seam is `createProxyScope`, `buildElementsById`, `extractDeps`, and `evaluate` — see §7 of [`REACT.md`](./REACT.md) for the exact surface a non-React binding implements.
+The `<Renderer>` / `RendererRegistryProvider` / `EntryRenderer` / `createComponentImplementation` layers shown here are the **reference React binding** — full pipeline detail (including the `<Suspense>` / `<Activity>` mechanics) is in [`REACT.md`](./REACT.md) §2. From the engine's side, what crosses the seam is `createProxyScope`, `buildElementsById`, `extractDeps`, and `evaluate` — see §7 of [`REACT.md`](./REACT.md) for the exact surface a non-React binding implements.
 
 ---
 
@@ -81,7 +81,7 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `RecursiveRenderer` / `ListRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `RootFragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `EntryRenderer` / `ListEntryRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `RootFragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
 
 ---
 
@@ -273,7 +273,7 @@ Expressions must be **pure** — the only sanctioned way to write state is the `
 
 ## 10. Lists
 
-> The `each` / `as` / `keyBy` line properties are defined in [`LINES.md`](./LINES.md). This section covers the list-iteration semantics; the per-item React mounting is the binding's (`ListRenderer` — [`REACT.md`](./REACT.md) §2).
+> The `each` / `as` / `keyBy` line properties are defined in [`LINES.md`](./LINES.md). This section covers the list-iteration semantics; the per-item React mounting is the binding's (`ListEntryRenderer` — [`REACT.md`](./REACT.md) §2).
 
 List iteration is the workhorse of the runtime:
 
@@ -291,7 +291,7 @@ The list element's `component` is rendered **once per item**. There's no separat
 
 ## 11. Rendering pipeline
 
-The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `implementations` array prop), the `RendererRegistry` context, the `RecursiveRenderer` + `createComponentImplementation` tree walk, the synthetic `RootFragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
+The pipeline that mounts an element tree — the `<Renderer>` component (which builds the catalog map from its `implementations` array prop), the `RendererRegistry` context, the `EntryRenderer` + `createComponentImplementation` tree walk, the synthetic `RootFragment` that hosts `init`, and `<Suspense>` / `<Activity>` — is **React-specific and lives in the binding**: see [`REACT.md`](./REACT.md) §2 (with §4–§5 for the `<Activity>` / `<Suspense>` mechanics). The engine concepts it builds on — the element model (§4), `evaluate` (§5), auto-detected deps (§8), `createProxyScope` (§6), and list iteration (§10) — are documented here; [`REACT.md`](./REACT.md) §7 lists the exact engine surface a binding consumes.
 
 ---
 

@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error(
-      "RecursiveRenderer error boundary caught an error:",
+      "EntryRenderer error boundary caught an error:",
       error,
       errorInfo,
     );

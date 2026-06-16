@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { buildElementsById, type ComponentEntry } from "@ui-fired/core";
 
-describe("RecursiveRenderer — partial replacement (buildElementsById contract)", () => {
+describe("EntryRenderer — partial replacement (buildElementsById contract)", () => {
   // The runtime contract is that re-emitting an entry with the same `key` drops
   // its old descendants from the elements map before inserting the
-  // replacement. `RecursiveRenderer` then re-walks the new subtree on the
+  // replacement. `EntryRenderer` then re-walks the new subtree on the
   // next render. We test the contract at the `buildElementsById` layer since
   // it's the seam every persistence path goes through.
   it("re-emitting an entry with the same key replaces and drops old descendants", () => {

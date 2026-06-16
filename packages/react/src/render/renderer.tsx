@@ -1,11 +1,20 @@
 "use client";
 import { memo, useLayoutEffect, useMemo, useRef } from "react";
-import { createProxyScope, buildElementsById, type ComponentEntry } from "@ui-fired/core";
-import { ConfirmHost } from "../visuals/confirm";
-import type { ComponentImplementation, RendererProps } from "../types";
+import {
+  createProxyScope,
+  buildElementsById,
+  type ComponentEntry,
+  type ReactiveProxy,
+} from "@ui-fired/core";
+import { ConfirmHost } from "../providers/confirm";
+import type {
+  ComponentImplementation,
+  ElementsStore,
+  RendererProps,
+} from "../types";
 import { createElementsStore, ElementsStoreProvider } from "../store/elements-store";
-import { RootFragmentImpl, ROOT_FRAGMENT_KEY } from "./root-fragment";
-import { RecursiveRenderer } from "./recursive-renderer";
+import { RootFragmentImpl, ROOT_FRAGMENT_KEY } from "./root-fragment-impl";
+import { EntryRenderer } from "./entry-renderer";
 import { RendererRegistryProvider } from "../store/renderer-registry";
 
 /**
@@ -22,7 +31,7 @@ export const Renderer = memo(function Renderer({
 }: RendererProps) {
   // Per-instance root scope — isolated reactive state per mounted Renderer.
   // (Lazy-init via ref, like the structural store below.)
-  const rootRef = useRef<ReturnType<typeof createProxyScope> | null>(null);
+  const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
   const scopes = useMemo(() => ({ root: rootRef.current! }), []);
 
@@ -89,7 +98,7 @@ export const Renderer = memo(function Renderer({
   // subscriptions read from it. We refresh it AFTER commit (layout effect) so
   // swapping the map notifies only the keys that changed — settled nodes never
   // re-render while later entries stream in.
-  const storeRef = useRef<ReturnType<typeof createElementsStore> | null>(null);
+  const storeRef = useRef<ElementsStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = createElementsStore(elementsWithRootFragment);
   }
@@ -101,7 +110,7 @@ export const Renderer = memo(function Renderer({
     <ElementsStoreProvider value={storeRef.current}>
       <RendererRegistryProvider value={registryValue}>
         <ConfirmHost confirm={systemVisuals?.confirm}>
-          <RecursiveRenderer
+          <EntryRenderer
             key={ROOT_FRAGMENT_KEY}
             elementKey={ROOT_FRAGMENT_KEY}
             scopes={scopes}

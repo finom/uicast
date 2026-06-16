@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — fine-grained reactivity", () => {
+describe("EntryRenderer — fine-grained reactivity", () => {
   it("only entries subscribed to the changed path re-render", () => {
     // Two siblings reading different scope paths. We exercise this by
     // observing rendered output — after writing to `b`, the entry reading

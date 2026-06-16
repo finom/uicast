@@ -9,7 +9,7 @@ import {
 	mountEntries,
 } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — streaming / placeholders", () => {
+describe("EntryRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
 		// Root references a child entry by key that isn't in the elements map.
 		const lines: ComponentEntry[] = [
@@ -71,11 +71,11 @@ describe("RecursiveRenderer — streaming / placeholders", () => {
 // a growing `lines` array. Every already-mounted entry's `defaults` must run
 // exactly once — even as later entries arrive — or stream-time UIs would
 // silently re-seed scopes and clobber user-set state. The invariant is held by
-// `hasBeenRenderedRef` inside RecursiveRenderer combined with stable React
+// `hasBeenRenderedRef` inside EntryRenderer combined with stable React
 // keys per entry; these tests pin that contract against accidental refactors
 // (e.g. dropping the ref, swapping the keying strategy, or remounting on
 // elements-prop identity change).
-describe("RecursiveRenderer — streaming + defaults", () => {
+describe("EntryRenderer — streaming + defaults", () => {
 	it("does not re-run an existing entry's defaults when a sibling root entry streams in later", () => {
 		let count = 0;
 		const functions: StandardTool[] = [

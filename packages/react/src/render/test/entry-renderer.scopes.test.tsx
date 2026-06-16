@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — scopes", () => {
+describe("EntryRenderer — scopes", () => {
   it("reads from the root scope on mount", () => {
     const lines: ComponentEntry[] = [
       {

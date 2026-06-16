@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@ui-fired/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-describe("RecursiveRenderer — hidden", () => {
+describe("EntryRenderer — hidden", () => {
   it("hides the entry when hidden evaluates truthy", () => {
     const lines: ComponentEntry[] = [
       {

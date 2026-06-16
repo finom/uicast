@@ -2,12 +2,18 @@ import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardTool } from "standard-tool";
-import { createComponentDefinition, createProxyScope, buildElementsById, type ComponentEntry } from "@ui-fired/core";
+import {
+  createComponentDefinition,
+  createProxyScope,
+  buildElementsById,
+  type ComponentEntry,
+  type ReactiveProxy,
+} from "@ui-fired/core";
 import {
   type ComponentImplementation,
   createComponentImplementation,
 } from "@ui-fired/react";
-import { RecursiveRenderer } from "@ui-fired/react";
+import { EntryRenderer } from "@ui-fired/react";
 import {
   RendererRegistryProvider,
   type RendererSystemVisuals,
@@ -109,7 +115,7 @@ type MountOptions = {
  */
 export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}) {
   const elements = buildElementsById(lines);
-  const scopes: Record<string, ReturnType<typeof createProxyScope>> = {
+  const scopes: Record<string, ReactiveProxy> = {
     root: createProxyScope(options.rootScope ?? {}),
   };
   for (const [name, seed] of Object.entries(options.scopes ?? {})) {
@@ -133,7 +139,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
           functions: options.functions,
         }}
       >
-        <RecursiveRenderer elementKey={rootKey} scopes={scopes} />
+        <EntryRenderer elementKey={rootKey} scopes={scopes} />
       </RendererRegistryProvider>
     </ElementsStoreProvider>
   );

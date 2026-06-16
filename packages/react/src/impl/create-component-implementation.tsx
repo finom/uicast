@@ -7,7 +7,7 @@ import {
   type CombinedSpec,
   type ComponentDefinition,
 } from "@ui-fired/core";
-import { useConfirm } from "../visuals/confirm";
+import { useConfirm } from "../providers/confirm";
 import { useRendererRegistry } from "../store/renderer-registry";
 import type { ComponentImplementation } from "../types";
 
@@ -84,7 +84,7 @@ export const createComponentImplementation = <
     // Empty arrays are truthy in JS, so `children ? …` would happily spread
     // a zero-length children array on top of any `children` supplied via
     // `entry.props` (e.g. an evaluated expression like
-    // `({ children: scopes.inv.item.name })`). RecursiveRenderer already
+    // `({ children: scopes.inv.item.name })`). EntryRenderer already
     // collapses missing/empty `element.children` to `null` upstream — this
     // is belt-and-suspenders for any non-recursive entry path.
     const hasReactChildren = Array.isArray(children)
