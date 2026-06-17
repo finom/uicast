@@ -50,7 +50,6 @@ export const CronBuilderImpl = createComponentImplementation({
 
     const update = (setter: (v: string) => void, v: string) => {
       setter(v);
-      // Trigger onChange after state updates through a timeout
       setTimeout(() => {
         onChange?.({ value: cronStr });
       }, 0);

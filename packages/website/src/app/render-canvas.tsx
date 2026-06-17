@@ -6,11 +6,8 @@ import {
   UnknownComponent,
 } from "@ui-fired/catalog/visuals";
 import type { ComponentEntry } from "@ui-fired/core";
-import {
-  type ComponentImplementation,
-  Renderer,
-  type RendererSystemVisuals,
-} from "@ui-fired/react";
+import { type ComponentImplementation, Renderer } from "@ui-fired/react";
+import type { RendererOverrides } from "@ui-fired/react/types";
 import type { StandardTool } from "standard-tool";
 
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
@@ -41,7 +38,7 @@ const Placeholder = () => (
     containerClassName="block w-full [&_br]:hidden"
   />
 );
-const defaultSystemVisuals = {
+const defaultOverrides = {
   placeholder: Placeholder,
   confirm: ConfirmModal,
   unknown: UnknownComponent,
@@ -51,21 +48,21 @@ const defaultSystemVisuals = {
 /**
  * The right-hand pane: the engine rendering the revealed entries with the demo's
  * catalog + host functions (both supplied by the active `DemoConfig`). The
- * catalog's `ConfirmModal`, passed via the `systemVisuals.confirm` slot, routes
+ * catalog's `ConfirmModal`, passed via the `overrides.confirm` slot, routes
  * every `confirm:` in a callback through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
   catalog,
   functions,
-  systemVisuals,
+  overrides,
   outlineKey,
   onHoverKey,
 }: {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
   functions: StandardTool[];
-  systemVisuals?: RendererSystemVisuals;
+  overrides?: RendererOverrides;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
@@ -92,7 +89,7 @@ export function RenderCanvas({
           implementations={catalog}
           lines={lines}
           functions={functions}
-          systemVisuals={systemVisuals ?? defaultSystemVisuals}
+          overrides={overrides ?? defaultOverrides}
         />
       </div>
     </>

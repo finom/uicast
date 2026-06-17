@@ -46,10 +46,10 @@ export type ErrorComponentProps = {
 };
 
 // Host overrides for the engine's own fallback UI, passed via
-// `<Renderer systemVisuals={...}>` — distinct from the catalog `implementations`.
+// `<Renderer overrides={...}>` — distinct from the catalog `implementations`.
 // `confirm` omitted falls back to `window.confirm`; the `unknown`/`error`
 // defaults are bare inline-styled divs (shadcn versions in @ui-fired/catalog).
-export type RendererSystemVisuals = {
+export type RendererOverrides = {
   placeholder?: () => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
   unknown?: (props: UnknownComponentProps) => ReactElement | null;
@@ -58,7 +58,7 @@ export type RendererSystemVisuals = {
 
 export type RendererRegistry = {
   implementations: Record<string, ComponentImplementation>;
-  systemVisuals?: RendererSystemVisuals;
+  overrides?: RendererOverrides;
   // Host callables exposed as bare identifiers to every evaluate() under this provider.
   functions?: StandardTool[];
 };
@@ -96,8 +96,8 @@ export type RendererProps = {
    * `scopes.root.*`; a returned Promise suspends children until it resolves.
    */
   init?: InitFn;
-  /** Host overrides for the engine's own UI (see `RendererSystemVisuals`). Pass a stable reference. */
-  systemVisuals?: RendererSystemVisuals;
+  /** Host overrides for the engine's own UI (see `RendererOverrides`). Pass a stable reference. */
+  overrides?: RendererOverrides;
 };
 
 // The render tree's structural store: each node subscribes to its own key, so

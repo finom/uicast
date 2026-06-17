@@ -26,7 +26,7 @@ export const Renderer = memo(function Renderer({
   lines,
   functions,
   init,
-  systemVisuals,
+  overrides,
 }: RendererProps) {
   const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
@@ -49,8 +49,8 @@ export const Renderer = memo(function Renderer({
   }, [implementations]);
 
   const registryValue = useMemo(
-    () => ({ implementations: implementationsByName, systemVisuals, functions }),
-    [implementationsByName, systemVisuals, functions],
+    () => ({ implementations: implementationsByName, overrides, functions }),
+    [implementationsByName, overrides, functions],
   );
 
   const elementsById = buildElementsById(lines);
@@ -93,7 +93,7 @@ export const Renderer = memo(function Renderer({
   return (
     <ElementsStoreProvider value={storeRef.current}>
       <RendererRegistryProvider value={registryValue}>
-        <ConfirmHost confirm={systemVisuals?.confirm}>
+        <ConfirmHost confirm={overrides?.confirm}>
           <EntryRenderer
             key={ROOT_FRAGMENT_KEY}
             elementKey={ROOT_FRAGMENT_KEY}

@@ -10,14 +10,9 @@ import {
   DialogTitle,
 } from "./ui/dialog";
 
-/**
- * Shadcn-styled confirm modal — the plug-and-play visual half of the confirm
- * flow. Pass it as `<Renderer systemVisuals={{ confirm: ConfirmModal }}>` and
- * every `confirm:` carried by a generated callback resolves through this
- * dialog instead of the browser-native `window.confirm`. Stateless by design:
- * the engine owns the pending-confirm state and drives these props (see
- * `ConfirmComponentProps`). Bring your own component to use a different modal.
- */
+// Shadcn confirm modal — the visual half of the confirm flow. Wire it up as
+// `<Renderer overrides={{ confirm: ConfirmModal }}>`; stateless, the engine
+// drives `open`/`message` and settles via `onConfirm`/`onCancel`.
 export const ConfirmModal = ({
   open,
   message,

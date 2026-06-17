@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@ui-fired/react";
 import { pickClick } from "@ui-fired/catalog/render/shared";
 import {
-  Card as ShadcnCard,
+  Card,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -13,7 +13,7 @@ export const CardImpl = createComponentImplementation({
   def: CardDef,
   render: ({ title, description, children, onClick, generatedKey }) => {
     return (
-      <ShadcnCard
+      <Card
         onClick={(e) => onClick?.(pickClick(e))}
         data-key={generatedKey}
       >
@@ -24,7 +24,7 @@ export const CardImpl = createComponentImplementation({
           </CardHeader>
         )}
         <CardContent>{children}</CardContent>
-      </ShadcnCard>
+      </Card>
     );
   },
 });

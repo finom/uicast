@@ -55,7 +55,7 @@ const EntryRendererInner = ({
 }: EntryRendererProps): React.ReactElement => {
   // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
-  const { implementations, systemVisuals, functions } = useRendererRegistry();
+  const { implementations, overrides, functions } = useRendererRegistry();
 
   // A list entry reached as a child slot iterates its items; reached per-item
   // (`asListItem`) it renders as a normal component in the item scope.
@@ -73,7 +73,7 @@ const EntryRendererInner = ({
   // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
   // wakes it when the entry arrives.
   if (!element) {
-    const Fallback = fallback ?? systemVisuals?.placeholder ?? NullPlaceholder;
+    const Fallback = fallback ?? overrides?.placeholder ?? NullPlaceholder;
     return <Fallback />;
   }
 
@@ -82,12 +82,12 @@ const EntryRendererInner = ({
   }
 
   if (!Component) {
-    const Unknown = systemVisuals?.unknown ?? DefaultUnknown;
+    const Unknown = overrides?.unknown ?? DefaultUnknown;
     return <Unknown componentName={element.component} elementKey={elementKey} />;
   }
 
   const Placeholder =
-    implEntry?.placeholder ?? systemVisuals?.placeholder ?? NullPlaceholder;
+    implEntry?.placeholder ?? overrides?.placeholder ?? NullPlaceholder;
 
   const children = element.children?.length
     ? element.children.map((childKey) => (
@@ -107,7 +107,7 @@ const EntryRendererInner = ({
   );
 
   return (
-    <ErrorBoundary errorComponent={systemVisuals?.error} elementKey={elementKey}>
+    <ErrorBoundary errorComponent={overrides?.error} elementKey={elementKey}>
       {pending ? (
         <Suspense
           fallback={
@@ -135,7 +135,7 @@ const ListEntryRendererInner = ({
   scopes: Scopes;
 }): React.ReactElement => {
   const element = useElement(elementKey);
-  const { functions, systemVisuals } = useRendererRegistry();
+  const { functions, overrides } = useRendererRegistry();
   useReactiveDeps(element, scopes);
 
   const list = element && isComponentListEntry(element) ? element : null;
@@ -149,7 +149,7 @@ const ListEntryRendererInner = ({
   if (!list) {
     // A key that mounted as a list became a non-list element — surface it
     // through the same `error` slot as a render throw.
-    const ErrorComponent = systemVisuals?.error ?? DefaultErrorComponent;
+    const ErrorComponent = overrides?.error ?? DefaultErrorComponent;
     return (
       <ErrorComponent
         error={new Error(`Element is not a list: ${elementKey}`)}

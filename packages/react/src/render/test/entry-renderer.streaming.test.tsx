@@ -21,7 +21,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountEntries(lines, {
-			systemVisuals: { placeholder: () => <span data-test-placeholder>loading…</span> },
+			overrides: { placeholder: () => <span data-test-placeholder>loading…</span> },
 		});
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 	});
@@ -42,7 +42,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
-				systemVisuals: {
+				overrides: {
 					placeholder: () => (
 						<span data-test-placeholder>default-placeholder</span>
 					),
@@ -132,7 +132,7 @@ describe("EntryRenderer — streaming + defaults", () => {
 				},
 			},
 		];
-		const systemVisuals = {
+		const overrides = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
 
@@ -156,12 +156,12 @@ describe("EntryRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} systemVisuals={systemVisuals} />,
+			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} overrides={overrides} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} systemVisuals={systemVisuals} />);
+		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} overrides={overrides} />);
 
 		// Parent's defaults still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

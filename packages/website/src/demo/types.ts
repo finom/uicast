@@ -1,5 +1,6 @@
 import type { ComponentEntry } from "@ui-fired/core";
-import type { ComponentImplementation, RendererSystemVisuals } from "@ui-fired/react";
+import type { ComponentImplementation } from "@ui-fired/react";
+import type { RendererOverrides } from "@ui-fired/react/types";
 import type { StandardTool } from "standard-tool";
 
 /**
@@ -24,8 +25,8 @@ export interface DemoConfig {
   functions: StandardTool[];
   /** Base catalog + the demo's bespoke renderers: `[...componentImplementations, ...bespoke]`. */
   catalog: ComponentImplementation[];
-  /** Engine system-visual override (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
-  systemVisuals?: RendererSystemVisuals;
+  /** Host overrides for the engine's own UI (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
+  overrides?: RendererOverrides;
   /** Runs on first Play, before the count resets. Inventory → `seedIfEmpty`. */
   onPlay?: () => void | Promise<void>;
   /** Runs on Replay (wipe + reseed). Inventory → `resetInventory`. */

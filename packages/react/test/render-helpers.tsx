@@ -13,12 +13,13 @@ import {
   type ComponentImplementation,
   createComponentImplementation,
 } from "@ui-fired/react";
-import { EntryRenderer } from "@ui-fired/react";
+import type { RendererOverrides } from "@ui-fired/react/types";
+import { EntryRenderer } from "@ui-fired/react/render/entry-renderer";
+import { RendererRegistryProvider } from "@ui-fired/react/store/renderer-registry";
 import {
-  RendererRegistryProvider,
-  type RendererSystemVisuals,
-} from "@ui-fired/react";
-import { createElementsStore, ElementsStoreProvider } from "@ui-fired/react";
+  createElementsStore,
+  ElementsStoreProvider,
+} from "@ui-fired/react/store/elements-store";
 
 // Lightweight test implementations wired the same way real catalog components are.
 
@@ -103,7 +104,7 @@ type MountOptions = {
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
   functions?: StandardTool[];
-  systemVisuals?: RendererSystemVisuals;
+  overrides?: RendererOverrides;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
 };
@@ -135,7 +136,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
       <RendererRegistryProvider
         value={{
           implementations: options.implementations ?? defaultImplementations,
-          systemVisuals: options.systemVisuals,
+          overrides: options.overrides,
           functions: options.functions,
         }}
       >

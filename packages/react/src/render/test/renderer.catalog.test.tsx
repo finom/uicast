@@ -1,11 +1,8 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createComponentDefinition, type ComponentEntry } from "@ui-fired/core";
-import {
-  createComponentImplementation,
-  type InitFn,
-  Renderer,
-} from "@ui-fired/react";
+import { createComponentImplementation, Renderer } from "@ui-fired/react";
+import type { InitFn } from "@ui-fired/react/types";
 import { z } from "zod";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 

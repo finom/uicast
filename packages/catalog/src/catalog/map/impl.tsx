@@ -13,7 +13,6 @@ export const MapImpl = createComponentImplementation({
     onMarkerClick,
     generatedKey,
   }) => {
-    // Use OpenStreetMap static tile as background
     const tileUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${center.lng - 0.05},${center.lat - 0.03},${center.lng + 0.05},${center.lat + 0.03}&layer=mapnik`;
 
     return (

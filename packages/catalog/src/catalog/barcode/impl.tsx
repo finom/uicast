@@ -2,14 +2,10 @@ import { createComponentImplementation } from "@ui-fired/react";
 import { Card, CardContent } from "@ui-fired/catalog/components/ui/card";
 import { BarcodeDef } from "./def";
 
-/**
- * Simple barcode renderer using CSS bars pattern.
- * In production, integrate a library like `react-barcode` or `JsBarcode`.
- */
+// Simple barcode renderer using a CSS bars pattern; swap in `JsBarcode` for real use.
 export const BarcodeImpl = createComponentImplementation({
   def: BarcodeDef,
   render: ({ value, height = 100, showText = true, generatedKey }) => {
-    // Generate a simple visual representation using alternating bars
     const bars: boolean[] = [];
     for (let i = 0; i < value.length; i++) {
       const charCode = value.charCodeAt(i);

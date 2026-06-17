@@ -22,7 +22,6 @@ export const WaterfallChartImpl = createComponentImplementation({
     totalColor = "#8884d8",
     generatedKey,
   }) => {
-    // Process data to create waterfall structure
     let running = 0;
     const processedData = data.map((item) => {
       if (item.isTotal) {

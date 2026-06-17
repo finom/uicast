@@ -12,11 +12,9 @@ export const FlowDiagramImpl = createComponentImplementation({
     onNodeClick,
     generatedKey,
   }) => {
-    // Build an adjacency for simple linear rendering
     const nodeMap = new Map(nodes.map((n) => [n.id, n]));
     const isVertical = direction === "vertical";
 
-    // For visual purposes, render nodes in order with arrows between connected ones
     const shapeClasses = {
       start:
         "rounded-full bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700",
@@ -35,7 +33,6 @@ export const FlowDiagramImpl = createComponentImplementation({
         data-key={generatedKey}
       >
         {nodes.map((node, i) => {
-          // Find edge from this node to next
           const edge = edges.find((e) => e.from === node.id);
 
           return (
