@@ -2,15 +2,9 @@ import z from "zod";
 import { createComponentDefinition } from "@ui-fired/core";
 import { createComponentImplementation } from "../impl/create-component-implementation";
 
-// Host-only synthetic wrapper. `<Renderer>` wraps all LLM-emitted root entries
-// in one of these so the consumer's `init` callback has a single mount point
-// (see the `init` prop on `Renderer`). It lives here, not in the catalog:
-//
-//  - `<Renderer>` emits synthetic entries with `component: "RootFragment"` and
-//    merges this impl into the implementations map itself, so a match always
-//    exists and consumers never register it.
-//  - `hidden: true` keeps it out of the LLM's component menu — host
-//    infrastructure, not a UI primitive (so it never joins a prompt def registry).
+// Host-only synthetic wrapper that gives `init` a single mount point. `<Renderer>`
+// emits it and merges this impl in itself, so consumers never register it;
+// `hidden: true` keeps it out of the LLM's component menu.
 
 export const RootFragmentImpl = createComponentImplementation({
   def: createComponentDefinition({

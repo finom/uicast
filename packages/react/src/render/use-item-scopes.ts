@@ -14,9 +14,9 @@ export type ItemRow = {
   itemScopes: Scopes;
 };
 
-// Resolve a list item's stable id: the `keyBy` field, the item itself
-// (`_item`), or its index (`_index`, the default). A stable id is what lets an
-// item keep its proxy + scope identity across list re-renders.
+// A list item's stable id: the `keyBy` field, the item itself (`_item`), or its
+// index (`_index`, default). The stable id keeps an item's proxy + scope
+// identity across re-renders.
 function getItemId(keyBy: string | undefined, item: unknown, index: number): ItemId {
   const key = keyBy ?? "_index";
   if (key === "_index") return index;
@@ -24,21 +24,10 @@ function getItemId(keyBy: string | undefined, item: unknown, index: number): Ite
   return ((item as Record<string, unknown>)?.[key] ?? index) as ItemId;
 }
 
-/**
- * Build one child scope per list item, cached by item id. Two things make this
- * more than a `.map`:
- *
- *  - **Item proxies persist** across re-renders (keyed by id), so per-item
- *    reactive state survives reordering / streaming. A parent-scope change
- *    drops the scope *wrappers* but keeps the proxies, so item state isn't lost.
- *  - **Scope identity is stable** — an item's `scopes` object is rebuilt only
- *    when its value or index actually changed. Without that, the per-item
- *    `EntryRenderer` could never `React.memo`-bail on an unrelated list
- *    re-render (a sibling changing, an ancestor streaming in).
- *
- * Returns the rows in render order. Safe to call with `list: null` (returns
- * `[]`), so the caller can run it before its own early returns.
- */
+// One child scope per list item, cached by id. Item proxies persist across
+// re-renders (keyed by id) so per-item state survives reordering/streaming, and
+// each item's `scopes` object is rebuilt only when its value or index changed.
+// Safe with `list: null` (returns `[]`).
 export function useItemScopes(
   scopes: Scopes,
   list: ComponentListEntry | null,
@@ -84,8 +73,6 @@ export function useItemScopes(
     (itemProxy as Record<string, unknown>).item = item;
     (itemProxy as Record<string, unknown>).index = index;
 
-    // Rebuild the scope wrapper only when value / index changed, so the cached
-    // identity (and the memo bail) survives unrelated re-renders.
     const prevMeta = cachedMeta.current.get(itemId);
     let itemScopes = cachedScopes.current.get(itemId);
     if (!itemScopes || !prevMeta || prevMeta.item !== item || prevMeta.index !== index) {

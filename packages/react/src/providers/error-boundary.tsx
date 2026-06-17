@@ -2,9 +2,8 @@
 import React, { Component, type ReactNode } from "react";
 import type { ErrorComponentProps } from "../types";
 
-// Zero-dependency default for the `systemVisuals.error` slot: a bare inline-styled
-// div, so it renders sensibly without Tailwind or any host CSS. The
-// shadcn-styled version ships in @ui-fired/catalog (`RenderError`).
+// Default for the `error` slot: a bare inline-styled div, no host CSS needed.
+// The shadcn version ships in @ui-fired/catalog (`RenderError`).
 export const DefaultErrorComponent = ({
   error,
   elementKey,
@@ -15,9 +14,7 @@ export const DefaultErrorComponent = ({
 );
 
 interface ErrorBoundaryProps {
-  // Static-node escape hatch for direct consumers. `errorComponent` (the
-  // engine's `systemVisuals.error` slot) wins when both are set — it receives the
-  // caught error.
+  // Escape hatch for direct consumers; `errorComponent` wins when both are set.
   fallback?: ReactNode;
   errorComponent?: (props: ErrorComponentProps) => React.ReactElement | null;
   elementKey?: string;
@@ -35,7 +32,6 @@ export class ErrorBoundary extends Component<
   state: ErrorBoundaryState = { error: null };
 
   static getDerivedStateFromError(error: unknown): ErrorBoundaryState {
-    // Renderers can throw anything; normalize so the slot always gets an Error.
     return {
       error: error instanceof Error ? error : new Error(String(error)),
     };

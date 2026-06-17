@@ -50,7 +50,6 @@ export const createComponentImplementation = <
       : ({} as StandardSchemaV1.InferOutput<TProps>);
     const hidden = entry.hidden
       ? evaluate(
-          // `hidden` is a bare expr string — wrap as expr for `evaluate`, like `each`.
           { expr: entry.hidden },
           { scopes: myprops.scopes },
           { functions },
@@ -81,12 +80,6 @@ export const createComponentImplementation = <
       ]),
     ) as CallbacksToFunctions<TCallbacks>;
 
-    // Empty arrays are truthy in JS, so `children ? …` would happily spread
-    // a zero-length children array on top of any `children` supplied via
-    // `entry.props` (e.g. an evaluated expression like
-    // `({ children: scopes.inv.item.name })`). EntryRenderer already
-    // collapses missing/empty `element.children` to `null` upstream — this
-    // is belt-and-suspenders for any non-recursive entry path.
     const hasReactChildren = Array.isArray(children)
       ? children.length > 0
       : Boolean(children);

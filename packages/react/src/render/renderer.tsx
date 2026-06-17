@@ -18,8 +18,7 @@ import { EntryRenderer } from "./entry-renderer";
 import { RendererRegistryProvider } from "../store/renderer-registry";
 
 /**
- * Renders a JSONLines entry tree from a host-supplied `implementations` array
- * (the component implementations). Each mounted Renderer owns an isolated
+ * Renders a JSONLines entry tree. Each mounted Renderer owns an isolated
  * reactive `root` scope.
  */
 export const Renderer = memo(function Renderer({
@@ -29,18 +28,12 @@ export const Renderer = memo(function Renderer({
   init,
   systemVisuals,
 }: RendererProps) {
-  // Per-instance root scope — isolated reactive state per mounted Renderer.
-  // (Lazy-init via ref, like the structural store below.)
   const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
   const scopes = useMemo(() => ({ root: rootRef.current! }), []);
 
-  // Build the name→implementation lookup the registry needs from the
-  // `implementations` array (the shape `element.component` is matched against).
-  // Last entry wins on a duplicate name — so `[...base, Override]` overrides —
-  // and we log it. The host RootFragment implementation is always merged in last (host
-  // infrastructure; overrides any consumer-supplied one). Memoised so identity
-  // tracks `implementations`.
+  // name→implementation lookup. Last entry wins on a duplicate (and logs);
+  // RootFragment is merged in last as host infrastructure.
   const implementationsByName = useMemo(() => {
     const map: Record<string, ComponentImplementation> = {};
     for (const impl of implementations) {
@@ -55,8 +48,6 @@ export const Renderer = memo(function Renderer({
     return map;
   }, [implementations]);
 
-  // Stable registry value — its identity drives child re-renders, so we only
-  // want a new object when the host actually swaps implementations/functions/systemVisuals.
   const registryValue = useMemo(
     () => ({ implementations: implementationsByName, systemVisuals, functions }),
     [implementationsByName, systemVisuals, functions],
@@ -64,10 +55,7 @@ export const Renderer = memo(function Renderer({
 
   const elementsById = buildElementsById(lines);
 
-  // Root entries are derived structurally (there is no `op` field): an entry is a
-  // root iff no other entry references its `key` in a `children` array. Collect
-  // every referenced child key first, then keep the entries nothing points at.
-  // Walk in emission order and dedup by key.
+  // An entry is a root iff nothing references its key as a child.
   const childKeys = new Set<string>();
   for (const line of lines) {
     for (const childKey of line.children ?? []) childKeys.add(childKey);
@@ -80,10 +68,8 @@ export const Renderer = memo(function Renderer({
     rootKeys.push(line.key);
   }
 
-  // Always wrap roots in a synthetic RootFragment entry — even when `init` is
-  // undefined — so tree topology stays consistent and `init` has exactly one
-  // mount point to attach to. Visually identical (RootFragment renders children
-  // directly via React.Fragment).
+  // Always wrap roots in a synthetic RootFragment, so topology is consistent and
+  // `init` has one mount point. It renders children directly, so it's invisible.
   const syntheticRootFragment: ComponentEntry = {
     key: ROOT_FRAGMENT_KEY,
     component: "RootFragment",
@@ -94,10 +80,8 @@ export const Renderer = memo(function Renderer({
     [ROOT_FRAGMENT_KEY]: syntheticRootFragment,
   };
 
-  // Structural store lives across renders; the per-node `useElement`
-  // subscriptions read from it. We refresh it AFTER commit (layout effect) so
-  // swapping the map notifies only the keys that changed — settled nodes never
-  // re-render while later entries stream in.
+  // The store lives across renders; refresh it after commit so swapping the map
+  // wakes only the keys that changed, not settled nodes.
   const storeRef = useRef<ElementsStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = createElementsStore(elementsWithRootFragment);

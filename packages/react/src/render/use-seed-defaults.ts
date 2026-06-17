@@ -11,18 +11,10 @@ type SeededDefault = {
 };
 type SeededInit = { kind: "init"; value: Promise<unknown> };
 
-/**
- * One-shot seeding of a node's `defaults` (LLM-authored) and the host `init`
- * callback, run during the node's first real render (`enabled` gates it to the
- * streamed, known-component path). Sync writes land immediately via the
- * reactive Proxy; if any default or `init` returns a Promise, the whole batch
- * is parked on a single Promise so children Suspend until every seed resolves.
- *
- * Returns that pending Promise (or `null` when seeding was sync / already done)
- * for the caller to hand to `<Suspense>`. The one-shot is pinned by
- * `hasBeenRenderedRef`, which survives streaming re-renders so new sibling
- * entries never re-fire it.
- */
+// One-shot seeding of a node's `defaults` and the host `init`, on its first real
+// render. Sync writes land immediately; if any returns a Promise, the batch is
+// parked on one Promise (returned for <Suspense>) so children wait for it.
+// `hasBeenRenderedRef` pins the one-shot across streaming re-renders.
 export function useSeedDefaults({
   element,
   scopes,
@@ -52,9 +44,8 @@ export function useSeedDefaults({
     });
 
     if (init) {
-      // `init` writes through the reactive Proxy directly (`scopes.root.x = …`);
-      // sync writes have already landed by the time it returns, so we only track
-      // its Promise (if any) for the Suspense gate.
+      // `init` writes through the Proxy directly; sync writes have landed by the
+      // time it returns, so we only track its Promise for the Suspense gate.
       const initResult = init({ scopes });
       if (initResult instanceof Promise) {
         hasAsync = true;
@@ -74,7 +65,6 @@ export function useSeedDefaults({
           });
         }),
       ).then(() => {
-        // Clear on the next tick so the settled node leaves the Suspense path.
         setTimeout(() => {
           setDefaultsPromiseRef.current = null;
         }, 0);
@@ -86,7 +76,6 @@ export function useSeedDefaults({
             default: true,
           });
         }
-        // Sync `init` writes already landed via the Proxy `set` trap.
       }
     }
     hasBeenRenderedRef.current = true;
