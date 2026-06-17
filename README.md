@@ -18,7 +18,7 @@ step per generation.
   the confirm UI. Depends on `core`; `react` / `react-dom` are peer
   deps. See [`packages/core/docs/REACT.md`](./packages/core/docs/REACT.md).
 - **`packages/catalog`** — the component catalog. Component def/impl pairs,
-  the underlying shadcn/Radix UI primitives, the `componentDefinitions` / `componentImplementations`
+  the underlying shadcn/Radix UI primitives, the `allDefinitions` / `allImplementations`
   registries, and the example element arrays. Depends on `core` + `react`.
 
 ## Consuming
@@ -32,7 +32,7 @@ modules directly via subpaths:
 ```ts
 import { createProxyScope } from "@ui-fired/core";
 import { RecursiveRenderer } from "@ui-fired/react";
-import { componentImplementations } from "@ui-fired/catalog/render/impls";
+import { allImplementations } from "@ui-fired/catalog/impls";
 ```
 
 A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,

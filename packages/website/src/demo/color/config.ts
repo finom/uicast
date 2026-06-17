@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/impls";
+import { allImplementations } from "@ui-fired/catalog/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { ColorFieldRenderer } from "./components/color-field/renderer";
@@ -23,7 +23,7 @@ export const colorDemo: DemoConfig = {
   lines: colorLines,
   functions: colorFunctions,
   catalog: [
-    ...componentImplementations,
+    ...allImplementations,
     ColorFieldRenderer,
     SwatchRailRenderer,
     ColorPreviewRenderer,

@@ -1,6 +1,6 @@
 "use client";
 import type { ConfirmComponentProps } from "@ui-fired/react";
-import { Button } from "./ui/button";
+import { Button } from "@ui-fired/catalog/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "./ui/dialog";
+} from "@ui-fired/catalog/components/ui/dialog";
 
 // Shadcn confirm modal — the visual half of the confirm flow. Wire it up as
 // `<Renderer overrides={{ confirm: ConfirmModal }}>`; stateless, the engine

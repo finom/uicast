@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/impls";
+import { allImplementations } from "@ui-fired/catalog/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { StepSequencerRenderer } from "./components/step-sequencer/renderer";
@@ -22,7 +22,7 @@ export const studioDemo: DemoConfig = {
   lines: studioLines,
   functions: studioFunctions,
   catalog: [
-    ...componentImplementations,
+    ...allImplementations,
     XYPadRenderer,
     KnobRenderer,
     StepSequencerRenderer,

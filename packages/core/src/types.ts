@@ -85,7 +85,7 @@ export type CombinedSpec<Input = unknown, Output = Input> = StandardSchemaV1<Inp
  * infers `TProps` / `TCallbacks` straight off the `def` it's handed to type its
  * `render` callback. Both params default to the widened base, so a bare
  * `ComponentDefinition` is the heterogeneous form used in collections
- * (`ComponentDefinition[]`, the `componentDefinitions` registry, the prompt
+ * (`ComponentDefinition[]`, the `allDefinitions` registry, the prompt
  * serializer). The `createComponentDefinition` factory (in
  * `def/create-component-definition.ts`) is the value-side constructor for this.
  */

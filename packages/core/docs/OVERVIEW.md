@@ -334,8 +334,8 @@ The implementation half of the pair is React and lives in `@ui-fired/react`, pai
 
 The consumer maintains two registries:
 
-- `componentDefinitions` — a flat array of defs (`[InputDef, …]`, assembled in the consumer's `defs.ts`). Drives the prompt; `getComponentsPartialPrompt` throws on a duplicate `name`. (core)
-- `componentImplementations` — array of implementations passed to `<Renderer implementations={…}>`, which builds the name → implementation map. (React binding)
+- `allDefinitions` — a flat array of defs (`[InputDef, …]`, assembled in the consumer's `defs.ts`). Drives the prompt; `getComponentsPartialPrompt` throws on a duplicate `name`. (core)
+- `allImplementations` — array of implementations passed to `<Renderer implementations={…}>`, which builds the name → implementation map. (React binding)
 
 **Adding a component requires updating both maps.** There's no codegen step linking them — discipline only.
 

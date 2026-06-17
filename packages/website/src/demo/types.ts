@@ -23,7 +23,7 @@ export interface DemoConfig {
   lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
   functions: StandardTool[];
-  /** Base catalog + the demo's bespoke renderers: `[...componentImplementations, ...bespoke]`. */
+  /** Base catalog + the demo's bespoke renderers: `[...allImplementations, ...bespoke]`. */
   catalog: ComponentImplementation[];
   /** Host overrides for the engine's own UI (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
   overrides?: RendererOverrides;

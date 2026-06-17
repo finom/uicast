@@ -1,5 +1,5 @@
 "use client";
-import { componentImplementations } from "@ui-fired/catalog/render/impls";
+import { allImplementations } from "@ui-fired/catalog/impls";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
 import { boardPrompt } from "./board.prompt";
@@ -19,5 +19,5 @@ export const boardDemo: DemoConfig = {
   prompt: boardPrompt,
   lines: boardLines,
   functions: boardFunctions,
-  catalog: [...componentImplementations, NodeBoardRenderer],
+  catalog: [...allImplementations, NodeBoardRenderer],
 };

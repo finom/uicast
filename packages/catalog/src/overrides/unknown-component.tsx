@@ -1,6 +1,6 @@
 "use client";
 import type { UnknownComponentProps } from "@ui-fired/react";
-import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@ui-fired/catalog/components/ui/alert";
 
 // Shadcn `unknown` slot — shown when an element's `component` name has no catalog
 // match. Attach via `<Renderer overrides={{ unknown: UnknownComponent }}>`.

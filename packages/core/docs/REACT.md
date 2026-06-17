@@ -73,12 +73,12 @@ The implementations are a **prop** — an **array of `ComponentImplementation`**
 separate builder step:
 
 ```tsx
-import { ConfirmModal } from "@ui-fired/catalog/components/ConfirmModal";
-import { componentImplementations } from "@ui-fired/catalog/render/impls";
+import { ConfirmModal } from "@ui-fired/catalog/overrides/confirm-modal";
+import { allImplementations } from "@ui-fired/catalog/impls";
 import { Renderer } from "@ui-fired/react";
 
 <Renderer
-  implementations={componentImplementations}                 // ComponentImplementation[]
+  implementations={allImplementations}                 // ComponentImplementation[]
   lines={elements}
   functions={hostFns}
   overrides={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied UI overrides
@@ -89,7 +89,7 @@ import { Renderer } from "@ui-fired/react";
 `<Renderer>` turns the array into the `Record<string, ComponentImplementation>` the
 registry needs — keyed by `renderer.name` (=== the component name the generator
 emits) — always merging in the host-only `RootFragment` renderer. On a **duplicate
-name the later renderer wins** (so `[...componentImplementations, MyCard]` overrides
+name the later renderer wins** (so `[...allImplementations, MyCard]` overrides
 `Card`) and a `console.error` is logged so accidental double-registration is
 still loud.
 
@@ -233,7 +233,7 @@ export const InputImpl = createComponentImplementation({
 The renderer's signature is **typed against the def**: props are inferred from
 `propDefs`, callbacks become `(args) => Promise<void>` from `callbackDefs`, plus
 an implicit `children?: ReactNode` and `generatedKey: string`. Registration
-(the `componentDefinitions` map + the `componentImplementations` array) is covered in
+(the `allDefinitions` array + the `allImplementations` array) is covered in
 [`OVERVIEW.md`](./OVERVIEW.md) §12 / §17 — the def map drives the prompt, the
 renderer array drives this binding.
 
