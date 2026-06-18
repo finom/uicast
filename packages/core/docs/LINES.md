@@ -241,3 +241,12 @@ evaluator's ban on top-level assignment catches the direct `scopes.x = …` form
 but **not** the IIFE form, so treat purity as a contract, not an enforced rule.
 (See [`EXPRESSIONS.md`](./EXPRESSIONS.md) for what the evaluator does and doesn't
 enforce.)
+
+Purity also implies **statelessness**: an expression must be a deterministic
+function of its inputs (`scopes`, plus `evt` in callbacks) — it must not retain
+state between evaluations or read ambient mutable state. The renderer re-evaluates
+an expression whenever a reactive dep it reads changes (and may run it more than
+once per change), so a non-deterministic expression — `Math.random()`, a captured
+counter, a wall-clock read — produces a different result each pass and renders
+inconsistently. Produce such values in a host function or through a `set` side
+effect and read them back from scope.

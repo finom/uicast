@@ -110,7 +110,9 @@ assignment carry a single host-language expression. Two invariants:
 
 - **Purity.** An expression computes and returns a value; it MUST NOT mutate
   state or cause side effects. State changes happen only through `set`
-  ([§1.2](#12-value-sources--assignments)).
+  ([§1.2](#12-value-sources--assignments)). It SHOULD also be **stateless** — a
+  deterministic function of the scopes (and `evt`) it reads, retaining nothing
+  across evaluations — because a reactive site re-evaluates arbitrarily often.
 - **Automatic reactivity.** A reactive site (`props.expr`, `hidden`, `each`)
   auto-subscribes to every scope path it reads; when any is written, the site
   re-evaluates. Producers do not declare dependencies.
