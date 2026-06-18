@@ -14,7 +14,7 @@ type PlaceholderComponent = () => React.ReactElement | null;
 const NullPlaceholder: PlaceholderComponent = () => null;
 
 // Default for the `unknown` slot: a bare inline-styled div (shadcn version in
-// @ui-fired/catalog as `UnknownComponent`).
+// @ui-fired/shadcn-catalog as `UnknownComponent`).
 const DefaultUnknown = ({ componentName, elementKey }: UnknownComponentProps) => (
   <div style={{ color: "yellow" }} data-key={elementKey}>
     Unknown component: {componentName}

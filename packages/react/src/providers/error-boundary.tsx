@@ -3,7 +3,7 @@ import React, { Component, type ReactNode } from "react";
 import type { ErrorComponentProps } from "../types";
 
 // Default for the `error` slot: a bare inline-styled div, no host CSS needed.
-// The shadcn version ships in @ui-fired/catalog (`RenderError`).
+// The shadcn version ships in @ui-fired/shadcn-catalog (`RenderError`).
 export const DefaultErrorComponent = ({
   error,
   elementKey,

@@ -1,0 +1,36 @@
+import { createComponentImplementation } from "@ui-fired/react";
+import { Checkbox as ShadcnCheckbox } from "../../components/ui/checkbox";
+import { CheckboxDef } from "./def";
+
+export const CheckboxImpl = createComponentImplementation({
+  def: CheckboxDef,
+  render: ({
+    checked = false,
+    disabled = false,
+    label,
+    onChange,
+    generatedKey,
+  }) => {
+    const id = label
+      ? `checkbox-${label.replace(/\s/g, "-").toLowerCase()}`
+      : undefined;
+    return (
+      <div className="flex items-center gap-2" data-key={generatedKey}>
+        <ShadcnCheckbox
+          id={id}
+          checked={checked}
+          disabled={disabled}
+          onCheckedChange={(v) => onChange?.({ checked: v === true })}
+        />
+        {label && (
+          <label
+            htmlFor={id}
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            {label}
+          </label>
+        )}
+      </div>
+    );
+  },
+});

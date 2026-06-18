@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@ui-fired/catalog/components/ui/button";
+import { Button } from "@ui-fired/shadcn-catalog/ui/button";
 import type { ComponentEntry } from "@ui-fired/core";
 import { EntryModal } from "./entry-modal";
 

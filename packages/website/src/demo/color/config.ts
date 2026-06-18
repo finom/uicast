@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@ui-fired/catalog/impls";
+import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { ColorFieldRenderer } from "./components/color-field/renderer";

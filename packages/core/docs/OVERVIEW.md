@@ -81,7 +81,7 @@ packages/core/src/                   — the framework-agnostic engine (zero Rea
 └── utils/utils.ts                   — buildElementsById() (element-tree flatten + partial-replacement)
 ```
 
-The **React binding** — `EntryRenderer` / `ListEntryRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `RootFragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`onClickSchema` / `pickClick`) live in **`@ui-fired/catalog`**.
+The **React binding** — `EntryRenderer` / `ListEntryRenderer`, the `<Renderer>` component, `createComponentImplementation`, the registry context, `ErrorBoundary`, the synthetic `RootFragment`, and the confirm host — lives in **`@ui-fired/react`**; its layout is [`REACT.md`](./REACT.md) §1. The catalog event-payload helpers (`mouseEventSchema` / `pickMouseEvent`, `keyboardEventSchema` / `pickKeyboardEvent`) live under **`@ui-fired/catalog/events/`**.
 
 ---
 
@@ -306,14 +306,15 @@ import { createComponentDefinition } from "@ui-fired/core";
 import z from "zod";
 
 export const InputDef = createComponentDefinition({
+  name: "Input",
   description: "A text input field…",
-  propDefs: z.strictObject({
+  props: z.strictObject({
     value: z.any().meta({ description: "The current input value" }),
     type:  z.enum(["text", "email", "password"]).default("text"),
     placeholder: z.string().optional(),
     disabled: z.boolean().default(false),
   }),
-  callbackDefs: {
+  callbacks: {
     onChange: z.strictObject({
       value: z.string(),
       valueAsNumber: z.number(),
@@ -341,9 +342,35 @@ The consumer maintains two registries:
 
 ### Hiding host-only defs from the LLM
 
-`createComponentDefinition` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getDefPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
+`createComponentDefinition` accepts an optional `hidden?: boolean`. Defs marked `hidden: true` are kept in the renderer registry (so elements referencing them mount correctly), but **`getComponentsPartialPrompt()` filters them out** of both the "# Available Components" name list and the "# Component Details" schema dump. Use for host-managed infrastructure that should never appear in the LLM's component menu.
 
 Today the only `hidden` def is `RootFragment` (see §9 / [`REACT.md`](./REACT.md) §2) — the synthetic wrapper used to host the `Renderer.init` callback. It's auto-merged into the catalog map by `<Renderer>`, so consumers don't have to register it manually.
+
+### Common events — shared callback payloads
+
+Some callback payloads recur across many components — a mouse-position event on every clickable element, a keyboard event on every text input. Inlined per component, that payload type repeats in every entry and bloats the prompt.
+
+`getComponentsPartialPrompt(defs, commonEvents)` takes an optional second argument: an array of shared payload schemas, **each carrying a JSON-Schema `$id`**. Every one is rendered **once** in a `# Common Events` block as a named type, and any component callback whose schema has a matching `$id` renders as `evt: <Name>` referencing it — instead of re-inlining the payload on every component:
+
+```text
+# Common Events
+
+- MouseEvent: { pageX: number; … clientY: number } — Callback for a mouse event such as a click
+- KeyboardEvent: { key: string; code: string; … repeat: boolean } — Callback for a keyboard key event
+
+# Component Details
+
+- Button: { … } - …; Event handlers:
+  - onClick(evt: MouseEvent)
+- Input: { … } - …; Event handlers:
+  - onKeyDown(evt: KeyboardEvent)
+  - onKeyUp(evt: KeyboardEvent)
+  - onChange(evt: { value: string })
+```
+
+Matching is purely on the `$id` of the *converted* JSON Schema, so it stays library-agnostic — anything that emits `$id` (Zod: `.meta({ $id: "MouseEvent" })`) participates, and a callback and its common-event entry are recognized as the same because they are the same schema. The builder **throws** on a common-event schema with no `$id`, or a duplicate `$id`; callbacks with no matching `$id` render inline as before.
+
+The catalog ships the two canonical shared payloads under `@ui-fired/catalog/events/` — `mouseEventSchema` (`$id: "MouseEvent"`, used by `onClick`) and `keyboardEventSchema` (`$id: "KeyboardEvent"`, used by `onKeyDown` / `onKeyUp`) — each paired with a `pick*` helper that builds the payload from the React event. One event type per file. A consumer assembling the prompt passes them as `commonEvents`: `getComponentsPartialPrompt(allDefinitions, [mouseEventSchema, keyboardEventSchema])`.
 
 ---
 
@@ -409,12 +436,12 @@ The pattern is meant for *correcting mistakes mid-stream*, not for ongoing react
 ## 17. Authoring a new AI component
 
 1. Pick a name (PascalCase, matches the LLM-visible component string).
-2. Create `<Name>/def.ts` with `description`, `propDefs`, `callbackDefs`.
+2. Create `<Name>/def.ts` with `name`, `description`, `props`, `callbacks`.
 3. Create `<Name>/impl.tsx` pairing the def with the React render function.
 4. Register in your catalog's `defs.ts` and `impls.ts`. Both maps must include the new entry — without both, the LLM either can't produce the component or can produce but not render it.
-5. If the component has nontrivial events, define the event payload schema with Zod meta-descriptions so the LLM knows the field names it'll see in `evt`.
+5. If the component has nontrivial events, define the event payload schema with Zod meta-descriptions so the LLM knows the field names it'll see in `evt`. For events shared across components (click → `mouseEventSchema`, keydown/keyup → `keyboardEventSchema`), reuse the catalog's common-event schemas under `@ui-fired/catalog/events/` instead of redefining the payload — see §12, "Common events — shared callback payloads".
 
-`propDefs` is the contract with the LLM. Use `.meta({ description: "…" })` on every field so the LLM has enough information to fill it in correctly. Mark optional fields with `.optional()` and supply sensible `.default()` values where applicable.
+`props` is the contract with the LLM. Use `.meta({ description: "…" })` on every field so the LLM has enough information to fill it in correctly. Mark optional fields with `.optional()` and supply sensible `.default()` values where applicable.
 
 ---
 

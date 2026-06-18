@@ -48,7 +48,7 @@ export type ErrorComponentProps = {
 // Host overrides for the engine's own fallback UI, passed via
 // `<Renderer overrides={...}>` — distinct from the catalog `implementations`.
 // `confirm` omitted falls back to `window.confirm`; the `unknown`/`error`
-// defaults are bare inline-styled divs (shadcn versions in @ui-fired/catalog).
+// defaults are bare inline-styled divs (shadcn versions in @ui-fired/shadcn-catalog).
 export type RendererOverrides = {
   placeholder?: () => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;

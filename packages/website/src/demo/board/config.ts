@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@ui-fired/catalog/impls";
+import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
 import { boardPrompt } from "./board.prompt";

@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // The @ui-fired/* packages ship raw TypeScript source (consumed via the
   // monorepo workspace, no build step). Let Next transpile them like
   // first-party code — same mechanism a published/git-dep consumer uses.
-  transpilePackages: ["@ui-fired/core", "@ui-fired/react", "@ui-fired/catalog"],
+  transpilePackages: ["@ui-fired/core", "@ui-fired/react", "@ui-fired/shadcn-catalog"],
 };
 
 export default nextConfig;

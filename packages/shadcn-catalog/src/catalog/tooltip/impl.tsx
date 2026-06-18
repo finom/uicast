@@ -1,0 +1,26 @@
+import { createComponentImplementation } from "@ui-fired/react";
+import {
+  Tooltip as ShadcnTooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../components/ui/tooltip";
+import { TooltipDef } from "./def";
+
+export const TooltipImpl = createComponentImplementation({
+  def: TooltipDef,
+  render: ({ content, side = "top", children, generatedKey }) => {
+    return (
+      <TooltipProvider data-key={generatedKey}>
+        <ShadcnTooltip>
+          <TooltipTrigger asChild>
+            <span data-key={generatedKey}>{children}</span>
+          </TooltipTrigger>
+          <TooltipContent side={side}>
+            <p>{content}</p>
+          </TooltipContent>
+        </ShadcnTooltip>
+      </TooltipProvider>
+    );
+  },
+});

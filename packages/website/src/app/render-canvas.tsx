@@ -1,8 +1,10 @@
 "use client";
 import Skeleton from "react-loading-skeleton";
-import { ConfirmModal } from "@ui-fired/catalog/overrides/confirm-modal";
-import { RenderError } from "@ui-fired/catalog/overrides/render-error";
-import { UnknownComponent } from "@ui-fired/catalog/overrides/unknown-component";
+import {
+  ConfirmModal,
+  RenderError,
+  UnknownComponent,
+} from "@ui-fired/shadcn-catalog/overrides";
 import type { ComponentEntry } from "@ui-fired/core";
 import { type ComponentImplementation, Renderer } from "@ui-fired/react";
 import type { RendererOverrides } from "@ui-fired/react/types";

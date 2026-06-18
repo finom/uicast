@@ -2,14 +2,14 @@
 import { MonitorIcon, MoonIcon, SunIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Button } from "@ui-fired/catalog/components/ui/button";
+import { Button } from "@ui-fired/shadcn-catalog/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "@ui-fired/catalog/components/ui/dropdown-menu";
+} from "@ui-fired/shadcn-catalog/ui/dropdown-menu";
 
 const THEMES = [
   { value: "light", label: "Light", Icon: SunIcon },

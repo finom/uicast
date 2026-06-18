@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "paths": {
+      "@ui-fired/shadcn-catalog/*": ["./src/*"],
+      "@ui-fired/core": ["../core/src/index.ts"],
+      "@ui-fired/core/prompt": ["../core/src/prompt/index.ts"],
+      "@ui-fired/react": ["../react/src/index.ts"],
+      "@ui-fired/react/*": ["../react/src/*"]
+    },
+    "experimentalDecorators": true
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}

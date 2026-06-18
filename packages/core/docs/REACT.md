@@ -58,7 +58,7 @@ consuming app owns the single React instance.
 > `@ui-fired/core`. Import agnostic symbols from `@ui-fired/core`, React symbols
 > from `@ui-fired/react`. A catalog `impl.tsx` therefore imports
 > `createComponentImplementation` from `@ui-fired/react`, `createComponentDefinition`
-> from `@ui-fired/core`, and `cn` / `pickClick` from `@ui-fired/catalog`.
+> from `@ui-fired/core`, and `cn` / `pickMouseEvent` from `@ui-fired/catalog`.
 
 ---
 
@@ -231,7 +231,7 @@ export const InputImpl = createComponentImplementation({
 ```
 
 The renderer's signature is **typed against the def**: props are inferred from
-`propDefs`, callbacks become `(args) => Promise<void>` from `callbackDefs`, plus
+the def's `props`, callbacks become `(args) => Promise<void>` from its `callbacks`, plus
 an implicit `children?: ReactNode` and `generatedKey: string`. Registration
 (the `allDefinitions` array + the `allImplementations` array) is covered in
 [`OVERVIEW.md`](./OVERVIEW.md) §12 / §17 — the def map drives the prompt, the

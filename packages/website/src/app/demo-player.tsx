@@ -8,12 +8,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@ui-fired/catalog/components/ui/button";
+import { Button } from "@ui-fired/shadcn-catalog/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@ui-fired/catalog/components/ui/resizable";
+} from "@ui-fired/shadcn-catalog/ui/resizable";
 import type { ComponentEntry } from "@ui-fired/core";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";

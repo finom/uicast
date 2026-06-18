@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@ui-fired/catalog/components/ui/dialog";
+} from "@ui-fired/shadcn-catalog/ui/dialog";
 import type { ComponentEntry } from "@ui-fired/core";
 
 // JSON token → Tailwind color. Tuned to read on the dialog's `bg-muted/40` code
