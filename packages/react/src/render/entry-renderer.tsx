@@ -64,7 +64,7 @@ const EntryRendererInner = ({
   const implEntry = element ? implementations[element.component] : undefined;
   const Component = implEntry?.render;
   // Whether this pass renders the real component (vs. placeholder / list / unknown).
-  // Gates the one-shot defaults+init seeding.
+  // Gates the one-shot seed+init seeding.
   const willRender = !!element && !isListContainer && !!Component;
 
   useReactiveDeps(element, scopes, isListContainer);

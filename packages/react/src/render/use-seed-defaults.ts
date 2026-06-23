@@ -11,7 +11,7 @@ type SeededDefault = {
 };
 type SeededInit = { kind: "init"; value: Promise<unknown> };
 
-// One-shot seeding of a node's `defaults` and the host `init`, on its first real
+// One-shot seeding of a node's `seed` and the host `init`, on its first real
 // render. Sync writes land immediately; if any returns a Promise, the batch is
 // parked on one Promise (returned for <Suspense>) so children wait for it.
 // `hasBeenRenderedRef` pins the one-shot across streaming re-renders.
@@ -31,11 +31,11 @@ export function useSeedDefaults({
   const hasBeenRenderedRef = useRef(false);
   const setDefaultsPromiseRef = useRef<Promise<void> | null>(null);
 
-  if (enabled && element && (element.defaults || init) && !hasBeenRenderedRef.current) {
+  if (enabled && element && (element.seed || init) && !hasBeenRenderedRef.current) {
     const collected: Array<SeededDefault | SeededInit> = [];
     let hasAsync = false;
 
-    element.defaults?.forEach((setExpr) => {
+    element.seed?.forEach((setExpr) => {
       if (!setExpr.set) return;
       const value = evaluate(setExpr, { scopes }, { functions });
       const [targetScope, targetPath] = parseScope(setExpr.set);

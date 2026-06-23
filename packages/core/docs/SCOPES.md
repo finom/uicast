@@ -211,7 +211,7 @@ state.$set("user.address.city", "Berlin");
 
 If `user` exists but `user.address` is `undefined` (or `null`), `$set` creates an empty object at `user.address`, then assigns `city`. Each intermediate assignment goes through the `set` trap and emits at its own path — so a single `$set("a.b.c", v)` on a fresh tree emits at `a`, then `a.b`, then `a.b.c` (in that order).
 
-If you need set-only-if-missing, pass `{ default: true }` to `$set`. It walks the same way but the leaf assignment is skipped when `current[lastKey] !== undefined`. This is how `defaults` are applied (first-writer-wins), so two components seeding the same path don't clobber each other.
+If you need set-only-if-missing, pass `{ default: true }` to `$set`. It walks the same way but the leaf assignment is skipped when `current[lastKey] !== undefined`. This is how `seed` is applied (first-writer-wins), so two components seeding the same path don't clobber each other.
 
 ### The emitter
 

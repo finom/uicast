@@ -15,7 +15,7 @@ host functions the consumer wires in.
 
 - **`props.expr`** — computes the props object for the component, e.g.
   `({ text: scopes.root.title })`.
-- **`defaults[].expr`** — seeds scope state on mount; the result is written to
+- **`seed[].expr`** — seeds scope state on mount; the result is written to
   the `set` path.
 - **`callbacks[].expr`** — runs on an event; reads `evt` and host functions,
   writes via `set`.
@@ -57,7 +57,7 @@ scopes.cart.items.length === 0
 !scopes.user.isAdmin
 ```
 
-**Defaults** (`defaults[].expr`) — compute a value; the renderer writes it to the
+**Seed** (`seed[].expr`) — compute a value; the renderer writes it to the
 entry's `set` path:
 
 ```jsonc

@@ -104,7 +104,8 @@ describe("getComponentsPartialPrompt — common events", () => {
 		});
 		const out = getComponentsPartialPrompt([A]); // no common events
 		expect(out).not.toContain("# Common Events");
-		expect(out).toContain("onClick(evt: { x: number })");
+		expect(out).toContain("    - onClick(evt) — fires on click");
+		expect(out).toContain("      - x: number");
 	});
 
 	it("throws when a common event schema has no `$id`", () => {
@@ -120,5 +121,94 @@ describe("getComponentsPartialPrompt — common events", () => {
 		expect(() =>
 			getComponentsPartialPrompt([], [c1, c2]),
 		).toThrow('Duplicate common event id: "dup"');
+	});
+});
+
+// A callback whose payload schema is `z.null()` carries no event data. Rather
+// than advertise `(evt: null)` — which reads as "pass null" — the builder
+// renders it as a no-arg handler, matching the `CallbacksToFunctions` type that
+// makes the implementation's `onClick()` take no argument.
+
+describe("getComponentsPartialPrompt — null callback payload", () => {
+	it("renders a null-payload callback as a no-arg handler", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({}),
+			callbacks: { onPress: z.null() },
+		});
+		const out = getComponentsPartialPrompt([A]);
+		expect(out).toContain("onPress()");
+		expect(out).not.toContain("onPress(evt");
+	});
+});
+
+// Every description the author writes should reach the prompt: a component's
+// own description, each prop's, each event handler's, and each option of a typed
+// event's payload. Props and event handlers render as described sub-lists; a
+// typed event's options sit one level deeper, the way props do. The first test
+// pins the whole block byte-for-byte (it's the spec the docs page mirrors).
+
+describe("getComponentsPartialPrompt — descriptions on props, handlers, options", () => {
+	it("surfaces the component, prop, and handler descriptions in one block", () => {
+		const Counter = createComponentDefinition({
+			name: "Counter",
+			description:
+				"A button that shows a number and increments it on each click.",
+			props: z.strictObject({
+				count: z
+					.number()
+					.default(0)
+					.meta({ description: "The number to display" }),
+			}),
+			callbacks: {
+				onClick: z
+					.null()
+					.meta({ description: "Fires when the counter is pressed" }),
+			},
+		});
+		const out = getComponentsPartialPrompt([Counter]);
+		expect(out).toBe(
+			[
+				"# Available Components",
+				"",
+				"Counter",
+				"",
+				"# Component Details",
+				"",
+				"- Counter — A button that shows a number and increments it on each click.",
+				"  Props:",
+				"    - count?: number — The number to display",
+				"  Event handlers:",
+				"    - onClick() — Fires when the counter is pressed",
+			].join("\n"),
+		);
+	});
+
+	it("lists a typed event's options, each with its description", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({}),
+			callbacks: {
+				onSelect: z
+					.object({ id: z.string().meta({ description: "The chosen row id" }) })
+					.meta({ description: "Fires on selection" }),
+			},
+		});
+		const out = getComponentsPartialPrompt([A]);
+		expect(out).toContain("    - onSelect(evt) — Fires on selection");
+		expect(out).toContain("      - id: string — The chosen row id");
+	});
+
+	it("leaves a description-less prop as a bare type", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({ label: z.string() }),
+		});
+		const out = getComponentsPartialPrompt([A]);
+		expect(out).toContain("    - label: string");
+		expect(out).not.toContain("label: string —");
 	});
 });

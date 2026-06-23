@@ -68,7 +68,7 @@ export type RendererRegistry = {
 export type Scopes = Record<string, ReactiveProxy>;
 
 // Passed to the consumer's `init` callback. `scopes` is the live Proxy tree —
-// assigning `scopes.root.x = …` emits the same change events a `defaults` $set
+// assigning `scopes.root.x = …` emits the same change events a `seed` $set
 // would, so observers re-render.
 export type InitContext = {
   scopes: Scopes;
@@ -85,7 +85,8 @@ export type RendererProps = {
    * Duplicate names: the later one wins (`[...base, Override]`) and logs.
    */
   implementations: ComponentImplementation[];
-  lines: ComponentEntry[];
+  /** The JSONLines entries to render, in tree order. */
+  entries: ComponentEntry[];
   /**
    * Host functions exposed as bare identifiers in every evaluate() call
    * (callbacks invoke them as `name(input)`). Pass a stable reference.

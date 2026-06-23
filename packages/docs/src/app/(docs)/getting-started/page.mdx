@@ -1,0 +1,28 @@
+# Getting started
+
+Install the engine, the React binding, and a catalog:
+
+```sh
+npm install @ui-fired/core @ui-fired/react @ui-fired/shadcn-catalog
+```
+
+## A document is a stream of lines
+
+Each line is one element — a `ComponentEntry` — and the lines form a tree by
+**key reference**: an element lists its children's `key`s, and the children are
+separate lines.
+
+```jsonl
+{ "key": "root", "component": "Card", "children": ["title"] }
+{ "key": "title", "component": "Text", "props": { "literal": { "text": "Hello" } } }
+```
+
+The engine mounts them in order, so a parent always arrives before the children
+it references. Mount this with the React binding's `<Renderer>`, passing the
+catalog's renderers and any host `functions` your expressions call — the
+[`/demo`](/demo) source is a complete, working setup.
+
+## Where to go next
+
+- [Concepts](/concepts) — the element model, expressions, and scopes.
+- [Live demo](/demo) — the same engine rendering real, interactive apps.

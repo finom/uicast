@@ -56,9 +56,9 @@ const REVEAL: ComponentEntry[] = [
 ];
 
 function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
-  const { rerender } = render(<Renderer implementations={catalog} lines={REVEAL.slice(0, 1)} />);
+  const { rerender } = render(<Renderer implementations={catalog} entries={REVEAL.slice(0, 1)} />);
   for (let i = 2; i <= REVEAL.length; i++) {
-    rerender(<Renderer implementations={catalog} lines={REVEAL.slice(0, i)} />);
+    rerender(<Renderer implementations={catalog} entries={REVEAL.slice(0, i)} />);
   }
 }
 
@@ -82,13 +82,13 @@ describe("EntryRenderer — render-once during streaming", () => {
     const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
-        <Renderer implementations={catalog} lines={REVEAL.slice(0, 1)} />
+        <Renderer implementations={catalog} entries={REVEAL.slice(0, 1)} />
       </StrictMode>,
     );
     for (let i = 2; i <= REVEAL.length; i++) {
       rerender(
         <StrictMode>
-          <Renderer implementations={catalog} lines={REVEAL.slice(0, i)} />
+          <Renderer implementations={catalog} entries={REVEAL.slice(0, i)} />
         </StrictMode>,
       );
     }
@@ -134,7 +134,7 @@ describe("EntryRenderer — render-once on state change", () => {
       captured = scopes;
     };
 
-    render(<Renderer implementations={catalog} lines={lines} init={init} />);
+    render(<Renderer implementations={catalog} entries={lines} init={init} />);
     expect(counts.root).toBe(1);
     expect(counts.child).toBe(1);
 

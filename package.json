@@ -49,5 +49,13 @@
     "react-dom": "^19.2.5",
     "typescript": "6.0.3",
     "vitest": "^4.1.0"
+  },
+  "overrides": {
+    "nextra": {
+      "zod": "~4.3.6"
+    },
+    "nextra-theme-docs": {
+      "zod": "~4.3.6"
+    }
   }
 }

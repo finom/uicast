@@ -1,0 +1,8 @@
+"use client";
+import { Renderer } from "@ui-fired/react";
+import { CounterImpl } from "./impl";
+import counterEntries from "./entries.json";
+
+export function Counter() {
+  return <Renderer implementations={[CounterImpl]} entries={counterEntries} />;
+}

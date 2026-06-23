@@ -4,7 +4,7 @@ import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 /**
  * The `# JavaScript Expressions` block — the micro-expression syntax contract
  * the generation LLM follows when authoring `expr` values (props, hidden,
- * defaults, callbacks). Catalog-/app-agnostic: it documents only the evaluator
+ * seed, callbacks). Catalog-/app-agnostic: it documents only the evaluator
  * surface (allowed syntax, the `scopes` / `evt` context variables), not any
  * specific host functions.
  *

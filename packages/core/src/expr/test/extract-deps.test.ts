@@ -119,11 +119,11 @@ describe("extractDeps — computed access handling", () => {
 });
 
 describe("extractDeps — what is NOT scanned", () => {
-  it("does not read defaults", () => {
+  it("does not read seed", () => {
     expect(
       extractDeps(
         element({
-          defaults: [{ set: "scopes.root.count", expr: "scopes.root.seed" }],
+          seed: [{ set: "scopes.root.count", expr: "scopes.root.seed" }],
         }),
       ),
     ).toEqual([]);

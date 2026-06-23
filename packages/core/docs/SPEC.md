@@ -31,7 +31,7 @@
   exchange — a producer emits a document, a runtime renders it.
 - **element** — the unit of the format. One node of the UI tree, of type
   `ComponentEntry`. Carries an identity (`key`), a `component` to render, and
-  optional inputs (`props`), state seeds (`defaults`), visibility (`hidden`),
+  optional inputs (`props`), state seeds (`seed`), visibility (`hidden`),
   event handlers (`callbacks`), and `children`.
 - **list** — an element that **repeats**: it carries an `each` (the collection)
   and an `as` (the per-iteration scope name). Type `ComponentListEntry`. Each repetition
@@ -61,7 +61,7 @@ An element is one node:
 | `key` | yes | Unique identity within the document, in kebab-case (`"user-card"`). Partial replacement keys off this ([§2.2](#22-partial-replacement-patch)). |
 | `component` | yes | Name of the component to render; must exist in the consuming runtime's registry. |
 | `props` | no | A [value source](#12-value-sources--assignments) evaluating to the component's props. |
-| `defaults` | no | [Assignments](#12-value-sources--assignments) that seed scope state once, at mount. |
+| `seed` | no | [Assignments](#12-value-sources--assignments) that seed scope state once, at mount. |
 | `hidden` | no | A bare expression; truthy → the element is hidden but kept mounted (state preserved). |
 | `callbacks` | no | Map of event name → ordered list of assignments, run when the component fires that event. |
 | `children` | no | Ordered list of child element `key`s (render order). |
@@ -87,7 +87,7 @@ Writing through `set` is the **only** sanctioned way to mutate state
 ([§1.4](#14-expressions)). An assignment may additionally carry `{ "confirm": "…?" }`
 to gate the write behind a yes/no confirmation.
 
-`defaults` are assignments; `callbacks` are assignments that may carry `confirm`.
+`seed` are assignments; `callbacks` are assignments that may carry `confirm`.
 
 ### 1.3 The tree
 
@@ -105,7 +105,7 @@ as a child exactly once. A list MUST NOT be the root.
 
 ### 1.4 Expressions
 
-`props.expr`, `hidden`, `each`, and the `expr` of any `defaults`/`callbacks`
+`props.expr`, `hidden`, `each`, and the `expr` of any `seed`/`callbacks`
 assignment carry a single host-language expression. Two invariants:
 
 - **Purity.** An expression computes and returns a value; it MUST NOT mutate
@@ -117,7 +117,7 @@ assignment carry a single host-language expression. Two invariants:
   auto-subscribes to every scope path it reads; when any is written, the site
   re-evaluates. Producers do not declare dependencies.
 
-`defaults`/`callbacks` expressions may be asynchronous (await host calls);
+`seed`/`callbacks` expressions may be asynchronous (await host calls);
 reactive-site expressions MUST be synchronous. The expression sub-language, and
 the deliberate limits of its sandbox, are specified in
 [`EXPRESSIONS.md`](./EXPRESSIONS.md).
@@ -149,14 +149,14 @@ is complete (placeholders stand in for not-yet-seen children).
 
 Re-emitting an element with an **already-seen `key`** replaces that element and
 its entire subtree in place; any prior children not referenced by the new element
-are discarded. State seeded by surviving ancestors is preserved, and `defaults`
+are discarded. State seeded by surviving ancestors is preserved, and `seed`
 on a surviving instance do **not** re-run. This is the format's only patch
 operation — there is no explicit delete or move. Mechanics:
 [`OVERVIEW.md`](./OVERVIEW.md) §13–§14.
 
 ### 2.3 Suspension
 
-An async `defaults` assignment makes its element **suspend** (render a
+An async `seed` assignment makes its element **suspend** (render a
 placeholder) until the value resolves; children mount once every seed resolves.
 Suspension is a runtime concern; the model and encoding are unaffected.
 

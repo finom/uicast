@@ -40,7 +40,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
                       ▼
    ┌──────────────────────────────────────────────────┐
    │ EntryRenderer (per element)                        │
-   │   1. evaluate `defaults` once (suspends if async)│
+   │   1. evaluate `seed` once (suspends if async)│
    │   2. subscribe to extractDeps(element) on $emitter │
    │   3. lookup renderer in registry                 │
    │   4. render <Component element scopes>{children}/> │
@@ -87,7 +87,7 @@ The **React binding** — `EntryRenderer` / `ListEntryRenderer`, the `<Renderer>
 
 ## 4. The element model — `types.ts`
 
-An **element** (one JSONL line) is a `ComponentEntry`. The shape carries `key`, `component`, and the optional `props` / `defaults` / `hidden` / `callbacks` / `children`, plus the optional list fields `each` / `as` / `keyBy`. An element is a **list** (`ComponentListEntry`) **iff** it carries `each` — list-ness is structural, the same way root-ness is (an element that no `children` array references). There's no `kind` discriminator; narrow in TS with `isComponentListEntry(el)`.
+An **element** (one JSONL line) is a `ComponentEntry`. The shape carries `key`, `component`, and the optional `props` / `seed` / `hidden` / `callbacks` / `children`, plus the optional list fields `each` / `as` / `keyBy`. An element is a **list** (`ComponentListEntry`) **iff** it carries `each` — list-ness is structural, the same way root-ness is (an element that no `children` array references). There's no `kind` discriminator; narrow in TS with `isComponentListEntry(el)`.
 
 > **Per-property reference → [`LINES.md`](./LINES.md).** Every field, its type, its value forms (`literal` / `expr` / `set` / `confirm`), and its authoring semantics live there. This section covers only how the runtime treats the element model as a whole.
 
@@ -149,7 +149,7 @@ For the mechanics of the proxy itself — reads, writes, the emitter, identity, 
 Only the proxy at `path.length === 0` exposes the framework hooks:
 
 - `proxy.$emitter` — the emitter ref. Subscribers do `scopes.<scopeName>.$emitter.on(path, handler)`.
-- `proxy.$set(path, value, options?)` — walks the dotted path creating intermediate objects as needed; the final assignment goes through the `set` trap (so it emits). Used by `callbacks` from inside the renderer. Pass `{ default: true }` for init-if-absent: no-op if the leaf already has a value. `defaults` lower to `$set(..., { default: true })`, so two components seeding the same path don't clobber each other (first-writer-wins).
+- `proxy.$set(path, value, options?)` — walks the dotted path creating intermediate objects as needed; the final assignment goes through the `set` trap (so it emits). Used by `callbacks` from inside the renderer. Pass `{ default: true }` for init-if-absent: no-op if the leaf already has a value. `seed` lowers to `$set(..., { default: true })`, so two components seeding the same path don't clobber each other (first-writer-wins).
 
 Sub-proxies (`scopes.inv.rows`, `scopes.inv.rows[0]`, etc.) don't expose `$emitter` / `$set`; the emit goes to the parent scope's shared emitter.
 
@@ -175,7 +175,7 @@ For each element, the renderer subscribes to every scope path the element *reads
 - `element.hidden`
 - `element.each` (list elements)
 
-`defaults` and `callbacks` are NOT scanned: defaults run once at mount (gated by `hasBeenRenderedRef.current`); callbacks run on event and read current state at fire time.
+`seed` and `callbacks` are NOT scanned: seed runs once at mount (gated by `hasBeenRenderedRef.current`); callbacks run on event and read current state at fire time.
 
 ### The pipeline
 
@@ -201,11 +201,11 @@ This means **the LLM's writer convention matters**. If a callback's `set` target
 
 ---
 
-## 9. Defaults & callbacks
+## 9. Seed & callbacks
 
-> Authoring semantics — what `defaults` / `callbacks` are *for*, the `{ set, expr, confirm }` shapes, the purity rule — live in [`LINES.md`](./LINES.md). This section covers how the **runtime executes** them.
+> Authoring semantics — what `seed` / `callbacks` are *for*, the `{ set, expr, confirm }` shapes, the purity rule — live in [`LINES.md`](./LINES.md). This section covers how the **runtime executes** them.
 
-### `defaults`
+### `seed`
 
 Run **once**, when the element first mounts. Gated by `hasBeenRenderedRef.current`. Each entry is an `ValueSourceAssignment`:
 
@@ -215,14 +215,14 @@ Run **once**, when the element first mounts. Gated by `hasBeenRenderedRef.curren
 
 Four things to notice:
 
-1. **All defaults in one element are evaluated BEFORE any value is written.** They're collected, then written. So a later default *cannot* read a value set by an earlier default in the same element. If you need that chaining, split across parent/child elements (child mounts after parent finishes).
-2. **Async defaults suspend the element.** If any default expression returns a Promise, the element suspends (rendering its placeholder) until all promises resolve. The suspension *mechanism* is the binding's — in React it's `<Suspense>` + `use(promise)` (see [`REACT.md`](./REACT.md) §5).
-3. **No re-run on partial replacement.** An element re-emitted with the same key keeps its scope state — defaults don't fire again if the renderer instance survives.
-4. **Use `defaults` for state, not derivations.** The right things to put in `defaults` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `defaults` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
+1. **All seeds in one element are evaluated BEFORE any value is written.** They're collected, then written. So a later seed *cannot* read a value set by an earlier seed in the same element. If you need that chaining, split across parent/child elements (child mounts after parent finishes).
+2. **Async seeds suspend the element.** If any seed expression returns a Promise, the element suspends (rendering its placeholder) until all promises resolve. The suspension *mechanism* is the binding's — in React it's `<Suspense>` + `use(promise)` (see [`REACT.md`](./REACT.md) §5).
+3. **No re-run on partial replacement.** An element re-emitted with the same key keeps its scope state — seeds don't fire again if the renderer instance survives.
+4. **Use `seed` for state, not derivations.** The right things to put in `seed` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `seed` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
 
 ### `init` — host-side seeding (not an element field)
 
-`defaults` is the LLM's tool for seeding state at mount. **`init` is the *host's* tool** for the same job — data the consuming app already has in memory (or can prefetch synchronously) at mount time and doesn't want the LLM to re-seed.
+`seed` is the LLM's tool for seeding state at mount. **`init` is the *host's* tool** for the same job — data the consuming app already has in memory (or can prefetch synchronously) at mount time and doesn't want the LLM to re-seed.
 
 ```tsx
 <Renderer
@@ -233,15 +233,15 @@ Four things to notice:
 />
 ```
 
-`init` is a **prop on `<Renderer>`**, not an element field. It runs exactly once, before any LLM-emitted root element evaluates its `props`/`defaults`. Three things to know:
+`init` is a **prop on `<Renderer>`**, not an element field. It runs exactly once, before any LLM-emitted root element evaluates its `props`/`seed`. Three things to know:
 
 1. **Side effects only.** The callback's return value is ignored. Mutate via the reactive Proxy (`scopes.root.x = y`); the assignment routes through the same `set` trap as `$set` (see [`SCOPES.md`](./SCOPES.md)), so subscribers wake the same way.
-2. **Sync vs async.** Sync writes land before children mount. If the callback returns a Promise (`async ({ scopes }) => { scopes.root.x = await fetch(...) }`), the wrapper suspends via the same async path string-form defaults use (above) — children mount only after it resolves.
-3. **Fires once.** Same `hasBeenRenderedRef` guard that pins `defaults` to one shot. New elements streaming in re-render the Renderer; `init` does NOT re-fire.
+2. **Sync vs async.** Sync writes land before children mount. If the callback returns a Promise (`async ({ scopes }) => { scopes.root.x = await fetch(...) }`), the wrapper suspends via the same async path string-form seeds use (above) — children mount only after it resolves.
+3. **Fires once.** Same `hasBeenRenderedRef` guard that pins `seed` to one shot. New elements streaming in re-render the Renderer; `init` does NOT re-fire.
 
 Mechanically, the binding **always** wraps its root elements in a synthetic `{ component: "RootFragment", … }` element; `init` lands on that wrapper. See [`REACT.md`](./REACT.md) §2 for the wrap details.
 
-`init` is intentionally narrower than `defaults`:
+`init` is intentionally narrower than `seed`:
 
 - **No `set` field.** The callback is a pure side-effect — hosts in TS can write arbitrarily complex objects to multiple paths in one call, no need to enumerate `{ set, expr }` pairs.
 - **No reactivity.** Once `init` runs, it's gone. The state it wrote is reactive; the callback itself is not re-triggered by scope changes.
@@ -267,7 +267,7 @@ Execution semantics:
 
 ### The purity rule
 
-Expressions must be **pure** — the only sanctioned way to write state is the `set` field on `defaults` / `callbacks`. Full rationale and the IIFE caveat are in [`LINES.md`](./LINES.md#the-purity-rule); the LLM is taught it in [`INSTRUCTIONS.md` §2](../src/prompt/INSTRUCTIONS.md).
+Expressions must be **pure** — the only sanctioned way to write state is the `set` field on `seed` / `callbacks`. Full rationale and the IIFE caveat are in [`LINES.md`](./LINES.md#the-purity-rule); the LLM is taught it in [`INSTRUCTIONS.md` §2](../src/prompt/INSTRUCTIONS.md).
 
 ---
 

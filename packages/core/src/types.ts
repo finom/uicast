@@ -37,7 +37,7 @@ export interface ComponentEntry {
   key: string;
   component: string;
   props?: ValueSource;
-  defaults?: ValueSourceAssignment[];
+  seed?: ValueSourceAssignment[];
   hidden?: Expression;
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];

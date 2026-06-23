@@ -23,7 +23,7 @@ import { RendererRegistryProvider } from "../store/renderer-registry";
  */
 export const Renderer = memo(function Renderer({
   implementations,
-  lines,
+  entries,
   functions,
   init,
   overrides,
@@ -53,16 +53,16 @@ export const Renderer = memo(function Renderer({
     [implementationsByName, overrides, functions],
   );
 
-  const elementsById = buildElementsById(lines);
+  const elementsById = buildElementsById(entries);
 
   // An entry is a root iff nothing references its key as a child.
   const childKeys = new Set<string>();
-  for (const line of lines) {
+  for (const line of entries) {
     for (const childKey of line.children ?? []) childKeys.add(childKey);
   }
   const seenRootKeys = new Set<string>();
   const rootKeys: string[] = [];
-  for (const line of lines) {
+  for (const line of entries) {
     if (childKeys.has(line.key) || seenRootKeys.has(line.key)) continue;
     seenRootKeys.add(line.key);
     rootKeys.push(line.key);

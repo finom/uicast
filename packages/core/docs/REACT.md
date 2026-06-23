@@ -13,7 +13,7 @@ slot).
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
 > concepts this binding realizes — the element model (§4), expressions +
 > `SafeEval` (§5), the reactive Proxy (§6), scopes (§7), auto-detected deps
-> (§8), and the `defaults` / `callbacks` / list **semantics** (§9–§10). A
+> (§8), and the `seed` / `callbacks` / list **semantics** (§9–§10). A
 > non-React binding (Vue, Svelte, vanilla DOM) would re-implement *this*
 > document against the same engine; §7 below is the seam it would build on.
 
@@ -34,7 +34,7 @@ packages/react/src/
 ├── render/
 │   ├── entry-renderer.tsx       — EntryRenderer + ListEntryRenderer (the tree walk)
 │   ├── use-reactive-deps.ts     — subscribes a node to the reactive paths its entry reads
-│   ├── use-seed-defaults.ts     — one-shot defaults + init seeding; returns the Suspense promise
+│   ├── use-seed-defaults.ts     — one-shot seed + init seeding; returns the Suspense promise
 │   ├── use-item-scopes.ts       — per-list-item proxy + scope cache (stable identities for memo)
 │   ├── renderer.tsx             — the <Renderer> component: builds the name→implementation map from the `implementations` array prop; per-instance root; wraps RendererRegistryProvider
 │   └── root-fragment-impl.tsx   — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
@@ -143,7 +143,7 @@ UI — distinct from `implementations` (the catalog components). Four slots
 are wired today:
 
 - **`placeholder`** — shown for a not-yet-streamed child and as the
-  async-`defaults` suspense fallback (§5). Precedence is **renderer's own
+  async-`seed` suspense fallback (§5). Precedence is **renderer's own
   placeholder → `overrides.placeholder` → null** (render nothing). Resolved
   per-node in `EntryRenderer`.
 - **`confirm`** — the modal that resolves callback steps carrying `confirm:`
@@ -180,7 +180,7 @@ per-node visuals, `<Renderer>` for tree-level visuals).
    `<ListEntryRenderer>` for list children). A falsy `element.children?.length`
    yields `null` children — the array-aware guard prevents a rehydrated empty
    `children: []` from clobbering `element.props.children` text downstream.
-3. **Run defaults** (one-shot, gated by `hasBeenRenderedRef`). If any default
+3. **Run seeds** (one-shot, gated by `hasBeenRenderedRef`). If any seed
    resolves to a Promise, the element suspends — see §5.
 4. **Render** `<Component element={element} scopes={scopes}>{children}</Component>`,
    where `Component` is the registered renderer entry.
@@ -277,16 +277,16 @@ the element and flips visibility.
 
 ---
 
-## 5. Suspense — async `defaults` and `init`
+## 5. Suspense — async `seed` and `init`
 
-`defaults` / `init` execution semantics (run-once, evaluated-before-written,
+`seed` / `init` execution semantics (run-once, evaluated-before-written,
 host-vs-LLM seeding) are in [`OVERVIEW.md`](./OVERVIEW.md) §9. The **async**
-case is React-specific: if a default expression (or the `init` callback)
+case is React-specific: if a seed expression (or the `init` callback)
 returns a Promise, the element wraps itself in `<Suspense>` with `use(promise)`
 and renders the registered placeholder (the renderer's own, else the
 host-supplied `overrides.placeholder`) until every promise resolves. Children mount
 only after resolution. This is the binding's single suspension path; both
-string-form async defaults and an async `init` flow through it.
+string-form async seeds and an async `init` flow through it.
 
 ---
 
@@ -320,7 +320,7 @@ binding re-implements §2–§6 by calling exactly these, all from
 | `proxy.$emitter.on(path, cb)` / `$set(path, v)` | Subscribe to path-exact writes / write state. React's binding calls `cb = forceRender`; a Vue binding would trigger a `ref` instead. |
 | `extractDeps(element)` | Get the reactive deps to subscribe to per element (WeakMap-cached). |
 | `parseScope(dep)` | Split `scopes.X.Y` into `[scopeName, leafPath]` for subscription. |
-| `evaluate(valueSource, { scopes, evt? }, { functions })` | Run a `props` / `hidden` / `each` / `defaults` / `callbacks` expression against current state. Returns a value (or a Promise the binding suspends on). |
+| `evaluate(valueSource, { scopes, evt? }, { functions })` | Run a `props` / `hidden` / `each` / `seed` / `callbacks` expression against current state. Returns a value (or a Promise the binding suspends on). |
 | `buildElementsById(lines)` | Flatten the JSONL into a key→element map with partial-replacement. |
 | `isComponentListEntry(el)` | Branch element vs list during the tree walk. |
 | `createComponentDefinition` | Author the agnostic partner def (shared by every binding). |

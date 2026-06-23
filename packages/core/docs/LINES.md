@@ -10,7 +10,7 @@ Scope of the sibling docs:
 - [`SPEC.md`](./SPEC.md) — the normative format contract this doc details
   per-field (the element model, streaming, encoding, conformance).
 - [`EXPRESSIONS.md`](./EXPRESSIONS.md) — the JavaScript expression syntax used by
-  any `expr` field below (`props`, `hidden`, `defaults`, `callbacks`, `each`).
+  any `expr` field below (`props`, `hidden`, `seed`, `callbacks`, `each`).
 - [`SCOPES.md`](./SCOPES.md) — the reactive `scopes` state model those
   expressions read from and write to.
 - [`OVERVIEW.md`](./OVERVIEW.md) — how the engine *executes* these lines
@@ -33,7 +33,7 @@ interface Element {
   key: string;                 // unique id; partial replacement keys off this
   component: string;           // registry name, e.g. "Card", "Input", "Table"
   props?: ValueSource;         // evaluates to the component's props object
-  defaults?: ValueSourceAssignment[];            // one-shot state seeding
+  seed?: ValueSourceAssignment[];                // one-shot state seeding
   hidden?: Expression;         // bare expr; truthy → hide (state preserved)
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>; // event → steps
   children?: string[];         // child line keys, in render order
@@ -122,7 +122,7 @@ The hide *mechanics* live in [`OVERVIEW.md`](./OVERVIEW.md) §15.
 { "hidden": "!scopes.root.showDetails" }
 ```
 
-### `defaults`
+### `seed`
 An array of [`ValueSourceAssignment`](#the-shape) that **seed scope state once**,
 when the line first mounts.
 
@@ -134,21 +134,21 @@ Authoring rules:
 
 1. **Run once, at mount.** Re-renders don't re-run them; a partial-replacement
    re-emit with a surviving instance keeps its state and does not re-seed.
-2. **All defaults in one line are evaluated BEFORE any is written.** A later
-   default *cannot* read a value an earlier default in the **same line** set.
+2. **All seeds in one line are evaluated BEFORE any is written.** A later
+   seed *cannot* read a value an earlier seed in the **same line** set.
    Need that chaining? Split across parent/child lines — the child mounts after
    the parent.
-3. **Use `defaults` for state, not derivations.** Put values that get
+3. **Use `seed` for state, not derivations.** Put values that get
    *initialized once then read/mutated* here — form fields, selections, search
    terms, fetched lists. Values *computed from* other state (a filtered list, a
    sum, a formatted string) do **not** belong here — they go inline in `props` /
    `hidden` / `each`, where auto-deps recompute them on change. A derivation in
-   `defaults` is correct at mount and stale forever after.
-4. **Async defaults suspend the line.** If an expression returns a Promise the
+   `seed` is correct at mount and stale forever after.
+4. **Async seeds suspend the line.** If an expression returns a Promise the
    line suspends (showing its placeholder) until it resolves — mechanics in
    [`OVERVIEW.md`](./OVERVIEW.md) §9.
 
-> `defaults` is the line author's tool for seeding state. The **host** has a
+> `seed` is the line author's tool for seeding state. The **host** has a
 > parallel tool, `init` — a prop on `<Renderer>`, not a line property — for
 > seeding data the app already holds. See [`OVERVIEW.md`](./OVERVIEW.md) §9.
 
@@ -229,9 +229,9 @@ in-place edits can shift positions and lose per-item state (focus, edit mode).
 
 ## The purity rule
 
-Every `expr` — in `props`, `hidden`, `defaults`, `callbacks`, `each` — must be a
+Every `expr` — in `props`, `hidden`, `seed`, `callbacks`, `each` — must be a
 **pure** expression: it computes and returns a value, nothing more. The **only**
-sanctioned way to write state is the `set` field on a `defaults` / `callbacks`
+sanctioned way to write state is the `set` field on a `seed` / `callbacks`
 entry.
 
 Mutating scope from inside an expression body — e.g. the IIFE form

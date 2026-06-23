@@ -6,7 +6,7 @@ import { getScopeReads } from "./evaluate";
 const cache = new WeakMap<ComponentEntry, string[]>();
 
 // The reactive scopes.X.Y paths an entry reads, across its props, hidden, and each
-// expressions — the renderer subscribes to these. (defaults run once and
+// expressions — the renderer subscribes to these. (seed run once and
 // callbacks read at fire time, so neither is scanned.)
 export function extractDeps(entry: ComponentEntry): string[] {
   const cached = cache.get(entry);

@@ -11,8 +11,14 @@ import { useConfirm } from "../providers/confirm";
 import { useRendererRegistry } from "../store/renderer-registry";
 import type { ComponentImplementation } from "../types";
 
+// A `null` callback payload means "no event data": the handler is a no-arg
+// function (`onClick()`), not `(evt: null)`.
+type CallbackFn<S extends CombinedSpec> = [StandardSchemaV1.InferOutput<S>] extends [null]
+  ? () => Promise<void>
+  : (args: StandardSchemaV1.InferOutput<S>) => Promise<void>;
+
 type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {
-  [K in keyof T]: (args: StandardSchemaV1.InferOutput<T[K]>) => Promise<void>;
+  [K in keyof T]: CallbackFn<T[K]>;
 };
 
 export const createComponentImplementation = <

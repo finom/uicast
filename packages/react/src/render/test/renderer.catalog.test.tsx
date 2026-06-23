@@ -22,7 +22,7 @@ describe("Renderer — catalog prop", () => {
       },
     ];
     const { container } = render(
-      <Renderer implementations={defaultImplementationsList} lines={lines} />,
+      <Renderer implementations={defaultImplementationsList} entries={lines} />,
     );
     expect(container.textContent).toContain("from-catalog-prop");
   });
@@ -47,12 +47,12 @@ describe("Renderer — catalog prop", () => {
       <>
         <Renderer
           implementations={defaultImplementationsList}
-          lines={box("rA")}
+          entries={box("rA")}
           init={initA}
         />
         <Renderer
           implementations={defaultImplementationsList}
-          lines={box("rB")}
+          entries={box("rB")}
           init={initB}
         />
       </>,
@@ -84,7 +84,7 @@ describe("Renderer — catalog prop", () => {
 
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     const { container } = render(
-      <Renderer implementations={[first, second]} lines={lines} />,
+      <Renderer implementations={[first, second]} entries={lines} />,
     );
 
     // The later renderer wins the name; the earlier one never renders.

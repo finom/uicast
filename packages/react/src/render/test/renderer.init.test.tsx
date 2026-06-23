@@ -13,7 +13,7 @@ import { defaultImplementationsList } from "../../../test/render-helpers";
 //
 // These tests pin the contract: writes via the reactive Proxy land before
 // children mount (sync), Suspense gates children on async init Promises,
-// and the streaming-defaults one-shot invariant (`hasBeenRenderedRef`)
+// and the streaming-seed one-shot invariant (`hasBeenRenderedRef`)
 // carries over so init does NOT re-fire when new entries stream in.
 
 describe("Renderer — init prop", () => {
@@ -30,7 +30,7 @@ describe("Renderer — init prop", () => {
 			(scopes.root as Record<string, unknown>).greeting = "hello";
 		};
 
-		const { container } = render(<Renderer implementations={defaultImplementationsList} lines={lines} init={init} />);
+		const { container } = render(<Renderer implementations={defaultImplementationsList} entries={lines} init={init} />);
 		expect(container.textContent).toContain("hello");
 	});
 
@@ -62,7 +62,7 @@ describe("Renderer — init prop", () => {
 		// hang seeing only the fallback.
 		let container!: HTMLElement;
 		await act(async () => {
-			const result = render(<Renderer implementations={defaultImplementationsList} lines={lines} init={init} />);
+			const result = render(<Renderer implementations={defaultImplementationsList} entries={lines} init={init} />);
 			container = result.container;
 		});
 
@@ -88,7 +88,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer implementations={defaultImplementationsList} lines={lines} />);
+		const { container } = render(<Renderer implementations={defaultImplementationsList} entries={lines} />);
 		expect(container.textContent).toContain("plain");
 
 		// The RootFragment wrapper renders via React.Fragment — no extra DOM
@@ -115,7 +115,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
-		const { container, rerender } = render(<Renderer implementations={defaultImplementationsList} lines={initialLines} init={initSpy} />);
+		const { container, rerender } = render(<Renderer implementations={defaultImplementationsList} entries={initialLines} init={initSpy} />);
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
@@ -127,7 +127,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
-		rerender(<Renderer implementations={defaultImplementationsList} lines={nextLines} init={initSpy} />);
+		rerender(<Renderer implementations={defaultImplementationsList} entries={nextLines} init={initSpy} />);
 
 		// The synthetic RootFragment reconciled by stable key — init did NOT
 		// re-fire when a new sibling root entry streamed in.
@@ -153,7 +153,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<Renderer implementations={defaultImplementationsList} lines={lines} init={initSpy} />);
+		const { container } = render(<Renderer implementations={defaultImplementationsList} entries={lines} init={initSpy} />);
 
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A=shared");
@@ -178,7 +178,7 @@ describe("Renderer — init prop", () => {
 			};
 		};
 
-		const { container } = render(<Renderer implementations={defaultImplementationsList} lines={lines} init={init} />);
+		const { container } = render(<Renderer implementations={defaultImplementationsList} entries={lines} init={init} />);
 		expect(container.textContent).toContain("Email");
 	});
 });

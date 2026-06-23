@@ -1,0 +1,36 @@
+# Concepts
+
+## The model
+
+A **document** is a flat set of **elements** that form a tree. There is exactly
+one **root** (the element no other element lists as a child) and every other
+element is referenced as a child exactly once. An element carries an identity
+(`key`), a `component` to render, and optional `props`, `seed`, `hidden`,
+`callbacks`, and `children`.
+
+An element that **repeats** is a **list**: it carries an `each` (the collection)
+and an `as` (the per-item scope name). List-ness is structural — an element is a
+list iff it carries `each`.
+
+## Expressions
+
+`props`, `hidden`, `each`, and the `expr` of any `seed` / `callbacks`
+assignment carry a single JavaScript expression, evaluated against the current
+scopes. Two rules:
+
+- **Pure.** An expression computes and returns a value; it must not mutate state
+  or cause side effects. State changes happen only through the `set` field of a
+  `seed` / `callbacks` assignment.
+- **Stateless.** An expression must be a deterministic function of the scopes
+  (and `evt` in callbacks) it reads — no `Math.random()`, no clock reads, no
+  counter that survives between evaluations. A reactive site re-evaluates
+  whenever a scope path it reads changes, so a non-deterministic expression
+  renders inconsistently.
+
+## Scopes
+
+State lives in **scopes** — a flat namespace of reactive bags. There is one root
+scope (`scopes.root`) and one scope per list item, named by the list's `as`.
+Reading a scope path inside a reactive expression auto-subscribes it: when the
+path is written, the expression re-evaluates. Producers never declare
+dependencies.

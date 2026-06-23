@@ -1,0 +1,36 @@
+import { CounterExample } from "@/lib/mini-examples/counter";
+
+# ui-fired
+
+**ui-fired** turns a stream of JSONLines into a complete, interactive front-end
+app — one with real state management: derived values, conditional visibility, and
+event handling, all driven by real JavaScript expressions that are validated for
+safety before they run. You supply two things: a pre-built **component catalog**
+to render from, and a set of **functions the UI can call** to load data, save
+changes, and run actions. An LLM emits one JSON object per line; the engine mounts
+each line in tree order against a reactive state store. The emitted JSONLines are
+a static asset — serve them like a regular HTML page, with no build or deploy step
+per generation.
+
+The format is small and the instructions the model follows are simple, so
+generation is nearly deterministic and spends very few output tokens — the model
+writes the app's logic as short expressions wired into catalog components, not as
+a full codebase.
+
+## Packages
+
+- **`@ui-fired/core`** — the render engine: the JSONLines model, an expression
+  evaluator that validates code for safety, and the reactive proxy state store.
+  React-free.
+- **`@ui-fired/react`** — the React binding that mounts a document.
+- **`@ui-fired/shadcn-catalog`** — a ready-made component catalog built on
+  shadcn/ui.
+
+<CounterExample />
+
+## Next steps
+
+- [Getting started](/getting-started) — install the packages and render your
+  first document.
+- [Concepts](/concepts) — the model, expressions, and scopes.
+- [Live demo](/demo) — watch generated apps assemble, one line at a time.

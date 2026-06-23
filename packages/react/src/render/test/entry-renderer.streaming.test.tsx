@@ -67,16 +67,16 @@ describe("EntryRenderer — streaming / placeholders", () => {
 	});
 });
 
-// As the LLM streams JSONLines, `<Renderer lines={lines}>` is re-rendered with
-// a growing `lines` array. Every already-mounted entry's `defaults` must run
+// As the LLM streams JSONLines, `<Renderer entries={lines}>` is re-rendered with
+// a growing `lines` array. Every already-mounted entry's `seed` must run
 // exactly once — even as later entries arrive — or stream-time UIs would
 // silently re-seed scopes and clobber user-set state. The invariant is held by
 // `hasBeenRenderedRef` inside EntryRenderer combined with stable React
 // keys per entry; these tests pin that contract against accidental refactors
 // (e.g. dropping the ref, swapping the keying strategy, or remounting on
 // elements-prop identity change).
-describe("EntryRenderer — streaming + defaults", () => {
-	it("does not re-run an existing entry's defaults when a sibling root entry streams in later", () => {
+describe("EntryRenderer — streaming + seed", () => {
+	it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
 		let count = 0;
 		const functions: StandardTool[] = [
 			{
@@ -92,7 +92,7 @@ describe("EntryRenderer — streaming + defaults", () => {
 			{
 				key: "a",
 				component: "Box",
-				defaults: [{ set: "scopes.root.tickA", expr: "track()" }],
+				seed: [{ set: "scopes.root.tickA", expr: "track()" }],
 				props: { expr: "({ text: 'A' })" },
 			},
 		];
@@ -106,21 +106,21 @@ describe("EntryRenderer — streaming + defaults", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} />);
+		const { rerender, container } = render(<Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} />);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} />);
+		rerender(<Renderer implementations={defaultImplementationsList} entries={next} functions={functions} />);
 
-		// A's defaults still ran exactly once. The new sibling entry didn't
+		// A's seed still ran exactly once. The new sibling entry didn't
 		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
-		// survived, and the defaults block was skipped on the re-render.
+		// survived, and the seed block was skipped on the re-render.
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 		expect(container.textContent).toContain("B");
 	});
 
-	it("does not re-run a parent's defaults when a child entry streams in to fill a placeholder", () => {
+	it("does not re-run a parent's seed when a child entry streams in to fill a placeholder", () => {
 		let count = 0;
 		const functions: StandardTool[] = [
 			{
@@ -140,7 +140,7 @@ describe("EntryRenderer — streaming + defaults", () => {
 			{
 				key: "root",
 				component: "Box",
-				defaults: [{ set: "scopes.root.tickRoot", expr: "track()" }],
+				seed: [{ set: "scopes.root.tickRoot", expr: "track()" }],
 				children: ["child"],
 				// 'child' entry hasn't streamed yet — placeholder fills its slot.
 			},
@@ -156,14 +156,14 @@ describe("EntryRenderer — streaming + defaults", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer implementations={defaultImplementationsList} lines={initial} functions={functions} overrides={overrides} />,
+			<Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} overrides={overrides} />,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer implementations={defaultImplementationsList} lines={next} functions={functions} overrides={overrides} />);
+		rerender(<Renderer implementations={defaultImplementationsList} entries={next} functions={functions} overrides={overrides} />);
 
-		// Parent's defaults still ran exactly once. The placeholder swapped out
+		// Parent's seed still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).toBeNull();

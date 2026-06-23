@@ -5,13 +5,13 @@ import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
 import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
-describe("EntryRenderer — defaults", () => {
+describe("EntryRenderer — seed", () => {
   it("seeds root scope at mount via literal", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
         component: "Box",
-        defaults: [{ set: "scopes.root.count", literal: 5 }],
+        seed: [{ set: "scopes.root.count", literal: 5 }],
         props: { expr: "({ text: scopes.root.count })" },
       },
     ];
@@ -25,7 +25,7 @@ describe("EntryRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        defaults: [{ set: "scopes.root.total", expr: "2 + 2" }],
+        seed: [{ set: "scopes.root.total", expr: "2 + 2" }],
         props: { expr: "({ text: scopes.root.total })" },
       },
     ];
@@ -39,7 +39,7 @@ describe("EntryRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        defaults: [{ set: "scopes.root.x", expr: "track()" }],
+        seed: [{ set: "scopes.root.x", expr: "track()" }],
         props: { expr: "({ text: scopes.root.x })" },
       },
     ];
@@ -57,7 +57,7 @@ describe("EntryRenderer — defaults", () => {
     });
     expect(count).toBe(1);
 
-    // Re-render via state change — defaults must NOT fire again.
+    // Re-render via state change — seed must NOT fire again.
     act(() => {
       scopes.root.$set("other", "force-rerender");
     });
@@ -65,7 +65,7 @@ describe("EntryRenderer — defaults", () => {
     expect(container.textContent).toContain("1");
   });
 
-  it("supports async defaults via Suspense (use(promise))", async () => {
+  it("supports async seed via Suspense (use(promise))", async () => {
     // Uses the full <Renderer> rather than bare mountEntries: React 19 + RTL
     // only flush a top-level Suspense recovery when the initial mount runs
     // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
@@ -74,7 +74,7 @@ describe("EntryRenderer — defaults", () => {
       {
         key: "root",
         component: "Box",
-        defaults: [{ set: "scopes.root.data", expr: "loadData()" }],
+        seed: [{ set: "scopes.root.data", expr: "loadData()" }],
         props: { expr: "({ text: scopes.root.data })" },
       },
     ];
@@ -89,7 +89,7 @@ describe("EntryRenderer — defaults", () => {
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <Renderer implementations={defaultImplementationsList} lines={lines} functions={functions} />,
+        <Renderer implementations={defaultImplementationsList} entries={lines} functions={functions} />,
       ).container;
     });
     // Suspended on the pending default — the value isn't shown yet.

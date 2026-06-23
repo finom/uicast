@@ -62,7 +62,7 @@ function createProxyScope<T extends object>(
 
     const lastKey = keys[keys.length - 1];
     // `default: true` → init-if-absent (first-writer-wins); never clobber an
-    // existing value. Used by `defaults` so two components seeding the same
+    // existing value. Used by `seed` so two components seeding the same
     // path don't overwrite each other, and user edits survive remounts.
     if (options?.default && current[lastKey] !== undefined) return;
     current[lastKey] = value;
