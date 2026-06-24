@@ -6,8 +6,8 @@ export const chartLines: ComponentEntry[] = [
     component: "FlexCol",
     props: { literal: { gap: "4" } },
     seed: [
-      { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
-      { set: "scopes.root.users", expr: "UserRPC_getUsers()" },
+      { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
+      { set: "scopes.root.users", expr: "UserApi_getUsers()" },
       {
         set: "scopes.root.barChartData",
         expr: '[{status: "TODO", count: String(scopes.root.tasks.filter(t => t.status === "TODO").length)}, {status: "In Progress", count: String(scopes.root.tasks.filter(t => t.status === "IN_PROGRESS").length)}, {status: "Done", count: String(scopes.root.tasks.filter(t => t.status === "DONE").length)}]',

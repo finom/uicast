@@ -7,7 +7,7 @@ export const asyncLines: ComponentEntry[] = [
     seed: [
       {
         set: "scopes.root.users",
-        expr: "UserRPC_getUsers()",
+        expr: "UserApi_getUsers()",
       },
     ],
     children: ["users-thead", "users-tbody"],

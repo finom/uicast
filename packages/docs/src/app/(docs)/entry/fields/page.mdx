@@ -1,0 +1,148 @@
+# Entry fields
+
+Every line of a **ui-fired** document is one [component entry](/entry) — a flat
+JSON object. Two fields are required, `key` and `component`; everything else is
+optional and adds behaviour. This is the reference for each one: what it holds,
+and which deeper mechanism it draws on.
+
+```ts
+interface ComponentEntry {
+  key: string;          // unique id — required
+  component: string;    // catalog component name — required
+  props?: ValueSource;  // the props object
+  hidden?: Expression;  // truthy → hidden
+  children?: string[];  // child keys, in render order
+  seed?: ValueSourceAssignment[];  // initial state, once at mount
+  callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;  // event → steps
+  each?: Expression;    // array to iterate — its presence marks a list
+  as?: string;          // per-item scope name
+  keyBy?: string;       // per-item identity
+}
+```
+
+The field *values* draw on three companion pages: a `props` value is a
+[value source](/entry/value-sources); every `expr` inside one is a
+[JavaScript expression](/entry/expressions); and the paths those expressions read
+from and write to live in [state & scopes](/entry/state).
+
+## Structure
+
+### `key`
+**Required.** A unique id for the line, in **kebab-case** (`"user-card"`, never
+`"userCard"`). The document is a flat list of lines assembled into a tree by key
+reference, and **partial replacement** keys off it: re-emitting a line with the
+same `key` swaps that subtree in place. The one line no other entry names in its
+`children` is the **root**.
+
+```jsonc
+{ "key": "user-card", "component": "Card" }
+```
+
+### `component`
+**Required.** The catalog name of the component to render (`"Card"`, `"Input"`,
+`"Table"`, …). It must exist in the renderer's registry, or the line can't mount.
+
+### `children`
+The child lines' `key`s, in render order. Absent or empty means a leaf. The
+children are themselves separate lines, referenced here by key — never nested
+inline.
+
+```jsonc
+{ "key": "row", "component": "Row", "children": ["name", "email"] }
+```
+
+## Value and state
+
+### `props`
+A [value source](/entry/value-sources) that evaluates to the component's props
+object — `{ "literal": … }` for a static object, or `{ "expr": "…" }` to compute
+one from state (wrap an object literal in parens). `props` is a **reactive
+site**: the engine subscribes to every scope path the expression reads and
+re-renders when one changes — see [reactivity](/entry/expressions#reactivity).
+
+```jsonc
+{ "props": { "expr": "({ text: scopes.root.title })" } }
+{ "props": { "literal": { "variant": "outline" } } }
+```
+
+### `hidden`
+A bare [JavaScript expression](/entry/expressions) — no `literal` form — that
+hides the line while it is truthy. The line stays **mounted with its state**, so
+toggling it never loses focus, scroll, or input. Like `props`, it is reactive.
+Use it for tabs, accordions, and conditional panels.
+
+```jsonc
+{ "hidden": "!scopes.root.showDetails" }
+```
+
+### `seed`
+An array of [assignments](/entry/value-sources#valuesourceassignment) that
+**initialize scope paths once**, when the line first mounts. Each is an `expr` or
+`literal` plus the `set` path it writes.
+
+```jsonc
+{ "seed": [{ "set": "scopes.root.users", "expr": "await UserApi_getUsers()" }] }
+```
+
+- **Runs once.** Re-renders never re-run it; a line kept alive through partial
+  replacement is not re-seeded.
+- **Seed state, not derivations.** Values that are *initialized then read or
+  mutated* — form fields, selections, fetched lists — belong here. Anything
+  *computed from* other state goes inline in `props` / `hidden` / `each`, where it
+  recomputes on change; a derived value in `seed` is correct at mount and stale
+  forever after.
+- **All seeds on a line resolve before any is written**, so one seed can't read
+  another's result on the same line — split dependent seeds across a parent and
+  its child. Mount lifecycle: [state & scopes](/entry/state#lifecycle).
+
+### `callbacks`
+A map of event name → an ordered list of steps, run when the component fires that
+event. Each step is an
+[assignment](/entry/value-sources#valuesourceassignment), optionally
+[confirmable](/entry/value-sources#confirmablevaluesourceassignment).
+
+```jsonc
+{ "callbacks": {
+  "onChange": [
+    { "set": "scopes.root.q", "expr": "evt.value" },
+    { "set": "scopes.root.results", "expr": "await TaskApi_search({ query: { q: scopes.root.q } })" }
+  ]
+} }
+```
+
+- **Steps run sequentially**, each awaited — so a later step can read a path an
+  earlier one `set`.
+- **`evt`** is bound to the event payload, shaped by the component's callback def
+  (`evt.value`, `evt.valueAsNumber`, a structured record — whatever the component
+  passes).
+- **`confirm`** on a step gates it behind a Yes/No prompt; on cancel, that step
+  and every step after it is skipped.
+- A step with **no `set`** runs purely for its effect — e.g. a host-function call.
+
+## List fields
+
+A line becomes a **list** the moment it carries `each`: its `component` then
+renders once per item. The fields below describe the iteration; the per-item
+state they create lives in
+[state & scopes → item scopes](/entry/state#item-scopes).
+
+### `each`
+A bare [expression](/entry/expressions) returning the array to iterate — usually
+a plain reference to a state array (`scopes.root.orders`), though a derived
+`.filter()` / `.sort()` works too. Its presence is what marks the line a list. A
+reactive site: writing a path it reads re-runs the list.
+
+```jsonc
+{ "each": "scopes.root.orders", "as": "order", "keyBy": "id", "component": "OrderRow" }
+```
+
+### `as`
+The scope name each item is exposed under inside its subtree — `scopes.<as>.item`,
+`scopes.<as>.index`. It **must be globally unique** across every list on the page,
+because scopes are one flat namespace, not a tree.
+
+### `keyBy`
+How to derive a stable identity per item: `"_index"` (default, positional),
+`"_item"` (the value itself — for primitive arrays), or a property name read off
+each item (`"id"` → `item.id`). **Give object items a stable key** — without one,
+in-place edits can shift rows and lose their per-item state.

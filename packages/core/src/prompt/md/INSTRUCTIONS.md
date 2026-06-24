@@ -40,7 +40,7 @@ Stream elements in order: emit the root element first, then its children depth-f
 - A `literal` value is taken **verbatim** without any evaluation, and may be **any JSON value** — a string, number, boolean, `null`, or an arbitrarily nested object/array (e.g. `"props": { "literal": { "rows": [{ "id": 1, "tags": ["a", "b"] }] } }`). It is NOT parsed as a JavaScript expression, so `{ "literal": "scopes.x" }` renders the literal text `scopes.x`, not the value at that path — use `{ "expr": "scopes.x" }` for that.
 - An `expr` ValueSource is a JavaScript expression that must evaluate to an object matching the component's props shape: `"props": { "expr": "({ value: scopes.root.count })" }`.
 - When the expression IS an object literal, wrap it in parentheses to distinguish from a block statement: `"props": { "expr": "({ value: scopes.root.count, placeholder: \"Enter value\" })" }`.
-- Props expressions must NEVER call async functions (RPC calls). Props are evaluated synchronously during render.
+- Props expressions must NEVER call async functions. Props are evaluated synchronously during render.
 - **Expressions must NEVER produce side effects.** Expressions (in `props.expr`, `hidden`, `seed[].expr`, `callbacks[].expr`) are pure computations that return a value. The ONLY way to produce a side effect (writing state) is through the `"set"` field on `seed` and `callbacks` entries. The `"set"` field receives the return value of the expression and writes it to the specified scope path. Never assign to `scopes.*` or mutate any external state inside an expression itself.
   - WRONG: `"props": { "expr": "(() => { scopes.root.sortedTasks = [...scopes.root.tasks].sort(...); return {}; })()" }` — this assigns to scope inside an expression.
   - CORRECT: Express the derived value directly in `props.expr` — the runtime auto-subscribes to every `scopes.X.Y` read, so the prop recomputes whenever any input changes: `"props": { "expr": "({ data: [...scopes.root.tasks].sort((a, b) => a[scopes.root.sortKey] - b[scopes.root.sortKey]) })" }`. No separate state slot, no manual recompute.
@@ -51,11 +51,11 @@ Stream elements in order: emit the root element first, then its children depth-f
 
 - State is initialized via `seed` on any element: an array of `ValueSourceAssignment` objects.
 - Each seed entry is `{ "set": "scopes.<scope>.<path>", "literal": <value> }` or `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }`.
-- `literal` seeds are synchronous. `expr` seeds may call async functions (e.g., RPC) and the element will suspend (show a loading placeholder) until all async seeds resolve.
+- `literal` seeds are synchronous. `expr` seeds may call async functions and the element will suspend (show a loading placeholder) until all async seeds resolve.
 - Seeds are evaluated exactly once when the element first mounts.
 - **`seed` is for storing user-mutable state and one-shot data fetches — NOT for derived state.** Each `seed` entry runs once at mount and never recomputes. Use `seed` to:
   - Initialize a value the user will later change (a form field, a selection, a search term, a pagination cursor).
-  - Fetch data from an RPC on mount: `{ "set": "scopes.root.rows", "expr": "InvRPC_getRows()" }`.
+  - Fetch data from a host function on mount: `{ "set": "scopes.root.rows", "expr": "InvApi_getRows()" }`.
 - **Do NOT use `seed` to store a value computed from other state.** A filtered list, a sorted list, a paginated slice, a sum, a formatted string — anything that should change when its inputs change — belongs inline in a reactive site (`props.expr`, `hidden`, or `each`), where it recomputes automatically. Putting derived state in `seed` produces a stale snapshot.
   - WRONG: `"seed": [{ "set": "scopes.root.filteredRows", "expr": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))" }]` then `"each": "scopes.root.filteredRows"`. The filter runs once at mount; typing into the search input does nothing.
   - CORRECT: Leave `filteredRows` out of state. Set `"each": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))"` directly on the list element. The runtime subscribes to both `rows` and `searchTerm`; the list updates as the user types.
@@ -81,7 +81,7 @@ Stream elements in order: emit the root element first, then its children depth-f
 - You do NOT specify a `deps` array. The runtime extracts the read set from your expression text. Just write the expression as you'd naturally write JavaScript; the renderer figures out what state it depends on.
 - Reactivity only applies to `props.expr` and `hidden` (and `each` on lists). `seed` are one-shot at mount; `callbacks` run on event. Neither subscribes.
 - Write paths in `"set"` must match read paths exactly for the read side to wake. Subscribing is path-exact (no parent fanout): writing `"set": "scopes.root.rows.0.name"` does NOT wake a reader of `scopes.root.rows`. Replace the array wholesale (`"set": "scopes.root.rows"` with a new array literal) when you want list-level readers to re-render.
-- **Therefore: derived state belongs inline in reactive sites, not in `seed`.** Because `props.expr`, `hidden`, and `each` auto-subscribe to every scope read, you can express filtered/sorted/paginated/aggregated values directly where they're consumed — no separate state slot, no manual recompute in callbacks. Reach for `seed`/`callbacks` writes only when a value must persist across re-renders (user input, selection, mutable form data) or comes from an RPC.
+- **Therefore: derived state belongs inline in reactive sites, not in `seed`.** Because `props.expr`, `hidden`, and `each` auto-subscribe to every scope read, you can express filtered/sorted/paginated/aggregated values directly where they're consumed — no separate state slot, no manual recompute in callbacks. Reach for `seed`/`callbacks` writes only when a value must persist across re-renders (user input, selection, mutable form data) or comes from a host function.
 
 ## 6. Lists
 
@@ -99,36 +99,36 @@ Stream elements in order: emit the root element first, then its children depth-f
 - Only declare callback names that match the component's documented event handlers.
 - Each callback is an array of `ConfirmableValueSourceAssignment` objects executed sequentially: `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<path>", "literal": <value> }`.
 - The `evt` object is available in callback expressions and contains event-specific data. Check each component's event handler signature for available fields (e.g., `evt.value`, `evt.valueAsNumber` for Input's onChange).
-- Callbacks CAN call async RPC functions. Each step in the array is awaited before the next executes.
+- Callbacks CAN call async functions. Each step in the array is awaited before the next executes.
 - Multiple assignments in one callback execute in order. Use this for chained updates (e.g., update a row value, then recompute a total).
-- **Confirmation prompts**: Any callback action can include an optional `"confirm"` field with a string message. When present, a confirmation dialog is shown to the user before that action executes. If the user cancels, the current action AND all remaining actions in the callback array are skipped. Place `confirm` on the FIRST action in the callback array (typically the dangerous one, such as an RPC delete call) so the user is prompted before anything happens. Do NOT create separate `ConfirmDialog` elements for confirmations — use the `confirm` field on callback actions instead.
-  - Example: `{ "set": "scopes.root._result", "expr": "UserRPC_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
+- **Confirmation prompts**: Any callback action can include an optional `"confirm"` field with a string message. When present, a confirmation dialog is shown to the user before that action executes. If the user cancels, the current action AND all remaining actions in the callback array are skipped. Place `confirm` on the FIRST action in the callback array (typically the dangerous one, such as a delete call) so the user is prompted before anything happens. Do NOT create separate `ConfirmDialog` elements for confirmations — use the `confirm` field on callback actions instead.
+  - Example: `{ "set": "scopes.root._result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
 - Common patterns:
   - Append to array: `{ "set": "scopes.root.rows", "expr": "[...scopes.root.rows, { id: scopes.root.nextId, a: 0 }]" }`
   - Filter array: `{ "set": "scopes.root.rows", "expr": "scopes.root.rows.filter(r => r.id !== scopes.row.item.id)" }`
   - Aggregate: `{ "set": "scopes.root.total", "expr": "scopes.root.childScopes.row.reduce((acc, r) => acc + r.item.value, 0)" }`
-  - Call RPC: `{ "set": "scopes.root.result", "expr": "UserRPC_deleteUser({ params: { id: scopes.row.item.id } })" }`
-  - Dangerous delete with confirmation: `{ "set": "scopes.root.result", "expr": "UserRPC_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user?" }`
+  - Call a host function: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })" }`
+  - Dangerous delete with confirmation: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user?" }`
 
 ## 8. Hidden (Conditional Visibility)
 
 - Any element can have a `hidden` property: a **bare JavaScript expression string** — NOT a `ValueSource` (no `{ "expr": ... }` / `{ "literal": ... }` wrapper, and no `literal` form). A constant `hidden` is meaningless: constant-true would just mean "always hide" (omit the element instead), and constant-false is the same as having no `hidden` at all. This mirrors `each`, which is also a bare expression string.
 - `{ "hidden": "scopes.root.activeTab !== 'settings'" }` hides the element when the expression evaluates to truthy.
 - Hidden elements are not rendered but retain their state. When unhidden, they reappear with their state intact.
-- `hidden` expressions must NOT call async functions (RPC calls). They are evaluated synchronously.
+- `hidden` expressions must NOT call async functions. They are evaluated synchronously.
 
-## 9. Async & RPC
+## 9. Async functions
 
-- RPC functions (e.g., `UserRPC_getUsers()`) are available in `seed` expressions and `callbacks` expressions ONLY.
-- RPC calls are NEVER allowed in `props.expr` or `hidden` — these are evaluated synchronously during render.
-- RPC functions are called with a single object argument matching their documented input type. Functions with no input take no arguments.
-  - Correct: `UserRPC_getUsers()` (no input)
-  - Correct: `UserRPC_deleteUser({ params: { id: scopes.row.item.id } })` (with input)
-  - Correct: `UserRPC_createUser({ body: { fullName: "Alice", email: "a@b.com" } })` (with body)
-  - Correct: `TaskRPC_findTasks({ query: { search: scopes.root.searchTerm } })` (with query)
-  - WRONG: `UserRPC_deleteUser(scopes.row.item.id)` — must wrap in the expected shape.
-- Use `seed` with `expr` to fetch initial data on mount: `{ "set": "scopes.root.users", "expr": "UserRPC_getUsers()" }`. The element will suspend until the data loads.
-- Use `callbacks` to trigger mutations in response to user actions: `{ "set": "scopes.root.result", "expr": "UserRPC_deleteUser({ params: { id: scopes.row.item.id } })" }`.
+- Host functions (e.g., `UserApi_getUsers()`) are available in `seed` expressions and `callbacks` expressions ONLY.
+- Async calls are NEVER allowed in `props.expr` or `hidden` — these are evaluated synchronously during render.
+- Host functions are called with a single object argument matching their documented input type. Functions with no input take no arguments.
+  - Correct: `UserApi_getUsers()` (no input)
+  - Correct: `UserApi_deleteUser({ params: { id: scopes.row.item.id } })` (with input)
+  - Correct: `UserApi_createUser({ body: { fullName: "Alice", email: "a@b.com" } })` (with body)
+  - Correct: `TaskApi_findTasks({ query: { search: scopes.root.searchTerm } })` (with query)
+  - WRONG: `UserApi_deleteUser(scopes.row.item.id)` — must wrap in the expected shape.
+- Use `seed` with `expr` to fetch initial data on mount: `{ "set": "scopes.root.users", "expr": "UserApi_getUsers()" }`. The element will suspend until the data loads.
+- Use `callbacks` to trigger mutations in response to user actions: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })" }`.
 - After a mutation, you typically need to re-fetch or update the local state. Chain multiple assignments in the callback to achieve this: first mutate, then refresh.
 
 ## 10. Ordering

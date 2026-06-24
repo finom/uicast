@@ -23,7 +23,7 @@ The element producer is, in practice, an LLM streaming over a JSON-Lines respond
 ```
    ┌────────────────────┐       ┌─────────────────────┐
    │ ComponentEntry[]   │       │ host functions      │
-   │ (stream / array /  │       │ (RPC calls, runtime │
+   │ (stream / array /  │       │ (API calls, runtime │
    │  rehydrated DB)    │       │  helpers)           │
    └──────────┬─────────┘       └──────────┬──────────┘
               │                            │
@@ -210,7 +210,7 @@ This means **the LLM's writer convention matters**. If a callback's `set` target
 Run **once**, when the element first mounts. Gated by `hasBeenRenderedRef.current`. Each entry is an `ValueSourceAssignment`:
 
 ```ts
-{ "set": "scopes.root.users", "expr": "UserRPC_getUsers()" }
+{ "set": "scopes.root.users", "expr": "UserApi_getUsers()" }
 ```
 
 Four things to notice:
@@ -218,7 +218,7 @@ Four things to notice:
 1. **All seeds in one element are evaluated BEFORE any value is written.** They're collected, then written. So a later seed *cannot* read a value set by an earlier seed in the same element. If you need that chaining, split across parent/child elements (child mounts after parent finishes).
 2. **Async seeds suspend the element.** If any seed expression returns a Promise, the element suspends (rendering its placeholder) until all promises resolve. The suspension *mechanism* is the binding's — in React it's `<Suspense>` + `use(promise)` (see [`REACT.md`](./REACT.md) §5).
 3. **No re-run on partial replacement.** An element re-emitted with the same key keeps its scope state — seeds don't fire again if the renderer instance survives.
-4. **Use `seed` for state, not derivations.** The right things to put in `seed` are values the user (or a mount-time RPC) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `seed` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
+4. **Use `seed` for state, not derivations.** The right things to put in `seed` are values the user (or a mount-time fetch) initializes once and the page then reads/mutates over its lifetime — form fields, selections, search terms, pagination cursors, raw fetched lists. Values *computed from* other state — a filtered list, sorted list, paginated slice, sum, formatted string — do not belong here; they go inline in `props.expr` / `hidden` / `each`, where auto-deps subscribes to the inputs and recomputes on change. A derivation in `seed` is correct at mount and stale forever after. The LLM is taught this in [`INSTRUCTIONS.md` §3](../src/prompt/INSTRUCTIONS.md).
 
 ### `init` — host-side seeding (not an element field)
 
@@ -254,7 +254,7 @@ Triggered by component events. Each callback name maps to an array of `Confirmab
 ```ts
 "onChange": [
   { "set": "scopes.root.q", "expr": "evt.value" },
-  { "set": "scopes.root.results", "expr": "TaskRPC_search({ query: { q: scopes.root.q } })" }
+  { "set": "scopes.root.results", "expr": "TaskApi_search({ query: { q: scopes.root.q } })" }
 ]
 ```
 
@@ -396,7 +396,7 @@ From inside an expression:
 setCell({ a1: 'Sheet1!A1', value: scopes.row.item.total })  // resolves async
 ```
 
-works because `setCell` is in the eval context as a bound callable. RPC-style functions return promises; in callbacks the renderer awaits each step before proceeding.
+works because `setCell` is in the eval context as a bound callable. Host functions return promises; in callbacks the renderer awaits each step before proceeding.
 
 ### When to use
 
@@ -453,7 +453,7 @@ For boundary clarity:
 - **Specific components** — Card, Input, Table, etc. live in the consuming catalog, not in core. Adding them in core is wrong even if you imagine they're "primitives."
 - **Persistence** — core doesn't know about Prisma, DB schemas, or persisted-row tables. Consumers handle the round-trip: serialize elements on stream, rehydrate from rows on cold load, feed back into `<Renderer lines={...} />`.
 - **Prompt assembly** — core ships catalog-agnostic partial-prompt builders (`getCommonInstructionsPartialPrompt`, `getComponentsPartialPrompt`, `getFunctionsPartialPrompt`); the consuming app composes them into its full system prompt — joining them per endpoint, inline, to form each `system` message. Any example element fixtures are catalog-flavoured content, not core.
-- **RPC / external APIs** — core knows the shape of host functions (`StandardTool[]`) but doesn't ship any. The consumer passes them in via the `<Renderer functions={...} />` prop.
+- **Host functions / external APIs** — core knows their shape (`StandardTool[]`) but doesn't ship any. The consumer passes them in via the `<Renderer functions={...} />` prop.
 - **Auth / sessions** — consumer concern. Core runs the same way whether the user is signed in or not.
 
 When in doubt, ask: "Would a different consumer of core (a future product line, a unit test, a non-React binding) also need this?" If yes — core. If no — consumer/binding.

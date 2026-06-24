@@ -1,0 +1,52 @@
+# Value Sources
+
+A **value source** is how an entry expresses a single value — either a static
+value or one computed from a JavaScript expression, in three forms that build on
+one another:
+
+```ts
+ValueSource                      = { expr } | { literal }
+ValueSourceAssignment            = ValueSource & { set }
+ConfirmableValueSourceAssignment = ValueSourceAssignment & { confirm? }
+```
+
+Each form adds exactly one field to the one before it; [**Entry
+fields**](/entry/fields) covers which entry field takes which form.
+
+## ValueSource
+
+The base form: a value, given one of two ways.
+
+- `{ "literal": <value> }` — taken **verbatim**. Any JSON value, never
+  evaluated; `{ "literal": "scopes.x" }` is the string `"scopes.x"`, not a
+  lookup.
+- `{ "expr": "<expression>" }` — a [JavaScript expression](/entry/expressions),
+  evaluated against the current scopes. Its result is the value.
+
+```jsonc
+{ "literal": "Hello" }
+{ "expr": "scopes.root.title" }
+```
+
+## ValueSourceAssignment
+
+A `ValueSource` plus a `set`: evaluate the value, then **write it to the scope
+path** named by `set`.
+
+```jsonc
+{ "set": "scopes.root.count", "literal": 0 }
+{ "set": "scopes.root.itemCount", "expr": "scopes.cart.items.length" }
+```
+
+## ConfirmableValueSourceAssignment
+
+A `ValueSourceAssignment` plus an optional `confirm`: the same write, gated by a
+confirmation message. If the user declines, the assignment is skipped.
+
+```jsonc
+{
+  "set": "scopes.root.result",
+  "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })",
+  "confirm": "Delete this user? This cannot be undone."
+}
+```

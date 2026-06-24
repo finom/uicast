@@ -127,7 +127,7 @@ An array of [`ValueSourceAssignment`](#the-shape) that **seed scope state once**
 when the line first mounts.
 
 ```jsonc
-{ "set": "scopes.root.users", "expr": "await UserRPC_getUsers()" }
+{ "set": "scopes.root.users", "expr": "await UserApi_getUsers()" }
 ```
 
 Authoring rules:
@@ -159,7 +159,7 @@ steps, run when the component fires that event.
 ```jsonc
 "onChange": [
   { "set": "scopes.root.q", "expr": "evt.value" },
-  { "set": "scopes.root.results", "expr": "await TaskRPC_search({ query: { q: scopes.root.q } })" }
+  { "set": "scopes.root.results", "expr": "await TaskApi_search({ query: { q: scopes.root.q } })" }
 ]
 ```
 

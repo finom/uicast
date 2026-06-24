@@ -17,7 +17,7 @@ import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
  *
  * A partial-prompt primitive: the consuming app's prompt assembler composes
  * this — alongside the other `get*PartialPrompt` builders — into the full
- * system prompt. The closing line refers to RPC/host functions "listed below",
+ * system prompt. The closing line refers to host functions "listed below",
  * so the app should join its function-list partial (e.g.
  * `getFunctionsPartialPrompt(tools)`) as the next section after this one. core
  * ships the pieces; the app owns the assembly.

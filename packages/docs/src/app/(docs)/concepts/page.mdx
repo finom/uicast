@@ -1,5 +1,34 @@
 # Concepts
 
+## What the entry format is
+
+The **entry format** is a declarative UI language — components, reactive state,
+derived values, conditional rendering, lists, events — in the same family as JSX,
+React, or Vue. What sets it apart is *who writes it*. JSX is authored by developers
+and optimized for reading, refactoring, and maintenance; the entry format is
+authored by a language model and optimized for generation. Every design choice
+follows from that one inversion:
+
+| | JSX / React / Vue | Entry format |
+|---|---|---|
+| Author | human developer | language model |
+| Optimized for | reading, refactoring | generation — few tokens, low ambiguity, streaming |
+| Components | open — you write them | fixed — chosen from a catalog |
+| Logic | arbitrary code | pure expressions over a fixed scope |
+| Unit | a component / module | one line (one entry) |
+| Output | source → build → deploy | a data stream, rendered directly |
+
+An open-ended language is a feature for a person and a liability for a generator —
+more ways to be wrong, to hallucinate an import, to emit code that won't run. So
+the entry format spends expressiveness to buy reliability: a flat grammar, a closed
+component set, no modules or side effects, and output that is a static asset, not a
+codebase. It is **not** a tool that writes React for you to own and deploy — the
+model's output *is* the running app.
+
+Each ingredient — JSONLines, sandboxed expressions, reactive state — is familiar;
+the language that fuses them into one model-authored, directly-rendered whole is
+what's new.
+
 ## The model
 
 A **document** is a flat set of **elements** that form a tree. There is exactly

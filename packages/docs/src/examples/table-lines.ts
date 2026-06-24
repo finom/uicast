@@ -185,7 +185,7 @@ export const tableLines: ComponentEntry[] = [
     seed: [
       {
         set: "scopes.root.foo",
-        expr: "UserRPC_getUsers().then(u => u.length)",
+        expr: "UserApi_getUsers().then(u => u.length)",
       },
     ],
     component: "Text",

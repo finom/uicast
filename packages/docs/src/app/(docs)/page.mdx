@@ -2,7 +2,13 @@ import { CounterExample } from "@/lib/mini-examples/counter";
 
 # ui-fired
 
-**ui-fired** turns a stream of JSONLines into a complete, interactive front-end
+**ui-fired is a UI framework whose language is written by models, not people.**
+Where JSX gives a developer a surface to describe a reactive interface, ui-fired's
+**entry format** gives a language model one — the same kind of language React or
+Vue provide (components, state, events), but with every design choice flipped from
+*easy for a person to maintain* to *reliable for a model to generate*.
+
+Concretely, it turns a stream of JSONLines into a complete, interactive front-end
 app — one with real state management: derived values, conditional visibility, and
 event handling, all driven by real JavaScript expressions that are validated for
 safety before they run. You supply two things: a pre-built **component catalog**

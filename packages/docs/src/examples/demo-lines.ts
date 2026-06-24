@@ -6,8 +6,8 @@ export const demoLines: ComponentEntry[] = [
     component: "FlexCol",
     props: { literal: { gap: "6" } },
     seed: [
-      { set: "scopes.root.users", expr: "UserRPC_getUsers()" },
-      { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
+      { set: "scopes.root.users", expr: "UserApi_getUsers()" },
+      { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
       { set: "scopes.root.activeTab", literal: "tasks" },
       { set: "scopes.root.searchTerm", literal: "" },
       { set: "scopes.root.showAddTask", literal: false },
@@ -327,11 +327,11 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._deleteTaskResult",
-          expr: "TaskRPC_deleteTask({params: {key: scopes.taskRow.item.id}})",
+          expr: "TaskApi_deleteTask({params: {key: scopes.taskRow.item.id}})",
           confirm:
             "Are you sure you want to delete this task? This action cannot be undone.",
         },
-        { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
+        { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
         {
           set: "scopes.root.filteredTasks",
           expr: 'scopes.root.tasks.filter(t => scopes.root.searchTerm === "" || t.title.toLowerCase().includes(scopes.root.searchTerm.toLowerCase()))',
@@ -528,12 +528,12 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._deleteUserResult",
-          expr: "UserRPC_deleteUser({params: {key: scopes.userRow.item.id}})",
+          expr: "UserApi_deleteUser({params: {key: scopes.userRow.item.id}})",
           confirm:
             "Are you sure you want to delete this user? All tasks assigned to this user will also be removed. This action cannot be undone.",
         },
-        { set: "scopes.root.users", expr: "UserRPC_getUsers()" },
-        { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
+        { set: "scopes.root.users", expr: "UserApi_getUsers()" },
+        { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
         {
           set: "scopes.root.filteredTasks",
           expr: 'scopes.root.tasks.filter(t => scopes.root.searchTerm === "" || t.title.toLowerCase().includes(scopes.root.searchTerm.toLowerCase()))',
@@ -701,9 +701,9 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._createTaskResult",
-          expr: "TaskRPC_createTask({body: {title: scopes.root.newTaskTitle, description: scopes.root.newTaskDesc, status: scopes.root.newTaskStatus, userId: scopes.root.newTaskUserId}})",
+          expr: "TaskApi_createTask({body: {title: scopes.root.newTaskTitle, description: scopes.root.newTaskDesc, status: scopes.root.newTaskStatus, userId: scopes.root.newTaskUserId}})",
         },
-        { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
+        { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
         {
           set: "scopes.root.filteredTasks",
           expr: 'scopes.root.tasks.filter(t => scopes.root.searchTerm === "" || t.title.toLowerCase().includes(scopes.root.searchTerm.toLowerCase()))',
@@ -845,9 +845,9 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._updateTaskResult",
-          expr: "TaskRPC_updateTask({body: {title: scopes.root.editTaskTitle, description: scopes.root.editTaskDesc, status: scopes.root.editTaskStatus, userId: scopes.root.editTaskUserId}, params: {key: scopes.root.editTaskId}})",
+          expr: "TaskApi_updateTask({body: {title: scopes.root.editTaskTitle, description: scopes.root.editTaskDesc, status: scopes.root.editTaskStatus, userId: scopes.root.editTaskUserId}, params: {key: scopes.root.editTaskId}})",
         },
-        { set: "scopes.root.tasks", expr: "TaskRPC_getTasks()" },
+        { set: "scopes.root.tasks", expr: "TaskApi_getTasks()" },
         {
           set: "scopes.root.filteredTasks",
           expr: 'scopes.root.tasks.filter(t => scopes.root.searchTerm === "" || t.title.toLowerCase().includes(scopes.root.searchTerm.toLowerCase()))',
@@ -943,9 +943,9 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._createUserResult",
-          expr: "UserRPC_createUser({body: {fullName: scopes.root.newUserName, email: scopes.root.newUserEmail}})",
+          expr: "UserApi_createUser({body: {fullName: scopes.root.newUserName, email: scopes.root.newUserEmail}})",
         },
-        { set: "scopes.root.users", expr: "UserRPC_getUsers()" },
+        { set: "scopes.root.users", expr: "UserApi_getUsers()" },
         {
           set: "scopes.root.filteredUsers",
           expr: 'scopes.root.users.filter(u => scopes.root.userSearchTerm === "" || u.fullName.toLowerCase().includes(scopes.root.userSearchTerm.toLowerCase()))',
@@ -1043,9 +1043,9 @@ export const demoLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._updateUserResult",
-          expr: "UserRPC_updateUser({body: {fullName: scopes.root.editUserName, email: scopes.root.editUserEmail}, params: {key: scopes.root.editUserId}})",
+          expr: "UserApi_updateUser({body: {fullName: scopes.root.editUserName, email: scopes.root.editUserEmail}, params: {key: scopes.root.editUserId}})",
         },
-        { set: "scopes.root.users", expr: "UserRPC_getUsers()" },
+        { set: "scopes.root.users", expr: "UserApi_getUsers()" },
         {
           set: "scopes.root.filteredUsers",
           expr: 'scopes.root.users.filter(u => scopes.root.userSearchTerm === "" || u.fullName.toLowerCase().includes(scopes.root.userSearchTerm.toLowerCase()))',

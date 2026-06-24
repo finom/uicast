@@ -1,0 +1,69 @@
+# JavaScript Expressions
+
+An **expression** is a short JavaScript string the engine evaluates against the
+current scopes. Expressions are where an entry's logic lives — derived props,
+conditional visibility, the value a seed or callback writes. They are plain
+JavaScript, [validated for safety](#safety) before they run; there is no custom
+language to learn.
+
+## Where expressions appear
+
+- **`props`** — the `expr` form of its [value source](/entry/value-sources), computing
+  the props object: `({ text: scopes.root.title })`.
+- **`hidden`** — a bare expression; the element is hidden when it is truthy:
+  `scopes.cart.items.length === 0`.
+- **`each`** (lists) — a bare expression returning the array to iterate:
+  `scopes.root.rows`.
+- **`seed` / `callbacks`** — the `expr` of an assignment; its result is written
+  to the assignment's `set` path.
+
+`hidden` and `each` are **bare strings**, not value sources — there is no
+`{ "expr": … }` wrapper. Inside `callbacks`, expressions also see `evt` (the
+event payload) and may call the host `functions` passed to the renderer.
+
+## Pure and stateless
+
+Two rules hold everywhere:
+
+- **Pure** — an expression computes and returns a value; it must never mutate
+  state or cause a side effect. State changes happen only through the `set`
+  field of a seed or callback assignment. (A side effect inside an expression
+  corrupts state, because the engine re-evaluates expressions freely.)
+- **Stateless** — an expression must be a deterministic function of the scopes
+  (and `evt`) it reads: no `Math.random()`, no clock reads, no counter that
+  survives between evaluations. Need a random value or a timestamp? Produce it
+  once via a `set` and read it back from scope.
+
+## Reactivity
+
+Reading a scope path inside a **reactive** site — `props`, `hidden`, or `each` —
+auto-subscribes it: when that path is written, the site re-evaluates and the
+element re-renders. You never declare a dependency list; the engine extracts the
+read set from the expression text.
+
+`seed` (once, at mount) and `callbacks` (on an event) are **not** reactive — they
+run when triggered, not when their reads change. So a derived value — a filtered
+list, a sum, a formatted string — belongs inline in a reactive site, where it
+recomputes automatically, never precomputed into `seed` (which would go stale).
+
+## What JavaScript is allowed
+
+Write ordinary JavaScript: property access, ternaries, template literals, array
+methods (`map` / `filter` / `reduce`), object and array literals. An expression
+must be a **single expression**, not a statement — reach for a ternary, not an
+`if`. A fixed allow-list of globals is in scope (`Math`, `JSON`, `Intl`,
+`Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `Map`, `Set`,
+`RegExp`, `URL`, …); ambient capabilities like `fetch`, `window`, and `process`
+are not.
+
+## Safety
+
+Every expression is checked by a static pass over its parsed syntax before it
+runs — rejecting top-level statements and blocking code execution (`Function`,
+`eval`), ambient globals, and prototype escapes. This is a **guardrail, not a
+sandbox**: it stops a cooperative producer from doing something dangerous by
+accident, but it cannot contain a determined adversary — a dynamically-computed
+property key can slip past static analysis. If untrusted input can steer what
+expressions get generated, contain it at the product layer: limit what the host
+`functions` are allowed to do, and treat the rendered page as running
+attacker-influenced code.

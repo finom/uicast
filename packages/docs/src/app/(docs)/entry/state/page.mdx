@@ -1,0 +1,93 @@
+# State & Scopes
+
+All state lives in **scopes** — a flat namespace of reactive bags that
+expressions read from, and `set` assignments write to. Expressions see exactly
+one variable, `scopes`, and address state by name and path:
+
+```
+scopes.<scopeName>.<path>     // e.g. scopes.root.searchTerm
+```
+
+`scopes` is **flat, not a deep tree**: the first segment is a *scope name*,
+everything after is a path inside that scope. Nesting — a list inside a list —
+is captured by *naming* (each scope is independent), never by chaining
+`scopes.a.b.c.d`.
+
+## The root scope
+
+`scopes.root` is always present — the one page-wide scope. App-level state —
+search terms, the active tab, which modal is open — lives here:
+
+```jsonc
+{ "props": { "expr": "({ value: scopes.root.searchTerm })" } }
+```
+
+There is no other "global"; every other scope belongs to a list item.
+
+## Item scopes
+
+A [list](/entry/fields#list-fields) element (one carrying `each`) renders its
+`component` once per item, and gives **each item its own scope**, named by the
+list's `as`. Inside a row, that scope exposes the item:
+
+- `scopes.<as>.item` — the row's record (the array element)
+- `scopes.<as>.index` — its zero-based position
+- `scopes.<as>.id` — its stable key (from `keyBy`)
+
+```jsonc
+{ "key": "orders", "component": "OrderCard",
+  "each": "scopes.root.orders", "as": "order", "keyBy": "id",
+  "children": ["order-title"] }
+{ "key": "order-title", "component": "Text",
+  "props": { "expr": "({ text: scopes.order.item.customer })" } }
+```
+
+Two things follow:
+
+- **A list is N scopes, not one.** Every rendered row gets its *own* bag, so
+  per-row state — `scopes.order.expanded` — is genuinely per row, with no index
+  juggling and no collisions between rows.
+- **Scopes are lexical.** An inner subtree sees every enclosing scope: a row
+  reads its own `scopes.order.*` *and* `scopes.root.*`. A nested list stacks
+  another name on top, so a line inside an order sees `root`, `order`, and
+  `line` at once. Scope names must therefore be **globally unique** — never two
+  lists with `as: "item"`.
+
+## Reaching across rows
+
+A list is N independent scopes, so to read *across* them — a sum, a count, a
+filter over every row — a parent reads **`childScopes`**, the array of its rows'
+live scopes:
+
+```jsonc
+{ "expr": "scopes.root.childScopes.order.reduce((s, o) => s + o.item.total, 0)" }
+```
+
+`childScopes.<as>` lives on the scope that *contains* the list: the orders' rows
+hang off `root`, and each order's lines hang off that `order` scope
+(`scopes.order.childScopes.line`). Each entry is itself a full scope, so the
+chain keeps going — `scopes.root.childScopes.order[0].childScopes.line[0]`.
+
+## Reading and writing
+
+- **Reads** are plain property access inside an [expression](/entry/expressions):
+  `scopes.root.count`, `scopes.order.item.total`.
+- **Writes happen only through `set`** — the `set` field of a `seed` or
+  `callbacks` [assignment](/entry/value-sources). Expressions are pure; you never
+  assign to `scopes` inside one. A `seed` initializes a path once at mount;
+  `callbacks` update it in response to an event.
+
+Subscriptions are **path-exact**: a reader of `scopes.root.rows` is woken by a
+write to `scopes.root.rows`, but *not* by a write to `scopes.root.rows.0.qty`.
+The convention is to **replace arrays and objects wholesale** — write a new
+array to `scopes.root.rows` rather than mutating one cell — so the readers you
+expect to update actually wake. How a read becomes a subscription is covered in
+[JavaScript Expressions → Reactivity](/entry/expressions#reactivity).
+
+## Lifecycle
+
+A scope path is initialized once, by a `seed`, when its element mounts, and then
+persists for the life of the page — across every re-render, and even while the
+element is `hidden` (a hidden element keeps its state and restores it when shown
+again). Always initialize a path before an expression reads it; a path that was
+never seeded reads back as `undefined`.
