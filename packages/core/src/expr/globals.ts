@@ -1,8 +1,9 @@
-// Which JavaScript globals an expression can see. ALLOWED_GLOBALS stay visible
-// (passed to SafeEval as allowGlobals, and listed for the LLM in the prompt);
-// GLOBALS_TO_SHADOW are bound to undefined so an expression can't reach them.
-// Anything in neither list resolves to undefined anyway — shadowing only matters
-// for the dangerous capability globals.
+// Which JavaScript globals an expression can see. The engine enforces an
+// allowlist (safe-eval.ts): a free identifier that is neither an allowed global
+// nor an injected context name is rejected before the expression runs.
+// ALLOWED_GLOBALS is that list — also handed to SafeEval as allowGlobals and
+// shown to the LLM in the prompt. GLOBALS_TO_SHADOW are bound to undefined as a
+// second line of defence, so an allowed-by-mistake reference still stays inert.
 
 /** Globals an expression may reference. Every entry is also usable with `new`. */
 export const ALLOWED_GLOBALS: string[] = [
@@ -38,6 +39,15 @@ export const ALLOWED_GLOBALS: string[] = [
   "URLSearchParams",
   "Promise",
   "BigInt",
+  // Error constructors
+  "Error",
+  "TypeError",
+  "RangeError",
+  "SyntaxError",
+  "ReferenceError",
+  "EvalError",
+  "URIError",
+  "AggregateError",
 ];
 
 // Capability globals shadowed to undefined. (`eval` / `arguments` can't be param

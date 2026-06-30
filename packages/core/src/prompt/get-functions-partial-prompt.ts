@@ -1,14 +1,13 @@
-import type { StandardTool } from "standard-tool";
+import type { StandardToolV0Definition } from "standard-tool";
 import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
 
 /**
  * A tool's input/output schema slot — a Standard (JSON) Schema, or `undefined`
- * when the tool declares none. Derived from `StandardTool` by indexed access
- * rather than importing the schema type by name: standard-tool renamed it
- * across versions (`CombinedSchema` in 0.0.2 → `CombinedSpec` in 0.0.4), and
- * this stays correct regardless.
+ * when the tool declares none. Derived from `StandardToolV0Definition` by indexed access
+ * rather than importing the schema type by name: standard-tool has renamed that
+ * type across releases, and indexed access stays correct regardless.
  */
-type ToolSchema = StandardTool["inputSchema"];
+type ToolSchema = StandardToolV0Definition["inputSchema"];
 
 /**
  * Render one of a tool's schemas (input or output) to a TypeScript-ish string.
@@ -28,7 +27,7 @@ function schemaToTs(schema: ToolSchema, fallback: string): string {
 }
 
 /**
- * Render an array of `StandardTool`s into the prompt's function section — a
+ * Render an array of `StandardToolV0Definition`s into the prompt's function section — a
  * `# Available Functions` names list followed by `# Function Details`, one
  * Markdown bullet per tool as a TypeScript-style call signature derived from
  * the tool's Zod schemas:
@@ -43,7 +42,7 @@ function schemaToTs(schema: ToolSchema, fallback: string): string {
  * surrounding prompt it needs (extra calling conventions, examples, …).
  * Mirrors `getComponentsPartialPrompt` — same two-section shape.
  */
-export function getFunctionsPartialPrompt(tools: StandardTool[]): string {
+export function getFunctionsPartialPrompt(tools: StandardToolV0Definition[]): string {
 	const names = tools.map((tool) => tool.name).join(", ");
 	const details = tools
 		.map(({ name, description, inputSchema, outputSchema }) => {

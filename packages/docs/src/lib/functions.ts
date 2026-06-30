@@ -1,4 +1,4 @@
-import { type StandardTool, standardTool } from "standard-tool";
+import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
 import { db, type Product } from "./db";
 
@@ -11,14 +11,6 @@ import { db, type Product } from "./db";
  * closes over the Dexie singleton directly. Mirrors the production wiring,
  * with a browser database in place of a remote data source.
  */
-
-// standard-tool's default formatOutput swallows errors into an `{ error }`
-// envelope (good for keeping a model loop alive). In a live UI we'd rather a
-// failed write surface loudly, so every function re-throws instead.
-const throwOnError = <T>(result: T | Error): T => {
-  if (result instanceof Error) throw result;
-  return result;
-};
 
 // IndexedDB is near-instant; a small simulated round-trip makes the async
 // `seed` (Suspense) loading state actually visible in the demo, the way a
@@ -43,7 +35,6 @@ const ProductDraft = z.object({
 const listProducts = standardTool({
   name: "listProducts",
   description: "Return every product in the inventory, newest first.",
-  formatOutput: throwOnError,
   async execute(): Promise<Product[]> {
     await simulateLatency();
     return db.products.orderBy("id").reverse().toArray();
@@ -54,7 +45,6 @@ const getCategoryBreakdown = standardTool({
   name: "getCategoryBreakdown",
   description:
     "Return total units in stock grouped by category, as { name, value } rows for charting.",
-  formatOutput: throwOnError,
   async execute() {
     await simulateLatency();
     const products = await db.products.toArray();
@@ -74,7 +64,6 @@ const createProduct = standardTool({
   name: "createProduct",
   description: "Add a new product to the inventory. Returns the created product.",
   inputSchema: ProductDraft,
-  formatOutput: throwOnError,
   async execute(input): Promise<Product> {
     const id = await db.products.add(input);
     return { ...input, id };
@@ -85,7 +74,6 @@ const updateProduct = standardTool({
   name: "updateProduct",
   description: "Update an existing product by id. Returns the updated product.",
   inputSchema: ProductDraft.extend({ id: z.number() }),
-  formatOutput: throwOnError,
   async execute(input): Promise<Product> {
     const { id, ...changes } = input;
     await db.products.update(id, changes);
@@ -97,7 +85,6 @@ const deleteProduct = standardTool({
   name: "deleteProduct",
   description: "Delete a product from the inventory by id.",
   inputSchema: z.object({ id: z.number() }),
-  formatOutput: throwOnError,
   async execute({ id }) {
     await db.products.delete(id);
     return { id };
@@ -105,7 +92,7 @@ const deleteProduct = standardTool({
 });
 
 /** Passed verbatim to `<Renderer functions={inventoryFunctions} />`. */
-export const inventoryFunctions: StandardTool[] = [
+export const inventoryFunctions: StandardToolV0[] = [
   listProducts,
   getCategoryBreakdown,
   createProduct,

@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { evaluate, parseScope, type ComponentEntry } from "@ui-fired/core";
-import type { StandardTool } from "standard-tool";
+import type { StandardToolV0Definition } from "standard-tool";
 import type { InitFn, Scopes } from "../types";
 
 type SeededDefault = {
@@ -20,12 +20,14 @@ export function useSeedDefaults({
   scopes,
   init,
   functions,
+  allowedGlobals,
   enabled,
 }: {
   element: ComponentEntry | undefined;
   scopes: Scopes;
   init?: InitFn;
-  functions?: StandardTool[];
+  functions?: StandardToolV0Definition[];
+  allowedGlobals?: string[];
   enabled: boolean;
 }): Promise<void> | null {
   const hasBeenRenderedRef = useRef(false);
@@ -37,7 +39,7 @@ export function useSeedDefaults({
 
     element.seed?.forEach((setExpr) => {
       if (!setExpr.set) return;
-      const value = evaluate(setExpr, { scopes }, { functions });
+      const value = evaluate(setExpr, { scopes }, { functions, allowedGlobals });
       const [targetScope, targetPath] = parseScope(setExpr.set);
       if (value instanceof Promise) hasAsync = true;
       collected.push({ kind: "default", targetScope, targetPath, value });

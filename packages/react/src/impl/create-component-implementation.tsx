@@ -46,19 +46,19 @@ export const createComponentImplementation = <
   }) => {
     const { entry, children } = myprops;
     const confirm = useConfirm();
-    const { functions } = useRendererRegistry();
+    const { functions, allowedGlobals } = useRendererRegistry();
     const props: StandardSchemaV1.InferOutput<TProps> = entry.props
       ? (evaluate(
           entry.props,
           { scopes: myprops.scopes },
-          { functions },
+          { functions, allowedGlobals },
         ) as StandardSchemaV1.InferOutput<TProps>)
       : ({} as StandardSchemaV1.InferOutput<TProps>);
     const hidden = entry.hidden
       ? evaluate(
           { expr: entry.hidden },
           { scopes: myprops.scopes },
-          { functions },
+          { functions, allowedGlobals },
         )
       : false;
     const entryCallbacks = entry.callbacks ? entry.callbacks : {};
@@ -74,7 +74,7 @@ export const createComponentImplementation = <
             const result = await evaluate(
               setExpr,
               { evt, scopes: myprops.scopes },
-              { functions },
+              { functions, allowedGlobals },
             );
             if (setExpr.set) {
               const [targetScope, targetPath] = parseScope(setExpr.set);

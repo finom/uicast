@@ -16,6 +16,7 @@ import { createElementsStore, ElementsStoreProvider } from "../store/elements-st
 import { RootFragmentImpl, ROOT_FRAGMENT_KEY } from "./root-fragment-impl";
 import { EntryRenderer } from "./entry-renderer";
 import { RendererRegistryProvider } from "../store/renderer-registry";
+import { useRendererConfig } from "../store/renderer-config";
 
 /**
  * Renders a JSONLines entry tree. Each mounted Renderer owns an isolated
@@ -26,8 +27,8 @@ export const Renderer = memo(function Renderer({
   entries,
   functions,
   init,
-  overrides,
 }: RendererProps) {
+  const { defaultComponents, allowedGlobals } = useRendererConfig();
   const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
   const scopes = useMemo(() => ({ root: rootRef.current! }), []);
@@ -49,8 +50,13 @@ export const Renderer = memo(function Renderer({
   }, [implementations]);
 
   const registryValue = useMemo(
-    () => ({ implementations: implementationsByName, overrides, functions }),
-    [implementationsByName, overrides, functions],
+    () => ({
+      implementations: implementationsByName,
+      defaultComponents,
+      functions,
+      allowedGlobals,
+    }),
+    [implementationsByName, defaultComponents, functions, allowedGlobals],
   );
 
   const elementsById = buildElementsById(entries);
@@ -93,7 +99,7 @@ export const Renderer = memo(function Renderer({
   return (
     <ElementsStoreProvider value={storeRef.current}>
       <RendererRegistryProvider value={registryValue}>
-        <ConfirmHost confirm={overrides?.confirm}>
+        <ConfirmHost confirm={defaultComponents?.confirm}>
           <EntryRenderer
             key={ROOT_FRAGMENT_KEY}
             elementKey={ROOT_FRAGMENT_KEY}

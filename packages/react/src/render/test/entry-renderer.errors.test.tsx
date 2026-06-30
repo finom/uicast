@@ -14,7 +14,7 @@ describe("EntryRenderer — errors", () => {
     expect(container.textContent).toContain("Unknown component: DoesNotExist");
   });
 
-  it("renders the overrides.unknown slot when supplied", () => {
+  it("renders the defaultComponents.unknown slot when supplied", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -22,7 +22,7 @@ describe("EntryRenderer — errors", () => {
       },
     ];
     const { container } = mountEntries(lines, {
-      overrides: {
+      defaultComponents: {
         unknown: ({ componentName, elementKey }) => (
           <div>
             {elementKey} misses {componentName}
@@ -51,7 +51,7 @@ describe("EntryRenderer — errors", () => {
     consoleError.mockRestore();
   });
 
-  it("renders the overrides.error slot when a renderer throws", () => {
+  it("renders the defaultComponents.error slot when a renderer throws", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
@@ -63,7 +63,7 @@ describe("EntryRenderer — errors", () => {
       },
     ];
     const { container } = mountEntries(lines, {
-      overrides: {
+      defaultComponents: {
         error: ({ error, elementKey }) => (
           <div>
             {elementKey} failed: {error.message}

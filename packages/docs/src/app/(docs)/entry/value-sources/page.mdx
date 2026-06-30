@@ -46,7 +46,7 @@ confirmation message. If the user declines, the assignment is skipped.
 ```jsonc
 {
   "set": "scopes.root.result",
-  "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })",
+  "expr": "deleteUser({ id: scopes.row.item.id })",
   "confirm": "Delete this user? This cannot be undone."
 }
 ```

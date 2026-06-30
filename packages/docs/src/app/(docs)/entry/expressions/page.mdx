@@ -19,7 +19,7 @@ language to learn.
 
 `hidden` and `each` are **bare strings**, not value sources — there is no
 `{ "expr": … }` wrapper. Inside `callbacks`, expressions also see `evt` (the
-event payload) and may call the host `functions` passed to the renderer.
+event payload) and may call the host [`functions`](/functions) passed to the renderer.
 
 ## Pure and stateless
 
@@ -53,17 +53,46 @@ methods (`map` / `filter` / `reduce`), object and array literals. An expression
 must be a **single expression**, not a statement — reach for a ternary, not an
 `if`. A fixed allow-list of globals is in scope (`Math`, `JSON`, `Intl`,
 `Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `Map`, `Set`,
-`RegExp`, `URL`, …); ambient capabilities like `fetch`, `window`, and `process`
-are not.
+`RegExp`, `URL`, `Error`, …); ambient capabilities like `fetch`, `window`, and
+`process` are not — see [Safety](#safety) for how that line is enforced.
 
 ## Safety
 
-Every expression is checked by a static pass over its parsed syntax before it
-runs — rejecting top-level statements and blocking code execution (`Function`,
-`eval`), ambient globals, and prototype escapes. This is a **guardrail, not a
-sandbox**: it stops a cooperative producer from doing something dangerous by
-accident, but it cannot contain a determined adversary — a dynamically-computed
-property key can slip past static analysis. If untrusted input can steer what
-expressions get generated, contain it at the product layer: limit what the host
-`functions` are allowed to do, and treat the rendered page as running
-attacker-influenced code.
+The engine treats every expression as untrusted and gates it two ways before it
+runs.
+
+**An allow-list of names, not a block-list.** An expression may reference only
+the names it is handed — the injected context (`scopes`, `evt`, and the host
+`functions`) plus a fixed set of safe globals (`Math`, `JSON`, `Date`, `Error`,
+…). Every other free identifier — an unknown global, a misspelled function, an
+ambient capability like `fetch` or `process` — is rejected _before_ the
+expression runs. That direction is the point: rather than enumerate the
+dangerous names and ban them (a block-list always misses the next one), the
+engine permits a known-safe set and refuses the rest, so a new runtime global or
+a typo'd host call fails closed instead of slipping through.
+
+**A structural guardrail.** A static pass over the parsed syntax also rejects
+top-level statements (an expression must be a single expression), dynamic
+`import`, and prototype escapes (`constructor`, `__proto__`); the dangerous
+capability globals are bound to `undefined` on top of that, as defence in depth.
+
+Widen the allow-list with extra benign globals through the config provider —
+one `<RendererConfigProvider>` configures every `<Renderer>` beneath it:
+
+```tsx
+<RendererConfigProvider allowedGlobals={["structuredClone", "crypto"]}>
+  <Renderer … />
+</RendererConfigProvider>
+```
+
+`allowedGlobals` is **additive** — the built-in safe set still applies — and
+deliberately **cannot** re-enable the shadowed capability globals (`fetch`,
+`Function`, `setTimeout`, …); those stay blocked whatever you list.
+
+Even so, this is a **guardrail, not a sandbox**. The allow-list closes the
+"unknown name" hole, but a dynamically-computed property key (`obj[scopes.x]`)
+can still reach a member static analysis can't see, and a host `function` is
+exactly as powerful as you write it. If untrusted input can steer which
+expressions get generated, contain it at the product layer: keep the host
+`functions` narrow, and treat the rendered page as running attacker-influenced
+code.

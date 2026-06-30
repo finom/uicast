@@ -266,7 +266,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
                 lines={revealed}
                 catalog={demo.catalog}
                 functions={demo.functions}
-                overrides={demo.overrides}
+                defaultComponents={demo.defaultComponents}
                 outlineKey={outlineKey}
                 onHoverKey={(key) =>
                   setHovered(key ? { key, source: "element" } : null)

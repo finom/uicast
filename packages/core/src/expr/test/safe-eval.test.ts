@@ -221,6 +221,71 @@ describe("SafeEval — strict-mode validation", () => {
   });
 });
 
+describe("SafeEval — allowlist enforcement", () => {
+  const strict = new SafeEval({
+    allowGlobals: ["Math", "Date"],
+    enforceAllowlist: true,
+  });
+
+  it("allows context names, allowed globals, and host functions", () => {
+    expect(strict.eval("scopes.root.n + 1", { scopes: { root: { n: 4 } } })).toBe(
+      5,
+    );
+    expect(strict.eval("Math.max(a, b)", { a: 1, b: 2 })).toBe(2);
+    expect(
+      strict.eval("greet(name)", { greet: (s: string) => `hi ${s}`, name: "Ada" }),
+    ).toBe("hi Ada");
+  });
+
+  it("rejects an unknown free identifier before running", () => {
+    expect(() => strict.eval("missing + 1", {})).toThrow(SafeEvalError);
+    expect(() =>
+      strict.eval("scopes.root.n + other", { scopes: { root: { n: 1 } } }),
+    ).toThrow(/other/);
+  });
+
+  it("rejects a reachable global that isn't on the allowlist", () => {
+    // `Set` is benign and not shadowed, but absent from this instance's globals.
+    expect(() => strict.eval("new Set()")).toThrow(SafeEvalError);
+  });
+
+  it("treats params, destructuring, and local declarations as internal", () => {
+    expect(
+      strict.eval("xs.map(({ id, n }) => id + n)", { xs: [{ id: 1, n: 2 }] }),
+    ).toEqual([3]);
+    expect(strict.eval("xs.reduce((acc, x) => acc + x, 0)", { xs: [1, 2, 3] })).toBe(
+      6,
+    );
+    expect(
+      strict.eval("(n => { const t = n * 2; return t; })(arr.length)", {
+        arr: [1, 2, 3],
+      }),
+    ).toBe(6);
+    expect(strict.eval("xs.map((x, i = 0) => x + i)", { xs: [5] })).toEqual([5]);
+  });
+
+  it("flags a free identifier shadowed only in a sibling scope", () => {
+    // `q` is a param of the first arrow but free in `[q]` — must be caught.
+    expect(() => strict.eval("xs.map(q => q).concat([q])", { xs: [1] })).toThrow(
+      /q/,
+    );
+  });
+
+  it("accepts host-opted extra globals via the third arg", () => {
+    expect(() => strict.eval("structuredClone(x)", { x: { a: 1 } })).toThrow(
+      SafeEvalError,
+    );
+    expect(
+      strict.eval("structuredClone(x)", { x: { a: 1 } }, ["structuredClone"]),
+    ).toEqual({ a: 1 });
+  });
+
+  it("leaves enforcement off by default", () => {
+    const loose = new SafeEval({ allowGlobals: ["Math"] });
+    expect(loose.eval("new Set([1, 2, 2]).size")).toBe(2);
+  });
+});
+
 describe("SafeEval — compilation memoization", () => {
   it("re-evaluates correctly across calls and context shapes", () => {
     const ev = new SafeEval();

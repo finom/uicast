@@ -1,0 +1,194 @@
+# Host functions
+
+A generated document is just data — on its own it can't reach a database, call
+an API, or change anything. **Host functions** are the bridge: real async
+functions *you* supply, which the model's [expressions](/entry/expressions) call
+by name to load data and commit changes. They're the third kind of callable an
+expression sees, alongside `scopes` (state) and `evt` (the event payload).
+
+Each one is a [`standard-tool`](https://standard-tool.js.org/) — a
+self-describing function with a `name`, a `description`, and optional input /
+output schemas. That self-description is exactly what lets the **model** know a
+function exists and how to call it (see [Advertising to the
+model](#advertising-to-the-model)). Everything below matches `standard-tool`'s
+**v0** surface — the `StandardToolV0` shape ui-fired builds on.
+
+## Anatomy of a host function
+
+Build one with `standardTool({...})`:
+
+```tsx
+import { standardTool } from "standard-tool";
+import { z } from "zod";
+
+const suggestPalette = standardTool({
+  name: "suggestPalette",
+  description: "Given a base hex color, return a small harmonious palette of hex strings.",
+  inputSchema: z.object({ hex: z.string() }),
+  async execute({ hex }): Promise<string[]> {
+    // …derive and return the palette
+  },
+});
+```
+
+The fields:
+
+- **`name`** — the identifier the model emits in an expression
+  (`suggestPalette(...)`). Must be a valid JS identifier.
+- **`description`** — one line of what the function does; the model reads it to
+  decide when to call it.
+- **`inputSchema`** *(optional)* — a [Standard
+  Schema](https://standard-tool.js.org/) (Zod 4.2+, ArkType, or Valibot)
+  describing the single input argument. It both **validates** the input at call
+  time and **emits JSON Schema** that the prompt turns into a signature. Omit it
+  for a zero-argument function.
+- **`outputSchema`** *(optional)* — the same, for the return value.
+- **`execute(input)`** — your logic. Receives the validated input and returns
+  the output, normally as a `Promise` (host functions are async by nature). It
+  **throws** on failure — see [Errors](#errors).
+
+### Errors
+
+`execute` **throws on failure** by default — a thrown error from your logic, or a
+`StandardToolValidationError` on a schema mismatch. That's exactly what a live
+rendered UI wants: a failed [`seed`](/entry/fields#seed) surfaces through the
+renderer's [`error` slot](/renderer) (the same path a render throw takes), and a
+failed [`callback`](/entry/fields#callbacks) step rejects and aborts the steps
+after it — instead of silently resolving to a value the expression then treats
+as data. The engine calls `tool.execute(input)` directly,
+so you get this for free — no error wrapping to wire up.
+
+> **Request context** (an auth token, a DB handle, the current user) — **close
+> over it** when you define the function. The engine calls `execute(input)` with
+> just that one argument, and the functions array is host-built, so each function
+> can capture whatever the host has.
+
+## Wiring into the renderer
+
+Collect your tools into an array and pass it to
+[`<Renderer functions={...}>`](/renderer):
+
+```tsx
+import { Renderer } from "@ui-fired/react";
+import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import type { StandardToolV0 } from "standard-tool";
+
+const inventoryFunctions: StandardToolV0[] = [
+  listProducts,
+  getCategoryBreakdown,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+];
+
+<Renderer
+  implementations={allImplementations}
+  entries={entries}
+  functions={inventoryFunctions}
+/>;
+```
+
+Like `implementations`, pass a **stable reference** (a module constant) — it folds
+into the renderer's context, so rebuilding the array each render would re-render
+the whole tree.
+
+## How the model calls them
+
+The engine exposes each tool inside expressions as a function keyed by its
+`name`, so the model writes a normal call with **a single object argument**
+matching `inputSchema` (or no argument for a schema-less tool):
+
+```js
+deleteProduct({ id: scopes.row.item.id })   // ✓ one object matching inputSchema
+deleteProduct(scopes.row.item.id)            // ✗ positional scalar — wrong shape
+```
+
+A host-function name **shadows** a same-named scope variable (functions are
+merged into scope last), so keep tool names distinct from your scope keys.
+
+## Where they run: `seed` and `callbacks`
+
+Host functions are **async**, so they may only be called where the engine can
+`await` them — the two *effectful* expression sites:
+
+- **[`seed`](/entry/fields#seed)** — load initial data on mount. The element
+  **suspends** (showing its [placeholder](/renderer)) until every async seed
+  resolves:
+
+  ```jsonl
+  { "key": "table", "component": "Table",
+    "seed": [{ "set": "scopes.root.rows", "expr": "listProducts()" }] }
+  ```
+
+- **[`callbacks`](/entry/fields#callbacks)** — commit a change in response to an
+  event. The step's result is written to its `set` path:
+
+  ```jsonl
+  { "key": "suggest", "component": "Button",
+    "callbacks": { "onClick": [
+      { "set": "scopes.root.swatches", "expr": "suggestPalette({ hex: scopes.root.base })" }
+    ] } }
+  ```
+
+They are **not** for the reactive sites — `props`, `hidden`, `each`. Those
+evaluate synchronously on every render: they can't `await` a Promise (a host
+call there would hand the expression a pending Promise, not data), and a render
+must stay [pure](/entry/expressions#pure-and-stateless) — no side effects. The
+engine technically puts the call wrappers in scope everywhere, but the rule is
+simple: **derived values go in reactive `props`; effects go in `callbacks` and
+`seed`.**
+
+### Callback step mechanics
+
+A callback runs its steps **sequentially**: each `expr` is evaluated and
+`await`ed before the next, and when a step has a `set`, the resolved value is
+written through the reactive store (waking exactly the subscribers of that
+path). Between steps the engine yields to the event loop, so a write's reactive
+update flushes before the next step reads scope. A step with no `set` runs
+purely for its side effect. Because a mutation
+returns only the row it changed, the usual shape is to **chain a re-read** after
+a write:
+
+```jsonl
+{ "key": "del", "component": "Button",
+  "callbacks": { "onClick": [
+    { "expr": "deleteProduct({ id: scopes.row.item.id })" },
+    { "set": "scopes.root.rows", "expr": "listProducts()" }
+  ] } }
+```
+
+A step may also carry a [`confirm`](/entry/fields#callbacks) prompt; if the user
+cancels, that step **and all later steps** are skipped.
+
+## Advertising to the model
+
+For the model to emit a call, it has to know the function exists.
+`@ui-fired/core/prompt` exports `getFunctionsPartialPrompt`, which renders your
+tools into a prompt block — a names list plus one TypeScript-style signature per
+tool, derived from the schemas. For example:
+
+```
+# Available Functions
+
+listProducts, createProduct, deleteProduct
+
+# Function Details
+
+- listProducts() => { id: number; name: string }[]: Return every product, newest first.
+- createProduct({ name: string; price: number }) => { id: number }: Add a product. Returns it.
+- deleteProduct({ id: number }) => void: Delete a product by id.
+```
+
+The signature is `name(params) => output: description`. No `inputSchema` renders
+empty parens (`listProducts()`); no `outputSchema` renders `=> void`. So express
+"**returns nothing**" by **omitting** `outputSchema` — never `z.void()`, which
+has no JSON Schema form and throws. The block is catalog-agnostic: you compose
+it into your larger system prompt alongside the [component
+menu](/def#registration), passing whatever tools you choose to expose.
+
+## Where to go next
+
+- [Renderer](/renderer) — the `functions` prop and the rest of the mount setup.
+- [Entry fields](/entry/fields) — `seed` and `callbacks`, where functions are called.
+- [JavaScript Expressions](/entry/expressions) — the language the calls are written in, and the purity rule.
+- [Live demo](/demo) — the inventory app is a complete `functions` setup end to end.

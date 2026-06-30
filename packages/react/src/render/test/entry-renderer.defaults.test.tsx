@@ -1,6 +1,6 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { StandardTool } from "standard-tool";
+import type { StandardToolV0Definition } from "standard-tool";
 import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
 import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
@@ -82,7 +82,7 @@ describe("EntryRenderer — seed", () => {
     const gate = new Promise<string>((resolve) => {
       resolveLoad = resolve;
     });
-    const functions: StandardTool[] = [
+    const functions: StandardToolV0Definition[] = [
       { name: "loadData", description: "", execute: () => gate },
     ];
 

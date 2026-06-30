@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import type { StandardTool } from "standard-tool";
+import type { StandardToolV0Definition } from "standard-tool";
 import {
   createComponentDefinition,
   createProxyScope,
@@ -13,7 +13,7 @@ import {
   type ComponentImplementation,
   createComponentImplementation,
 } from "@ui-fired/react";
-import type { RendererOverrides } from "@ui-fired/react/types";
+import type { DefaultComponents } from "@ui-fired/react/types";
 import { EntryRenderer } from "@ui-fired/react/render/entry-renderer";
 import { RendererRegistryProvider } from "@ui-fired/react/store/renderer-registry";
 import {
@@ -103,8 +103,8 @@ type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
-  functions?: StandardTool[];
-  overrides?: RendererOverrides;
+  functions?: StandardToolV0Definition[];
+  defaultComponents?: DefaultComponents;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
 };
@@ -136,7 +136,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
       <RendererRegistryProvider
         value={{
           implementations: options.implementations ?? defaultImplementations,
-          overrides: options.overrides,
+          defaultComponents: options.defaultComponents,
           functions: options.functions,
         }}
       >

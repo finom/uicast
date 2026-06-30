@@ -1,5 +1,9 @@
 import * as acorn from "acorn";
-import { containsAwait, extractScopeReads } from "./analyze";
+import {
+  containsAwait,
+  extractFreeIdentifiers,
+  extractScopeReads,
+} from "./analyze";
 import { GLOBALS_TO_SHADOW } from "./globals";
 import { SafeEvalError, validateNode } from "./validate";
 
@@ -18,6 +22,7 @@ const AsyncFunction = Object.getPrototypeOf(async () => {})
 type CacheEntry = {
   isAsync: boolean;
   scopeReads: string[];
+  freeIds: string[];
   // Built lazily on first compile(); validate()/scopeReads() leave it unset.
   fn?: (context: Record<string, unknown>) => unknown;
 };
@@ -26,23 +31,29 @@ export class SafeEval {
   #cache = new Map<string, CacheEntry>();
   #maxCacheSize: number;
   #shadowParams: string[];
+  #allowGlobals: Set<string>;
+  #enforceAllowlist: boolean;
 
   constructor(
     options: {
       maxCacheSize?: number;
       extraGlobalsToShadow?: string[];
       allowGlobals?: string[];
+      enforceAllowlist?: boolean;
     } = {},
   ) {
     const {
       maxCacheSize = 500,
       extraGlobalsToShadow = [],
       allowGlobals = [],
+      enforceAllowlist = false,
     } = options;
 
     this.#maxCacheSize = maxCacheSize;
+    this.#enforceAllowlist = enforceAllowlist;
 
     const allowSet = new Set(allowGlobals);
+    this.#allowGlobals = allowSet;
     this.#shadowParams = [...GLOBALS_TO_SHADOW, ...extraGlobalsToShadow].filter(
       (g) => !allowSet.has(g),
     );
@@ -50,7 +61,11 @@ export class SafeEval {
 
   // Parse + validate without running. Throws SafeEvalError if invalid; returns
   // isAsync + scopeReads and caches the analysis (compile() builds the fn later).
-  validate(expression: string): { isAsync: boolean; scopeReads: string[] } {
+  validate(expression: string): {
+    isAsync: boolean;
+    scopeReads: string[];
+    freeIds: string[];
+  } {
     if (typeof expression !== "string") {
       throw new SafeEvalError("Expression must be a string");
     }
@@ -62,7 +77,11 @@ export class SafeEval {
 
     const cached = this.#cache.get(expression);
     if (cached) {
-      return { isAsync: cached.isAsync, scopeReads: cached.scopeReads };
+      return {
+        isAsync: cached.isAsync,
+        scopeReads: cached.scopeReads,
+        freeIds: cached.freeIds,
+      };
     }
 
     // Parse as `"use strict"; void (expr)`: void(...) forces expression context
@@ -87,6 +106,7 @@ export class SafeEval {
     const analysis = {
       isAsync: containsAwait(ast),
       scopeReads: extractScopeReads(ast),
+      freeIds: extractFreeIdentifiers(ast),
     };
 
     // Cache the analysis (no fn yet); evict oldest when full.
@@ -168,7 +188,34 @@ export class SafeEval {
     return this.validate(expression).scopeReads;
   }
 
-  eval(expression: string, context: Record<string, unknown> = {}): unknown {
+  // Allowlist gate: every free identifier must be an injected context name, a
+  // base allowed global, or one the host opted into via allowedGlobals.
+  #checkAllowlist(
+    freeIds: string[],
+    contextKeys: string[],
+    allowedGlobals: string[],
+  ): void {
+    const allowed = new Set([
+      ...contextKeys,
+      ...this.#allowGlobals,
+      ...allowedGlobals,
+    ]);
+    for (const id of freeIds) {
+      if (!allowed.has(id)) {
+        throw new SafeEvalError(`"${id}" is not available in expressions`);
+      }
+    }
+  }
+
+  eval(
+    expression: string,
+    context: Record<string, unknown> = {},
+    allowedGlobals: string[] = [],
+  ): unknown {
+    if (this.#enforceAllowlist) {
+      const { freeIds } = this.validate(expression);
+      this.#checkAllowlist(freeIds, Object.keys(context), allowedGlobals);
+    }
     const evaluator = this.compile(expression);
     return evaluator(context);
   }

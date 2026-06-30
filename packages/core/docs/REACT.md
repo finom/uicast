@@ -7,7 +7,7 @@ is **framework-agnostic** and lives in [`@ui-fired/core`](./OVERVIEW.md) with
 **zero React imports**. This package (`@ui-fired/react`) is what actually mounts
 an element tree into a live React UI: the `<Renderer>`, the recursive tree
 walk, the registry context, the per-element error boundary, the confirm host
-(`window.confirm` by default, a host-supplied modal via the `overrides.confirm`
+(`window.confirm` by default, a host-supplied modal via the `defaultComponents.confirm`
 slot).
 
 > **Read [`OVERVIEW.md`](./OVERVIEW.md) first.** It describes the engine
@@ -40,11 +40,11 @@ packages/react/src/
 │   └── root-fragment-impl.tsx   — host-only RootFragment wrapper (renders children with no DOM; the single mount point for the `init` callback)
 ├── store/
 │   ├── elements-store.tsx       — structural element store: per-key subscriptions so settled nodes don't re-render as later entries stream in
-│   └── renderer-registry.tsx    — React context: { implementations, overrides, functions }
+│   └── renderer-registry.tsx    — React context: { implementations, defaultComponents, functions, allowedGlobals }
 ├── providers/
 │   ├── confirm.tsx              — ConfirmHost (owns pending-confirm state); defaults to window.confirm (the stateless shadcn modal lives in @ui-fired/catalog)
-│   └── error-boundary.tsx       — per-element error boundary; renders the overrides.error slot (inline-styled zero-dep default)
-├── types.ts                     — the package's whole public type surface (ComponentImplementation, RendererProps, RendererOverrides, the slot prop types, InitContext / InitFn, …)
+│   └── error-boundary.tsx       — per-element error boundary; renders the defaultComponents.error slot (inline-styled zero-dep default)
+├── types.ts                     — the package's whole public type surface (ComponentImplementation, RendererProps, DefaultComponents, the slot prop types, InitContext / InitFn, …)
 └── index.ts                     — the package's React surface (the only public entry)
 ```
 
@@ -73,17 +73,20 @@ The implementations are a **prop** — an **array of `ComponentImplementation`**
 separate builder step:
 
 ```tsx
-import { ConfirmModal } from "@ui-fired/catalog/overrides/confirm-modal";
+import { ConfirmModal } from "@ui-fired/catalog/default-components/confirm-modal";
 import { allImplementations } from "@ui-fired/catalog/impls";
-import { Renderer } from "@ui-fired/react";
+import { Renderer, RendererConfigProvider } from "@ui-fired/react";
 
-<Renderer
-  implementations={allImplementations}                 // ComponentImplementation[]
-  lines={elements}
-  functions={hostFns}
-  overrides={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied UI overrides
-  init={hostInit}
-/>
+<RendererConfigProvider
+  defaultComponents={{ placeholder: SomeSpinner, confirm: ConfirmModal }} // optional host-supplied fallback UI
+>
+  <Renderer
+    implementations={allImplementations}                 // ComponentImplementation[]
+    lines={elements}
+    functions={hostFns}
+    init={hostInit}
+  />
+</RendererConfigProvider>
 ```
 
 `<Renderer>` turns the array into the `Record<string, ComponentImplementation>` the
@@ -107,8 +110,9 @@ Internally `<Renderer>`:
   above. RootFragment is host-only (`hidden: true` in its def), renders
   `<>{children}</>` with no wrapping DOM, and is the one component the synthetic
   wrapper below references by name.
-- Memoizes the registry value (`{ implementations, overrides, functions }`) so context
-  identity only changes when `implementations`, `functions`, or `overrides` changes.
+- Memoizes the registry value (`{ implementations, defaultComponents, functions, allowedGlobals }`) so context
+  identity only changes when `implementations`, `functions`, `defaultComponents`,
+  or `allowedGlobals` changes.
 - Creates **one `root` reactive proxy per instance** (`createProxyScope({})` from
   core, lazy-init via ref) — each mounted `<Renderer>` owns isolated state.
 - `buildElementsById(lines)` (from core) flattens the JSONL into a key→element
@@ -127,24 +131,25 @@ Internally `<Renderer>`:
 - Wraps the whole tree in `RendererRegistryProvider`, with a `<ConfirmHost>`
   between the provider and the tree. The host owns the pending-confirm state
   (one `Promise.withResolvers()` pair parked in state per open question) and
-  keeps the `overrides.confirm` modal mounted next to the tree, driving it as
+  keeps the `defaultComponents.confirm` modal mounted next to the tree, driving it as
   a controlled dialog — so the modal itself stays stateless. No slot →
   `window.confirm`.
 
 ### Middle — `RendererRegistry` context
 
-A React context carrying `{ implementations, overrides, functions }`. Every
-component in the tree calls `useRendererRegistry()` to look up its implementation
-by name, the host-supplied UI overrides (`overrides`), and the host functions to pass
-into evaluator calls.
+A React context carrying `{ implementations, defaultComponents, functions, allowedGlobals }`.
+Every component in the tree calls `useRendererRegistry()` to look up its
+implementation by name, the host-supplied fallback UI (`defaultComponents`), the
+allow-list extension (`allowedGlobals`), and the host functions to pass into
+evaluator calls.
 
-`overrides` (`RendererOverrides`) is the host's map of the engine's own
+`defaultComponents` (`DefaultComponents`) is the host's map of the engine's own
 UI — distinct from `implementations` (the catalog components). Four slots
 are wired today:
 
 - **`placeholder`** — shown for a not-yet-streamed child and as the
   async-`seed` suspense fallback (§5). Precedence is **renderer's own
-  placeholder → `overrides.placeholder` → null** (render nothing). Resolved
+  placeholder → `defaultComponents.placeholder` → null** (render nothing). Resolved
   per-node in `EntryRenderer`.
 - **`confirm`** — the modal that resolves callback steps carrying `confirm:`
   (`ConfirmComponentProps`: `open` / `message` / `onConfirm` / `onCancel`).
@@ -192,7 +197,7 @@ Inside the component, `createComponentImplementation`:
 2. **Evaluate `element.hidden`** → boolean (absence = `false`).
 3. **Build bound `callbacks`** — each handler closes over `element.callbacks[key]`
    and walks the steps when fired, with `evt` bound to the event payload. A step
-   carrying `confirm` asks the confirm host first — the `overrides.confirm`
+   carrying `confirm` asks the confirm host first — the `defaultComponents.confirm`
    modal (e.g. catalog's `ConfirmModal`), else the `window.confirm` default; on
    cancel, that step and all later steps are skipped.
 4. **Build children prop**: a non-empty *array* from EntryRenderer wins;
@@ -284,7 +289,7 @@ host-vs-LLM seeding) are in [`OVERVIEW.md`](./OVERVIEW.md) §9. The **async**
 case is React-specific: if a seed expression (or the `init` callback)
 returns a Promise, the element wraps itself in `<Suspense>` with `use(promise)`
 and renders the registered placeholder (the renderer's own, else the
-host-supplied `overrides.placeholder`) until every promise resolves. Children mount
+host-supplied `defaultComponents.placeholder`) until every promise resolves. Children mount
 only after resolution. This is the binding's single suspension path; both
 string-form async seeds and an async `init` flow through it.
 
@@ -304,7 +309,8 @@ cache) are in [`OVERVIEW.md`](./OVERVIEW.md) §16. React-binding specifics:
   item id, so per-item React state (input focus, edit mode) survives
   source-array mutations and re-renders. See [`OVERVIEW.md`](./OVERVIEW.md) §10.
 - **Context identity** — the registry value is memoized so context consumers
-  only re-render when `implementations`, `functions`, or `overrides` actually changes.
+  only re-render when `implementations`, `functions`, `defaultComponents`, or
+  `allowedGlobals` actually changes.
 
 ---
 

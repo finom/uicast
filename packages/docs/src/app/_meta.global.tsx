@@ -4,6 +4,10 @@ const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
   concepts: "Concepts",
+  def: "Component definition",
+  impl: "Component implementation",
+  renderer: "Renderer",
+  functions: "Host functions",
   entry: {
     title: "Component Entry Format",
     items: {
@@ -13,6 +17,8 @@ const meta: MetaRecord = {
       state: "State & Scopes",
     },
   },
+  events: "Event handling",
+  roadmap: "Roadmap",
   // The interactive demo renders full-bleed under its own layout; keep it out of
   // the docs sidebar (its page files still get picked up by Nextra's page glob).
   demo: { display: "hidden" },

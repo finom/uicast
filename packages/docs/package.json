@@ -28,7 +28,7 @@
     "react-dom": "19.2.5",
     "react-loading-skeleton": "^3.5.0",
     "react-resizable-panels": "^4.10.0",
-    "standard-tool": "^0.0.4",
+    "standard-tool": "^0.0.5",
     "zod": "^4.3.6"
   },
   "devDependencies": {

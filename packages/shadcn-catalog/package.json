@@ -7,7 +7,7 @@
     "./events": "./src/events/index.ts",
     "./defs": "./src/defs.ts",
     "./impls": "./src/impls.ts",
-    "./overrides": "./src/overrides/index.ts",
+    "./default-components": "./src/default-components/index.ts",
     "./ui/*": "./src/components/ui/*.tsx"
   },
   "dependencies": {

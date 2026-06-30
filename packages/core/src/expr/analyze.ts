@@ -109,3 +109,82 @@ export function extractScopeReads(ast: acorn.AnyNode): string[] {
   walkScopeReads(ast, out);
   return [...out];
 }
+
+// Free identifiers — names read from the outer scope (globals + injected
+// context). Anything bound by a param, destructuring, or a local declaration
+// stays internal and is not reported.
+function bindPattern(
+  node: acorn.AnyNode | null | undefined,
+  scope: Set<string>,
+): void {
+  if (!node) return;
+  if (node.type === "Identifier") {
+    scope.add(node.name);
+  } else if (node.type === "ObjectPattern") {
+    for (const p of node.properties)
+      bindPattern(p.type === "RestElement" ? p.argument : p.value, scope);
+  } else if (node.type === "ArrayPattern") {
+    for (const el of node.elements) if (el) bindPattern(el, scope);
+  } else if (node.type === "AssignmentPattern") {
+    bindPattern(node.left, scope);
+  } else if (node.type === "RestElement") {
+    bindPattern(node.argument, scope);
+  }
+}
+
+function isBound(name: string, stack: Set<string>[]): boolean {
+  for (let i = stack.length - 1; i >= 0; i--)
+    if (stack[i].has(name)) return true;
+  return false;
+}
+
+function walkFree(
+  node: acorn.AnyNode | null | undefined,
+  stack: Set<string>[],
+  out: Set<string>,
+): void {
+  if (!node || typeof node !== "object") return;
+
+  switch (node.type) {
+    case "Identifier":
+      if (!isBound(node.name, stack)) out.add(node.name);
+      return;
+    case "MemberExpression":
+      walkFree(node.object, stack, out);
+      if (node.computed) walkFree(node.property, stack, out);
+      return;
+    case "Property":
+      if (node.computed) walkFree(node.key, stack, out);
+      walkFree(node.value, stack, out);
+      return;
+    case "VariableDeclarator":
+      bindPattern(node.id, stack[stack.length - 1]);
+      walkFree(node.init, stack, out);
+      return;
+    case "ArrowFunctionExpression":
+    case "FunctionExpression": {
+      const scope = new Set<string>();
+      if (node.type === "FunctionExpression" && node.id)
+        scope.add(node.id.name);
+      for (const p of node.params) bindPattern(p, scope);
+      const inner = [...stack, scope];
+      for (const p of node.params) walkFree(p, inner, out);
+      walkFree(node.body, inner, out);
+      return;
+    }
+    case "CatchClause": {
+      const scope = new Set<string>();
+      if (node.param) bindPattern(node.param, scope);
+      walkFree(node.body, [...stack, scope], out);
+      return;
+    }
+  }
+
+  for (const child of childNodes(node)) walkFree(child, stack, out);
+}
+
+export function extractFreeIdentifiers(ast: acorn.AnyNode): string[] {
+  const out = new Set<string>();
+  walkFree(ast, [new Set()], out);
+  return [...out];
+}

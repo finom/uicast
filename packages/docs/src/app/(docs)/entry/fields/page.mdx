@@ -81,7 +81,7 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
 `literal` plus the `set` path it writes.
 
 ```jsonc
-{ "seed": [{ "set": "scopes.root.users", "expr": "await UserApi_getUsers()" }] }
+{ "seed": [{ "set": "scopes.root.users", "expr": "await getUsers()" }] }
 ```
 
 - **Runs once.** Re-renders never re-run it; a line kept alive through partial
@@ -105,7 +105,7 @@ event. Each step is an
 { "callbacks": {
   "onChange": [
     { "set": "scopes.root.q", "expr": "evt.value" },
-    { "set": "scopes.root.results", "expr": "await TaskApi_search({ query: { q: scopes.root.q } })" }
+    { "set": "scopes.root.results", "expr": "await searchTasks({ q: scopes.root.q })" }
   ]
 } }
 ```

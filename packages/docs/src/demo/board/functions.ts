@@ -1,10 +1,5 @@
-import { type StandardTool, standardTool } from "standard-tool";
+import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
-
-const throwOnError = <T>(result: T | Error): T => {
-  if (result instanceof Error) throw result;
-  return result;
-};
 
 const NodeSchema = z.object({
   id: z.string(),
@@ -23,7 +18,6 @@ const autoLayout = standardTool({
   description:
     "Arrange the given nodes evenly around a circle; returns them with updated x/y (0..1).",
   inputSchema: z.object({ nodes: z.array(NodeSchema) }),
-  formatOutput: throwOnError,
   async execute({ nodes }) {
     const n = nodes.length || 1;
     return nodes.map((node, i) => {
@@ -38,4 +32,4 @@ const autoLayout = standardTool({
   },
 });
 
-export const boardFunctions: StandardTool[] = [autoLayout];
+export const boardFunctions: StandardToolV0[] = [autoLayout];

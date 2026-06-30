@@ -1,0 +1,82 @@
+# Component implementation
+
+A component is a **pair**: a [definition](/def) (`def.ts`, the half the model
+reads) and an *implementation* (`impl.tsx`, the half React runs). The definition is
+the contract — name, props, events; the implementation is the React component that
+contract resolves to. Where the def tells the model *what a component is*, the impl
+decides *what it renders* — almost always by wrapping a real React component (in the
+catalog, shadcn/ui).
+
+```tsx
+import { createComponentImplementation } from "@ui-fired/react";
+import { Badge } from "./badge";
+import { BadgeDef } from "./def";
+
+export const BadgeImpl = createComponentImplementation({
+  def: BadgeDef,
+  render: ({ children, variant = "default" }) => (
+    <Badge variant={variant}>
+      {String(children ?? "")}
+    </Badge>
+  ),
+});
+```
+
+`createComponentImplementation` comes from `@ui-fired/react` — the React binding,
+not core (the def's factory was core's, agnostic of any framework). It takes the
+`def` and a `render` function and returns the implementation you register with the
+renderer.
+
+## The render function
+
+`render` receives a single argument, **typed against the def**:
+
+- **props** — inferred from the def's `props` schema, already **resolved**. The
+  engine evaluates the entry's [`props`](/entry/fields#props) value source against
+  state and hands you the final object; you only ever see values, never
+  expressions. When a scope path the props read changes the engine re-evaluates and
+  re-renders — so the implementation is a plain function of its props, holding no
+  engine state of its own.
+- **callbacks** — one `(payload) => Promise<void>` per key in the def's
+  `callbacks`. Each is **optional**: an entry may wire none, some, or all. Calling
+  one runs that entry's [callback steps](/entry/fields#callbacks) with `evt` bound
+  to the payload you pass — so the payload **must match the def's callback schema**.
+  That schema is the contract the model wrote its `evt.…` expressions against.
+- **`children`** — the rendered child elements, when the entry has `children`.
+- **`generatedKey`** — the entry's `key`, passed to every implementation. The
+  engine doesn't read it, but if you want you can spread it onto a rendered node as
+  an attribute (`data-key={generatedKey}`, or any name of your choosing) to map a
+  DOM node back to its entry — otherwise ignore it.
+
+```tsx
+export const SearchInputImpl = createComponentImplementation({
+  def: SearchInputDef,
+  render: ({ value, onChange, onClear, onKeyDown }) => (
+    <div>
+      <Input
+        value={String(value ?? "")}
+        onChange={(e) => onChange?.({ value: e.target.value })}
+        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
+      />
+      <button onClick={() => onClear?.({})}>clear</button>
+    </div>
+  ),
+});
+```
+
+`onChange?.({ value: … })` passes exactly the shape
+`SearchInputDef.callbacks.onChange` declared — which is why the model's `evt.value`
+resolves. For a shared event, build the payload with the catalog's `pick*` helper
+(`pickKeyboardEvent`) so it matches the [common-event schema](/def). The
+optional-call `?.` matters: invoke a handler only when the entry actually provides
+it.
+
+## Registration
+
+`createComponentImplementation` returns a `ComponentImplementation`. Collect every
+one into the array passed to the [renderer](/renderer) — `<Renderer implementations={...}>` —
+which builds the name → implementation map used to mount each entry. This is the
+partner to the def's [definitions array](/def#registration): the def map drives the
+prompt, the implementation array drives rendering. Add a component and you update
+both — the model can't emit what isn't defined, and you can't render what isn't
+implemented.

@@ -4,11 +4,15 @@ import {
   ConfirmModal,
   RenderError,
   UnknownComponent,
-} from "@ui-fired/shadcn-catalog/overrides";
+} from "@ui-fired/shadcn-catalog/default-components";
 import type { ComponentEntry } from "@ui-fired/core";
-import { type ComponentImplementation, Renderer } from "@ui-fired/react";
-import type { RendererOverrides } from "@ui-fired/react/types";
-import type { StandardTool } from "standard-tool";
+import {
+  type ComponentImplementation,
+  Renderer,
+  RendererConfigProvider,
+} from "@ui-fired/react";
+import type { DefaultComponents } from "@ui-fired/react/types";
+import type { StandardToolV0Definition } from "standard-tool";
 
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
 // the Suspense fallback while a component's async `seed` load. Components
@@ -38,7 +42,7 @@ const Placeholder = () => (
     containerClassName="block w-full [&_br]:hidden"
   />
 );
-const defaultOverrides = {
+const DEFAULT_COMPONENTS = {
   placeholder: Placeholder,
   confirm: ConfirmModal,
   unknown: UnknownComponent,
@@ -48,21 +52,21 @@ const defaultOverrides = {
 /**
  * The right-hand pane: the engine rendering the revealed entries with the demo's
  * catalog + host functions (both supplied by the active `DemoConfig`). The
- * catalog's `ConfirmModal`, passed via the `overrides.confirm` slot, routes
+ * catalog's `ConfirmModal`, passed via the `defaultComponents.confirm` slot, routes
  * every `confirm:` in a callback through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
   catalog,
   functions,
-  overrides,
+  defaultComponents,
   outlineKey,
   onHoverKey,
 }: {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
-  functions: StandardTool[];
-  overrides?: RendererOverrides;
+  functions: StandardToolV0Definition[];
+  defaultComponents?: DefaultComponents;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
@@ -85,12 +89,15 @@ export function RenderCanvas({
         }}
         onMouseLeave={() => onHoverKey(null)}
       >
-        <Renderer
-          implementations={catalog}
-          entries={lines}
-          functions={functions}
-          overrides={overrides ?? defaultOverrides}
-        />
+        <RendererConfigProvider
+          defaultComponents={defaultComponents ?? DEFAULT_COMPONENTS}
+        >
+          <Renderer
+            implementations={catalog}
+            entries={lines}
+            functions={functions}
+          />
+        </RendererConfigProvider>
       </div>
     </>
   );

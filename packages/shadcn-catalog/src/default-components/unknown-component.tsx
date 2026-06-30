@@ -3,7 +3,7 @@ import type { UnknownComponentProps } from "@ui-fired/react";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 
 // Shadcn `unknown` slot — shown when an element's `component` name has no catalog
-// match. Attach via `<Renderer overrides={{ unknown: UnknownComponent }}>`.
+// match. Attach via `<RendererConfigProvider defaultComponents={{ unknown: UnknownComponent }}>`.
 export const UnknownComponent = ({
   componentName,
   elementKey,

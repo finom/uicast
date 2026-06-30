@@ -1,5 +1,5 @@
-import type { StandardTool } from "standard-tool";
-import { Renderer } from "@ui-fired/react";
+import type { StandardToolV0Definition } from "standard-tool";
+import { Renderer, RendererConfigProvider } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -21,7 +21,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountEntries(lines, {
-			overrides: { placeholder: () => <span data-test-placeholder>loading…</span> },
+			defaultComponents: { placeholder: () => <span data-test-placeholder>loading…</span> },
 		});
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 	});
@@ -42,7 +42,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
-				overrides: {
+				defaultComponents: {
 					placeholder: () => (
 						<span data-test-placeholder>default-placeholder</span>
 					),
@@ -78,7 +78,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 describe("EntryRenderer — streaming + seed", () => {
 	it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
 		let count = 0;
-		const functions: StandardTool[] = [
+		const functions: StandardToolV0Definition[] = [
 			{
 				name: "track",
 				description: "",
@@ -122,7 +122,7 @@ describe("EntryRenderer — streaming + seed", () => {
 
 	it("does not re-run a parent's seed when a child entry streams in to fill a placeholder", () => {
 		let count = 0;
-		const functions: StandardTool[] = [
+		const functions: StandardToolV0Definition[] = [
 			{
 				name: "track",
 				description: "",
@@ -132,7 +132,7 @@ describe("EntryRenderer — streaming + seed", () => {
 				},
 			},
 		];
-		const overrides = {
+		const defaultComponents = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
 
@@ -156,12 +156,12 @@ describe("EntryRenderer — streaming + seed", () => {
 		];
 
 		const { rerender, container } = render(
-			<Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} overrides={overrides} />,
+			<RendererConfigProvider defaultComponents={defaultComponents}><Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} /></RendererConfigProvider>,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<Renderer implementations={defaultImplementationsList} entries={next} functions={functions} overrides={overrides} />);
+		rerender(<RendererConfigProvider defaultComponents={defaultComponents}><Renderer implementations={defaultImplementationsList} entries={next} functions={functions} /></RendererConfigProvider>);
 
 		// Parent's seed still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

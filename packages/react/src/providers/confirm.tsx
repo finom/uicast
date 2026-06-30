@@ -11,7 +11,7 @@ import {
 import type { ConfirmComponentProps } from "../types";
 
 // A callback step carrying `confirm:` awaits this before running. It resolves
-// through the host modal when one is supplied via `overrides.confirm`, else
+// through the host modal when one is supplied via `defaultComponents.confirm`, else
 // `window.confirm` — so the engine has no UI dependency.
 export type ConfirmFn = (message: string) => Promise<boolean>;
 

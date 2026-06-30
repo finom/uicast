@@ -1,0 +1,120 @@
+# Component definition
+
+A catalog component is a **pair**: a *definition* and an *implementation*. The
+definition — a `def.ts` module — is the half a model reads; the implementation —
+its `impl.tsx` partner — is the half React runs. An [entry](/entry/fields)'s
+[`component`](/entry/fields#component), [`props`](/entry/fields#props), and
+[`callbacks`](/entry/fields#callbacks) fields all name into the definition: it is
+the contract that tells the model a component exists, what props it accepts, and
+what events it emits. This page is the definition; everything the model knows
+about a component, it knows from here.
+
+```ts
+interface ComponentDefinition {
+  name: string;          // catalog name the model emits — PascalCase, unique
+  description: string;   // prose the model reads to decide when to use it
+  props: StandardSchemaV1 & StandardJSONSchemaV1; // the props object
+  callbacks?: Record<string, StandardSchemaV1 & StandardJSONSchemaV1>; // event → payload
+  hidden?: boolean;      // host-only — kept out of the model's prompt
+}
+```
+
+Both `props` and every callback are a `StandardSchemaV1 & StandardJSONSchemaV1`
+(from [`@standard-schema/spec`](https://standardschema.dev), aliased `CombinedSpec`
+in core): a schema that is both runtime-validatable *and* serializable to JSON
+Schema — which is how one object can both validate props at runtime and be rendered
+into the prompt as a type. Any library implementing StandardSchema
+and StandardJSONSchema qualifies; the catalog uses Zod throughout. You build the object with `createComponentDefinition`, which infers
+the `props` and `callbacks` types at the call site — so the implementation can read
+them back — and returns it unchanged.
+
+```ts
+import z from "zod";
+import { createComponentDefinition } from "@ui-fired/core";
+
+export const BadgeDef = createComponentDefinition({
+  name: "Badge",
+  description:
+    "A small status indicator badge for labels, counts, or tags. Use it for " +
+    "status (active, pending), categories, counts, or any short label.",
+  props: z.strictObject({
+    children: z.any().optional().meta({ description: "The badge text content" }),
+    variant: z
+      .enum(["default", "secondary", "destructive", "outline"])
+      .default("default")
+      .meta({ description: "Visual style: default, secondary, destructive, outline" }),
+  }),
+});
+```
+
+## `name`
+The exact string the model writes in an entry's
+[`component`](/entry/fields#component) field — **PascalCase**, unique across the
+catalog. The renderer maps it to the implementation, and the prompt builder lists
+it in the component menu; two defs with the same `name` is an error.
+
+## `description`
+Prose the model reads to decide *when* to reach for the component. It is
+documentation written **for a model, not a person**: say what the component is and
+the situations it fits, the way the `Badge` description above names "status,
+categories, counts." This text is the component's entire briefing — a vague one
+means the model either misuses the component or skips it.
+
+## `props` — the contract with the model
+A schema describing the props object. It is serialized into the system prompt as a
+TypeScript-like type, so everything you attach to a field is information the model
+sees:
+
+- `.meta({ description })` — what the field means;
+- `.default(…)` — the value used when the field is omitted;
+- `.optional()` — that the field may be left out.
+
+This is the shape an entry's [`props`](/entry/fields#props) value source has to
+produce. Describe **every** field with `.meta`: `props` is the contract, and an
+undocumented field is a field the model has to guess.
+
+## `callbacks` — event payloads
+An optional map of event name → payload schema. Each entry declares the shape of
+`evt` the model can read inside that callback's
+[steps](/entry/fields#callbacks) — the exact fields it sees when it writes
+`{ "expr": "evt.value" }`.
+
+```ts
+callbacks: {
+  onChange: z.strictObject({
+    value: z.string().meta({ description: "The current value" }),
+  }),
+  onClear: z.strictObject({}).meta({ description: "Clear button clicked" }),
+  onKeyDown: keyboardEventSchema,
+}
+```
+
+The payload schema is the model's only knowledge of `evt`: the `onChange` above is
+why `evt.value` is a valid expression and `evt.text` is not. A callback whose
+payload carries nothing still gets an empty `z.strictObject({})`, so the model
+knows the event exists.
+
+**Shared events.** Payloads that recur across many components — a click's mouse
+position, a keypress — are defined once as common-event schemas
+(`mouseEventSchema`, `keyboardEventSchema`) and referenced by name, rather than
+re-inlined on every component that fires them. In the prompt they render as a
+single named block, which keeps the component menu small.
+
+## `hidden` — host-only components
+`hidden: true` keeps the def in the renderer's registry — so entries that
+reference it still mount — but filters it out of the prompt, from both the
+component list and the schema dump. Use it for host infrastructure the model
+should never emit itself; the synthetic root fragment that hosts a document's
+startup callback is the canonical case.
+
+## Registration
+A definition is inert until it sits in two places:
+
+- the catalog's **definitions** array (`allDefinitions`) — this drives the prompt;
+- the matching **implementation**, in the array handed to the renderer — this
+  drives rendering.
+
+Nothing links the two automatically. Add a component and you update both maps, or
+the model can emit a component that won't render — or you ship an implementation
+the model was never told about. The definition you write here is one half of the
+pair; its [`impl.tsx` partner](/impl) is the other.

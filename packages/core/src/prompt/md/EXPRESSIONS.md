@@ -18,7 +18,7 @@ All `expr` values are JavaScript expressions evaluated with a provided context. 
 - Logical operators: `&&`, `||`, `!`
 - Comparison: `===`, `!==`, `<`, `<=`, `>`, `>=` (prefer strict equality `===`)
 - Math: `Math.floor()`, `Math.ceil()`, `Math.round()`, `Math.max()`, `Math.min()`, `Math.abs()`
-- Available globals (anything else is `undefined` — don't reference other globals): 🔴ALLOWED_GLOBALS🔴.
+- Available globals (use ONLY these — referencing any other global is rejected before the expression runs, not silently `undefined`): 🔴ALLOWED_GLOBALS🔴.
 - CRITICAL: All seeds in a single entry are evaluated BEFORE any are written. A later seed CANNOT read a value set by an earlier seed in the same entry. Split dependent seeds across parent/child entries.
 
 Available context variables:
