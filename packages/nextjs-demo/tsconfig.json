@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@ui-fired/core": ["../core/src/index.ts"],
+      "@ui-fired/core/prompt": ["../core/src/prompt/index.ts"],
+      "@ui-fired/react": ["../react/src/index.ts"],
+      "@ui-fired/react/*": ["../react/src/*"],
+      "@ui-fired/shadcn-catalog/events": ["../shadcn-catalog/src/events/index.ts"],
+      "@ui-fired/shadcn-catalog/defs": ["../shadcn-catalog/src/defs.ts"],
+      "@ui-fired/shadcn-catalog/impls": ["../shadcn-catalog/src/impls.ts"],
+      "@ui-fired/shadcn-catalog/default-components": ["../shadcn-catalog/src/default-components/index.ts"],
+      "@ui-fired/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
