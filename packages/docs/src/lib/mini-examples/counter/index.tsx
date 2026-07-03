@@ -19,7 +19,7 @@ const ENTRY_DATA = [
 ];
 const ENTRY_ARRAY = JSON.stringify(ENTRY_DATA, null, 2);
 
-const PROMPT = getComponentsPartialPrompt([CounterDef]);
+const PROMPT = getComponentsPartialPrompt({ definitions: [CounterDef] });
 
 const setup: SetupPart[] = [
   { name: "Definition", file: "def.js", prov: "you", node: <DefMdx /> },

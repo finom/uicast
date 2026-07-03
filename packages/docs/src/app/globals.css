@@ -14,6 +14,26 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * State variants the catalog components style with (shadcn's Tailwind v4
+ * shorthand set). Radix sets state either as `data-state="<x>"` or as a bare
+ * boolean attribute depending on the primitive, so each variant matches both.
+ */
+@custom-variant data-horizontal (&[data-orientation=horizontal]);
+@custom-variant data-vertical (&[data-orientation=vertical]);
+@custom-variant data-active (&:is([data-state=active], [data-active]));
+@custom-variant data-open (&:is([data-state=open], [data-open]));
+@custom-variant data-closed (&:is([data-state=closed], [data-closed]));
+@custom-variant data-checked (&:is([data-state=checked], [data-checked]));
+@custom-variant data-unchecked (&:is([data-state=unchecked], [data-unchecked]));
+@custom-variant data-selected (&:is([data-state=selected], [data-selected]));
+@custom-variant data-disabled (&[data-disabled]);
+@custom-variant data-inset (&[data-inset]);
+@custom-variant data-placeholder (&[data-placeholder]);
+@custom-variant data-popup-open (&[data-popup-open]);
+@custom-variant data-starting-style (&[data-starting-style]);
+@custom-variant data-ending-style (&[data-ending-style]);
+
 /* Tailwind-utility ↔ design-token bridge: `bg-primary`, `text-muted-foreground`,
    `border-border`, the chart palette, etc. resolve through these. */
 @theme inline {

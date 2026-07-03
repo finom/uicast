@@ -1,7 +1,7 @@
 # Renderer
 
 `<Renderer>` is the React binding's **mount point**. Give it your [component
-implementations](/impl) and a stream of [entries](/entry) and it renders the
+implementations](/react/impl) and a stream of [entries](/entry) and it renders the
 entry tree into live React — evaluating every expression against reactive state
 and re-rendering each node as that state changes. A companion
 `<RendererConfigProvider>` carries host configuration — fallback UI and extra
@@ -31,7 +31,7 @@ renderers on the same page never share state.
 
 ### Props
 
-- **`implementations`** — the [`ComponentImplementation`](/impl) array the entries
+- **`implementations`** — the [`ComponentImplementation`](/react/impl) array the entries
   can mount, partner to the def [registration](/def#registration). On a duplicate
   `name` the **later entry wins** (`[...allImplementations, MyCard]` replaces the
   catalog's `MyCard`) and a `console.error` is logged.
@@ -138,7 +138,7 @@ state.
 
 ## Where to go next
 
-- [Component implementation](/impl) — the `implementations` you pass in.
+- [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
 - [JavaScript Expressions](/entry/expressions) — what runs inside an entry, and the allow-list `allowedGlobals` extends.
 - [Live demo](/demo) — a complete `RendererConfigProvider` + `Renderer` setup.

@@ -52,7 +52,7 @@ The fields:
 `execute` **throws on failure** by default — a thrown error from your logic, or a
 `StandardToolValidationError` on a schema mismatch. That's exactly what a live
 rendered UI wants: a failed [`seed`](/entry/fields#seed) surfaces through the
-renderer's [`error` slot](/renderer) (the same path a render throw takes), and a
+renderer's [`error` slot](/react/renderer) (the same path a render throw takes), and a
 failed [`callback`](/entry/fields#callbacks) step rejects and aborts the steps
 after it — instead of silently resolving to a value the expression then treats
 as data. The engine calls `tool.execute(input)` directly,
@@ -66,7 +66,7 @@ so you get this for free — no error wrapping to wire up.
 ## Wiring into the renderer
 
 Collect your tools into an array and pass it to
-[`<Renderer functions={...}>`](/renderer):
+[`<Renderer functions={...}>`](/react/renderer):
 
 ```tsx
 import { Renderer } from "@ui-fired/react";
@@ -112,7 +112,7 @@ Host functions are **async**, so they may only be called where the engine can
 `await` them — the two *effectful* expression sites:
 
 - **[`seed`](/entry/fields#seed)** — load initial data on mount. The element
-  **suspends** (showing its [placeholder](/renderer)) until every async seed
+  **suspends** (showing its [placeholder](/react/renderer)) until every async seed
   resolves:
 
   ```jsonl
@@ -188,7 +188,7 @@ menu](/def#registration), passing whatever tools you choose to expose.
 
 ## Where to go next
 
-- [Renderer](/renderer) — the `functions` prop and the rest of the mount setup.
+- [Renderer](/react/renderer) — the `functions` prop and the rest of the mount setup.
 - [Entry fields](/entry/fields) — `seed` and `callbacks`, where functions are called.
 - [JavaScript Expressions](/entry/expressions) — the language the calls are written in, and the purity rule.
 - [Live demo](/demo) — the inventory app is a complete `functions` setup end to end.

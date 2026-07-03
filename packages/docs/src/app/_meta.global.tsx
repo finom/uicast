@@ -5,8 +5,14 @@ const meta: MetaRecord = {
   "getting-started": "Getting started",
   concepts: "Concepts",
   def: "Component definition",
-  impl: "Component implementation",
-  renderer: "Renderer",
+  react: {
+    title: "React",
+    items: {
+      impl: "Component implementation",
+      renderer: "Renderer",
+      streaming: "Streaming",
+    },
+  },
   functions: "Host functions",
   entry: {
     title: "Component Entry Format",

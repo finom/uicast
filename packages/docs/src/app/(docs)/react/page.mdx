@@ -1,0 +1,15 @@
+# React
+
+The React binding of ui-fired, exported from `@ui-fired/react`. Everything the
+browser side of the engine touches lives here:
+
+- [Component implementation](/react/impl) — `createComponentImplementation`,
+  the React half of a component pair.
+- [Renderer](/react/renderer) — `<Renderer>` and `<RendererConfigProvider>`,
+  the mount point that turns entries into live UI.
+- [Streaming](/react/streaming) — consuming a generation stream end to end,
+  from the model to the renderer.
+
+The model-facing half — [definitions](/def), the
+[entry format](/entry), and [expressions](/entry/expressions) — is
+framework-agnostic and lives in `@ui-fired/core`.

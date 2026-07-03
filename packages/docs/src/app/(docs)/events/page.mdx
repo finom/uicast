@@ -1,7 +1,7 @@
 # Event handling
 
 An event is the one place all three parts of a component meet. The
-[definition](/def) names what an event carries, the [implementation](/impl) fires
+[definition](/def) names what an event carries, the [implementation](/react/impl) fires
 it, and the [entry](/entry/fields#callbacks) decides what happens — and a single
 object, `evt`, threads through all three. The reference pages describe each field on
 its own; this page follows one event across the seams, so you can see how they lock
@@ -82,7 +82,7 @@ entry's steps. For the fired event it:
 
 Only the events the entry actually wires get a handler built — an `onClear` the
 model didn't use is simply absent from the impl's props, which is why
-implementations call their callbacks with [`?.`](/impl).
+implementations call their callbacks with [`?.`](/react/impl).
 
 ## Why it's split this way
 
