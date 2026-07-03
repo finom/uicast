@@ -26,7 +26,10 @@ export const HighlightImpl = createComponentImplementation({
     const regex = new RegExp(`(${escapedHighlight})`, flags);
     const parts = text.split(regex);
 
-    const bgClass = colorMap[color] ?? `bg-${color}-200`;
+    // A named color resolves through the map; anything else is treated as a
+    // raw CSS color via inline style (a runtime-built Tailwind class like
+    // `bg-${color}-200` is never compiled, so it can't work).
+    const bgClass = colorMap[color];
 
     return (
       <span data-key={generatedKey}>
@@ -35,7 +38,11 @@ export const HighlightImpl = createComponentImplementation({
             ? part === highlight
             : part.toLowerCase() === highlight.toLowerCase();
           return isMatch ? (
-            <mark key={i} className={`${bgClass} px-0.5 rounded-sm`}>
+            <mark
+              key={i}
+              className={`${bgClass ?? ""} px-0.5 rounded-sm`}
+              style={bgClass ? undefined : { backgroundColor: color }}
+            >
               {part}
             </mark>
           ) : (
