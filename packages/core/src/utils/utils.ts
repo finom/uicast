@@ -29,10 +29,12 @@ function collectDescendantIds(
  * Build an elements-by-key map from the NDJSON lines array.
  *
  * When an entry with a duplicate key is encountered (i.e. the LLM re-emits a
- * entry to correct a mistake), all old descendants of that entry are removed
- * from the map before inserting the replacement. This lets the LLM fix a
- * subtree by re-emitting just the broken entry and its new children, without
- * regenerating the entire tree.
+ * entry to correct a mistake), the old subtree is removed before inserting
+ * the replacement — except old nodes the new `children` array still
+ * references (directly or through a kept child), which survive with their
+ * own subtrees. This lets the LLM restructure a parent by re-emitting just
+ * that entry, keeping existing children by reference, without regenerating
+ * the entire tree.
  */
 export function buildElementsById(
   lines: ComponentEntry[],
@@ -41,10 +43,18 @@ export function buildElementsById(
 
   for (const line of lines) {
     if (map[line.key]) {
-      // Entry already exists — remove all its old descendants before replacing
       const oldDescendants = collectDescendantIds(line.key, map);
+      const kept = new Set<string>();
+      const stack = [...(line.children ?? [])];
+      while (stack.length > 0) {
+        const id = stack.pop()!;
+        if (kept.has(id) || !oldDescendants.has(id)) continue;
+        kept.add(id);
+        const entry = map[id];
+        if (entry?.children) stack.push(...entry.children);
+      }
       for (const descId of oldDescendants) {
-        delete map[descId];
+        if (!kept.has(descId)) delete map[descId];
       }
     }
     map[line.key] = line;

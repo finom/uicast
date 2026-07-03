@@ -1,6 +1,27 @@
-// @ui-fired/core/prompt — the LLM prompt-partial builders.
+// @ui-fired/core/prompt — the LLM prompt-partial builders. Every builder takes
+// a single options object so signatures can grow without breaking callers.
 
-export { getCommonInstructionsPartialPrompt } from "./get-common-instructions-partial-prompt";
-export { getComponentsPartialPrompt } from "./get-components-partial-prompt";
-export { getExpressionsPartialPrompt } from "./get-expressions-partial-prompt";
-export { getFunctionsPartialPrompt } from "./get-functions-partial-prompt";
+export {
+	type CommonInstructionsPromptOptions,
+	getCommonInstructionsPartialPrompt,
+} from "./get-common-instructions-partial-prompt";
+export {
+	type ComponentsPromptOptions,
+	getComponentsPartialPrompt,
+} from "./get-components-partial-prompt";
+export {
+	type EditRequestPromptOptions,
+	getEditRequestPrompt,
+} from "./get-edit-request-prompt";
+export {
+	type ExpressionsPromptOptions,
+	getExpressionsPartialPrompt,
+} from "./get-expressions-partial-prompt";
+export {
+	type FunctionsPromptOptions,
+	getFunctionsPartialPrompt,
+} from "./get-functions-partial-prompt";
+export {
+	getScopePartialPrompt,
+	type ScopePromptOptions,
+} from "./get-scope-partial-prompt";

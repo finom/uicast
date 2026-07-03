@@ -1,6 +1,9 @@
 import { ALLOWED_GLOBALS } from "../expr/globals";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 
+/** No options yet — the type is reserved so the signature can grow without breaking callers. */
+export type ExpressionsPromptOptions = Record<string, never>;
+
 /**
  * The `# JavaScript Expressions` block — the micro-expression syntax contract
  * the generation LLM follows when authoring `expr` values (props, hidden,
@@ -19,10 +22,12 @@ import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
  * this — alongside the other `get*PartialPrompt` builders — into the full
  * system prompt. The closing line refers to host functions "listed below",
  * so the app should join its function-list partial (e.g.
- * `getFunctionsPartialPrompt(tools)`) as the next section after this one. core
+ * `getFunctionsPartialPrompt({ functions })`) as a later section. core
  * ships the pieces; the app owns the assembly.
  */
-export function getExpressionsPartialPrompt(): string {
+export function getExpressionsPartialPrompt(
+	_options: ExpressionsPromptOptions = {},
+): string {
 	const globals = ALLOWED_GLOBALS.join(", ");
 	return EXPRESSIONS.replace("🔴ALLOWED_GLOBALS🔴", globals);
 }

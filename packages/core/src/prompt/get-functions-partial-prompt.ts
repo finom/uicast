@@ -9,6 +9,11 @@ import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
  */
 type ToolSchema = StandardToolV0Definition["inputSchema"];
 
+export type FunctionsPromptOptions = {
+	/** The host functions to advertise — the same set handed to the renderer's `functions` prop. */
+	functions: StandardToolV0Definition[];
+};
+
 /**
  * Render one of a tool's schemas (input or output) to a TypeScript-ish string.
  *
@@ -42,7 +47,9 @@ function schemaToTs(schema: ToolSchema, fallback: string): string {
  * surrounding prompt it needs (extra calling conventions, examples, …).
  * Mirrors `getComponentsPartialPrompt` — same two-section shape.
  */
-export function getFunctionsPartialPrompt(tools: StandardToolV0Definition[]): string {
+export function getFunctionsPartialPrompt({
+	functions: tools,
+}: FunctionsPromptOptions): string {
 	const names = tools.map((tool) => tool.name).join(", ");
 	const details = tools
 		.map(({ name, description, inputSchema, outputSchema }) => {

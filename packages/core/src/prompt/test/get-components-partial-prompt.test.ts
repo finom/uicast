@@ -19,7 +19,7 @@ describe("getComponentsPartialPrompt — duplicate names", () => {
 			description: "second",
 			props: z.object({}),
 		});
-		expect(() => getComponentsPartialPrompt([A, B])).toThrow(
+		expect(() => getComponentsPartialPrompt({ definitions: [A, B] })).toThrow(
 			'Duplicate component name: "Dup"',
 		);
 	});
@@ -37,7 +37,9 @@ describe("getComponentsPartialPrompt — hidden filter", () => {
 			description: "A regular LLM-visible component",
 			props: z.object({}),
 		});
-		expect(getComponentsPartialPrompt([Visible])).toContain("Visible");
+		expect(getComponentsPartialPrompt({ definitions: [Visible] })).toContain(
+			"Visible",
+		);
 	});
 
 	it("excludes defs marked hidden: true", () => {
@@ -52,7 +54,7 @@ describe("getComponentsPartialPrompt — hidden filter", () => {
 			props: z.object({}),
 			hidden: true,
 		});
-		const out = getComponentsPartialPrompt([Visible, Hidden]);
+		const out = getComponentsPartialPrompt({ definitions: [Visible, Hidden] });
 		expect(out).toContain("Visible");
 		expect(out).not.toContain("Hidden");
 		// The component name should also not appear in the "# Component
@@ -85,7 +87,10 @@ describe("getComponentsPartialPrompt — common events", () => {
 			props: z.object({}),
 			callbacks: { onClick },
 		});
-		const out = getComponentsPartialPrompt([A, B], [onClick]);
+		const out = getComponentsPartialPrompt({
+			definitions: [A, B],
+			commonEvents: [onClick],
+		});
 
 		expect(out).toContain("# Common Events");
 		expect(out).toContain("fires on click");
@@ -102,7 +107,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 			props: z.object({}),
 			callbacks: { onClick },
 		});
-		const out = getComponentsPartialPrompt([A]); // no common events
+		const out = getComponentsPartialPrompt({ definitions: [A] }); // no common events
 		expect(out).not.toContain("# Common Events");
 		expect(out).toContain("    - onClick(evt) — fires on click");
 		expect(out).toContain("      - x: number");
@@ -110,7 +115,9 @@ describe("getComponentsPartialPrompt — common events", () => {
 
 	it("throws when a common event schema has no `$id`", () => {
 		const noId = z.object({ x: z.number() }).meta({ description: "no id" });
-		expect(() => getComponentsPartialPrompt([], [noId])).toThrow(
+		expect(() =>
+			getComponentsPartialPrompt({ definitions: [], commonEvents: [noId] }),
+		).toThrow(
 			/missing a JSON Schema/,
 		);
 	});
@@ -119,7 +126,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 		const c1 = z.object({ x: z.number() }).meta({ $id: "dup" });
 		const c2 = z.object({ y: z.string() }).meta({ $id: "dup" });
 		expect(() =>
-			getComponentsPartialPrompt([], [c1, c2]),
+			getComponentsPartialPrompt({ definitions: [], commonEvents: [c1, c2] }),
 		).toThrow('Duplicate common event id: "dup"');
 	});
 });
@@ -137,7 +144,7 @@ describe("getComponentsPartialPrompt — null callback payload", () => {
 			props: z.object({}),
 			callbacks: { onPress: z.null() },
 		});
-		const out = getComponentsPartialPrompt([A]);
+		const out = getComponentsPartialPrompt({ definitions: [A] });
 		expect(out).toContain("onPress()");
 		expect(out).not.toContain("onPress(evt");
 	});
@@ -167,7 +174,7 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 					.meta({ description: "Fires when the counter is pressed" }),
 			},
 		});
-		const out = getComponentsPartialPrompt([Counter]);
+		const out = getComponentsPartialPrompt({ definitions: [Counter] });
 		expect(out).toBe(
 			[
 				"# Available Components",
@@ -196,7 +203,7 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 					.meta({ description: "Fires on selection" }),
 			},
 		});
-		const out = getComponentsPartialPrompt([A]);
+		const out = getComponentsPartialPrompt({ definitions: [A] });
 		expect(out).toContain("    - onSelect(evt) — Fires on selection");
 		expect(out).toContain("      - id: string — The chosen row id");
 	});
@@ -207,7 +214,7 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 			description: "a",
 			props: z.object({ label: z.string() }),
 		});
-		const out = getComponentsPartialPrompt([A]);
+		const out = getComponentsPartialPrompt({ definitions: [A] });
 		expect(out).toContain("    - label: string");
 		expect(out).not.toContain("label: string —");
 	});

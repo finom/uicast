@@ -7,6 +7,13 @@ const toJSONSchema = (spec: CombinedSpec): unknown =>
 const readId = (jsonSchema: unknown): string | undefined =>
   (jsonSchema as { $id?: string } | null)?.$id;
 
+export type ComponentsPromptOptions = {
+  /** The component defs to advertise — the catalog's `allDefinitions` (plus any app-local defs). */
+  definitions: ComponentDefinition[];
+  /** Shared event schemas (each with a JSON Schema `$id`), rendered once under `# Common Events`. */
+  commonEvents?: CombinedSpec[];
+};
+
 /**
  * Render an object schema's properties as an indented, described bullet list:
  *
@@ -57,10 +64,10 @@ const describeFields = (jsonSchema: unknown, indent: string): string[] => {
  * Throws on a duplicate component `name`, a common event whose schema has no
  * `$id`, or a duplicate common event `$id`.
  */
-export function getComponentsPartialPrompt(
-  defs: ComponentDefinition[],
-  commonEvents: CombinedSpec[] = [],
-): string {
+export function getComponentsPartialPrompt({
+  definitions: defs,
+  commonEvents = [],
+}: ComponentsPromptOptions): string {
   const seen = new Set<string>();
   for (const def of defs) {
     if (seen.has(def.name)) {

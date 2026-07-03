@@ -10,6 +10,8 @@ export { parseScope } from "./scope/parse-scope";
 
 export { buildElementsById } from "./utils/utils";
 
+export { streamJsonLines } from "./stream/stream-json-lines";
+
 export {
   type ComponentEntry,
   type ComponentListEntry,
