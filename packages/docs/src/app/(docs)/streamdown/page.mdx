@@ -1,0 +1,130 @@
+# Streamdown plugin
+
+`@ui-fired/streamdown` puts generated UI inside a Markdown chat reply. With the
+raw-JSONL setup from [Streaming](/react/streaming), the model's entire output
+is entries; on a chat surface the reply is Markdown — prose, headings, code —
+and the entries ride inside it, in a fenced code block whose language token is
+`uifired`:
+
+````md
+Here's this month's revenue at a glance:
+
+```uifired
+{"key":"root","component":"Card","seed":[{"set":"scopes.root.orders","expr":"listOrders()"}],"children":["stat"]}
+{"key":"stat","component":"Stat","props":{"expr":"({ label: 'Revenue', value: scopes.root.orders.length })"}}
+```
+
+The stat is live — it recomputes from the database on every view.
+````
+
+[Streamdown](https://streamdown.ai/) (≥ 2.5) renders Markdown as it streams and
+lets a plugin claim a fence language. This package ships that plugin: blocks
+tagged `uifired` mount through the [Renderer](/react/renderer); every other
+fence stays ordinary highlighted code. The language token is the entire routing
+contract — which is why the [fence prompt partial](/prompt#chat-surfaces)
+forbids the model from using any other token for entries.
+
+## `createFenceRenderer`
+
+```ts
+import type { CustomRenderer } from "streamdown";
+
+function createFenceRenderer(options: FenceRendererOptions): CustomRenderer;
+
+type FenceRendererOptions = Omit<RendererProps, "entries"> & {
+  /** Show a Rendered/Source switcher above each block. Default false. */
+  showSourceToggle?: boolean;
+};
+```
+
+The options are the [Renderer's props](/react/renderer) minus `entries` —
+`implementations`, `functions`, `init` — because the entries come from the
+fence content: each completed JSONL line is parsed into an entry and mounts
+immediately, while the partial last line waits until its newline arrives. A
+streaming fence grows into UI line by line, exactly like the raw-JSONL path.
+
+Call it **once per option set** — at module scope, or inside `useMemo` — and
+reuse the returned object:
+
+```tsx
+import { Streamdown } from "streamdown";
+import { createFenceRenderer } from "@ui-fired/streamdown";
+import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { tools } from "./tools";
+
+const fenceRenderer = createFenceRenderer({
+  implementations: allImplementations,
+  functions: tools,
+});
+
+export function Reply({ markdown }: { markdown: string }) {
+  return <Streamdown plugins={{ renderers: [fenceRenderer] }}>{markdown}</Streamdown>;
+}
+```
+
+The identity rule is not a style preference. Streamdown re-renders on every
+streamed token, and a fresh component type per render would remount the
+Renderer each time — re-running [seeds](/entry/state), wiping the block's
+state, and re-firing every host-function call in them. If your options depend
+on props, wrap the call in `useMemo`; never call it inline in JSX.
+
+Two behaviors worth knowing:
+
+- **Each fence is an isolated app.** Every block gets its own Renderer and its
+  own state tree; two fences in one reply don't share scopes. The prompt
+  partial tells the model this, and steers it toward one fence per reply.
+- **Blocks mount client-side only.** Seeds call host functions, and host
+  functions usually `fetch` browser-relative URLs — running them during SSR
+  would fail or double-fire. When a chat page server-renders persisted
+  messages, the fence renders nothing until hydration, then mounts.
+
+## `showSourceToggle`
+
+With `showSourceToggle: true`, each block gains a **Rendered / Source**
+switcher: Source shows the raw JSONL the model emitted, Rendered shows the
+mounted UI. The Renderer stays mounted (hidden) while Source is shown, so
+switching back doesn't reset the block's state. Off by default — it's a
+development and demo aid, not end-user chrome.
+
+## Wrappers that forward `plugins`
+
+Chat kits that wrap Streamdown — e.g. AI Elements' response component — usually
+apply their own default plugin set and spread your props over it. Passing
+`plugins` there **replaces** the defaults, so recompose them alongside the
+fence renderer:
+
+```tsx
+const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
+
+<MessageResponse plugins={plugins}>{part.text}</MessageResponse>
+```
+
+## `FENCE_LANGUAGE` and `parseFenceCode`
+
+```ts
+const FENCE_LANGUAGE = "uifired";
+
+function parseFenceCode(code: string): ComponentEntry[];
+```
+
+`FENCE_LANGUAGE` is the token the plugin registers for — import it instead of
+retyping the string when you build your own integration. `parseFenceCode` is
+the fence-body parser the plugin uses internally: one `JSON.parse` per line,
+skipping blank lines, lines that aren't valid JSON, and values that aren't
+entries — the same tolerance [`streamJsonLines`](/react/streaming) applies to
+raw streams. Exported for hosts that render fences through something other
+than Streamdown.
+
+## The prompt side
+
+Rendering is half the contract — the model also has to *know* to emit the
+fence. `@ui-fired/streamdown/prompt` exports `getFencePartialPrompt()`, the
+system-prompt section that teaches exactly this syntax and nothing more.
+Compose it after the core partials; [Assembling the prompt](/prompt) shows the
+full stack.
+
+## Where to go next
+
+- [Assembling the prompt](/prompt) — the system prompt that makes the model emit the fence.
+- [Renderer](/react/renderer) — the props `FenceRendererOptions` forwards.
+- [Streaming](/react/streaming) — the raw-JSONL path this plugin inverts.

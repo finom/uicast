@@ -1,0 +1,31 @@
+{
+  "name": "@ui-fired/streamdown",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./prompt": "./src/prompt/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ui-fired/core": "*",
+    "@ui-fired/react": "*"
+  },
+  "peerDependencies": {
+    "react": "^19.2.5",
+    "streamdown": ">=2.5.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@vitest/coverage-v8": "^4.1.0",
+    "react": "^19.2.5",
+    "streamdown": "^2.5.0",
+    "vitest": "^4.1.0"
+  }
+}

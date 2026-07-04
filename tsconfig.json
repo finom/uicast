@@ -17,7 +17,9 @@
       "@ui-fired/core": ["./packages/core/src/index.ts"],
       "@ui-fired/core/prompt": ["./packages/core/src/prompt/index.ts"],
       "@ui-fired/react": ["./packages/react/src/index.ts"],
-      "@ui-fired/react/*": ["./packages/react/src/*"]
+      "@ui-fired/react/*": ["./packages/react/src/*"],
+      "@ui-fired/streamdown": ["./packages/streamdown/src/index.ts"],
+      "@ui-fired/streamdown/prompt": ["./packages/streamdown/src/prompt/index.ts"]
     },
     "experimentalDecorators": true
   },
@@ -30,7 +32,9 @@
     "packages/react/**/*.mts",
     "packages/shadcn-catalog/**/*.ts",
     "packages/shadcn-catalog/**/*.tsx",
-    "packages/shadcn-catalog/**/*.mts"
+    "packages/shadcn-catalog/**/*.mts",
+    "packages/streamdown/**/*.ts",
+    "packages/streamdown/**/*.tsx"
   ],
   "exclude": ["node_modules", "**/node_modules", "dist"]
 }
