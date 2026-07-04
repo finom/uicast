@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "./providers";
 import "./globals.css";
 
-export const metadata = { title: "ui-fired admin demo" };
+export const metadata = { title: "Deskware — ui-fired demo" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

@@ -37,6 +37,20 @@ const PRODUCTS = [
   { name: "Noise-Cancelling Headset", sku: "SKU-HEAD-08", category: "Electronics", stock: 48, price: 199 },
   { name: "Laptop Stand", sku: "SKU-STAND-09", category: "Accessories", stock: 75, price: 49 },
   { name: "Conference Speakerphone", sku: "SKU-SPKR-10", category: "Electronics", stock: 18, price: 159 },
+  { name: "Dual Monitor Arm", sku: "SKU-ARM-11", category: "Accessories", stock: 40, price: 89 },
+  { name: "USB-C Dock Pro", sku: "SKU-DOCK-12", category: "Electronics", stock: 55, price: 149 },
+  { name: "1080p Webcam", sku: "SKU-CAM-13", category: "Electronics", stock: 66, price: 79 },
+  { name: "Wireless Ergo Mouse", sku: "SKU-MOUS-14", category: "Electronics", stock: 90, price: 59 },
+  { name: "Glass Whiteboard 90cm", sku: "SKU-WHTB-15", category: "Office", stock: 12, price: 219 },
+  { name: "Acoustic Wall Panel Set", sku: "SKU-ACOU-16", category: "Office", stock: 25, price: 129 },
+  { name: "Adjustable Footrest", sku: "SKU-FOOT-17", category: "Furniture", stock: 38, price: 45 },
+  { name: "Walnut Bookshelf", sku: "SKU-SHLF-18", category: "Furniture", stock: 9, price: 329 },
+  { name: "Rolling File Cabinet", sku: "SKU-FILE-19", category: "Furniture", stock: 21, price: 179 },
+  { name: "Clip-On Task Light", sku: "SKU-TASK-20", category: "Lighting", stock: 58, price: 35 },
+  { name: "Ambient Light Bar", sku: "SKU-LBAR-21", category: "Lighting", stock: 47, price: 69 },
+  { name: "Power Strip Tower", sku: "SKU-PWRT-22", category: "Accessories", stock: 84, price: 39 },
+  { name: "Memory-Foam Wrist Rest", sku: "SKU-WRST-23", category: "Accessories", stock: 110, price: 19 },
+  { name: "Desk Plant & Pot", sku: "SKU-PLNT-24", category: "Office", stock: 70, price: 22 },
 ];
 
 const CUSTOMERS = [
@@ -48,9 +62,21 @@ const CUSTOMERS = [
   { name: "Farid Haddad", company: "Haddad Trading", email: "farid@haddadtrading.com" },
   { name: "Grace Park", company: "Park Analytics", email: "grace@parkanalytics.io" },
   { name: "Hugo Martins", company: "Martins Café", email: "hugo@martinscafe.pt" },
+  { name: "Ines Almeida", company: "Almeida Arquitetura", email: "ines@almeidaarq.pt" },
+  { name: "Jonas Weber", company: "Weber Consulting", email: "jonas@weberconsult.de" },
+  { name: "Keiko Tanaka", company: "Tanaka Robotics", email: "keiko@tanakarobotics.jp" },
+  { name: "Liam O'Brien", company: "O'Brien Media", email: "liam@obrienmedia.ie" },
+  { name: "Marta Kowalska", company: "Kowalska Legal", email: "marta@kowalskalegal.pl" },
+  { name: "Nikolai Sokolov", company: "Sokolov Freight", email: "nikolai@sokolovfreight.com" },
+  { name: "Olivia Chen", company: "Chen Ventures", email: "olivia@chenventures.io" },
+  { name: "Pablo Reyes", company: "Reyes Foods", email: "pablo@reyesfoods.mx" },
+  { name: "Queenie Wong", company: "Wong & Partners", email: "queenie@wongpartners.hk" },
+  { name: "Ravi Sharma", company: "Sharma EdTech", email: "ravi@sharmaedtech.in" },
+  { name: "Sofia Petrova", company: "Petrova Studio", email: "sofia@petrovastudio.bg" },
+  { name: "Tom Becker", company: "Becker Brewing", email: "tom@beckerbrewing.com" },
 ];
 
-const ORDER_COUNT = 45;
+const ORDER_COUNT = 220;
 
 // Weighted status mix; the first five orders cycle through every status so
 // no dashboard bucket comes up empty.
@@ -102,7 +128,9 @@ const seed = db.transaction(() => {
       unitPrice: product.price,
       total: Math.round(qty * product.price * 100) / 100,
       status: pickStatus(i),
-      createdAt: daysAgoSec(int(0, 90)),
+      // Recency-weighted: most orders land in the last quarter, the rest
+      // spread over the year so monthly charts have a full x-axis.
+      createdAt: daysAgoSec(rand() < 0.6 ? int(0, 90) : int(91, 365)),
     });
   }
 });

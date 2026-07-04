@@ -113,3 +113,44 @@ export type Page = typeof pages.$inferSelect;
 export type NewPage = typeof pages.$inferInsert;
 export type ComponentEntryRow = typeof componentEntries.$inferSelect;
 export type NewComponentEntryRow = typeof componentEntries.$inferInsert;
+
+export const chats = sqliteTable("chats", {
+  // The id comes from the client (useChat's generated uuid), so the chat row
+  // can be created lazily on the first message without an id handshake.
+  id: text("id").primaryKey(),
+  title: text("title").notNull().default("New chat"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+});
+
+export const chatMessages = sqliteTable(
+  "chat_messages",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    chatId: text("chat_id")
+      .notNull()
+      .references(() => chats.id, { onDelete: "cascade" }),
+    // UIMessage id from the AI SDK, preserved so reloads restore the exact
+    // message identities useChat expects.
+    messageId: text("message_id").notNull(),
+    role: text("role", { enum: ["user", "assistant", "system"] }).notNull(),
+    // UIMessage.parts, stored verbatim.
+    parts: text("parts", { mode: "json" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
+      .notNull()
+      .default(sql`(unixepoch('subsec') * 1000)`),
+  },
+  (t) => [index("chat_messages_chat_created").on(t.chatId, t.createdAt)],
+);
+
+export const chatsRelations = relations(chats, ({ many }) => ({
+  messages: many(chatMessages),
+}));
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  chat: one(chats, { fields: [chatMessages.chatId], references: [chats.id] }),
+}));
+
+export type Chat = typeof chats.$inferSelect;
+export type ChatMessageRow = typeof chatMessages.$inferSelect;
