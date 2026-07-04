@@ -63,3 +63,9 @@ scope (`scopes.root`) and one scope per list item, named by the list's `as`.
 Reading a scope path inside a reactive expression auto-subscribes it: when the
 path is written, the expression re-evaluates. Producers never declare
 dependencies.
+
+Each scope is a self-contained reactive store — a proxied state bag with
+path-exact subscriptions — and together with the expression evaluator and
+dependency extraction it forms the engine's **framework-neutral core**:
+`@ui-fired/core` has no React dependency, and `@ui-fired/react`'s `<Renderer>`
+is one binding built over it.

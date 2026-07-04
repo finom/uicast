@@ -24,6 +24,8 @@ const meta: MetaRecord = {
     },
   },
   events: "Event handling",
+  streamdown: "Streamdown plugin",
+  prompt: "Assembling the prompt",
   roadmap: "Roadmap",
   // The interactive demo renders full-bleed under its own layout; keep it out of
   // the docs sidebar (its page files still get picked up by Nextra's page glob).

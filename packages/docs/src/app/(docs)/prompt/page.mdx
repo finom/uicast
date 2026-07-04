@@ -1,0 +1,139 @@
+# Assembling the prompt
+
+The generation model works from a system prompt that teaches five things: the
+output contract, how ambitious to be, the expression language, the component
+menu, and the host functions. Core ships each as a **prompt-partial builder** —
+a function returning one self-contained block — and deliberately ships no
+assembler. Your app composes the blocks, because two of them are yours: the
+scope depends on your surface, and the components and functions depend on what
+you register and mount.
+
+The prompt and the runtime are two views of one configuration. The definitions
+you advertise must be the implementations you mount; the functions you
+advertise must be the array you pass to the Renderer's `functions` prop. Build
+both from the same values and they can't drift.
+
+## The convention
+
+Every builder returns a block that starts with its own `#` heading and carries
+no leading or trailing blank lines. Assembly is a join, and the join owns the
+separators:
+
+```ts
+const system = [...parts].filter(Boolean).join("\n\n");
+```
+
+`filter(Boolean)` matters once parts are conditional — a builder with nothing
+to say can return `""` and drop out without leaving a double blank line. Every
+core builder takes a single options object (empty today for some), so options
+can grow without breaking call sites.
+
+## The core partials
+
+All from `@ui-fired/core/prompt`:
+
+| Builder | Emits |
+| --- | --- |
+| `getCommonInstructionsPartialPrompt()` | The output contract — JSONL entries, keys and children, partial replacement. |
+| `getScopePartialPrompt({ kind, approxElements?, note? })` | `# Scope` — how much to build on this surface. |
+| `getExpressionsPartialPrompt()` | `# JavaScript Expressions` — the `expr` syntax and sandbox rules. |
+| `getComponentsPartialPrompt({ definitions, commonEvents? })` | The component menu, serialized from your [definitions](/def). |
+| `getFunctionsPartialPrompt({ functions })` | `# Available Functions` — names and signatures, from your [tools](/functions). |
+
+Three of them are worth a closer look:
+
+**Scope** is where the host states what a response *is*. `kind: "page"` asks
+for a complete functional page and treats a terse request as the obvious full
+version of it; `"widget"` asks for one self-contained embeddable piece;
+`"answer"` asks for the compact UI that answers a question in conversation.
+`approxElements` adds a soft size anchor ("around ~N elements — a hint, not a
+quota") and `note` appends one host-specific paragraph verbatim.
+
+**Expressions** embeds the sandbox's allow-list straight from the evaluator's
+own globals table, so what the prompt permits and what
+[SaferEval](/entry/expressions) actually allows can never drift. It also
+carries the standing [safety instruction](/entry/expressions#safety) —
+expressions serve the user's request and nothing else — so every assembly
+ships it without the host adding anything. Its closing line refers to the host
+functions "listed below" — which fixes part of your assembly order.
+
+**Functions** renders the same tool array you hand to the
+[Renderer](/react/renderer)'s `functions` prop — pass one shared value to
+both. The signature format and its rules (why "returns nothing" means
+*omitting* `outputSchema`) are covered in [Host functions](/functions).
+
+## Order
+
+The blocks are sections of one document, and two dependencies constrain their
+order: the contract comes first (everything else refines it), and expressions
+must precede functions because the expressions block points at the function
+list below it. The natural order:
+
+1. Common instructions
+2. Scope
+3. Expressions
+4. Components
+5. Functions
+
+## Chat surfaces
+
+On a chat surface the reply is Markdown and entries ride inside a
+` ```uifired ` fence — the [Streamdown plugin](/streamdown) renders them.
+`@ui-fired/streamdown/prompt` ships the matching partial,
+`getFencePartialPrompt()`: it teaches exactly that fence syntax — the token,
+one JSON object per line, prose outside the fence, one fence per reply — and
+nothing more. Compose it last, after the core partials that define what the
+entries themselves are. Raw-JSONL surfaces (a page builder streaming entries
+straight to the [renderer](/react/streaming)) skip it.
+
+## A complete assembly
+
+The chat endpoint from the demo app:
+
+```ts
+import {
+  getCommonInstructionsPartialPrompt,
+  getComponentsPartialPrompt,
+  getExpressionsPartialPrompt,
+  getFunctionsPartialPrompt,
+  getScopePartialPrompt,
+} from "@ui-fired/core/prompt";
+import { getFencePartialPrompt } from "@ui-fired/streamdown/prompt";
+import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
+import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
+import { tools } from "./tools";
+
+const system = [
+  getCommonInstructionsPartialPrompt(),
+  getScopePartialPrompt({ kind: "answer" }),
+  getExpressionsPartialPrompt(),
+  getComponentsPartialPrompt({
+    definitions: allDefinitions,
+    commonEvents: allCommonEventSchemas,
+  }),
+  getFunctionsPartialPrompt({ functions: tools }),
+  getFencePartialPrompt(),
+].join("\n\n");
+```
+
+A page-builder surface is the same stack with `kind: "page"` (plus, say,
+`approxElements: 30`) and without the fence partial.
+
+## Edit turns
+
+One builder is *not* a system-prompt partial: `getEditRequestPrompt({ request,
+missingKeys? })` produces **user-turn message content** for incremental edits.
+The host replays the page's stored JSONL as an assistant turn, then sends this
+as the next user turn — the change request plus the delta convention: re-emit
+a key to replace its subtree, leave everything else alone. The model then
+emits only what changes, which is dramatically cheaper than regenerating the
+page. `missingKeys` lists keys the stored tree references but never received —
+the tail of a truncated generation — telling the model those elements don't
+exist and must be emitted fresh rather than kept by reference.
+
+## Where to go next
+
+- [Component definition](/def) — where the advertised component menu comes from.
+- [Host functions](/functions) — the function block's format, in detail.
+- [JavaScript Expressions](/entry/expressions) — the language the expressions block teaches.
+- [Streamdown plugin](/streamdown) — the render side of the fence contract.

@@ -97,13 +97,39 @@ The slots the engine renders on its own behalf, distinct from `implementations`
 | `placeholder` | a child hasn't streamed in yet, or an async [`seed`](/entry/fields#seed) is resolving | nothing — the pending node stays empty |
 | `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
 | `unknown` | an entry's `component` has no matching implementation | bare inline-styled `div` |
-| `error` | an implementation throws while rendering | bare inline-styled `div` |
+| `error` | an implementation throws while rendering, or an entry is misused as a list | bare inline-styled `div` |
 
 Each slot is optional; supply only the ones you want to style. The `confirm`,
 `unknown`, and `error` defaults keep the engine renderable with **zero UI
 dependencies**; the catalog ships polished versions — `ConfirmModal`,
 `UnknownComponent`, `RenderError` — that you wire in explicitly, as above. Like
 `implementations`, pass a **stable reference**: it folds into the same context.
+
+To author your own slot, match the props the engine hands it — all three types
+are exported from `@ui-fired/react`:
+
+```ts
+type ConfirmComponentProps = {
+  open: boolean;      // the dialog is always mounted; this toggles it
+  message: string;    // the callback step's `confirm:` text
+  onConfirm: () => void;
+  onCancel: () => void;
+};
+
+type UnknownComponentProps = {
+  componentName: string;  // the entry's unresolved `component`
+  elementKey: string;     // the entry's `key`
+};
+
+type ErrorComponentProps = {
+  error: Error;
+  elementKey?: string;    // set when the failure is tied to a specific entry
+};
+```
+
+`confirm` is a **controlled** dialog — always mounted, shown by `open` — so your
+component holds no open/closed state of its own; the engine owns it. The
+`placeholder` slot takes **no props** (`() => ReactElement`).
 
 ### `allowedGlobals` — extend the expression allow-list
 

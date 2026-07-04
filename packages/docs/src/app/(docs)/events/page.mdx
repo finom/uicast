@@ -98,6 +98,11 @@ The split is what makes model-authored behavior safe:
   nothing about the reaction. The reaction lives in the entry — *data*, not code —
   which is exactly what lets a model express behavior (set this, fetch that, confirm
   before deleting) without writing or touching React.
+- **One mechanism covers every interaction.** There is no second, "custom event"
+  API: a DOM-ish payload (`evt.value`), a structured record (`{ hex, h, s, l }`),
+  a spatial one (`{ from, to }`) all travel the same def → impl → entry path. A
+  component models any interaction as an event carrying exactly the payload its
+  handler needs.
 - **Effects are explicit and reactive.** Steps are
   [pure expressions](/entry/expressions); their only way to change anything is the
   `set` field. So the same evaluator that computes `props` also runs events, and

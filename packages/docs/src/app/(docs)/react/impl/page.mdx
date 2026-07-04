@@ -42,11 +42,17 @@ renderer.
   one runs that entry's [callback steps](/entry/fields#callbacks) with `evt` bound
   to the payload you pass — so the payload **must match the def's callback schema**.
   That schema is the contract the model wrote its `evt.…` expressions against.
-- **`children`** — the rendered child elements, when the entry has `children`.
+- **`children`** — the rendered child elements, when the entry lists `children`.
+  Rendered children win: an entry with a `children` array hands you those; an
+  entry with none lets a `children` value supplied through `props` survive
+  instead — so a component can fall back to `props.children` text when the entry
+  gives it no subtree.
 - **`generatedKey`** — the entry's `key`, passed to every implementation. The
   engine doesn't read it, but if you want you can spread it onto a rendered node as
   an attribute (`data-key={generatedKey}`, or any name of your choosing) to map a
-  DOM node back to its entry — otherwise ignore it.
+  DOM node back to its entry. The catalog does this by convention — `data-key` on
+  each component's outermost node, for its selection and inspection tooling — but
+  the engine never reads it; ignore it if you have no such need.
 
 ```tsx
 export const SearchInputImpl = createComponentImplementation({
@@ -70,6 +76,25 @@ resolves. For a shared event, build the payload with the catalog's `pick*` helpe
 (`pickKeyboardEvent`) so it matches the [common-event schema](/def). The
 optional-call `?.` matters: invoke a handler only when the entry actually provides
 it.
+
+## Placeholder
+
+Pass an optional `placeholder` — a zero-argument component — to show in this
+component's place while its own async work resolves: an async
+[`seed`](/entry/fields#seed) on the entry, or the gap before the entry has
+streamed in.
+
+```tsx
+export const ChartImpl = createComponentImplementation({
+  def: ChartDef,
+  render: ({ data }) => <Chart data={data} />,
+  placeholder: () => <Skeleton className="h-40" />,
+});
+```
+
+A per-implementation `placeholder` takes precedence over the global
+[`defaultComponents.placeholder`](/react/renderer); with neither set, the pending
+node renders nothing.
 
 ## Registration
 

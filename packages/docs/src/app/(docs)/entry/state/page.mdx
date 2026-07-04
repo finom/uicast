@@ -77,12 +77,19 @@ chain keeps going — `scopes.root.childScopes.order[0].childScopes.line[0]`.
   assign to `scopes` inside one. A `seed` initializes a path once at mount;
   `callbacks` update it in response to an event.
 
-Subscriptions are **path-exact**: a reader of `scopes.root.rows` is woken by a
-write to `scopes.root.rows`, but *not* by a write to `scopes.root.rows.0.qty`.
-The convention is to **replace arrays and objects wholesale** — write a new
-array to `scopes.root.rows` rather than mutating one cell — so the readers you
-expect to update actually wake. How a read becomes a subscription is covered in
-[JavaScript Expressions → Reactivity](/entry/expressions#reactivity).
+Subscriptions are **path-exact, in both directions**: a reader wakes only on a
+write to the *same* path it reads. Writing finer than a reader misses it — a
+reader of `scopes.root.rows` is not woken by a write to `scopes.root.rows.0.qty`
+— and so does writing *coarser*: a reader of `scopes.root.user.name` stays stale
+when `scopes.root.user` is replaced wholesale.
+
+The convention is to **replace arrays and objects wholesale** — write a new array
+to `scopes.root.rows` rather than mutating one cell — and it works because
+readers usually consume the whole value (mapping over `rows`), reading at the
+level you replace. Its mirror is the trap: swapping `scopes.root.user` while
+something reads `scopes.root.user.name` silently leaves that reader behind. Write
+at the granularity your deepest reader reads. How a read becomes a subscription
+is covered in [JavaScript Expressions → Reactivity](/entry/expressions#reactivity).
 
 ## Lifecycle
 
@@ -91,3 +98,8 @@ persists for the life of the page — across every re-render, and even while the
 element is `hidden` (a hidden element keeps its state and restores it when shown
 again). Always initialize a path before an expression reads it; a path that was
 never seeded reads back as `undefined`.
+
+A `seed` is applied **first-writer-wins**: it assigns only if the path is still
+`undefined`. So two elements that seed the same path don't clobber each other,
+and a value the user has already changed survives a re-mount instead of snapping
+back to its seed.

@@ -5,15 +5,15 @@ import {
   extractScopeReads,
 } from "./analyze";
 import { GLOBALS_TO_SHADOW } from "./globals";
-import { SafeEvalError, validateNode } from "./validate";
+import { SaferEvalError, validateNode } from "./validate";
 
 // Compiles and runs the expressions validate.ts approves: parse + analyse once
 // (cached), compile to a Function (AsyncFunction when the expr uses `await`),
 // shadow ambient globals as undefined params, run in-realm so Proxy state works.
-// Guardrail, not a sandbox — see docs/EXPRESSIONS.md.
+// Guardrail, not a sandbox — see the Expressions docs page, § Safety.
 
 // Re-exported from validate.ts for callers of this module.
-export { SafeEvalError };
+export { SaferEvalError };
 
 // The AsyncFunction constructor, for expressions that use `await`.
 const AsyncFunction = Object.getPrototypeOf(async () => {})
@@ -27,7 +27,7 @@ type CacheEntry = {
   fn?: (context: Record<string, unknown>) => unknown;
 };
 
-export class SafeEval {
+export class SaferEval {
   #cache = new Map<string, CacheEntry>();
   #maxCacheSize: number;
   #shadowParams: string[];
@@ -59,7 +59,7 @@ export class SafeEval {
     );
   }
 
-  // Parse + validate without running. Throws SafeEvalError if invalid; returns
+  // Parse + validate without running. Throws SaferEvalError if invalid; returns
   // isAsync + scopeReads and caches the analysis (compile() builds the fn later).
   validate(expression: string): {
     isAsync: boolean;
@@ -67,12 +67,12 @@ export class SafeEval {
     freeIds: string[];
   } {
     if (typeof expression !== "string") {
-      throw new SafeEvalError("Expression must be a string");
+      throw new SaferEvalError("Expression must be a string");
     }
 
     const trimmed = expression.trim();
     if (!trimmed) {
-      throw new SafeEvalError("Expression cannot be empty");
+      throw new SaferEvalError("Expression cannot be empty");
     }
 
     const cached = this.#cache.get(expression);
@@ -96,7 +96,7 @@ export class SafeEval {
         allowAwaitOutsideFunction: true,
       });
     } catch (e: unknown) {
-      throw new SafeEvalError(
+      throw new SaferEvalError(
         `Syntax error: ${e instanceof Error ? e.message : String(e)}. Expression: ${expression}`,
       );
     }
@@ -125,7 +125,7 @@ export class SafeEval {
     const entry = this.#cache.get(expression);
     if (!entry) {
       // Unreachable — validate() just inserted this entry.
-      throw new SafeEvalError(
+      throw new SaferEvalError(
         `Cache entry missing for expression: ${expression}`,
       );
     }
@@ -152,8 +152,8 @@ export class SafeEval {
             `"use strict"; return (${expr})`,
           ) as (...args: unknown[]) => unknown;
         } catch (e: unknown) {
-          // Parsed but won't compile — surface as SafeEvalError, not a raw one.
-          throw new SafeEvalError(
+          // Parsed but won't compile — surface as SaferEvalError, not a raw one.
+          throw new SaferEvalError(
             `Failed to compile expression: ${
               e instanceof Error ? e.message : String(e)
             }. Expression: ${expression}`,
@@ -202,7 +202,7 @@ export class SafeEval {
     ]);
     for (const id of freeIds) {
       if (!allowed.has(id)) {
-        throw new SafeEvalError(`"${id}" is not available in expressions`);
+        throw new SaferEvalError(`"${id}" is not available in expressions`);
       }
     }
   }

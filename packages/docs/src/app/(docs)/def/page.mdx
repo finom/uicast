@@ -100,6 +100,14 @@ position, a keypress — are defined once as common-event schemas
 re-inlined on every component that fires them. In the prompt they render as a
 single named block, which keeps the component menu small.
 
+The link is the schema's **JSON-Schema `$id`**: a callback whose payload carries
+the same `$id` as a registered common event (Zod: `.meta({ $id: "MouseEvent" })`)
+renders as a reference to that named type instead of re-inlining the shape.
+Matching is purely on `$id`, so it stays library-agnostic — anything that emits
+one participates. Assembling the prompt with a common event that has **no** `$id`,
+or a **duplicate** `$id`, throws; a callback whose payload matches no registered
+`$id` simply inlines as usual.
+
 ## `hidden` — host-only components
 `hidden: true` keeps the def in the renderer's registry — so entries that
 reference it still mount — but filters it out of the prompt, from both the

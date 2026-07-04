@@ -70,7 +70,7 @@ describe("evaluate — host functions and evt", () => {
   });
 });
 
-describe("getScopeReads — thin wrapper around SafeEval.scopeReads", () => {
+describe("getScopeReads — thin wrapper around SaferEval.scopeReads", () => {
   it("returns paths read by an expression", () => {
     expect(getScopeReads("scopes.root.a + scopes.root.b")).toEqual(
       expect.arrayContaining(["scopes.root.a", "scopes.root.b"]),

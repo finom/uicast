@@ -2,14 +2,14 @@ import type * as acorn from "acorn";
 import { isNode } from "./ast-utils";
 
 // Expression validation — the guardrail. Walks a parsed expression and throws on
-// anything that shouldn't run; safe-eval.ts compiles only what this approves.
+// anything that shouldn't run; safer-eval.ts compiles only what this approves.
 // Guardrail, NOT a sandbox: a computed key (`obj["con"+"structor"]`) escapes it.
-// Full threat model in docs/EXPRESSIONS.md.
+// Full threat model: the Expressions docs page, § Safety.
 
-export class SafeEvalError extends Error {
+export class SaferEvalError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "SafeEvalError";
+    this.name = "SaferEvalError";
   }
 }
 
@@ -64,7 +64,7 @@ export function validateNode(
       (s) => !(s.type === "ExpressionStatement" && s.directive),
     );
     if (statements.length !== 1) {
-      throw new SafeEvalError(
+      throw new SaferEvalError(
         `Expression must be a single expression, got ${statements.length} statements`,
       );
     }
@@ -74,19 +74,19 @@ export function validateNode(
 
   // Dynamic import / meta-properties: never allowed, not even in a body.
   if (FORBIDDEN_EXPRESSIONS.has(node.type)) {
-    throw new SafeEvalError(`"${node.type}" is not allowed in expressions`);
+    throw new SaferEvalError(`"${node.type}" is not allowed in expressions`);
   }
 
   // Assignment / update / comma: allowed in a callback body, not as the whole expr.
   if (BODY_ONLY_EXPRESSIONS.has(node.type) && !insideFunctionBody) {
-    throw new SafeEvalError(
+    throw new SaferEvalError(
       `"${node.type}" is only allowed inside a function body, not as the whole expression`,
     );
   }
 
   // Tagged templates invoke an arbitrary tag function.
   if (node.type === "TaggedTemplateExpression") {
-    throw new SafeEvalError("Tagged template literals are not allowed");
+    throw new SaferEvalError("Tagged template literals are not allowed");
   }
 
   // Static access to escape-hatch properties; dynamic keys slip past.
@@ -101,14 +101,14 @@ export function validateNode(
           ? property.value
           : null;
     if (staticKey !== null && FORBIDDEN_PROPERTIES.has(staticKey)) {
-      throw new SafeEvalError(`Access to "${staticKey}" is not allowed`);
+      throw new SaferEvalError(`Access to "${staticKey}" is not allowed`);
     }
   }
 
   // `eval` / `arguments` in reference position (the recursion below skips a
   // non-computed member's `.property`, so a harmless `row.arguments` isn't hit).
   if (node.type === "Identifier" && FORBIDDEN_IDENTIFIERS.has(node.name)) {
-    throw new SafeEvalError(`Access to "${node.name}" is not allowed`);
+    throw new SaferEvalError(`Access to "${node.name}" is not allowed`);
   }
 
   // Recurse. Two carries: descending into a function `body` sets

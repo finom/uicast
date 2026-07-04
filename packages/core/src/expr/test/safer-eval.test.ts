@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { SafeEval, SafeEvalError } from "../safe-eval";
+import { SaferEval, SaferEvalError } from "../safer-eval";
 
-const evalr = new SafeEval();
+const evalr = new SaferEval();
 
-describe("SafeEval — allowed expressions", () => {
+describe("SaferEval — allowed expressions", () => {
   it("evaluates arithmetic and comparison", () => {
     expect(evalr.eval("1 + 2 * 3")).toBe(7);
     expect(evalr.eval("5 > 3 && 2 < 4")).toBe(true);
@@ -97,19 +97,19 @@ describe("SafeEval — allowed expressions", () => {
   });
 });
 
-describe("SafeEval — disallowed expressions", () => {
+describe("SaferEval — disallowed expressions", () => {
   it("rejects assignments", () => {
-    expect(() => evalr.eval("x = 1", { x: 0 })).toThrow(SafeEvalError);
-    expect(() => evalr.eval("x += 1", { x: 0 })).toThrow(SafeEvalError);
+    expect(() => evalr.eval("x = 1", { x: 0 })).toThrow(SaferEvalError);
+    expect(() => evalr.eval("x += 1", { x: 0 })).toThrow(SaferEvalError);
   });
 
   it("rejects update expressions", () => {
-    expect(() => evalr.eval("x++", { x: 0 })).toThrow(SafeEvalError);
-    expect(() => evalr.eval("--x", { x: 0 })).toThrow(SafeEvalError);
+    expect(() => evalr.eval("x++", { x: 0 })).toThrow(SaferEvalError);
+    expect(() => evalr.eval("--x", { x: 0 })).toThrow(SaferEvalError);
   });
 
   it("rejects the eval identifier", () => {
-    expect(() => evalr.eval("eval('1+1')")).toThrow(SafeEvalError);
+    expect(() => evalr.eval("eval('1+1')")).toThrow(SaferEvalError);
   });
 
   it("rejects new Function(...)", () => {
@@ -122,10 +122,10 @@ describe("SafeEval — disallowed expressions", () => {
     // import("…") is a valid *expression*, so it survives the `void (…)` parse
     // wrapper, and `import` is a keyword that global shadowing can't touch — it
     // has to be blocked structurally, everywhere (not just at the top level).
-    expect(() => evalr.eval('import("evil")')).toThrow(SafeEvalError);
+    expect(() => evalr.eval('import("evil")')).toThrow(SaferEvalError);
     expect(() =>
       evalr.eval('xs.map(() => import("evil"))', { xs: [1] }),
-    ).toThrow(SafeEvalError);
+    ).toThrow(SaferEvalError);
   });
 
   it("rejects meta-properties (new.target) inside a callback body", () => {
@@ -133,7 +133,7 @@ describe("SafeEval — disallowed expressions", () => {
     // level, but it must still be blocked where it can appear.
     expect(() =>
       evalr.eval("xs.map(function () { return new.target; })", { xs: [1] }),
-    ).toThrow(SafeEvalError);
+    ).toThrow(SaferEvalError);
   });
 
   it("shadows ambient capability globals to undefined", () => {
@@ -148,34 +148,34 @@ describe("SafeEval — disallowed expressions", () => {
   });
 
   it("rejects throw, while, for, if at statement level", () => {
-    expect(() => evalr.eval("throw new Error('x')")).toThrow(SafeEvalError);
-    expect(() => evalr.eval("while(true) 1")).toThrow(SafeEvalError);
-    expect(() => evalr.eval("for(let i=0;i<1;i++) i")).toThrow(SafeEvalError);
+    expect(() => evalr.eval("throw new Error('x')")).toThrow(SaferEvalError);
+    expect(() => evalr.eval("while(true) 1")).toThrow(SaferEvalError);
+    expect(() => evalr.eval("for(let i=0;i<1;i++) i")).toThrow(SaferEvalError);
   });
 
   it("rejects access to constructor / __proto__ / prototype", () => {
     expect(() => evalr.eval("obj.constructor", { obj: {} })).toThrow(
-      SafeEvalError,
+      SaferEvalError,
     );
     expect(() => evalr.eval("obj.__proto__", { obj: {} })).toThrow(
-      SafeEvalError,
+      SaferEvalError,
     );
     expect(() => evalr.eval('obj["constructor"]', { obj: {} })).toThrow(
-      SafeEvalError,
+      SaferEvalError,
     );
   });
 
   it("rejects multi-statement expressions", () => {
-    expect(() => evalr.eval("1; 2")).toThrow(SafeEvalError);
+    expect(() => evalr.eval("1; 2")).toThrow(SaferEvalError);
   });
 
   it("rejects empty input", () => {
-    expect(() => evalr.eval("")).toThrow(SafeEvalError);
-    expect(() => evalr.eval("   ")).toThrow(SafeEvalError);
+    expect(() => evalr.eval("")).toThrow(SaferEvalError);
+    expect(() => evalr.eval("   ")).toThrow(SaferEvalError);
   });
 });
 
-describe("SafeEval.validate — analysis without execution", () => {
+describe("SaferEval.validate — analysis without execution", () => {
   it("flags async expressions", () => {
     expect(evalr.validate("await fetchUser()").isAsync).toBe(true);
     expect(evalr.validate("1 + 1").isAsync).toBe(false);
@@ -188,7 +188,7 @@ describe("SafeEval.validate — analysis without execution", () => {
   });
 });
 
-describe("SafeEval — function-expression bodies", () => {
+describe("SaferEval — function-expression bodies", () => {
   it("allows safe statements inside a function-expression body, like arrows", () => {
     expect(
       evalr.eval("xs.map(function (n) { const r = n * 2; return r; })", {
@@ -202,27 +202,27 @@ describe("SafeEval — function-expression bodies", () => {
       evalr.eval("xs.map(function (o) { return o.constructor; })", {
         xs: [{}],
       }),
-    ).toThrow(SafeEvalError);
+    ).toThrow(SaferEvalError);
   });
 });
 
-describe("SafeEval — strict-mode validation", () => {
-  it("rejects strict-only syntax (octal literal) as a SafeEvalError", () => {
-    // Sloppy-legal, strict-illegal. Must surface as a SafeEvalError caught at
+describe("SaferEval — strict-mode validation", () => {
+  it("rejects strict-only syntax (octal literal) as a SaferEvalError", () => {
+    // Sloppy-legal, strict-illegal. Must surface as a SaferEvalError caught at
     // validate, not a raw SyntaxError leaking from `new Function` at compile.
-    expect(() => evalr.validate("0777")).toThrow(SafeEvalError);
-    expect(() => evalr.eval("0777")).toThrow(SafeEvalError);
+    expect(() => evalr.validate("0777")).toThrow(SaferEvalError);
+    expect(() => evalr.eval("0777")).toThrow(SaferEvalError);
   });
 
-  it("rejects strict-only duplicate parameter names as a SafeEvalError", () => {
+  it("rejects strict-only duplicate parameter names as a SaferEvalError", () => {
     expect(() => evalr.eval("(function (a, a) { return a; })(1, 2)")).toThrow(
-      SafeEvalError,
+      SaferEvalError,
     );
   });
 });
 
-describe("SafeEval — allowlist enforcement", () => {
-  const strict = new SafeEval({
+describe("SaferEval — allowlist enforcement", () => {
+  const strict = new SaferEval({
     allowGlobals: ["Math", "Date"],
     enforceAllowlist: true,
   });
@@ -238,7 +238,7 @@ describe("SafeEval — allowlist enforcement", () => {
   });
 
   it("rejects an unknown free identifier before running", () => {
-    expect(() => strict.eval("missing + 1", {})).toThrow(SafeEvalError);
+    expect(() => strict.eval("missing + 1", {})).toThrow(SaferEvalError);
     expect(() =>
       strict.eval("scopes.root.n + other", { scopes: { root: { n: 1 } } }),
     ).toThrow(/other/);
@@ -246,7 +246,7 @@ describe("SafeEval — allowlist enforcement", () => {
 
   it("rejects a reachable global that isn't on the allowlist", () => {
     // `Set` is benign and not shadowed, but absent from this instance's globals.
-    expect(() => strict.eval("new Set()")).toThrow(SafeEvalError);
+    expect(() => strict.eval("new Set()")).toThrow(SaferEvalError);
   });
 
   it("treats params, destructuring, and local declarations as internal", () => {
@@ -273,7 +273,7 @@ describe("SafeEval — allowlist enforcement", () => {
 
   it("accepts host-opted extra globals via the third arg", () => {
     expect(() => strict.eval("structuredClone(x)", { x: { a: 1 } })).toThrow(
-      SafeEvalError,
+      SaferEvalError,
     );
     expect(
       strict.eval("structuredClone(x)", { x: { a: 1 } }, ["structuredClone"]),
@@ -281,14 +281,14 @@ describe("SafeEval — allowlist enforcement", () => {
   });
 
   it("leaves enforcement off by default", () => {
-    const loose = new SafeEval({ allowGlobals: ["Math"] });
+    const loose = new SaferEval({ allowGlobals: ["Math"] });
     expect(loose.eval("new Set([1, 2, 2]).size")).toBe(2);
   });
 });
 
-describe("SafeEval — compilation memoization", () => {
+describe("SaferEval — compilation memoization", () => {
   it("re-evaluates correctly across calls and context shapes", () => {
-    const ev = new SafeEval();
+    const ev = new SaferEval();
     // Same context shape, different values → reuses the compiled function.
     expect(ev.eval("a + b", { a: 1, b: 2 })).toBe(3);
     expect(ev.eval("a + b", { a: 10, b: 20 })).toBe(30);
@@ -299,7 +299,7 @@ describe("SafeEval — compilation memoization", () => {
   });
 
   it("clearCache forces recompilation without changing results", () => {
-    const ev = new SafeEval();
+    const ev = new SaferEval();
     expect(ev.eval("n * 2", { n: 21 })).toBe(42);
     ev.clearCache();
     expect(ev.eval("n * 2", { n: 21 })).toBe(42);

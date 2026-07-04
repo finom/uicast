@@ -1,7 +1,7 @@
 // Which JavaScript globals an expression can see. The engine enforces an
-// allowlist (safe-eval.ts): a free identifier that is neither an allowed global
+// allowlist (safer-eval.ts): a free identifier that is neither an allowed global
 // nor an injected context name is rejected before the expression runs.
-// ALLOWED_GLOBALS is that list — also handed to SafeEval as allowGlobals and
+// ALLOWED_GLOBALS is that list — also handed to SaferEval as allowGlobals and
 // shown to the LLM in the prompt. GLOBALS_TO_SHADOW are bound to undefined as a
 // second line of defence, so an allowed-by-mistake reference still stays inert.
 
