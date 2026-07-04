@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { evaluate, parseScope, type ComponentEntry } from "@ui-fired/core";
 import type { StandardToolV0Definition } from "standard-tool";
+import { readScopePath } from "../read-scope-path";
 import type { InitFn, Scopes } from "../types";
 
 type SeededDefault = {
@@ -39,8 +40,13 @@ export function useSeedDefaults({
 
     element.seed?.forEach((setExpr) => {
       if (!setExpr.set) return;
-      const value = evaluate(setExpr, { scopes }, { functions, allowedGlobals });
       const [targetScope, targetPath] = parseScope(setExpr.set);
+      const currentValue = readScopePath(scopes[targetScope], targetPath);
+      const value = evaluate(
+        setExpr,
+        { scopes, currentValue },
+        { functions, allowedGlobals },
+      );
       if (value instanceof Promise) hasAsync = true;
       collected.push({ kind: "default", targetScope, targetPath, value });
     });

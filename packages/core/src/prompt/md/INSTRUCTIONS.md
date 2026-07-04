@@ -101,13 +101,16 @@ Stream elements in order: emit the root element first, then its children depth-f
 - Only declare callback names that match the component's documented event handlers.
 - Each callback is an array of `ConfirmableValueSourceAssignment` objects executed sequentially: `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<path>", "literal": <value> }`.
 - The `evt` object is available in callback expressions and contains event-specific data. Check each component's event handler signature for available fields (e.g., `evt.value`, `evt.valueAsNumber` for Input's onChange).
+- `currentValue` is available in any callback (or `seed`) step that has a `"set"`: it holds the current value at that step's `set` path — the value being replaced — so you can read-modify-write without re-reading the path. It is `undefined` when the path was never set (so a first-time `!currentValue` toggles to `true`).
 - Callbacks CAN call async functions. Each step in the array is awaited before the next executes.
 - Multiple assignments in one callback execute in order. Use this for chained updates (e.g., update a row value, then recompute a total).
 - **Confirmation prompts**: Any callback action can include an optional `"confirm"` field with a string message. When present, a confirmation dialog is shown to the user before that action executes. If the user cancels, the current action AND all remaining actions in the callback array are skipped. Place `confirm` on the FIRST action in the callback array (typically the dangerous one, such as a delete call) so the user is prompted before anything happens. Do NOT create separate `ConfirmDialog` elements for confirmations — use the `confirm` field on callback actions instead.
   - Example: `{ "set": "scopes.root._result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
 - Common patterns:
-  - Append to array: `{ "set": "scopes.root.rows", "expr": "[...scopes.root.rows, { id: scopes.root.nextId, a: 0 }]" }`
-  - Filter array: `{ "set": "scopes.root.rows", "expr": "scopes.root.rows.filter(r => r.id !== scopes.row.item.id)" }`
+  - Toggle a flag: `{ "set": "scopes.root.open", "expr": "!currentValue" }`
+  - Increment a counter: `{ "set": "scopes.root.count", "expr": "currentValue + 1" }`
+  - Append to array: `{ "set": "scopes.root.rows", "expr": "[...currentValue, { id: scopes.root.nextId, a: 0 }]" }`
+  - Filter array: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.item.id)" }`
   - Aggregate: `{ "set": "scopes.root.total", "expr": "scopes.root.childScopes.row.reduce((acc, r) => acc + r.item.value, 0)" }`
   - Call a host function: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })" }`
   - Dangerous delete with confirmation: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user?" }`

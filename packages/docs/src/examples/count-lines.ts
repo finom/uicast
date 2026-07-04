@@ -20,7 +20,7 @@ export const countLines: ComponentEntry[] = [
     component: "Button",
     props: { literal: { children: "Increment" } },
     callbacks: {
-      onClick: [{ set: "scopes.root.count", expr: "scopes.root.count + 1" }],
+      onClick: [{ set: "scopes.root.count", expr: "currentValue + 1" }],
     },
   },
 ] as const;

@@ -13,7 +13,7 @@ const ENTRY_DATA = [
     seed: [{ set: "scopes.root.count", literal: 0 }],
     props: { expr: "({ count: scopes.root.count })" },
     callbacks: {
-      onClick: [{ set: "scopes.root.count", expr: "scopes.root.count + 1" }],
+      onClick: [{ set: "scopes.root.count", expr: "currentValue + 1" }],
     },
   },
 ];

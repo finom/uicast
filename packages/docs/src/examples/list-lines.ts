@@ -31,7 +31,7 @@ export const listLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.items",
-          expr: '[...scopes.root.items, "Item " + (scopes.root.items.length + 1)]',
+          expr: '[...currentValue, "Item " + (currentValue.length + 1)]',
         },
       ],
     },

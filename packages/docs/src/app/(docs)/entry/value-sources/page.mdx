@@ -36,7 +36,17 @@ path** named by `set`.
 ```jsonc
 { "set": "scopes.root.count", "literal": 0 }
 { "set": "scopes.root.itemCount", "expr": "scopes.cart.items.length" }
+{ "set": "scopes.root.count", "expr": "currentValue + 1" }  // read-modify-write
 ```
+
+Inside the `expr`, the name **`currentValue`** is bound to the value currently at
+the `set` path — the one about to be replaced. It turns an assignment into a
+**read-modify-write** without re-naming the path: `currentValue + 1` to increment,
+`!currentValue` to toggle a flag, `[...currentValue, evt.item]` to append. It is
+`undefined` when the path has never been set, so a first-time `!currentValue` is
+`true`. `currentValue` exists **only** in an assignment's `expr` — the `set` is
+what defines it — never in a bare [`props`](/entry/fields#props),
+[`hidden`](/entry/fields#hidden), or [`each`](/entry/fields#each) expression.
 
 ## ConfirmableValueSourceAssignment
 

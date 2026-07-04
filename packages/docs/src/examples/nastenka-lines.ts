@@ -94,7 +94,7 @@ export const nastenkaLines = [
       onClick: [
         {
           set: "scopes.root.sparkleCount",
-          expr: "scopes.root.sparkleCount + 1",
+          expr: "currentValue + 1",
         },
       ],
     },
@@ -181,7 +181,7 @@ export const nastenkaLines = [
     props: { literal: { children: "🤗 Погладить котика", variant: "default" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.petCount", expr: "scopes.root.petCount + 1" },
+        { set: "scopes.root.petCount", expr: "currentValue + 1" },
         {
           set: "scopes.root.catMood",
           expr: "scopes.root.petCount + 1 >= 10 ? '😻' : scopes.root.petCount + 1 >= 5 ? '😸' : '😺'",
@@ -250,8 +250,8 @@ export const nastenkaLines = [
     props: { literal: { children: "🌹 Роза", variant: "outline", size: "sm" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '🌹']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '🌹']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -263,8 +263,8 @@ export const nastenkaLines = [
     },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '🌷']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '🌷']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -276,8 +276,8 @@ export const nastenkaLines = [
     },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '🌻']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '🌻']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -289,8 +289,8 @@ export const nastenkaLines = [
     },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '🌸']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '🌸']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -302,8 +302,8 @@ export const nastenkaLines = [
     },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '🌼']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '🌼']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -315,8 +315,8 @@ export const nastenkaLines = [
     },
     callbacks: {
       onClick: [
-        { set: "scopes.root.flowers", expr: "[...scopes.root.flowers, '💐']" },
-        { set: "scopes.root.flowerCount", expr: "scopes.root.flowerCount + 1" },
+        { set: "scopes.root.flowers", expr: "[...currentValue, '💐']" },
+        { set: "scopes.root.flowerCount", expr: "currentValue + 1" },
       ],
     },
   },
@@ -393,7 +393,7 @@ export const nastenkaLines = [
     props: { literal: { children: "💗", size: "lg" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.hearts", expr: "[...scopes.root.hearts, '💗']" },
+        { set: "scopes.root.hearts", expr: "[...currentValue, '💗']" },
       ],
     },
   },
@@ -403,7 +403,7 @@ export const nastenkaLines = [
     props: { literal: { children: "❤️", size: "lg", variant: "destructive" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.hearts", expr: "[...scopes.root.hearts, '❤️']" },
+        { set: "scopes.root.hearts", expr: "[...currentValue, '❤️']" },
       ],
     },
   },
@@ -413,7 +413,7 @@ export const nastenkaLines = [
     props: { literal: { children: "💜", size: "lg", variant: "secondary" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.hearts", expr: "[...scopes.root.hearts, '💜']" },
+        { set: "scopes.root.hearts", expr: "[...currentValue, '💜']" },
       ],
     },
   },
@@ -423,7 +423,7 @@ export const nastenkaLines = [
     props: { literal: { children: "💖", size: "lg", variant: "outline" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.hearts", expr: "[...scopes.root.hearts, '💖']" },
+        { set: "scopes.root.hearts", expr: "[...currentValue, '💖']" },
       ],
     },
   },

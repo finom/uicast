@@ -8,6 +8,7 @@ import {
   type ComponentDefinition,
 } from "@ui-fired/core";
 import { useConfirm } from "../providers/confirm";
+import { readScopePath } from "../read-scope-path";
 import { useRendererRegistry } from "../store/renderer-registry";
 import type { ComponentImplementation } from "../types";
 
@@ -71,14 +72,17 @@ export const createComponentImplementation = <
               const confirmed = await confirm(setExpr.confirm);
               if (!confirmed) return;
             }
+            const target = setExpr.set ? parseScope(setExpr.set) : null;
+            const currentValue = target
+              ? readScopePath(myprops.scopes[target[0]], target[1])
+              : undefined;
             const result = await evaluate(
               setExpr,
-              { evt, scopes: myprops.scopes },
+              { evt, scopes: myprops.scopes, currentValue },
               { functions, allowedGlobals },
             );
-            if (setExpr.set) {
-              const [targetScope, targetPath] = parseScope(setExpr.set);
-              myprops.scopes[targetScope].$set(targetPath, result);
+            if (target) {
+              myprops.scopes[target[0]].$set(target[1], result);
             }
             await new Promise((resolve) => setTimeout(resolve, 0));
           }

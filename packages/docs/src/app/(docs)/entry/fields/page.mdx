@@ -30,9 +30,9 @@ from and write to live in [state & scopes](/entry/state).
 ### `key`
 **Required.** A unique id for the line, in **kebab-case** (`"user-card"`, never
 `"userCard"`). The document is a flat list of lines assembled into a tree by key
-reference, and **partial replacement** keys off it: re-emitting a line with the
-same `key` swaps that subtree in place. The one line no other entry names in its
-`children` is the **root**.
+reference, and [**partial replacement**](#partial-replacement) keys off it:
+re-emitting a line with the same `key` swaps that subtree in place. The one line
+no other entry names in its `children` is the **root**.
 
 ```jsonc
 { "key": "user-card", "component": "Card" }
@@ -70,6 +70,10 @@ A bare [JavaScript expression](/entry/expressions) — no `literal` form — tha
 hides the line while it is truthy. The line stays **mounted with its state**, so
 toggling it never loses focus, scroll, or input. Like `props`, it is reactive.
 Use it for tabs, accordions, and conditional panels.
+
+Under the hood it is React's `<Activity>`: hiding is a display toggle, not an
+unmount — and the hidden subtree's **effects are paused**, so an
+implementation's polling `useEffect` stops until the line is shown again.
 
 ```jsonc
 { "hidden": "!scopes.root.showDetails" }
@@ -115,6 +119,9 @@ event. Each step is an
 - **`evt`** is bound to the event payload, shaped by the component's callback def
   (`evt.value`, `evt.valueAsNumber`, a structured record — whatever the component
   passes).
+- **`currentValue`** is bound to the value currently at the step's `set` path — for
+  read-modify-write like `currentValue + 1` or `!currentValue`, without re-naming
+  the path. See [value sources](/entry/value-sources#valuesourceassignment).
 - **`confirm`** on a step gates it behind a Yes/No prompt; on cancel, that step
   and every step after it is skipped.
 - A step with **no `set`** runs purely for its effect — e.g. a host-function call.
@@ -122,15 +129,22 @@ event. Each step is an
 ## List fields
 
 A line becomes a **list** the moment it carries `each`: its `component` then
-renders once per item. The fields below describe the iteration; the per-item
-state they create lives in
+renders once per item. There is no list-container component — the parent entry
+that names the list in its `children` supplies the container (a `TableBody`
+parent holding a `TableRow` list). In TypeScript the refinement is
+`ComponentListEntry` (`each` and `as` required), narrowed from a
+`ComponentEntry` with the `isComponentListEntry()` guard — both exported from
+`@ui-fired/core`. The fields below describe the iteration; the per-item state
+they create lives in
 [state & scopes → item scopes](/entry/state#item-scopes).
 
 ### `each`
 A bare [expression](/entry/expressions) returning the array to iterate — usually
 a plain reference to a state array (`scopes.root.orders`), though a derived
 `.filter()` / `.sort()` works too. Its presence is what marks the line a list. A
-reactive site: writing a path it reads re-runs the list.
+reactive site: writing a path it reads re-runs the list. An `each` that
+evaluates to `undefined` renders zero rows (the engine coerces with `?? []`) —
+an unseeded array is an empty list, not an error.
 
 ```jsonc
 { "each": "scopes.root.orders", "as": "order", "keyBy": "id", "component": "OrderRow" }
@@ -146,3 +160,24 @@ How to derive a stable identity per item: `"_index"` (default, positional),
 `"_item"` (the value itself — for primitive arrays), or a property name read off
 each item (`"id"` → `item.id`). **Give object items a stable key** — without one,
 in-place edits can shift rows and lose their per-item state.
+
+## Partial replacement
+
+Re-emitting an entry whose `key` already exists **replaces that entry and its
+subtree in place** — the mechanism behind mid-stream corrections and
+[edit turns](/prompt#edit-turns). It is the format's only patch operation: there
+is no delete or move, only re-emit.
+
+What survives the swap is decided by the new entry's `children`:
+
+- Old descendants the new `children` still reference — directly or through a
+  kept child — are **kept as-is, with their own subtrees**. So you can re-emit a
+  parent to restructure it (reorder, add, or drop children) and reference the
+  keepers by key without re-emitting them.
+- Old descendants it no longer references are **discarded**.
+- State seeded **above** the replaced subtree is untouched — only the subtree
+  re-mounts — and `seed` on the re-emitted entry does **not** re-run, so state
+  the user has already changed survives the correction.
+
+It is for *fixing or restructuring* emitted UI, not for ongoing updates: reactive
+changes flow through [`set`](/entry/state), never by re-emitting entries.

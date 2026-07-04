@@ -9,3 +9,15 @@ line with an existing `key` and the engine swaps that subtree in place. The only
 missing piece is the prompt side: a generator function (or an option on the
 existing prompt builder) that asks the model for a targeted re-emit, plus an
 example. *Runtime: supported · prompt tooling: not started.*
+
+## Reactive `loading` placeholders
+
+Every element already shows a placeholder while an async
+[`seed`](/entry/fields#seed) resolves or before it has streamed in. A planned
+`loading` field generalizes that to any reactive condition: a bare
+[expression](/entry/expressions), evaluated like [`hidden`](/entry/fields#hidden),
+that renders the element's placeholder while it is truthy and swaps the real
+component back when it goes falsy — a skeleton for "this data is refreshing"
+without unmounting or losing sibling state. Where `hidden` toggles visibility
+(React `<Activity>`), `loading` toggles the placeholder. *Runtime: placeholder
+machinery exists · schema + renderer + prompt: not started.*

@@ -159,9 +159,9 @@ export const tableLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.rows",
-          expr: "[...scopes.root.rows, { key: scopes.root.nextId, a: 0, b: 0 }]",
+          expr: "[...currentValue, { key: scopes.root.nextId, a: 0, b: 0 }]",
         },
-        { set: "scopes.root.nextId", expr: "scopes.root.nextId + 1" },
+        { set: "scopes.root.nextId", expr: "currentValue + 1" },
       ],
     },
   },
