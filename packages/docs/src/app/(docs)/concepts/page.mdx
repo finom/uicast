@@ -69,3 +69,52 @@ path-exact subscriptions — and together with the expression evaluator and
 dependency extraction it forms the engine's **framework-neutral core**:
 `@ui-fired/core` has no React dependency, and `@ui-fired/react`'s `<Renderer>`
 is one binding built over it.
+
+## What makes a document valid
+
+When a generated UI won't render or behaves oddly, it is usually one of these
+rules:
+
+- **Exactly one root** — one element whose `key` appears in no other element's
+  `children`. (If several roots arrive, the renderer wraps them in a synthetic
+  fragment rather than failing — but one root is the contract.)
+- **Every other element is referenced exactly once** — it appears in exactly
+  one parent's `children`. An element nobody references never mounts.
+- **Parents stream before children.** The root comes first, then its subtree;
+  the renderer shows placeholders for children it hasn't seen yet.
+- **A list is never the root** — a repeating element always sits inside a
+  container element.
+- **Scope names are unique.** Every list's `as` is unique across the document,
+  and `scopes.root` plus the list scopes are the only scopes there are.
+- **Reactive expressions are synchronous.** `props`, `hidden`, and `each`
+  cannot `await`; the expressions of `seed` and `callbacks` steps can — async
+  seeds are what [suspension](/react/renderer) is built on.
+- **Re-emitting a key is not an error** — it is the patch mechanism: the new
+  entry replaces that element and its whole subtree in place.
+
+## Vocabulary
+
+Every term the docs lean on, in one place:
+
+| Term | Meaning |
+| --- | --- |
+| **document** | One complete UI: a flat set of entries forming a tree with one root. Streamed as JSONLines, one entry per line. |
+| **entry** | One line of the stream — the flat JSON object describing a single element. The unit you (or the model) author; the [Component Entry Format](/entry) section is its reference. |
+| **element** | The node of the UI tree an entry describes. The entry is the JSON; the element is what mounts. |
+| **root** | The single element no other element lists in `children`. Derived structurally, never flagged. |
+| **list** | An element that repeats: it carries [`each`](/entry/fields) (the collection) and `as` (the per-item scope name). |
+| **item** | One repetition of a list, with its own scope: `scopes.<as>.item`, `.index`, `.id`. |
+| **scope** | A named reactive state bag. `scopes.root` for the page, plus one scope per list item — no others. See [State & Scopes](/entry/state). |
+| **expression** | A single JavaScript expression evaluated against the scopes — the format's only dynamic surface, sandboxed by [SaferEval](/entry/expressions). |
+| **value source** | How a dynamic value is produced: `{ "literal": … }` used verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
+| **step** (assignment) | A value source plus a `set` scope path to write, optionally gated by `confirm`. `seed` and callbacks are lists of steps; a callback step with no `set` runs purely for its side effect. |
+| **seed** | An entry's mount-time steps — they initialize scope state once, before the element's children mount. |
+| **callback** | An entry's reaction to a component event: ordered steps run with the event payload bound as `evt`. See [Event handling](/events). |
+| **`evt`** | The event payload inside a callback's steps — its shape is exactly what the definition's callback schema declares. |
+| **component** | A catalog member an entry can name — a definition/implementation pair. |
+| **definition** (def) | The model-facing half: `name`, `description`, props and callback schemas. Drives the prompt. See [Component definition](/def). |
+| **implementation** (impl) | The React half that renders the component. See [Component implementation](/react/impl). |
+| **catalog** | The set of def/impl pairs a host registers — e.g. `@ui-fired/shadcn-catalog`. |
+| **host functions** | The functions a host exposes for expressions to call — load data, save changes, run actions. See [Host functions](/functions). |
+| **renderer** | `@ui-fired/react`'s `<Renderer>`: mounts a document against the implementations and functions you hand it. See [Renderer](/react/renderer). |
+| **partial replacement** | Re-emitting an already-seen `key` replaces that element and its subtree — the format's only patch operation, and how [edit turns](/prompt) work. |

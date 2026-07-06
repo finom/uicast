@@ -21,3 +21,13 @@ component back when it goes falsy — a skeleton for "this data is refreshing"
 without unmounting or losing sibling state. Where `hidden` toggles visibility
 (React `<Activity>`), `loading` toggles the placeholder. *Runtime: placeholder
 machinery exists · schema + renderer + prompt: not started.*
+
+## Prompt compression
+
+The system prompt a host [assembles from the partial builders](/prompt) is
+deliberately explicit: the output contract, the expression rules, and the
+component menu spell everything out. A planned compression pass rewrites that
+surface to say the same things in far fewer tokens — same contract, same
+component information, tighter wording — cutting the fixed input cost every
+generation pays, without changing what the model emits. *Prompt surface:
+shipped · compression pass: not started.*

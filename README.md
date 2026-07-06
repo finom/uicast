@@ -8,18 +8,19 @@ step per generation.
 
 - **`packages/core`** — the **framework-agnostic** engine (zero React imports).
   The JSONLines render-engine concepts, the sandboxed micro-expression evaluator,
-  the reactive Proxy-based state store, the **ui-fired** format spec, the
-  component-def factories, and the prompt primitives. See
-  [`packages/core/docs/SPEC.md`](./packages/core/docs/SPEC.md),
-  [`packages/core/docs/OVERVIEW.md`](./packages/core/docs/OVERVIEW.md) and
-  [`packages/core/docs/SCOPES.md`](./packages/core/docs/SCOPES.md).
+  the reactive Proxy-based state store, the component-def factories, and the
+  prompt primitives.
 - **`packages/react`** — the **React binding** for the engine: the `<Renderer>`,
   the recursive renderer + registry context, the per-element error boundary, and
   the confirm UI. Depends on `core`; `react` / `react-dom` are peer
-  deps. See [`packages/core/docs/REACT.md`](./packages/core/docs/REACT.md).
+  deps.
 - **`packages/catalog`** — the component catalog. Component def/impl pairs,
   the underlying shadcn/Radix UI primitives, the `allDefinitions` / `allImplementations`
   registries, and the example element arrays. Depends on `core` + `react`.
+
+Documentation lives in [`packages/docs`](./packages/docs) — a Nextra site
+covering the concepts, the entry format, expressions, state, and the React
+binding; run `npm run dev` there to browse it.
 
 ## Consuming
 
