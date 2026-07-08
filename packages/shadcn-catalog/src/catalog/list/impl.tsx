@@ -17,7 +17,7 @@ export const ListImpl = createComponentImplementation({
     const Tag = ordered ? "ol" : "ul";
     return (
       <Tag
-        className={`${styleMap[styleType]} pl-5 space-y-1 text-sm [&>*]:list-item`}
+        className={`${styleMap[styleType]} pl-5 space-y-1 text-sm *:list-item`}
         data-key={generatedKey}
       >
         {children}

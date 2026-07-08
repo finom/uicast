@@ -12,7 +12,7 @@ export const SortableListImpl = createComponentImplementation({
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
         iconName
       ];
-      return Icon ? <Icon className="h-4 w-4 shrink-0" /> : null;
+      return Icon ? <Icon className="size-4 shrink-0" /> : null;
     };
 
     return (
@@ -23,7 +23,7 @@ export const SortableListImpl = createComponentImplementation({
             className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 hover:bg-accent cursor-pointer transition-colors"
             onClick={() => onItemClick?.({ id: item.id, index: i })}
           >
-            <GripVertical className="h-4 w-4 shrink-0 text-muted-foreground cursor-grab" />
+            <GripVertical className="size-4 shrink-0 text-muted-foreground cursor-grab" />
             {showIndex && (
               <span className="w-6 text-center text-xs font-medium text-muted-foreground">
                 {i + 1}

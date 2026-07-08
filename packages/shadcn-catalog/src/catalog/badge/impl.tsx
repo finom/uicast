@@ -7,7 +7,7 @@ export const BadgeImpl = createComponentImplementation({
   render: ({ children, variant = "default", generatedKey }) => {
     return (
       <ShadcnBadge variant={variant} data-key={generatedKey}>
-        {String(children ?? "")}
+        {children}
       </ShadcnBadge>
     );
   },

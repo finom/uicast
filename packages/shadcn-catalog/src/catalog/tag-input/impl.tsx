@@ -49,7 +49,7 @@ export const TagInputImpl = createComponentImplementation({
                   onRemove?.({ tag, index: i, tags: newTags });
                 }}
               >
-                <X className="h-3 w-3" />
+                <X className="size-3" />
               </button>
             )}
           </Badge>

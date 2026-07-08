@@ -35,7 +35,7 @@ export const CalloutImpl = createComponentImplementation({
         data-key={generatedKey}
         variant={variant === "error" ? "destructive" : "default"}
       >
-        <IconComp className={`h-4 w-4 ${variantColorMap[variant]}`} />
+        <IconComp className={`size-4 ${variantColorMap[variant]}`} />
         {title && <AlertTitle>{title}</AlertTitle>}
         <AlertDescription>{children}</AlertDescription>
       </Alert>

@@ -11,9 +11,9 @@ export const SwitchImpl = createComponentImplementation({
     onChange,
     generatedKey,
   }) => {
-    const id = label
-      ? `switch-${label.replace(/\s/g, "-").toLowerCase()}`
-      : undefined;
+    // generatedKey is unique per element, so ids stay unique when several
+    // switches (even with the same label) render in one document.
+    const id = `switch-${generatedKey}`;
     return (
       <div className="flex items-center gap-2" data-key={generatedKey}>
         <ShadcnSwitch

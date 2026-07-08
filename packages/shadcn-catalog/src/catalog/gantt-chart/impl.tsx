@@ -17,7 +17,6 @@ export const GanttChartImpl = createComponentImplementation({
   render: ({
     tasks = [],
     totalUnits = 20,
-    unitLabel = "Day",
     generatedKey,
   }) => {
     const unitHeaders = Array.from({ length: totalUnits }, (_, i) => i + 1);

@@ -38,7 +38,7 @@ export const BubbleChartImpl = createComponentImplementation({
             cursor={{ strokeDasharray: "3 3" }}
             content={(props) => {
               const payload = props.payload;
-              if (!payload || !payload.length) return null;
+              if (!payload?.length) return null;
               const d = payload[0].payload as {
                 x: number;
                 y: number;

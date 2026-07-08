@@ -18,7 +18,7 @@ export const TextImpl = createComponentImplementation({
     };
     return (
       <Tag className={styles[variant]} data-key={generatedKey}>
-        {String(children ?? "")}
+        {children}
       </Tag>
     );
   },

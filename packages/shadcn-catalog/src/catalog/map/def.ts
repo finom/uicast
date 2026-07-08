@@ -12,7 +12,10 @@ export const MapDef = createComponentDefinition({
         lng: z.number().meta({ description: "Longitude" }),
       })
       .meta({ description: "Map center coordinates" }),
-    zoom: z.number().default(13).meta({ description: "Zoom level (1-20)" }),
+    zoom: z.number().default(13).meta({
+      description:
+        "Zoom level (1-20). Only scales overlay marker placement — the embedded map always shows a fixed area around the center",
+    }),
     markers: z
       .array(
         z.object({

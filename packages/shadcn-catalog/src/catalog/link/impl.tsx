@@ -35,7 +35,7 @@ export const LinkImpl = createComponentImplementation({
         data-key={generatedKey}
       >
         {children}
-        {external && <ExternalLink className="h-3 w-3" />}
+        {external && <ExternalLink className="size-3" />}
       </Button>
     );
   },

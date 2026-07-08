@@ -12,7 +12,7 @@ export const TimelineImpl = createComponentImplementation({
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
         iconName
       ];
-      return Icon ? <Icon className="h-3 w-3" /> : null;
+      return Icon ? <Icon className="size-3" /> : null;
     };
 
     const dotColors = {
@@ -33,12 +33,12 @@ export const TimelineImpl = createComponentImplementation({
             <div className="flex flex-col items-center">
               <div
                 className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-white",
-                  dotColors[item.variant ?? "default"],
+                  "flex size-6 shrink-0 items-center justify-center rounded-full text-white",
+                  item.variant ? dotColors[item.variant] : dotColors.default,
                 )}
               >
                 {getIcon(item.icon) ?? (
-                  <div className="h-2 w-2 rounded-full bg-white" />
+                  <div className="size-2 rounded-full bg-white" />
                 )}
               </div>
               {i < items.length - 1 && (

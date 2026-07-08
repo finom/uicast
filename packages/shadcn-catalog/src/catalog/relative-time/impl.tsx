@@ -1,32 +1,35 @@
 import { createComponentImplementation } from "@ui-fired/react";
 import { RelativeTimeDef } from "./def";
 
-function getRelativeTime(dateStr: string, suffix: string): string {
-  const date = new Date(dateStr);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHr = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHr / 24);
-  const diffMonth = Math.floor(diffDay / 30);
-  const diffYear = Math.floor(diffDay / 365);
+// Largest-fitting unit, then the platform's locale-aware formatter.
+// `numeric: "auto"` yields phrasings like "yesterday", and both past and
+// future dates ("in 2 days") come out with correct pluralization — no
+// hand-rolled unit math.
+const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
+  { amount: 60, unit: "second" },
+  { amount: 60, unit: "minute" },
+  { amount: 24, unit: "hour" },
+  { amount: 7, unit: "day" },
+  { amount: 4.34524, unit: "week" },
+  { amount: 12, unit: "month" },
+  { amount: Number.POSITIVE_INFINITY, unit: "year" },
+];
 
-  if (diffSec < 60) return `just now`;
-  if (diffMin < 60)
-    return `${diffMin} minute${diffMin !== 1 ? "s" : ""} ${suffix}`;
-  if (diffHr < 24) return `${diffHr} hour${diffHr !== 1 ? "s" : ""} ${suffix}`;
-  if (diffDay < 30)
-    return `${diffDay} day${diffDay !== 1 ? "s" : ""} ${suffix}`;
-  if (diffMonth < 12)
-    return `${diffMonth} month${diffMonth !== 1 ? "s" : ""} ${suffix}`;
-  return `${diffYear} year${diffYear !== 1 ? "s" : ""} ${suffix}`;
+function formatRelativeTime(date: Date): string {
+  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
+  let duration = (date.getTime() - Date.now()) / 1000;
+  for (const division of DIVISIONS) {
+    if (Math.abs(duration) < division.amount) {
+      return rtf.format(Math.round(duration), division.unit);
+    }
+    duration /= division.amount;
+  }
+  return date.toLocaleDateString();
 }
 
 export const RelativeTimeImpl = createComponentImplementation({
   def: RelativeTimeDef,
-  render: ({ date, prefix, suffix = "ago", generatedKey }) => {
-    const relativeStr = getRelativeTime(date, suffix);
+  render: ({ date, prefix, generatedKey }) => {
     const dateObj = new Date(date);
 
     return (
@@ -37,7 +40,7 @@ export const RelativeTimeImpl = createComponentImplementation({
         data-key={generatedKey}
       >
         {prefix && `${prefix} `}
-        {relativeStr}
+        {formatRelativeTime(dateObj)}
       </time>
     );
   },

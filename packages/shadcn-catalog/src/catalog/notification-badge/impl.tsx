@@ -14,7 +14,9 @@ export const NotificationBadgeImpl = createComponentImplementation({
     children,
     generatedKey,
   }) => {
-    const shouldShow = dot || count > 0 || showZero;
+    // dot only changes presentation — a zero count stays hidden unless
+    // showZero asks for it.
+    const shouldShow = count > 0 || showZero;
     const displayCount = count > max ? `${max}+` : String(count);
 
     return (
@@ -24,7 +26,7 @@ export const NotificationBadgeImpl = createComponentImplementation({
           (dot ? (
             <span
               className={cn(
-                "absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full",
+                "absolute -top-1 -right-1 size-2.5 rounded-full",
                 variant === "destructive" && "bg-destructive",
                 variant === "default" && "bg-primary",
                 variant === "secondary" && "bg-secondary",

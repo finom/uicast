@@ -28,7 +28,7 @@ export const CommandMenuImpl = createComponentImplementation({
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
         iconName
       ];
-      return Icon ? <Icon className="mr-2 h-4 w-4 shrink-0" /> : null;
+      return Icon ? <Icon className="mr-2 size-4 shrink-0" /> : null;
     };
 
     return (

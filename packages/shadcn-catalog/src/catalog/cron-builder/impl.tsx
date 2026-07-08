@@ -48,11 +48,13 @@ export const CronBuilderImpl = createComponentImplementation({
 
     const cronStr = `${minute} ${hour} ${day} ${month} ${weekday}`;
 
-    const update = (setter: (v: string) => void, v: string) => {
+    const update = (index: number, setter: (v: string) => void, v: string) => {
       setter(v);
-      setTimeout(() => {
-        onChange?.({ value: cronStr });
-      }, 0);
+      // Emit the cron string derived from the just-computed next state — the
+      // render-scope values would still be the previous ones.
+      const next = [minute, hour, day, month, weekday];
+      next[index] = v;
+      onChange?.({ value: next.join(" ") });
     };
 
     const minuteOpts = [
@@ -99,12 +101,12 @@ export const CronBuilderImpl = createComponentImplementation({
               opts: weekdayOpts,
               setter: setWeekday,
             },
-          ].map((field) => (
+          ].map((field, i) => (
             <div key={field.label} className="space-y-1">
               <Label className="text-xs">{field.label}</Label>
               <Select
                 value={field.value}
-                onValueChange={(v) => update(field.setter, v)}
+                onValueChange={(v) => update(i, field.setter, v)}
               >
                 <SelectTrigger className="h-8 text-xs">
                   <SelectValue />

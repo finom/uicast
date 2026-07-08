@@ -7,7 +7,7 @@ export const CircularProgressImpl = createComponentImplementation({
     value = 0,
     size = 80,
     strokeWidth = 8,
-    color = "hsl(var(--primary))",
+    color = "var(--color-primary)",
     showValue = true,
     label,
     generatedKey,
@@ -23,14 +23,14 @@ export const CircularProgressImpl = createComponentImplementation({
         data-key={generatedKey}
       >
         <div className="relative" style={{ width: size, height: size }}>
-          <svg width={size} height={size} className="-rotate-90">
+          <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
             {/* Background circle */}
             <circle
               cx={size / 2}
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke="hsl(var(--muted))"
+              stroke="var(--color-muted)"
               strokeWidth={strokeWidth}
             />
             {/* Progress circle */}

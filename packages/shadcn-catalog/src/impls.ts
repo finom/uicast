@@ -109,7 +109,6 @@ import { MaskedInputImpl } from "./catalog/masked-input/impl";
 import { PinInputImpl } from "./catalog/pin-input/impl";
 import { TagInputImpl } from "./catalog/tag-input/impl";
 import { RatingImpl } from "./catalog/rating/impl";
-import { RichTextEditorImpl } from "./catalog/rich-text-editor/impl";
 import { CodeEditorImpl } from "./catalog/code-editor/impl";
 import { SignaturePadImpl } from "./catalog/signature-pad/impl";
 import { ToggleImpl } from "./catalog/toggle/impl";
@@ -272,7 +271,6 @@ export {
   PinInputImpl,
   TagInputImpl,
   RatingImpl,
-  RichTextEditorImpl,
   CodeEditorImpl,
   SignaturePadImpl,
   ToggleImpl,
@@ -438,7 +436,6 @@ export const allImplementations = [
   PinInputImpl,
   TagInputImpl,
   RatingImpl,
-  RichTextEditorImpl,
   CodeEditorImpl,
   SignaturePadImpl,
   ToggleImpl,

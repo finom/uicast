@@ -109,7 +109,6 @@ import { MaskedInputDef } from "./catalog/masked-input/def";
 import { PinInputDef } from "./catalog/pin-input/def";
 import { TagInputDef } from "./catalog/tag-input/def";
 import { RatingDef } from "./catalog/rating/def";
-import { RichTextEditorDef } from "./catalog/rich-text-editor/def";
 import { CodeEditorDef } from "./catalog/code-editor/def";
 import { SignaturePadDef } from "./catalog/signature-pad/def";
 import { ToggleDef } from "./catalog/toggle/def";
@@ -272,7 +271,6 @@ export {
   PinInputDef,
   TagInputDef,
   RatingDef,
-  RichTextEditorDef,
   CodeEditorDef,
   SignaturePadDef,
   ToggleDef,
@@ -438,7 +436,6 @@ export const allDefinitions = [
   PinInputDef,
   TagInputDef,
   RatingDef,
-  RichTextEditorDef,
   CodeEditorDef,
   SignaturePadDef,
   ToggleDef,

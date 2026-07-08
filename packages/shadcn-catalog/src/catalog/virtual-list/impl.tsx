@@ -47,7 +47,7 @@ export const VirtualListImpl = createComponentImplementation({
             return (
               <div
                 key={item.id}
-                className="absolute left-0 right-0 flex flex-col justify-center px-4 border-b hover:bg-accent cursor-pointer"
+                className="absolute inset-x-0 flex flex-col justify-center px-4 border-b hover:bg-accent cursor-pointer"
                 style={{
                   top: actualIndex * itemHeight,
                   height: itemHeight,

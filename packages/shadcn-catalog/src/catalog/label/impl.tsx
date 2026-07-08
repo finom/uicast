@@ -7,7 +7,7 @@ export const LabelImpl = createComponentImplementation({
   render: ({ children, htmlFor, generatedKey }) => {
     return (
       <ShadcnLabel htmlFor={htmlFor} data-key={generatedKey}>
-        {String(children ?? "")}
+        {children}
       </ShadcnLabel>
     );
   },

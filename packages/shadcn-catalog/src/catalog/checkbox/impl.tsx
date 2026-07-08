@@ -11,9 +11,9 @@ export const CheckboxImpl = createComponentImplementation({
     onChange,
     generatedKey,
   }) => {
-    const id = label
-      ? `checkbox-${label.replace(/\s/g, "-").toLowerCase()}`
-      : undefined;
+    // generatedKey is unique per element, so ids stay unique when several
+    // checkboxes (even with the same label) render in one document.
+    const id = `checkbox-${generatedKey}`;
     return (
       <div className="flex items-center gap-2" data-key={generatedKey}>
         <ShadcnCheckbox

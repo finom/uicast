@@ -44,9 +44,9 @@ export const PasswordInputImpl = createComponentImplementation({
           disabled={disabled}
         >
           {showPassword ? (
-            <EyeOff className="h-4 w-4 text-muted-foreground" />
+            <EyeOff className="size-4 text-muted-foreground" />
           ) : (
-            <Eye className="h-4 w-4 text-muted-foreground" />
+            <Eye className="size-4 text-muted-foreground" />
           )}
         </Button>
       </div>

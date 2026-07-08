@@ -21,7 +21,7 @@ export const CollapsibleImpl = createComponentImplementation({
           <h4 className="text-sm font-semibold">{title}</h4>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm">
-              <ChevronsUpDown className="h-4 w-4" />
+              <ChevronsUpDown className="size-4" />
             </Button>
           </CollapsibleTrigger>
         </div>

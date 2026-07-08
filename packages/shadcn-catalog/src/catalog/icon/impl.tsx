@@ -24,8 +24,12 @@ export const IconImpl = createComponentImplementation({
     }
     return (
       <span data-key={generatedKey}>
+        {/* Color via the theme variable, not a composed `text-${color}` class —
+            Tailwind only generates CSS for class names visible in source, so a
+            runtime-built class would never get styles. */}
         <IconComponent
-          className={`${sizeMap[size]} ${color ? `text-${color}` : ""}`}
+          className={sizeMap[size]}
+          style={color ? { color: `var(--color-${color})` } : undefined}
         />
       </span>
     );

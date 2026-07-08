@@ -37,7 +37,9 @@ export const PinInputImpl = createComponentImplementation({
         inputRefs.current[index + 1]?.focus();
       }
 
-      if (newValue.length === length && !newValue.includes("")) {
+      // join() collapses empty positions, so the joined value reaches the
+      // full length exactly when every position holds a character.
+      if (newValue.length === length) {
         onComplete?.({ value: newValue });
       }
     };
@@ -55,7 +57,7 @@ export const PinInputImpl = createComponentImplementation({
             maxLength={1}
             value={chars[i] ?? ""}
             disabled={disabled}
-            className={cn("h-12 w-12 text-center text-lg font-semibold")}
+            className={cn("size-12 text-center text-lg font-semibold")}
             onChange={(e) => handleInput(i, e.target.value)}
             onKeyDown={(e) => {
               onKeyDown?.(pickKeyboardEvent(e));

@@ -69,7 +69,7 @@ export const MultiSelectImpl = createComponentImplementation({
           <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
             <ScrollArea className="max-h-[200px] p-1">
               {options.map((opt) => (
-                <label
+                <div
                   key={opt.value}
                   className="flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm cursor-pointer hover:bg-accent"
                 >
@@ -78,7 +78,7 @@ export const MultiSelectImpl = createComponentImplementation({
                     onCheckedChange={() => toggle(opt.value)}
                   />
                   {opt.label}
-                </label>
+                </div>
               ))}
             </ScrollArea>
           </div>

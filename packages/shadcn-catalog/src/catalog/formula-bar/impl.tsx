@@ -30,7 +30,7 @@ export const FormulaBarImpl = createComponentImplementation({
           </div>
         )}
         <div className="flex items-center px-2">
-          <FunctionSquare className="h-4 w-4 text-muted-foreground" />
+          <FunctionSquare className="size-4 text-muted-foreground" />
         </div>
         <Input
           value={value}

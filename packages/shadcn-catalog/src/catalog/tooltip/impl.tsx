@@ -11,8 +11,10 @@ export const TooltipImpl = createComponentImplementation({
   def: TooltipDef,
   render: ({ content, side = "top", children, generatedKey }) => {
     return (
-      <TooltipProvider data-key={generatedKey}>
+      <TooltipProvider>
         <ShadcnTooltip>
+          {/* The provider renders no DOM node — the trigger span is the
+              outermost rendered element, so it carries the data-key. */}
           <TooltipTrigger asChild>
             <span data-key={generatedKey}>{children}</span>
           </TooltipTrigger>

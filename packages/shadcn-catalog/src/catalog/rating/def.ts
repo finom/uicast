@@ -18,9 +18,6 @@ export const RatingDef = createComponentDefinition({
     disabled: z.boolean().default(false).meta({
       description: "Whether the rating is read-only/disabled",
     }),
-    allowHalf: z.boolean().default(false).meta({
-      description: "Whether half-star ratings are allowed",
-    }),
   }),
   callbacks: {
     onChange: z.strictObject({

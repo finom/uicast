@@ -42,7 +42,7 @@ export const FlexRowImpl = createComponentImplementation({
     };
     return (
       <div
-        className={`flex flex-row ${gapMap[gap]} ${alignMap[align]} ${justifyMap[justify]} ${wrap ? "flex-wrap" : ""} ${equalWidth ? "[&>*]:flex-1 [&>*]:min-w-0" : ""}`}
+        className={`flex flex-row ${gapMap[gap]} ${alignMap[align]} ${justifyMap[justify]} ${wrap ? "flex-wrap" : ""} ${equalWidth ? "*:flex-1 *:min-w-0" : ""}`}
         onClick={(e) => onClick?.(pickMouseEvent(e))}
         data-key={generatedKey}
       >

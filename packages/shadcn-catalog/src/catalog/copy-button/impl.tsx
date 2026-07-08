@@ -32,12 +32,12 @@ export const CopyButtonImpl = createComponentImplementation({
       >
         {copied ? (
           <>
-            <Check className="mr-1 h-3.5 w-3.5 text-green-500" />
+            <Check className="mr-1 size-3.5 text-green-500" />
             Copied
           </>
         ) : (
           <>
-            <Copy className="mr-1 h-3.5 w-3.5" />
+            <Copy className="mr-1 size-3.5" />
             {label}
           </>
         )}

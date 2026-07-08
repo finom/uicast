@@ -47,9 +47,9 @@ export const MapImpl = createComponentImplementation({
               })
             }
           >
-            <MapPin className="h-6 w-6 text-destructive fill-destructive" />
+            <MapPin className="size-6 text-destructive fill-destructive" />
             {marker.label && (
-              <span className="text-[10px] font-medium bg-background/80 px-1 rounded">
+              <span className="text-[10px] font-medium bg-background/80 px-1 rounded-sm">
                 {marker.label}
               </span>
             )}

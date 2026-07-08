@@ -28,7 +28,7 @@ function OrgNodeComponent({
         className="flex flex-col items-center p-3 hover:shadow-md cursor-pointer transition-shadow"
         onClick={() => onNodeClick?.({ name: node.name, title: node.title })}
       >
-        <Avatar className="h-10 w-10 mb-1">
+        <Avatar className="size-10 mb-1">
           {node.avatar && <AvatarImage src={node.avatar} alt={node.name} />}
           <AvatarFallback className="text-xs">
             {node.name

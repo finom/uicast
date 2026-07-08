@@ -29,7 +29,7 @@ export const SidebarImpl = createComponentImplementation({
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
         iconName
       ];
-      return Icon ? <Icon className="h-4 w-4" /> : null;
+      return Icon ? <Icon className="size-4" /> : null;
     };
 
     return (
@@ -48,9 +48,9 @@ export const SidebarImpl = createComponentImplementation({
               onClick={() => onToggleCollapse?.({ collapsed: !collapsed })}
             >
               {collapsed ? (
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="size-4" />
               ) : (
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="size-4" />
               )}
             </Button>
           </div>

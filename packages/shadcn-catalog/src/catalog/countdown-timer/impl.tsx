@@ -31,6 +31,7 @@ export const CountdownTimerImpl = createComponentImplementation({
     const target = new Date(targetDate);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(target));
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: the interval re-arms only when targetDate changes; target/onComplete are read from the arming render on purpose
     useEffect(() => {
       const interval = setInterval(() => {
         const updated = calculateTimeLeft(target);

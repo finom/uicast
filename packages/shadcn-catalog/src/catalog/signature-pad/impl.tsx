@@ -22,6 +22,7 @@ export const SignaturePadImpl = createComponentImplementation({
 
     const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: getCtx reads a ref — stable identity, not a reactive input
     const startDraw = useCallback(
       (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (disabled) return;
@@ -35,6 +36,7 @@ export const SignaturePadImpl = createComponentImplementation({
       [disabled],
     );
 
+    // biome-ignore lint/correctness/useExhaustiveDependencies: getCtx reads a ref — stable identity, not a reactive input
     const draw = useCallback(
       (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawingRef.current || disabled) return;
@@ -92,7 +94,7 @@ export const SignaturePadImpl = createComponentImplementation({
               onClick={clearCanvas}
               disabled={disabled}
             >
-              <Eraser className="mr-1 h-4 w-4" />
+              <Eraser className="mr-1 size-4" />
               Clear
             </Button>
           </div>

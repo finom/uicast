@@ -21,7 +21,7 @@ export const InlineMessageImpl = createComponentImplementation({
         className="py-2 px-3"
         data-key={generatedKey}
       >
-        <IconComp className="h-3.5 w-3.5" />
+        <IconComp className="size-3.5" />
         <AlertDescription className="text-xs">{message}</AlertDescription>
       </Alert>
     );

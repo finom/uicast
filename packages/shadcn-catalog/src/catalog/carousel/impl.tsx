@@ -51,20 +51,20 @@ export const CarouselImpl = createComponentImplementation({
         <Button
           variant="outline"
           size="icon"
-          className="absolute left-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full"
+          className="absolute left-2 top-1/2 size-8 -translate-y-1/2 rounded-full"
           disabled={!canPrev}
           onClick={() => goTo(current - 1)}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
         </Button>
         <Button
           variant="outline"
           size="icon"
-          className="absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 rounded-full"
+          className="absolute right-2 top-1/2 size-8 -translate-y-1/2 rounded-full"
           disabled={!canNext}
           onClick={() => goTo(current + 1)}
         >
-          <ChevronRight className="h-4 w-4" />
+          <ChevronRight className="size-4" />
         </Button>
       </div>
     );

@@ -22,7 +22,7 @@ export const SearchInputImpl = createComponentImplementation({
     const strValue = String(value ?? "");
     return (
       <div className="relative flex items-center" data-key={generatedKey}>
-        <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-3 size-4 text-muted-foreground" />
         <Input
           value={strValue}
           placeholder={placeholder}
@@ -37,17 +37,17 @@ export const SearchInputImpl = createComponentImplementation({
         />
         <div className="absolute right-1 flex items-center gap-1">
           {loading && (
-            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+            <Loader2 className="size-4 animate-spin text-muted-foreground" />
           )}
           {strValue && !loading && (
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="size-7"
               onClick={() => onClear?.({})}
             >
-              <X className="h-4 w-4" />
+              <X className="size-4" />
             </Button>
           )}
         </div>

@@ -12,7 +12,7 @@ export const FlowDiagramImpl = createComponentImplementation({
     onNodeClick,
     generatedKey,
   }) => {
-    const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+    const _nodeMap = new Map(nodes.map((n) => [n.id, n]));
     const isVertical = direction === "vertical";
 
     const shapeClasses = {
@@ -34,6 +34,7 @@ export const FlowDiagramImpl = createComponentImplementation({
       >
         {nodes.map((node, i) => {
           const edge = edges.find((e) => e.from === node.id);
+          const shapeClass = shapeClasses[node.type ?? "process"];
 
           return (
             <div
@@ -46,7 +47,7 @@ export const FlowDiagramImpl = createComponentImplementation({
               <div
                 className={cn(
                   "flex items-center justify-center border-2 px-6 py-3 cursor-pointer shadow-sm hover:shadow-md transition-shadow min-w-[120px] text-center",
-                  shapeClasses[node.type ?? "process"],
+                  shapeClass,
                 )}
                 onClick={() =>
                   onNodeClick?.({ id: node.id, label: node.label })
@@ -67,9 +68,9 @@ export const FlowDiagramImpl = createComponentImplementation({
                     </span>
                   )}
                   {isVertical ? (
-                    <ArrowDown className="h-5 w-5 text-muted-foreground" />
+                    <ArrowDown className="size-5 text-muted-foreground" />
                   ) : (
-                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                    <ArrowRight className="size-5 text-muted-foreground" />
                   )}
                 </div>
               )}

@@ -15,7 +15,7 @@ export const CircularProgressDef = createComponentDefinition({
     strokeWidth: z.number().default(8).meta({
       description: "Width of the progress ring",
     }),
-    color: z.string().default("hsl(var(--primary))").meta({
+    color: z.string().default("var(--color-primary)").meta({
       description: "Progress ring color",
     }),
     showValue: z.boolean().default(true).meta({

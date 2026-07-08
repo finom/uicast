@@ -8,7 +8,7 @@ export const ButtonGroupImpl = createComponentImplementation({
       <div
         className={
           attached
-            ? "inline-flex [&>*]:rounded-none [&>*:first-child]:rounded-l-md [&>*:last-child]:rounded-r-md [&>*:not(:first-child)]:-ml-px"
+            ? "inline-flex *:rounded-none [&>*:first-child]:rounded-l-md [&>*:last-child]:rounded-r-md [&>*:not(:first-child)]:-ml-px"
             : "inline-flex gap-2"
         }
         role="group"

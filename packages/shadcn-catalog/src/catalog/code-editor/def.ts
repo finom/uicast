@@ -4,14 +4,14 @@ import { createComponentDefinition } from "@ui-fired/core";
 export const CodeEditorDef = createComponentDefinition({
   name: "CodeEditor",
   description:
-    "A syntax-highlighted code input area. Renders a monospaced textarea with line numbers for code editing. Use CodeEditor for configuration input, code snippets, template editing, or any structured text entry.",
+    "A plain-text code input area. Renders a monospaced textarea with line numbers for code editing — no syntax highlighting. Use CodeEditor for configuration input, code snippets, template editing, or any structured text entry.",
   props: z.strictObject({
     value: z.string().default("").meta({
       description: "The code content",
     }),
     language: z.string().default("javascript").meta({
       description:
-        "The programming language for syntax context (e.g. javascript, python, json)",
+        "The programming language of the content (e.g. javascript, python, json) — metadata only, content is not highlighted",
     }),
     placeholder: z.string().default("Enter code...").meta({
       description: "Placeholder text",

@@ -39,7 +39,7 @@ export const NavigationMenuImpl = createComponentImplementation({
                               {child.label}
                             </div>
                             {child.description && (
-                              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                              <p className="line-clamp-2 text-sm/snug text-muted-foreground">
                                 {child.description}
                               </p>
                             )}

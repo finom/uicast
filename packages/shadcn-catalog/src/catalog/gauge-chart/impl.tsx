@@ -32,12 +32,12 @@ export const GaugeChartImpl = createComponentImplementation({
 
     return (
       <div className="flex flex-col items-center" data-key={generatedKey}>
-        <svg width="200" height={height} viewBox="0 0 200 120">
+        <svg width="200" height={height} viewBox="0 0 200 120" aria-hidden="true">
           {/* Background arc */}
           <path
             d={bgPath}
             fill="none"
-            stroke="hsl(var(--muted))"
+            stroke="var(--color-muted)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />

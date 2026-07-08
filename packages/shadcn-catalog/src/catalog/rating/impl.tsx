@@ -30,7 +30,7 @@ export const RatingImpl = createComponentImplementation({
               variant="ghost"
               size="icon"
               className={cn(
-                "h-auto w-auto p-0.5 transition-colors",
+                "size-auto p-0.5 transition-colors",
                 disabled
                   ? "cursor-default"
                   : "cursor-pointer hover:text-yellow-400",

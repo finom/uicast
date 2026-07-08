@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@ui-fired/core";
 export const FlowDiagramDef = createComponentDefinition({
   name: "FlowDiagram",
   description:
-    "A simple flow diagram / process diagram. Renders connected nodes with arrows showing process flow. Use FlowDiagram for business processes, decision flows, pipeline visualization, or any step-by-step process.",
+    "A simple linear flow diagram. Renders the nodes in sequence with an arrow between consecutive steps — edges only toggle the arrow and its label, branching is not drawn. Use FlowDiagram for linear business processes, pipeline visualization, or any step-by-step sequence.",
   props: z.strictObject({
     nodes: z
       .array(
@@ -31,7 +31,10 @@ export const FlowDiagramDef = createComponentDefinition({
             .meta({ description: "Optional edge label" }),
         }),
       )
-      .meta({ description: "Array of edges connecting nodes" }),
+      .meta({
+        description:
+          "Array of edges. A node's first outgoing edge shows the arrow (and optional label) after it in the sequence; edge targets do not reposition nodes",
+      }),
     direction: z.enum(["horizontal", "vertical"]).default("vertical").meta({
       description: "Flow direction",
     }),

@@ -44,7 +44,6 @@ export const PieChartImpl = createComponentImplementation({
             outerRadius="80%"
             dataKey="value"
             nameKey="name"
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             label={
               showLabels
                 ? (((props: any) =>

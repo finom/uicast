@@ -31,33 +31,21 @@ export const StatusIndicatorImpl = createComponentImplementation({
     return (
       <div className="inline-flex items-center gap-2" data-key={generatedKey}>
         <span className="relative flex">
-          <span
-            className={cn(
-              "rounded-full",
-              sizeMap[size],
-              colorMap[status],
-              pulse &&
-                "animate-ping absolute inline-flex h-full w-full opacity-75 rounded-full",
-            )}
-          />
           {pulse && (
             <span
               className={cn(
-                "relative inline-flex rounded-full",
-                sizeMap[size],
+                "animate-ping absolute inline-flex size-full rounded-full opacity-75",
                 colorMap[status],
               )}
             />
           )}
-          {!pulse && (
-            <span
-              className={cn(
-                "relative inline-flex rounded-full",
-                sizeMap[size],
-                colorMap[status],
-              )}
-            />
-          )}
+          <span
+            className={cn(
+              "relative inline-flex rounded-full",
+              sizeMap[size],
+              colorMap[status],
+            )}
+          />
         </span>
         {label && <span className="text-sm">{label}</span>}
       </div>

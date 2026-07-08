@@ -1,51 +1,38 @@
+import { diffLines } from "diff";
 import { createComponentImplementation } from "@ui-fired/react";
 import { cn } from "../../lib/utils";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DiffViewerDef } from "./def";
 
-function computeSimpleDiff(oldLines: string[], newLines: string[]) {
+// Real LCS line diffing via jsdiff, flattened to one row per line — an
+// inserted line no longer cascades mismatches through the rest of the text.
+function computeLineDiff(oldText: string, newText: string) {
   const result: {
     type: "unchanged" | "added" | "removed";
     line: string;
     oldLineNum?: number;
     newLineNum?: number;
   }[] = [];
-  const maxLen = Math.max(oldLines.length, newLines.length);
-  let oldIdx = 0;
-  let newIdx = 0;
+  let oldLineNum = 1;
+  let newLineNum = 1;
 
-  // Simple line-by-line comparison (not a full LCS algorithm but sufficient for display)
-  while (oldIdx < oldLines.length || newIdx < newLines.length) {
-    if (
-      oldIdx < oldLines.length &&
-      newIdx < newLines.length &&
-      oldLines[oldIdx] === newLines[newIdx]
-    ) {
-      result.push({
-        type: "unchanged",
-        line: oldLines[oldIdx],
-        oldLineNum: oldIdx + 1,
-        newLineNum: newIdx + 1,
-      });
-      oldIdx++;
-      newIdx++;
-    } else if (
-      oldIdx < oldLines.length &&
-      (newIdx >= newLines.length || !newLines.includes(oldLines[oldIdx]))
-    ) {
-      result.push({
-        type: "removed",
-        line: oldLines[oldIdx],
-        oldLineNum: oldIdx + 1,
-      });
-      oldIdx++;
-    } else if (newIdx < newLines.length) {
-      result.push({
-        type: "added",
-        line: newLines[newIdx],
-        newLineNum: newIdx + 1,
-      });
-      newIdx++;
+  for (const change of diffLines(oldText, newText)) {
+    const lines = change.value.split("\n");
+    // A trailing newline yields one empty tail segment — not a real line.
+    if (lines[lines.length - 1] === "") lines.pop();
+    for (const line of lines) {
+      if (change.added) {
+        result.push({ type: "added", line, newLineNum: newLineNum++ });
+      } else if (change.removed) {
+        result.push({ type: "removed", line, oldLineNum: oldLineNum++ });
+      } else {
+        result.push({
+          type: "unchanged",
+          line,
+          oldLineNum: oldLineNum++,
+          newLineNum: newLineNum++,
+        });
+      }
     }
   }
 
@@ -62,9 +49,7 @@ export const DiffViewerImpl = createComponentImplementation({
     mode = "split",
     generatedKey,
   }) => {
-    const oldLines = oldText.split("\n");
-    const newLines = newText.split("\n");
-    const diff = computeSimpleDiff(oldLines, newLines);
+    const diff = computeLineDiff(oldText, newText);
 
     if (mode === "unified") {
       return (

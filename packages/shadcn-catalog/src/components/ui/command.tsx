@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import type * as React from "react";
 import { Command as CommandPrimitive } from "cmdk";
 
 import { cn } from "../../lib/utils";
@@ -93,7 +93,7 @@ function CommandList({
     <CommandPrimitive.List
       data-slot="command-list"
       className={cn(
-        "no-scrollbar max-h-72 scroll-py-1 outline-none overflow-x-hidden overflow-y-auto",
+        "max-h-72 scroll-py-1 outline-none overflow-x-hidden overflow-y-auto scrollbar-none [&::-webkit-scrollbar]:hidden",
         className,
       )}
       {...props}

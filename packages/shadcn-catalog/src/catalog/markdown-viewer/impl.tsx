@@ -1,41 +1,15 @@
+import { Streamdown } from "streamdown";
 import { createComponentImplementation } from "@ui-fired/react";
 import { MarkdownViewerDef } from "./def";
 
-function simpleMarkdownToHtml(md: string): string {
-  let html = md
-    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
-    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
-    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(/`(.+?)`/g, "<code>$1</code>")
-    .replace(
-      /\[(.+?)\]\((.+?)\)/g,
-      '<a href="$2" class="underline text-primary">$1</a>',
-    )
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/^(\d+)\. (.+)$/gm, "<li>$2</li>");
-
-  html = html.replace(
-    /(<li>.*<\/li>\n?)+/g,
-    (match) => `<ul class="list-disc pl-6">${match}</ul>`,
-  );
-  html = html.replace(/^(?!<[h|u|o|l])(.*\S.*)$/gm, "<p>$1</p>");
-
-  return html;
-}
-
+// Rendering is delegated to streamdown: full GitHub-flavored Markdown with
+// hardened defaults — source text never becomes raw HTML, so model- or
+// user-supplied content can't inject markup.
 export const MarkdownViewerImpl = createComponentImplementation({
   def: MarkdownViewerDef,
-  render: ({ content, generatedKey }) => {
-    const html = simpleMarkdownToHtml(content);
-
-    return (
-      <div
-        className="prose prose-sm max-w-none dark:prose-invert"
-        dangerouslySetInnerHTML={{ __html: html }}
-        data-key={generatedKey}
-      />
-    );
-  },
+  render: ({ content, generatedKey }) => (
+    <div data-key={generatedKey}>
+      <Streamdown>{content}</Streamdown>
+    </div>
+  ),
 });

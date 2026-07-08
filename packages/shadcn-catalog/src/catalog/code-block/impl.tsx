@@ -36,13 +36,13 @@ export const CodeBlockImpl = createComponentImplementation({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7"
+              className="size-7"
               onClick={handleCopy}
             >
               {copied ? (
-                <Check className="h-3.5 w-3.5 text-green-500" />
+                <Check className="size-3.5 text-green-500" />
               ) : (
-                <Copy className="h-3.5 w-3.5" />
+                <Copy className="size-3.5" />
               )}
             </Button>
           )}

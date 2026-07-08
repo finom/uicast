@@ -26,7 +26,7 @@ export const CodeEditorImpl = createComponentImplementation({
       >
         {showLineNumbers && (
           <div
-            className="select-none border-r bg-muted/50 px-3 py-3 text-right text-muted-foreground"
+            className="select-none border-r bg-muted/50 p-3 text-right text-muted-foreground"
             style={{ minHeight }}
           >
             {Array.from({ length: lineCount }).map((_, i) => (

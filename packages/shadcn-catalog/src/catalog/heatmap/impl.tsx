@@ -39,7 +39,7 @@ export const HeatmapImpl = createComponentImplementation({
     const range = maxVal - minVal || 1;
 
     const valueMap = new Map<string, number>();
-    data.forEach((d) => valueMap.set(`${d.row}|${d.col}`, d.value));
+    for (const d of data) valueMap.set(`${d.row}|${d.col}`, d.value);
 
     return (
       <ScrollArea data-key={generatedKey}>

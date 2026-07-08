@@ -21,7 +21,7 @@ export const ChatBubbleImpl = createComponentImplementation({
             )}
             onClick={() => onMessageClick?.({ id: msg.id })}
           >
-            <Avatar className="h-8 w-8 shrink-0">
+            <Avatar className="size-8 shrink-0">
               {msg.avatar && <AvatarImage src={msg.avatar} alt={msg.sender} />}
               <AvatarFallback className="text-xs">
                 {msg.sender.charAt(0).toUpperCase()}

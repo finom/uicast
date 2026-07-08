@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@ui-fired/react";
+import { Fragment } from "react";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -19,23 +20,27 @@ export const BreadcrumbImpl = createComponentImplementation({
             const isLast = i === items.length - 1;
             const isActive = item.active ?? isLast;
             return (
-              <BreadcrumbItem key={i}>
+              // The separator renders its own <li>, so it must sit beside the
+              // item in the <ol> — nesting it inside would put li inside li.
+              <Fragment key={i}>
                 {i > 0 && <BreadcrumbSeparator />}
-                {isActive ? (
-                  <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        onNavigate?.({ index: i, label: item.label })
-                      }
-                    >
-                      {item.label}
-                    </button>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
+                <BreadcrumbItem>
+                  {isActive ? (
+                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onNavigate?.({ index: i, label: item.label })
+                        }
+                      >
+                        {item.label}
+                      </button>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </Fragment>
             );
           })}
         </BreadcrumbList>

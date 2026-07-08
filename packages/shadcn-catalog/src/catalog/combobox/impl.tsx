@@ -45,7 +45,7 @@ export const ComboboxImpl = createComponentImplementation({
             data-key={generatedKey}
           >
             {selectedOption ? selectedOption.label : placeholder}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-full p-0">
@@ -65,7 +65,7 @@ export const ComboboxImpl = createComponentImplementation({
                   >
                     <Check
                       className={cn(
-                        "mr-2 h-4 w-4",
+                        "mr-2 size-4",
                         value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />

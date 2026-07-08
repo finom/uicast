@@ -29,8 +29,5 @@ export const GanttChartDef = createComponentDefinition({
     totalUnits: z.number().default(20).meta({
       description: "Total number of time units on the x-axis",
     }),
-    unitLabel: z.string().default("Day").meta({
-      description: "Label for units (e.g. 'Day', 'Week', 'Sprint')",
-    }),
   }),
 });

@@ -63,19 +63,19 @@ export const BannerImpl = createComponentImplementation({
         )}
         data-key={generatedKey}
       >
-        <IconComp className={cn("h-5 w-5 shrink-0", config.text)} />
+        <IconComp className={cn("size-5 shrink-0", config.text)} />
         <div className={cn("flex-1 text-sm", config.text)}>{children}</div>
         {dismissible && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 shrink-0"
+            className="size-6 shrink-0"
             onClick={() => {
               setVisible(false);
               onDismiss?.({});
             }}
           >
-            <X className="h-4 w-4" />
+            <X className="size-4" />
           </Button>
         )}
       </div>

@@ -158,10 +158,10 @@ export const FilterBuilderImpl = createComponentImplementation({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0"
+                className="size-9 shrink-0"
                 onClick={() => removeFilter(i)}
               >
-                <X className="h-4 w-4" />
+                <X className="size-4" />
               </Button>
             </div>
           );
@@ -169,7 +169,7 @@ export const FilterBuilderImpl = createComponentImplementation({
 
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={addFilter}>
-            <Plus className="mr-1 h-3.5 w-3.5" />
+            <Plus className="mr-1 size-3.5" />
             Add Filter
           </Button>
           <Button size="sm" onClick={() => onApply?.({ filters })}>

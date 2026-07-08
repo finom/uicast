@@ -17,7 +17,7 @@ export const ColorPickerImpl = createComponentImplementation({
           value={value}
           disabled={disabled}
           onChange={(e) => onChange?.({ value: e.target.value })}
-          className="h-9 w-9 cursor-pointer rounded-md border border-input p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+          className="size-9 cursor-pointer rounded-md border border-input p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Input
           type="text"

@@ -44,7 +44,7 @@ function TreeNodeComponent({
     const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
       iconName
     ];
-    return Icon ? <Icon className="h-4 w-4 shrink-0" /> : null;
+    return Icon ? <Icon className="size-4 shrink-0" /> : null;
   };
 
   if (!hasChildren) {
@@ -78,13 +78,13 @@ function TreeNodeComponent({
           <Button
             variant="ghost"
             size="icon"
-            className="h-5 w-5 p-0"
+            className="size-5 p-0"
             onClick={(e) => e.stopPropagation()}
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="size-4" />
             ) : (
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="size-4" />
             )}
           </Button>
         </CollapsibleTrigger>

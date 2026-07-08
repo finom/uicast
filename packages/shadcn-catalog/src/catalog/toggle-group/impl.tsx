@@ -21,7 +21,7 @@ export const ToggleGroupImpl = createComponentImplementation({
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
         iconName
       ];
-      return Icon ? <Icon className="h-4 w-4" /> : null;
+      return Icon ? <Icon className="size-4" /> : null;
     };
 
     return (

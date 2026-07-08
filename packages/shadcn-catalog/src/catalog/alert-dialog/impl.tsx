@@ -23,7 +23,9 @@ export const AlertDialogImpl = createComponentImplementation({
   }) => {
     return (
       <Dialog open={open} data-key={generatedKey}>
-        <DialogContent>
+        {/* Acknowledge-only dialog: the action button is the sole way out, so
+            hide the close X (there is no onOpenChange to wire it to). */}
+        <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             {description && (

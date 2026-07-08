@@ -1,8 +1,11 @@
+import { QRCodeSVG } from "qrcode.react";
 import { createComponentImplementation } from "@ui-fired/react";
 import { Card, CardContent } from "../../components/ui/card";
 import { QRCodeDef } from "./def";
 
-// Simple QR renderer via a third-party image service; swap in `qrcode.react` for real use.
+// Rendered locally via qrcode.react — the encoded value never leaves the page
+// (the previous implementation hot-linked a third-party image service, which
+// shipped the value to it in the URL and broke offline).
 export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({
@@ -11,25 +14,21 @@ export const QRCodeImpl = createComponentImplementation({
     bgColor = "#ffffff",
     fgColor = "#000000",
     generatedKey,
-  }) => {
-    const encodedValue = encodeURIComponent(value);
-    const src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedValue}&bgcolor=${bgColor.replace("#", "")}&color=${fgColor.replace("#", "")}`;
-
-    return (
-      <Card
-        className="inline-flex items-center justify-center p-4"
-        data-key={generatedKey}
-      >
-        <CardContent className="p-0">
-          <img
-            src={src}
-            alt={`QR Code: ${value}`}
-            width={size}
-            height={size}
-            className="rounded"
-          />
-        </CardContent>
-      </Card>
-    );
-  },
+  }) => (
+    <Card
+      className="inline-flex items-center justify-center p-4"
+      data-key={generatedKey}
+    >
+      <CardContent className="p-0">
+        <QRCodeSVG
+          value={value}
+          size={size}
+          bgColor={bgColor}
+          fgColor={fgColor}
+          title={`QR code: ${value}`}
+          className="rounded-sm"
+        />
+      </CardContent>
+    </Card>
+  ),
 });

@@ -46,9 +46,9 @@ export const FormSectionImpl = createComponentImplementation({
             <CardHeader className="cursor-pointer select-none">
               <div className="flex items-center gap-2">
                 {open ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  <ChevronDown className="size-4 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  <ChevronRight className="size-4 text-muted-foreground" />
                 )}
                 <div>
                   <CardTitle>{title}</CardTitle>
