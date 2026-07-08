@@ -1,4 +1,4 @@
-import { ComponentEntry, isComponentListEntry } from "../types";
+import { type ComponentEntry, isComponentListEntry } from "../types";
 import { getScopeReads } from "./evaluate";
 
 // Entries are immutable, so cached reads never go stale; WeakMap so a dropped

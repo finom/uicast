@@ -29,10 +29,10 @@ Stream elements in order: emit the root element first, then its children depth-f
 
 - The output is a flat sequence of element objects — never nested inside each other.
 - Exactly one element must be the root: exactly one element's `key` must NOT appear in any other element's `children` array. Every other element must be referenced as a child exactly once.
-- Parent elements reference children by `id` strings in their `children` array. Children are never inlined as objects — always referenced by id.
+- Parent elements reference children by `key` strings in their `children` array. Children are never inlined as objects — always referenced by key.
 - The `children` array defines rendering order: children are rendered in the order they appear in the array.
 - An element without `children` is a leaf node.
-- Every `id` referenced in any `children` array must exist as an element in the output.
+- Every `key` referenced in any `children` array must exist as an element in the output.
 
 ## 2. Props
 
@@ -146,11 +146,13 @@ Stream elements in order: emit the root element first, then its children depth-f
 ## 11. Partial Replacement (Correcting Mistakes)
 
 - If you realize a previously emitted element or subtree has a bug, you do NOT need to re-emit the entire tree from the root.
-- Instead, re-emit an element using the **same `id`** as the element you want to fix. When a duplicate `id` appears, the old element and its old subtree are automatically replaced by the new one.
-- After the re-emitted element, emit its new children (and their descendants) as usual.
+- Instead, re-emit an element using the **same `key`** as the element you want to fix. When a duplicate `key` appears, the old element and its old subtree are automatically replaced by the new one. This works no matter when the duplicate appears — later in the same output, or in a later turn appended to the same document (e.g. when the user requests changes).
+- This also recovers from invalid expressions. If you notice an expression you already emitted breaks the expression rules (e.g. references `document`, `window`, or another unavailable global; calls a function that doesn't exist; or is syntactically malformed), re-emit that element with the corrected expression. The broken element shows an inline error until the corrected line arrives, then renders normally — the rest of the UI is unaffected.
+- Correct a mistake with at most one re-emission, and only when you are sure the replacement fixes the problem. Do not re-emit the same key repeatedly as trial-and-error: repeated replacements make the stream longer and the UI flicker. Getting it right the first time is always better — treat correction-by-re-emission as a last resort. (This does not limit deliberate edits: a later change request may re-emit the same key again.)
+- After the re-emitted element, emit its new children (and their descendants) as usual. To correct only the element itself (props, expressions), keep the `children` array identical — the existing children are reused without re-emitting them.
 - The new element's `children` array defines the new subtree structure. Old children that ARE referenced by the new `children` array are kept as-is, with their own subtrees — reference them without re-emitting them. Any old children not referenced are discarded.
 - State initialized by ancestor elements (above the replaced subtree) is preserved. Only the replaced subtree re-renders.
-- `seed` on the re-emitted element do NOT re-run (state is preserved). If you need to re-initialize state, update it via a sibling element's `seed` or restructure accordingly.
+- `seed` on the re-emitted element does NOT re-run if it already ran successfully (state is preserved). If you need to re-initialize state, update it via a sibling element's `seed` or restructure accordingly. Exception: a `seed` that FAILED (bad expression, rejected function call) never ran, so the corrected element's `seed` runs normally.
 - You can re-emit any element in the tree — not just leaf nodes. Re-emitting a parent lets you restructure its subtree: keep children by reference, add new ones, or drop old ones.
 - Example — appending a new child to an existing parent (existing children kept by reference):
   ```

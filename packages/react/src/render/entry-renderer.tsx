@@ -1,10 +1,10 @@
 "use client";
-import React, { memo, Suspense, use, type ReactNode } from "react";
-import { isComponentListEntry, evaluate } from "@ui-fired/core";
+import React, { memo, Suspense, use, useEffect, type ReactNode } from "react";
+import { EntryError, isComponentListEntry, evaluate } from "@ui-fired/core";
 import { useRendererRegistry } from "../store/renderer-registry";
-import { DefaultErrorComponent, ErrorBoundary } from "../providers/error-boundary";
+import { ErrorBoundary } from "../providers/error-boundary";
 import { useElement } from "../store/elements-store";
-import type { InitFn, Scopes, UnknownComponentProps } from "../types";
+import type { InitFn, Scopes } from "../types";
 import { useReactiveDeps } from "./use-reactive-deps";
 import { useSeedDefaults } from "./use-seed-defaults";
 import { useItemScopes } from "./use-item-scopes";
@@ -12,14 +12,6 @@ import { useItemScopes } from "./use-item-scopes";
 type PlaceholderComponent = () => React.ReactElement | null;
 
 const NullPlaceholder: PlaceholderComponent = () => null;
-
-// Default for the `unknown` slot: a bare inline-styled div (shadcn version in
-// @ui-fired/shadcn-catalog as `UnknownComponent`).
-const DefaultUnknown = ({ componentName, elementKey }: UnknownComponentProps) => (
-  <div style={{ color: "yellow" }} data-key={elementKey}>
-    Unknown component: {componentName}
-  </div>
-);
 
 function SuspendUntil({
   promise,
@@ -30,6 +22,13 @@ function SuspendUntil({
 }): React.ReactElement {
   use(promise);
   return <>{children}</>;
+}
+
+// Rethrows a seed failure during render, inside the element's own error
+// boundary — the deterministic route to the `error` slot (a rejected Suspense
+// promise doesn't reliably reach a boundary through `use()`).
+function ThrowError({ error }: { error: Error }): never {
+  throw error;
 }
 
 type EntryRendererProps = {
@@ -55,7 +54,7 @@ const EntryRendererInner = ({
 }: EntryRendererProps): React.ReactElement => {
   // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
-  const { implementations, defaultComponents, functions, allowedGlobals } =
+  const { implementations, defaultComponents, functions, allowedGlobals, onError } =
     useRendererRegistry();
 
   // A list entry reached as a child slot iterates its items; reached per-item
@@ -65,17 +64,21 @@ const EntryRendererInner = ({
   const implEntry = element ? implementations[element.component] : undefined;
   const Component = implEntry?.render;
   // Whether this pass renders the real component (vs. placeholder / list / unknown).
-  // Gates the one-shot seed+init seeding.
   const willRender = !!element && !isListContainer && !!Component;
+  // One-shot seed+init runs on the element's OWN pass: the container pass for a
+  // list (per the contract, `each` state may be initialized by a seed on the
+  // list element itself), the normal pass otherwise. Never per item — that
+  // would run an element's seed once per row.
+  const seedEnabled = !asListItem && (isListContainer || willRender);
 
   useReactiveDeps(element, scopes, isListContainer);
-  const pending = useSeedDefaults({
+  const { pending, error: seedError } = useSeedDefaults({
     element,
     scopes,
     init,
     functions,
     allowedGlobals,
-    enabled: willRender,
+    enabled: seedEnabled,
   });
 
   // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
@@ -86,12 +89,55 @@ const EntryRendererInner = ({
   }
 
   if (isListContainer) {
-    return <ListEntryRenderer elementKey={elementKey} scopes={scopes} />;
+    // ListEntryRenderer evaluates `each` in its own render — boundary here so a
+    // bad list expression latches the list slot, not the parent's subtree. An
+    // async seed on the list element gates the iteration behind Suspense, so
+    // `each` first evaluates against seeded state.
+    const ListFallback = fallback ?? defaultComponents?.placeholder ?? NullPlaceholder;
+    return (
+      <ErrorBoundary
+        errorComponent={defaultComponents?.error}
+        elementKey={elementKey}
+        resetToken={pending ?? element}
+        onError={onError}
+      >
+        {seedError ? (
+          <ThrowError error={seedError} />
+        ) : pending ? (
+          <Suspense fallback={<ListFallback />}>
+            <SuspendUntil promise={pending}>
+              <ListEntryRenderer elementKey={elementKey} scopes={scopes} />
+            </SuspendUntil>
+          </Suspense>
+        ) : (
+          <ListEntryRenderer elementKey={elementKey} scopes={scopes} />
+        )}
+      </ErrorBoundary>
+    );
   }
 
   if (!Component) {
-    const Unknown = defaultComponents?.unknown ?? DefaultUnknown;
-    return <Unknown componentName={element.component} elementKey={elementKey} />;
+    // An unknown component name is a document fault, routed through the same
+    // boundary as any other failure: it reaches the error slot and onError,
+    // and a re-emission with a real component name (fresh entry identity →
+    // reset token) recovers it like any corrected element.
+    return (
+      <ErrorBoundary
+        errorComponent={defaultComponents?.error}
+        elementKey={elementKey}
+        resetToken={element}
+        onError={onError}
+      >
+        <ThrowError
+          error={
+            new EntryError(`Unknown component: ${element.component}`, {
+              reason: "unknown-component",
+              elementKey,
+            })
+          }
+        />
+      </ErrorBoundary>
+    );
   }
 
   const Placeholder =
@@ -115,8 +161,18 @@ const EntryRendererInner = ({
   );
 
   return (
-    <ErrorBoundary errorComponent={defaultComponents?.error} elementKey={elementKey}>
-      {pending ? (
+    <ErrorBoundary
+      errorComponent={defaultComponents?.error}
+      elementKey={elementKey}
+      // While an async seed is in flight the token is the batch promise: if the
+      // fallback throws against pre-seed state, the latch clears when the seed
+      // settles (the ref nulls → token flips back to the entry object).
+      resetToken={pending ?? element}
+      onError={onError}
+    >
+      {seedError ? (
+        <ThrowError error={seedError} />
+      ) : pending ? (
         <Suspense
           fallback={
             <Component entry={element} scopes={scopes}>
@@ -141,42 +197,50 @@ const ListEntryRendererInner = ({
 }: {
   elementKey: string;
   scopes: Scopes;
-}): React.ReactElement => {
+}): React.ReactElement | null => {
   const element = useElement(elementKey);
-  const { functions, defaultComponents, allowedGlobals } = useRendererRegistry();
+  const { functions, allowedGlobals } = useRendererRegistry();
   useReactiveDeps(element, scopes);
 
   const list = element && isComponentListEntry(element) ? element : null;
-  const items = list
-    ? ((evaluate(
-        { expr: list.each },
-        { scopes },
-        { functions, allowedGlobals },
-      ) as unknown[]) ?? [])
+  const rawItems = list
+    ? evaluate({ expr: list.each }, { scopes }, { functions, allowedGlobals })
     : [];
-  const rows = useItemScopes(scopes, list, items);
-
-  if (!element) return <></>;
-
-  if (!list) {
-    // A key that mounted as a list became a non-list element — surface it
-    // through the same `error` slot as a render throw.
-    const ErrorComponent = defaultComponents?.error ?? DefaultErrorComponent;
-    return (
-      <ErrorComponent
-        error={new Error(`Element is not a list: ${elementKey}`)}
-        elementKey={elementKey}
-      />
+  if (list && rawItems != null && !Array.isArray(rawItems)) {
+    // Contract violation: `each` must yield an array. Throwing here lands in
+    // the list slot's own boundary (this component renders inside it).
+    throw new EntryError(
+      `List "each" must evaluate to an array, got ${typeof rawItems}: ${list.each}`,
+      { reason: "invalid-list", elementKey },
     );
   }
+  const items = (rawItems as unknown[] | null | undefined) ?? [];
+  const rows = useItemScopes(scopes, list, items);
 
   // Expose the per-item proxies to the parent scope as `childScopes.<as>` so
-  // list-level expressions can aggregate over items.
+  // list-level expressions can aggregate over items. Written post-commit: a
+  // render-phase `$set` would dispatch subscribed components' reducers while
+  // this component renders, which React forbids.
   const lastScope = scopes[Object.keys(scopes)[Object.keys(scopes).length - 1]];
-  lastScope.$set(
-    `childScopes.${list.as}`,
-    rows.map((row) => row.itemProxy),
-  );
+  const itemScopeName = list?.as;
+  useEffect(() => {
+    if (!itemScopeName) return;
+    lastScope.$set(
+      `childScopes.${itemScopeName}`,
+      rows.map((row) => row.itemProxy),
+    );
+  }, [lastScope, itemScopeName, rows]);
+
+  if (!element) return null;
+
+  if (!list) {
+    // A key that mounted as a list became a non-list element — throw into the
+    // list slot's boundary, same route as any other failure.
+    throw new EntryError(`Element is not a list: ${elementKey}`, {
+      reason: "invalid-list",
+      elementKey,
+    });
+  }
 
   return (
     <>

@@ -67,12 +67,12 @@ export class SaferEval {
     freeIds: string[];
   } {
     if (typeof expression !== "string") {
-      throw new SaferEvalError("Expression must be a string");
+      throw new SaferEvalError("Expression must be a string", "expression-syntax");
     }
 
     const trimmed = expression.trim();
     if (!trimmed) {
-      throw new SaferEvalError("Expression cannot be empty");
+      throw new SaferEvalError("Expression cannot be empty", "expression-syntax");
     }
 
     const cached = this.#cache.get(expression);
@@ -98,6 +98,7 @@ export class SaferEval {
     } catch (e: unknown) {
       throw new SaferEvalError(
         `Syntax error: ${e instanceof Error ? e.message : String(e)}. Expression: ${expression}`,
+        "expression-syntax",
       );
     }
 
@@ -157,6 +158,7 @@ export class SaferEval {
             `Failed to compile expression: ${
               e instanceof Error ? e.message : String(e)
             }. Expression: ${expression}`,
+            "expression-syntax",
           );
         }
         cachedSig = sig;
@@ -202,7 +204,12 @@ export class SaferEval {
     ]);
     for (const id of freeIds) {
       if (!allowed.has(id)) {
-        throw new SaferEvalError(`"${id}" is not available in expressions`);
+        // The expression named something that doesn't exist here — an
+        // unregistered function or a global outside the allowlist.
+        throw new SaferEvalError(
+          `"${id}" is not available in expressions`,
+          "unknown-reference",
+        );
       }
     }
   }

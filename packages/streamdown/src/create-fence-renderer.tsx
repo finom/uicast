@@ -1,11 +1,12 @@
 "use client";
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import type { ComponentEntry } from "@ui-fired/core";
 import { Renderer, type RendererProps } from "@ui-fired/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
+import { FENCE_LANGUAGE } from "./parse-fence-code";
 import { parseFenceCode } from "./parse-fence-code";
 
-/** The fence language token that routes a code block to the ui-fired Renderer. */
-export const FENCE_LANGUAGE = "uifired";
+export { FENCE_LANGUAGE } from "./parse-fence-code";
 
 /** Renderer props minus `entries` — the entries come from the fence content. */
 export type FenceRendererOptions = Omit<RendererProps, "entries"> & {
@@ -63,8 +64,14 @@ function toggleButtonStyle(active: boolean): CSSProperties {
  */
 export function createFenceRenderer(options: FenceRendererOptions): CustomRenderer {
   const { showSourceToggle = false, ...rendererProps } = options;
-  function FenceBlock({ code }: CustomRendererProps) {
-    const entries = useMemo(() => parseFenceCode(code), [code]);
+  function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
+    // Per-block parse cache: the engine keys on entry object identity (store
+    // wake-ups, failed-seed retry gating, error-boundary reset), so unchanged
+    // lines must yield the same objects across streaming re-parses.
+    const cacheRef = useRef<Map<string, ComponentEntry> | null>(null);
+    if (!cacheRef.current) cacheRef.current = new Map();
+    const cache = cacheRef.current;
+    const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
     const [view, setView] = useState<"rendered" | "source">("rendered");
     // Seeds and tool calls must never run during SSR (tools fetch with
     // browser-relative URLs) — mount the Renderer client-side only.
@@ -72,6 +79,12 @@ export function createFenceRenderer(options: FenceRendererOptions): CustomRender
     useEffect(() => setMounted(true), []);
     const rendered = mounted ? <Renderer {...rendererProps} entries={entries} /> : null;
     if (!showSourceToggle) return <div style={blockStyle}>{rendered}</div>;
+    // A just-opened fence that hasn't produced a complete entry yet would show
+    // a toggle row above nothing — wait for content (or for the fence to
+    // finish, so garbage-only fences still get the Source view).
+    if (entries.length === 0 && isIncomplete) {
+      return <div style={blockStyle}>{rendered}</div>;
+    }
     return (
       <div style={blockStyle}>
         <div style={toggleRowStyle}>

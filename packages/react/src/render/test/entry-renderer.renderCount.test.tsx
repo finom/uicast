@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import React, { StrictMode } from "react";
+import { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@ui-fired/core";

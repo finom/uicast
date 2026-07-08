@@ -23,6 +23,7 @@ describe("SaferEval — allowed expressions", () => {
   it("supports ternary, spread, and template literals", () => {
     expect(evalr.eval("flag ? 'on' : 'off'", { flag: true })).toBe("on");
     expect(evalr.eval("[...a, 4]", { a: [1, 2, 3] })).toEqual([1, 2, 3, 4]);
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the ${} lives inside a template literal fed to the sandbox — that is the case under test
     expect(evalr.eval("`hi ${name}`", { name: "Ada" })).toBe("hi Ada");
   });
 

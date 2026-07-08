@@ -1,6 +1,7 @@
 import { Activity, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import {
+  EntryError,
   parseScope,
   evaluate,
   type ComponentEntry,
@@ -47,7 +48,7 @@ export const createComponentImplementation = <
   }) => {
     const { entry, children } = myprops;
     const confirm = useConfirm();
-    const { functions, allowedGlobals } = useRendererRegistry();
+    const { functions, allowedGlobals, onError } = useRendererRegistry();
     const props: StandardSchemaV1.InferOutput<TProps> = entry.props
       ? (evaluate(
           entry.props,
@@ -67,24 +68,46 @@ export const createComponentImplementation = <
       Object.keys(entryCallbacks).map((key) => [
         key,
         async (evt: unknown) => {
-          for (const setExpr of entryCallbacks[key]) {
-            if (setExpr.confirm) {
-              const confirmed = await confirm(setExpr.confirm);
-              if (!confirmed) return;
+          try {
+            for (const setExpr of entryCallbacks[key]) {
+              if (setExpr.confirm) {
+                const confirmed = await confirm(setExpr.confirm);
+                if (!confirmed) return;
+              }
+              let target: [string, string] | null = null;
+              if (setExpr.set) {
+                try {
+                  target = parseScope(setExpr.set);
+                } catch (err) {
+                  // A `set:` path that doesn't parse names something that
+                  // doesn't exist — document fault.
+                  throw EntryError.wrap(err, "unknown-reference", entry.key);
+                }
+              }
+              const currentValue = target
+                ? readScopePath(myprops.scopes[target[0]], target[1])
+                : undefined;
+              const result = await evaluate(
+                setExpr,
+                { evt, scopes: myprops.scopes, currentValue },
+                { functions, allowedGlobals },
+              );
+              if (target) {
+                myprops.scopes[target[0]].$set(target[1], result);
+              }
+              await new Promise((resolve) => setTimeout(resolve, 0));
             }
-            const target = setExpr.set ? parseScope(setExpr.set) : null;
-            const currentValue = target
-              ? readScopePath(myprops.scopes[target[0]], target[1])
-              : undefined;
-            const result = await evaluate(
-              setExpr,
-              { evt, scopes: myprops.scopes, currentValue },
-              { functions, allowedGlobals },
+          } catch (err) {
+            // A callback failure (bad expression, rejecting host function)
+            // must not vanish as an unhandled rejection. Steps after the
+            // failed one are skipped; state already written stays. Callbacks
+            // don't render, so there's no error slot — onError is the channel.
+            const entryError = EntryError.wrap(err, "unknown", entry.key);
+            onError?.(entryError);
+            console.error(
+              `[ui-fired] callback "${key}" on element "${entry.key}" failed:`,
+              entryError,
             );
-            if (target) {
-              myprops.scopes[target[0]].$set(target[1], result);
-            }
-            await new Promise((resolve) => setTimeout(resolve, 0));
           }
         },
       ]),
@@ -93,12 +116,31 @@ export const createComponentImplementation = <
     const hasReactChildren = Array.isArray(children)
       ? children.length > 0
       : Boolean(children);
-    const result = render({
-      ...(props as object),
-      ...(hasReactChildren ? { children } : {}),
-      ...callbacks,
-      generatedKey: entry.key,
-    });
+    let result: React.ReactElement;
+    try {
+      result = render({
+        ...(props as object),
+        ...(hasReactChildren ? { children } : {}),
+        ...callbacks,
+        generatedKey: entry.key,
+      });
+    } catch (err) {
+      if (EntryError.is(err)) throw err;
+      // The render threw — decide whose fault, on the error path only: props
+      // that FAIL the def's schema mean the document sent a forbidden shape;
+      // props that pass mean the implementation broke on legal input. (An
+      // async validator can't answer here — file it as implementation.)
+      let reason: "invalid-props" | "implementation" = "implementation";
+      try {
+        const validation = def.props["~standard"].validate(props);
+        if (!(validation instanceof Promise) && validation.issues) {
+          reason = "invalid-props";
+        }
+      } catch {
+        // A validator that itself throws can't testify either way.
+      }
+      throw EntryError.wrap(err, reason, entry.key);
+    }
 
     if (entry.hidden) {
       return <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity>;

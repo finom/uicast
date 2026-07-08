@@ -13,7 +13,7 @@ import { defaultImplementationsList } from "../../../test/render-helpers";
 //
 // These tests pin the contract: writes via the reactive Proxy land before
 // children mount (sync), Suspense gates children on async init Promises,
-// and the streaming-seed one-shot invariant (`hasBeenRenderedRef`)
+// and the streaming-seed one-shot invariant (per-entry seed attempts)
 // carries over so init does NOT re-fire when new entries stream in.
 
 describe("Renderer — init prop", () => {

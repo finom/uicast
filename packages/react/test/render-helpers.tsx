@@ -1,4 +1,4 @@
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
 import type { StandardToolV0Definition } from "standard-tool";
@@ -7,6 +7,7 @@ import {
   createProxyScope,
   buildElementsById,
   type ComponentEntry,
+  type EntryError,
   type ReactiveProxy,
 } from "@ui-fired/core";
 import {
@@ -105,6 +106,7 @@ type MountOptions = {
   implementations?: Record<string, ComponentImplementation>;
   functions?: StandardToolV0Definition[];
   defaultComponents?: DefaultComponents;
+  onError?: (error: EntryError) => void;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
 };
@@ -138,6 +140,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
           implementations: options.implementations ?? defaultImplementations,
           defaultComponents: options.defaultComponents,
           functions: options.functions,
+          onError: options.onError,
         }}
       >
         <EntryRenderer elementKey={rootKey} scopes={scopes} />
@@ -147,5 +150,13 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
 
   const wrapped = options.wrapper ? options.wrapper(inner) : inner;
   const result = render(wrapped);
-  return { ...result, scopes };
+
+  // Stream more lines into the mounted tree. A re-emitted key replaces its
+  // element (partial replacement), exactly like a live JSONL stream would.
+  const emit = (...more: ComponentEntry[]) => {
+    lines = [...lines, ...more];
+    act(() => store.setMap(buildElementsById(lines)));
+  };
+
+  return { ...result, scopes, store, emit };
 }

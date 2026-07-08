@@ -14,6 +14,11 @@ export {
 	getEditRequestPrompt,
 } from "./get-edit-request-prompt";
 export {
+	type ErrorRecoveryPromptOptions,
+	getErrorRecoveryPrompt,
+	type RenderFailure,
+} from "./get-error-recovery-prompt";
+export {
 	type ExpressionsPromptOptions,
 	getExpressionsPartialPrompt,
 } from "./get-expressions-partial-prompt";

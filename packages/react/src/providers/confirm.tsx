@@ -17,7 +17,9 @@ export type ConfirmFn = (message: string) => Promise<boolean>;
 
 const windowConfirm: ConfirmFn = (message) =>
   Promise.resolve(
-    typeof window !== "undefined" ? window.confirm(message) : true,
+    // No window means no way to ask — refuse, don't auto-confirm: `confirm`
+    // guards destructive callback steps.
+    typeof window !== "undefined" ? window.confirm(message) : false,
   );
 
 const ConfirmContext = createContext<ConfirmFn>(windowConfirm);

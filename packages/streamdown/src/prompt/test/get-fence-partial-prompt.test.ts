@@ -15,4 +15,14 @@ describe("getFencePartialPrompt", () => {
 	it("forbids other fence languages for entries", () => {
 		expect(getFencePartialPrompt()).toContain("any other fence language");
 	});
+
+	it("explicitly supersedes the core raw-JSONL output rule", () => {
+		expect(getFencePartialPrompt()).toContain("REPLACES the raw-JSONL output rule");
+	});
+
+	it("teaches that cross-reply corrections need a complete new fence", () => {
+		const out = getFencePartialPrompt();
+		expect(out).toContain("only works WITHIN one fence");
+		expect(out).toContain("complete corrected UI");
+	});
 });

@@ -1,11 +1,13 @@
 export type {
   ComponentImplementation,
   ConfirmComponentProps,
-  UnknownComponentProps,
   ErrorComponentProps,
   RendererProps,
   RendererConfig,
   DefaultComponents,
+  InitContext,
+  InitFn,
+  Scopes,
 } from "./types";
 
 export { createComponentImplementation } from "./impl/create-component-implementation";

@@ -6,10 +6,24 @@ import { isNode } from "./ast-utils";
 // Guardrail, NOT a sandbox: a computed key (`obj["con"+"structor"]`) escapes it.
 // Full threat model: the Expressions docs page, § Safety.
 
+// Which EntryError reason an evaluation failure maps to. Defaults to
+// "sandbox-violation" (every policy rejection in this file); the parse and
+// allowlist sites in safer-eval.ts override it.
+export type SaferEvalErrorReason =
+  | "expression-syntax"
+  | "sandbox-violation"
+  | "unknown-reference";
+
 export class SaferEvalError extends Error {
-  constructor(message: string) {
+  readonly reason: SaferEvalErrorReason;
+
+  constructor(
+    message: string,
+    reason: SaferEvalErrorReason = "sandbox-violation",
+  ) {
     super(message);
     this.name = "SaferEvalError";
+    this.reason = reason;
   }
 }
 

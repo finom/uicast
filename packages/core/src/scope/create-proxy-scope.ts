@@ -28,7 +28,9 @@ function createEmitter(): Emitter {
     },
 
     emit(type, payload) {
-      events.get(type)?.forEach((fn) => fn(payload));
+      events.get(type)?.forEach((fn) => {
+        fn(payload);
+      });
     },
   };
 }

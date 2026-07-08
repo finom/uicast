@@ -3,6 +3,7 @@ import type {
   CombinedSpec,
   ComponentDefinition,
   ComponentEntry,
+  EntryError,
   ReactiveProxy,
 } from "@ui-fired/core";
 import type { StandardToolV0Definition } from "standard-tool";
@@ -32,28 +33,24 @@ export type ConfirmComponentProps = {
   onCancel: () => void;
 };
 
-// The `unknown` slot: the element's `component` name had no catalog match.
-export type UnknownComponentProps = {
-  componentName: string;
-  elementKey: string;
-};
-
-// The `error` slot. `elementKey` is set when the engine renders the slot for a
-// specific element; a standalone <ErrorBoundary> leaves it unset.
+// The `error` slot. Every failure arrives as a classified EntryError — switch
+// on `error.reason` (or the coarse `error.fault`) to show case-specific UI; an
+// unknown component name lands here too, as `reason: "unknown-component"`.
+// `elementKey` is set when the engine renders the slot for a specific element;
+// a standalone <ErrorBoundary> leaves it unset.
 export type ErrorComponentProps = {
-  error: Error;
+  error: EntryError;
   elementKey?: string;
 };
 
 // The engine's own fallback UI, shared via
 // `<RendererConfigProvider defaultComponents={...}>` — distinct from the catalog
 // `implementations`. `confirm` omitted falls back to `window.confirm`; the
-// `unknown`/`error` defaults are bare inline-styled divs (shadcn versions in
+// `error` default is a bare inline-styled div (shadcn version in
 // @ui-fired/shadcn-catalog).
 export type DefaultComponents = {
   placeholder?: () => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
-  unknown?: (props: UnknownComponentProps) => ReactElement | null;
   error?: (props: ErrorComponentProps) => ReactElement | null;
 };
 
@@ -64,6 +61,9 @@ export type RendererRegistry = {
   functions?: StandardToolV0Definition[];
   // Extra globals expressions may reference, from the RendererConfigProvider.
   allowedGlobals?: string[];
+  // Reported for every classified failure (boundary catches and callback
+  // failures alike) — the Renderer's `onError` prop.
+  onError?: (error: EntryError) => void;
 };
 
 // The reactive scopes threaded through the render tree: `root` plus one entry
@@ -84,8 +84,8 @@ export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 // Shared configuration for every <Renderer> beneath a <RendererConfigProvider>.
 export type RendererConfig = {
   /**
-   * The engine's own fallback UI — placeholder, confirm, unknown, and error
-   * slots (see `DefaultComponents`). Omitted slots use the built-in defaults.
+   * The engine's own fallback UI — placeholder, confirm, and error slots (see
+   * `DefaultComponents`). Omitted slots use the built-in defaults.
    */
   defaultComponents?: DefaultComponents;
   /**
@@ -117,6 +117,13 @@ export type RendererProps = {
    * `scopes.root.*`; a returned Promise suspends children until it resolves.
    */
   init?: InitFn;
+  /**
+   * Called once per classified failure, with the same EntryError the error slot
+   * receives. Branch on `error.fault`: `"document"` means the model's output is
+   * at fault (a recovery re-emission can fix it), `"environment"` means host
+   * code failed (retry or surface it — the model can't fix your server).
+   */
+  onError?: (error: EntryError) => void;
 };
 
 // The render tree's structural store: each node subscribes to its own key, so

@@ -27,6 +27,7 @@ export const Renderer = memo(function Renderer({
   entries,
   functions,
   init,
+  onError,
 }: RendererProps) {
   const { defaultComponents, allowedGlobals } = useRendererConfig();
   const rootRef = useRef<ReactiveProxy | null>(null);
@@ -55,11 +56,12 @@ export const Renderer = memo(function Renderer({
       defaultComponents,
       functions,
       allowedGlobals,
+      onError,
     }),
-    [implementationsByName, defaultComponents, functions, allowedGlobals],
+    [implementationsByName, defaultComponents, functions, allowedGlobals, onError],
   );
 
-  const elementsById = buildElementsById(entries);
+  const elementsById = useMemo(() => buildElementsById(entries), [entries]);
 
   // An entry is a root iff nothing references its key as a child.
   const childKeys = new Set<string>();
@@ -76,15 +78,30 @@ export const Renderer = memo(function Renderer({
 
   // Always wrap roots in a synthetic RootFragment, so topology is consistent and
   // `init` has one mount point. It renders children directly, so it's invisible.
-  const syntheticRootFragment: ComponentEntry = {
-    key: ROOT_FRAGMENT_KEY,
-    component: "RootFragment",
-    children: rootKeys,
-  };
-  const elementsWithRootFragment = {
-    ...elementsById,
-    [ROOT_FRAGMENT_KEY]: syntheticRootFragment,
-  };
+  // Its OBJECT IDENTITY must be stable while the root set is unchanged: the seed
+  // hook pins one `init` attempt per entry object (a fresh object per render
+  // would retry a failed `init` on every stream tick), and the store notifies
+  // (and the root boundary resets) on identity change.
+  const rootKeysSignature = JSON.stringify(rootKeys);
+  // Closes over the current rootKeys but is keyed by content, so the object
+  // survives renders where the root set is unchanged.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: content-keyed on rootKeysSignature by design — see above
+  const syntheticRootFragment: ComponentEntry = useMemo(
+    () => ({
+      key: ROOT_FRAGMENT_KEY,
+      component: "RootFragment",
+      children: rootKeys,
+    }),
+    // content-keyed: rootKeys is rebuilt per render, the signature is stable
+    [rootKeysSignature],
+  );
+  const elementsWithRootFragment = useMemo(
+    () => ({
+      ...elementsById,
+      [ROOT_FRAGMENT_KEY]: syntheticRootFragment,
+    }),
+    [elementsById, syntheticRootFragment],
+  );
 
   // The store lives across renders; refresh it after commit so swapping the map
   // wakes only the keys that changed, not settled nodes.

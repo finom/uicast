@@ -71,7 +71,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 // a growing `lines` array. Every already-mounted entry's `seed` must run
 // exactly once — even as later entries arrive — or stream-time UIs would
 // silently re-seed scopes and clobber user-set state. The invariant is held by
-// `hasBeenRenderedRef` inside EntryRenderer combined with stable React
+// the per-entry seed attempt (`attemptRef` in useSeedDefaults) with stable React
 // keys per entry; these tests pin that contract against accidental refactors
 // (e.g. dropping the ref, swapping the keying strategy, or remounting on
 // elements-prop identity change).
@@ -113,7 +113,7 @@ describe("EntryRenderer — streaming + seed", () => {
 		rerender(<Renderer implementations={defaultImplementationsList} entries={next} functions={functions} />);
 
 		// A's seed still ran exactly once. The new sibling entry didn't
-		// remount A — React reconciled by stable `key`, `hasBeenRenderedRef`
+		// remount A — React reconciled by stable `key`, the seed attempt record
 		// survived, and the seed block was skipped on the re-render.
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");

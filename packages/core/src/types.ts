@@ -72,6 +72,22 @@ export function isComponentListEntry(
 }
 
 /**
+ * Narrow an untrusted parsed value to a `ComponentEntry` — the shape guard for
+ * model-emitted lines (`streamJsonLines` output, fence bodies, stored JSONL).
+ */
+export function isComponentEntry(value: unknown): value is ComponentEntry {
+  if (!value || typeof value !== "object") return false;
+  const entry = value as ComponentEntry;
+  return (
+    typeof entry.key === "string" &&
+    typeof entry.component === "string" &&
+    // The least-trusted input path: `children` as a string (a plausible LLM
+    // slip) would be iterated char-by-char downstream into phantom child slots.
+    (entry.children === undefined || Array.isArray(entry.children))
+  );
+}
+
+/**
  * An interface that combines StandardJSONSchema and StandardSchema.
  * */
 export type CombinedSpec<Input = unknown, Output = Input> = StandardSchemaV1<Input, Output> &

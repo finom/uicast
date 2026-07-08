@@ -26,7 +26,7 @@ export const parseScope = (key: string, prefix = "scopes") => {
 
   const dotIndex = normalizedKey.indexOf(".");
   if (dotIndex === -1) {
-    throw new Error("Invalid scope key: " + key);
+    throw new Error(`Invalid scope key: ${key}`);
   } else {
     return [
       normalizedKey.slice(0, dotIndex),
