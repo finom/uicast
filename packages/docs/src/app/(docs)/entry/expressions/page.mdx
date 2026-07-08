@@ -136,6 +136,12 @@ top-level statements (an expression must be a single expression), dynamic
 escapes (`constructor`, `__proto__`); the dangerous capability globals are bound
 to `undefined` on top of that, as defence in depth.
 
+A rejection at either gate is a classified
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror) —
+`expression-syntax`, `sandbox-violation`, or `unknown-reference`, all
+**document** faults — contained to the element's error slot like any other
+failure.
+
 Widen the allow-list with extra benign globals through the config provider —
 one `<RendererConfigProvider>` configures every `<Renderer>` beneath it:
 

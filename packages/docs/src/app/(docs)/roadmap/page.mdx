@@ -2,13 +2,31 @@
 
 Where ui-fired is headed.
 
+## Error recovery
+
+All three [error recovery](/error-recovery) mechanisms are in place:
+**self-correction** (the model re-emits a `key` with fixed content, taught by
+the prompt as a last resort), **user-triggered recovery** (a Recover button in
+the host's error slot reports the failure via `getErrorRecoveryPrompt`), and
+**self-healing** — the host wires the `Renderer`'s `onError` into that same
+recovery turn automatically. The classification that makes the loop safe is
+built in: every failure is an
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror)
+(`fault: document / environment / unknown`, tagged at the throw site), so the
+host feeds back only what a re-emission can fix. The loop and its retry
+budget are deliberately host code — like the Recover button, only the host
+knows how to reach its model. *All three mechanisms: shipped.*
+
 ## Prompt-driven partial replacement
 
-The runtime already supports [partial replacement](/entry/fields#key) — re-emit a
-line with an existing `key` and the engine swaps that subtree in place. The only
-missing piece is the prompt side: a generator function (or an option on the
-existing prompt builder) that asks the model for a targeted re-emit, plus an
-example. *Runtime: supported · prompt tooling: not started.*
+Both halves are in place. The runtime supports
+[partial replacement](/entry/fields#key) — re-emit a line with an existing `key`
+and the engine swaps that subtree in place — and the prompt side ships as
+[`getEditRequestPrompt`](/prompt#edit-and-recovery-turns): the host replays the
+document as an assistant turn, sends the change request as the next user turn,
+and the model re-emits only the elements that change (`missingKeys` covers the
+tail of a truncated generation). The demo app's edit flow runs on it.
+*Runtime: shipped · prompt tooling: shipped.*
 
 ## Reactive `loading` placeholders
 

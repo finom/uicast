@@ -1,0 +1,212 @@
+# Error recovery
+
+Generation is probabilistic: even a strong model occasionally emits an element
+with a broken expression — a prohibited global like `document`, a call to a
+function that doesn't exist, a reference to state nothing ever set. The
+framework's answer has two layers. First, **containment**: a failure is boxed
+into the element that carries it, so one bad line never takes down the page.
+Then, **recovery**: three mechanisms for getting a corrected element in place —
+all of them landing through the same door,
+[partial replacement](/entry/fields#key). Re-emitting a `key` replaces that
+element, resets its error state, and gives it a fresh render attempt. The
+mechanisms differ only in *who notices the failure and who asks for the fix*.
+
+## Containment: the error slot
+
+Every element renders inside its own error boundary. When evaluating its
+props, `hidden`, `each`, or `seed` throws — or the component implementation
+itself throws — only that element is replaced by the `error` slot (the
+`defaultComponents.error` component on
+[`RendererConfigProvider`](/react/renderer)); parents and siblings keep
+working. A bad `each` latches the list slot, not the parent. A failed `seed`
+is contained the same way — the rest of the document keeps rendering — and a
+corrected re-emit retries it safely: seed writes are first-writer-wins
+[defaults](/entry/state#lifecycle), so the retry fills only paths still unset,
+never clobbering state written since (successful seeds, by contrast, never
+re-run on re-emission).
+
+Containment is not recovery — the error slot is a placeholder for a fix, and
+there are three ways to produce one. But every fix starts with the same
+question: whose mistake was this?
+
+## Classification: EntryError and onError
+
+Recovery only makes sense when the *model* made the mistake — asking it to
+re-emit an element because your server returned a 500 fixes nothing. So every
+failure the engine surfaces is a classified **`EntryError`** (exported from
+`@ui-fired/core`), tagged at the throw site by **provenance** — whose code
+raised it — never by inspecting messages:
+
+```ts
+class EntryError extends Error {
+  reason: EntryErrorReason; // the specific verdict — see the table
+  fault: "document" | "environment" | "unknown"; // derived from reason
+  elementKey?: string; // the element the failure belongs to
+  cause?: unknown; // the original error
+}
+```
+
+| `reason` | Meaning | `fault` |
+|---|---|---|
+| `expression-syntax` | the expression doesn't parse | `document` |
+| `sandbox-violation` | the expression uses blocked syntax or APIs | `document` |
+| `unknown-reference` | an unregistered function, global, or scope path | `document` |
+| `unknown-component` | the `component` name has no implementation | `document` |
+| `invalid-list` | `each` didn't evaluate to an array | `document` |
+| `invalid-props` | the render threw and the props **fail** the def's schema | `document` |
+| `invalid-arguments` | a host function rejected the document's arguments | `document` |
+| `host-function` | a host function threw or rejected while executing | `environment` |
+| `host-init` | the host `init` callback threw or rejected | `environment` |
+| `implementation` | the render threw on props the def's schema **accepts** | `environment` |
+| `expression-runtime` | a valid expression threw at runtime (a read through `null`) | `unknown` |
+| `unknown` | escaped from an uninstrumented path | `unknown` |
+
+`fault` is the recovery verdict: `document` means the model wrote the bug and
+a corrected re-emission can fix it; `environment` means host code failed and
+re-emitting cannot help; `unknown` means provenance is genuinely ambiguous.
+
+The same object reaches both consumers: the `error` slot receives it as
+`ErrorComponentProps.error` (show case-specific UI by switching on
+`error.reason`), and the `Renderer`'s **`onError`** prop is called once per
+failure — including callback failures, which never render a slot:
+
+```tsx
+<Renderer
+  implementations={implementations}
+  entries={entries}
+  onError={(error) => {
+    if (error.fault === "document") {
+      // the model can fix this — feed it back (see self-healing below)
+    } else {
+      reportToMonitoring(error);
+    }
+  }}
+/>
+```
+
+Three notes for authors. A **host function** can throw an `EntryError`
+itself — `throw new EntryError("no such order", { reason: "invalid-arguments" })` —
+to say "the model called me wrong"; anything else escaping it files as
+`host-function`. The `invalid-props` / `implementation` split is only as
+sharp as the def's schema: a def with `z.any()` props waves any shape through
+to the render, so crashes there file as `implementation`. And
+`expression-runtime` is honestly ambiguous — the document wrote the
+expression, but the host may have fed it the value it choked on (a seed that
+loaded the wrong shape) — which is why its fault is `unknown`, not
+`document`.
+
+## 1. Self-correction
+
+The model notices its own mistake and re-emits the corrected element in the
+same output — no host involvement, no extra turn, no user action. The
+[prompt](/prompt) teaches this as part of the partial-replacement contract:
+re-emit the same `key` with the fixed content, keep unchanged children by
+reference, treat it as a last resort and correct a mistake at most once rather
+than trial-and-error. Because a replacement line is just another line, this
+works anywhere in the stream — immediately after the bad line or much later —
+and equally in a follow-up turn appended to the same document.
+
+## 2. User-triggered recovery
+
+The runtime catches errors the model never notices: the expression parsed fine
+but threw against real data, a host function rejected, the referenced state
+turned out to be a different shape. Someone has to send the failure back — in
+this mechanism, the user does, with one click.
+
+The `error` slot receives the classified failure (`error`, `elementKey`); the
+host wires a **Recover** button that reports it to the model as a new turn.
+`getErrorRecoveryPrompt` (from `@ui-fired/core/prompt`) formats that report:
+
+```ts
+import { getErrorRecoveryPrompt } from "@ui-fired/core/prompt";
+
+getErrorRecoveryPrompt({
+  failures: [{ key: "chart", message: "chartData.map is not a function" }],
+});
+```
+
+The message states each failed element and asks for a corrected re-emit under
+the same `key`, fixing the cause rather than the symptom (the real bug may be
+in the element that seeds the state). It is deliberately surface-neutral — the
+output conventions come from the surface's own prompt:
+
+- **Page surface** — send it through the same pipeline as an
+  [edit turn](/prompt#edit-and-recovery-turns): replay the document as an
+  assistant turn, pass the recovery message as the request. The model emits
+  only the corrected elements; partial replacement swaps them in and the error
+  slot unmounts on its own.
+- **Chat surface** — send it as a plain user message. Fences are isolated
+  documents, so the model replies with a corrected fence.
+
+The built-in error components (the bare default and the shadcn catalog's
+`RenderError`) only display the error — the recovery affordance is host UI,
+because only the host knows how to reach its model. Provide your own `error`
+slot that renders the message plus a Recover button:
+
+```tsx
+import type { ErrorComponentProps } from "@ui-fired/react";
+
+const defaultComponents = {
+  error: ({ error, elementKey }: ErrorComponentProps) => (
+    <div role="alert">
+      {error.message}
+      {error.fault !== "environment" && elementKey && (
+        <button
+          onClick={() =>
+            sendRecoveryTurn({ key: elementKey, message: error.message })
+          }
+        >
+          Recover
+        </button>
+      )}
+    </div>
+  ),
+};
+```
+
+where `sendRecoveryTurn` is host code: on a page it starts an edit run with
+the recovery message as the prompt, in a chat it calls the chat's
+`sendMessage`. The `fault` gate is the classification put to work: offer
+Recover only for failures a re-emission can fix — every fault but
+`environment` (an `unknown` fault is worth the one attempt). The demo app
+implements a styled version of exactly this for both of its surfaces.
+
+## 3. Self-healing
+
+The host notices the failure and asks for the fix — no human in the loop.
+This is what `onError` exists for: every classified failure reaches it,
+including callback failures that never render an error slot, and
+[`fault`](#classification-entryerror-and-onerror) says which ones a
+re-emission can actually fix. Wire `"document"` faults into the same recovery
+turn the Recover button sends, and the loop closes itself:
+
+```tsx
+<Renderer
+  implementations={implementations}
+  entries={entries}
+  onError={(error) => {
+    if (error.fault !== "document" || !error.elementKey) {
+      reportToMonitoring(error);
+      return;
+    }
+    sendRecoveryTurn({ key: error.elementKey, message: error.message });
+  }}
+/>
+```
+
+`sendRecoveryTurn` is the same host code as in
+[user-triggered recovery](#2-user-triggered-recovery) — the only difference
+is who calls it. The gate, though, is deliberately stricter than the Recover
+button's: the button offers `unknown` faults to a human's judgment, while an
+automatic loop feeds back only what is provably the model's. While the turn
+is in flight the error slot keeps showing;
+when the corrected line lands, partial replacement swaps it in and the slot
+unmounts on its own. A callback failure never had a slot — the corrected
+element simply replaces the broken one, steps fixed, ready for the next
+click.
+
+**Budget the retries.** A repair that doesn't converge must stop, not loop
+the model on a failure it can't fix: cap attempts per `elementKey` (once or
+twice), and past the cap leave the error slot's Recover button as the
+backstop — self-healing degrades into user-triggered recovery, not into a
+loop.

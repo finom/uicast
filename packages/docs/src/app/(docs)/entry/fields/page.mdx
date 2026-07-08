@@ -95,7 +95,7 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
   *computed from* other state goes inline in `props` / `hidden` / `each`, where it
   recomputes on change; a derived value in `seed` is correct at mount and stale
   forever after.
-- **All seeds on a line resolve before any is written**, so one seed can't read
+- **All seeds on a line are evaluated before any is written**, so one seed can't read
   another's result on the same line — split dependent seeds across a parent and
   its child. Mount lifecycle: [state & scopes](/entry/state#lifecycle).
 
@@ -134,7 +134,9 @@ that names the list in its `children` supplies the container (a `TableBody`
 parent holding a `TableRow` list). In TypeScript the refinement is
 `ComponentListEntry` (`each` and `as` required), narrowed from a
 `ComponentEntry` with the `isComponentListEntry()` guard — both exported from
-`@ui-fired/core`. The fields below describe the iteration; the per-item state
+`@ui-fired/core`, alongside `isComponentEntry()`, which guards the base entry
+shape itself when consuming parsed JSON of unknown shape (the streamdown fence
+parser uses it to tell entries from stray lines). The fields below describe the iteration; the per-item state
 they create lives in
 [state & scopes → item scopes](/entry/state#item-scopes).
 
@@ -165,7 +167,7 @@ in-place edits can shift rows and lose their per-item state.
 
 Re-emitting an entry whose `key` already exists **replaces that entry and its
 subtree in place** — the mechanism behind mid-stream corrections and
-[edit turns](/prompt#edit-turns). It is the format's only patch operation: there
+[edit turns](/prompt#edit-and-recovery-turns). It is the format's only patch operation: there
 is no delete or move, only re-emit.
 
 What survives the swap is decided by the new entry's `children`:

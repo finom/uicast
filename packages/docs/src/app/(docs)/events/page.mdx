@@ -90,10 +90,12 @@ The split is what makes model-authored behavior safe:
 
 - **The schema is the shared vocabulary.** The def's payload schema is compiled into
   the model's prompt *and* type-checked against the impl, so the `evt` the model
-  reads and the payload the impl sends cannot drift. The model can't read `evt.text`
-  out of a `{ value }` payload, and a developer can't quietly rename that field
-  without the model's expressions failing validation. One declaration, two consumers,
-  no glue code to keep in sync.
+  reads and the payload the impl sends are written against one declaration. The
+  prompt is why the model reads `evt.value`, not `evt.text`, out of a `{ value }`
+  payload; the impl's inferred types are why a developer can't quietly rename the
+  field it passes. The engine doesn't validate payloads at runtime — the agreement
+  is enforced where each side is authored. One declaration, two consumers, no glue
+  code to keep in sync.
 - **The impl is a dumb emitter.** It turns a React event into a payload and knows
   nothing about the reaction. The reaction lives in the entry — *data*, not code —
   which is exactly what lets a model express behavior (set this, fetch that, confirm

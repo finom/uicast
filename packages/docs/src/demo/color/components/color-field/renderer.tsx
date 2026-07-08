@@ -35,7 +35,7 @@ export const ColorFieldRenderer = createComponentImplementation({
       <div data-key={generatedKey} className="flex select-none flex-col gap-3">
         <div
           ref={sqRef}
-          className="relative aspect-[4/3] w-full cursor-crosshair overflow-hidden rounded-lg border border-border"
+          className="relative aspect-4/3 w-full cursor-crosshair overflow-hidden rounded-lg border border-border"
           style={{
             touchAction: "none",
             background: `linear-gradient(to top, #000, rgba(0,0,0,0) 50%, #fff), linear-gradient(to right, #808080, rgba(128,128,128,0)), hsl(${h} 100% 50%)`,
@@ -53,7 +53,7 @@ export const ColorFieldRenderer = createComponentImplementation({
           }}
         >
           <div
-            className="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
+            className="absolute size-4 -translate-1/2 rounded-full border-2 border-white"
             style={{
               left: `${s}%`,
               top: `${100 - l}%`,
@@ -82,7 +82,7 @@ export const ColorFieldRenderer = createComponentImplementation({
           }}
         >
           <div
-            className="absolute top-1/2 size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"
+            className="absolute top-1/2 size-5 -translate-1/2 rounded-full border-2 border-white"
             style={{
               left: `${(h / 360) * 100}%`,
               boxShadow: "0 0 0 1.5px rgba(0,0,0,.5)",

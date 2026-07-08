@@ -1,9 +1,46 @@
 # Getting started
 
-Install the engine, the React binding, and a catalog:
+There is no npm release yet — ui-fired is consumed as a **git dependency**, and
+the consumer bundles its raw TypeScript source: no build step, and a public API
+surface that is still settling. Install the repo (the package itself is named
+`ui-fired`; its root `dependencies` mirror every runtime dep, so one install
+brings them along):
 
 ```sh
-npm install @ui-fired/core @ui-fired/react @ui-fired/shadcn-catalog
+npm install github:finom/ui-fired
+```
+
+Let your bundler transpile the raw source — in Next.js:
+
+```ts
+// next.config.ts
+const nextConfig = {
+  transpilePackages: ["ui-fired"],
+};
+```
+
+Then map the scoped `@ui-fired/*` specifiers into the installed tree with
+`tsconfig` path aliases (Next.js resolves imports through them too):
+
+```jsonc
+// tsconfig.json
+{
+  "compilerOptions": {
+    "paths": {
+      "@ui-fired/core": ["./node_modules/ui-fired/packages/core/src/index.ts"],
+      "@ui-fired/core/prompt": ["./node_modules/ui-fired/packages/core/src/prompt/index.ts"],
+      "@ui-fired/react": ["./node_modules/ui-fired/packages/react/src/index.ts"],
+      "@ui-fired/react/*": ["./node_modules/ui-fired/packages/react/src/*"],
+      "@ui-fired/shadcn-catalog/events": ["./node_modules/ui-fired/packages/shadcn-catalog/src/events/index.ts"],
+      "@ui-fired/shadcn-catalog/defs": ["./node_modules/ui-fired/packages/shadcn-catalog/src/defs.ts"],
+      "@ui-fired/shadcn-catalog/impls": ["./node_modules/ui-fired/packages/shadcn-catalog/src/impls.ts"],
+      "@ui-fired/shadcn-catalog/default-components": ["./node_modules/ui-fired/packages/shadcn-catalog/src/default-components/index.ts"],
+      "@ui-fired/shadcn-catalog/ui/*": ["./node_modules/ui-fired/packages/shadcn-catalog/src/components/ui/*"],
+      "@ui-fired/streamdown": ["./node_modules/ui-fired/packages/streamdown/src/index.ts"],
+      "@ui-fired/streamdown/prompt": ["./node_modules/ui-fired/packages/streamdown/src/prompt/index.ts"]
+    }
+  }
+}
 ```
 
 ## A document is a stream of lines
@@ -14,7 +51,7 @@ separate lines.
 
 ```jsonl
 { "key": "root", "component": "Card", "children": ["title"] }
-{ "key": "title", "component": "Text", "props": { "literal": { "text": "Hello" } } }
+{ "key": "title", "component": "Text", "props": { "literal": { "children": "Hello" } } }
 ```
 
 The engine mounts them in order, so a parent always arrives before the children

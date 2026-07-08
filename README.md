@@ -9,31 +9,34 @@ step per generation.
 - **`packages/core`** — the **framework-agnostic** engine (zero React imports).
   The JSONLines render-engine concepts, the sandboxed micro-expression evaluator,
   the reactive Proxy-based state store, the component-def factories, and the
-  prompt primitives.
+  prompt-partial builders.
 - **`packages/react`** — the **React binding** for the engine: the `<Renderer>`,
   the recursive renderer + registry context, the per-element error boundary, and
-  the confirm UI. Depends on `core`; `react` / `react-dom` are peer
-  deps.
-- **`packages/catalog`** — the component catalog. Component def/impl pairs,
-  the underlying shadcn/Radix UI primitives, the `allDefinitions` / `allImplementations`
-  registries, and the example element arrays. Depends on `core` + `react`.
-
-Documentation lives in [`packages/docs`](./packages/docs) — a Nextra site
-covering the concepts, the entry format, expressions, state, and the React
-binding; run `npm run dev` there to browse it.
+  the confirm UI. Depends on `core`; `react` / `react-dom` are peer deps.
+- **`packages/shadcn-catalog`** — the component catalog. Component def/impl
+  pairs over shadcn/Radix primitives, the `allDefinitions` / `allImplementations`
+  registries, the default `error` / `unknown` / `confirm` slot components, and the
+  common event schemas. Depends on `core` + `react`.
+- **`packages/streamdown`** — the Streamdown plugin: entries ride inside
+  ```` ```uifired ```` code fences in Markdown chat replies, rendered in place;
+  ships the matching fence prompt partial.
+- **`packages/docs`** — the documentation site (Nextra). The only documentation
+  home: concepts, the entry format, expressions, state, the React binding, prompt
+  assembly, and error recovery. Run `npm run dev` there to browse it.
+- **`packages/nextjs-demo`** — the demo app: a chat workspace and a page
+  workspace over generated UI, backed by a small domain database.
 
 ## Consuming
 
-This is a workspace of three scoped packages — `@ui-fired/core` (the agnostic
-engine), `@ui-fired/react` (the React binding), and `@ui-fired/catalog` (the
-components) — living in one repo. Import React symbols from the
-`@ui-fired/react` barrel; reach `@ui-fired/core` and `@ui-fired/catalog`
-modules directly via subpaths:
+The importable packages are scoped — `@ui-fired/core` (the agnostic engine),
+`@ui-fired/react` (the React binding), `@ui-fired/shadcn-catalog` (the
+components), and `@ui-fired/streamdown` (the chat fence renderer). Import React
+symbols from the `@ui-fired/react` barrel; reach catalog modules via subpaths:
 
 ```ts
 import { createProxyScope } from "@ui-fired/core";
-import { RecursiveRenderer } from "@ui-fired/react";
-import { allImplementations } from "@ui-fired/catalog/impls";
+import { Renderer } from "@ui-fired/react";
+import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
 ```
 
 A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,
@@ -42,11 +45,18 @@ git-dependency tree — the repo package itself is still named `ui-fired`).
 
 ## Development
 
+Node 24+ is required.
+
 ```sh
 npm install
-npm run typecheck   # tsc --noEmit across core + react + catalog
-npm test            # core + react vitest suites
+npm run typecheck   # tsc --noEmit across all workspaces
+npm test            # core + react + streamdown vitest suites
+npm run lint        # Biome linter (zero-diagnostic gate)
 npm run md-to-json  # regenerate the prompt-fragment JSON mirrors from packages/core/src/prompt/md/*.md
 ```
 
 > Package naming and the public API surface are being finalized.
+
+## License
+
+[MIT](./LICENSE)

@@ -21,9 +21,12 @@ interface ComponentDefinition {
 
 Both `props` and every callback are a `StandardSchemaV1 & StandardJSONSchemaV1`
 (from [`@standard-schema/spec`](https://standardschema.dev), aliased `CombinedSpec`
-in core): a schema that is both runtime-validatable *and* serializable to JSON
-Schema — which is how one object can both validate props at runtime and be rendered
-into the prompt as a type. Any library implementing StandardSchema
+in core): a schema that is both a runtime validator *and* serializable to JSON
+Schema. ui-fired draws on the JSON-Schema half — it is what renders into the
+prompt as a type — and on the inferred TypeScript types the implementation reads
+back; the engine does **not** validate props against the schema at render time
+(an entry's `props` value source is evaluated and handed to the implementation
+as-is). Any library implementing StandardSchema
 and StandardJSONSchema qualifies; the catalog uses Zod throughout. You build the object with `createComponentDefinition`, which infers
 the `props` and `callbacks` types at the call site — so the implementation can read
 them back — and returns it unchanged.
@@ -92,7 +95,10 @@ callbacks: {
 The payload schema is the model's only knowledge of `evt`: the `onChange` above is
 why `evt.value` is a valid expression and `evt.text` is not. A callback whose
 payload carries nothing still gets an empty `z.strictObject({})`, so the model
-knows the event exists.
+knows the event exists — or, by convention, `z.null()`, which marks the event as
+carrying **no payload**: the prompt renders it as a no-arg call, and the
+implementation's handler is typed as a zero-argument function (`onClear()`),
+not `(evt: null)`.
 
 **Shared events.** Payloads that recur across many components — a click's mouse
 position, a keypress — are defined once as common-event schemas

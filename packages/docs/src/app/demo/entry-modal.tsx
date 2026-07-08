@@ -82,10 +82,9 @@ export function EntryModal({
               {entry.component}
             </DialogDescription>
           </DialogHeader>
-          <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap break-words rounded-lg bg-muted/40 p-3 font-mono text-xs leading-relaxed">
+          <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap wrap-break-word rounded-lg bg-muted/40 p-3 font-mono text-xs/relaxed">
             <code>
               {tokenizeJson(JSON.stringify(entry, null, 2)).map((t, i) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: static per-render token list
                 <span key={i} className={TOKEN_CLASS[t.cls]}>
                   {t.text}
                 </span>

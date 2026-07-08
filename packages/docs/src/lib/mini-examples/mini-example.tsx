@@ -153,13 +153,15 @@ function CodeCard({ name, file, prov, code, lang, variants, node }: CodePart) {
         <div className="mx-stack">
           {variants.map((v, i) => (
             <pre className="mx-pre" key={v.label} data-active={i === sel} aria-hidden={i !== sel}>
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-highlighted example code from this repo, not user input */}
               <code dangerouslySetInnerHTML={{ __html: highlight(v.code, v.lang) }} />
             </pre>
           ))}
         </div>
       ) : (
         <pre className="mx-pre">
-          <code dangerouslySetInnerHTML={{ __html: highlight(active.code, active.lang) }} />
+          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-highlighted example code from this repo, not user input */}
+              <code dangerouslySetInnerHTML={{ __html: highlight(active.code, active.lang) }} />
         </pre>
       )}
     </div>

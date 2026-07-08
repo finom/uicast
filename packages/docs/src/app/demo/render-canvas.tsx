@@ -3,7 +3,6 @@ import Skeleton from "react-loading-skeleton";
 import {
   ConfirmModal,
   RenderError,
-  UnknownComponent,
 } from "@ui-fired/shadcn-catalog/default-components";
 import type { ComponentEntry } from "@ui-fired/core";
 import {
@@ -45,7 +44,6 @@ const Placeholder = () => (
 const DEFAULT_COMPONENTS = {
   placeholder: Placeholder,
   confirm: ConfirmModal,
-  unknown: UnknownComponent,
   error: RenderError,
 };
 

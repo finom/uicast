@@ -45,6 +45,11 @@ renderers on the same page never share state.
   root entry renders. It receives `{ scopes }` and may seed `scopes.root.*`; a
   returned Promise suspends the tree until it resolves. Use it to preload state
   the entries read — see [State &amp; Scopes](/entry/state).
+- **`onError`** *(optional)* — called once per classified failure, with the same
+  `EntryError` the `error` slot receives. Branch on `error.fault`: `"document"`
+  means the model's output is at fault and a recovery re-emission can fix it;
+  `"environment"` means host code failed. See
+  [Error recovery § Classification](/error-recovery#classification-entryerror-and-onerror).
 
 ### Pass stable references
 
@@ -69,13 +74,11 @@ import { Renderer, RendererConfigProvider } from "@ui-fired/react";
 import {
   ConfirmModal,
   RenderError,
-  UnknownComponent,
 } from "@ui-fired/shadcn-catalog/default-components";
 
 <RendererConfigProvider
   defaultComponents={{
     confirm: ConfirmModal,
-    unknown: UnknownComponent,
     error: RenderError,
   }}
 >
@@ -90,23 +93,22 @@ props.
 ### `defaultComponents` — the engine's fallback UI
 
 The slots the engine renders on its own behalf, distinct from `implementations`
-(the components the model names). Four are wired:
+(the components the model names). Three are wired:
 
 | Slot | Rendered when | Default if omitted |
 |---|---|---|
 | `placeholder` | a child hasn't streamed in yet, or an async [`seed`](/entry/fields#seed) is resolving | nothing — the pending node stays empty |
 | `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
-| `unknown` | an entry's `component` has no matching implementation | bare inline-styled `div` |
-| `error` | an implementation throws while rendering, or an entry is misused as a list | bare inline-styled `div` |
+| `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | bare inline-styled `div` |
 
-Each slot is optional; supply only the ones you want to style. The `confirm`,
-`unknown`, and `error` defaults keep the engine renderable with **zero UI
-dependencies**; the catalog ships polished versions — `ConfirmModal`,
-`UnknownComponent`, `RenderError` — that you wire in explicitly, as above. Like
-`implementations`, pass a **stable reference**: it folds into the same context.
+Each slot is optional; supply only the ones you want to style. The `confirm`
+and `error` defaults keep the engine renderable with **zero UI dependencies**;
+the catalog ships polished versions — `ConfirmModal`, `RenderError` — that you
+wire in explicitly, as above. Like `implementations`, pass a **stable
+reference**: it folds into the same context.
 
-To author your own slot, match the props the engine hands it — all three types
-are exported from `@ui-fired/react`:
+To author your own slot, match the props the engine hands it — both types are
+exported from `@ui-fired/react`:
 
 ```ts
 type ConfirmComponentProps = {
@@ -116,16 +118,15 @@ type ConfirmComponentProps = {
   onCancel: () => void;
 };
 
-type UnknownComponentProps = {
-  componentName: string;  // the entry's unresolved `component`
-  elementKey: string;     // the entry's `key`
-};
-
 type ErrorComponentProps = {
-  error: Error;
+  error: EntryError;      // classified: switch on `error.reason` / `error.fault`
   elementKey?: string;    // set when the failure is tied to a specific entry
 };
 ```
+
+Every failure arrives as an [`EntryError`](/error-recovery#classification-entryerror-and-onerror)
+— an unknown component name included, as `reason: "unknown-component"` — so one
+`error` component can show case-specific UI by switching on `error.reason`.
 
 `confirm` is a **controlled** dialog — always mounted, shown by `open` — so your
 component holds no open/closed state of its own; the engine owns it. The

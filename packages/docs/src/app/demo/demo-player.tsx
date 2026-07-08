@@ -83,6 +83,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
   // length (see `revealDelay`). Re-runs on every `count` change (chaining the
   // reveal) and on pause/resume — the cleanup cancels any pending tick, which is
   // what makes Pause / Prev / Next stop the auto-advance. Settles at the end.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: paced by `count` chaining and phase — see the comment above
   useEffect(() => {
     if (phase !== "playing") return;
     if (atEnd) {

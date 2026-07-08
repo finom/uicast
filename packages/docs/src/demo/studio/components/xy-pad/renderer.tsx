@@ -30,7 +30,7 @@ export const XYPadRenderer = createComponentImplementation({
       <div data-key={generatedKey} className="flex select-none flex-col gap-2">
         <div
           ref={padRef}
-          className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-gradient-to-br from-muted/30 to-muted"
+          className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-linear-to-br from-muted/30 to-muted"
           style={{ touchAction: "none" }}
           onPointerDown={(e) => {
             dragging.current = true;
@@ -53,7 +53,7 @@ export const XYPadRenderer = createComponentImplementation({
             style={{ top: `${(1 - y) * 100}%` }}
           />
           <div
-            className="absolute size-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background bg-primary shadow-md"
+            className="absolute size-5 -translate-1/2 rounded-full border-2 border-background bg-primary shadow-md"
             style={{ left: `${x * 100}%`, top: `${(1 - y) * 100}%` }}
           />
         </div>

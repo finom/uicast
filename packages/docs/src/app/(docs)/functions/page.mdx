@@ -38,7 +38,7 @@ The fields:
 - **`description`** — one line of what the function does; the model reads it to
   decide when to call it.
 - **`inputSchema`** *(optional)* — a [Standard
-  Schema](https://standard-tool.js.org/) (Zod 4.2+, ArkType, or Valibot)
+  Schema](https://standardschema.dev) (Zod 4.2+, ArkType, or Valibot)
   describing the single input argument. It both **validates** the input at call
   time and **emits JSON Schema** that the prompt turns into a signature. Omit it
   for a zero-argument function.
@@ -55,8 +55,28 @@ rendered UI wants: a failed [`seed`](/entry/fields#seed) surfaces through the
 renderer's [`error` slot](/react/renderer) (the same path a render throw takes), and a
 failed [`callback`](/entry/fields#callbacks) step rejects and aborts the steps
 after it — instead of silently resolving to a value the expression then treats
-as data. The engine calls `tool.execute(input)` directly,
-so you get this for free — no error wrapping to wire up.
+as data. No error wrapping to wire up on your side.
+
+Whatever escapes `execute` is classified as an
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror) with
+reason `host-function` — an **environment** fault, since asking the model to
+re-emit the element won't fix your API being down. When the failure is really
+the *document's* fault — the arguments validate but make no sense, like an `id`
+for a row that doesn't exist — throw an `EntryError` yourself to say so:
+
+```ts
+import { EntryError } from "@ui-fired/core";
+
+async execute({ id }) {
+  const order = await db.orders.find(id);
+  if (!order)
+    throw new EntryError(`No order with id ${id}`, { reason: "invalid-arguments" });
+  return order;
+}
+```
+
+`invalid-arguments` classifies as a **document** fault, so
+[recovery](/error-recovery) knows this one *is* worth feeding back to the model.
 
 > **Request context** (an auth token, a DB handle, the current user) — **close
 > over it** when you define the function. The engine calls `execute(input)` with

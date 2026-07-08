@@ -25,6 +25,7 @@ export function StreamPanel({
     index: number;
   } | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: lines.length is the append signal; the array identity churns per render
   useEffect(() => {
     const el = boxRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -33,7 +34,7 @@ export function StreamPanel({
   return (
     <div
       ref={boxRef}
-      className="min-h-0 flex-1 overflow-auto bg-muted/30 p-4 font-mono text-xs leading-relaxed"
+      className="min-h-0 flex-1 overflow-auto bg-muted/30 p-4 font-mono text-xs/relaxed"
     >
       {lines.length === 0 ? (
         <p className="text-muted-foreground">Waiting for the first entry…</p>
@@ -47,7 +48,7 @@ export function StreamPanel({
             onMouseEnter={() => onHoverKey(line.key)}
             onMouseLeave={() => onHoverKey(null)}
             title={`Inspect entry ${i + 1}`}
-            className={`h-auto w-full cursor-pointer items-start justify-start gap-0 whitespace-normal break-all rounded px-1 py-0.5 text-left font-mono text-xs font-normal ${
+            className={`h-auto w-full cursor-pointer items-start justify-start gap-0 whitespace-normal break-all rounded-sm px-1 py-0.5 text-left font-mono text-xs font-normal ${
               hoveredKey === line.key
                 ? "bg-primary/10 ring-1 ring-primary/50"
                 : ""

@@ -39,7 +39,7 @@ list's `as`. Inside a row, that scope exposes the item:
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "children": ["order-title"] }
 { "key": "order-title", "component": "Text",
-  "props": { "expr": "({ text: scopes.order.item.customer })" } }
+  "props": { "expr": "({ children: scopes.order.item.customer })" } }
 ```
 
 Two things follow:

@@ -12,7 +12,6 @@ export const SwatchRailRenderer = createComponentImplementation({
           const isSel = selected?.toLowerCase() === hex.toLowerCase();
           return (
             <button
-              // biome-ignore lint/suspicious/noArrayIndexKey: swatches may repeat; index disambiguates
               key={`${hex}-${i}`}
               type="button"
               aria-label={hex}

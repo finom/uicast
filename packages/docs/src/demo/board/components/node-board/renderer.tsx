@@ -65,7 +65,6 @@ export const NodeBoardRenderer = createComponentImplementation({
             if (!a || !b) return null;
             return (
               <line
-                // biome-ignore lint/suspicious/noArrayIndexKey: links may repeat
                 key={`${lk.from}-${lk.to}-${i}`}
                 x1={a.x * 100}
                 y1={a.y * 100}
@@ -82,7 +81,7 @@ export const NodeBoardRenderer = createComponentImplementation({
         {nodes.map((n) => (
           <div
             key={n.id}
-            className="absolute flex -translate-x-1/2 -translate-y-1/2 cursor-grab items-center gap-2 rounded-md border border-border bg-card px-3 py-2 shadow-sm active:cursor-grabbing"
+            className="absolute flex -translate-1/2 cursor-grab items-center gap-2 rounded-md border border-border bg-card px-3 py-2 shadow-sm active:cursor-grabbing"
             style={{ left: `${n.x * 100}%`, top: `${n.y * 100}%` }}
             onPointerDown={(e) => {
               dragId.current = n.id;
@@ -109,7 +108,7 @@ export const NodeBoardRenderer = createComponentImplementation({
         ))}
 
         {pendingFrom && (
-          <div className="pointer-events-none absolute bottom-2 left-2 rounded bg-background/80 px-2 py-0.5 text-xs text-muted-foreground">
+          <div className="pointer-events-none absolute bottom-2 left-2 rounded-sm bg-background/80 px-2 py-0.5 text-xs text-muted-foreground">
             Connecting from “{byId(pendingFrom)?.label}” — click another node’s
             port
           </div>

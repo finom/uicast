@@ -25,7 +25,6 @@ export const StepSequencerRenderer = createComponentImplementation({
                 const isBeat = si % 4 === 0;
                 return (
                   <button
-                    // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length grid
                     key={si}
                     type="button"
                     aria-pressed={on}

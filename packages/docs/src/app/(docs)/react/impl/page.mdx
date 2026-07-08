@@ -79,10 +79,12 @@ it.
 
 ## Placeholder
 
-Pass an optional `placeholder` — a zero-argument component — to show in this
-component's place while its own async work resolves: an async
-[`seed`](/entry/fields#seed) on the entry, or the gap before the entry has
-streamed in.
+Pass an optional `placeholder` — a zero-argument component — to stand in for
+this component's pending **content**. It renders in two gaps: in the slot of
+each child whose entry hasn't streamed in yet, and in place of the children
+while an async [`seed`](/entry/fields#seed) on the entry resolves. The
+component itself still mounts around it — the gap before the component's *own*
+entry arrives is filled by its parent's placeholder, not its own.
 
 ```tsx
 export const ChartImpl = createComponentImplementation({
@@ -95,6 +97,19 @@ export const ChartImpl = createComponentImplementation({
 A per-implementation `placeholder` takes precedence over the global
 [`defaultComponents.placeholder`](/react/renderer); with neither set, the pending
 node renders nothing.
+
+## When `render` throws
+
+Every element renders inside its own error boundary, so a throw in `render`
+replaces just that element with the [`error` slot](/react/renderer) — parents
+and siblings keep working. The failure is
+[classified](/error-recovery#classification-entryerror-and-onerror) by checking
+the resolved props against the def's schema: props that **fail** it file as
+`invalid-props` (a document fault — the model wrote bad props), props it
+**accepts** file as `implementation` (an environment fault — your code crashed
+on legal input). The split is only as sharp as the schema — `z.any()` props
+wave every shape through, so every crash files as `implementation`. A precise
+props schema is what buys precise fault attribution.
 
 ## Registration
 

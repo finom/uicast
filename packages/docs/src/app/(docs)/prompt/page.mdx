@@ -119,10 +119,12 @@ const system = [
 A page-builder surface is the same stack with `kind: "page"` (plus, say,
 `approxElements: 30`) and without the fence partial.
 
-## Edit turns
+## Edit and recovery turns
 
-One builder is *not* a system-prompt partial: `getEditRequestPrompt({ request,
-missingKeys? })` produces **user-turn message content** for incremental edits.
+Two builders are *not* system-prompt partials — they produce **user-turn
+message content**:
+
+`getEditRequestPrompt({ request, missingKeys? })` drives incremental edits.
 The host replays the page's stored JSONL as an assistant turn, then sends this
 as the next user turn — the change request plus the delta convention: re-emit
 a key to replace its subtree, leave everything else alone. The model then
@@ -130,6 +132,13 @@ emits only what changes, which is dramatically cheaper than regenerating the
 page. `missingKeys` lists keys the stored tree references but never received —
 the tail of a truncated generation — telling the model those elements don't
 exist and must be emitted fresh rather than kept by reference.
+
+`getErrorRecoveryPrompt({ failures })` reports runtime render failures back to
+the model so it re-emits the failed elements corrected — the user-triggered
+recovery flow behind a Recover button the host renders in its `error` slot. On a page surface it is
+typically passed through the edit pipeline above as the request; on a chat
+surface it goes out as a plain user message. See
+[Error recovery](/error-recovery) for the full picture.
 
 ## Where to go next
 
