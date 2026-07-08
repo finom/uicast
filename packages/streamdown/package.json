@@ -2,6 +2,7 @@
   "name": "@ui-fired/streamdown",
   "version": "0.1.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
@@ -19,7 +20,7 @@
   },
   "peerDependencies": {
     "react": "^19.2.5",
-    "streamdown": ">=2.5.0"
+    "streamdown": "^2.5.0"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
