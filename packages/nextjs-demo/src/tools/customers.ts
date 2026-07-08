@@ -38,7 +38,8 @@ export const updateCustomer = standardTool({
 
 export const deleteCustomer = standardTool({
   name: "deleteCustomer",
-  description: "Delete a customer by id.",
+  description:
+    "Delete a customer by id. Fails with 409 when orders still reference the customer.",
   inputSchema: idInput,
   outputSchema: z.object({ id: z.number().int() }),
   execute: ({ id }) => apiFetch(`/api/customers/${id}`, { method: "DELETE" }),

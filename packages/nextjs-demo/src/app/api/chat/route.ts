@@ -22,11 +22,26 @@ export const maxDuration = 300;
 const CHAT_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-4.8";
 const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 32_000);
 
-// The message array is the AI SDK's UIMessage shape — validated loosely here,
-// trusted structurally (it round-trips through useChat).
+// The message array is the AI SDK's UIMessage shape — only the fields this
+// route reads (id / role / parts, and text on text parts) are validated; the
+// rest rides along loosely (it round-trips through useChat).
 const chatInput = z.object({
   id: z.string().min(1),
-  messages: z.array(z.looseObject({ id: z.string(), role: z.string() })).min(1),
+  messages: z
+    .array(
+      z.looseObject({
+        id: z.string(),
+        role: z.string(),
+        parts: z.array(
+          z
+            .looseObject({ type: z.string(), text: z.string().optional() })
+            .refine((part) => part.type !== "text" || part.text !== undefined, {
+              error: "text parts require a text string",
+            }),
+        ),
+      }),
+    )
+    .min(1),
 });
 
 function firstUserText(messages: UIMessage[]): string {
@@ -39,18 +54,23 @@ function firstUserText(messages: UIMessage[]): string {
 }
 
 // Replace-all persistence: the incoming array is the client's full message
-// list, so mirroring it wholesale is simpler and self-healing.
+// list, so mirroring it wholesale is simpler and self-healing. The delete and
+// reinsert ride one transaction so a failed insert can't leave the chat empty.
 async function persistMessages(chatId: string, messages: UIMessage[]) {
-  await db.delete(chatMessages).where(eq(chatMessages.chatId, chatId));
-  if (messages.length === 0) return;
-  await db.insert(chatMessages).values(
-    messages.map((message) => ({
-      chatId,
-      messageId: message.id,
-      role: message.role,
-      parts: message.parts,
-    })),
-  );
+  db.transaction((tx) => {
+    tx.delete(chatMessages).where(eq(chatMessages.chatId, chatId)).run();
+    if (messages.length === 0) return;
+    tx.insert(chatMessages)
+      .values(
+        messages.map((message) => ({
+          chatId,
+          messageId: message.id,
+          role: message.role,
+          parts: message.parts,
+        })),
+      )
+      .run();
+  });
 }
 
 export async function POST(req: Request) {

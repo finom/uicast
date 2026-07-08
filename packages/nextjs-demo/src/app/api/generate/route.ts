@@ -117,7 +117,6 @@ export async function POST(req: Request) {
 
         // Persist and relay each ComponentEntry the moment its line completes.
         for await (const value of streamJsonLines(result.textStream)) {
-          console.log('value', value);
           if (!isEntry(value)) continue;
           await db.insert(componentEntries).values({ pageId: page.id, data: value });
           send(value); // an entry streams as-is; control lines below carry a `type`

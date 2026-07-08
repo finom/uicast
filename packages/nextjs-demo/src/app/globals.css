@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+/* `prose` styles for the catalog's markdown-viewer and rich-text-editor. */
+@plugin "@tailwindcss/typography";
 
 /*
  * Tailwind v4 auto-scans this package but stops at the package boundary. The

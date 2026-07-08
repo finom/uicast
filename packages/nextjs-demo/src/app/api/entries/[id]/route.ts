@@ -22,6 +22,8 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   if (body.data.pageId !== undefined) updates.pageId = body.data.pageId;
   if (body.data.parentId !== undefined) updates.parentId = body.data.parentId;
   if (body.data.data !== undefined) updates.data = body.data.data as ComponentEntry;
+  // Every field is optional — an empty patch would render UPDATE with no SET.
+  if (Object.keys(updates).length === 0) return json({ error: "No fields to update" }, 400);
   const [row] = await db
     .update(componentEntries)
     .set(updates)

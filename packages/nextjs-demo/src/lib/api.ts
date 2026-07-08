@@ -1,4 +1,4 @@
-import { type ZodType } from "zod";
+import type { ZodType } from "zod";
 
 export function json(data: unknown, status = 200) {
   return Response.json(data, { status });

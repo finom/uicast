@@ -8,13 +8,11 @@ import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
-import { useEffect } from "react";
-import { RendererConfigProvider } from "@ui-fired/react";
-import {
-  ConfirmModal,
-  RenderError,
-  UnknownComponent,
-} from "@ui-fired/shadcn-catalog/default-components";
+import { useEffect, useMemo, useRef } from "react";
+import { getErrorRecoveryPrompt } from "@ui-fired/core/prompt";
+import { type ErrorComponentProps, RendererConfigProvider } from "@ui-fired/react";
+import { ConfirmModal } from "@ui-fired/shadcn-catalog/default-components";
+import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
 import { createFenceRenderer } from "@ui-fired/streamdown";
 import {
@@ -47,12 +45,6 @@ const uifiredRenderer = createFenceRenderer({
 // passing `plugins` replaces the default, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uifiredRenderer] };
 
-const rendererDefaults = {
-  confirm: ConfirmModal,
-  unknown: UnknownComponent,
-  error: RenderError,
-};
-
 export function ChatView({
   chatId,
   initialMessages,
@@ -68,6 +60,40 @@ export function ChatView({
   });
   const queryClient = useQueryClient();
 
+  // User-triggered error recovery: the error slot's Recover button reports the
+  // failed element as a chat message, and the model replies with a corrected
+  // fence. Refs keep `rendererDefaults` referentially stable (a new identity
+  // would remount every mounted UI block) while the handlers stay fresh.
+  const sendMessageRef = useRef(sendMessage);
+  sendMessageRef.current = sendMessage;
+  const statusRef = useRef(status);
+  statusRef.current = status;
+  const rendererDefaults = useMemo(
+    () => ({
+      confirm: ConfirmModal,
+      error: ({ error: renderError, elementKey }: ErrorComponentProps) => (
+        <RecoverableRenderError
+          error={renderError}
+          elementKey={elementKey}
+          onRecover={
+            elementKey
+              ? () => {
+                  if (statusRef.current === "streaming" || statusRef.current === "submitted")
+                    return;
+                  sendMessageRef.current({
+                    text: getErrorRecoveryPrompt({
+                      failures: [{ key: elementKey, message: renderError.message }],
+                    }),
+                  });
+                }
+              : undefined
+          }
+        />
+      ),
+    }),
+    [],
+  );
+
   // The chat row is created (and titled) server-side on the first message —
   // refresh the sidebar as soon as a run starts and again when it settles.
   useEffect(() => {
@@ -77,6 +103,8 @@ export function ChatView({
   }, [status, queryClient]);
 
   const handleSubmit = (message: PromptInputMessage) => {
+    // Enter mid-stream must not inject a second message into an active run.
+    if (statusRef.current === "streaming" || statusRef.current === "submitted") return;
     const text = message.text.trim();
     if (!text) return;
     if (replaceUrlOnFirstSend && messages.length === 0) {

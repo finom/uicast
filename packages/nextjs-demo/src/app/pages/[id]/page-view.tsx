@@ -9,21 +9,24 @@ import { type ComponentEntry, streamJsonLines } from "@ui-fired/core";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
+  getErrorRecoveryPrompt,
   getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
+  type RenderFailure,
 } from "@ui-fired/core/prompt";
-import { Renderer, RendererConfigProvider } from "@ui-fired/react";
-import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
 import {
-  ConfirmModal,
-  RenderError,
-  UnknownComponent,
-} from "@ui-fired/shadcn-catalog/default-components";
+  type ErrorComponentProps,
+  Renderer,
+  RendererConfigProvider,
+} from "@ui-fired/react";
+import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
+import { ConfirmModal } from "@ui-fired/shadcn-catalog/default-components";
+import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
 import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
 import { FileText, LoaderCircle, Pencil, ScrollText, Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Button } from "@ui-fired/shadcn-catalog/ui/button";
 import { Card, CardContent, CardFooter } from "@ui-fired/shadcn-catalog/ui/card";
@@ -51,12 +54,6 @@ type GenerateLine = ComponentEntry | ControlLine;
 function isEntry(line: GenerateLine): line is ComponentEntry {
   return "component" in line;
 }
-
-const rendererDefaults = {
-  confirm: ConfirmModal,
-  unknown: UnknownComponent,
-  error: RenderError,
-};
 
 export function PageView({
   page: initialPage,
@@ -164,6 +161,39 @@ export function PageView({
     setEditPrompt("");
   };
 
+  // User-triggered error recovery: the error slot's Recover button reports the
+  // failed element back through the edit pipeline, and the model re-emits it
+  // corrected (partial replacement clears the error slot). Routed through a
+  // ref so `rendererDefaults` below stays referentially stable while the
+  // closure still sees the live run state.
+  const recoverRef = useRef<(failure: RenderFailure) => void>(() => {});
+  recoverRef.current = (failure) => {
+    if (isFetching) return;
+    setHistory((prev) => [...prev, ...runEntries]);
+    setSubmission((prev) => ({
+      prompt: getErrorRecoveryPrompt({ failures: [failure] }),
+      seq: (prev?.seq ?? 0) + 1,
+    }));
+  };
+
+  const rendererDefaults = useMemo(
+    () => ({
+      confirm: ConfirmModal,
+      error: ({ error, elementKey }: ErrorComponentProps) => (
+        <RecoverableRenderError
+          error={error}
+          elementKey={elementKey}
+          onRecover={
+            elementKey
+              ? () => recoverRef.current({ key: elementKey, message: error.message })
+              : undefined
+          }
+        />
+      ),
+    }),
+    [],
+  );
+
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-6">
       <header className="flex items-center gap-2">
@@ -248,15 +278,15 @@ export function PageView({
                     )}
                   </div>
                   <TabsContent value="markdown">
-                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:!block">
-                      <div className="break-words p-3 text-[13px] leading-relaxed [&_:not(pre)>code]:break-all [&_:not(pre)>code]:whitespace-pre-wrap [&_code]:text-xs [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:overflow-x-auto [&_pre]:text-xs">
+                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+                      <div className="wrap-break-word p-3 text-[13px] leading-relaxed [&_:not(pre)>code]:break-all [&_:not(pre)>code]:whitespace-pre-wrap [&_code]:text-xs [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:overflow-x-auto [&_pre]:text-xs">
                         <Streamdown>{systemPrompt ?? ""}</Streamdown>
                       </div>
                     </ScrollArea>
                   </TabsContent>
                   <TabsContent value="raw">
-                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:!block">
-                      <div className="whitespace-pre-wrap break-words p-3 font-mono text-xs">
+                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+                      <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
                         {systemPrompt}
                       </div>
                     </ScrollArea>
@@ -299,8 +329,8 @@ export function PageView({
             </div>
           </TabsContent>
           <TabsContent value="entries">
-            <ScrollArea className="max-h-[70svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:!block">
-              <div className="whitespace-pre-wrap break-words p-3 font-mono text-xs">
+            <ScrollArea className="max-h-[70svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+              <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
                 {entries.map((entry) => JSON.stringify(entry)).join("\n")}
               </div>
             </ScrollArea>
