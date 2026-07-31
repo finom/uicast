@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Button as ShadcnButton } from "../../components/ui/button";
 import { pickMouseEvent } from "../../events/mouse";
 import { ButtonDef } from "./def";

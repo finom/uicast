@@ -1,5 +1,5 @@
 import { diffLines } from "diff";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DiffViewerDef } from "./def";

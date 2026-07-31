@@ -5,7 +5,7 @@ import {
   useContext,
   useSyncExternalStore,
 } from "react";
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "@uicast/core";
 import type { ElementsStore } from "../types";
 
 function notify(listeners: Map<string, Set<() => void>>, key: string): void {

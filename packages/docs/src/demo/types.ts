@@ -1,6 +1,6 @@
-import type { ComponentEntry } from "@ui-fired/core";
-import type { ComponentImplementation } from "@ui-fired/react";
-import type { DefaultComponents } from "@ui-fired/react/types";
+import type { ComponentEntry } from "@uicast/core";
+import type { ComponentImplementation } from "@uicast/react";
+import type { DefaultComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";
 
 /**

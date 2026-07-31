@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { GripVertical } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";

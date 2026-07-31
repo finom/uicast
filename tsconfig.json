@@ -14,12 +14,12 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@ui-fired/core": ["./packages/core/src/index.ts"],
-      "@ui-fired/core/prompt": ["./packages/core/src/prompt/index.ts"],
-      "@ui-fired/react": ["./packages/react/src/index.ts"],
-      "@ui-fired/react/*": ["./packages/react/src/*"],
-      "@ui-fired/streamdown": ["./packages/streamdown/src/index.ts"],
-      "@ui-fired/streamdown/prompt": ["./packages/streamdown/src/prompt/index.ts"]
+      "@uicast/core": ["./packages/core/src/index.ts"],
+      "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],
+      "@uicast/react": ["./packages/react/src/index.ts"],
+      "@uicast/react/*": ["./packages/react/src/*"],
+      "@uicast/streamdown": ["./packages/streamdown/src/index.ts"],
+      "@uicast/streamdown/prompt": ["./packages/streamdown/src/prompt/index.ts"]
     },
     "experimentalDecorators": true
   },

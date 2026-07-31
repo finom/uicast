@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";

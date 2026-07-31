@@ -14,10 +14,10 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@ui-fired/core": ["../core/src/index.ts"],
-      "@ui-fired/core/prompt": ["../core/src/prompt/index.ts"],
-      "@ui-fired/react": ["./src/index.ts"],
-      "@ui-fired/react/*": ["./src/*"]
+      "@uicast/core": ["../core/src/index.ts"],
+      "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
+      "@uicast/react": ["./src/index.ts"],
+      "@uicast/react/*": ["./src/*"]
     },
     "experimentalDecorators": true
   },

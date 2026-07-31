@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { TreemapChartDef } from "./def";
 

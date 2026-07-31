@@ -5,11 +5,11 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@ui-fired\/core\/prompt$/,
+        find: /^@uicast\/core\/prompt$/,
         replacement: resolve(__dirname, "./src/prompt/index.ts"),
       },
       {
-        find: /^@ui-fired\/core$/,
+        find: /^@uicast\/core$/,
         replacement: resolve(__dirname, "./src/index.ts"),
       },
     ],

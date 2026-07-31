@@ -27,7 +27,7 @@ describe("EntryError", () => {
     expect(EntryError.is(new Error("x"))).toBe(false);
     expect(EntryError.is(null)).toBe(false);
     // A structurally-branded object from another core copy still passes.
-    expect(EntryError.is({ uiFiredEntryError: true })).toBe(true);
+    expect(EntryError.is({ uicastEntryError: true })).toBe(true);
   });
 
   it("wrap() classifies a raw error, keeps the original in cause", () => {

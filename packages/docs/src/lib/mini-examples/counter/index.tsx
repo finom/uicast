@@ -1,4 +1,4 @@
-import { getComponentsPartialPrompt } from "@ui-fired/core/prompt";
+import { getComponentsPartialPrompt } from "@uicast/core/prompt";
 import { MiniExample, type SetupPart } from "../mini-example";
 import { Counter } from "./renderer";
 import { CounterDef } from "./def";

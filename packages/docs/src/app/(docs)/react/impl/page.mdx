@@ -8,7 +8,7 @@ decides *what it renders* — almost always by wrapping a real React component (
 catalog, shadcn/ui).
 
 ```tsx
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Badge } from "./badge";
 import { BadgeDef } from "./def";
 
@@ -22,7 +22,7 @@ export const BadgeImpl = createComponentImplementation({
 });
 ```
 
-`createComponentImplementation` comes from `@ui-fired/react` — the React binding,
+`createComponentImplementation` comes from `@uicast/react` — the React binding,
 not core (the def's factory was core's, agnostic of any framework). It takes the
 `def` and a `render` function and returns the implementation you register with the
 renderer.

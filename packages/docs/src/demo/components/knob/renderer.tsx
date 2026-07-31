@@ -1,5 +1,5 @@
 "use client";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { useRef } from "react";
 import { KnobDef } from "./def";
 

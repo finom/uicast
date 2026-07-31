@@ -1,6 +1,6 @@
 # Entry fields
 
-Every line of a **ui-fired** document is one [component entry](/entry) — a flat
+Every line of a **uicast** document is one [component entry](/entry) — a flat
 JSON object. Two fields are required, `key` and `component`; everything else is
 optional and adds behaviour. This is the reference for each one: what it holds,
 and which deeper mechanism it draws on.
@@ -134,7 +134,7 @@ that names the list in its `children` supplies the container (a `TableBody`
 parent holding a `TableRow` list). In TypeScript the refinement is
 `ComponentListEntry` (`each` and `as` required), narrowed from a
 `ComponentEntry` with the `isComponentListEntry()` guard — both exported from
-`@ui-fired/core`, alongside `isComponentEntry()`, which guards the base entry
+`@uicast/core`, alongside `isComponentEntry()`, which guards the base entry
 shape itself when consuming parsed JSON of unknown shape (the streamdown fence
 parser uses it to tell entries from stray lines). The fields below describe the iteration; the per-item state
 they create lives in

@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Sankey, Tooltip, ResponsiveContainer } from "recharts";
 import { SankeyChartDef } from "./def";
 

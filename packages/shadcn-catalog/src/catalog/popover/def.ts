@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core";
+import { createComponentDefinition } from "@uicast/core";
 
 export const PopoverDef = createComponentDefinition({
   name: "Popover",

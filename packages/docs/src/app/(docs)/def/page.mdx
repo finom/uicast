@@ -22,7 +22,7 @@ interface ComponentDefinition {
 Both `props` and every callback are a `StandardSchemaV1 & StandardJSONSchemaV1`
 (from [`@standard-schema/spec`](https://standardschema.dev), aliased `CombinedSpec`
 in core): a schema that is both a runtime validator *and* serializable to JSON
-Schema. ui-fired draws on the JSON-Schema half — it is what renders into the
+Schema. uicast draws on the JSON-Schema half — it is what renders into the
 prompt as a type — and on the inferred TypeScript types the implementation reads
 back; the engine does **not** validate props against the schema at render time
 (an entry's `props` value source is evaluated and handed to the implementation
@@ -33,7 +33,7 @@ them back — and returns it unchanged.
 
 ```ts
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core";
+import { createComponentDefinition } from "@uicast/core";
 
 export const BadgeDef = createComponentDefinition({
   name: "Badge",

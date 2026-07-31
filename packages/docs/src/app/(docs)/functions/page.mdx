@@ -11,7 +11,7 @@ self-describing function with a `name`, a `description`, and optional input /
 output schemas. That self-description is exactly what lets the **model** know a
 function exists and how to call it (see [Advertising to the
 model](#advertising-to-the-model)). Everything below matches `standard-tool`'s
-**v0** surface — the `StandardToolV0` shape ui-fired builds on.
+**v0** surface — the `StandardToolV0` shape uicast builds on.
 
 ## Anatomy of a host function
 
@@ -65,7 +65,7 @@ the *document's* fault — the arguments validate but make no sense, like an `id
 for a row that doesn't exist — throw an `EntryError` yourself to say so:
 
 ```ts
-import { EntryError } from "@ui-fired/core";
+import { EntryError } from "@uicast/core";
 
 async execute({ id }) {
   const order = await db.orders.find(id);
@@ -89,8 +89,8 @@ Collect your tools into an array and pass it to
 [`<Renderer functions={...}>`](/react/renderer):
 
 ```tsx
-import { Renderer } from "@ui-fired/react";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { Renderer } from "@uicast/react";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import type { StandardToolV0 } from "standard-tool";
 
 const inventoryFunctions: StandardToolV0[] = [
@@ -183,7 +183,7 @@ cancels, that step **and all later steps** are skipped.
 ## Advertising to the model
 
 For the model to emit a call, it has to know the function exists.
-`@ui-fired/core/prompt` exports `getFunctionsPartialPrompt`, which renders your
+`@uicast/core/prompt` exports `getFunctionsPartialPrompt`, which renders your
 tools into a prompt block — a names list plus one TypeScript-style signature per
 tool, derived from the schemas. For example:
 

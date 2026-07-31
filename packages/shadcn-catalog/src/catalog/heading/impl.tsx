@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { HeadingDef } from "./def";
 
 export const HeadingImpl = createComponentImplementation({

@@ -17,7 +17,7 @@ export interface Product {
 /** Shape for inserts — `id` is auto-incremented by Dexie. */
 export type NewProduct = Omit<Product, "id">;
 
-const db = new Dexie("ui-fired-inventory") as Dexie & {
+const db = new Dexie("uicast-inventory") as Dexie & {
   products: EntityTable<Product, "id">;
 };
 

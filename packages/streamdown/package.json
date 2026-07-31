@@ -1,5 +1,5 @@
 {
-  "name": "@ui-fired/streamdown",
+  "name": "@uicast/streamdown",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -15,8 +15,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ui-fired/core": "*",
-    "@ui-fired/react": "*"
+    "@uicast/core": "*",
+    "@uicast/react": "*"
   },
   "peerDependencies": {
     "react": "^19.2.5",

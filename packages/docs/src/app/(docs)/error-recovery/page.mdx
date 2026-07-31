@@ -34,7 +34,7 @@ question: whose mistake was this?
 Recovery only makes sense when the *model* made the mistake — asking it to
 re-emit an element because your server returned a 500 fixes nothing. So every
 failure the engine surfaces is a classified **`EntryError`** (exported from
-`@ui-fired/core`), tagged at the throw site by **provenance** — whose code
+`@uicast/core`), tagged at the throw site by **provenance** — whose code
 raised it — never by inspecting messages:
 
 ```ts
@@ -115,10 +115,10 @@ this mechanism, the user does, with one click.
 
 The `error` slot receives the classified failure (`error`, `elementKey`); the
 host wires a **Recover** button that reports it to the model as a new turn.
-`getErrorRecoveryPrompt` (from `@ui-fired/core/prompt`) formats that report:
+`getErrorRecoveryPrompt` (from `@uicast/core/prompt`) formats that report:
 
 ```ts
-import { getErrorRecoveryPrompt } from "@ui-fired/core/prompt";
+import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 
 getErrorRecoveryPrompt({
   failures: [{ key: "chart", message: "chartData.map is not a function" }],
@@ -144,7 +144,7 @@ because only the host knows how to reach its model. Provide your own `error`
 slot that renders the message plus a Recover button:
 
 ```tsx
-import type { ErrorComponentProps } from "@ui-fired/react";
+import type { ErrorComponentProps } from "@uicast/react";
 
 const defaultComponents = {
   error: ({ error, elementKey }: ErrorComponentProps) => (

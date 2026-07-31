@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — children", () => {

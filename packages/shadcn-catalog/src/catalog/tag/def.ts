@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@ui-fired/core";
+import { createComponentDefinition } from "@uicast/core";
 import { mouseEventSchema } from "../../events/mouse";
 
 export const TagDef = createComponentDefinition({

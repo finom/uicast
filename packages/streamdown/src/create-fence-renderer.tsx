@@ -1,7 +1,7 @@
 "use client";
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentEntry } from "@ui-fired/core";
-import { Renderer, type RendererProps } from "@ui-fired/react";
+import type { ComponentEntry } from "@uicast/core";
+import { Renderer, type RendererProps } from "@uicast/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE } from "./parse-fence-code";
 import { parseFenceCode } from "./parse-fence-code";
@@ -50,10 +50,10 @@ function toggleButtonStyle(active: boolean): CSSProperties {
 }
 
 /**
- * Build a Streamdown custom renderer for ```uifired fences.
+ * Build a Streamdown custom renderer for ```uicast fences.
  *
  * Pass the result to Streamdown (or any wrapper that forwards its props,
- * e.g. AI Elements' Response): `plugins={{ renderers: [uifiredRenderer] }}`.
+ * e.g. AI Elements' Response): `plugins={{ renderers: [uicastRenderer] }}`.
  *
  * Call this ONCE per option set — at module scope or inside useMemo — and
  * reuse the returned object. The component's identity must stay stable

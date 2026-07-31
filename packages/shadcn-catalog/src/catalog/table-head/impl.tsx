@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { TableHead as ShadcnTableHead } from "../../components/ui/table";
 import { TableHeadDef } from "./def";
 

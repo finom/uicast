@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildElementsById, type ComponentEntry } from "@ui-fired/core";
+import { buildElementsById, type ComponentEntry } from "@uicast/core";
 
 describe("EntryRenderer — partial replacement (buildElementsById contract)", () => {
   // The runtime contract is that re-emitting an entry with the same `key` drops

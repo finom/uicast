@@ -30,7 +30,7 @@ can grow without breaking call sites.
 
 ## The core partials
 
-All from `@ui-fired/core/prompt`:
+All from `@uicast/core/prompt`:
 
 | Builder | Emits |
 | --- | --- |
@@ -78,8 +78,8 @@ list below it. The natural order:
 ## Chat surfaces
 
 On a chat surface the reply is Markdown and entries ride inside a
-` ```uifired ` fence — the [Streamdown plugin](/streamdown) renders them.
-`@ui-fired/streamdown/prompt` ships the matching partial,
+` ```uicast ` fence — the [Streamdown plugin](/streamdown) renders them.
+`@uicast/streamdown/prompt` ships the matching partial,
 `getFencePartialPrompt()`: it teaches exactly that fence syntax — the token,
 one JSON object per line, prose outside the fence, one fence per reply — and
 nothing more. Compose it last, after the core partials that define what the
@@ -97,10 +97,10 @@ import {
   getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
-} from "@ui-fired/core/prompt";
-import { getFencePartialPrompt } from "@ui-fired/streamdown/prompt";
-import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
+} from "@uicast/core/prompt";
+import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { tools } from "./tools";
 
 const system = [

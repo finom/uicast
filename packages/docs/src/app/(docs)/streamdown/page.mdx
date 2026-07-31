@@ -1,15 +1,15 @@
 # Streamdown plugin
 
-`@ui-fired/streamdown` puts generated UI inside a Markdown chat reply. With the
+`@uicast/streamdown` puts generated UI inside a Markdown chat reply. With the
 raw-JSONL setup from [Streaming](/react/streaming), the model's entire output
 is entries; on a chat surface the reply is Markdown — prose, headings, code —
 and the entries ride inside it, in a fenced code block whose language token is
-`uifired`:
+`uicast`:
 
 ````md
 Here's this month's revenue at a glance:
 
-```uifired
+```uicast
 {"key":"root","component":"Card","seed":[{"set":"scopes.root.orders","expr":"listOrders()"}],"children":["stat"]}
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Revenue', value: scopes.root.orders.length })"}}
 ```
@@ -19,7 +19,7 @@ The stat is live — it recomputes from the database on every view.
 
 [Streamdown](https://streamdown.ai/) (≥ 2.5) renders Markdown as it streams and
 lets a plugin claim a fence language. This package ships that plugin: blocks
-tagged `uifired` mount through the [Renderer](/react/renderer); every other
+tagged `uicast` mount through the [Renderer](/react/renderer); every other
 fence stays ordinary highlighted code. The language token is the entire routing
 contract — which is why the [fence prompt partial](/prompt#chat-surfaces)
 forbids the model from using any other token for entries.
@@ -48,8 +48,8 @@ reuse the returned object:
 
 ```tsx
 import { Streamdown } from "streamdown";
-import { createFenceRenderer } from "@ui-fired/streamdown";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { createFenceRenderer } from "@uicast/streamdown";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { tools } from "./tools";
 
 const fenceRenderer = createFenceRenderer({
@@ -102,7 +102,7 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 ## `FENCE_LANGUAGE` and `parseFenceCode`
 
 ```ts
-const FENCE_LANGUAGE = "uifired";
+const FENCE_LANGUAGE = "uicast";
 
 function parseFenceCode(code: string): ComponentEntry[];
 ```
@@ -118,7 +118,7 @@ than Streamdown.
 ## The prompt side
 
 Rendering is half the contract — the model also has to *know* to emit the
-fence. `@ui-fired/streamdown/prompt` exports `getFencePartialPrompt()`, the
+fence. `@uicast/streamdown/prompt` exports `getFencePartialPrompt()`, the
 system-prompt section that teaches exactly this syntax and nothing more.
 Compose it after the core partials; [Assembling the prompt](/prompt) shows the
 full stack.

@@ -26,23 +26,23 @@
       "@/*": [
         "./src/*"
       ],
-      "@ui-fired/core": [
+      "@uicast/core": [
         "../core/src/index.ts"
       ],
-      "@ui-fired/core/prompt": [
+      "@uicast/core/prompt": [
         "../core/src/prompt/index.ts"
       ],
-      "@ui-fired/react": [
+      "@uicast/react": [
         "../react/src/index.ts"
       ],
-      "@ui-fired/react/*": [
+      "@uicast/react/*": [
         "../react/src/*"
       ],
-      "@ui-fired/shadcn-catalog/events": ["../shadcn-catalog/src/events/index.ts"],
-      "@ui-fired/shadcn-catalog/defs": ["../shadcn-catalog/src/defs.ts"],
-      "@ui-fired/shadcn-catalog/impls": ["../shadcn-catalog/src/impls.ts"],
-      "@ui-fired/shadcn-catalog/default-components": ["../shadcn-catalog/src/default-components/index.ts"],
-      "@ui-fired/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
+      "@uicast/shadcn-catalog/events": ["../shadcn-catalog/src/events/index.ts"],
+      "@uicast/shadcn-catalog/defs": ["../shadcn-catalog/src/defs.ts"],
+      "@uicast/shadcn-catalog/impls": ["../shadcn-catalog/src/impls.ts"],
+      "@uicast/shadcn-catalog/default-components": ["../shadcn-catalog/src/default-components/index.ts"],
+      "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
     }
   },
   "include": [

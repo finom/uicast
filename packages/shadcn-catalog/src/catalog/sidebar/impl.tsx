@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import { SidebarDef } from "./def";
 import { ChevronLeft, ChevronRight } from "lucide-react";

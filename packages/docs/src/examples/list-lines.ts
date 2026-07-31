@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "@uicast/core";
 
 export const listLines: ComponentEntry[] = [
   {

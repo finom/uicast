@@ -1,6 +1,6 @@
 # Streaming
 
-A ui-fired document is a **stream** — the model emits one [entry](/entry) per
+A uicast document is a **stream** — the model emits one [entry](/entry) per
 line, and the UI mounts each entry the moment its line completes. Between the
 model and the mounted tree there are two hops: your server consumes the model's
 output stream, and the browser consumes what your server relays. Both hops are
@@ -16,12 +16,12 @@ function streamJsonLines<T = unknown>(
 ): AsyncGenerator<T>;
 ```
 
-Core's tolerant JSONLines reader, exported from `@ui-fired/core`. Give it any
+Core's tolerant JSONLines reader, exported from `@uicast/core`. Give it any
 line stream — a model SDK's text stream on the server, `response.body` in the
 browser — and iterate parsed values as lines complete:
 
 ```ts
-import { streamJsonLines } from "@ui-fired/core";
+import { streamJsonLines } from "@uicast/core";
 
 for await (const value of streamJsonLines(source)) {
   // one parsed JSON value per complete line
@@ -48,7 +48,7 @@ it to the browser as NDJSON — the entry is stored and on the wire the moment i
 line completes, not when the generation finishes:
 
 ```ts
-import { type ComponentEntry, streamJsonLines } from "@ui-fired/core";
+import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import { streamText } from "ai";
 
 const isEntry = (value: unknown): value is ComponentEntry =>
@@ -100,7 +100,7 @@ import {
   experimental_streamedQuery as streamedQuery,
   useQuery,
 } from "@tanstack/react-query";
-import { type ComponentEntry, streamJsonLines } from "@ui-fired/core";
+import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 
 type ControlLine = { type: "done" } | { type: "error"; error: string };
 type Line = ComponentEntry | ControlLine;

@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import {
   Info,

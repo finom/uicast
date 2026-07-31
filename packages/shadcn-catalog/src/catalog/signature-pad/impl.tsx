@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { useRef, useCallback } from "react";
 import { Button } from "../../components/ui/button";
 import { Eraser } from "lucide-react";

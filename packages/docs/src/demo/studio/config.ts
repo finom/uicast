@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { StepSequencerRenderer } from "./components/step-sequencer/renderer";

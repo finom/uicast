@@ -5,7 +5,7 @@ import {
   buildElementsById,
   type ComponentEntry,
   type ReactiveProxy,
-} from "@ui-fired/core";
+} from "@uicast/core";
 import { ConfirmHost } from "../providers/confirm";
 import type {
   ComponentImplementation,
@@ -41,7 +41,7 @@ export const Renderer = memo(function Renderer({
     for (const impl of implementations) {
       if (impl.def.name in map) {
         console.error(
-          `[ui-fired] Duplicate component name "${impl.def.name}" in implementations — the later one wins.`,
+          `[uicast] Duplicate component name "${impl.def.name}" in implementations — the later one wins.`,
         );
       }
       map[impl.def.name] = impl;

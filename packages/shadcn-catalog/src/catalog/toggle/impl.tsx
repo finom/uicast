@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Toggle } from "../../components/ui/toggle";
 import { ToggleDef } from "./def";
 

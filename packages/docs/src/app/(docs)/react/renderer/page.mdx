@@ -7,14 +7,14 @@ and re-rendering each node as that state changes. A companion
 `<RendererConfigProvider>` carries host configuration — fallback UI and extra
 expression globals — shared across one or many renderers.
 
-Both are exported from `@ui-fired/react`. This is the **host** side of the
+Both are exported from `@uicast/react`. This is the **host** side of the
 engine; the [entry format](/entry) is what the model produces for it.
 
 ## Mounting a document
 
 ```tsx
-import { Renderer } from "@ui-fired/react";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { Renderer } from "@uicast/react";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 
 <Renderer
   implementations={allImplementations}
@@ -70,11 +70,11 @@ A `<Renderer>` reads the nearest provider above it, so one provider configures
 every renderer in its subtree.
 
 ```tsx
-import { Renderer, RendererConfigProvider } from "@ui-fired/react";
+import { Renderer, RendererConfigProvider } from "@uicast/react";
 import {
   ConfirmModal,
   RenderError,
-} from "@ui-fired/shadcn-catalog/default-components";
+} from "@uicast/shadcn-catalog/default-components";
 
 <RendererConfigProvider
   defaultComponents={{
@@ -108,7 +108,7 @@ wire in explicitly, as above. Like `implementations`, pass a **stable
 reference**: it folds into the same context.
 
 To author your own slot, match the props the engine hands it — both types are
-exported from `@ui-fired/react`:
+exported from `@uicast/react`:
 
 ```ts
 type ConfirmComponentProps = {

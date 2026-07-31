@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { TableCell as ShadcnTableCell } from "../../components/ui/table";
 import { TableCellDef } from "./def";
 

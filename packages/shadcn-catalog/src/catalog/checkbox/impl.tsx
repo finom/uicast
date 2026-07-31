@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Checkbox as ShadcnCheckbox } from "../../components/ui/checkbox";
 import { CheckboxDef } from "./def";
 

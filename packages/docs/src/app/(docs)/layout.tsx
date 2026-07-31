@@ -7,7 +7,7 @@ import "nextra-theme-docs/style.css";
 // files (ordered by src/app/_meta.tsx), and a footer — wrapped around every docs
 // route. /demo sits outside this route group, so it keeps its own full-bleed
 // providers instead of this Layout.
-const navbar = <Navbar logo={<b>ui-fired</b>} />;
+const navbar = <Navbar logo={<b>uicast</b>} />;
 const footer = <Footer>MIT — the open JSONLines UI engine.</Footer>;
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
@@ -16,7 +16,7 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
       navbar={navbar}
       footer={footer}
       pageMap={await getPageMap()}
-      docsRepositoryBase="https://github.com/finom/ui-fired/tree/main/packages/docs"
+      docsRepositoryBase="https://github.com/finom/uicast/tree/main/packages/docs"
     >
       {children}
     </Layout>

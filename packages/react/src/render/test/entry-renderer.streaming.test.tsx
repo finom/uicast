@@ -1,6 +1,6 @@
 import type { StandardToolV0 } from "standard-tool";
-import { Renderer, RendererConfigProvider } from "@ui-fired/react";
-import type { ComponentEntry } from "@ui-fired/core";
+import { Renderer, RendererConfigProvider } from "@uicast/react";
+import type { ComponentEntry } from "@uicast/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {

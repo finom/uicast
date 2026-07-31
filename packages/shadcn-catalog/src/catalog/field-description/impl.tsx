@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { FieldDescriptionDef } from "./def";
 
 export const FieldDescriptionImpl = createComponentImplementation({

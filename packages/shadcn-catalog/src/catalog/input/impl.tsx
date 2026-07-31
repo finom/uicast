@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Input as ShadcnInput } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { InputDef } from "./def";

@@ -1,5 +1,5 @@
 {
-  "name": "@ui-fired/shadcn-catalog",
+  "name": "@uicast/shadcn-catalog",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -15,8 +15,8 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@ui-fired/core": "*",
-    "@ui-fired/react": "*",
+    "@uicast/core": "*",
+    "@uicast/react": "*",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

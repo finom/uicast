@@ -7,7 +7,7 @@ import {
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
-} from "@ui-fired/core";
+} from "@uicast/core";
 import { useConfirm } from "../providers/confirm";
 import { readScopePath } from "../read-scope-path";
 import { useRendererRegistry } from "../store/renderer-registry";
@@ -105,7 +105,7 @@ export const createComponentImplementation = <
             const entryError = EntryError.wrap(err, "unknown", entry.key);
             onError?.(entryError);
             console.error(
-              `[ui-fired] callback "${key}" on element "${entry.key}" failed:`,
+              `[uicast] callback "${key}" on element "${entry.key}" failed:`,
               entryError,
             );
           }

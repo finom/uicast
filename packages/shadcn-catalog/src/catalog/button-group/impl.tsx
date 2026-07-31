@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ButtonGroupDef } from "./def";
 
 export const ButtonGroupImpl = createComponentImplementation({

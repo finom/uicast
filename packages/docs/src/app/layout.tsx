@@ -3,8 +3,8 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: {
-    default: "ui-fired",
-    template: "%s — ui-fired",
+    default: "uicast",
+    template: "%s — uicast",
   },
   description:
     "The open engine that renders streamed JSONLines into a live UI, plus its shadcn component catalog.",

@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { AspectRatio } from "../../components/ui/aspect-ratio";
 import { AspectRatioDef } from "./def";
 

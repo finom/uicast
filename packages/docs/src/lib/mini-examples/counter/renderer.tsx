@@ -1,5 +1,5 @@
 "use client";
-import { Renderer } from "@ui-fired/react";
+import { Renderer } from "@uicast/react";
 import { CounterImpl } from "./impl";
 import counterEntries from "./entries.json";
 

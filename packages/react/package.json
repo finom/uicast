@@ -1,5 +1,5 @@
 {
-  "name": "@ui-fired/react",
+  "name": "@uicast/react",
   "version": "0.1.0",
   "private": true,
   "license": "MIT",
@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "@ui-fired/core": "*",
+    "@uicast/core": "*",
     "standard-tool": "^0.0.6",
     "zod": "~4.3.6"
   },

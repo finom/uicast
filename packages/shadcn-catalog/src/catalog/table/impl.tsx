@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Table as ShadcnTable } from "../../components/ui/table";
 import { TableBody, TableRow, TableCell } from "../../components/ui/table";
 import Skeleton from "react-loading-skeleton";

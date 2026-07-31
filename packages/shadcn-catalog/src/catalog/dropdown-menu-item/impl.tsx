@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { DropdownMenuItem as ShadcnDropdownMenuItem } from "../../components/ui/dropdown-menu";
 import { pickMouseEvent } from "../../events/mouse";
 import { DropdownMenuItemDef } from "./def";

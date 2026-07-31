@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Slider } from "../../components/ui/slider";
 import { SliderDef } from "./def";
 

@@ -1,6 +1,6 @@
 "use client";
 import React, { memo, Suspense, use, useEffect, type ReactNode } from "react";
-import { EntryError, isComponentListEntry, evaluate } from "@ui-fired/core";
+import { EntryError, isComponentListEntry, evaluate } from "@uicast/core";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { ErrorBoundary } from "../providers/error-boundary";
 import { useElement } from "../store/elements-store";

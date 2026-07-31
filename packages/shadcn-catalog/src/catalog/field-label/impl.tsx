@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Label } from "../../components/ui/label";
 import { FieldLabelDef } from "./def";
 

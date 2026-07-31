@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Badge } from "../../components/ui/badge";
 import { cn } from "../../lib/utils";
 import { NotificationBadgeDef } from "./def";

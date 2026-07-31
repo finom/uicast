@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Button } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import { ExternalLink } from "lucide-react";

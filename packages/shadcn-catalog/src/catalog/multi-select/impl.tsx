@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Checkbox } from "../../components/ui/checkbox";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";

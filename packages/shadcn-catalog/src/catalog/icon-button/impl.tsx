@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { Button } from "../../components/ui/button";
 import * as LucideIcons from "lucide-react";

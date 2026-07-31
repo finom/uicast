@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { inventoryFunctions } from "@/lib/functions";
 import { resetInventory, seedIfEmpty } from "@/lib/seed";
 import { inventoryLines } from "../inventory.lines";

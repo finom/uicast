@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Button } from "../../components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Children, useState } from "react";

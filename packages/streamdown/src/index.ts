@@ -1,4 +1,4 @@
-// @ui-fired/streamdown public API. Prompt-partial builders live in @ui-fired/streamdown/prompt.
+// @uicast/streamdown public API. Prompt-partial builders live in @uicast/streamdown/prompt.
 
 export {
 	createFenceRenderer,

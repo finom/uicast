@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Alert, AlertDescription } from "../../components/ui/alert";
 import { Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { InlineMessageDef } from "./def";

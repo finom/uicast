@@ -6,9 +6,9 @@ describe("getFencePartialPrompt", () => {
 		expect(getFencePartialPrompt().startsWith("# Emitting UI")).toBe(true);
 	});
 
-	it("shows the fence with the uifired language token", () => {
+	it("shows the fence with the uicast language token", () => {
 		const out = getFencePartialPrompt();
-		expect(out).toContain("```uifired\n");
+		expect(out).toContain("```uicast\n");
 		expect(out).toContain("one JSON object per line");
 	});
 

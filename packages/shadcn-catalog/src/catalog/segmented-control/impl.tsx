@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
 import { SegmentedControlDef } from "./def";
 

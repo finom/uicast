@@ -8,13 +8,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@ui-fired/shadcn-catalog/ui/resizable";
-import type { ComponentEntry } from "@ui-fired/core";
+} from "@uicast/shadcn-catalog/ui/resizable";
+import type { ComponentEntry } from "@uicast/core";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";
@@ -137,7 +137,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
         </div>
         <div className="space-y-3 text-center">
           <p className="text-sm font-medium text-muted-foreground">
-            ui-fired · live reference
+            uicast · live reference
           </p>
           <h1 className="text-3xl font-semibold tracking-tight">{demo.title}</h1>
           <p className="mx-auto max-w-2xl text-muted-foreground">

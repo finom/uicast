@@ -1,5 +1,5 @@
 import { Streamdown } from "streamdown";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { MarkdownViewerDef } from "./def";
 
 // Rendering is delegated to streamdown: full GitHub-flavored Markdown with

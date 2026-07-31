@@ -1,10 +1,10 @@
 "use client";
 import React, { Component, type ReactNode } from "react";
-import { EntryError } from "@ui-fired/core";
+import { EntryError } from "@uicast/core";
 import type { ErrorComponentProps } from "../types";
 
 // Default for the `error` slot: a bare inline-styled div, no host CSS needed.
-// The shadcn version ships in @ui-fired/shadcn-catalog (`RenderError`).
+// The shadcn version ships in @uicast/shadcn-catalog (`RenderError`).
 export const DefaultErrorComponent = ({
   error,
   elementKey,

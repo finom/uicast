@@ -1,10 +1,10 @@
-import { isComponentEntry, type ComponentEntry } from "@ui-fired/core";
+import { isComponentEntry, type ComponentEntry } from "@uicast/core";
 
-/** The fence language token that routes a code block to the ui-fired Renderer. */
-export const FENCE_LANGUAGE = "uifired";
+/** The fence language token that routes a code block to the uicast Renderer. */
+export const FENCE_LANGUAGE = "uicast";
 
 /**
- * Parse the body of a ```uifired fence into ComponentEntry lines.
+ * Parse the body of a ```uicast fence into ComponentEntry lines.
  *
  * Streaming-safe: a line that does not parse as JSON (typically the
  * still-incomplete last line of a streaming fence, or stray prose) is

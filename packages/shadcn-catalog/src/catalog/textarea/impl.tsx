@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Textarea as ShadcnTextarea } from "../../components/ui/textarea";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { TextareaDef } from "./def";

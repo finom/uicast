@@ -21,7 +21,7 @@ export type ConfirmableValueSourceAssignment = {
 } & ValueSourceAssignment;
 
 /**
- * The ui-fired entry model. One line of a ui-fired document is a
+ * The uicast entry model. One line of a uicast document is a
  * `ComponentEntry`. A `ComponentListEntry` is an entry that repeats: it carries
  * `each` (the array to iterate) plus `as` and an optional `keyBy`.
  *

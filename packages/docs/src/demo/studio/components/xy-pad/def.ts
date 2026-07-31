@@ -1,4 +1,4 @@
-import { createComponentDefinition } from "@ui-fired/core";
+import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
 /**

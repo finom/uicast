@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Card, CardContent } from "../../components/ui/card";
 import { BarcodeDef } from "./def";
 

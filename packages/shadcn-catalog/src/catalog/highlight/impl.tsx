@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { HighlightDef } from "./def";
 
 const colorMap: Record<string, string> = {

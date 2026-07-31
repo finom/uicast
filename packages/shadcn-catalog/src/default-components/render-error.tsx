@@ -1,5 +1,5 @@
 "use client";
-import type { ErrorComponentProps } from "@ui-fired/react";
+import type { ErrorComponentProps } from "@uicast/react";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 
 // Shadcn `error` slot — shown when an element's render throws. Attach via

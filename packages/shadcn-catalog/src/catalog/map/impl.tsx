@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { MapPin } from "lucide-react";
 import { MapDef } from "./def";
 

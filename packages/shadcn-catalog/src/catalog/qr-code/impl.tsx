@@ -1,5 +1,5 @@
 import { QRCodeSVG } from "qrcode.react";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Card, CardContent } from "../../components/ui/card";
 import { QRCodeDef } from "./def";
 

@@ -5,19 +5,19 @@ export default defineConfig({
   resolve: {
     alias: [
       {
-        find: /^@ui-fired\/core\/prompt$/,
+        find: /^@uicast\/core\/prompt$/,
         replacement: resolve(__dirname, "../core/src/prompt/index.ts"),
       },
       {
-        find: /^@ui-fired\/core$/,
+        find: /^@uicast\/core$/,
         replacement: resolve(__dirname, "../core/src/index.ts"),
       },
       {
-        find: /^@ui-fired\/react$/,
+        find: /^@uicast\/react$/,
         replacement: resolve(__dirname, "./src/index.ts"),
       },
       {
-        find: /^@ui-fired\/react\/(.*)$/,
+        find: /^@uicast\/react\/(.*)$/,
         replacement: resolve(__dirname, "./src/$1"),
       },
     ],

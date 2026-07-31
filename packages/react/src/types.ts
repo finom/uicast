@@ -5,7 +5,7 @@ import type {
   ComponentEntry,
   EntryError,
   ReactiveProxy,
-} from "@ui-fired/core";
+} from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 
 // A component's React implementation: its `def` (what the LLM reads) plus the
@@ -47,7 +47,7 @@ export type ErrorComponentProps = {
 // `<RendererConfigProvider defaultComponents={...}>` — distinct from the catalog
 // `implementations`. `confirm` omitted falls back to `window.confirm`; the
 // `error` default is a bare inline-styled div (shadcn version in
-// @ui-fired/shadcn-catalog).
+// @uicast/shadcn-catalog).
 export type DefaultComponents = {
   placeholder?: () => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;

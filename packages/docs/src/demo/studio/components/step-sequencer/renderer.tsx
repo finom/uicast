@@ -1,5 +1,5 @@
 "use client";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { StepSequencerDef } from "./def";
 
 export const StepSequencerRenderer = createComponentImplementation({

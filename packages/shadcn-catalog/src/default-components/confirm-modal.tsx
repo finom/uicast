@@ -1,5 +1,5 @@
 "use client";
-import type { ConfirmComponentProps } from "@ui-fired/react";
+import type { ConfirmComponentProps } from "@uicast/react";
 import { Button } from "../components/ui/button";
 import {
   Dialog,

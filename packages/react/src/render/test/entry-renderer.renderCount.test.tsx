@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
-import { createComponentDefinition, type ComponentEntry } from "@ui-fired/core";
-import { createComponentImplementation, Renderer } from "@ui-fired/react";
-import type { InitFn } from "@ui-fired/react/types";
+import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
+import { createComponentImplementation, Renderer } from "@uicast/react";
+import type { InitFn } from "@uicast/react/types";
 
 // ---------------------------------------------------------------------------
 // Render-once guarantee.

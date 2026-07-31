@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import * as LucideIcons from "lucide-react";
 import type { LucideIcon } from "lucide-react";

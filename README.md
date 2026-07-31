@@ -1,4 +1,4 @@
-# ui-fired
+# uicast
 
 LLM-generated UIs rendered from JSONLines, composed from a pre-built component
 library, and delivered as a normal JS/HTML/CSS page with no build or deployment
@@ -18,7 +18,7 @@ step per generation.
   registries, the default `error` / `unknown` / `confirm` slot components, and the
   common event schemas. Depends on `core` + `react`.
 - **`packages/streamdown`** — the Streamdown plugin: entries ride inside
-  ```` ```uifired ```` code fences in Markdown chat replies, rendered in place;
+  ```` ```uicast ```` code fences in Markdown chat replies, rendered in place;
   ships the matching fence prompt partial.
 - **`packages/docs`** — the documentation site (Nextra). The only documentation
   home: concepts, the entry format, expressions, state, the React binding, prompt
@@ -28,20 +28,20 @@ step per generation.
 
 ## Consuming
 
-The importable packages are scoped — `@ui-fired/core` (the agnostic engine),
-`@ui-fired/react` (the React binding), `@ui-fired/shadcn-catalog` (the
-components), and `@ui-fired/streamdown` (the chat fence renderer). Import React
-symbols from the `@ui-fired/react` barrel; reach catalog modules via subpaths:
+The importable packages are scoped — `@uicast/core` (the agnostic engine),
+`@uicast/react` (the React binding), `@uicast/shadcn-catalog` (the
+components), and `@uicast/streamdown` (the chat fence renderer). Import React
+symbols from the `@uicast/react` barrel; reach catalog modules via subpaths:
 
 ```ts
-import { createProxyScope } from "@ui-fired/core";
-import { Renderer } from "@ui-fired/react";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { createProxyScope } from "@uicast/core";
+import { Renderer } from "@uicast/react";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 ```
 
-A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["ui-fired"]`,
-with `tsconfig` path aliases mapping the `@ui-fired/*` specifiers into the installed
-git-dependency tree — the repo package itself is still named `ui-fired`).
+A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["uicast"]`,
+with `tsconfig` path aliases mapping the `@uicast/*` specifiers into the installed
+git-dependency tree — the repo package itself is still named `uicast`).
 
 ## Development
 

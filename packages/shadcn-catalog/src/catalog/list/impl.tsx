@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ListDef } from "./def";
 
 export const ListImpl = createComponentImplementation({

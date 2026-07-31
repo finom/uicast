@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { RelativeTimeDef } from "./def";
 
 // Largest-fitting unit, then the platform's locale-aware formatter.

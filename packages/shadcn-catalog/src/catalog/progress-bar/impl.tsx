@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Progress } from "../../components/ui/progress";
 import { ProgressBarDef } from "./def";
 

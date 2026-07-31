@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Loader2 } from "lucide-react";
 import { SpinnerDef } from "./def";
 

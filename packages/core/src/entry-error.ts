@@ -55,7 +55,7 @@ export class EntryError extends Error {
   // Brand marker: with git-dep consumption two copies of core can coexist in
   // one bundle, where `instanceof` silently fails — `EntryError.is()` checks
   // this instead.
-  readonly uiFiredEntryError = true;
+  readonly uicastEntryError = true;
 
   constructor(
     message: string,
@@ -80,7 +80,7 @@ export class EntryError extends Error {
     return (
       typeof err === "object" &&
       err !== null &&
-      (err as { uiFiredEntryError?: unknown }).uiFiredEntryError === true
+      (err as { uicastEntryError?: unknown }).uicastEntryError === true
     );
   }
 

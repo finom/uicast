@@ -9,18 +9,18 @@ import {
   type ComponentEntry,
   type EntryError,
   type ReactiveProxy,
-} from "@ui-fired/core";
+} from "@uicast/core";
 import {
   type ComponentImplementation,
   createComponentImplementation,
-} from "@ui-fired/react";
-import type { DefaultComponents } from "@ui-fired/react/types";
-import { EntryRenderer } from "@ui-fired/react/render/entry-renderer";
-import { RendererRegistryProvider } from "@ui-fired/react/store/renderer-registry";
+} from "@uicast/react";
+import type { DefaultComponents } from "@uicast/react/types";
+import { EntryRenderer } from "@uicast/react/render/entry-renderer";
+import { RendererRegistryProvider } from "@uicast/react/store/renderer-registry";
 import {
   createElementsStore,
   ElementsStoreProvider,
-} from "@ui-fired/react/store/elements-store";
+} from "@uicast/react/store/elements-store";
 
 // Lightweight test implementations wired the same way real catalog components are.
 

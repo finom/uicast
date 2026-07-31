@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Switch as ShadcnSwitch } from "../../components/ui/switch";
 import { SwitchDef } from "./def";
 

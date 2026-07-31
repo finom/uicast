@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Tabs as ShadcnTabs } from "../../components/ui/tabs";
 import { TabsDef } from "./def";
 

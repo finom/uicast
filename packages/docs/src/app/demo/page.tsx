@@ -10,7 +10,7 @@ export default function Home() {
       </div>
       <header className="space-y-3 text-center">
         <p className="text-sm font-medium text-muted-foreground">
-          ui-fired · live reference
+          uicast · live reference
         </p>
         <h1 className="text-3xl font-semibold tracking-tight">
           Watch generated apps assemble

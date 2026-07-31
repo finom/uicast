@@ -1,6 +1,6 @@
-# @ui-fired/docs
+# @uicast/docs
 
-The documentation site for **ui-fired**. It also hosts the interactive
+The documentation site for **uicast**. It also hosts the interactive
 **live demo**.
 
 ## TODO Docs Structure
@@ -31,7 +31,7 @@ From the monorepo root:
 
 ```sh
 npm install
-npm run dev -w @ui-fired/docs      # http://localhost:3000 — docs at /, demo at /demo
-npm run build -w @ui-fired/docs    # production build
-npm run typecheck -w @ui-fired/docs
+npm run dev -w @uicast/docs      # http://localhost:3000 — docs at /, demo at /demo
+npm run build -w @uicast/docs    # production build
+npm run typecheck -w @uicast/docs
 ```

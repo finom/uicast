@@ -14,11 +14,11 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@ui-fired/shadcn-catalog/*": ["./src/*"],
-      "@ui-fired/core": ["../core/src/index.ts"],
-      "@ui-fired/core/prompt": ["../core/src/prompt/index.ts"],
-      "@ui-fired/react": ["../react/src/index.ts"],
-      "@ui-fired/react/*": ["../react/src/*"]
+      "@uicast/shadcn-catalog/*": ["./src/*"],
+      "@uicast/core": ["../core/src/index.ts"],
+      "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
+      "@uicast/react": ["../react/src/index.ts"],
+      "@uicast/react/*": ["../react/src/*"]
     },
     "experimentalDecorators": true
   },

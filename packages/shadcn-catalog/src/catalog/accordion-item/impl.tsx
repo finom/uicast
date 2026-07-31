@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,

@@ -1,9 +1,9 @@
 import { CounterExample } from "@/lib/mini-examples/counter";
 
-# ui-fired
+# uicast
 
-**ui-fired is a UI framework whose language is written by models, not people.**
-Where JSX gives a developer a surface to describe a reactive interface, ui-fired's
+**uicast is a UI framework whose language is written by models, not people.**
+Where JSX gives a developer a surface to describe a reactive interface, uicast's
 **entry format** gives a language model one — the same kind of language React or
 Vue provide (components, state, events), but with every design choice flipped from
 *easy for a person to maintain* to *reliable for a model to generate*.
@@ -25,14 +25,14 @@ a full codebase.
 
 ## Packages
 
-- **`@ui-fired/core`** — the render engine: the JSONLines model, an expression
+- **`@uicast/core`** — the render engine: the JSONLines model, an expression
   evaluator that validates code for safety, and the reactive proxy state store.
   React-free.
-- **`@ui-fired/react`** — the React binding that mounts a document.
-- **`@ui-fired/shadcn-catalog`** — a ready-made component catalog built on
+- **`@uicast/react`** — the React binding that mounts a document.
+- **`@uicast/shadcn-catalog`** — a ready-made component catalog built on
   shadcn/ui.
-- **`@ui-fired/streamdown`** — the Streamdown plugin: entries ride inside
-  `uifired` code fences in Markdown chat replies.
+- **`@uicast/streamdown`** — the Streamdown plugin: entries ride inside
+  `uicast` code fences in Markdown chat replies.
 
 <CounterExample />
 

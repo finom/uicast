@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@ui-fired/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton as ShadcnSkeleton } from "../../components/ui/skeleton";
 import { SkeletonDef } from "./def";
 

@@ -5,9 +5,9 @@ import {
   createComponentDefinition,
   type EntryError,
   type ComponentEntry,
-} from "@ui-fired/core";
+} from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
-import { createComponentImplementation, Renderer } from "@ui-fired/react";
+import { createComponentImplementation, Renderer } from "@uicast/react";
 import {
   defaultImplementationsList,
   mountEntries,

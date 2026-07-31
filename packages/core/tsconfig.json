@@ -14,8 +14,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@ui-fired/core": ["./src/index.ts"],
-      "@ui-fired/core/prompt": ["./src/prompt/index.ts"]
+      "@uicast/core": ["./src/index.ts"],
+      "@uicast/core/prompt": ["./src/prompt/index.ts"]
     },
     "experimentalDecorators": true
   },

@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
-import type { ComponentEntry } from "@ui-fired/core";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
+import type { ComponentEntry } from "@uicast/core";
 import { EntryModal } from "./entry-modal";
 
 /**

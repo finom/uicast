@@ -3,14 +3,14 @@ import Skeleton from "react-loading-skeleton";
 import {
   ConfirmModal,
   RenderError,
-} from "@ui-fired/shadcn-catalog/default-components";
-import type { ComponentEntry } from "@ui-fired/core";
+} from "@uicast/shadcn-catalog/default-components";
+import type { ComponentEntry } from "@uicast/core";
 import {
   type ComponentImplementation,
   Renderer,
   RendererConfigProvider,
-} from "@ui-fired/react";
-import type { DefaultComponents } from "@ui-fired/react/types";
+} from "@uicast/react";
+import type { DefaultComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";
 
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
