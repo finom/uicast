@@ -1,7 +1,7 @@
 import type { ComponentEntry } from "@ui-fired/core";
 import type { ComponentImplementation } from "@ui-fired/react";
 import type { DefaultComponents } from "@ui-fired/react/types";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 
 /**
  * Everything the reusable {@link DemoPlayer} needs to host one demo. A demo *is*
@@ -22,7 +22,7 @@ export interface DemoConfig {
   /** The hand-authored JSONLines artifact, revealed one entry at a time. */
   lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
-  functions: StandardToolV0Definition[];
+  functions: StandardToolV0[];
   /** Base catalog + the demo's bespoke renderers: `[...allImplementations, ...bespoke]`. */
   catalog: ComponentImplementation[];
   /** Host fallback UI for the engine (e.g. a custom skeleton). Falls back to RenderCanvas' default. */

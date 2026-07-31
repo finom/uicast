@@ -6,7 +6,7 @@ import type {
   EntryError,
   ReactiveProxy,
 } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 
 // A component's React implementation: its `def` (what the LLM reads) plus the
 // mounted `render` and an optional `placeholder`.
@@ -58,7 +58,7 @@ export type RendererRegistry = {
   implementations: Record<string, ComponentImplementation>;
   defaultComponents?: DefaultComponents;
   // Host callables exposed as bare identifiers to every evaluate() under this provider.
-  functions?: StandardToolV0Definition[];
+  functions?: StandardToolV0[];
   // Extra globals expressions may reference, from the RendererConfigProvider.
   allowedGlobals?: string[];
   // Reported for every classified failure (boundary catches and callback
@@ -111,7 +111,7 @@ export type RendererProps = {
    * Host functions exposed as bare identifiers in every evaluate() call
    * (callbacks invoke them as `name(input)`). Pass a stable reference.
    */
-  functions?: StandardToolV0Definition[];
+  functions?: StandardToolV0[];
   /**
    * One-shot side-effect run on mount, before any root entry evaluates. May seed
    * `scopes.root.*`; a returned Promise suspends children until it resolves.

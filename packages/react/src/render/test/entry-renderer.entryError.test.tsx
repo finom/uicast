@@ -6,7 +6,7 @@ import {
   type EntryError,
   type ComponentEntry,
 } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { createComponentImplementation, Renderer } from "@ui-fired/react";
 import {
   defaultImplementationsList,
@@ -79,7 +79,7 @@ describe("EntryRenderer — EntryError classification", () => {
   it("reports a failing host function in a callback as `host-function` via onError", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { seen, onError } = collect();
-    const functions: StandardToolV0Definition[] = [
+    const functions: StandardToolV0[] = [
       {
         name: "boom",
         description: "",

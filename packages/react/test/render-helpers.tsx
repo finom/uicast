@@ -1,7 +1,7 @@
 import { act, render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import {
   createComponentDefinition,
   createProxyScope,
@@ -104,7 +104,7 @@ type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
-  functions?: StandardToolV0Definition[];
+  functions?: StandardToolV0[];
   defaultComponents?: DefaultComponents;
   onError?: (error: EntryError) => void;
   /** Wrap the renderer in an additional element. */

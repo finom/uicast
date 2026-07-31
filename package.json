@@ -35,7 +35,7 @@
     "react-loading-skeleton": "^3.5.0",
     "react-resizable-panels": "^4.10.0",
     "recharts": "^3.8.1",
-    "standard-tool": "^0.0.5",
+    "standard-tool": "^0.0.6",
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.5.0",
     "zod": "~4.3.6"

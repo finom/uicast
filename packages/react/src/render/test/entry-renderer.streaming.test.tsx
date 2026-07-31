@@ -1,4 +1,4 @@
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { Renderer, RendererConfigProvider } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
 import { render } from "@testing-library/react";
@@ -78,7 +78,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 describe("EntryRenderer — streaming + seed", () => {
 	it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
 		let count = 0;
-		const functions: StandardToolV0Definition[] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",
@@ -122,7 +122,7 @@ describe("EntryRenderer — streaming + seed", () => {
 
 	it("does not re-run a parent's seed when a child entry streams in to fill a placeholder", () => {
 		let count = 0;
-		const functions: StandardToolV0Definition[] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",

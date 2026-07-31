@@ -1,17 +1,17 @@
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
 
 /**
  * A tool's input/output schema slot — a Standard (JSON) Schema, or `undefined`
- * when the tool declares none. Derived from `StandardToolV0Definition` by indexed access
+ * when the tool declares none. Derived from `StandardToolV0` by indexed access
  * rather than importing the schema type by name: standard-tool has renamed that
  * type across releases, and indexed access stays correct regardless.
  */
-type ToolSchema = StandardToolV0Definition["inputSchema"];
+type ToolSchema = StandardToolV0["inputSchema"];
 
 export type FunctionsPromptOptions = {
 	/** The host functions to advertise — the same set handed to the renderer's `functions` prop. */
-	functions: StandardToolV0Definition[];
+	functions: StandardToolV0[];
 };
 
 /**
@@ -32,7 +32,7 @@ function schemaToTs(schema: ToolSchema, fallback: string): string {
 }
 
 /**
- * Render an array of `StandardToolV0Definition`s into the prompt's function section — a
+ * Render an array of `StandardToolV0`s into the prompt's function section — a
  * `# Available Functions` names list followed by `# Function Details`, one
  * Markdown bullet per tool as a TypeScript-style call signature derived from
  * the tool's Zod schemas:

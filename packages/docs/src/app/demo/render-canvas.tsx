@@ -11,7 +11,7 @@ import {
   RendererConfigProvider,
 } from "@ui-fired/react";
 import type { DefaultComponents } from "@ui-fired/react/types";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
 // the Suspense fallback while a component's async `seed` load. Components
@@ -63,7 +63,7 @@ export function RenderCanvas({
 }: {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
-  functions: StandardToolV0Definition[];
+  functions: StandardToolV0[];
   defaultComponents?: DefaultComponents;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;

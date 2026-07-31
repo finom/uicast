@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
 import { Renderer } from "@ui-fired/react";
 import type { ComponentEntry } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import {
   defaultImplementationsList,
   mountEntries,
@@ -48,7 +48,7 @@ describe("EntryRenderer — containment edges", () => {
     const gate = new Promise<string[]>((resolve) => {
       release = resolve;
     });
-    const functions: StandardToolV0Definition[] = [
+    const functions: StandardToolV0[] = [
       { name: "fetchRows", description: "", execute: () => gate },
     ];
     const lines: ComponentEntry[] = [

@@ -1,4 +1,4 @@
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import type { ValueSource } from "../types";
 import { EntryError } from "../entry-error";
 import { ALLOWED_GLOBALS } from "./globals";
@@ -27,12 +27,12 @@ const wrapEvalError = (err: unknown): EntryError => {
 // Evaluate a ValueSource: a `literal` is returned as-is, an `expr` runs through
 // SaferEval against context + host functions. Returns unknown — an async expr
 // resolves to a Promise (callers check `value instanceof Promise`). `functions`
-// (a StandardToolV0Definition[]) are spread after context, so a host fn wins a name clash.
+// (a StandardToolV0[]) are spread after context, so a host fn wins a name clash.
 // Every failure surfaces as a classified EntryError.
 export const evaluate = (
   expr: ValueSource,
   context: Record<string, unknown>,
-  options?: { functions?: StandardToolV0Definition[]; allowedGlobals?: string[] },
+  options?: { functions?: StandardToolV0[]; allowedGlobals?: string[] },
 ): unknown => {
   if ("literal" in expr) return expr.literal;
   if (!expr.expr) return null;

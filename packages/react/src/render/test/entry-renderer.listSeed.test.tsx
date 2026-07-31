@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, waitFor } from "@testing-library/react";
 import type { ComponentEntry } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { mountEntries } from "../../../test/render-helpers";
 
 // Seed semantics on LIST elements: the contract blesses initializing the
@@ -36,7 +36,7 @@ describe("EntryRenderer — seeds on list elements", () => {
 
   it("a self-initializing list seeds via an async host function and renders when it lands", async () => {
     const fetchRows = vi.fn(async () => ["alpha", "beta"]);
-    const functions: StandardToolV0Definition[] = [
+    const functions: StandardToolV0[] = [
       { name: "fetchRows", description: "", execute: fetchRows },
     ];
     const lines: ComponentEntry[] = [
@@ -66,7 +66,7 @@ describe("EntryRenderer — seeds on list elements", () => {
 
   it("an effectful seed on a non-empty list runs once, not once per item", () => {
     const count = vi.fn(() => "counted");
-    const functions: StandardToolV0Definition[] = [
+    const functions: StandardToolV0[] = [
       { name: "countCall", description: "", execute: count as () => unknown },
     ];
     const lines: ComponentEntry[] = [

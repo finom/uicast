@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, waitFor } from "@testing-library/react";
 import type { ComponentEntry } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { mountEntries } from "../../../test/render-helpers";
 
 // In-stream error recovery: re-emitting a key (partial replacement) must give
@@ -273,7 +273,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
 
   it("recovers an async seed that rejected, running the corrected seed", async () => {
     const consoleError = silenceConsoleError();
-    const functions: StandardToolV0Definition[] = [
+    const functions: StandardToolV0[] = [
       {
         name: "failNow",
         description: "",

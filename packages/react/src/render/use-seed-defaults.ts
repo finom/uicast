@@ -5,7 +5,7 @@ import {
   parseScope,
   type ComponentEntry,
 } from "@ui-fired/core";
-import type { StandardToolV0Definition } from "standard-tool";
+import type { StandardToolV0 } from "standard-tool";
 import { readScopePath } from "../read-scope-path";
 import type { InitFn, Scopes } from "../types";
 
@@ -55,7 +55,7 @@ export function useSeedDefaults({
   element: ComponentEntry | undefined;
   scopes: Scopes;
   init?: InitFn;
-  functions?: StandardToolV0Definition[];
+  functions?: StandardToolV0[];
   allowedGlobals?: string[];
   enabled: boolean;
 }): SeedResult {
