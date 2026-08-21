@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
+import { createComponentDefinition, type ComponentEntry } from "uicast";
 import { createComponentImplementation, Renderer } from "@uicast/react";
 import type { InitFn } from "@uicast/react/types";
 import { z } from "zod";

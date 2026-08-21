@@ -2,12 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // The @ui-fired/* packages ship raw TypeScript source; let Next transpile them.
+  // The @uicast/* packages ship raw TypeScript source; let Next transpile them.
   transpilePackages: [
-    "@ui-fired/core",
-    "@ui-fired/react",
-    "@ui-fired/shadcn-catalog",
-    "@ui-fired/streamdown",
+    "uicast",
+    "@uicast/react",
+    "@uicast/shadcn-catalog",
+    "@uicast/streamdown",
   ],
   // Native module — keep it external so it isn't bundled into the server build.
   serverExternalPackages: ["better-sqlite3"],

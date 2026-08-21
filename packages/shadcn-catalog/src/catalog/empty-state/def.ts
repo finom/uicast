@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@uicast/core";
+import { createComponentDefinition } from "uicast";
 import { mouseEventSchema } from "../../events/mouse";
 
 export const EmptyStateDef = createComponentDefinition({

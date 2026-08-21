@@ -16,12 +16,12 @@ function streamJsonLines<T = unknown>(
 ): AsyncGenerator<T>;
 ```
 
-Core's tolerant JSONLines reader, exported from `@uicast/core`. Give it any
+Core's tolerant JSONLines reader, exported from `uicast`. Give it any
 line stream — a model SDK's text stream on the server, `response.body` in the
 browser — and iterate parsed values as lines complete:
 
 ```ts
-import { streamJsonLines } from "@uicast/core";
+import { streamJsonLines } from "uicast";
 
 for await (const value of streamJsonLines(source)) {
   // one parsed JSON value per complete line
@@ -48,7 +48,7 @@ it to the browser as NDJSON — the entry is stored and on the wire the moment i
 line completes, not when the generation finishes:
 
 ```ts
-import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { type ComponentEntry, streamJsonLines } from "uicast";
 import { streamText } from "ai";
 
 const isEntry = (value: unknown): value is ComponentEntry =>
@@ -100,7 +100,7 @@ import {
   experimental_streamedQuery as streamedQuery,
   useQuery,
 } from "@tanstack/react-query";
-import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { type ComponentEntry, streamJsonLines } from "uicast";
 
 type ControlLine = { type: "done" } | { type: "error"; error: string };
 type Line = ComponentEntry | ControlLine;

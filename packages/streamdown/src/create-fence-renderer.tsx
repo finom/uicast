@@ -1,6 +1,6 @@
 "use client";
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 import { Renderer, type RendererProps } from "@uicast/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE } from "./parse-fence-code";

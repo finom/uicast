@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { StrictMode } from "react";
 import { act, render } from "@testing-library/react";
 import { z } from "zod";
-import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
+import { createComponentDefinition, type ComponentEntry } from "uicast";
 import { createComponentImplementation, Renderer } from "@uicast/react";
 import type { InitFn } from "@uicast/react/types";
 

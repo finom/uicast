@@ -1,4 +1,4 @@
-// @uicast/core/prompt — the LLM prompt-partial builders. Every builder takes
+// uicast/prompt — the LLM prompt-partial builders. Every builder takes
 // a single options object so signatures can grow without breaking callers.
 
 export {

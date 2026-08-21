@@ -9,12 +9,12 @@ import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { getErrorRecoveryPrompt } from "@ui-fired/core/prompt";
-import { type ErrorComponentProps, RendererConfigProvider } from "@ui-fired/react";
-import { ConfirmModal } from "@ui-fired/shadcn-catalog/default-components";
+import { getErrorRecoveryPrompt } from "uicast/prompt";
+import { type ErrorComponentProps, RendererConfigProvider } from "@uicast/react";
+import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
-import { createFenceRenderer } from "@ui-fired/streamdown";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { createFenceRenderer } from "@uicast/streamdown";
 import {
   Conversation,
   ConversationContent,
@@ -35,15 +35,15 @@ import { domainTools } from "@/tools";
 
 // Module scope: the renderer's component identity must stay stable across
 // streaming re-renders, or every update would remount the mounted UI blocks.
-const uifiredRenderer = createFenceRenderer({
+const uicastRenderer = createFenceRenderer({
   implementations: allImplementations,
   functions: domainTools,
   showSourceToggle: true,
 });
 
-// MessageResponse's default plugin set plus the ```uifired custom renderer —
+// MessageResponse's default plugin set plus the ```uicast custom renderer —
 // passing `plugins` replaces the default, so the built-ins are recomposed.
-const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uifiredRenderer] };
+const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
 
 export function ChatView({
   chatId,

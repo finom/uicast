@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@uicast/core";
+import { createComponentDefinition } from "uicast";
 import { createComponentImplementation } from "../impl/create-component-implementation";
 
 // Host-only synthetic wrapper that gives `init` a single mount point. `<Renderer>`

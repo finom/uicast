@@ -5,7 +5,7 @@ import type {
   ComponentEntry,
   EntryError,
   ReactiveProxy,
-} from "@uicast/core";
+} from "uicast";
 import type { StandardToolV0 } from "standard-tool";
 
 // A component's React implementation: its `def` (what the LLM reads) plus the

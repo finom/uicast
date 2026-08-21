@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
 import {
   Card,
   CardContent,
@@ -12,10 +12,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@ui-fired/shadcn-catalog/ui/card";
-import { Input } from "@ui-fired/shadcn-catalog/ui/input";
-import { Label } from "@ui-fired/shadcn-catalog/ui/label";
-import { Textarea } from "@ui-fired/shadcn-catalog/ui/textarea";
+} from "@uicast/shadcn-catalog/ui/card";
+import { Input } from "@uicast/shadcn-catalog/ui/input";
+import { Label } from "@uicast/shadcn-catalog/ui/label";
+import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 
 export default function NewPage() {
   const [name, setName] = useState("");

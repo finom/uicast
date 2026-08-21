@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 
 /**
  * The flow-board artifact. One `scopes.root.*` namespace holds the nodes and

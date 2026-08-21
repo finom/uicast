@@ -29,10 +29,10 @@ const nextConfig: NextConfig = {
       "next-mdx-import-source-file": "./src/mdx-components.tsx",
     },
   },
-  // The @ui-fired/* packages ship raw TypeScript source (consumed via the
+  // The @uicast/* packages ship raw TypeScript source (consumed via the
   // monorepo workspace, no build step). Let Next transpile them like
   // first-party code — same mechanism a published/git-dep consumer uses.
-  transpilePackages: ["@ui-fired/core", "@ui-fired/react", "@ui-fired/shadcn-catalog"],
+  transpilePackages: ["uicast", "@uicast/react", "@uicast/shadcn-catalog"],
 };
 
 export default withNextra(nextConfig);

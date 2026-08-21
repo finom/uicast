@@ -1,4 +1,4 @@
-import { isComponentEntry, type ComponentEntry } from "@uicast/core";
+import { isComponentEntry, type ComponentEntry } from "uicast";
 
 /** The fence language token that routes a code block to the uicast Renderer. */
 export const FENCE_LANGUAGE = "uicast";

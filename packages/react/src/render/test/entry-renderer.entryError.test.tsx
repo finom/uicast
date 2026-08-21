@@ -5,7 +5,7 @@ import {
   createComponentDefinition,
   type EntryError,
   type ComponentEntry,
-} from "@uicast/core";
+} from "uicast";
 import type { StandardToolV0 } from "standard-tool";
 import { createComponentImplementation, Renderer } from "@uicast/react";
 import {

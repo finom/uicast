@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 
 /**
  * The groovebox artifact — the JSONLines a model would stream to build the synth

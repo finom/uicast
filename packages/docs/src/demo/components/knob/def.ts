@@ -1,4 +1,4 @@
-import { createComponentDefinition } from "@uicast/core";
+import { createComponentDefinition } from "uicast";
 import z from "zod";
 
 /**

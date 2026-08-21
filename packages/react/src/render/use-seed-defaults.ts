@@ -4,7 +4,7 @@ import {
   evaluate,
   parseScope,
   type ComponentEntry,
-} from "@uicast/core";
+} from "uicast";
 import type { StandardToolV0 } from "standard-tool";
 import { readScopePath } from "../read-scope-path";
 import type { InitFn, Scopes } from "../types";

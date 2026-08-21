@@ -1,6 +1,6 @@
 "use client";
 import React, { Component, type ReactNode } from "react";
-import { EntryError } from "@uicast/core";
+import { EntryError } from "uicast";
 import type { ErrorComponentProps } from "../types";
 
 // Default for the `error` slot: a bare inline-styled div, no host CSS needed.

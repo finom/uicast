@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 
 export const countLines: ComponentEntry[] = [
   {

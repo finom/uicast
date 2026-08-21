@@ -134,7 +134,7 @@ that names the list in its `children` supplies the container (a `TableBody`
 parent holding a `TableRow` list). In TypeScript the refinement is
 `ComponentListEntry` (`each` and `as` required), narrowed from a
 `ComponentEntry` with the `isComponentListEntry()` guard — both exported from
-`@uicast/core`, alongside `isComponentEntry()`, which guards the base entry
+`uicast`, alongside `isComponentEntry()`, which guards the base entry
 shape itself when consuming parsed JSON of unknown shape (the streamdown fence
 parser uses it to tell entries from stray lines). The fields below describe the iteration; the per-item state
 they create lives in

@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { type ComponentEntry, streamJsonLines } from "@ui-fired/core";
+import { type ComponentEntry, streamJsonLines } from "uicast";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -14,22 +14,22 @@ import {
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
   type RenderFailure,
-} from "@ui-fired/core/prompt";
+} from "uicast/prompt";
 import {
   type ErrorComponentProps,
   Renderer,
   RendererConfigProvider,
-} from "@ui-fired/react";
-import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
-import { ConfirmModal } from "@ui-fired/shadcn-catalog/default-components";
+} from "@uicast/react";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
-import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
-import { allImplementations } from "@ui-fired/shadcn-catalog/impls";
+import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { FileText, LoaderCircle, Pencil, ScrollText, Sparkles } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
-import { Card, CardContent, CardFooter } from "@ui-fired/shadcn-catalog/ui/card";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
+import { Card, CardContent, CardFooter } from "@uicast/shadcn-catalog/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -37,12 +37,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@ui-fired/shadcn-catalog/ui/dialog";
-import { Input } from "@ui-fired/shadcn-catalog/ui/input";
-import { Label } from "@ui-fired/shadcn-catalog/ui/label";
-import { ScrollArea } from "@ui-fired/shadcn-catalog/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ui-fired/shadcn-catalog/ui/tabs";
-import { Textarea } from "@ui-fired/shadcn-catalog/ui/textarea";
+} from "@uicast/shadcn-catalog/ui/dialog";
+import { Input } from "@uicast/shadcn-catalog/ui/input";
+import { Label } from "@uicast/shadcn-catalog/ui/label";
+import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@uicast/shadcn-catalog/ui/tabs";
+import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 import { domainTools } from "@/tools";
 
 type PageMeta = { id: number; title: string; prompt: string | null };

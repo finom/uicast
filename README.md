@@ -28,20 +28,23 @@ step per generation.
 
 ## Consuming
 
-The importable packages are scoped — `@uicast/core` (the agnostic engine),
-`@uicast/react` (the React binding), `@uicast/shadcn-catalog` (the
-components), and `@uicast/streamdown` (the chat fence renderer). Import React
-symbols from the `@uicast/react` barrel; reach catalog modules via subpaths:
+The importable packages: bare **`uicast`** is the framework-agnostic engine
+(published on npm), and the satellites are scoped — `@uicast/react` (the React
+binding), `@uicast/shadcn-catalog` (the components), and `@uicast/streamdown`
+(the chat fence renderer). Import React symbols from the `@uicast/react`
+barrel; reach catalog modules via subpaths:
 
 ```ts
-import { createProxyScope } from "@uicast/core";
+import { createProxyScope } from "uicast";
 import { Renderer } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 ```
 
-A consumer bundles the raw TypeScript source (e.g. Next.js `transpilePackages: ["uicast"]`,
-with `tsconfig` path aliases mapping the `@uicast/*` specifiers into the installed
-git-dependency tree — the repo package itself is still named `uicast`).
+For the full framework, install the repo as a git dependency and bundle the raw
+TypeScript source (e.g. Next.js `transpilePackages: ["uicast-repo"]`, with
+`tsconfig` path aliases mapping `uicast` and the `@uicast/*` specifiers into
+the installed tree — the repo package is named `uicast-repo`; the docs-site
+Getting started page shows the exact alias block).
 
 ## Development
 

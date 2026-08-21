@@ -1,5 +1,5 @@
 import { type ModelMessage, streamText } from "ai";
-import { buildElementsById, streamJsonLines, type ComponentEntry } from "@ui-fired/core";
+import { buildElementsById, streamJsonLines, type ComponentEntry } from "uicast";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -7,9 +7,9 @@ import {
   getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
-} from "@ui-fired/core/prompt";
-import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
+} from "uicast/prompt";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";

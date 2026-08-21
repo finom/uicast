@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { EntryError, ComponentEntry } from "@uicast/core";
+import type { EntryError, ComponentEntry } from "uicast";
 import { mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — errors", () => {

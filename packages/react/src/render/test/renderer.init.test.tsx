@@ -2,7 +2,7 @@ import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Renderer } from "@uicast/react";
 import type { InitFn } from "@uicast/react/types";
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once

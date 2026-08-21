@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "@uicast/core";
+import { createComponentDefinition } from "uicast";
 
 export const TooltipDef = createComponentDefinition({
   name: "Tooltip",

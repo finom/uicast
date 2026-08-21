@@ -15,7 +15,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uicast/core": "*",
+    "uicast": "*",
     "@uicast/react": "*"
   },
   "peerDependencies": {

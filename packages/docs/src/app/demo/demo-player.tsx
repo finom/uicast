@@ -14,7 +14,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@uicast/shadcn-catalog/ui/resizable";
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";

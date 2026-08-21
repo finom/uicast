@@ -7,7 +7,7 @@ import {
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
-} from "@uicast/core";
+} from "uicast";
 import { useConfirm } from "../providers/confirm";
 import { readScopePath } from "../read-scope-path";
 import { useRendererRegistry } from "../store/renderer-registry";

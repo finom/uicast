@@ -17,7 +17,7 @@
   "dependencies": {
     "@faker-js/faker": "^9",
     "@uicast/shadcn-catalog": "*",
-    "@uicast/core": "*",
+    "uicast": "*",
     "@uicast/react": "*",
     "dexie": "^4",
     "lucide-react": "^1.8.0",

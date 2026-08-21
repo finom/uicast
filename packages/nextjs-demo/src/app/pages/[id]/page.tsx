@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "uicast";
 import { asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";

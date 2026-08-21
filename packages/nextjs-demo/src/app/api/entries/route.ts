@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "uicast";
 import { eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";

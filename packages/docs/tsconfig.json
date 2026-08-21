@@ -26,10 +26,10 @@
       "@/*": [
         "./src/*"
       ],
-      "@uicast/core": [
+      "uicast": [
         "../core/src/index.ts"
       ],
-      "@uicast/core/prompt": [
+      "uicast/prompt": [
         "../core/src/prompt/index.ts"
       ],
       "@uicast/react": [

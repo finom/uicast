@@ -34,7 +34,7 @@ question: whose mistake was this?
 Recovery only makes sense when the *model* made the mistake — asking it to
 re-emit an element because your server returned a 500 fixes nothing. So every
 failure the engine surfaces is a classified **`EntryError`** (exported from
-`@uicast/core`), tagged at the throw site by **provenance** — whose code
+`uicast`), tagged at the throw site by **provenance** — whose code
 raised it — never by inspecting messages:
 
 ```ts
@@ -115,10 +115,10 @@ this mechanism, the user does, with one click.
 
 The `error` slot receives the classified failure (`error`, `elementKey`); the
 host wires a **Recover** button that reports it to the model as a new turn.
-`getErrorRecoveryPrompt` (from `@uicast/core/prompt`) formats that report:
+`getErrorRecoveryPrompt` (from `uicast/prompt`) formats that report:
 
 ```ts
-import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
+import { getErrorRecoveryPrompt } from "uicast/prompt";
 
 getErrorRecoveryPrompt({
   failures: [{ key: "chart", message: "chartData.map is not a function" }],

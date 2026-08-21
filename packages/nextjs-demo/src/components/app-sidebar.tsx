@@ -4,9 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, MessageSquare, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
-import { ScrollArea } from "@ui-fired/shadcn-catalog/ui/scroll-area";
-import { Separator } from "@ui-fired/shadcn-catalog/ui/separator";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
+import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
+import { Separator } from "@uicast/shadcn-catalog/ui/separator";
 
 type SidebarPage = { id: number; title: string };
 type SidebarChat = { id: string; title: string };

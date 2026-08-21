@@ -9,7 +9,7 @@ import {
   type ComponentEntry,
   type EntryError,
   type ReactiveProxy,
-} from "@uicast/core";
+} from "uicast";
 import {
   type ComponentImplementation,
   createComponentImplementation,

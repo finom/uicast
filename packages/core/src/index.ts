@@ -1,4 +1,4 @@
-// @uicast/core public API. Prompt-partial builders live in @uicast/core/prompt.
+// uicast public API. Prompt-partial builders live in uicast/prompt.
 
 export { createComponentDefinition } from "./def/create-component-definition";
 

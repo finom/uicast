@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "uicast";
 
 /**
  * The palette-studio artifact. One `scopes.root.*` namespace holds the current

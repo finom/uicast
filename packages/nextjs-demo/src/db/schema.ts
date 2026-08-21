@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "@ui-fired/core";
+import type { ComponentEntry } from "uicast";
 import { relations, sql } from "drizzle-orm";
 import { type AnySQLiteColumn, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 

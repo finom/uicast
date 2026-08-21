@@ -1,6 +1,6 @@
 import { LayoutDashboard, Plus } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
 
 export default function Home() {
   return (

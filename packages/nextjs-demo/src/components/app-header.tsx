@@ -10,7 +10,7 @@ export function AppHeader() {
         </span>
         <span className="flex flex-col leading-none">
           <span className="text-sm font-semibold">Deskware</span>
-          <span className="text-xs text-muted-foreground">ui-fired demo</span>
+          <span className="text-xs text-muted-foreground">uicast demo</span>
         </span>
       </Link>
     </header>

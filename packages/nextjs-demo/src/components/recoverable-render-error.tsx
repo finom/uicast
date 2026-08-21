@@ -1,9 +1,9 @@
 "use client";
 import { LoaderCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
-import type { ErrorComponentProps } from "@ui-fired/react";
-import { Alert, AlertDescription, AlertTitle } from "@ui-fired/shadcn-catalog/ui/alert";
-import { Button } from "@ui-fired/shadcn-catalog/ui/button";
+import type { ErrorComponentProps } from "@uicast/react";
+import { Alert, AlertDescription, AlertTitle } from "@uicast/shadcn-catalog/ui/alert";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
 
 // Demo `error` slot: the catalog's RenderError look plus a Recover button —
 // the user-triggered recovery flow. `onRecover` sends the failure back to the

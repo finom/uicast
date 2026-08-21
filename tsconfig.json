@@ -14,8 +14,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "@uicast/core": ["./packages/core/src/index.ts"],
-      "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],
+      "uicast": ["./packages/core/src/index.ts"],
+      "uicast/prompt": ["./packages/core/src/prompt/index.ts"],
       "@uicast/react": ["./packages/react/src/index.ts"],
       "@uicast/react/*": ["./packages/react/src/*"],
       "@uicast/streamdown": ["./packages/streamdown/src/index.ts"],

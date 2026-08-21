@@ -5,10 +5,10 @@ import {
   getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
-} from "@ui-fired/core/prompt";
-import { getFencePartialPrompt } from "@ui-fired/streamdown/prompt";
-import { allDefinitions } from "@ui-fired/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@ui-fired/shadcn-catalog/events";
+} from "uicast/prompt";
+import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
