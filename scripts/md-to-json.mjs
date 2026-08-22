@@ -3,11 +3,11 @@ import { resolve, dirname, basename, join } from "path";
 import { glob } from "glob";
 
 // Scoped to core source only: the sole md-to-json consumers are the prompt
-// fragments under packages/core/src/prompt/md/. Keeping the scan this narrow
+// fragments under packages/uicast/src/prompt/md/. Keeping the scan this narrow
 // avoids mirroring human-facing docs and node_modules READMEs.
 const srcDir = resolve(
   dirname(new URL(import.meta.url).pathname),
-  "../packages/core/src",
+  "../packages/uicast/src",
 );
 
 const mdFiles = await glob("**/*.md", { cwd: srcDir });

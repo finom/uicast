@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 
 const read = (dir) => JSON.parse(readFileSync(`./packages/${dir}/package.json`, "utf8"));
 const versions = {
-  uicast: read("core").version,
+  uicast: read("uicast").version,
   "@uicast/react": read("react").version,
   "@uicast/shadcn-catalog": read("shadcn-catalog").version,
   "@uicast/streamdown": read("streamdown").version,

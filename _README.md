@@ -6,7 +6,7 @@ step per generation.
 
 ## Packages
 
-- **`packages/core`** — the **framework-agnostic** engine (zero React imports).
+- **`packages/uicast`** — the **framework-agnostic** engine (zero React imports).
   The JSONLines render-engine concepts, the sandboxed micro-expression evaluator,
   the reactive Proxy-based state store, the component-def factories, and the
   prompt-partial builders.
@@ -55,7 +55,7 @@ npm install
 npm run typecheck   # tsc --noEmit across all workspaces
 npm test            # core + react + streamdown vitest suites
 npm run lint        # Biome linter (zero-diagnostic gate)
-npm run md-to-json  # regenerate the prompt-fragment JSON mirrors from packages/core/src/prompt/md/*.md
+npm run md-to-json  # regenerate the prompt-fragment JSON mirrors from packages/uicast/src/prompt/md/*.md
 ```
 
 > Package naming and the public API surface are being finalized.

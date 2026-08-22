@@ -14,8 +14,8 @@
     "jsx": "react-jsx",
     "incremental": true,
     "paths": {
-      "uicast": ["./packages/core/src/index.ts"],
-      "uicast/prompt": ["./packages/core/src/prompt/index.ts"],
+      "uicast": ["./packages/uicast/src/index.ts"],
+      "uicast/prompt": ["./packages/uicast/src/prompt/index.ts"],
       "@uicast/react": ["./packages/react/src/index.ts"],
       "@uicast/react/*": ["./packages/react/src/*"],
       "@uicast/streamdown": ["./packages/streamdown/src/index.ts"],
@@ -24,9 +24,9 @@
     "experimentalDecorators": true
   },
   "include": [
-    "packages/core/**/*.ts",
-    "packages/core/**/*.tsx",
-    "packages/core/**/*.mts",
+    "packages/uicast/**/*.ts",
+    "packages/uicast/**/*.tsx",
+    "packages/uicast/**/*.mts",
     "packages/react/**/*.ts",
     "packages/react/**/*.tsx",
     "packages/react/**/*.mts",
