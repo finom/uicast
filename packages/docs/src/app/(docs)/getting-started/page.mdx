@@ -1,50 +1,35 @@
 # Getting started
 
-The full framework is consumed as a **git dependency** for now, and the
-consumer bundles its raw TypeScript source: no build step, and a public API
-surface that is still settling. (The core engine alone is also on npm as
-[`uicast`](https://www.npmjs.com/package/uicast) — the repo install below
-covers everything, engine included.) Install the repo — the repo package is
-named `uicast-repo`, and its root `dependencies` mirror every runtime dep, so
-one install brings them along:
+The packages ship **raw TypeScript** — no build step, and a public API surface
+that is still settling. Install them from npm (they are in beta, under the
+`beta` dist-tag — pin the versions):
 
 ```sh
-npm install github:finom/uicast
+npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta @uicast/streamdown@beta
 ```
+
+- **`@uicast/core`** — the framework-agnostic engine.
+- **`@uicast/react`** — the React binding.
+- **`@uicast/shadcn-catalog`** — the ready-made component catalog (optional —
+  you can define your own).
+- **`@uicast/streamdown`** — the Streamdown plugin for chat replies (optional).
 
 Let your bundler transpile the raw source — in Next.js:
 
 ```ts
 // next.config.ts
 const nextConfig = {
-  transpilePackages: ["uicast-repo"],
+  transpilePackages: [
+    "@uicast/core",
+    "@uicast/react",
+    "@uicast/shadcn-catalog",
+    "@uicast/streamdown",
+  ],
 };
 ```
 
-Then map the package specifiers — bare `uicast` for the engine, scoped
-`@uicast/*` for the rest — into the installed tree with `tsconfig` path
-aliases (Next.js resolves imports through them too):
-
-```jsonc
-// tsconfig.json
-{
-  "compilerOptions": {
-    "paths": {
-      "uicast": ["./node_modules/uicast-repo/packages/core/src/index.ts"],
-      "uicast/prompt": ["./node_modules/uicast-repo/packages/core/src/prompt/index.ts"],
-      "@uicast/react": ["./node_modules/uicast-repo/packages/react/src/index.ts"],
-      "@uicast/react/*": ["./node_modules/uicast-repo/packages/react/src/*"],
-      "@uicast/shadcn-catalog/events": ["./node_modules/uicast-repo/packages/shadcn-catalog/src/events/index.ts"],
-      "@uicast/shadcn-catalog/defs": ["./node_modules/uicast-repo/packages/shadcn-catalog/src/defs.ts"],
-      "@uicast/shadcn-catalog/impls": ["./node_modules/uicast-repo/packages/shadcn-catalog/src/impls.ts"],
-      "@uicast/shadcn-catalog/default-components": ["./node_modules/uicast-repo/packages/shadcn-catalog/src/default-components/index.ts"],
-      "@uicast/shadcn-catalog/ui/*": ["./node_modules/uicast-repo/packages/shadcn-catalog/src/components/ui/*"],
-      "@uicast/streamdown": ["./node_modules/uicast-repo/packages/streamdown/src/index.ts"],
-      "@uicast/streamdown/prompt": ["./node_modules/uicast-repo/packages/streamdown/src/prompt/index.ts"]
-    }
-  }
-}
-```
+No path aliases are needed — the packages resolve through their `exports`
+maps like any npm dependency.
 
 ## A document is a stream of lines
 
