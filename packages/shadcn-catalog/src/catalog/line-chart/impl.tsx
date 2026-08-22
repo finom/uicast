@@ -40,7 +40,7 @@ export const LineChartImpl = createComponentImplementation({
           <Tooltip />
           <Legend />
           {yKeys.map((key, i) => (
-            <Line
+            <Line isAnimationActive={false}
               key={key}
               type={curved ? "monotone" : "linear"}
               dataKey={key}

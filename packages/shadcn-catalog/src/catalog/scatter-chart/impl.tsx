@@ -28,7 +28,7 @@ export const ScatterChartImpl = createComponentImplementation({
           <XAxis dataKey={xKey} type="number" name={xKey} />
           <YAxis dataKey={yKey} type="number" name={yKey} />
           <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-          <Scatter name={nameKey ?? "Data"} data={data} fill={color} />
+          <Scatter isAnimationActive={false} name={nameKey ?? "Data"} data={data} fill={color} />
         </RechartsScatterChart>
       </ResponsiveContainer>
     );

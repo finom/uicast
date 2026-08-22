@@ -19,7 +19,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 // Plain string model ids resolve through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
-const CHAT_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-4.8";
+const CHAT_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-5";
 const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 32_000);
 
 // The message array is the AI SDK's UIMessage shape — only the fields this

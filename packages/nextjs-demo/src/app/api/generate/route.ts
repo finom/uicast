@@ -20,7 +20,7 @@ export const runtime = "nodejs";
 export const maxDuration = 300;
 
 // Plain string model ids resolve through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
-const GENERATION_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-4.8";
+const GENERATION_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-5";
 // Providers default to a small output cap (Anthropic: 4096 tokens ≈ ~40
 // entries), which truncates large pages mid-subtree. Set it explicitly.
 const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 32_000);

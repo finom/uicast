@@ -40,7 +40,7 @@ export const BarChartImpl = createComponentImplementation({
           <Tooltip />
           <Legend />
           {yKeys.map((key, i) => (
-            <Bar
+            <Bar isAnimationActive={false}
               key={key}
               dataKey={key}
               fill={barColors[i % barColors.length]}

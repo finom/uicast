@@ -33,7 +33,7 @@ export const DonutChartImpl = createComponentImplementation({
       <div className="relative" data-key={generatedKey}>
         <ResponsiveContainer width="100%" height={height}>
           <PieChart>
-            <Pie
+            <Pie isAnimationActive={false}
               data={data}
               dataKey="value"
               nameKey="name"

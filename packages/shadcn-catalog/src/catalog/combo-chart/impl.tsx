@@ -38,10 +38,10 @@ export const ComboChartImpl = createComponentImplementation({
           <Tooltip />
           <Legend />
           {barKeys.map((key, i) => (
-            <Bar key={key} dataKey={key} fill={bColors[i % bColors.length]} />
+            <Bar isAnimationActive={false} key={key} dataKey={key} fill={bColors[i % bColors.length]} />
           ))}
           {lineKeys.map((key, i) => (
-            <Line
+            <Line isAnimationActive={false}
               key={key}
               type="monotone"
               dataKey={key}

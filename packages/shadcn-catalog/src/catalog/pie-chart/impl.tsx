@@ -36,7 +36,7 @@ export const PieChartImpl = createComponentImplementation({
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
         <RechartsPieChart>
-          <Pie
+          <Pie isAnimationActive={false}
             data={data}
             cx="50%"
             cy="50%"

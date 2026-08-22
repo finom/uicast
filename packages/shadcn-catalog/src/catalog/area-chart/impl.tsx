@@ -41,7 +41,7 @@ export const AreaChartImpl = createComponentImplementation({
           <Tooltip />
           <Legend />
           {yKeys.map((key, i) => (
-            <Area
+            <Area isAnimationActive={false}
               key={key}
               type={curved ? "monotone" : "linear"}
               dataKey={key}

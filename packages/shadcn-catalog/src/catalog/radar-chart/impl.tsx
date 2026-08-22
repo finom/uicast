@@ -40,7 +40,7 @@ export const RadarChartImpl = createComponentImplementation({
           <Tooltip />
           <Legend />
           {valueKeys.map((key, i) => (
-            <Radar
+            <Radar isAnimationActive={false}
               key={key}
               name={key}
               dataKey={key}
