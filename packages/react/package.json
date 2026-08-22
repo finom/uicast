@@ -1,6 +1,6 @@
 {
   "name": "@uicast/react",
-  "version": "0.0.1-beta.0",
+  "version": "0.0.1-beta.1",
   "description": "the React binding for uicast",
   "license": "MIT",
   "repository": {
@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "@uicast/core": "0.0.1-beta.0",
+    "@uicast/core": "0.0.1-beta.1",
     "standard-tool": "^0.0.6",
     "zod": "~4.3.6"
   },
