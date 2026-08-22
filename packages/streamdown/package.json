@@ -1,6 +1,6 @@
 {
   "name": "@uicast/streamdown",
-  "version": "0.0.0",
+  "version": "0.0.1-beta.0",
   "description": "the uicast Streamdown plugin",
   "license": "MIT",
   "repository": {
@@ -30,8 +30,8 @@
     "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
   },
   "dependencies": {
-    "uicast": "0.0.0",
-    "@uicast/react": "0.0.0"
+    "uicast": "0.0.1-beta.0",
+    "@uicast/react": "0.0.1-beta.0"
   },
   "peerDependencies": {
     "react": "^19.2.5",
