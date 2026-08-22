@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "uicast";
+import { createComponentDefinition } from "@uicast/core";
 
 export const FileUploadDef = createComponentDefinition({
   name: "FileUpload",

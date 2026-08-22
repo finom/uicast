@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import { asyncLines } from "./async-lines";
 import { chartLines } from "./chart-lines";
 import { countLines } from "./count-lines";

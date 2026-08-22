@@ -5,7 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { type ComponentEntry, streamJsonLines } from "uicast";
+import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -14,7 +14,7 @@ import {
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
   type RenderFailure,
-} from "uicast/prompt";
+} from "@uicast/core/prompt";
 import {
   type ErrorComponentProps,
   Renderer,

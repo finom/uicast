@@ -5,7 +5,7 @@ import {
   buildElementsById,
   type ComponentEntry,
   type ReactiveProxy,
-} from "uicast";
+} from "@uicast/core";
 import { ConfirmHost } from "../providers/confirm";
 import type {
   ComponentImplementation,

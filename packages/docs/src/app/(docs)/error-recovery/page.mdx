@@ -118,7 +118,7 @@ host wires a **Recover** button that reports it to the model as a new turn.
 `getErrorRecoveryPrompt` (from `uicast/prompt`) formats that report:
 
 ```ts
-import { getErrorRecoveryPrompt } from "uicast/prompt";
+import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 
 getErrorRecoveryPrompt({
   failures: [{ key: "chart", message: "chartData.map is not a function" }],

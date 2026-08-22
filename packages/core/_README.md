@@ -19,8 +19,8 @@ def/impl pairs over shadcn/Radix), and `@uicast/streamdown` (render
 > `transpilePackages: ["uicast"]`). Pin exact versions.
 
 ```ts
-import { streamJsonLines, EntryError, isComponentEntry } from "uicast";
-import { getCommonInstructionsPartialPrompt } from "uicast/prompt";
+import { streamJsonLines, EntryError, isComponentEntry } from "@uicast/core";
+import { getCommonInstructionsPartialPrompt } from "@uicast/core/prompt";
 ```
 
 Documentation, demos, and the full story: **[github.com/finom/uicast](https://github.com/finom/uicast)**.

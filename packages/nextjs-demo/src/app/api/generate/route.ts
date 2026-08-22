@@ -1,5 +1,5 @@
 import { type ModelMessage, streamText } from "ai";
-import { buildElementsById, streamJsonLines, type ComponentEntry } from "uicast";
+import { buildElementsById, streamJsonLines, type ComponentEntry } from "@uicast/core";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -7,7 +7,7 @@ import {
   getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
-} from "uicast/prompt";
+} from "@uicast/core/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { asc, eq, inArray } from "drizzle-orm";

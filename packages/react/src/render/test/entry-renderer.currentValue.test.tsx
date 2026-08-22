@@ -1,6 +1,6 @@
 import { act, fireEvent, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
 // `currentValue` is the value currently at an assignment's `set` path, bound

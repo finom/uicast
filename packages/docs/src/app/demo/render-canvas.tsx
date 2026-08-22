@@ -4,7 +4,7 @@ import {
   ConfirmModal,
   RenderError,
 } from "@uicast/shadcn-catalog/default-components";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import {
   type ComponentImplementation,
   Renderer,

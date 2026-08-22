@@ -15,8 +15,8 @@
     "incremental": true,
     "paths": {
       "@uicast/shadcn-catalog/*": ["./src/*"],
-      "uicast": ["../core/src/index.ts"],
-      "uicast/prompt": ["../core/src/prompt/index.ts"],
+      "@uicast/core": ["../core/src/index.ts"],
+      "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
       "@uicast/react": ["../react/src/index.ts"],
       "@uicast/react/*": ["../react/src/*"]
     },

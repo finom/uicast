@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createProxyScope } from "uicast";
+import { createProxyScope } from "@uicast/core";
 import { readScopePath } from "./read-scope-path";
 
 describe("readScopePath", () => {

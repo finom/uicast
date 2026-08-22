@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@uicast/shadcn-catalog/ui/dialog";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 
 // JSON token → Tailwind color. Tuned to read on the dialog's `bg-muted/40` code
 // panel in both light and dark themes.

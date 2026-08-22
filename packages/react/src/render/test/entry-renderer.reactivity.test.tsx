@@ -1,6 +1,6 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — fine-grained reactivity", () => {

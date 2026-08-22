@@ -1,5 +1,5 @@
 import { useEffect, useReducer } from "react";
-import { extractDeps, parseScope, type ComponentEntry } from "uicast";
+import { extractDeps, parseScope, type ComponentEntry } from "@uicast/core";
 import type { Scopes } from "../types";
 
 // Subscribe the node to every reactive path its entry reads (auto-derived from

@@ -3,7 +3,7 @@ import {
   createProxyScope,
   type ComponentListEntry,
   type ReactiveProxy,
-} from "uicast";
+} from "@uicast/core";
 import type { Scopes } from "../types";
 
 type ItemId = string | number;

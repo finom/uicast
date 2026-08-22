@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 
 export const chartLines: ComponentEntry[] = [
   {

@@ -1,12 +1,12 @@
 {
-  "name": "uicast",
+  "name": "@uicast/core",
   "version": "0.0.1-beta.0",
   "description": "LLM-generated UIs from a stream of JSONLines — the framework-agnostic uicast engine: entry format, sandboxed expressions, reactive scopes, and prompt builders.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/finom/uicast.git",
-    "directory": "packages/uicast"
+    "directory": "packages/core"
   },
   "homepage": "https://github.com/finom/uicast#readme",
   "keywords": [
@@ -45,5 +45,8 @@
     "@vitest/coverage-v8": "^4.1.0",
     "vitest": "^4.1.0",
     "zod": "~4.3.6"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

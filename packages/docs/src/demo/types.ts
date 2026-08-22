@@ -1,4 +1,4 @@
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import type { ComponentImplementation } from "@uicast/react";
 import type { DefaultComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";

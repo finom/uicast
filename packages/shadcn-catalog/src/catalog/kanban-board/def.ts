@@ -1,5 +1,5 @@
 import z from "zod";
-import { createComponentDefinition } from "uicast";
+import { createComponentDefinition } from "@uicast/core";
 
 const cardSchema = z.object({
   id: z.string().meta({ description: "Card unique identifier (unique across the whole board)" }),

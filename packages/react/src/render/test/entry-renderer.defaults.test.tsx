@@ -2,7 +2,7 @@ import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { StandardToolV0 } from "standard-tool";
 import { Renderer } from "@uicast/react";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — seed", () => {

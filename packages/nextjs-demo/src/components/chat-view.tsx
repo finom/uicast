@@ -9,7 +9,7 @@ import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
-import { getErrorRecoveryPrompt } from "uicast/prompt";
+import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { type ErrorComponentProps, RendererConfigProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";

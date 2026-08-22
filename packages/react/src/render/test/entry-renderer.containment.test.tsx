@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
 import { Renderer } from "@uicast/react";
-import type { ComponentEntry } from "uicast";
+import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import {
   defaultImplementationsList,

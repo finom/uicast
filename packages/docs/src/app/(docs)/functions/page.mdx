@@ -65,7 +65,7 @@ the *document's* fault — the arguments validate but make no sense, like an `id
 for a row that doesn't exist — throw an `EntryError` yourself to say so:
 
 ```ts
-import { EntryError } from "uicast";
+import { EntryError } from "@uicast/core";
 
 async execute({ id }) {
   const order = await db.orders.find(id);
