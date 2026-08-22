@@ -1,8 +1,13 @@
 {
   "name": "@uicast/shadcn-catalog",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.0",
+  "description": "the uicast component catalog over shadcn/Radix",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/finom/uicast.git",
+    "directory": "packages/shadcn-catalog"
+  },
   "type": "module",
   "exports": {
     "./events": "./src/events/index.ts",
@@ -11,12 +16,24 @@
     "./default-components": "./src/default-components/index.ts",
     "./ui/*": "./src/components/ui/*.tsx"
   },
+  "files": [
+    "src",
+    "!src/**/test/**",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
+  },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "uicast": "*",
-    "@uicast/react": "*",
+    "uicast": "0.0.0",
+    "@uicast/react": "0.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

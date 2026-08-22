@@ -1,6 +1,6 @@
 {
   "name": "uicast",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "LLM-generated UIs from a stream of JSONLines — the framework-agnostic uicast engine: entry format, sandboxed expressions, reactive scopes, and prompt builders.",
   "license": "MIT",
   "repository": {
@@ -26,7 +26,8 @@
   "files": [
     "src",
     "!src/**/test/**",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "test": "vitest run",

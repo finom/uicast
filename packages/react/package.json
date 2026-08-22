@@ -1,22 +1,37 @@
 {
   "name": "@uicast/react",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.0",
+  "description": "the React binding for uicast",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/finom/uicast.git",
+    "directory": "packages/react"
+  },
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
     "./*": "./src/*"
   },
+  "files": [
+    "src",
+    "!src/**/test/**",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "uicast": "*",
+    "uicast": "0.0.0",
     "standard-tool": "^0.0.6",
     "zod": "~4.3.6"
   },
