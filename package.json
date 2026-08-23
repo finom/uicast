@@ -33,10 +33,10 @@
     "draft-notest": "PACKAGE=${PACKAGE:-core} NPM_TAG=draft VERSION_TYPE=\"prerelease --preid=draft\" npm run vpub-notest",
     "vpub-all-guard": "if ! git diff --quiet HEAD; then echo 'Error: the git tree is not clean — commit or stash first (the release flow makes its own commit)'; exit 1; fi",
     "vpub-all:version": "set -e; for P in core react shadcn-catalog streamdown; do npm version --prefix ./packages/$P $VERSION_TYPE --no-git-tag-version; done; node scripts/sync-internal-deps.mjs; npm install --package-lock-only",
-    "vpub-all:publish": "set -e; for P in core react shadcn-catalog streamdown; do npm run --prefix ./packages/$P npm-publish; done",
+    "vpub-all:publish": "set -e; for P in core react shadcn-catalog streamdown; do npm run --prefix ./packages/$P npm-publish; NAME=$(node -p \"require('./packages/$P/package.json').name\"); VERSION=$(node -p \"require('./packages/$P/package.json').version\"); npm dist-tag add \"$NAME@$VERSION\" beta; done",
     "vpub-all:commit": "VERSION=$(node -p \"require('./packages/core/package.json').version\") && git add packages/core/package.json packages/react/package.json packages/shadcn-catalog/package.json packages/streamdown/package.json package-lock.json && git commit -m \"chore(release): all packages @ $VERSION\" && git push",
     "vpub-all-notest": "npm run vpub-all-guard && npm run vpub-all:version && npm run vpub-all:publish && npm run vpub-all:commit",
-    "beta-notest-all": "NPM_TAG=beta VERSION_TYPE=\"prerelease --preid=beta\" npm run vpub-all-notest"
+    "beta-notest-all": "NPM_TAG=latest VERSION_TYPE=\"prerelease --preid=beta\" npm run vpub-all-notest"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
