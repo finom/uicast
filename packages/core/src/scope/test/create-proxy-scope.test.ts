@@ -74,6 +74,27 @@ describe("createProxyScope — writes and emits", () => {
     state.rows[0].name = "renamed";
     expect(childSpy).toHaveBeenCalledOnce();
   });
+
+  it("ancestor write wakes descendant subscribers", () => {
+    const state = createProxyScope<{ products: { id: number }[] }>({
+      products: [{ id: 1 }],
+    });
+    const lengthSpy = vi.fn();
+    state.$emitter.on("products.length", lengthSpy);
+    state.$set("products", [{ id: 1 }, { id: 2 }]);
+    expect(lengthSpy).toHaveBeenCalledOnce();
+  });
+
+  it("ancestor write does not wake sibling-path subscribers", () => {
+    const state = createProxyScope<{ products: unknown[]; orders: unknown[] }>({
+      products: [],
+      orders: [],
+    });
+    const orderSpy = vi.fn();
+    state.$emitter.on("orders.length", orderSpy);
+    state.$set("products", [1]);
+    expect(orderSpy).not.toHaveBeenCalled();
+  });
 });
 
 describe("createProxyScope — $set", () => {

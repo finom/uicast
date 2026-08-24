@@ -58,6 +58,27 @@ describe("EntryRenderer — scopes", () => {
     expect(container.textContent).toContain("first");
   });
 
+  it("wakes a deeper-path reader when an ancestor path is replaced", () => {
+    // Regression: a stat reading `products.length` must update when a
+    // callback replaces `products` wholesale (mutate-then-refetch pattern).
+    const lines: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        props: { expr: "({ text: scopes.root.products.length + ' products' })" },
+      },
+    ];
+    const { container, scopes } = mountEntries(lines, {
+      rootScope: { products: [{ id: 1 }, { id: 2 }] },
+    });
+    expect(container.textContent).toContain("2 products");
+
+    act(() => {
+      scopes.root.$set("products", [{ id: 1 }, { id: 2 }, { id: 3 }]);
+    });
+    expect(container.textContent).toContain("3 products");
+  });
+
   it("reads from a non-root scope when one is wired in", () => {
     const lines: ComponentEntry[] = [
       {

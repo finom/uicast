@@ -31,6 +31,18 @@ function createEmitter(): Emitter {
       events.get(type)?.forEach((fn) => {
         fn(payload);
       });
+      // Writing a path replaces everything beneath it, so subscribers of
+      // deeper paths must wake too: a write to `products` wakes a reader of
+      // `products.length`. The reverse direction stays exact — a write to
+      // `rows.0.name` does not wake a reader of `rows`.
+      const prefix = `${type}.`;
+      for (const [key, handlers] of events) {
+        if (key.startsWith(prefix)) {
+          handlers.forEach((fn) => {
+            fn(payload);
+          });
+        }
+      }
     },
   };
 }
