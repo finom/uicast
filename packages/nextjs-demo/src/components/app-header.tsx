@@ -9,8 +9,8 @@ export function AppHeader() {
           <Boxes className="size-5" />
         </span>
         <span className="flex flex-col leading-none">
-          <span className="text-sm font-semibold">Deskware</span>
-          <span className="text-xs text-muted-foreground">uicast demo</span>
+          <span className="text-sm font-semibold">Warehouse</span>
+          <span className="text-xs text-muted-foreground">uicast demo — customers, orders &amp; products</span>
         </span>
       </Link>
     </header>

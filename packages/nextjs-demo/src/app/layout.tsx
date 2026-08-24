@@ -4,7 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Providers } from "./providers";
 import "./globals.css";
 
-export const metadata = { title: "Deskware — uicast demo" };
+export const metadata = { title: "Warehouse — uicast demo" };
 
 // Follows the OS color scheme. Runs before paint (no flash) and keeps
 // listening, so an OS-level switch retheme the app live.
