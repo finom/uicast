@@ -4,7 +4,7 @@ import {
   TableRow,
   TableCell,
 } from "../../components/ui/table";
-import Skeleton from "react-loading-skeleton";
+import { Skeleton } from "../../components/ui/skeleton";
 import { TableFooterDef } from "./def";
 
 export const TableFooterImpl = createComponentImplementation({
@@ -17,7 +17,7 @@ export const TableFooterImpl = createComponentImplementation({
   placeholder: () => (
     <TableRow>
       <TableCell colSpan={1000}>
-        <Skeleton height={20} />
+        <Skeleton style={{ height: 20 }} className="w-full" />
       </TableCell>
     </TableRow>
   ),

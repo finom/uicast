@@ -4,7 +4,7 @@ import {
   TableCell,
 } from "../../components/ui/table";
 import { pickMouseEvent } from "../../events/mouse";
-import Skeleton from "react-loading-skeleton";
+import { Skeleton } from "../../components/ui/skeleton";
 import { TableRowDef } from "./def";
 
 export const TableRowImpl = createComponentImplementation({
@@ -21,7 +21,7 @@ export const TableRowImpl = createComponentImplementation({
   },
   placeholder: () => (
     <TableCell colSpan={1000}>
-      <Skeleton height={20} />
+      <Skeleton style={{ height: 20 }} className="w-full" />
     </TableCell>
   ),
 });

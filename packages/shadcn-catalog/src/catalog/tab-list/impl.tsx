@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { TabsList } from "../../components/ui/tabs";
-import Skeleton from "react-loading-skeleton";
+import { Skeleton } from "../../components/ui/skeleton";
 import { TabListDef } from "./def";
 
 export const TabListImpl = createComponentImplementation({
@@ -10,9 +10,9 @@ export const TabListImpl = createComponentImplementation({
   },
   placeholder: () => (
     <>
-      <Skeleton width={60} height={20} />
-      <Skeleton width={60} height={20} />
-      <Skeleton width={60} height={20} />
+      <Skeleton style={{ width: 60, height: 20 }} />
+      <Skeleton style={{ width: 60, height: 20 }} />
+      <Skeleton style={{ width: 60, height: 20 }} />
     </>
   ),
 });

@@ -4,7 +4,7 @@ import {
   TableRow,
   TableHead,
 } from "../../components/ui/table";
-import Skeleton from "react-loading-skeleton";
+import { Skeleton } from "../../components/ui/skeleton";
 import { TableHeaderDef } from "./def";
 
 export const TableHeaderImpl = createComponentImplementation({
@@ -17,7 +17,7 @@ export const TableHeaderImpl = createComponentImplementation({
   placeholder: () => (
     <TableRow>
       <TableHead colSpan={1000}>
-        <Skeleton height={16} />
+        <Skeleton style={{ height: 16 }} className="w-full" />
       </TableHead>
     </TableRow>
   ),
