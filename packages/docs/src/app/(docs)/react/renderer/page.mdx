@@ -44,7 +44,9 @@ This is what makes chat surfaces coherent: each ```` ```uicast ```` block in a
 conversation is its own `<EntriesRenderer>`, and together they behave as **one
 app** — the same path means the same data in every block (see
 [Streamdown plugin](/streamdown)). Seeds use first-writer-wins semantics
-(`default: true`), so a repeated seed never clobbers state that already exists.
+(`default: true`), so a repeated seed never clobbers state that already exists —
+which is why the fence prompt makes every block seed everything it reads: a
+no-op in the chat, and the block still works extracted as a standalone page.
 
 To *isolate* documents instead, give each its own provider.
 

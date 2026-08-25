@@ -82,8 +82,10 @@ Two behaviors worth knowing:
   renders against the same `root` scope: a write in one block is live in every
   block that reads the path. The prompt partial teaches the model to treat
   `scopes.root` as the app's store — reuse an existing path for the same data,
-  introduce new paths for new state. Element keys stay per-fence — only state
-  is shared.
+  introduce new paths for new state — and to seed everything a block reads,
+  so a block also works extracted on its own (seeds are first-writer-wins, so
+  the repeat costs nothing in the chat). Element keys stay per-fence — only
+  state is shared.
 - **Blocks mount client-side only.** Seeds call host functions, and host
   functions usually `fetch` browser-relative URLs — running them during SSR
   would fail or double-fire. When a chat page server-renders persisted

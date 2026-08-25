@@ -32,4 +32,10 @@ describe("getFencePartialPrompt", () => {
 		expect(out).toContain("reuse an existing path for the same data");
 		expect(out).toContain("first writer wins");
 	});
+
+	it("mandates self-contained seeding per block", () => {
+		const out = getFencePartialPrompt();
+		expect(out).toContain("MUST seed every path it reads");
+		expect(out).toContain("standalone page");
+	});
 });
