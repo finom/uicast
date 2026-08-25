@@ -40,6 +40,6 @@ export const deleteOrder = standardTool({
   name: "deleteOrder",
   description: "Delete an order by id.",
   inputSchema: idInput,
-  outputSchema: z.object({ id: z.number().int() }),
+  outputSchema: z.object({ id: z.number().int().meta({ description: "Id of the deleted order." }) }),
   execute: ({ id }) => apiFetch(`/api/orders/${id}`, { method: "DELETE" }),
 });

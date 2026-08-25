@@ -7,6 +7,16 @@ const toJSONSchema = (spec: CombinedSpec): unknown =>
 const readId = (jsonSchema: unknown): string | undefined =>
   (jsonSchema as { $id?: string } | null)?.$id;
 
+// This builder prints a node's own description after an em-dash, so drop it
+// from the schema before type rendering — otherwise `JSONSchemaToTs` (which
+// annotates described nodes inline) would say it twice. Only the ROOT is
+// stripped: descriptions nested inside the type still render as inline
+// comments, which is the only place they can appear.
+const stripRootDescription = (jsonSchema: unknown): unknown =>
+  jsonSchema !== null && typeof jsonSchema === "object"
+    ? { ...(jsonSchema as JSONSchema), description: undefined }
+    : jsonSchema;
+
 export type ComponentsPromptOptions = {
   /** The component defs to advertise — the catalog's `allDefinitions` (plus any app-local defs). */
   definitions: ComponentDefinition[];
@@ -31,7 +41,7 @@ const describeFields = (jsonSchema: unknown, indent: string): string[] => {
   return Object.entries(schema.properties).map(([name, field]) => {
     const optional = required.includes(name) ? "" : "?";
     const description = field.description;
-    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(field)}${
+    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field))}${
       description ? ` — ${description}` : ""
     }`;
   });
@@ -94,7 +104,7 @@ export function getComponentsPartialPrompt({
       throw new Error(`Duplicate common event id: "${id}"`);
     }
     commonIds.add(id);
-    const ts = JSONSchemaToTs(jsonSchema);
+    const ts = JSONSchemaToTs(stripRootDescription(jsonSchema));
     const description = (jsonSchema as { description?: string }).description;
     commonLines.push(`- ${id}: ${ts}${description ? ` — ${description}` : ""}`);
   }
@@ -132,7 +142,9 @@ export function getComponentsPartialPrompt({
           if (optionLines.length) {
             return [`    - ${cbName}(evt)${tail}`, ...optionLines];
           }
-          return [`    - ${cbName}(evt: ${JSONSchemaToTs(cbJSONSchema)})${tail}`];
+          return [
+            `    - ${cbName}(evt: ${JSONSchemaToTs(stripRootDescription(cbJSONSchema))})${tail}`,
+          ];
         },
       );
       if (callbackLines.length) lines.push("  Event handlers:", ...callbackLines);

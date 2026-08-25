@@ -62,6 +62,16 @@ export interface JSONSchema {
 	"x-tsType"?: string;
 }
 
+export type JSONSchemaToTsOptions = {
+	/**
+	 * Render objects one property per line, indented. The string is the prefix
+	 * every generated line starts with (the caller's continuation indent, e.g.
+	 * `"  "` inside a Markdown bullet); nesting adds two spaces per level.
+	 * Omit for the compact single-line form.
+	 */
+	multiline?: string;
+};
+
 /**
  * Convert a JSON Schema to a compact TypeScript type string for the prompt.
  *
@@ -69,17 +79,61 @@ export interface JSONSchema {
  * `$ref`s resolve against it, and a recursive schema terminates — the cycle's
  * back-edge renders as `unknown` while everything above it stays fully typed.
  */
-export function JSONSchemaToTs(jsonSchema: unknown): string {
-	return toTs(jsonSchema, jsonSchema, new Set());
+export function JSONSchemaToTs(
+	jsonSchema: unknown,
+	options?: JSONSchemaToTsOptions,
+): string {
+	const ml =
+		options?.multiline !== undefined
+			? { pad: options.multiline, depth: 0 }
+			: null;
+	return toTs(jsonSchema, jsonSchema, new Set(), ml);
+}
+
+/** Multiline state: the caller's line prefix + current nesting depth. */
+type Multiline = { pad: string; depth: number } | null;
+
+/**
+ * Recursive worker. Renders the node's type, then — when the node carries a
+ * `description` — appends it as a trailing ` /* … *​/` comment, so per-field
+ * docs (Zod `.describe()` / `.meta({ description })`) survive into the prompt
+ * at every nesting level. Nodes without a description add nothing.
+ */
+function toTs(
+	jsonSchema: unknown,
+	root: unknown,
+	seen: Set<string>,
+	ml: Multiline = null,
+): string {
+	const base = toTsBase(jsonSchema, root, seen, ml);
+	if (
+		jsonSchema !== null &&
+		typeof jsonSchema === "object" &&
+		typeof (jsonSchema as JSONSchema).description === "string"
+	) {
+		// One line, and never a premature close: `*/` inside a description
+		// would truncate the comment (and the type after it).
+		const description = (jsonSchema as JSONSchema).description
+			?.replace(/\s+/g, " ")
+			.replace(/\*\//g, "*")
+			.trim();
+		if (description) return `${base} /* ${description} */`;
+	}
+	return base;
 }
 
 /**
- * Recursive worker. `root` is the document the first call was handed (the
- * resolution base for `$ref`); `seen` is the set of refs currently being
- * expanded on this path, so a cycle short-circuits to `unknown` instead of
- * recursing forever.
+ * Type rendering without the description pass. `root` is the document the
+ * first call was handed (the resolution base for `$ref`); `seen` is the set of
+ * refs currently being expanded on this path, so a cycle short-circuits to
+ * `unknown` instead of recursing forever.
  */
-function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
+function toTsBase(
+	jsonSchema: unknown,
+	root: unknown,
+	seen: Set<string>,
+	ml: Multiline,
+): string {
 	if (jsonSchema === true) return "unknown";
 	if (jsonSchema === false) return "never";
 	if (jsonSchema === null || jsonSchema === undefined) return "unknown";
@@ -91,7 +145,14 @@ function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
 		const target = resolveRef(schema.$ref, root);
 		if (target === undefined) return "unknown";
 		seen.add(schema.$ref);
-		const resolved = toTs(target, root, seen);
+		// When the referencing node has its own description, it wins (it names
+		// the field's role at THIS use site) — render the target without its
+		// root annotation so the field isn't double-commented. The target's
+		// nested fields keep their own annotations either way.
+		const resolved =
+			typeof schema.description === "string"
+				? toTsBase(target, root, seen, ml)
+				: toTs(target, root, seen, ml);
 		seen.delete(schema.$ref);
 		return resolved;
 	}
@@ -103,22 +164,24 @@ function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
 	}
 
 	if (schema.allOf) {
-		const parts = schema.allOf.map((s) => toTs(s, root, seen));
+		const parts = schema.allOf.map((s) => toTs(s, root, seen, ml));
 		return parts.length ? `(${parts.join(" & ")})` : "unknown";
 	}
 	if (schema.anyOf) {
-		const parts = schema.anyOf.map((s) => toTs(s, root, seen));
+		const parts = schema.anyOf.map((s) => toTs(s, root, seen, ml));
 		return parts.length ? `(${parts.join(" | ")})` : "never";
 	}
 	if (schema.oneOf) {
-		const parts = schema.oneOf.map((s) => toTs(s, root, seen));
+		const parts = schema.oneOf.map((s) => toTs(s, root, seen, ml));
 		return parts.length ? `(${parts.join(" | ")})` : "never";
 	}
 	if (schema.not) return "unknown";
 
 	if (Array.isArray(schema.type)) {
+		// Drop the description on the per-type variants — the wrapper already
+		// annotates the union as a whole; keeping it would stamp every member.
 		const types = schema.type.map((t) =>
-			toTs({ ...schema, type: t }, root, seen),
+			toTs({ ...schema, type: t, description: undefined }, root, seen, ml),
 		);
 		return types.length ? `(${types.join(" | ")})` : "unknown";
 	}
@@ -138,12 +201,13 @@ function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
 		const props = schema.properties || {};
 		const required = schema.required || [];
 
+		const childMl = ml ? { pad: ml.pad, depth: ml.depth + 1 } : null;
 		const propStrings = Object.entries(props).map(([key, value]) => {
 			const isRequired = required.includes(key);
 			const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
 				? key
 				: JSON.stringify(key);
-			return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, root, seen)}`;
+			return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, root, seen, childMl)}`;
 		});
 
 		let additionalType: string | null = null;
@@ -165,7 +229,16 @@ function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
 				: "{ [key: string]: unknown }";
 		}
 
-		let result = `{ ${propStrings.join("; ")} }`;
+		let result: string;
+		if (ml) {
+			// One property per line: fields one level deeper than this object's
+			// braces, the closing brace back at the object's own level.
+			const inner = ml.pad + "  ".repeat(ml.depth + 1);
+			const closing = ml.pad + "  ".repeat(ml.depth);
+			result = `{\n${inner}${propStrings.join(`;\n${inner}`)};\n${closing}}`;
+		} else {
+			result = `{ ${propStrings.join("; ")} }`;
+		}
 		if (additionalType) {
 			result = `(${result} & { [key: string]: ${additionalType} })`;
 		}
@@ -191,7 +264,12 @@ function toTs(jsonSchema: unknown, root: unknown, seen: Set<string>): string {
 					: "unknown";
 				return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
 			}
-			return `${toTs(schema.items, root, seen)}[]`;
+			const itemTs = toTs(schema.items, root, seen, ml);
+			// An item type ENDING in an annotation must be parenthesized —
+			// `string /* x */[]` reads as if the comment interrupts the type;
+			// `(string /* x */)[]` keeps the array suffix unambiguous. A comment
+			// safely inside braces (`{ a: string /* x */ }[]`) needs nothing.
+			return itemTs.endsWith("*/") ? `(${itemTs})[]` : `${itemTs}[]`;
 		}
 
 		return "unknown[]";

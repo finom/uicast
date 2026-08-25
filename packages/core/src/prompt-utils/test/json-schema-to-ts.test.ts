@@ -290,3 +290,205 @@ describe("JSONSchemaToTs — $ref resolution", () => {
 		);
 	});
 });
+
+describe("JSONSchemaToTs — descriptions", () => {
+	it("annotates described fields inline and leaves undescribed fields bare", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					qty: { type: "integer", description: "Quantity ordered." },
+					note: { type: "string" },
+				},
+				required: ["qty"],
+			}),
+		).toBe("{ qty: number /* Quantity ordered. */; note?: string }");
+	});
+
+	it("annotates nested objects on both the field and its members", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					address: {
+						type: "object",
+						description: "Shipping address.",
+						properties: {
+							city: { type: "string", description: "City name." },
+							zip: { type: "string" },
+						},
+						required: ["city"],
+					},
+				},
+			}),
+		).toBe(
+			"{ address?: { city: string /* City name. */; zip?: string } /* Shipping address. */ }",
+		);
+	});
+
+	it("annotates enums and array items", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					status: {
+						enum: ["pending", "paid"],
+						description: "Order status.",
+					},
+					tags: {
+						type: "array",
+						description: "Labels attached to the order.",
+						items: { type: "string" },
+					},
+				},
+			}),
+		).toBe(
+			'{ status?: "pending" | "paid" /* Order status. */; tags?: string[] /* Labels attached to the order. */ }',
+		);
+	});
+
+	it("annotates a nullable (multi-type) field once, not per variant", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					icon: {
+						type: ["string", "null"],
+						description: "Emoji icon.",
+					},
+				},
+			}),
+		).toBe("{ icon?: (string | null) /* Emoji icon. */ }");
+	});
+
+	it("annotates const values and tuple members", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				properties: {
+					kind: { const: "order", description: "Discriminator." },
+					pair: {
+						type: "array",
+						items: [
+							{ type: "number", description: "Latitude." },
+							{ type: "number", description: "Longitude." },
+						],
+						additionalItems: false,
+					},
+				},
+			}),
+		).toBe(
+			'{ kind?: "order" /* Discriminator. */; pair?: [number /* Latitude. */, number /* Longitude. */] }',
+		);
+	});
+
+	it("parenthesizes an array whose ITEM type ends in an annotation", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "array",
+				items: { type: "string", description: "A tag." },
+			}),
+		).toBe("(string /* A tag. */)[]");
+		// A comment inside braces needs no parens.
+		expect(
+			JSONSchemaToTs({
+				type: "array",
+				items: {
+					type: "object",
+					properties: { id: { type: "number", description: "Row id." } },
+				},
+			}),
+		).toBe("{ id?: number /* Row id. */ }[]");
+	});
+
+	it("annotates an additionalProperties value schema", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "object",
+				additionalProperties: { type: "number", description: "Score 0-1." },
+			}),
+		).toBe("{ [key: string]: number /* Score 0-1. */ }");
+	});
+
+	it("prefers the $ref site description over the target's, without doubling", () => {
+		const root = {
+			type: "object",
+			properties: {
+				home: { $ref: "#/$defs/Address", description: "Home address." },
+				work: { $ref: "#/$defs/Address" },
+			},
+			$defs: {
+				Address: {
+					type: "object",
+					description: "A postal address.",
+					properties: { city: { type: "string", description: "City name." } },
+				},
+			},
+		};
+		expect(JSONSchemaToTs(root)).toBe(
+			"{ home?: { city?: string /* City name. */ } /* Home address. */; work?: { city?: string /* City name. */ } /* A postal address. */ }",
+		);
+	});
+
+	it("annotates anyOf branches and the union itself independently", () => {
+		expect(
+			JSONSchemaToTs({
+				description: "Payment target.",
+				anyOf: [
+					{ type: "string", description: "IBAN." },
+					{ type: "number", description: "Legacy account number." },
+				],
+			}),
+		).toBe(
+			"(string /* IBAN. */ | number /* Legacy account number. */) /* Payment target. */",
+		);
+	});
+
+	it("multiline mode indents by depth and follows $refs", () => {
+		expect(
+			JSONSchemaToTs(
+				{
+					type: "object",
+					properties: {
+						home: { $ref: "#/$defs/Address", description: "Home address." },
+					},
+					required: ["home"],
+					$defs: {
+						Address: {
+							type: "object",
+							properties: {
+								city: { type: "string", description: "City name." },
+							},
+							required: ["city"],
+						},
+					},
+				},
+				{ multiline: "  " },
+			),
+		).toBe(
+			[
+				"{",
+				"    home: {",
+				"      city: string /* City name. */;",
+				"    } /* Home address. */;",
+				"  }",
+			].join("\n"),
+		);
+	});
+
+	it("skips empty and whitespace-only descriptions", () => {
+		expect(JSONSchemaToTs({ type: "string", description: "" })).toBe("string");
+		expect(JSONSchemaToTs({ type: "string", description: "   " })).toBe(
+			"string",
+		);
+	});
+
+	it("flattens newlines and defuses */ inside a description", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "string",
+				description: "Line one\n  line two */ tail",
+			}),
+		).toBe("string /* Line one line two * tail */");
+	});
+});

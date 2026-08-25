@@ -26,8 +26,12 @@ export type FunctionsPromptOptions = {
  */
 function schemaToTs(schema: ToolSchema, fallback: string): string {
 	if (!schema) return fallback;
+	// Multiline with a two-space pad: the signature spans several lines inside
+	// its Markdown bullet, one field per line, so per-field descriptions stay
+	// readable instead of running together on one long line.
 	return JSONSchemaToTs(
 		schema["~standard"].jsonSchema.input({ target: "draft-2020-12" }),
+		{ multiline: "  " },
 	);
 }
 

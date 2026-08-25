@@ -40,6 +40,6 @@ export const deleteProduct = standardTool({
   name: "deleteProduct",
   description: "Delete a product by id. Fails with 409 when orders still reference the product.",
   inputSchema: idInput,
-  outputSchema: z.object({ id: z.number().int() }),
+  outputSchema: z.object({ id: z.number().int().meta({ description: "Id of the deleted product." }) }),
   execute: ({ id }) => apiFetch(`/api/products/${id}`, { method: "DELETE" }),
 });
