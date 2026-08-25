@@ -2,6 +2,11 @@ import { getPageMap } from "nextra/page-map";
 import { Footer, Layout, Navbar } from "nextra-theme-docs";
 import type { ReactNode } from "react";
 import "nextra-theme-docs/style.css";
+// Tailwind + the catalog's design tokens, so mini-examples can render real
+// catalog components (Card, …) on docs pages. Preflight lives in @layer base,
+// which Nextra's unlayered stylesheet outranks, so the docs chrome keeps its
+// look.
+import "../globals.css";
 
 // Nextra docs chrome — navbar, a sidebar built from the App Router `page.mdx`
 // files (ordered by src/app/_meta.tsx), and a footer — wrapped around every docs

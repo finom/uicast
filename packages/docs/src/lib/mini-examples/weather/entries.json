@@ -1,0 +1,15 @@
+[
+  {
+    "key": "weather",
+    "component": "WeatherCard",
+    "props": {
+      "expr": "({ city: scopes.root.city, tempC: scopes.root.weather?.tempC, condition: scopes.root.weather?.condition })"
+    },
+    "callbacks": {
+      "onCity": [
+        { "set": "scopes.root.city", "expr": "evt.city" },
+        { "set": "scopes.root.weather", "expr": "getWeather({ city: evt.city })" }
+      ]
+    }
+  }
+]

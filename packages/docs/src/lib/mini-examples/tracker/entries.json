@@ -1,0 +1,14 @@
+[
+  {
+    "key": "pad",
+    "component": "TrackPad",
+    "seed": [{ "set": "scopes.root.pointer", "literal": {} }],
+    "props": {
+      "expr": "({ x: scopes.root.pointer.x, y: scopes.root.pointer.y })"
+    },
+    "callbacks": {
+      "onMove": [{ "set": "scopes.root.pointer", "expr": "({ x: evt.x, y: evt.y })" }],
+      "onLeave": [{ "set": "scopes.root.pointer", "literal": {} }]
+    }
+  }
+]

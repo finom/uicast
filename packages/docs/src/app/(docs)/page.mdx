@@ -1,4 +1,6 @@
 import { CounterExample } from "@/lib/mini-examples/counter";
+import { TrackerExample } from "@/lib/mini-examples/tracker";
+import { WeatherExample } from "@/lib/mini-examples/weather";
 
 # uicast
 
@@ -37,6 +39,24 @@ below wires that pair to `scopes.root.count` — seeding the value, passing it
 down as a prop, and incrementing it on click.
 
 <CounterExample />
+
+## Events carry payloads
+
+A component can emit structured events, not just clicks. This square reports
+the pointer position through an `onMove` payload; the entry writes it to state
+in one step, and the props read it back — the dot and the readout are pure
+derivation.
+
+<TrackerExample />
+
+## Calling host functions
+
+Expressions call the async functions you register — that's how generated UI
+reaches a backend. Picking a city runs a two-step callback: the first step
+stores the choice, the second calls `getWeather({ city: evt.city })` and
+writes the result — the card shows a pending state while the call resolves.
+
+<WeatherExample />
 
 ## Next steps
 
