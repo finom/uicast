@@ -17,8 +17,8 @@ import {
 } from "@uicast/core/prompt";
 import {
   type ErrorComponentProps,
-  Renderer,
-  RendererConfigProvider,
+  EntriesRenderer,
+  RendererProvider,
 } from "@uicast/react";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
@@ -316,16 +316,17 @@ export function PageView({
               seeds and wipe the generated page's state */}
           <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
             <div className="rounded-md border p-4">
-              <RendererConfigProvider defaultComponents={rendererDefaults}>
-                {/* key: stable per page, so iterations stream into the mounted
-                    renderer (seeds and state preserved) instead of remounting */}
-                <Renderer
-                  key={page.id}
-                  implementations={allImplementations}
-                  entries={entries}
-                  functions={domainTools}
-                />
-              </RendererConfigProvider>
+              {/* key: stable per page, so iterations stream into the mounted
+                  renderer (seeds and state preserved) instead of remounting —
+                  and the provider's shared root scope resets per page */}
+              <RendererProvider
+                key={page.id}
+                implementations={allImplementations}
+                functions={domainTools}
+                defaultComponents={rendererDefaults}
+              >
+                <EntriesRenderer entries={entries} />
+              </RendererProvider>
             </div>
           </TabsContent>
           <TabsContent value="entries">

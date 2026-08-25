@@ -94,7 +94,7 @@ export const defaultImplementations: Record<string, ComponentImplementation> = {
   Placeholder: placeholderRenderer,
 };
 
-// The array form of `defaultImplementations` for `<Renderer implementations={…}>` (the prop is
+// The array form of `defaultImplementations` for `<RendererProvider implementations={…}>` (the prop is
 // an array). A module const so the reference stays STABLE across re-renders —
 // tests that rerender depend on this; an inline `Object.values(...)` would churn
 // the registry and break the render-once / init-once guarantees.

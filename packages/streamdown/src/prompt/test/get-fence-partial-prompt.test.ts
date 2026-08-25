@@ -25,4 +25,11 @@ describe("getFencePartialPrompt", () => {
 		expect(out).toContain("only works WITHIN one fence");
 		expect(out).toContain("complete corrected UI");
 	});
+
+	it("teaches the single-app shared root scope", () => {
+		const out = getFencePartialPrompt();
+		expect(out).toContain("ONE app with ONE live `root` scope");
+		expect(out).toContain("reuse an existing path for the same data");
+		expect(out).toContain("first writer wins");
+	});
 });

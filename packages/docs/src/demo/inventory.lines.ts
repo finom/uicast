@@ -4,7 +4,7 @@ import type { ComponentEntry } from "@uicast/core";
  * The generated artifact — the JSONLines a model would stream to build the
  * inventory app, hand-authored here as a typed `ComponentEntry[]`. The demo
  * reveals these one element at a time to simulate streaming, feeding the
- * growing array to the engine's `<Renderer entries={…} />`.
+ * growing array to the engine's `<EntriesRenderer entries={…} />`.
  *
  * Design notes (why it's shaped this way):
  * - Everything reactive derives from ONE source array, `scopes.root.products`,

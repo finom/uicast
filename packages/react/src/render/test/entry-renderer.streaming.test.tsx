@@ -1,5 +1,5 @@
 import type { StandardToolV0 } from "standard-tool";
-import { Renderer, RendererConfigProvider } from "@uicast/react";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
@@ -67,7 +67,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 	});
 });
 
-// As the LLM streams JSONLines, `<Renderer entries={lines}>` is re-rendered with
+// As the LLM streams JSONLines, `<EntriesRenderer entries={lines}>` is re-rendered with
 // a growing `lines` array. Every already-mounted entry's `seed` must run
 // exactly once — even as later entries arrive — or stream-time UIs would
 // silently re-seed scopes and clobber user-set state. The invariant is held by
@@ -106,11 +106,11 @@ describe("EntryRenderer — streaming + seed", () => {
 			},
 		];
 
-		const { rerender, container } = render(<Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} />);
+		const { rerender, container } = render(<RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<Renderer implementations={defaultImplementationsList} entries={next} functions={functions} />);
+		rerender(<RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
 
 		// A's seed still ran exactly once. The new sibling entry didn't
 		// remount A — React reconciled by stable `key`, the seed attempt record
@@ -156,12 +156,12 @@ describe("EntryRenderer — streaming + seed", () => {
 		];
 
 		const { rerender, container } = render(
-			<RendererConfigProvider defaultComponents={defaultComponents}><Renderer implementations={defaultImplementationsList} entries={initial} functions={functions} /></RendererConfigProvider>,
+			<RendererProvider defaultComponents={defaultComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<RendererConfigProvider defaultComponents={defaultComponents}><Renderer implementations={defaultImplementationsList} entries={next} functions={functions} /></RendererConfigProvider>);
+		rerender(<RendererProvider defaultComponents={defaultComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
 
 		// Parent's seed still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

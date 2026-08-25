@@ -3,7 +3,7 @@ import { z } from "zod";
 import { db, type Product } from "./db";
 
 /**
- * The host functions exposed to expressions via `<Renderer functions=…>`.
+ * The host functions exposed to expressions via `<RendererProvider functions=…>`.
  *
  * Built with `standardTool()` — "tool" is just the `standard-tool` engine's
  * word; in this app they're the render *functions* a generated UI calls. The
@@ -91,7 +91,7 @@ const deleteProduct = standardTool({
   },
 });
 
-/** Passed verbatim to `<Renderer functions={inventoryFunctions} />`. */
+/** Passed verbatim to `<RendererProvider functions={inventoryFunctions}>`. */
 export const inventoryFunctions: StandardToolV0[] = [
   listProducts,
   getCategoryBreakdown,

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
-import { Renderer } from "@uicast/react";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import {
@@ -106,11 +106,7 @@ describe("EntryRenderer — containment edges", () => {
     let view!: ReturnType<typeof render>;
     await act(async () => {
       view = render(
-        <Renderer
-          implementations={defaultImplementationsList}
-          entries={initialLines}
-          init={init}
-        />,
+        <RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={initialLines} /></RendererProvider>,
       );
     });
     await waitFor(() => {
@@ -123,11 +119,7 @@ describe("EntryRenderer — containment edges", () => {
       initialLines.push(...more);
       await act(async () => {
         view.rerender(
-          <Renderer
-            implementations={defaultImplementationsList}
-            entries={[...initialLines]}
-            init={init}
-          />,
+          <RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={[...initialLines]} /></RendererProvider>,
         );
       });
     };

@@ -1,11 +1,12 @@
 # Renderer
 
-`<Renderer>` is the React binding's **mount point**. Give it your [component
-implementations](/react/impl) and a stream of [entries](/entry) and it renders the
-entry tree into live React — evaluating every expression against reactive state
-and re-rendering each node as that state changes. A companion
-`<RendererConfigProvider>` carries host configuration — fallback UI and extra
-expression globals — shared across one or many renderers.
+The React binding is two pieces. `<RendererProvider>` is the **host side**: it
+carries your [component implementations](/react/impl), the
+[host functions](/functions), the engine's fallback UI — and **one shared
+reactive store** for everything beneath it. `<EntriesRenderer>` is the **mount
+point**: give it a stream of [entries](/entry) and it renders the entry tree
+into live React, evaluating every expression against that shared state and
+re-rendering each node as the state changes.
 
 Both are exported from `@uicast/react`. This is the **host** side of the
 engine; the [entry format](/entry) is what the model produces for it.
@@ -13,43 +14,71 @@ engine; the [entry format](/entry) is what the model produces for it.
 ## Mounting a document
 
 ```tsx
-import { Renderer } from "@uicast/react";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 
-<Renderer
-  implementations={allImplementations}
-  entries={entries}
-  functions={hostFunctions}
-/>;
+<RendererProvider implementations={allImplementations} functions={hostFunctions}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
 ```
 
-That is the whole contract. The renderer builds a `name → implementation` lookup
-from the array, walks the entries in tree order, and mounts each one —
-evaluating its `props`, `hidden`, `seed`, and `callbacks` against an isolated
-reactive **root scope** it owns. Each `<Renderer>` has its own root scope, so two
-renderers on the same page never share state.
+That is the whole contract. The provider builds a `name → implementation`
+lookup and creates the group's **root scope**; the renderer walks the entries
+in tree order and mounts each one — evaluating its `props`, `hidden`, `seed`,
+and `callbacks` against that scope.
 
-### Props
+## One store, many renderers
+
+Every `<EntriesRenderer>` under the same provider renders against the **same
+`root` scope**. A write in one document — a callback assignment, a seed — is
+live in every other document that reads the path:
+
+```tsx
+<RendererProvider implementations={allImplementations} functions={hostFunctions}>
+  <EntriesRenderer entries={ordersBlock} />   {/* seeds scopes.root.orders */}
+  <EntriesRenderer entries={statsBlock} />    {/* reads scopes.root.orders — live */}
+</RendererProvider>;
+```
+
+This is what makes chat surfaces coherent: each ```` ```uicast ```` block in a
+conversation is its own `<EntriesRenderer>`, and together they behave as **one
+app** — the same path means the same data in every block (see
+[Streamdown plugin](/streamdown)). Seeds use first-writer-wins semantics
+(`default: true`), so a repeated seed never clobbers state that already exists.
+
+To *isolate* documents instead, give each its own provider.
+
+## `RendererProvider` props
 
 - **`implementations`** — the [`ComponentImplementation`](/react/impl) array the entries
   can mount, partner to the def [registration](/def#registration). On a duplicate
   `name` the **later entry wins** (`[...allImplementations, MyCard]` replaces the
   catalog's `MyCard`) and a `console.error` is logged.
-- **`entries`** — the [`ComponentEntry`](/entry) lines to render, in tree order.
-  Append to the array as lines stream in; settled subtrees don't re-render as
-  later entries arrive.
 - **`functions`** *(optional)* — host callables exposed as **bare identifiers** to
   every expression, called from [`callbacks`](/entry/fields#callbacks) as
   `name(input)`. This is how a generated UI reaches your API — see [Host functions](/functions).
-- **`init`** *(optional)* — a one-shot side effect run once on mount, before any
-  root entry renders. It receives `{ scopes }` and may seed `scopes.root.*`; a
-  returned Promise suspends the tree until it resolves. Use it to preload state
-  the entries read — see [State &amp; Scopes](/entry/state).
+- **`defaultComponents`** *(optional)* — the engine's fallback UI; see
+  [below](#defaultcomponents--the-engines-fallback-ui).
+- **`allowedGlobals`** *(optional)* — extra expression globals; see
+  [below](#allowedglobals--extend-the-expression-allow-list).
+- **`init`** *(optional)* — a one-shot side effect for the whole group: it runs
+  once, when the first `<EntriesRenderer>` mounts, before its entries evaluate.
+  It receives `{ scopes }` and may seed `scopes.root.*`; a returned Promise
+  suspends the awaiting renderers until it resolves. Use it to preload state
+  the documents read — see [State &amp; Scopes](/entry/state).
 - **`onError`** *(optional)* — called once per classified failure, with the same
   `EntryError` the `error` slot receives. Branch on `error.fault`: `"document"`
   means the model's output is at fault and a recovery re-emission can fix it;
   `"environment"` means host code failed. See
   [Error recovery § Classification](/error-recovery#classification-entryerror-and-onerror).
+- **`scopes`** *(optional)* — extra named scopes exposed alongside `root`, for
+  host context the documents may read (`scopes.userCtx.…`). Captured on mount.
+
+`<EntriesRenderer>` takes one prop: **`entries`** — the
+[`ComponentEntry`](/entry) lines to render, in tree order. Append to the array
+as lines stream in; settled subtrees don't re-render as later entries arrive.
+It must be rendered inside a `<RendererProvider>` and throws a clear error
+otherwise.
 
 ### Pass stable references
 
@@ -61,34 +90,6 @@ memoize) — never an inline `[...]` or `Object.values(...)` rebuilt each render
 const implementations = [...allImplementations, MyCard]; // module scope ✓
 const functions = [saveRow, deleteRow]; //                   module scope ✓
 ```
-
-## Configuration — `RendererConfigProvider`
-
-`RendererConfigProvider` holds configuration that isn't tied to a single
-document: the engine's own **fallback UI** and any **extra expression globals**.
-A `<Renderer>` reads the nearest provider above it, so one provider configures
-every renderer in its subtree.
-
-```tsx
-import { Renderer, RendererConfigProvider } from "@uicast/react";
-import {
-  ConfirmModal,
-  RenderError,
-} from "@uicast/shadcn-catalog/default-components";
-
-<RendererConfigProvider
-  defaultComponents={{
-    confirm: ConfirmModal,
-    error: RenderError,
-  }}
->
-  <Renderer implementations={allImplementations} entries={entries} />
-</RendererConfigProvider>;
-```
-
-The provider is **optional** — omit it and every slot falls back to a built-in
-default while the expression allow-list stays at the safe globals. It takes two
-props.
 
 ### `defaultComponents` — the engine's fallback UI
 
@@ -104,8 +105,28 @@ The slots the engine renders on its own behalf, distinct from `implementations`
 Each slot is optional; supply only the ones you want to style. The `confirm`
 and `error` defaults keep the engine renderable with **zero UI dependencies**;
 the catalog ships polished versions — `ConfirmModal`, `RenderError` — that you
-wire in explicitly, as above. Like `implementations`, pass a **stable
-reference**: it folds into the same context.
+wire in explicitly:
+
+```tsx
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import {
+  ConfirmModal,
+  RenderError,
+} from "@uicast/shadcn-catalog/default-components";
+
+<RendererProvider
+  implementations={allImplementations}
+  defaultComponents={{
+    confirm: ConfirmModal,
+    error: RenderError,
+  }}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+Like `implementations`, pass a **stable reference**: it folds into the same
+context.
 
 To author your own slot, match the props the engine hands it — both types are
 exported from `@uicast/react`:
@@ -139,33 +160,20 @@ Expressions may reference only a fixed [safe set of globals](/entry/expressions#
 `allowedGlobals` **adds** to that set — benign globals the default list omits:
 
 ```tsx
-<RendererConfigProvider allowedGlobals={["structuredClone", "crypto"]}>
-  <Renderer implementations={allImplementations} entries={entries} />
-</RendererConfigProvider>;
+<RendererProvider
+  implementations={allImplementations}
+  allowedGlobals={["structuredClone", "crypto"]}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
 ```
 
 It is **additive only**: it cannot re-enable the capability globals the engine
 shadows (`fetch`, `Function`, `setTimeout`, …), which stay blocked whatever you
 list. See [Safety](/entry/expressions#safety) for the full model.
 
-## One provider, many renderers
-
-Because the configuration lives on the provider, several renderers can share it —
-each still owning its own entries, implementations, and root scope:
-
-```tsx
-<RendererConfigProvider defaultComponents={defaultComponents}>
-  <Renderer implementations={allImplementations} entries={sidebarEntries} />
-  <Renderer implementations={allImplementations} entries={mainEntries} />
-</RendererConfigProvider>;
-```
-
-Both renderers get the same fallback UI and globals; neither sees the other's
-state.
-
 ## Where to go next
 
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
 - [JavaScript Expressions](/entry/expressions) — what runs inside an entry, and the allow-list `allowedGlobals` extends.
-- [Live demo](/demo) — a complete `RendererConfigProvider` + `Renderer` setup.

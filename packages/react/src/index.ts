@@ -2,8 +2,8 @@ export type {
   ComponentImplementation,
   ConfirmComponentProps,
   ErrorComponentProps,
-  RendererProps,
-  RendererConfig,
+  EntriesRendererProps,
+  RendererProviderProps,
   DefaultComponents,
   InitContext,
   InitFn,
@@ -11,5 +11,5 @@ export type {
 } from "./types";
 
 export { createComponentImplementation } from "./impl/create-component-implementation";
-export { Renderer } from "./render/renderer";
-export { RendererConfigProvider } from "./store/renderer-config";
+export { EntriesRenderer } from "./render/entries-renderer";
+export { RendererProvider } from "./store/renderer-provider";

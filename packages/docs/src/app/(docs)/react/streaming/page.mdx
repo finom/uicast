@@ -131,7 +131,9 @@ made for append-only growth, and settled subtrees don't re-render as later
 entries arrive.
 
 ```tsx
-<Renderer implementations={allImplementations} entries={entries} />
+<RendererProvider implementations={allImplementations}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
 ```
 
 ## Control lines

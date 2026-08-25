@@ -1,0 +1,103 @@
+import { act, fireEvent, render, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import type { ComponentEntry } from "@uicast/core";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { defaultImplementationsList } from "../../../test/render-helpers";
+
+// The point of <RendererProvider>: every <EntriesRenderer> under it shares ONE
+// `root` scope, so a write from one document is live in all of them.
+describe("RendererProvider — shared group store", () => {
+  const seederLines: ComponentEntry[] = [
+    {
+      key: "writer",
+      component: "Button",
+      seed: [{ set: "scopes.root.orders.count", literal: 1 }],
+      props: { literal: { label: "bump" } },
+      callbacks: {
+        onClick: [{ set: "scopes.root.orders.count", expr: "currentValue + 1" }],
+      },
+    },
+  ];
+  const readerLines: ComponentEntry[] = [
+    {
+      key: "reader",
+      component: "Box",
+      props: { expr: "({ text: scopes.root.orders.count + ' orders' })" },
+    },
+  ];
+
+  it("a write in one document is live in another", async () => {
+    const { container, getByText } = render(
+      <RendererProvider implementations={defaultImplementationsList}>
+        <EntriesRenderer entries={seederLines} />
+        <EntriesRenderer entries={readerLines} />
+      </RendererProvider>,
+    );
+    expect(container.textContent).toContain("1 orders");
+
+    await act(async () => {
+      fireEvent.click(getByText("bump"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("2 orders");
+    });
+  });
+
+  it("a second document's seed does not clobber existing shared state", () => {
+    const reSeeder: ComponentEntry[] = [
+      {
+        key: "late",
+        component: "Box",
+        seed: [{ set: "scopes.root.orders.count", literal: 99 }],
+        props: { expr: "({ text: 'late:' + scopes.root.orders.count })" },
+      },
+    ];
+    const { container } = render(
+      <RendererProvider implementations={defaultImplementationsList}>
+        <EntriesRenderer entries={seederLines} />
+        <EntriesRenderer entries={reSeeder} />
+      </RendererProvider>,
+    );
+    // seed is default-mode: first writer wins, the late block reads 1, not 99.
+    expect(container.textContent).toContain("late:1");
+  });
+
+  it("group init runs once even with multiple renderers", () => {
+    const init = vi.fn(({ scopes }) => {
+      scopes.root.fromInit = "yes";
+    });
+    const { container } = render(
+      <RendererProvider implementations={defaultImplementationsList} init={init}>
+        <EntriesRenderer
+          entries={[
+            {
+              key: "a",
+              component: "Box",
+              props: { expr: "({ text: 'a:' + scopes.root.fromInit })" },
+            },
+          ]}
+        />
+        <EntriesRenderer
+          entries={[
+            {
+              key: "b",
+              component: "Box",
+              props: { expr: "({ text: 'b:' + scopes.root.fromInit })" },
+            },
+          ]}
+        />
+      </RendererProvider>,
+    );
+    expect(init).toHaveBeenCalledTimes(1);
+    expect(container.textContent).toContain("a:yes");
+    expect(container.textContent).toContain("b:yes");
+  });
+
+  it("throws a clear error outside a RendererProvider", () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {});
+    expect(() =>
+      render(<EntriesRenderer entries={readerLines} />),
+    ).toThrow(/must be rendered inside a <RendererProvider>/);
+    spy.mockRestore();
+  });
+});

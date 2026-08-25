@@ -1,15 +1,14 @@
 "use client";
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentEntry } from "@uicast/core";
-import { Renderer, type RendererProps } from "@uicast/react";
+import { EntriesRenderer } from "@uicast/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE } from "./parse-fence-code";
 import { parseFenceCode } from "./parse-fence-code";
 
 export { FENCE_LANGUAGE } from "./parse-fence-code";
 
-/** Renderer props minus `entries` — the entries come from the fence content. */
-export type FenceRendererOptions = Omit<RendererProps, "entries"> & {
+export type FenceRendererOptions = {
   /** Show a Rendered/Source switcher above each block. Default false. */
   showSourceToggle?: boolean;
 };
@@ -53,17 +52,20 @@ function toggleButtonStyle(active: boolean): CSSProperties {
  * Build a Streamdown custom renderer for ```uicast fences.
  *
  * Pass the result to Streamdown (or any wrapper that forwards its props,
- * e.g. AI Elements' Response): `plugins={{ renderers: [uicastRenderer] }}`.
+ * e.g. AI Elements' Response): `plugins={{ renderers: [uicastRenderer] }}`,
+ * and wrap the conversation in a `<RendererProvider>` — that provider carries
+ * the implementations, functions, and the ONE shared `root` scope every block
+ * renders against, so state written by one block is live in all of them.
  *
  * Call this ONCE per option set — at module scope or inside useMemo — and
  * reuse the returned object. The component's identity must stay stable
  * across streaming re-renders; a fresh component type per render would
- * remount the Renderer, re-running seeds and wiping the block's state.
+ * remount the block, re-running seeds and wiping its state.
  * While a fence streams, each completed JSONL line becomes an entry and
  * mounts progressively; the partial last line is ignored until it completes.
  */
-export function createFenceRenderer(options: FenceRendererOptions): CustomRenderer {
-  const { showSourceToggle = false, ...rendererProps } = options;
+export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
+  const { showSourceToggle = false } = options;
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
     // Per-block parse cache: the engine keys on entry object identity (store
     // wake-ups, failed-seed retry gating, error-boundary reset), so unchanged
@@ -77,7 +79,7 @@ export function createFenceRenderer(options: FenceRendererOptions): CustomRender
     // browser-relative URLs) — mount the Renderer client-side only.
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
-    const rendered = mounted ? <Renderer {...rendererProps} entries={entries} /> : null;
+    const rendered = mounted ? <EntriesRenderer entries={entries} /> : null;
     if (!showSourceToggle) return <div style={blockStyle}>{rendered}</div>;
     // A just-opened fence that hasn't produced a complete entry yet would show
     // a toggle row above nothing — wait for content (or for the fence to
@@ -103,7 +105,7 @@ export function createFenceRenderer(options: FenceRendererOptions): CustomRender
             Source
           </button>
         </div>
-        {/* Keep the Renderer mounted while source shows — a remount would re-run seeds and wipe block state. */}
+        {/* Keep the block mounted while source shows — a remount would re-run seeds and wipe block state. */}
         <div hidden={view !== "rendered"}>{rendered}</div>
         {view === "source" && <pre style={sourceStyle}>{code}</pre>}
       </div>

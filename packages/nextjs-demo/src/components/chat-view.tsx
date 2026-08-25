@@ -10,7 +10,7 @@ import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
-import { type ErrorComponentProps, RendererConfigProvider } from "@uicast/react";
+import { type ErrorComponentProps, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
@@ -35,11 +35,7 @@ import { domainTools } from "@/tools";
 
 // Module scope: the renderer's component identity must stay stable across
 // streaming re-renders, or every update would remount the mounted UI blocks.
-const uicastRenderer = createFenceRenderer({
-  implementations: allImplementations,
-  functions: domainTools,
-  showSourceToggle: true,
-});
+const uicastRenderer = createFenceRenderer({ showSourceToggle: true });
 
 // MessageResponse's default plugin set plus the ```uicast custom renderer —
 // passing `plugins` replaces the default, so the built-ins are recomposed.
@@ -116,7 +112,11 @@ export function ChatView({
   };
 
   return (
-    <RendererConfigProvider defaultComponents={rendererDefaults}>
+    <RendererProvider
+      implementations={allImplementations}
+      functions={domainTools}
+      defaultComponents={rendererDefaults}
+    >
       <div className="mx-auto flex h-full max-w-3xl flex-col p-4">
         <Conversation className="flex-1">
           <ConversationContent>
@@ -163,6 +163,6 @@ export function ChatView({
           </PromptInputFooter>
         </PromptInput>
       </div>
-    </RendererConfigProvider>
+    </RendererProvider>
   );
 }

@@ -67,7 +67,7 @@ dependencies.
 Each scope is a self-contained reactive store — a proxied state bag with
 path-exact subscriptions — and together with the expression evaluator and
 dependency extraction it forms the engine's **framework-neutral core**:
-`uicast` has no React dependency, and `@uicast/react`'s `<Renderer>`
+`uicast` has no React dependency, and `@uicast/react`'s `<EntriesRenderer>`
 is one binding built over it.
 
 ## What makes a document valid
@@ -116,5 +116,5 @@ Every term the docs lean on, in one place:
 | **implementation** (impl) | The React half that renders the component. See [Component implementation](/react/impl). |
 | **catalog** | The set of def/impl pairs a host registers — e.g. `@uicast/shadcn-catalog`. |
 | **host functions** | The functions a host exposes for expressions to call — load data, save changes, run actions. See [Host functions](/functions). |
-| **renderer** | `@uicast/react`'s `<Renderer>`: mounts a document against the implementations and functions you hand it. See [Renderer](/react/renderer). |
+| **renderer** | `@uicast/react`'s `<EntriesRenderer>`: mounts a document against the implementations, functions, and shared store of its `<RendererProvider>`. See [Renderer](/react/renderer). |
 | **partial replacement** | Re-emitting an already-seen `key` replaces that element and its subtree — the format's only patch operation, and how [edit turns](/prompt) work. |

@@ -7,7 +7,7 @@ import {
   type ComponentEntry,
 } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
-import { createComponentImplementation, Renderer } from "@uicast/react";
+import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import {
   defaultImplementationsList,
   mountEntries,
@@ -116,14 +116,7 @@ describe("EntryRenderer — EntryError classification", () => {
       { key: "a", component: "Box", props: { literal: { text: "hi" } } },
     ];
     render(
-      <Renderer
-        implementations={defaultImplementationsList}
-        entries={lines}
-        init={() => {
-          throw new Error("bootstrap failed");
-        }}
-        onError={onError}
-      />,
+      <RendererProvider implementations={defaultImplementationsList} init={() => { throw new Error("bootstrap failed"); }} onError={onError}><EntriesRenderer entries={lines} /></RendererProvider>,
     );
     await waitFor(() => {
       expect(seen).toHaveLength(1);

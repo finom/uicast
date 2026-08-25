@@ -81,8 +81,10 @@ On a chat surface the reply is Markdown and entries ride inside a
 ` ```uicast ` fence — the [Streamdown plugin](/streamdown) renders them.
 `@uicast/streamdown/prompt` ships the matching partial,
 `getFencePartialPrompt()`: it teaches exactly that fence syntax — the token,
-one JSON object per line, prose outside the fence, one fence per reply — and
-nothing more. Compose it last, after the core partials that define what the
+one JSON object per line, prose outside the fence — plus the conversation's
+shared-state rules: all fences render against one shared `root` scope (the
+conversation is one app), the same path means the same data in every block,
+and seeds are first-writer-wins so repeated loads never clobber state. Compose it last, after the core partials that define what the
 entries themselves are. Raw-JSONL surfaces (a page builder streaming entries
 straight to the [renderer](/react/streaming)) skip it.
 

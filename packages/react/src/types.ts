@@ -44,7 +44,7 @@ export type ErrorComponentProps = {
 };
 
 // The engine's own fallback UI, shared via
-// `<RendererConfigProvider defaultComponents={...}>` — distinct from the catalog
+// `<RendererProvider defaultComponents={...}>` — distinct from the catalog
 // `implementations`. `confirm` omitted falls back to `window.confirm`; the
 // `error` default is a bare inline-styled div (shadcn version in
 // @uicast/shadcn-catalog).
@@ -59,7 +59,7 @@ export type RendererRegistry = {
   defaultComponents?: DefaultComponents;
   // Host callables exposed as bare identifiers to every evaluate() under this provider.
   functions?: StandardToolV0[];
-  // Extra globals expressions may reference, from the RendererConfigProvider.
+  // Extra globals expressions may reference, from the RendererProvider.
   allowedGlobals?: string[];
   // Reported for every classified failure (boundary catches and callback
   // failures alike) — the Renderer's `onError` prop.
@@ -81,13 +81,24 @@ export type InitContext = {
 // immediately; a returned Promise suspends the wrapper until it resolves.
 export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 
-// Shared configuration for every <Renderer> beneath a <RendererConfigProvider>.
-export type RendererConfig = {
+// Everything the host wires up once, for every <EntriesRenderer> in the group.
+export type RendererProviderProps = {
+  /**
+   * The component implementations. Pass a stable reference — it feeds the
+   * registry context, so a fresh array each render re-renders every node.
+   * Duplicate names: the later one wins (`[...base, Override]`) and logs.
+   */
+  implementations: ComponentImplementation[];
   /**
    * The engine's own fallback UI — placeholder, confirm, and error slots (see
    * `DefaultComponents`). Omitted slots use the built-in defaults.
    */
   defaultComponents?: DefaultComponents;
+  /**
+   * Host functions exposed as bare identifiers in every evaluate() call
+   * (callbacks invoke them as `name(input)`). Pass a stable reference.
+   */
+  functions?: StandardToolV0[];
   /**
    * Extra global identifiers expressions may reference, merged onto the built-in
    * safe set (Math, JSON, Date, …). Use it to allow benign host globals the
@@ -96,27 +107,6 @@ export type RendererConfig = {
    * blocked regardless.
    */
   allowedGlobals?: string[];
-};
-
-export type RendererProps = {
-  /**
-   * The component implementations. Pass a stable reference — it feeds the
-   * registry context, so a fresh array each render re-renders every node.
-   * Duplicate names: the later one wins (`[...base, Override]`) and logs.
-   */
-  implementations: ComponentImplementation[];
-  /** The JSONLines entries to render, in tree order. */
-  entries: ComponentEntry[];
-  /**
-   * Host functions exposed as bare identifiers in every evaluate() call
-   * (callbacks invoke them as `name(input)`). Pass a stable reference.
-   */
-  functions?: StandardToolV0[];
-  /**
-   * One-shot side-effect run on mount, before any root entry evaluates. May seed
-   * `scopes.root.*`; a returned Promise suspends children until it resolves.
-   */
-  init?: InitFn;
   /**
    * Called once per classified failure, with the same EntryError the error slot
    * receives. Branch on `error.fault`: `"document"` means the model's output is
@@ -124,6 +114,23 @@ export type RendererProps = {
    * code failed (retry or surface it — the model can't fix your server).
    */
   onError?: (error: EntryError) => void;
+  /**
+   * One-shot side-effect for the whole group: runs once, when the first
+   * <EntriesRenderer> mounts, before its entries evaluate. May seed
+   * `scopes.root.*`; a returned Promise suspends the awaiting renderers until
+   * it resolves.
+   */
+  init?: InitFn;
+  /**
+   * Extra named scopes to expose alongside the shared `root` — host context
+   * such as user info (`scopes.userCtx.…`). Captured on mount.
+   */
+  scopes?: Scopes;
+};
+
+export type EntriesRendererProps = {
+  /** The JSONLines entries to render, in tree order. */
+  entries: ComponentEntry[];
 };
 
 // The render tree's structural store: each node subscribes to its own key, so

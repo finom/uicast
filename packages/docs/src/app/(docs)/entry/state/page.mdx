@@ -15,14 +15,19 @@ is captured by *naming* (each scope is independent), never by chaining
 
 ## The root scope
 
-`scopes.root` is always present — the one page-wide scope. App-level state —
+`scopes.root` is always present — the one app-wide scope. App-level state —
 search terms, the active tab, which modal is open — lives here:
 
 ```jsonc
 { "props": { "expr": "({ value: scopes.root.searchTerm })" } }
 ```
 
-There is no other "global"; every other scope belongs to a list item.
+There is no other "global"; every other scope belongs to a list item (or is a
+host-provided context scope). `root` belongs to the
+[`<RendererProvider>`](/react/renderer), not to a single document — every
+document under one provider shares it, so a group of documents behaves as one
+app with one store. On a chat surface that is what lets blocks share live
+state: the same path means the same data in every block.
 
 ## Item scopes
 

@@ -2,7 +2,7 @@ import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { createComponentImplementation } from "../impl/create-component-implementation";
 
-// Host-only synthetic wrapper that gives `init` a single mount point. `<Renderer>`
+// Host-only synthetic wrapper that gives `init` a single mount point. `<EntriesRenderer>`
 // emits it and merges this impl in itself, so consumers never register it;
 // `hidden: true` keeps it out of the LLM's component menu.
 

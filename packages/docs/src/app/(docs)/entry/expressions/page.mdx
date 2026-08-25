@@ -143,12 +143,12 @@ A rejection at either gate is a classified
 failure.
 
 Widen the allow-list with extra benign globals through the config provider —
-one `<RendererConfigProvider>` configures every `<Renderer>` beneath it:
+one `<RendererProvider>` configures every `<EntriesRenderer>` beneath it:
 
 ```tsx
-<RendererConfigProvider allowedGlobals={["structuredClone", "crypto"]}>
-  <Renderer … />
-</RendererConfigProvider>
+<RendererProvider allowedGlobals={["structuredClone", "crypto"]} implementations={implementations}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
 ```
 
 `allowedGlobals` is **additive** — the built-in safe set still applies — and

@@ -1,18 +1,18 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
-import { createComponentImplementation, Renderer } from "@uicast/react";
+import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { InitFn } from "@uicast/react/types";
 import { z } from "zod";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 
-// `catalog` is a runtime prop on the standalone <Renderer> — an array of
-// implementations, symmetric with `functions`. <Renderer> builds the name→renderer
+// `catalog` is a runtime prop on the <RendererProvider> — an array of
+// implementations, symmetric with `functions`. The provider builds the name→renderer
 // lookup itself. These tests pin that prop path directly.
 describe("Renderer — catalog prop", () => {
   it("renders an entry tree from a catalog array passed as a prop (merging RootFragment when absent)", () => {
     // `defaultImplementationsList` carries no `RootFragment` entry, so a successful render
-    // also proves <Renderer>'s RootFragment merge — without it the synthetic root
+    // also proves the provider's RootFragment merge — without it the synthetic root
     // wrapper would hit the Unknown-component branch and nothing would show.
     const lines: ComponentEntry[] = [
       {
@@ -22,7 +22,7 @@ describe("Renderer — catalog prop", () => {
       },
     ];
     const { container } = render(
-      <Renderer implementations={defaultImplementationsList} entries={lines} />,
+      <RendererProvider implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>,
     );
     expect(container.textContent).toContain("from-catalog-prop");
   });
@@ -45,16 +45,8 @@ describe("Renderer — catalog prop", () => {
 
     render(
       <>
-        <Renderer
-          implementations={defaultImplementationsList}
-          entries={box("rA")}
-          init={initA}
-        />
-        <Renderer
-          implementations={defaultImplementationsList}
-          entries={box("rB")}
-          init={initB}
-        />
+        <RendererProvider implementations={defaultImplementationsList} init={initA}><EntriesRenderer entries={box("rA")} /></RendererProvider>
+        <RendererProvider implementations={defaultImplementationsList} init={initB}><EntriesRenderer entries={box("rB")} /></RendererProvider>
       </>,
     );
 
@@ -64,7 +56,7 @@ describe("Renderer — catalog prop", () => {
   });
 
   it("on a duplicate component name the later renderer wins and logs an error", () => {
-    // Two implementations share the def name "Box". <Renderer> builds its map
+    // Two implementations share the def name "Box". The provider builds its map
     // last-wins (so `[...base, Override]` overrides), logging a console.error so
     // an *accidental* double-registration is still loud.
     const boxDef = createComponentDefinition({
@@ -84,7 +76,7 @@ describe("Renderer — catalog prop", () => {
 
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     const { container } = render(
-      <Renderer implementations={[first, second]} entries={lines} />,
+      <RendererProvider implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
     );
 
     // The later renderer wins the name; the earlier one never renders.

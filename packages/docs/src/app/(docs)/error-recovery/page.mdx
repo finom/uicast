@@ -17,7 +17,7 @@ Every element renders inside its own error boundary. When evaluating its
 props, `hidden`, `each`, or `seed` throws — or the component implementation
 itself throws — only that element is replaced by the `error` slot (the
 `defaultComponents.error` component on
-[`RendererConfigProvider`](/react/renderer)); parents and siblings keep
+[`RendererProvider`](/react/renderer)); parents and siblings keep
 working. A bad `each` latches the list slot, not the parent. A failed `seed`
 is contained the same way — the rest of the document keeps rendering — and a
 corrected re-emit retries it safely: seed writes are first-writer-wins
@@ -67,13 +67,12 @@ re-emitting cannot help; `unknown` means provenance is genuinely ambiguous.
 
 The same object reaches both consumers: the `error` slot receives it as
 `ErrorComponentProps.error` (show case-specific UI by switching on
-`error.reason`), and the `Renderer`'s **`onError`** prop is called once per
+`error.reason`), and the provider's **`onError`** prop is called once per
 failure — including callback failures, which never render a slot:
 
 ```tsx
-<Renderer
+<RendererProvider
   implementations={implementations}
-  entries={entries}
   onError={(error) => {
     if (error.fault === "document") {
       // the model can fix this — feed it back (see self-healing below)
@@ -81,7 +80,9 @@ failure — including callback failures, which never render a slot:
       reportToMonitoring(error);
     }
   }}
-/>
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
 ```
 
 Three notes for authors. A **host function** can throw an `EntryError`
@@ -135,8 +136,9 @@ output conventions come from the surface's own prompt:
   assistant turn, pass the recovery message as the request. The model emits
   only the corrected elements; partial replacement swaps them in and the error
   slot unmounts on its own.
-- **Chat surface** — send it as a plain user message. Fences are isolated
-  documents, so the model replies with a corrected fence.
+- **Chat surface** — send it as a plain user message. Element keys are
+  per-fence, so the model replies with a corrected fence (state, which is
+  shared across fences, carries over on its own).
 
 The built-in error components (the bare default and the shadcn catalog's
 `RenderError`) only display the error — the recovery affordance is host UI,
@@ -181,9 +183,8 @@ re-emission can actually fix. Wire `"document"` faults into the same recovery
 turn the Recover button sends, and the loop closes itself:
 
 ```tsx
-<Renderer
+<RendererProvider
   implementations={implementations}
-  entries={entries}
   onError={(error) => {
     if (error.fault !== "document" || !error.elementKey) {
       reportToMonitoring(error);
@@ -191,7 +192,9 @@ turn the Recover button sends, and the loop closes itself:
     }
     sendRecoveryTurn({ key: error.elementKey, message: error.message });
   }}
-/>
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
 ```
 
 `sendRecoveryTurn` is the same host code as in

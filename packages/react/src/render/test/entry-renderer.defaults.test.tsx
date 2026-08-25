@@ -1,7 +1,7 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { StandardToolV0 } from "standard-tool";
-import { Renderer } from "@uicast/react";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
 import { defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
@@ -66,7 +66,7 @@ describe("EntryRenderer — seed", () => {
   });
 
   it("supports async seed via Suspense (use(promise))", async () => {
-    // Uses the full <Renderer> rather than bare mountEntries: React 19 + RTL
+    // Uses the full provider+renderer rather than bare mountEntries: React 19 + RTL
     // only flush a top-level Suspense recovery when the initial mount runs
     // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
     // The async default is gated so it resolves inside act().
@@ -89,7 +89,7 @@ describe("EntryRenderer — seed", () => {
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <Renderer implementations={defaultImplementationsList} entries={lines} functions={functions} />,
+        <RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={lines} /></RendererProvider>,
       ).container;
     });
     // Suspended on the pending default — the value isn't shown yet.

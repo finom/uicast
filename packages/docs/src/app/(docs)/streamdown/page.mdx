@@ -19,60 +19,71 @@ The stat is live — it recomputes from the database on every view.
 
 [Streamdown](https://streamdown.ai/) (≥ 2.5) renders Markdown as it streams and
 lets a plugin claim a fence language. This package ships that plugin: blocks
-tagged `uicast` mount through the [Renderer](/react/renderer); every other
-fence stays ordinary highlighted code. The language token is the entire routing
-contract — which is why the [fence prompt partial](/prompt#chat-surfaces)
-forbids the model from using any other token for entries.
+tagged `uicast` mount as an [`<EntriesRenderer>`](/react/renderer) under your
+chat's `<RendererProvider>`; every other fence stays ordinary highlighted code.
+The language token is the entire routing contract — which is why the
+[fence prompt partial](/prompt#chat-surfaces) forbids the model from using any
+other token for entries.
 
 ## `createFenceRenderer`
 
 ```ts
 import type { CustomRenderer } from "streamdown";
 
-function createFenceRenderer(options: FenceRendererOptions): CustomRenderer;
+function createFenceRenderer(options?: FenceRendererOptions): CustomRenderer;
 
-type FenceRendererOptions = Omit<RendererProps, "entries"> & {
+type FenceRendererOptions = {
   /** Show a Rendered/Source switcher above each block. Default false. */
   showSourceToggle?: boolean;
 };
 ```
 
-The options are the [Renderer's props](/react/renderer) minus `entries` —
-`implementations`, `functions`, `init` — because the entries come from the
-fence content: each completed JSONL line is parsed into an entry and mounts
-immediately, while the partial last line waits until its newline arrives. A
-streaming fence grows into UI line by line, exactly like the raw-JSONL path.
+Everything else — implementations, functions, fallback UI — comes from the
+[`<RendererProvider>`](/react/renderer) wrapping your conversation, and the
+entries come from the fence content: each completed JSONL line is parsed into
+an entry and mounts immediately, while the partial last line waits until its
+newline arrives. A streaming fence grows into UI line by line, exactly like the
+raw-JSONL path.
 
 Call it **once per option set** — at module scope, or inside `useMemo` — and
 reuse the returned object:
 
 ```tsx
 import { Streamdown } from "streamdown";
+import { RendererProvider } from "@uicast/react";
 import { createFenceRenderer } from "@uicast/streamdown";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { tools } from "./tools";
 
-const fenceRenderer = createFenceRenderer({
-  implementations: allImplementations,
-  functions: tools,
-});
+const fenceRenderer = createFenceRenderer();
 
-export function Reply({ markdown }: { markdown: string }) {
-  return <Streamdown plugins={{ renderers: [fenceRenderer] }}>{markdown}</Streamdown>;
+export function Chat({ replies }: { replies: string[] }) {
+  return (
+    <RendererProvider implementations={allImplementations} functions={tools}>
+      {replies.map((markdown, i) => (
+        <Streamdown key={i} plugins={{ renderers: [fenceRenderer] }}>
+          {markdown}
+        </Streamdown>
+      ))}
+    </RendererProvider>
+  );
 }
 ```
 
 The identity rule is not a style preference. Streamdown re-renders on every
 streamed token, and a fresh component type per render would remount the
-Renderer each time — re-running [seeds](/entry/state), wiping the block's
-state, and re-firing every host-function call in them. If your options depend
-on props, wrap the call in `useMemo`; never call it inline in JSX.
+block each time — re-running [seeds](/entry/state), wiping its state, and
+re-firing every host-function call in them. If your options depend on props,
+wrap the call in `useMemo`; never call it inline in JSX.
 
 Two behaviors worth knowing:
 
-- **Each fence is an isolated app.** Every block gets its own Renderer and its
-  own state tree; two fences in one reply don't share scopes. The prompt
-  partial tells the model this, and steers it toward one fence per reply.
+- **The conversation is one app.** Every block under one `<RendererProvider>`
+  renders against the same `root` scope: a write in one block is live in every
+  block that reads the path. The prompt partial teaches the model to treat
+  `scopes.root` as the app's store — reuse an existing path for the same data,
+  introduce new paths for new state. Element keys stay per-fence — only state
+  is shared.
 - **Blocks mount client-side only.** Seeds call host functions, and host
   functions usually `fetch` browser-relative URLs — running them during SSR
   would fail or double-fire. When a chat page server-renders persisted
@@ -82,8 +93,8 @@ Two behaviors worth knowing:
 
 With `showSourceToggle: true`, each block gains a **Rendered / Source**
 switcher: Source shows the raw JSONL the model emitted, Rendered shows the
-mounted UI. The Renderer stays mounted (hidden) while Source is shown, so
-switching back doesn't reset the block's state. Off by default — it's a
+mounted UI. The block stays mounted (hidden) while Source is shown, so
+switching back doesn't reset its state. Off by default — it's a
 development and demo aid, not end-user chrome.
 
 ## Wrappers that forward `plugins`
@@ -126,5 +137,5 @@ full stack.
 ## Where to go next
 
 - [Assembling the prompt](/prompt) — the system prompt that makes the model emit the fence.
-- [Renderer](/react/renderer) — the props `FenceRendererOptions` forwards.
+- [Renderer](/react/renderer) — the `<RendererProvider>` the fences render under.
 - [Streaming](/react/streaming) — the raw-JSONL path this plugin inverts.

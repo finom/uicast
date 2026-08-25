@@ -114,7 +114,7 @@ props schema is what buys precise fault attribution.
 ## Registration
 
 `createComponentImplementation` returns a `ComponentImplementation`. Collect every
-one into the array passed to the [renderer](/react/renderer) — `<Renderer implementations={...}>` —
+one into the array passed to the [provider](/react/renderer) — `<RendererProvider implementations={...}>` —
 which builds the name → implementation map used to mount each entry. This is the
 partner to the def's [definitions array](/def#registration): the def map drives the
 prompt, the implementation array drives rendering. Add a component and you update

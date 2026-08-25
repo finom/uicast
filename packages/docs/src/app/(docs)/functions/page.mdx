@@ -86,10 +86,10 @@ async execute({ id }) {
 ## Wiring into the renderer
 
 Collect your tools into an array and pass it to
-[`<Renderer functions={...}>`](/react/renderer):
+[`<RendererProvider functions={...}>`](/react/renderer):
 
 ```tsx
-import { Renderer } from "@uicast/react";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import type { StandardToolV0 } from "standard-tool";
 
@@ -101,15 +101,16 @@ const inventoryFunctions: StandardToolV0[] = [
   deleteProduct,
 ];
 
-<Renderer
+<RendererProvider
   implementations={allImplementations}
-  entries={entries}
   functions={inventoryFunctions}
-/>;
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
 ```
 
 Like `implementations`, pass a **stable reference** (a module constant) — it folds
-into the renderer's context, so rebuilding the array each render would re-render
+into the provider's context, so rebuilding the array each render would re-render
 the whole tree.
 
 ## How the model calls them
@@ -211,4 +212,3 @@ menu](/def#registration), passing whatever tools you choose to expose.
 - [Renderer](/react/renderer) — the `functions` prop and the rest of the mount setup.
 - [Entry fields](/entry/fields) — `seed` and `callbacks`, where functions are called.
 - [JavaScript Expressions](/entry/expressions) — the language the calls are written in, and the purity rule.
-- [Live demo](/demo) — the inventory app is a complete `functions` setup end to end.

@@ -7,8 +7,8 @@ import {
 import type { ComponentEntry } from "@uicast/core";
 import {
   type ComponentImplementation,
-  Renderer,
-  RendererConfigProvider,
+  EntriesRenderer,
+  RendererProvider,
 } from "@uicast/react";
 import type { DefaultComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";
@@ -87,15 +87,13 @@ export function RenderCanvas({
         }}
         onMouseLeave={() => onHoverKey(null)}
       >
-        <RendererConfigProvider
+        <RendererProvider
+          implementations={catalog}
+          functions={functions}
           defaultComponents={defaultComponents ?? DEFAULT_COMPONENTS}
         >
-          <Renderer
-            implementations={catalog}
-            entries={lines}
-            functions={functions}
-          />
-        </RendererConfigProvider>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>
       </div>
     </>
   );
