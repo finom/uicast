@@ -1,4 +1,5 @@
 ```jsx localpath="packages/docs/src/lib/mini-examples/weather/renderer.tsx"
+import { useEffect, useState } from "react";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { WeatherCardImpl } from "./impl";
 import { getWeather } from "./functions";
@@ -8,6 +9,11 @@ const implementations = [WeatherCardImpl];
 const functions = [getWeather];
 
 export function Weather() {
+  // The async seed can't resolve during SSR — mount client-side only,
+  // exactly like the Streamdown plugin does for chat blocks.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return null;
   return (
     <RendererProvider implementations={implementations} functions={functions}>
       <EntriesRenderer entries={weatherEntries} />

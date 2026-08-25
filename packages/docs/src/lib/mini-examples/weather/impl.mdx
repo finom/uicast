@@ -12,19 +12,14 @@ export const WeatherCardImpl = createComponentImplementation({
       <CardContent className="grid gap-3 text-center">
         <select
           className="justify-self-center rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-          value={city ?? ""}
+          value={city}
           onChange={(e) => onCity({ city: e.target.value })}
         >
-          <option value="" disabled>
-            Pick a city…
-          </option>
           {CITIES.map((name) => (
             <option key={name}>{name}</option>
           ))}
         </select>
-        {city === undefined ? (
-          <div className="text-sm text-muted-foreground">Weather appears here.</div>
-        ) : tempC === undefined ? (
+        {tempC === undefined ? (
           <div className="text-sm text-muted-foreground">Loading…</div>
         ) : (
           <>

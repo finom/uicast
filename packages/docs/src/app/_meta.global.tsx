@@ -20,6 +20,7 @@ const meta: MetaRecord = {
       fields: "Entry fields",
       "value-sources": "Value Sources",
       expressions: "JavaScript Expressions",
+      reactivity: "Reactivity & Dependencies",
       state: "State & Scopes",
     },
   },

@@ -114,8 +114,11 @@ event. Each step is an
 } }
 ```
 
-- **Steps run sequentially**, each awaited — so a later step can read a path an
-  earlier one `set`.
+- **Steps run in dependency order**: a step that calls a host function waits
+  for the steps before it (mutations never race), and a step that reads a path
+  an earlier one `set` waits for that write — so chains like the one above
+  just work. In `seed`, steps with no dependency on each other run **in
+  parallel**, so independent loads stay fast.
 - **`evt`** is bound to the event payload, shaped by the component's callback def
   (`evt.value`, `evt.valueAsNumber`, a structured record — whatever the component
   passes).

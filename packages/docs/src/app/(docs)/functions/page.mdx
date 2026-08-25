@@ -161,14 +161,17 @@ simple: **derived values go in reactive `props`; effects go in `callbacks` and
 
 ### Callback step mechanics
 
-A callback runs its steps **sequentially**: each `expr` is evaluated and
-`await`ed before the next, and when a step has a `set`, the resolved value is
-written through the reactive store (waking exactly the subscribers of that
-path). Between steps the engine yields to the event loop, so a write's reactive
-update flushes before the next step reads scope. A step with no `set` runs
-purely for its side effect. Because a mutation
-returns only the row it changed, the usual shape is to **chain a re-read** after
-a write:
+A callback runs its steps in **dependency order**: a step that calls a host
+function always waits for the steps before it — a mutation's effect is
+invisible to path analysis, so effectful steps never race — and a step that
+reads a path an earlier step `set` (including via `currentValue`) waits for
+that write. Pure assignment steps with no dependency on each other may run
+together. When a step has a `set`, the resolved value is written through the
+reactive store (waking exactly the subscribers of that path); between waves
+the engine yields to the event loop, so a write's reactive update flushes
+before a dependent step reads scope. A step with no `set` runs purely for its
+side effect. Because a mutation returns only the row it changed, the usual
+shape is to **chain a re-read** after a write:
 
 ```jsonl
 { "key": "del", "component": "Button",

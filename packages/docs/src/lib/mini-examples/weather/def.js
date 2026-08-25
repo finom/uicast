@@ -5,7 +5,7 @@ export const WeatherCardDef = createComponentDefinition({
   name: "WeatherCard",
   description: "Shows the weather for a selectable city.",
   props: z.strictObject({
-    city: z.string().optional().meta({ description: "The selected city, if any" }),
+    city: z.string().meta({ description: "The selected city" }),
     tempC: z.number().optional().meta({ description: "Temperature, °C" }),
     condition: z.string().optional().meta({ description: "Sky condition" }),
   }),

@@ -1,0 +1,80 @@
+# Reactivity & Dependencies
+
+You never declare what an expression depends on — the runtime reads it off the
+expression text. Every `scopes.<scope>.<path>` access in an expression is
+extracted by static analysis (the same parser that validates the expression for
+[safety](/entry/expressions#safety)), and that read set drives two different
+mechanisms depending on where the expression sits.
+
+## Reactive sites: subscriptions
+
+`props.expr`, `hidden`, and `each` re-evaluate when state changes. For each
+extracted read, the element subscribes to that path in the reactive store, and
+a write to it re-renders exactly the elements that read it — nothing else.
+
+```jsonc
+{ "props": { "expr": "({ text: scopes.root.products.length + ' products' })" } }
+```
+
+This element subscribes to `products.length`. Two rules govern what wakes it:
+
+- **A write to the exact path wakes it** — `$set("products.length", …)`,
+  hypothetically.
+- **A write to an ancestor path wakes it too** — replacing `products`
+  wholesale (the usual mutate-then-refetch shape) re-renders every reader of
+  `products.length`, `products.0.name`, and so on: writing a path replaces
+  everything beneath it.
+
+The reverse does **not** hold: writing `products.0.name` does not wake a
+reader of `products` — a deep write is not a replacement of the whole.
+
+Method calls truncate the extracted path at the call:
+`scopes.root.products.filter(p => p.stock < 25)` subscribes to `products`
+(the array the filter runs over), and any other path the callback reads —
+`scopes.root.query`, say — is extracted as its own subscription. A search box
+writing `query` re-renders the filtered list with no wiring.
+
+## Effectful sites: ordering
+
+`seed` and `callbacks` run once per trigger, so their read sets drive
+**ordering**, not subscriptions. Steps are partitioned into dependency waves:
+
+- A step that reads a path an earlier step `set` — including implicitly via
+  [`currentValue`](/entry/value-sources#valuesourceassignment) — waits for
+  that write to land before it evaluates.
+- Steps with no such dependency share a wave. In `seed`, a wave's steps run
+  **in parallel** — independent data loads don't serialize.
+- In callbacks, a step that calls a [host function](/functions) additionally
+  waits for every step before it: a mutation's effect is invisible to path
+  analysis (a refetch after a delete reads nothing the delete writes, but
+  depends on it all the same), so effectful steps never race.
+- A `confirm` step is a barrier in both directions: everything before it
+  settles first, and nothing after it starts until it's confirmed.
+
+So this seed does what it looks like it does — the second step sees the first
+step's write, because it reads it:
+
+```jsonc
+"seed": [
+  { "set": "scopes.root.city", "literal": "Amsterdam" },
+  { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }
+]
+```
+
+## Keep paths static
+
+Extraction is static analysis over the expression text, so the runtime can
+only see paths written out literally. A computed access like
+`scopes.root[scopes.root.key]` evaluates fine, and the *key* read
+(`scopes.root.key`) is extracted — but the **target** path it resolves to at
+runtime is not: the element won't re-render when that target changes, and a
+step reading it won't be ordered after a step writing it. Write the path you
+mean.
+
+## Where to go next
+
+- [JavaScript Expressions](/entry/expressions) — the language and the safety
+  model the extractor is part of.
+- [Entry fields](/entry/fields) — `seed` and `callbacks`, where ordering
+  applies.
+- [State & Scopes](/entry/state) — the store the subscriptions attach to.

@@ -2,13 +2,17 @@
   {
     "key": "weather",
     "component": "WeatherCard",
+    "seed": [
+      { "set": "scopes.root.city", "literal": "Amsterdam" },
+      { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }
+    ],
     "props": {
       "expr": "({ city: scopes.root.city, tempC: scopes.root.weather?.tempC, condition: scopes.root.weather?.condition })"
     },
     "callbacks": {
       "onCity": [
         { "set": "scopes.root.city", "expr": "evt.city" },
-        { "set": "scopes.root.weather", "expr": "getWeather({ city: evt.city })" }
+        { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }
       ]
     }
   }
