@@ -28,12 +28,18 @@ function getItemId(keyBy: string | undefined, item: unknown, index: number): Ite
 // re-renders (keyed by id) so per-item state survives reordering/streaming, and
 // each item's `scopes` object is rebuilt only when its value or index changed.
 // Safe with `list: null` (returns `[]`).
+type ProxyEntry = {
+  proxy: ReactiveProxy;
+  // The proxy's raw target, kept for silent render-phase refreshes.
+  raw: { item: unknown; index: number; id: ItemId };
+};
+
 export function useItemScopes(
   scopes: Scopes,
   list: ComponentListEntry | null,
   items: unknown[],
 ): ItemRow[] {
-  const proxies = useRef<Map<ItemId, ReactiveProxy>>(new Map());
+  const proxies = useRef<Map<ItemId, ProxyEntry>>(new Map());
   const cachedScopes = useRef<Map<ItemId, Scopes>>(new Map());
   const cachedMeta = useRef<Map<ItemId, { item: unknown; index: number }>>(new Map());
   const prevScopes = useRef<Scopes | null>(null);
@@ -65,13 +71,19 @@ export function useItemScopes(
 
     // Reuse or create this item's proxy, then refresh its data so edited /
     // shifted items stay current.
-    let itemProxy = proxies.current.get(itemId);
-    if (!itemProxy) {
-      itemProxy = createProxyScope({ item, index, id: itemId });
-      proxies.current.set(itemId, itemProxy);
+    let entry = proxies.current.get(itemId);
+    if (!entry) {
+      const raw = { item, index, id: itemId };
+      entry = { proxy: createProxyScope(raw), raw };
+      proxies.current.set(itemId, entry);
     }
-    (itemProxy as Record<string, unknown>).item = item;
-    (itemProxy as Record<string, unknown>).index = index;
+    // Refresh through the raw target, NOT the proxy: this runs during render,
+    // and a proxy write emits — which would forceRender subscribed components
+    // mid-render (React forbids it). No wakeup is lost: any item/index change
+    // also rebuilds `itemScopes` identity below, which re-renders the row.
+    entry.raw.item = item;
+    entry.raw.index = index;
+    const itemProxy = entry.proxy;
 
     const prevMeta = cachedMeta.current.get(itemId);
     let itemScopes = cachedScopes.current.get(itemId);

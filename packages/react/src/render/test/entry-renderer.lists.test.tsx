@@ -108,4 +108,5 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).toContain("avocado");
     expect(container.textContent).not.toContain("banana");
   });
+
 });
