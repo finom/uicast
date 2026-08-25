@@ -3,36 +3,38 @@ import { CounterExample } from "@/lib/mini-examples/counter";
 # uicast
 
 **uicast is a UI framework whose language is written by models, not people.**
-Where JSX gives a developer a surface to describe a reactive interface, uicast's
-**entry format** gives a language model one — the same kind of language React or
-Vue provide (components, state, events), but with every design choice flipped from
-*easy for a person to maintain* to *reliable for a model to generate*.
+It gives a language model what JSX gives a developer — components, state,
+events — with every design choice flipped from *easy for a person to maintain*
+to *reliable for a model to generate*.
 
-Concretely, it turns a stream of JSONLines into a complete, interactive front-end
-app — one with real state management: derived values, conditional visibility, and
-event handling, all driven by real JavaScript expressions that are validated for
-safety before they run. You supply two things: a pre-built **component catalog**
-to render from, and a set of **functions the UI can call** to load data, save
-changes, and run actions. An LLM emits one JSON object per line; the engine mounts
-each line in tree order against a reactive state store. The emitted JSONLines are
-a static asset — serve them like a regular HTML page, with no build or deploy step
-per generation.
+An LLM emits one JSON object per line; the engine mounts each line in tree
+order against a reactive state store, turning the stream into a complete,
+interactive front-end app. You supply a pre-built **component catalog** to
+render from and the **functions** the UI can call to load data, save changes,
+and run actions. The emitted JSONLines are a static asset — serve them like a
+regular HTML page, with no build or deploy step per generation.
 
-The format is small and the instructions the model follows are simple, so
-generation is nearly deterministic and spends very few output tokens — the model
-writes the app's logic as short expressions wired into catalog components, not as
-a full codebase.
+What sets uicast apart is **expressions**. Frameworks in this space make the
+model either write real code — expressive, but unpredictable and impossible to
+trust without a sandbox — or fill a strict declarative schema — safe, but every
+behavior must be built into the host ahead of time. uicast sits between: the
+document is declarative JSONLines, while derived values, visibility, and event
+handling are short JavaScript expressions, validated for safety and then run
+against reactive scopes. The model writes the app's logic without writing the
+app's code.
 
-## Packages
+| Approach | Predictability | Expressiveness | Safety |
+| --- | --- | --- | --- |
+| Raw code generation | low | unlimited | low |
+| **uicast** | high | high | high |
+| Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
 
-- **`@uicast/core`** — the render engine: the JSONLines model, an expression
-  evaluator that validates code for safety, and the reactive proxy state store.
-  React-free.
-- **`@uicast/react`** — the React binding that mounts a document.
-- **`@uicast/shadcn-catalog`** — a ready-made component catalog built on
-  shadcn/ui.
-- **`@uicast/streamdown`** — the Streamdown plugin: entries ride inside
-  `uicast` code fences in Markdown chat replies.
+## The smallest document
+
+One component, one entry — a counter. The component is a pair: a definition the
+model reads and a React implementation that draws it. The single JSONLines entry
+below wires that pair to `scopes.root.count` — seeding the value, passing it
+down as a prop, and incrementing it on click.
 
 <CounterExample />
 
@@ -41,4 +43,3 @@ a full codebase.
 - [Getting started](/getting-started) — install the packages and render your
   first document.
 - [Concepts](/concepts) — the model, expressions, and scopes.
-- [Live demo](/demo) — watch generated apps assemble, one line at a time.

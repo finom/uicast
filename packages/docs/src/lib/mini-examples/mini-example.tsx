@@ -169,17 +169,11 @@ function CodeCard({ name, file, prov, code, lang, variants, node }: CodePart) {
 }
 
 export function MiniExample({
-  kicker,
-  title,
-  concept,
   entry,
   result,
   setup,
   open = false,
 }: {
-  kicker: string;
-  title: string;
-  concept: string;
   entry: CodePart;
   result: ReactNode;
   setup: SetupPart[];
@@ -188,12 +182,6 @@ export function MiniExample({
   return (
     <article className="mini-example">
       <style>{CSS}</style>
-
-      <div className="mx-head">
-        <div className="mx-kicker">{kicker}</div>
-        <h3 className="mx-title">{title}</h3>
-        <p className="mx-concept">{concept}</p>
-      </div>
 
       <div className="mx-hero">
         <CodeCard {...entry} />
@@ -242,10 +230,6 @@ const CSS = `
   --code-bg:#101218;--code-border:#23252f;--app-bg:#0a0b0f;--app-grid:rgba(255,255,255,.045);
   --tok-comment:#6a6d7c;--tok-str:#7fd6b8;--tok-num:#e0975a;--tok-kw:#cb98f0;--tok-fn:#82aaff;--tok-punct:#5d6070;
 }
-.mini-example .mx-head{margin-bottom:20px}
-.mini-example .mx-kicker{font:600 11.5px/1 'IBM Plex Mono',monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
-.mini-example .mx-title{margin:0;font-size:19px;font-weight:600;letter-spacing:-.01em;color:var(--text)}
-.mini-example .mx-concept{margin:7px 0 0;color:var(--muted);font-size:14px;line-height:1.55;max-width:70ch}
 .mini-example .mx-hero{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
 .mini-example .mx-card{border:1px solid var(--code-border);border-radius:12px;overflow:hidden;background:var(--code-bg);display:flex;flex-direction:column;min-width:0}
 .mini-example .mx-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--code-border)}

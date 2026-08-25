@@ -31,9 +31,6 @@ const setup: SetupPart[] = [
 export function CounterExample() {
   return (
     <MiniExample
-      kicker="Mini-example"
-      title="Counter"
-      concept="The smallest possible app: one component, one entry. A component is a pair — a definition the model reads and a React implementation that draws it — and a single JSONLines entry wires it to scopes.root.count."
       entry={{
         name: "Entries",
         prov: "llm",

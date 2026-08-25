@@ -1,35 +1,24 @@
 # Getting started
 
-The packages ship **raw TypeScript** — no build step, and a public API surface
-that is still settling. Install them from npm (they are in beta, under the
-`beta` dist-tag — pin the versions):
+Install the packages from npm (they are in beta, under the `beta` dist-tag —
+pin the versions):
 
 ```sh
 npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta @uicast/streamdown@beta
 ```
 
-- **`@uicast/core`** — the framework-agnostic engine.
-- **`@uicast/react`** — the React binding.
-- **`@uicast/shadcn-catalog`** — the ready-made component catalog (optional —
-  you can define your own).
-- **`@uicast/streamdown`** — the Streamdown plugin for chat replies (optional).
+- **`@uicast/core`** — the render engine: the JSONLines model, an expression
+  evaluator that validates code for safety, and the reactive proxy state store.
+  React-free.
+- **`@uicast/react`** — the React binding that mounts a document.
+- **`@uicast/shadcn-catalog`** — a plug-and-play catalog built on shadcn/ui,
+  for starting fast; real apps typically define their own catalog (optional).
+- **`@uicast/streamdown`** — the Streamdown plugin: entries ride inside
+  `uicast` code fences in Markdown chat replies (optional).
 
-Let your bundler transpile the raw source — in Next.js:
-
-```ts
-// next.config.ts
-const nextConfig = {
-  transpilePackages: [
-    "@uicast/core",
-    "@uicast/react",
-    "@uicast/shadcn-catalog",
-    "@uicast/streamdown",
-  ],
-};
-```
-
-No path aliases are needed — the packages resolve through their `exports`
-maps like any npm dependency.
+The packages ship compiled ESM with type declarations and resolve through their
+`exports` maps like any npm dependency — no bundler configuration or path
+aliases needed.
 
 ## A document is a stream of lines
 
@@ -43,11 +32,10 @@ separate lines.
 ```
 
 The engine mounts them in order, so a parent always arrives before the children
-it references. Mount this with the React binding's [`<Renderer>`](/react/renderer),
-passing the catalog's renderers and any host `functions` your expressions call —
-the [`/demo`](/demo) source is a complete, working setup.
+it references. Mount this with the React binding's [`<EntriesRenderer>`](/react/renderer),
+passing the catalog's renderers and any host `functions` your expressions call.
 
 ## Where to go next
 
 - [Concepts](/concepts) — the element model, expressions, and scopes.
-- [Live demo](/demo) — the same engine rendering real, interactive apps.
+- [Functions](/functions) — wiring data loading, saving, and actions.
