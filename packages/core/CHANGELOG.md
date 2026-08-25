@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial public beta of the framework-agnostic uicast engine: entry format, sandboxed JavaScript expressions, reactive scopes, and prompt partial builders.
 - Prompt signatures carry schema descriptions: any described field (Zod `.describe()` / `.meta({ description })`) renders inline as `type /* description */`, at every nesting level — objects, arrays, enums, tuples, unions, `$ref`s.
 - Function signatures in the prompt render multiline, one field per line, via `JSONSchemaToTs`'s new `multiline` option.
+- `planStepWaves`: partitions a seed/callback step list into dependency waves — steps keep their order semantically while independent steps share a wave; `confirm` steps and caller-marked barriers isolate.
 
 ### Changed
 

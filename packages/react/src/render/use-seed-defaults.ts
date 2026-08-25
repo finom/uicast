@@ -3,19 +3,12 @@ import {
   EntryError,
   evaluate,
   parseScope,
+  planStepWaves,
   type ComponentEntry,
 } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import { readScopePath } from "../read-scope-path";
 import type { InitFn, Scopes } from "../types";
-
-type SeededDefault = {
-  kind: "default";
-  targetScope: string;
-  targetPath: string;
-  value: unknown;
-};
-type SeededInit = { kind: "init"; value: Promise<unknown> };
 
 // One attempt per entry object — `element` identity changes when a re-emitted
 // key replaces it (partial replacement).
@@ -78,28 +71,68 @@ export function useSeedDefaults({
     setDefaultsPromiseRef.current = null;
 
     try {
-      const collected: Array<SeededDefault | SeededInit> = [];
-      let hasAsync = false;
-
-      element.seed?.forEach((setExpr) => {
-        if (!setExpr.set) return;
-        let targetScope: string;
-        let targetPath: string;
+      // Pre-validate every set path — a bad path is a document fault worth
+      // failing on before any step runs.
+      const steps = (element.seed ?? []).filter((step) => step.set);
+      const targets = new Map<(typeof steps)[number], [string, string]>();
+      for (const step of steps) {
         try {
-          [targetScope, targetPath] = parseScope(setExpr.set);
+          targets.set(step, parseScope(step.set));
         } catch (err) {
-          // A seed `set:` path naming a nonexistent scope — document fault.
           throw EntryError.wrap(err, "unknown-reference", element.key);
         }
-        const currentValue = readScopePath(scopes[targetScope], targetPath);
-        const value = evaluate(
-          setExpr,
-          { scopes, currentValue },
-          { functions, allowedGlobals },
-        );
-        if (value instanceof Promise) hasAsync = true;
-        collected.push({ kind: "default", targetScope, targetPath, value });
-      });
+      }
+
+      // Evaluate one wave: steps in a wave are mutually independent, so they
+      // run in parallel; a step that reads an earlier step's write sits in a
+      // later wave (see planStepWaves) and evaluates after that write landed.
+      // Returns null when every step resolved synchronously (writes applied),
+      // else a promise that applies the wave's writes as it settles.
+      const runWave = (wave: typeof steps): Promise<void> | null => {
+        const evaluated = wave.map((step) => {
+          const [targetScope, targetPath] = targets.get(step)!;
+          const currentValue = readScopePath(scopes[targetScope], targetPath);
+          const value = evaluate(
+            step,
+            { scopes, currentValue },
+            { functions, allowedGlobals },
+          );
+          return { targetScope, targetPath, value };
+        });
+        if (evaluated.every((e) => !(e.value instanceof Promise))) {
+          for (const e of evaluated) {
+            scopes[e.targetScope].$set(e.targetPath, e.value, { default: true });
+          }
+          return null;
+        }
+        return Promise.all(
+          evaluated.map(async (e) => {
+            scopes[e.targetScope].$set(e.targetPath, await e.value, {
+              default: true,
+            });
+          }),
+        ).then(() => undefined);
+      };
+
+      let hasAsync = false;
+      const waves = planStepWaves(steps);
+      // Walk waves synchronously while they stay sync — their writes land
+      // during this render, exactly like the old all-sync path — and switch to
+      // a promise chain at the first async wave.
+      let chain: Promise<void> | null = null;
+      for (let i = 0; i < waves.length; i++) {
+        const pendingWave = runWave(waves[i]);
+        if (pendingWave) {
+          hasAsync = true;
+          const rest = waves.slice(i + 1);
+          chain = pendingWave.then(async () => {
+            for (const wave of rest) {
+              await runWave(wave);
+            }
+          });
+          break;
+        }
+      }
 
       if (init) {
         // `init` writes through the Proxy directly; sync writes have landed by the
@@ -109,30 +142,20 @@ export function useSeedDefaults({
           const initResult = init({ scopes });
           if (initResult instanceof Promise) {
             hasAsync = true;
-            collected.push({
-              kind: "init",
-              value: initResult.catch((err) => {
-                throw EntryError.wrap(err, "host-init", element.key);
-              }),
+            const initPromise = initResult.catch((err) => {
+              throw EntryError.wrap(err, "host-init", element.key);
             });
+            chain = chain
+              ? Promise.all([chain, initPromise]).then(() => undefined)
+              : initPromise.then(() => undefined);
           }
         } catch (err) {
           throw EntryError.wrap(err, "host-init", element.key);
         }
       }
 
-      if (hasAsync) {
-        const batch = Promise.all(
-          collected.map(async (entry) => {
-            if (entry.kind === "init") {
-              await entry.value;
-              return;
-            }
-            scopes[entry.targetScope].$set(entry.targetPath, await entry.value, {
-              default: true,
-            });
-          }),
-        ).then(() => {
+      if (hasAsync && chain) {
+        const batch = chain.then(() => {
           // Clear the gate and wake the component so the next pass renders
           // without Suspense and the boundary's reset token flips back to the
           // entry — clearing a latch from a fallback that threw against
@@ -150,14 +173,6 @@ export function useSeedDefaults({
           setDefaultsPromiseRef.current = null;
           forceRender();
         });
-      } else {
-        for (const entry of collected) {
-          if (entry.kind === "default") {
-            scopes[entry.targetScope].$set(entry.targetPath, entry.value, {
-              default: true,
-            });
-          }
-        }
       }
     } catch (err) {
       record.failed = true;

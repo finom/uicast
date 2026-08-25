@@ -18,4 +18,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Seed and callback steps execute in dependency waves. A step that reads a path an earlier step writes waits for that write — `{ "set": "…city", "literal": "Oslo" }` followed by `getWeather({ city: scopes.root.city })` now works — while independent seed loads run in parallel as before. In callbacks, steps that call host functions never race (a refetch after a mutation keeps its order even with no path dependency); pure assignment steps with no mutual dependency may share a wave.
+
 - **Breaking:** the mount API is now `<RendererProvider>` (implementations, functions, fallback UI, `allowedGlobals`, `onError`, group `init`) wrapping `<EntriesRenderer entries={…} />`. The provider owns ONE shared reactive `root` scope for every renderer beneath it, so documents can share live state; `<Renderer>`, `<RendererConfigProvider>`, and the per-renderer `rootScope` are gone. Group `init` runs once for the whole provider, not per document.

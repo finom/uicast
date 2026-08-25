@@ -16,9 +16,12 @@ export type ScopePath = string;
 // evaluated as code.
 export type ValueSource = { expr: Expression } | { literal: unknown };
 export type ValueSourceAssignment = { set: ScopePath } & ValueSource;
+// Callback steps may omit `set` — a step can run purely for its side effect
+// (a mutation call), with nothing written to scope.
 export type ConfirmableValueSourceAssignment = {
   confirm?: string;
-} & ValueSourceAssignment;
+  set?: ScopePath;
+} & ValueSource;
 
 /**
  * The uicast entry model. One line of a uicast document is a

@@ -4,6 +4,7 @@ export { createComponentDefinition } from "./def/create-component-definition";
 
 export { evaluate } from "./expr/evaluate";
 export { extractDeps } from "./expr/extract-deps";
+export { planStepWaves } from "./expr/plan-step-waves";
 
 export {
   EntryError,

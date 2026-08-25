@@ -4,6 +4,7 @@ import {
   EntryError,
   parseScope,
   evaluate,
+  planStepWaves,
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
@@ -69,32 +70,74 @@ export const createComponentImplementation = <
         key,
         async (evt: unknown) => {
           try {
-            for (const setExpr of entryCallbacks[key]) {
-              if (setExpr.confirm) {
-                const confirmed = await confirm(setExpr.confirm);
+            // Pre-validate every set path — a path that doesn't parse names
+            // something that doesn't exist (document fault), and failing
+            // before any step runs keeps a bad path from stranding the
+            // parallel steps of its wave mid-flight.
+            const allSteps = entryCallbacks[key];
+            const targets = new Map<(typeof allSteps)[number], [string, string]>();
+            for (const setExpr of allSteps) {
+              if (!setExpr.set) continue;
+              try {
+                targets.set(setExpr, parseScope(setExpr.set));
+              } catch (err) {
+                throw EntryError.wrap(err, "unknown-reference", entry.key);
+              }
+            }
+            // Steps run in dependency waves: a step that reads a path an
+            // earlier step sets waits for that write; independent steps run
+            // in parallel. A `confirm` step is a barrier wave of its own —
+            // and so is any step that calls a host function: a mutation's
+            // effect is invisible to path analysis (the refetch after a
+            // delete depends on it without reading any path it writes), so
+            // effectful steps keep their order. Only pure steps parallelize.
+            const callsHostFunction = (expr: string | undefined): boolean =>
+              !!expr &&
+              !!functions?.some((fn) =>
+                new RegExp(`\\b${fn.name}\\s*\\(`).test(expr),
+              );
+            const waves = planStepWaves(allSteps, (step) =>
+              callsHostFunction("expr" in step ? step.expr : undefined),
+            );
+            for (const wave of waves) {
+              if (wave[0].confirm) {
+                const confirmed = await confirm(wave[0].confirm);
                 if (!confirmed) return;
               }
-              let target: [string, string] | null = null;
-              if (setExpr.set) {
-                try {
-                  target = parseScope(setExpr.set);
-                } catch (err) {
-                  // A `set:` path that doesn't parse names something that
-                  // doesn't exist — document fault.
-                  throw EntryError.wrap(err, "unknown-reference", entry.key);
+              const evaluated = wave.map((setExpr) => {
+                const target = targets.get(setExpr) ?? null;
+                const currentValue = target
+                  ? readScopePath(myprops.scopes[target[0]], target[1])
+                  : undefined;
+                // Evaluate inside an async thunk: a synchronous throw becomes
+                // a rejection, so allSettled observes every step and nothing
+                // rejects unhandled.
+                return {
+                  target,
+                  value: (async () =>
+                    evaluate(
+                      setExpr,
+                      { evt, scopes: myprops.scopes, currentValue },
+                      { functions, allowedGlobals },
+                    ))(),
+                };
+              });
+              // Let every step in the wave settle, apply the successful writes
+              // in step order, then fail on the first rejection — so parallel
+              // peers of a failed step still land, and later waves are skipped.
+              const settled = await Promise.allSettled(evaluated.map((e) => e.value));
+              let firstError: unknown = null;
+              settled.forEach((result, i) => {
+                if (result.status === "fulfilled") {
+                  const { target } = evaluated[i];
+                  if (target) {
+                    myprops.scopes[target[0]].$set(target[1], result.value);
+                  }
+                } else if (firstError === null) {
+                  firstError = result.reason;
                 }
-              }
-              const currentValue = target
-                ? readScopePath(myprops.scopes[target[0]], target[1])
-                : undefined;
-              const result = await evaluate(
-                setExpr,
-                { evt, scopes: myprops.scopes, currentValue },
-                { functions, allowedGlobals },
-              );
-              if (target) {
-                myprops.scopes[target[0]].$set(target[1], result);
-              }
+              });
+              if (firstError !== null) throw firstError;
               await new Promise((resolve) => setTimeout(resolve, 0));
             }
           } catch (err) {
