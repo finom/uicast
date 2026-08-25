@@ -55,6 +55,7 @@ Stream elements in order: emit the root element first, then its children depth-f
 - Each seed entry is `{ "set": "scopes.<scope>.<path>", "literal": <value> }` or `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }`.
 - `literal` seeds are synchronous. `expr` seeds may call async functions and the element will suspend (show a loading placeholder) until all async seeds resolve.
 - Seeds are evaluated exactly once when the element first mounts.
+- All of an element's seed expressions are evaluated against the PRE-seed scope — a later seed step cannot read an earlier step's write. Inline the value instead: `{ "set": "scopes.root.city", "literal": "Oslo" }, { "set": "scopes.root.weather", "expr": "getWeather({ city: 'Oslo' })" }` — not `getWeather({ city: scopes.root.city })`.
 - **`seed` is for storing user-mutable state and one-shot data fetches — NOT for derived state.** Each `seed` entry runs once at mount and never recomputes. Use `seed` to:
   - Initialize a value the user will later change (a form field, a selection, a search term, a pagination cursor).
   - Fetch data from a host function on mount: `{ "set": "scopes.root.rows", "expr": "InvApi_getRows()" }`.
