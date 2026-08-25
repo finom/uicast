@@ -10,12 +10,14 @@
   },
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./*": "./src/*"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./*": "./dist/*"
   },
   "files": [
-    "src",
-    "!src/**/test/**",
+    "dist",
     "LICENSE",
     "CHANGELOG.md"
   ],
@@ -23,6 +25,8 @@
     "access": "public"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -32,7 +36,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
     "@uicast/core": "0.0.1-beta.1",
-    "standard-tool": "^0.0.6",
+    "standard-tool": "^0.1.0",
     "zod": "~4.3.6"
   },
   "peerDependencies": {
@@ -40,7 +44,7 @@
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

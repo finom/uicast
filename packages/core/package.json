@@ -20,16 +20,23 @@
   ],
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./prompt": "./src/prompt/index.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./prompt": {
+      "types": "./dist/prompt/index.d.ts",
+      "default": "./dist/prompt/index.js"
+    }
   },
   "files": [
-    "src",
-    "!src/**/test/**",
+    "dist",
     "LICENSE",
     "CHANGELOG.md"
   ],
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -39,7 +46,7 @@
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
     "acorn": "^8.16.0",
-    "standard-tool": "^0.0.6"
+    "standard-tool": "^0.1.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.0",

@@ -10,15 +10,29 @@
   },
   "type": "module",
   "exports": {
-    "./events": "./src/events/index.ts",
-    "./defs": "./src/defs.ts",
-    "./impls": "./src/impls.ts",
-    "./default-components": "./src/default-components/index.ts",
-    "./ui/*": "./src/components/ui/*.tsx"
+    "./events": {
+      "types": "./dist/events/index.d.ts",
+      "default": "./dist/events/index.js"
+    },
+    "./defs": {
+      "types": "./dist/defs.d.ts",
+      "default": "./dist/defs.js"
+    },
+    "./impls": {
+      "types": "./dist/impls.d.ts",
+      "default": "./dist/impls.js"
+    },
+    "./default-components": {
+      "types": "./dist/default-components/index.d.ts",
+      "default": "./dist/default-components/index.js"
+    },
+    "./ui/*": {
+      "types": "./dist/components/ui/*.d.ts",
+      "default": "./dist/components/ui/*.js"
+    }
   },
   "files": [
-    "src",
-    "!src/**/test/**",
+    "dist",
     "LICENSE",
     "CHANGELOG.md"
   ],
@@ -26,6 +40,8 @@
     "access": "public"
   },
   "scripts": {
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
     "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
   },
   "dependencies": {
@@ -41,7 +57,7 @@
     "lucide-react": "^1.8.0",
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
-    "react-day-picker": "^9.14.0",
+    "react-day-picker": "^10.0.1",
     "react-resizable-panels": "^4.10.0",
     "recharts": "^3.8.1",
     "streamdown": "^2.5.0",

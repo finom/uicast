@@ -10,7 +10,7 @@ the SaferEval expression sandbox, reactive proxy scopes, classified errors
 that teach a model the output contract.
 
 Bindings and companions live in the same repo under the `@uicast/*` scope:
-`@uicast/react` (the `<Renderer>`), `@uicast/shadcn-catalog` (150+ component
+`@uicast/react` (the `<EntriesRenderer>`), `@uicast/shadcn-catalog` (150+ component
 def/impl pairs over shadcn/Radix), and `@uicast/streamdown` (render
 ```` ```uicast ```` fences inside Markdown chat replies).
 

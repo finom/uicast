@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // The @uicast/* packages ship raw TypeScript source; let Next transpile them.
+  // Inside the monorepo the @uicast/* packages are consumed as source (the
+  // tsconfig paths point at src/, not the built dist/); let Next transpile them.
   transpilePackages: [
-    "uicast",
+    "@uicast/core",
     "@uicast/react",
     "@uicast/shadcn-catalog",
     "@uicast/streamdown",
