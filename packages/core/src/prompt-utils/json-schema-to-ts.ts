@@ -70,6 +70,17 @@ export type JSONSchemaToTsOptions = {
 	 * Omit for the compact single-line form.
 	 */
 	multiline?: string;
+	/**
+	 * Pointers whose target is rendered as a NAME instead of its expansion —
+	 * `{ "#/$defs/Person": "Person" }` turns every `$ref` to that pointer into
+	 * the bare word `Person`. The caller is responsible for printing the
+	 * definitions somewhere the reader can see (the prompt's shared-types
+	 * block); see `collectSharedTypes`.
+	 *
+	 * This is what makes a recursive schema expressible: `Node` referencing
+	 * itself renders as `Node`, where inlining bottoms out at `unknown`.
+	 */
+	namedRefs?: Record<string, string>;
 };
 
 /**
@@ -78,6 +89,8 @@ export type JSONSchemaToTsOptions = {
  * Pass the whole schema document (with any `$defs` / `definitions`): local
  * `$ref`s resolve against it, and a recursive schema terminates — the cycle's
  * back-edge renders as `unknown` while everything above it stays fully typed.
+ * Pass `namedRefs` to render chosen definitions as names instead, which both
+ * de-duplicates a shared type and lets a recursive one be stated exactly.
  */
 export function JSONSchemaToTs(
 	jsonSchema: unknown,
@@ -87,11 +100,26 @@ export function JSONSchemaToTs(
 		options?.multiline !== undefined
 			? { pad: options.multiline, depth: 0 }
 			: null;
-	return toTs(jsonSchema, jsonSchema, new Set(), ml);
+	return toTs(
+		jsonSchema,
+		{ root: jsonSchema, seen: new Set(), named: options?.namedRefs ?? null },
+		ml,
+	);
 }
 
 /** Multiline state: the caller's line prefix + current nesting depth. */
 type Multiline = { pad: string; depth: number } | null;
+
+/**
+ * What travels through the whole recursion: the document `$ref`s resolve
+ * against, the refs currently being expanded on this path (the cycle guard),
+ * and the pointer→name map for hoisted definitions.
+ */
+type Ctx = {
+	root: unknown;
+	seen: Set<string>;
+	named: Record<string, string> | null;
+};
 
 /**
  * Recursive worker. Renders the node's type, then — when the node carries a
@@ -101,11 +129,10 @@ type Multiline = { pad: string; depth: number } | null;
  */
 function toTs(
 	jsonSchema: unknown,
-	root: unknown,
-	seen: Set<string>,
+	ctx: Ctx,
 	ml: Multiline = null,
 ): string {
-	const base = toTsBase(jsonSchema, root, seen, ml);
+	const base = toTsBase(jsonSchema, ctx, ml);
 	if (
 		jsonSchema !== null &&
 		typeof jsonSchema === "object" &&
@@ -130,8 +157,7 @@ function toTs(
  */
 function toTsBase(
 	jsonSchema: unknown,
-	root: unknown,
-	seen: Set<string>,
+	ctx: Ctx,
 	ml: Multiline,
 ): string {
 	if (jsonSchema === true) return "unknown";
@@ -141,19 +167,24 @@ function toTsBase(
 	const schema = jsonSchema as JSONSchema;
 
 	if (typeof schema.$ref === "string") {
-		if (seen.has(schema.$ref)) return "unknown"; // cycle back-edge
-		const target = resolveRef(schema.$ref, root);
+		// A hoisted definition renders as its name. This has to come before the
+		// cycle guard: a recursive type is exactly the case where inlining gives
+		// up and returns `unknown`, and a name is what lets it be stated.
+		const named = ctx.named?.[schema.$ref];
+		if (named) return named;
+		if (ctx.seen.has(schema.$ref)) return "unknown"; // cycle back-edge
+		const target = resolveRef(schema.$ref, ctx.root);
 		if (target === undefined) return "unknown";
-		seen.add(schema.$ref);
+		ctx.seen.add(schema.$ref);
 		// When the referencing node has its own description, it wins (it names
 		// the field's role at THIS use site) — render the target without its
 		// root annotation so the field isn't double-commented. The target's
 		// nested fields keep their own annotations either way.
 		const resolved =
 			typeof schema.description === "string"
-				? toTsBase(target, root, seen, ml)
-				: toTs(target, root, seen, ml);
-		seen.delete(schema.$ref);
+				? toTsBase(target, ctx, ml)
+				: toTs(target, ctx, ml);
+		ctx.seen.delete(schema.$ref);
 		return resolved;
 	}
 
@@ -164,15 +195,15 @@ function toTsBase(
 	}
 
 	if (schema.allOf) {
-		const parts = schema.allOf.map((s) => toTs(s, root, seen, ml));
+		const parts = schema.allOf.map((s) => toTs(s, ctx, ml));
 		return parts.length ? `(${parts.join(" & ")})` : "unknown";
 	}
 	if (schema.anyOf) {
-		const parts = schema.anyOf.map((s) => toTs(s, root, seen, ml));
+		const parts = schema.anyOf.map((s) => toTs(s, ctx, ml));
 		return parts.length ? `(${parts.join(" | ")})` : "never";
 	}
 	if (schema.oneOf) {
-		const parts = schema.oneOf.map((s) => toTs(s, root, seen, ml));
+		const parts = schema.oneOf.map((s) => toTs(s, ctx, ml));
 		return parts.length ? `(${parts.join(" | ")})` : "never";
 	}
 	if (schema.not) return "unknown";
@@ -181,7 +212,7 @@ function toTsBase(
 		// Drop the description on the per-type variants — the wrapper already
 		// annotates the union as a whole; keeping it would stamp every member.
 		const types = schema.type.map((t) =>
-			toTs({ ...schema, type: t, description: undefined }, root, seen, ml),
+			toTs({ ...schema, type: t, description: undefined }, ctx, ml),
 		);
 		return types.length ? `(${types.join(" | ")})` : "unknown";
 	}
@@ -207,7 +238,7 @@ function toTsBase(
 			const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
 				? key
 				: JSON.stringify(key);
-			return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, root, seen, childMl)}`;
+			return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, ctx, childMl)}`;
 		});
 
 		let additionalType: string | null = null;
@@ -217,7 +248,7 @@ function toTsBase(
 			schema.additionalProperties &&
 			typeof schema.additionalProperties === "object"
 		) {
-			additionalType = toTs(schema.additionalProperties, root, seen);
+			additionalType = toTs(schema.additionalProperties, ctx);
 		}
 
 		if (propStrings.length === 0 && additionalType) {
@@ -247,24 +278,24 @@ function toTsBase(
 
 	if (type === "array" || schema.items || schema.prefixItems) {
 		if (schema.prefixItems) {
-			const tupleTypes = schema.prefixItems.map((s) => toTs(s, root, seen));
+			const tupleTypes = schema.prefixItems.map((s) => toTs(s, ctx));
 			if (schema.items === false) return `[${tupleTypes.join(", ")}]`;
-			const restType = schema.items ? toTs(schema.items, root, seen) : "unknown";
+			const restType = schema.items ? toTs(schema.items, ctx) : "unknown";
 			return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
 		}
 
 		if (schema.items !== undefined && schema.items !== null) {
 			if (Array.isArray(schema.items)) {
-				const tupleTypes = schema.items.map((s) => toTs(s, root, seen));
+				const tupleTypes = schema.items.map((s) => toTs(s, ctx));
 				if (schema.additionalItems === false) {
 					return `[${tupleTypes.join(", ")}]`;
 				}
 				const restType = schema.additionalItems
-					? toTs(schema.additionalItems, root, seen)
+					? toTs(schema.additionalItems, ctx)
 					: "unknown";
 				return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
 			}
-			const itemTs = toTs(schema.items, root, seen, ml);
+			const itemTs = toTs(schema.items, ctx, ml);
 			// An item type ENDING in an annotation must be parenthesized —
 			// `string /* x */[]` reads as if the comment interrupts the type;
 			// `(string /* x */)[]` keeps the array suffix unambiguous. A comment
@@ -276,7 +307,7 @@ function toTsBase(
 	}
 
 	if (schema.properties) {
-		return toTs({ ...schema, type: "object" }, root, seen);
+		return toTs({ ...schema, type: "object" }, ctx);
 	}
 
 	return "unknown";

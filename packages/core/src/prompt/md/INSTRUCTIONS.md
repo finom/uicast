@@ -23,6 +23,8 @@ The **root** element is the single top-level element — the one element whose `
 
 Stream elements in order: emit the root element first, then its children depth-first. A parent element must always appear before any element it references in its `children` array.
 
+Where the component and function listings share a type, it is written once under a `# Shared Types` heading and referred to by name afterwards — a prop or return documented as `Person` means the `Person` listed there. A named type may refer to itself (`Node: { children?: Node[] }`); that is a tree of the same shape all the way down.
+
 # Rules
 
 ## 1. Structure
@@ -141,6 +143,10 @@ Stream elements in order: emit the root element first, then its children depth-f
 - Use `seed` with `expr` to fetch initial data on mount: `{ "set": "scopes.root.users", "expr": "UserApi_getUsers()" }`. The element will suspend until the data loads.
 - Use `callbacks` to trigger mutations in response to user actions: `{ "set": "scopes.root.result", "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })" }`.
 - After a mutation, you typically need to re-fetch or update the local state. Chain multiple assignments in the callback to achieve this: first mutate, then refresh.
+- **A function documented as returning `unknown` has an UNDECLARED result — not an empty one.** You may call it for its effect, but you must NOT read fields off what it returns, because no shape was published and any field name you pick is a guess. Use a callback step with no `"set"` at all, then read the data back from a function whose return type IS documented:
+  - CORRECT: `[{ "expr": "Api_archive({ id: scopes.row.item.id })" }, { "set": "scopes.root.rows", "expr": "Api_listRows()" }]` — act, then re-fetch through a documented return.
+  - WRONG: `{ "set": "scopes.root.found", "expr": "Api_search({ q: scopes.root.term })" }` followed by an expression reading `scopes.root.found.items[0].title` — nothing said `items` or `title` exist.
+  - A step with no `"set"` is allowed in `callbacks` only; every `seed` step must write somewhere, so a function returning `unknown` has no place in `seed`.
 
 ## 10. Ordering
 

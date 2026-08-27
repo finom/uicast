@@ -50,7 +50,9 @@ The fields:
   exposing `~standard.jsonSchema`), describing the single input argument. It both **validates** the input at call
   time and **emits JSON Schema** that the prompt turns into a signature. Omit it
   for a zero-argument function.
-- **`outputSchema`** *(optional)* — the same, for the return value.
+- **`outputSchema`** *(optional)* — the same, for the return value. Omitting
+  it does not mean *returns nothing* — it means *undeclared*, and the prompt
+  says so. See [Undeclared returns](#undeclared-returns).
 - **`execute(input)`** — your logic. Receives the validated input and returns
   the output, normally as a `Promise` (host functions are async by nature). It
   **throws** on failure — see [Errors](#errors).
@@ -232,15 +234,65 @@ listProducts, createProduct, deleteProduct
   }) => {
     id: number;
   }: Add a product. Returns it.
-- deleteProduct({ id: number }) => void: Delete a product by id.
+- deleteProduct({ id: number }) => unknown: Delete a product by id.
 ```
 
 The signature is `name(params) => output: description`. No `inputSchema` renders
-empty parens (`listProducts()`); no `outputSchema` renders `=> void`. So express
-"**returns nothing**" by **omitting** `outputSchema` — never `z.void()`, which
-has no JSON Schema form and throws. The block is catalog-agnostic: you compose
-it into your larger system prompt alongside the [component
-menu](/def#registration), passing whatever tools you choose to expose.
+empty parens (`listProducts()`); no `outputSchema` renders `=> unknown`. Never
+write `z.void()` — void has no JSON Schema form and Zod throws on it. The block
+is catalog-agnostic: you compose it into your larger system prompt alongside the
+[component menu](/def#registration), passing whatever tools you choose to expose.
+
+When two functions share a type, it is printed once under `# Shared Types` and
+referenced by name — see [Shared types](#shared-types).
+
+## Undeclared returns
+
+`=> unknown` is a real statement, not a shrug: **nobody published this shape.**
+The prompt tells the model it may call such a function for its effect but must
+not read fields off the result, because every field name would be a guess:
+
+```jsonc
+// ✓ act, then read through a function whose return IS declared
+[ { "expr": "archiveProduct({ id: scopes.row.item.id })" },
+  { "set": "scopes.root.products", "expr": "listProducts()" } ]
+
+// ✗ store an undeclared result and read into it
+{ "set": "scopes.root.found", "expr": "searchProducts({ q: scopes.root.term })" }
+// … then somewhere: scopes.root.found.items[0].title  ← nothing said items exists
+```
+
+A step with **no `set`** is legal in `callbacks` and nowhere else — every `seed`
+step must write somewhere — so a function returning `unknown` has no place in a
+`seed`.
+
+This is why declaring `outputSchema` matters more here than in ordinary tool
+calling. A chat model *sees* the response before it reasons about it. uicast's
+model writes `scopes.root.products[0].name` into an expression that runs later,
+against data it never sees, so the shape has to be known when the document is
+written.
+
+## Shared types
+
+A `$defs` / `definitions` entry in any of your schemas is hoisted: printed once
+as a named type, then referenced by name at every use site.
+
+```md
+# Shared Types
+
+- Person: { id: string; name?: string }
+- Node: { name?: string; children?: Node[] } — A folder or file.
+
+# Function Details
+
+- getOwners() => { owner?: Person; reviewer?: Person }: Owners.
+- listTree() => { root?: Node }: Whole tree.
+```
+
+Two things this buys. A type used by ten functions costs ten tokens instead of
+ten copies. And a **recursive** type becomes expressible at all — inlined, its
+self-reference bottoms out at the cycle guard and renders `unknown[]`, which
+silently claims the tree is one level deep.
 
 ## Where to go next
 

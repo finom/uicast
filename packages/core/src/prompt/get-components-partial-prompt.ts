@@ -1,4 +1,5 @@
 import { type JSONSchema, JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
+import { collectSharedTypes } from "../prompt-utils/shared-types";
 import type { CombinedSpec, ComponentDefinition } from "../types";
 
 const toJSONSchema = (spec: CombinedSpec): unknown =>
@@ -34,14 +35,18 @@ export type ComponentsPromptOptions = {
  * yields `[]`. Shared by a component's props and a typed event's options — both
  * are "object schema → described fields".
  */
-const describeFields = (jsonSchema: unknown, indent: string): string[] => {
+const describeFields = (
+  jsonSchema: unknown,
+  indent: string,
+  namedRefs: Record<string, string>,
+): string[] => {
   const schema = jsonSchema as JSONSchema | null;
   if (!schema?.properties) return [];
   const required = schema.required ?? [];
   return Object.entries(schema.properties).map(([name, field]) => {
     const optional = required.includes(name) ? "" : "?";
     const description = field.description;
-    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field))}${
+    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field), { namedRefs })}${
       description ? ` — ${description}` : ""
     }`;
   });
@@ -49,7 +54,8 @@ const describeFields = (jsonSchema: unknown, indent: string): string[] => {
 
 /**
  * Render an array of component defs into the prompt's component section — a
- * `# Available Components` names list, an optional `# Common Events` block, then
+ * `# Available Components` names list, an optional `# Shared Types` block, an
+ * optional `# Common Events` block, then
  * `# Component Details`, one entry per visible def: its name + description, a
  * `Props:` list (each prop's type + description) and an `Event handlers:` list
  * (each handler's signature + description, a typed event's options described one
@@ -63,6 +69,11 @@ const describeFields = (jsonSchema: unknown, indent: string): string[] => {
  * of re-inlining the payload — killing the per-component duplication. A callback
  * is matched by its `$id`, so it stays library-agnostic (anything that emits
  * `$id` participates); non-common callbacks render inline as before.
+ *
+ * `# Shared Types` does the same job for schema `$defs` / `definitions`: each is
+ * printed once as a named type and referenced by name at every use site, which
+ * both removes the repetition of inlining and lets a RECURSIVE type be stated
+ * (inlined, its back-edge degrades to `unknown`).
  *
  * Host-only defs (`hidden: true`, e.g. RootFragment) are filtered out so the LLM
  * never sees host infrastructure in its component menu. Catalog-agnostic: the
@@ -90,6 +101,10 @@ export function getComponentsPartialPrompt({
   // would leave the handler unmatchable (it would silently inline on every
   // component), so it's a hard error — as is a duplicate id, which would make
   // the per-component reference ambiguous.
+  // One registry for the whole block: a `$def` shared by an event payload and a
+  // component prop is printed once and named the same in both.
+  const shared = collectSharedTypes();
+
   const commonIds = new Set<string>();
   const commonLines: string[] = [];
   for (const schema of commonEvents) {
@@ -104,7 +119,9 @@ export function getComponentsPartialPrompt({
       throw new Error(`Duplicate common event id: "${id}"`);
     }
     commonIds.add(id);
-    const ts = JSONSchemaToTs(stripRootDescription(jsonSchema));
+    const ts = JSONSchemaToTs(stripRootDescription(jsonSchema), {
+      namedRefs: shared.add(jsonSchema),
+    });
     const description = (jsonSchema as { description?: string }).description;
     commonLines.push(`- ${id}: ${ts}${description ? ` — ${description}` : ""}`);
   }
@@ -115,12 +132,18 @@ export function getComponentsPartialPrompt({
     .map(({ name, description, props, callbacks }) => {
       const lines = [`- ${name} — ${description}`];
 
-      const propLines = describeFields(toJSONSchema(props), "    ");
+      const propsJSONSchema = toJSONSchema(props);
+      const propLines = describeFields(
+        propsJSONSchema,
+        "    ",
+        shared.add(propsJSONSchema),
+      );
       if (propLines.length) lines.push("  Props:", ...propLines);
 
       const callbackLines = Object.entries(callbacks || {}).flatMap(
         ([cbName, cbDef]) => {
           const cbJSONSchema = toJSONSchema(cbDef);
+          const cbRefs = shared.add(cbJSONSchema);
           const id = readId(cbJSONSchema);
           if (id && commonIds.has(id)) {
             // Common event — its payload is named + described once under
@@ -138,12 +161,12 @@ export function getComponentsPartialPrompt({
           }
           // An object payload's fields are the event's options — list them like
           // props, one level deeper. Anything else keeps the inline `evt` type.
-          const optionLines = describeFields(cbJSONSchema, "      ");
+          const optionLines = describeFields(cbJSONSchema, "      ", cbRefs);
           if (optionLines.length) {
             return [`    - ${cbName}(evt)${tail}`, ...optionLines];
           }
           return [
-            `    - ${cbName}(evt: ${JSONSchemaToTs(stripRootDescription(cbJSONSchema))})${tail}`,
+            `    - ${cbName}(evt: ${JSONSchemaToTs(stripRootDescription(cbJSONSchema), { namedRefs: cbRefs })})${tail}`,
           ];
         },
       );
@@ -153,9 +176,15 @@ export function getComponentsPartialPrompt({
     })
     .join("\n\n");
 
+  // Asked for after `detail` is built, so every hoisted definition is in.
+  const sharedLines = shared.lines();
+
   return (
     "# Available Components\n\n" +
     visible.map((def) => def.name).join(", ") +
+    (sharedLines.length
+      ? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
+      : "") +
     (commonLines.length
       ? `\n\n# Common Events\n\n${commonLines.join("\n")}`
       : "") +

@@ -11,7 +11,7 @@ describe("getFunctionsPartialPrompt", () => {
 			execute: async () => undefined,
 		});
 		expect(getFunctionsPartialPrompt({ functions: [ping] })).toBe(
-			"# Available Functions\n\nping\n\n# Function Details\n\n- ping() => void: Liveness check.",
+			"# Available Functions\n\nping\n\n# Function Details\n\n- ping() => unknown: Liveness check.",
 		);
 	});
 
@@ -62,7 +62,7 @@ describe("getFunctionsPartialPrompt", () => {
 				"      city: string /* City name. */;",
 				"      zip: string;",
 				"    } /* Destination. */;",
-				"  }) => void: Ship it.",
+				"  }) => unknown: Ship it.",
 			].join("\n"),
 		);
 	});
