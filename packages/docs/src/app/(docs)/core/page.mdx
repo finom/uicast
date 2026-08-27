@@ -1,0 +1,88 @@
+# Core
+
+`@uicast/core` is the engine, and it has **two halves** — both framework-
+agnostic, neither importing React:
+
+- the **runtime** that turns a document into live state: the entry types, the
+  expression evaluator and its safety pass, the reactive scope store, and the
+  dependency machinery;
+- the **prompt builders** (`@uicast/core/prompt`) that turn *your* catalog and
+  functions into the system prompt a model reads. Nothing generates a document
+  without them.
+
+Most apps touch the runtime only through [`@uicast/react`](/react) and the
+prompt half directly. This page is the reference for everything the package
+exports — including the pieces a **non-React binding** would build on.
+
+## Runtime — `@uicast/core`
+
+### Authoring components
+
+| Export | What it does |
+|---|---|
+| `createComponentDefinition` | Declares a component's name, description, `props` schema, and callback schemas — the half the model reads. See [Component definition](/def). |
+| `ComponentDefinition`, `CombinedSpec` | Types for the above; `CombinedSpec` is the Standard-Schema shape a props/callback schema satisfies. |
+
+### The document
+
+| Export | What it does |
+|---|---|
+| `ComponentEntry`, `ComponentListEntry` | The [entry](/entry) types — one line of a document; the list form adds `each` / `as` / `keyBy`. |
+| `isComponentEntry`, `isComponentListEntry` | Runtime type guards for the two. |
+| `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding every parseable JSON value and skipping blank lines, prose, and partial lines. The reader half of [streaming](/react/streaming). |
+| `buildElementsById(lines)` | Folds a line array into a `key → entry` map, applying [partial replacement](/entry/fields#key) — a re-emitted key replaces its element (and drops descendants it no longer references). |
+
+### Expressions
+
+| Export | What it does |
+|---|---|
+| `evaluate(source, context, options?)` | Evaluates a [value source](/entry/value-sources) — returns `literal` as-is, runs `expr` through the safety pass against `context` (`scopes`, `evt`, `currentValue`) with `options.functions` (a `StandardToolV0[]`) in scope and `options.allowedGlobals` merged onto the safe globals. |
+| `extractDeps(entry)` | The reactive `scopes.X.Y` paths an entry reads across `props`, `hidden`, and `each` — what a binding subscribes to. See [Reactivity](/entry/reactivity). |
+| `planStepWaves(steps, isBarrier?)` | Partitions `seed` / `callbacks` steps into [dependency waves](/entry/reactivity#effectful-sites-ordering): a step reading a path an earlier step writes lands in a later wave; independent steps share one. `confirm` steps are barriers, and `isBarrier` marks more (the React binding marks host-function steps, so mutations never race). |
+
+### Scopes
+
+| Export | What it does |
+|---|---|
+| `createProxyScope(initial?)` | Creates one reactive scope: a proxied state bag that emits on write. Writes go through `$set(path, value, { default })` — `default: true` is the first-writer-wins mode [`seed`](/entry/fields#seed) uses — and readers subscribe via `$emitter.on(path, fn)`. A write wakes subscribers of that path **and of any path beneath it**. |
+| `ReactiveProxy` | The type of the above: your state shape plus `$set` and `$emitter`. |
+| `parseScope(key, prefix?)` | Splits a scope key into `[scopeName, pathInScope]` — `"scopes.root.user.name"` → `["root", "user.name"]`. Bindings use it to route an extracted dep to the right scope's emitter. |
+
+Those three plus `evaluate`, `extractDeps`, and `planStepWaves` are the whole
+seam a binding needs: the React package implements nothing the engine doesn't
+already expose.
+
+### Errors
+
+| Export | What it does |
+|---|---|
+| `EntryError` | The classified failure every fault arrives as, carrying `reason`, `fault`, and `elementKey`. `EntryError.wrap(err, reason, key)` tags a foreign error. |
+| `EntryErrorReason`, `EntryFault` | The `reason` union (`expression-runtime`, `host-function`, `invalid-props`, `unknown-component`, …) and the coarse `fault` union — `"document"` (the model can fix it) vs `"environment"` (host code failed) vs `"unknown"`. See [Error recovery](/error-recovery#classification-entryerror-and-onerror). |
+
+## Prompt — `@uicast/core/prompt`
+
+Every builder takes a single options object, so signatures grow without
+breaking callers. [Assembling the prompt](/prompt) shows how they compose into
+one system prompt, and what each block looks like.
+
+| Export | What it does |
+|---|---|
+| `getCommonInstructionsPartialPrompt(options)` | The output contract itself — the entry format, the fields, the rules. The invariant part of the prompt. |
+| `getComponentsPartialPrompt({ definitions, commonEvents? })` | Your catalog rendered as a component menu: names, descriptions, prop types, and handler signatures, derived from the defs. `commonEvents` hoists shared payloads out of every entry. |
+| `getFunctionsPartialPrompt({ functions })` | Your [host functions](/functions) — a `StandardToolV0[]` — as TypeScript-style call signatures, with every schema description inline. Descriptions on schema fields render as `/* … */` comments. |
+| `getExpressionsPartialPrompt(options)` | The [expression](/entry/expressions) rules: what JavaScript is allowed, the safe globals (injected from the evaluator's own list), and the `scopes` / `evt` / `currentValue` context variables. |
+| `getScopePartialPrompt(options)` | The `# Scope` block — **how much to build** on this surface: `kind: "page" \| "widget" \| "answer"`, an optional `approxElements` size hint, and a host `note` appended verbatim. |
+| `getEditRequestPrompt(options)` | A per-turn **user message** for an edit: the model re-emits only the elements that change. See [Edit and recovery turns](/prompt#edit-and-recovery-turns). |
+| `getErrorRecoveryPrompt({ failures })` | A per-turn **user message** reporting `RenderFailure[]` (`{ key, message }`) and asking the model to re-emit those elements corrected. |
+| `RenderFailure` | The failure shape the host builds for the above, straight from an `EntryError`'s `elementKey` and `message`. |
+| `CommonInstructionsPromptOptions`, `ComponentsPromptOptions`, `FunctionsPromptOptions`, `ExpressionsPromptOptions`, `ScopePromptOptions`, `EditRequestPromptOptions`, `ErrorRecoveryPromptOptions` | The options type for each builder above. |
+
+The first five are **system-prompt partials** — concatenate them once per
+generation. The last two are **per-turn message content**, composed into
+`messages`, not into `system`.
+
+## Where to go next
+
+- [Assembling the prompt](/prompt) — the builders in order, with the full output.
+- [Component Entry Format](/entry) — the document the runtime consumes.
+- [React](/react) — the binding built on this seam.

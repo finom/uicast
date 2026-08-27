@@ -81,8 +81,10 @@ it.
 
 Pass an optional `placeholder` — a zero-argument component — to stand in for
 this component's pending **content**. It renders in two gaps: in the slot of
-each child whose entry hasn't streamed in yet, and in place of the children
-while an async [`seed`](/entry/fields#seed) on the entry resolves. The
+each child whose entry hasn't streamed in yet, and, on a non-list entry, in place of the
+children while an async [`seed`](/entry/fields#seed) on the entry resolves. On a
+**list** entry the seed gate covers the whole list, so the parent's placeholder
+fills it, not this component's own. The
 component itself still mounts around it — the gap before the component's *own*
 entry arrives is filled by its parent's placeholder, not its own.
 

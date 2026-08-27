@@ -69,11 +69,36 @@ TypeScript-like type, so everything you attach to a field is information the mod
 sees:
 
 - `.meta({ description })` — what the field means;
-- `.default(…)` — the value used when the field is omitted;
+- `.default(…)` — marks the field **optional** in the prompt, exactly like
+  `.optional()`; the default *value* never reaches the prompt and the engine
+  never applies it, so the implementation supplies it
+  (`render: ({ variant = "default" }) => …`). Put it in `.meta({ description })`
+  if the model should know it;
 - `.optional()` — that the field may be left out.
 
-This is the shape an entry's [`props`](/entry/fields#props) value source has to
-produce. Describe **every** field with `.meta`: `props` is the contract, and an
+Fed to `getComponentsPartialPrompt({ definitions: [BadgeDef] })`, the def above
+becomes exactly this under `# Component Details` — this text, verbatim, is what
+the model reads:
+
+```
+- Badge — A small status indicator badge for displaying labels, counts, or tags. Renders as an inline pill-shaped element. Use Badge to show status (active, pending), categories, counts, or any short label that needs visual emphasis.
+  Props:
+    - children?: unknown — The badge text content
+    - variant?: "default" | "secondary" | "destructive" | "outline" — Visual style: default (primary color), secondary (muted), destructive (red/danger), outline (bordered only)
+```
+
+`z.any().optional()` prints as `unknown`; `variant` is marked `?` because of
+`.default("default")` — and the default *value* appears nowhere on the line.
+
+That is the shape an entry's [`props`](/entry/fields#props) value source has to
+produce:
+
+```jsonc
+{ "key": "order-status", "component": "Badge",
+  "props": { "expr": "({ children: scopes.root.order.status, variant: scopes.root.order.status === 'paid' ? 'default' : 'destructive' })" } }
+```
+
+Describe **every** field with `.meta`: `props` is the contract, and an
 undocumented field is a field the model has to guess.
 
 ## `callbacks` — event payloads
@@ -92,13 +117,38 @@ callbacks: {
 }
 ```
 
+With `keyboardEventSchema` registered as a common event, that block renders as:
+
+```
+  Event handlers:
+    - onChange(evt)
+      - value: string — The current value
+    - onClear(evt: {}) — Clear button clicked
+    - onKeyDown(evt: KeyboardEvent)
+```
+
+which is the whole reason the model can write this, and nothing else:
+
+```jsonc
+{ "key": "search", "component": "SearchInput",
+  "props": { "expr": "({ value: scopes.root.q })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }] } }
+```
+
 The payload schema is the model's only knowledge of `evt`: the `onChange` above is
 why `evt.value` is a valid expression and `evt.text` is not. A callback whose
 payload carries nothing still gets an empty `z.strictObject({})`, so the model
 knows the event exists — or, by convention, `z.null()`, which marks the event as
-carrying **no payload**: the prompt renders it as a no-arg call, and the
-implementation's handler is typed as a zero-argument function (`onClear()`),
-not `(evt: null)`.
+carrying **no payload**. Both sides follow from it — `callbacks: { onPress:
+z.null().meta({ description: "Fires when pressed" }) }` prints as
+
+```
+  Event handlers:
+    - onPress() — Fires when pressed
+```
+
+and the implementation's handler takes nothing:
+`render: ({ onPress }) => <button onClick={() => onPress?.()}>Press</button>`.
 
 **Shared events.** Payloads that recur across many components — a click's mouse
 position, a keypress — are defined once as common-event schemas

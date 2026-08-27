@@ -1,0 +1,31 @@
+[
+  {
+    "key": "card",
+    "component": "Card",
+    "seed": [{ "set": "scopes.root.orders", "expr": "listOrders()" }],
+    "children": ["title", "refresh", "rows"]
+  },
+  {
+    "key": "title",
+    "component": "Heading",
+    "props": { "expr": "({ children: scopes.root.orders.length + ' orders' })" }
+  },
+  {
+    "key": "refresh",
+    "component": "Button",
+    "props": { "literal": { "label": "Refresh" } },
+    "callbacks": {
+      "onClick": [{ "set": "scopes.root.orders", "expr": "listOrders()" }]
+    }
+  },
+  {
+    "key": "rows",
+    "component": "OrderRow",
+    "each": "scopes.root.orders",
+    "as": "order",
+    "keyBy": "id",
+    "props": {
+      "expr": "({ customer: scopes.order.item.customer, total: scopes.order.item.total })"
+    }
+  }
+]

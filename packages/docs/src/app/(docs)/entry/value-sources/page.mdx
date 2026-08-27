@@ -7,11 +7,12 @@ one another:
 ```ts
 ValueSource                      = { expr } | { literal }
 ValueSourceAssignment            = ValueSource & { set }
-ConfirmableValueSourceAssignment = ValueSourceAssignment & { confirm? }
+ConfirmableValueSourceAssignment = ValueSource & { set?, confirm? }
 ```
 
-Each form adds exactly one field to the one before it; [**Entry
-fields**](/entry/fields) covers which entry field takes which form.
+Each form builds on the one before it — the confirmable form adds `confirm`
+and relaxes `set` to optional; [**Entry fields**](/entry/fields) covers which
+entry field takes which form.
 
 ## ValueSource
 
@@ -31,7 +32,10 @@ The base form: a value, given one of two ways.
 ## ValueSourceAssignment
 
 A `ValueSource` plus a `set`: evaluate the value, then **write it to the scope
-path** named by `set`.
+path** named by `set`. How the write lands depends on the site: a `callbacks`
+step overwrites the path, while a `seed` step is applied **first-writer-wins** —
+it assigns only if the path is still `undefined`, so two entries seeding the same
+path don't clobber each other (see [state](/entry/state#lifecycle)).
 
 ```jsonc
 { "set": "scopes.root.count", "literal": 0 }
@@ -50,8 +54,14 @@ what defines it — never in a bare [`props`](/entry/fields#props),
 
 ## ConfirmableValueSourceAssignment
 
-A `ValueSourceAssignment` plus an optional `confirm`: the same write, gated by a
-confirmation message. If the user declines, the assignment is skipped.
+A `ValueSource` plus an optional `set` and an optional `confirm`: the write is
+gated by a confirmation message. If the user declines, the assignment — and every
+step after it — is skipped. `set` is optional in this form: a
+[callback](/entry/fields#callbacks) step with no `set` evaluates its `expr` and
+discards the result — a fire-and-forget host call. (`seed` steps take the plain
+assignment form, where `set` is required.) A confirmed step is also an [ordering
+barrier](/entry/reactivity): everything before it settles before the prompt
+appears, and nothing after it starts until it passes.
 
 ```jsonc
 {

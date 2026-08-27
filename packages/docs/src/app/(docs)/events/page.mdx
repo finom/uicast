@@ -46,17 +46,18 @@ Take that search box with a two-step reaction:
 ```jsonc
 { "callbacks": { "onChange": [
   { "set": "scopes.root.q",       "expr": "evt.value" },
-  { "set": "scopes.root.results", "expr": "await searchTasks({ q: scopes.root.q })" }
+  { "set": "scopes.root.results", "expr": "searchTasks({ q: scopes.root.q })" }
 ] } }
 ```
 
 A user types `abc`:
 
 1. The input's React `onChange` fires; the impl calls `onChange({ value: "abc" })`.
-2. The engine binds `evt = { value: "abc" }` and runs the `onChange` steps in order.
+2. The engine binds `evt = { value: "abc" }` and plans the `onChange` steps into
+   [dependency waves](/entry/reactivity).
 3. Step one writes `scopes.root.q = "abc"`.
-4. Step two reads the `q` step one just set, calls the host search function, and
-   writes its result to `scopes.root.results`.
+4. Step two **reads** `q`, so it waits for that write, then calls the host search
+   function and writes its result to `scopes.root.results`.
 5. Every `props` / `each` expression that reads `q` or `results` re-evaluates and
    re-renders — the results list updates itself.
 
@@ -69,15 +70,18 @@ When the impl calls a callback, the **engine** — not the component — runs th
 entry's steps. For the fired event it:
 
 1. binds the impl's payload as `evt`;
-2. runs the steps **in order, awaiting each**, so a later step sees what an earlier
-   one wrote (step two above reads the `q` step one set);
-3. evaluates each step's `expr` against `evt`, the current `scopes`, and the host
-   functions, then writes the result to its `set` path — a step with no `set` runs
+2. runs the steps in **[dependency waves](/entry/reactivity)** — a step that reads
+   a path an earlier step wrote waits for that write (step two above reads the `q`
+   step one set), and so does any step that calls a host function, so mutations
+   never race; steps that depend on nothing before them run together;
+3. evaluates each step's `expr` against `evt`, the current `scopes`, the host
+   functions, and — for a step with a `set` — `currentValue`, the value that path
+   holds before the write; then writes the result to its `set` path — a step with no `set` runs
    purely for its effect, like a fire-and-forget host call;
 4. if a step carries a `confirm`, asks first; on cancel, that step **and every step
    after it** are skipped — so a `confirm` on the first dangerous step guards the
    rest;
-5. yields for a tick between steps, so each write has landed before the next
+5. yields for a tick between waves, so each write has landed before a dependent
    expression reads it.
 
 Only the events the entry actually wires get a handler built — an `onClear` the
@@ -106,20 +110,24 @@ The split is what makes model-authored behavior safe:
   component models any interaction as an event carrying exactly the payload its
   handler needs.
 - **Effects are explicit and reactive.** Steps are
-  [pure expressions](/entry/expressions); their only way to change anything is the
-  `set` field. So the same evaluator that computes `props` also runs events, and
-  reactivity falls out for free — a `set` writes a scope path, and every expression
-  reading that path re-renders. No event bus, no manual subscriptions.
+  [pure expressions](/entry/expressions); their only way to change *document
+  state* is the `set` field (a step can still reach the outside world through a
+  host function, but nothing inside the document changes without a `set`). So the same evaluator that computes `props` also runs events, and
+  [reactivity](/entry/reactivity) falls out for free — a `set` writes a scope path,
+  and every expression reading that path (or any path beneath it) re-renders. The
+  same read-set extraction that builds those subscriptions also orders the steps.
+  No event bus, no manual subscriptions.
 
 It's the division uicast draws everywhere: the model authors data, the host
 supplies capability, and a schema is the contract that keeps the two honest.
 
 ## Patterns worth knowing
 
-- **Read-after-write** — because steps await in order, one step can consume what the
-  previous one set (the search example chains `q` into the fetch).
+- **Read-after-write** — a step that reads a path an earlier step set is ordered
+  after it automatically (the search example chains `q` into the fetch); write the
+  chain, the runtime sequences it.
 - **Side-effect steps** — a step with no `set` runs only for its effect, e.g.
-  `await track({ event: "search" })`.
+  `track({ event: "search" })`.
 - **Confirm before damage** — gate a destructive step with
   [`confirm`](/entry/value-sources#confirmablevaluesourceassignment); cancelling it
   skips that step and everything after it.

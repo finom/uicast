@@ -13,6 +13,7 @@ const meta: MetaRecord = {
       streaming: "Streaming",
     },
   },
+  core: "Core",
   functions: "Host functions",
   entry: {
     title: "Component Entry Format",
@@ -29,6 +30,13 @@ const meta: MetaRecord = {
   prompt: "Assembling the prompt",
   "error-recovery": "Error recovery",
   roadmap: "Roadmap",
+  // External links live in the top bar, not the sidebar: `type: "page"` moves an
+  // item out of the sidebar into the navbar, and `href` makes it a plain link.
+  "standard-tool": {
+    title: "standard-tool",
+    type: "page",
+    href: "https://standard-tool.js.org/",
+  },
   // The interactive demo renders full-bleed under its own layout; keep it out of
   // the docs sidebar (its page files still get picked up by Nextra's page glob).
   demo: { display: "hidden" },

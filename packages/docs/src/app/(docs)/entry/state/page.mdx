@@ -80,21 +80,23 @@ chain keeps going — `scopes.root.childScopes.order[0].childScopes.line[0]`.
 - **Writes happen only through `set`** — the `set` field of a `seed` or
   `callbacks` [assignment](/entry/value-sources). Expressions are pure; you never
   assign to `scopes` inside one. A `seed` initializes a path once at mount;
-  `callbacks` update it in response to an event.
+  `callbacks` update it in response to an event. A `set` path **creates its
+  intermediates**, so `scopes.root.filters.date.from` works with nothing seeded
+  above it — the levels it creates are plain objects, so seed real arrays
+  explicitly.
 
-Subscriptions are **path-exact, in both directions**: a reader wakes only on a
-write to the *same* path it reads. Writing finer than a reader misses it — a
-reader of `scopes.root.rows` is not woken by a write to `scopes.root.rows.0.qty`
-— and so does writing *coarser*: a reader of `scopes.root.user.name` stays stale
-when `scopes.root.user` is replaced wholesale.
+Subscriptions run **one way, downward**: a reader wakes on a write to the path
+it reads *or to any path above it*. Replacing `scopes.root.user` wholesale wakes
+a reader of `scopes.root.user.name`, because writing a path replaces everything
+beneath it. Writing *finer* than a reader is the direction that misses — a
+reader of `scopes.root.rows` is not woken by a write to `scopes.root.rows.0.qty`,
+since a deep write is not a replacement of the whole.
 
-The convention is to **replace arrays and objects wholesale** — write a new array
-to `scopes.root.rows` rather than mutating one cell — and it works because
-readers usually consume the whole value (mapping over `rows`), reading at the
-level you replace. Its mirror is the trap: swapping `scopes.root.user` while
-something reads `scopes.root.user.name` silently leaves that reader behind. Write
-at the granularity your deepest reader reads. How a read becomes a subscription
-is covered in [JavaScript Expressions → Reactivity](/entry/expressions#reactivity).
+That asymmetry is why the convention is to **replace arrays and objects
+wholesale** — write a new array to `scopes.root.rows` rather than mutating one
+cell. It's the shape every mutate-then-refetch callback already produces, and it
+wakes every reader beneath the path, however deep. How a read becomes a
+subscription is covered in [Reactivity & Dependencies](/entry/reactivity).
 
 ## Lifecycle
 
@@ -103,6 +105,10 @@ persists for the life of the page — across every re-render, and even while the
 element is `hidden` (a hidden element keeps its state and restores it when shown
 again). Always initialize a path before an expression reads it; a path that was
 never seeded reads back as `undefined`.
+
+State can also arrive from the host: [`<RendererProvider init>`](/react/renderer)
+runs once when the first renderer mounts, before its entries evaluate, and writes
+`scopes.root.*` through the live proxy — unconditionally, unlike a seed.
 
 A `seed` is applied **first-writer-wins**: it assigns only if the path is still
 `undefined`. So two elements that seed the same path don't clobber each other,

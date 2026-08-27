@@ -16,7 +16,7 @@ function streamJsonLines<T = unknown>(
 ): AsyncGenerator<T>;
 ```
 
-Core's tolerant JSONLines reader, exported from `uicast`. Give it any
+Core's tolerant JSONLines reader, exported from [`@uicast/core`](/core). Give it any
 line stream — a model SDK's text stream on the server, `response.body` in the
 browser — and iterate parsed values as lines complete:
 
@@ -48,14 +48,8 @@ it to the browser as NDJSON — the entry is stored and on the wire the moment i
 line completes, not when the generation finishes:
 
 ```ts
-import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { isComponentEntry, streamJsonLines } from "@uicast/core";
 import { streamText } from "ai";
-
-const isEntry = (value: unknown): value is ComponentEntry =>
-  !!value &&
-  typeof value === "object" &&
-  typeof (value as ComponentEntry).key === "string" &&
-  typeof (value as ComponentEntry).component === "string";
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
@@ -68,7 +62,7 @@ export async function POST(req: Request) {
         controller.enqueue(encoder.encode(`${JSON.stringify(obj)}\n`));
 
       for await (const value of streamJsonLines(result.textStream)) {
-        if (!isEntry(value)) continue;
+        if (!isComponentEntry(value)) continue;
         await db.insert(componentEntries).values({ data: value });
         send(value);
       }
@@ -83,7 +77,8 @@ export async function POST(req: Request) {
 }
 ```
 
-The `isEntry` guard is the server's shape check: the model was prompted to emit
+`isComponentEntry` (exported from [`@uicast/core`](/core#the-document)) is the
+server's shape check: the model was prompted to emit
 only entries, but the reader yields every valid JSON line, and only lines with a
 `key` and a `component` belong in the database.
 

@@ -8,10 +8,17 @@ expression sees, alongside `scopes` (state) and `evt` (the event payload).
 
 Each one is a [`standard-tool`](https://standard-tool.js.org/) — a
 self-describing function with a `name`, a `description`, and optional input /
-output schemas. That self-description is exactly what lets the **model** know a
-function exists and how to call it (see [Advertising to the
-model](#advertising-to-the-model)). Everything below matches `standard-tool`'s
-**v0** surface — the `StandardToolV0` shape uicast builds on.
+output schemas built on [Standard Schema](https://standardschema.dev). That
+self-description is exactly what lets the **model** know a function exists and
+how to call it (see [Advertising to the model](#advertising-to-the-model)).
+
+**`StandardToolV0`** is the interface uicast builds on — the v0 surface of
+`standard-tool`, and the type every seam that takes host functions is written
+against: [`<RendererProvider functions>`](/react/renderer),
+[`evaluate`](/core#expressions)'s `options.functions`, and
+[`getFunctionsPartialPrompt`](/core#prompt--uicastcoreprompt). uicast never
+defines its own tool type: anything satisfying `StandardToolV0` works, whoever
+produced it.
 
 ## Anatomy of a host function
 
@@ -37,9 +44,10 @@ The fields:
   (`suggestPalette(...)`). Must be a valid JS identifier.
 - **`description`** — one line of what the function does; the model reads it to
   decide when to call it.
-- **`inputSchema`** *(optional)* — a [Standard
-  Schema](https://standardschema.dev) (Zod 4.2+, ArkType, or Valibot)
-  describing the single input argument. It both **validates** the input at call
+- **`inputSchema`** *(optional)* — a schema that is both a runtime validator and
+  serializable to JSON Schema (`StandardSchemaV1 & StandardJSONSchemaV1` — the
+  pair core aliases as `CombinedSpec`; Zod 4.2+ qualifies, as does any library
+  exposing `~standard.jsonSchema`), describing the single input argument. It both **validates** the input at call
   time and **emits JSON Schema** that the prompt turns into a signature. Omit it
   for a zero-argument function.
 - **`outputSchema`** *(optional)* — the same, for the return value.
@@ -53,9 +61,12 @@ The fields:
 `StandardToolValidationError` on a schema mismatch. That's exactly what a live
 rendered UI wants: a failed [`seed`](/entry/fields#seed) surfaces through the
 renderer's [`error` slot](/react/renderer) (the same path a render throw takes), and a
-failed [`callback`](/entry/fields#callbacks) step rejects and aborts the steps
-after it — instead of silently resolving to a value the expression then treats
-as data. No error wrapping to wire up on your side.
+failed [`callback`](/entry/fields#callbacks) step aborts the whole callback —
+every later step is skipped, dependent or not, while writes already applied
+(including the failing step's parallel peers in its own wave) stay — instead of
+silently resolving to a value the expression then treats as data. The engine
+catches it rather than letting it reject: it classifies the error and reports it
+through [`onError`](/react/renderer), the only channel a callback has. No error wrapping to wire up on your side.
 
 Whatever escapes `execute` is classified as an
 [`EntryError`](/error-recovery#classification-entryerror-and-onerror) with
@@ -77,6 +88,16 @@ async execute({ id }) {
 
 `invalid-arguments` classifies as a **document** fault, so
 [recovery](/error-recovery) knows this one *is* worth feeding back to the model.
+
+One asymmetry worth knowing: `inputSchema` validation runs **inside** the
+wrapped `execute`, so a malformed argument object throws a
+`StandardToolValidationError` that files as `host-function` /
+**environment** — even though the document caused it, which means self-healing
+skips it. To have the model fix its own argument shapes, re-tag it outside the
+tool: wrap the `standardTool()` result and, in the `catch`, re-throw an
+input-target validation error as
+`new EntryError(err.message, { reason: "invalid-arguments" })`. Output-schema
+mismatches are genuinely yours — leave those as `host-function`.
 
 > **Request context** (an auth token, a DB handle, the current user) — **close
 > over it** when you define the function. The engine calls `execute(input)` with
@@ -127,6 +148,11 @@ deleteProduct(scopes.row.item.id)            // ✗ positional scalar — wrong 
 A host-function name **shadows** a same-named scope variable (functions are
 merged into scope last), so keep tool names distinct from your scope keys.
 
+**No `await`.** Host functions are async, but the engine awaits a step's result
+before writing it to the `set` path, so the bare call is enough — and the prompt
+tells the model to write exactly that (`listProducts()`, never
+`await listProducts()`), so that is what generated documents contain.
+
 ## Where they run: `seed` and `callbacks`
 
 Host functions are **async**, so they may only be called where the engine can
@@ -167,7 +193,8 @@ invisible to path analysis, so effectful steps never race — and a step that
 reads a path an earlier step `set` (including via `currentValue`) waits for
 that write. Pure assignment steps with no dependency on each other may run
 together. When a step has a `set`, the resolved value is written through the
-reactive store (waking exactly the subscribers of that path); between waves
+reactive store (waking every subscriber of that path and of any path beneath
+it); between waves
 the engine yields to the event loop, so a write's reactive update flushes
 before a dependent step reads scope. A step with no `set` runs purely for its
 side effect. Because a mutation returns only the row it changed, the usual
@@ -187,7 +214,7 @@ cancels, that step **and all later steps** are skipped.
 ## Advertising to the model
 
 For the model to emit a call, it has to know the function exists.
-`uicast/prompt` exports `getFunctionsPartialPrompt`, which renders your
+`@uicast/core/prompt` exports `getFunctionsPartialPrompt`, which renders your
 tools into a prompt block — a names list plus one TypeScript-style signature per
 tool, derived from the schemas. For example:
 
@@ -199,7 +226,12 @@ listProducts, createProduct, deleteProduct
 # Function Details
 
 - listProducts() => { id: number; name: string }[]: Return every product, newest first.
-- createProduct({ name: string; price: number }) => { id: number }: Add a product. Returns it.
+- createProduct({
+    name: string;
+    price: number;
+  }) => {
+    id: number;
+  }: Add a product. Returns it.
 - deleteProduct({ id: number }) => void: Delete a product by id.
 ```
 

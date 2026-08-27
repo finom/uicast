@@ -21,8 +21,9 @@ model either write real code — expressive, but unpredictable and impossible to
 trust without a sandbox — or fill a strict declarative schema — safe, but every
 behavior must be built into the host ahead of time. uicast sits between: the
 document is declarative JSONLines, while derived values, visibility, and event
-handling are short JavaScript expressions, validated for safety and then run
-against reactive scopes. The model writes the app's logic without writing the
+handling are short JavaScript expressions, checked against an
+[allow-list](/entry/expressions#safety) before they run and evaluated against
+reactive scopes. The model writes the app's logic without writing the
 app's code.
 
 | Approach | Predictability | Expressiveness | Safety |
@@ -45,16 +46,23 @@ down as a prop, and incrementing it on click.
 A component can emit structured events, not just clicks. This square reports
 the pointer position through an `onMove` payload; the entry writes it to state
 in one step, and the props read it back — the dot and the readout are pure
-derivation.
+derivation, with no host call involved.
 
 <TrackerExample />
 
 ## Calling host functions
 
-Expressions call the async functions you register — that's how generated UI
-reaches a backend. Picking a city runs a two-step callback: the first step
-stores the choice, the second calls `getWeather({ city: evt.city })` and
-writes the result — the card shows a pending state while the call resolves.
+Expressions call **host functions** — the async functions you register with the
+renderer, each one a [`standard-tool`](https://standard-tool.js.org/)
+(`StandardToolV0`: a name, a description, schemas, and an `execute`). That is
+how a generated document reaches a backend.
+
+`getWeather` here is one of them: an **async** call that takes ~500 ms. Picking
+a city runs a two-step callback — the first step stores the choice, the second
+calls `getWeather({ city: scopes.root.city })`, which reads the path the first
+step just wrote, so the runtime orders them. The engine **awaits** the result
+before writing it to state, which is why the card can show a pending state
+while the call is in flight, and why the expression itself never says `await`.
 
 <WeatherExample />
 

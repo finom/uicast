@@ -1,4 +1,5 @@
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
+import { entryVariants } from "../entry-variants";
 import { MiniExample, type SetupPart } from "../mini-example";
 import { Counter } from "./renderer";
 import { CounterDef } from "./def";
@@ -17,7 +18,6 @@ const ENTRY_DATA = [
     },
   },
 ];
-const ENTRY_ARRAY = JSON.stringify(ENTRY_DATA, null, 2);
 
 const PROMPT = getComponentsPartialPrompt({ definitions: [CounterDef] });
 
@@ -31,12 +31,7 @@ const setup: SetupPart[] = [
 export function CounterExample() {
   return (
     <MiniExample
-      entry={{
-        name: "Entries",
-        prov: "llm",
-        code: ENTRY_ARRAY,
-        lang: "json",
-      }}
+      entry={{ name: "Entries", prov: "llm", variants: entryVariants(ENTRY_DATA) }}
       result={<Counter />}
       setup={setup}
     />

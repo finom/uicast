@@ -58,12 +58,26 @@ A [value source](/entry/value-sources) that evaluates to the component's props
 object — `{ "literal": … }` for a static object, or `{ "expr": "…" }` to compute
 one from state (wrap an object literal in parens). `props` is a **reactive
 site**: the engine subscribes to every scope path the expression reads and
-re-renders when one changes — see [reactivity](/entry/expressions#reactivity).
+re-renders when one changes — see
+[Reactivity &amp; Dependencies](/entry/reactivity).
 
 ```jsonc
 { "props": { "expr": "({ text: scopes.root.title })" } }
 { "props": { "literal": { "variant": "outline" } } }
 ```
+
+A prop the component renders as text takes a **primitive** — a string, number,
+`null`, or `undefined`. An object in that position throws at render (React:
+*"Objects are not valid as a React child"*), so read the field, not the record:
+
+```jsonc
+{ "props": { "expr": "({ children: scopes.member.item })" } }        // ✗ whole record
+{ "props": { "expr": "({ children: scopes.member.item.name })" } }   // ✓
+```
+
+Props the definition types as objects or arrays — a table's `rows`, a select's
+`options` — take objects as normal. The [definition](/def) is the contract for
+which is which.
 
 ### `hidden`
 A bare [JavaScript expression](/entry/expressions) — no `literal` form — that
@@ -85,19 +99,21 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
 `literal` plus the `set` path it writes.
 
 ```jsonc
-{ "seed": [{ "set": "scopes.root.users", "expr": "await getUsers()" }] }
+{ "seed": [{ "set": "scopes.root.users", "expr": "getUsers()" }] }
 ```
 
-- **Runs once.** Re-renders never re-run it; a line kept alive through partial
-  replacement is not re-seeded.
+- **Runs once per successful run.** Re-renders never re-run it, and a line kept
+  alive through partial replacement is not re-seeded — but a seed that *failed*
+  never landed, so a corrected re-emission seeds normally.
 - **Seed state, not derivations.** Values that are *initialized then read or
   mutated* — form fields, selections, fetched lists — belong here. Anything
   *computed from* other state goes inline in `props` / `hidden` / `each`, where it
   recomputes on change; a derived value in `seed` is correct at mount and stale
   forever after.
-- **All seeds on a line are evaluated before any is written**, so one seed can't read
-  another's result on the same line — split dependent seeds across a parent and
-  its child. Mount lifecycle: [state & scopes](/entry/state#lifecycle).
+- **Dependent seeds work.** Steps run in [dependency waves](/entry/reactivity):
+  a seed that reads a path an earlier seed writes waits for that write, while
+  independent seeds evaluate in parallel. Mount lifecycle:
+  [state & scopes](/entry/state#lifecycle).
 
 ### `callbacks`
 A map of event name → an ordered list of steps, run when the component fires that
@@ -109,16 +125,16 @@ event. Each step is an
 { "callbacks": {
   "onChange": [
     { "set": "scopes.root.q", "expr": "evt.value" },
-    { "set": "scopes.root.results", "expr": "await searchTasks({ q: scopes.root.q })" }
+    { "set": "scopes.root.results", "expr": "searchTasks({ q: scopes.root.q })" }
   ]
 } }
 ```
 
-- **Steps run in dependency order**: a step that calls a host function waits
-  for the steps before it (mutations never race), and a step that reads a path
-  an earlier one `set` waits for that write — so chains like the one above
-  just work. In `seed`, steps with no dependency on each other run **in
-  parallel**, so independent loads stay fast.
+- **Steps run in [dependency order](/entry/reactivity)**: a step that calls a
+  host function waits for the steps before it (mutations never race), and a step
+  that reads a path an earlier one `set` waits for that write — so chains like
+  the one above just work. Steps with no dependency on each other may run in
+  parallel.
 - **`evt`** is bound to the event payload, shaped by the component's callback def
   (`evt.value`, `evt.valueAsNumber`, a structured record — whatever the component
   passes).
@@ -137,7 +153,7 @@ that names the list in its `children` supplies the container (a `TableBody`
 parent holding a `TableRow` list). In TypeScript the refinement is
 `ComponentListEntry` (`each` and `as` required), narrowed from a
 `ComponentEntry` with the `isComponentListEntry()` guard — both exported from
-`uicast`, alongside `isComponentEntry()`, which guards the base entry
+`@uicast/core`, alongside `isComponentEntry()`, which guards the base entry
 shape itself when consuming parsed JSON of unknown shape (the streamdown fence
 parser uses it to tell entries from stray lines). The fields below describe the iteration; the per-item state
 they create lives in
@@ -156,14 +172,18 @@ an unseeded array is an empty list, not an error.
 ```
 
 ### `as`
-The scope name each item is exposed under inside its subtree — `scopes.<as>.item`,
-`scopes.<as>.index`. It **must be globally unique** across every list on the page,
+The scope name each item is exposed under — on the list entry itself and
+throughout its subtree — `scopes.<as>.item`, `scopes.<as>.index`, and
+`scopes.<as>.id` (its stable identity, from [`keyBy`](#keyby)). It **must be
+globally unique** across every list on the page,
 because scopes are one flat namespace, not a tree.
 
 ### `keyBy`
 How to derive a stable identity per item: `"_index"` (default, positional),
 `"_item"` (the value itself — for primitive arrays), or a property name read off
-each item (`"id"` → `item.id`). **Give object items a stable key** — without one,
+each item (`"id"` → `item.id`); an item whose keyed property is missing or
+nullish falls back to its positional index, so a partly-keyed array still
+renders. **Give object items a stable key** — without one,
 in-place edits can shift rows and lose their per-item state.
 
 ## Partial replacement

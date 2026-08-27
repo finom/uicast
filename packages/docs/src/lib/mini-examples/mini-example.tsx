@@ -12,7 +12,7 @@ const PROV = {
 type Prov = keyof typeof PROV;
 type Lang = "js" | "jsx" | "json" | "md";
 
-type CodeVariant = { label: string; code: string; lang: Lang };
+export type CodeVariant = { label: string; code: string; lang: Lang };
 export type CodePart = {
   name: string;
   file?: string;

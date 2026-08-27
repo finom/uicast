@@ -2,6 +2,7 @@ import {
   getComponentsPartialPrompt,
   getFunctionsPartialPrompt,
 } from "@uicast/core/prompt";
+import { entryVariants } from "../entry-variants";
 import { MiniExample, type SetupPart } from "../mini-example";
 import { Weather } from "./renderer";
 import { WeatherCardDef } from "./def";
@@ -12,7 +13,6 @@ import FunctionsMdx from "./functions.mdx";
 import RendererMdx from "./renderer.mdx";
 import weatherEntries from "./entries.json";
 
-const ENTRY_ARRAY = JSON.stringify(weatherEntries, null, 2);
 
 const PROMPT = [
   getComponentsPartialPrompt({ definitions: [WeatherCardDef] }),
@@ -30,12 +30,7 @@ const setup: SetupPart[] = [
 export function WeatherExample() {
   return (
     <MiniExample
-      entry={{
-        name: "Entries",
-        prov: "llm",
-        code: ENTRY_ARRAY,
-        lang: "json",
-      }}
+      entry={{ name: "Entries", prov: "llm", variants: entryVariants(weatherEntries) }}
       result={<Weather />}
       setup={setup}
     />

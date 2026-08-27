@@ -117,22 +117,31 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 ```ts
 const FENCE_LANGUAGE = "uicast";
 
-function parseFenceCode(code: string): ComponentEntry[];
+function parseFenceCode(code: string, cache?: Map<string, ComponentEntry>): ComponentEntry[];
 ```
 
 `FENCE_LANGUAGE` is the token the plugin registers for — import it instead of
 retyping the string when you build your own integration. `parseFenceCode` is
 the fence-body parser the plugin uses internally: one `JSON.parse` per line,
 skipping blank lines, lines that aren't valid JSON, and values that aren't
-entries — the same tolerance [`streamJsonLines`](/react/streaming) applies to
-raw streams. Exported for hosts that render fences through something other
+entries — the same line-level tolerance [`streamJsonLines`](/react/streaming)
+applies to raw streams, plus an entry-shape check the raw reader deliberately
+leaves to its caller. Exported for hosts that render fences through something other
 than Streamdown.
+
+Pass a `cache` (one `Map` per block, kept in a ref) when the fence streams: an
+unchanged line then returns the **same entry object** it returned last tick.
+The engine keys on entry identity — store wake-ups, failed-seed retry gating,
+and error-boundary resets all compare objects — so parsing without a cache
+re-renders settled nodes on every token.
 
 ## The prompt side
 
 Rendering is half the contract — the model also has to *know* to emit the
 fence. `@uicast/streamdown/prompt` exports `getFencePartialPrompt()`, the
-system-prompt section that teaches exactly this syntax and nothing more.
+system-prompt section that teaches that fence syntax plus the conversation's
+shared-state rules — one live `root` scope across every block, first-writer-wins
+seeding, and partial replacement applying only within a single fence.
 Compose it after the core partials; [Assembling the prompt](/prompt) shows the
 full stack.
 

@@ -55,10 +55,17 @@ To *isolate* documents instead, give each its own provider.
 - **`implementations`** — the [`ComponentImplementation`](/react/impl) array the entries
   can mount, partner to the def [registration](/def#registration). On a duplicate
   `name` the **later entry wins** (`[...allImplementations, MyCard]` replaces the
-  catalog's `MyCard`) and a `console.error` is logged.
-- **`functions`** *(optional)* — host callables exposed as **bare identifiers** to
-  every expression, called from [`callbacks`](/entry/fields#callbacks) as
-  `name(input)`. This is how a generated UI reaches your API — see [Host functions](/functions).
+  catalog's `MyCard`) and a `console.error` is logged. `RootFragment` is
+  **reserved**: the provider merges its own host implementation in under that
+  name *after* your array, so one you name `RootFragment` is silently replaced.
+- **`functions`** *(optional)* — a `StandardToolV0[]`
+  ([standard-tool](https://standard-tool.js.org/): each entry a `name`, a
+  `description`, optional input/output schemas, and an `execute`). They are
+  exposed as **bare identifiers** to every expression the engine evaluates, though the contract scopes calls to
+  [`seed`](/entry/fields#seed) and [`callbacks`](/entry/fields#callbacks),
+  written `name(input)`: `props` and `hidden` evaluate synchronously during
+  render, so the prompt forbids host calls there. This is how a generated UI
+  reaches your API — see [Host functions](/functions).
 - **`defaultComponents`** *(optional)* — the engine's fallback UI; see
   [below](#defaultcomponents--the-engines-fallback-ui).
 - **`allowedGlobals`** *(optional)* — extra expression globals; see
@@ -68,17 +75,23 @@ To *isolate* documents instead, give each its own provider.
   It receives `{ scopes }` and may seed `scopes.root.*`; a returned Promise
   suspends the awaiting renderers until it resolves. Use it to preload state
   the documents read — see [State &amp; Scopes](/entry/state).
-- **`onError`** *(optional)* — called once per classified failure, with the same
-  `EntryError` the `error` slot receives. Branch on `error.fault`: `"document"`
+- **`onError`** *(optional)* — called once per classified failure: every failure
+  the `error` slot shows, **plus callback failures, which never render a slot**
+  (a callback doesn't render, so `onError` is its only channel). It receives the
+  same `EntryError`. Branch on `error.fault`: `"document"`
   means the model's output is at fault and a recovery re-emission can fix it;
   `"environment"` means host code failed. See
   [Error recovery § Classification](/error-recovery#classification-entryerror-and-onerror).
 - **`scopes`** *(optional)* — extra named scopes exposed alongside `root`, for
-  host context the documents may read (`scopes.userCtx.…`). Captured on mount.
+  host context the documents may read (`scopes.userCtx.…`). Each value must be a
+  reactive scope built with [`createProxyScope`](/core#scopes) — a plain object
+  has no `$set` / `$emitter`. Captured on mount, so build it at module scope.
 
 `<EntriesRenderer>` takes one prop: **`entries`** — the
-[`ComponentEntry`](/entry) lines to render, in tree order. Append to the array
-as lines stream in; settled subtrees don't re-render as later entries arrive.
+[`ComponentEntry`](/entry) lines to render, in tree order. Pass a **new array**
+as lines stream in (`[...entries, next]`) — `<EntriesRenderer>` is memoized on
+the `entries` reference, so an in-place `push` renders nothing. Settled subtrees
+don't re-render as later entries arrive.
 It must be rendered inside a `<RendererProvider>` and throws a clear error
 otherwise.
 
@@ -100,7 +113,7 @@ The slots the engine renders on its own behalf, distinct from `implementations`
 
 | Slot | Rendered when | Default if omitted |
 |---|---|---|
-| `placeholder` | a child hasn't streamed in yet, or an async [`seed`](/entry/fields#seed) is resolving | nothing — the pending node stays empty |
+| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry/fields#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending node stays empty |
 | `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
 | `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | bare inline-styled `div` |
 

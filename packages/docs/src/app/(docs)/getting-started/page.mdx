@@ -7,14 +7,22 @@ pin the versions):
 npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta @uicast/streamdown@beta
 ```
 
-- **`@uicast/core`** — the render engine: the JSONLines model, an expression
-  evaluator that validates code for safety, and the reactive proxy state store.
-  React-free.
-- **`@uicast/react`** — the React binding that mounts a document.
+- **`@uicast/core`** — both halves of the framework-agnostic engine, React-free:
+  - the **runtime** — the JSONLines model, an expression evaluator that
+    validates code for safety, the reactive proxy state store, and
+    `createComponentDefinition` for declaring components;
+  - the **prompt builders** (`@uicast/core/prompt`) — the partials that turn
+    your catalog and functions into the system prompt the model reads, plus the
+    [edit and recovery](/prompt#edit-and-recovery-turns) turn builders. Nothing
+    generates a document without them; see [Assembling the prompt](/prompt).
+- **`@uicast/react`** — the React binding that mounts a document:
+  `<RendererProvider>` + `<EntriesRenderer>` and
+  `createComponentImplementation`.
 - **`@uicast/shadcn-catalog`** — a plug-and-play catalog built on shadcn/ui,
   for starting fast; real apps typically define their own catalog (optional).
 - **`@uicast/streamdown`** — the Streamdown plugin: entries ride inside
-  `uicast` code fences in Markdown chat replies (optional).
+  `uicast` code fences in Markdown chat replies, plus the matching fence prompt
+  partial (optional).
 
 The packages ship compiled ESM with type declarations and resolve through their
 `exports` maps like any npm dependency — no bundler configuration or path
@@ -27,15 +35,106 @@ Each line is one element — a `ComponentEntry` — and the lines form a tree by
 separate lines.
 
 ```jsonl
-{ "key": "root", "component": "Card", "children": ["title"] }
+{ "key": "card",  "component": "Card", "children": ["title", "note"] }
 { "key": "title", "component": "Text", "props": { "literal": { "children": "Hello" } } }
+{ "key": "note",  "component": "Text", "props": { "literal": { "children": "Aside" } } }
 ```
 
-The engine mounts them in order, so a parent always arrives before the children
-it references. Mount this with the React binding's [`<EntriesRenderer>`](/react/renderer),
-passing the catalog's renderers and any host `functions` your expressions call.
+`card` is the **root** — not because of its name, but because no line lists
+`"card"` in a `children` array. Drop `"note"` from that array and `note`
+becomes a second root:
+
+```jsonl
+{ "key": "card", "component": "Card", "children": ["title"] }
+{ "key": "note", "component": "Text", "props": { "literal": { "children": "Aside" } } }
+```
+
+The renderer mounts both, but a well-formed document has exactly one root — a
+second one usually means a `children` entry was dropped.
+
+The model emits parents before children, so the tree reveals top-down as it
+streams. Mid-stream, only the parent line may have arrived:
+
+```jsonl
+{ "key": "card", "component": "Card", "children": ["title"] }
+```
+
+The `title` slot stays mounted and renders `defaultComponents.placeholder`.
+There is **no built-in placeholder** — register one, or that slot renders
+nothing:
+
+```tsx
+import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
+
+<RendererProvider
+  implementations={allImplementations}
+  defaultComponents={{ placeholder: () => <Skeleton className="h-4 w-24" /> }}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
+```
+
+Mount them with [`<EntriesRenderer entries={…} />`](/react/renderer)
+inside a `<RendererProvider>` — the provider carries the catalog's
+implementations and any host `functions` your expressions call:
+
+```tsx
+<RendererProvider implementations={allImplementations} functions={hostFunctions}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
+```
+
+`allImplementations` comes from the catalog; `hostFunctions` is yours — one
+[`standard-tool`](https://standard-tool.js.org/) per callable:
+
+```tsx
+import z from "zod";
+import { standardTool } from "standard-tool";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
+
+const getWeather = standardTool({
+  name: "getWeather",
+  description: "Current weather for a city.",
+  inputSchema: z.object({ city: z.string() }),
+  outputSchema: z.object({ tempC: z.number() }),
+  execute: async ({ city }) => ({ tempC: 14 }),
+});
+
+const hostFunctions = [getWeather];
+```
+
+An entry then calls it by its bare name:
+`{ "set": "scopes.root.weather", "expr": "getWeather({ city: 'Oslo' })" }`.
+
+Getting a model to *produce* those lines is the other half: assemble the system
+prompt from `@uicast/core/prompt`, which describes your catalog and functions to
+the model.
+
+```ts
+import {
+  getCommonInstructionsPartialPrompt,
+  getComponentsPartialPrompt,
+  getExpressionsPartialPrompt,
+  getFunctionsPartialPrompt,
+  getScopePartialPrompt,
+} from "@uicast/core/prompt";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+
+const system = [
+  getCommonInstructionsPartialPrompt(),
+  getScopePartialPrompt({ kind: "page" }),
+  getExpressionsPartialPrompt(),
+  getComponentsPartialPrompt({ definitions: allDefinitions }),
+  getFunctionsPartialPrompt({ functions: hostFunctions }),
+].join("\n\n");
+```
+
+Order matters — the expressions block refers to the functions "listed below" it.
+Pass the **same** `hostFunctions` array here and to the provider, so the prompt
+and the runtime can't drift. See [Assembling the prompt](/prompt).
 
 ## Where to go next
 
 - [Concepts](/concepts) — the element model, expressions, and scopes.
+- [Assembling the prompt](/prompt) — what the model has to be told.
 - [Functions](/functions) — wiring data loading, saving, and actions.

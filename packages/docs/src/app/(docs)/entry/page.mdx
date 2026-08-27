@@ -8,8 +8,9 @@ A **uicast** document is a stream of JSONLines, and each line is one
 **component entry** — the flat JSON object that describes a single element of
 the document. An entry names the `component` to render, gives it an identity
 (`key`), and optionally carries its `props`, initial state (`seed`), visibility
-(`hidden`), event handlers (`callbacks`), and `children`. The engine reads
-entries in order and mounts them into a tree by key reference.
+(`hidden`), event handlers (`callbacks`), and `children` — plus the list fields
+`each` / `as` / `keyBy` when the line repeats. The engine reads entries in order
+and mounts them into a tree by key reference.
 
 It is not a new language. The envelope is [**plain JSONLines**](https://jsonlines.org/) — one JSON object
 per line, nothing custom — and the dynamic fields (`props`, `hidden`, `each`,
@@ -18,6 +19,19 @@ expressions**, evaluated against the document's reactive scopes. There is no
 grammar to learn beyond JSON and the JavaScript you already write — which is
 what keeps the format small enough for a model to emit fluently, in very few
 tokens.
+
+Every one of those fields, once:
+
+```jsonl
+{"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"children":["task-rows","empty-note","refresh"]}
+{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ children: scopes.task.item.title })"}}
+{"key":"empty-note","component":"Text","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"children":"No tasks yet"}}}
+{"key":"refresh","component":"Button","props":{"literal":{"children":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.tasks","expr":"listTasks()"}]}}
+```
+
+`task-card` is the root — no `children` array mentions it. `task-rows` repeats
+one `Text` per task. `empty-note` disappears once tasks exist. `refresh`
+refetches on click.
 
 [**Entry fields**](/entry/fields) is the field-by-field reference for that
 object: every key an entry can carry, what it holds, and which deeper mechanism

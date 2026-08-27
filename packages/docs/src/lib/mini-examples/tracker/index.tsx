@@ -1,4 +1,5 @@
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
+import { entryVariants } from "../entry-variants";
 import { MiniExample, type SetupPart } from "../mini-example";
 import { Tracker } from "./renderer";
 import { TrackPadDef } from "./def";
@@ -7,7 +8,6 @@ import ImplMdx from "./impl.mdx";
 import RendererMdx from "./renderer.mdx";
 import trackerEntries from "./entries.json";
 
-const ENTRY_ARRAY = JSON.stringify(trackerEntries, null, 2);
 
 const PROMPT = getComponentsPartialPrompt({ definitions: [TrackPadDef] });
 
@@ -21,12 +21,7 @@ const setup: SetupPart[] = [
 export function TrackerExample() {
   return (
     <MiniExample
-      entry={{
-        name: "Entries",
-        prov: "llm",
-        code: ENTRY_ARRAY,
-        lang: "json",
-      }}
+      entry={{ name: "Entries", prov: "llm", variants: entryVariants(trackerEntries) }}
       result={<Tracker />}
       setup={setup}
     />
