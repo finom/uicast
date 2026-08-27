@@ -16,5 +16,7 @@ export type CommonInstructionsPromptOptions = Record<string, never>;
 export function getCommonInstructionsPartialPrompt(
 	_options: CommonInstructionsPromptOptions = {},
 ): string {
-	return INSTRUCTIONS;
+	// Trimmed: every partial is documented to carry no leading or trailing
+	// blank lines, so assembly (a `\n\n` join) owns the separators.
+	return INSTRUCTIONS.trim();
 }

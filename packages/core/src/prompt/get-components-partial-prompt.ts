@@ -161,5 +161,7 @@ export function getComponentsPartialPrompt({
       : "") +
     "\n\n# Component Details\n\n" +
     detail
-  );
+    // Trimmed: every partial is documented to carry no leading or trailing
+    // blank lines, so assembly (a `\n\n` join) owns the separators.
+  ).trim();
 }

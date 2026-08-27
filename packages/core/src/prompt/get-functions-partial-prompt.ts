@@ -62,5 +62,5 @@ export function getFunctionsPartialPrompt({
 			return `- ${name}(${paramsTs}) => ${outputTs}: ${description}`;
 		})
 		.join("\n");
-	return `# Available Functions\n\n${names}\n\n# Function Details\n\n${details}`;
+	return (`# Available Functions\n\n${names}\n\n# Function Details\n\n${details}`).trim();
 }

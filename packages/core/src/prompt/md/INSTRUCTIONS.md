@@ -48,12 +48,18 @@ Stream elements in order: emit the root element first, then its children depth-f
   - CORRECT: Express the derived value directly in `props.expr` — the runtime auto-subscribes to every `scopes.X.Y` read, so the prop recomputes whenever any input changes: `"props": { "expr": "({ data: [...scopes.root.tasks].sort((a, b) => a[scopes.root.sortKey] - b[scopes.root.sortKey]) })" }`. No separate state slot, no manual recompute.
 - **Expressions must be stateless and deterministic.** An expression must compute its result purely from the `scopes` (and, in callbacks, `evt`) it reads — the same inputs MUST always produce the same output. Do NOT read non-deterministic or persistent state inside an expression: no `Math.random()`, no current-date/time reads, no counter that survives between evaluations. The runtime re-evaluates an expression every time a scope path it reads changes (and may run it more than once per change), so a non-deterministic expression yields inconsistent UI. If you need a random value or a timestamp, produce it once via a `"set"` in `seed`/`callbacks` and read the stored value from scope.
 - Some components accept a special `children` prop (e.g., Card, Text, Badge, Button). When set via `literal` or `expr`, this renders as inline text/content. This is distinct from the `children` array on the element, which references child elements. Both can coexist: the `children` array renders child elements, and if the component also reads `props.children`, inline content is rendered too. Typically you use one or the other.
+- **Props rendered as text must be primitives — never objects or arrays.** `children`, and any prop the component's props shape types as a string or number, must evaluate to a string, number, `null`, or `undefined`. An object or array in a text position breaks the render outright — the element cannot draw a record. Read the field you want, not the record that holds it:
+  - WRONG: `"props": { "expr": "({ children: scopes.member.item })" }` — passes the whole `{ id, name, role }` record.
+  - CORRECT: `"props": { "expr": "({ children: scopes.member.item.name })" }`.
+  - Composing fields is fine as long as the result is a string: `"props": { "expr": "({ children: scopes.member.item.name + ' - ' + scopes.member.item.role })" }`. So is formatting a number: `"props": { "expr": "({ children: String(scopes.root.total) })" }`.
+  - This is about text positions only. Props the component's props shape types as an object or array (e.g. a `rows` prop on a table, `options` on a select) take objects as normal — always follow the declared props shape of the component you are using.
 
 ## 3. State & Seed
 
 - State is initialized via `seed` on any element: an array of `ValueSourceAssignment` objects.
 - Each seed entry is `{ "set": "scopes.<scope>.<path>", "literal": <value> }` or `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }`.
 - `literal` seeds are synchronous. `expr` seeds may call async functions and the element will suspend (show a loading placeholder) until all async seeds resolve.
+- Do NOT write `await` in an expression: the runtime already awaits an async result before writing it to the `set` path, in `seed` and in `callbacks` alike. Write `getUsers()`, not `await getUsers()`.
 - Seeds are evaluated exactly once when the element first mounts.
 - Seed steps run in order with automatic parallelism: a step that reads a path an earlier step writes sees that write (`{ "set": "scopes.root.city", "literal": "Oslo" }, { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }` works), while steps with no such dependency run in parallel — so independent data loads stay fast without any special ordering on your part.
 - **`seed` is for storing user-mutable state and one-shot data fetches — NOT for derived state.** Each `seed` entry runs once at mount and never recomputes. Use `seed` to:
@@ -64,7 +70,7 @@ Stream elements in order: emit the root element first, then its children depth-f
   - CORRECT: Leave `filteredRows` out of state. Set `"each": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))"` directly on the list element. The runtime subscribes to both `rows` and `searchTerm`; the list updates as the user types.
 - State paths are safe to assign deeply even if parent objects don't exist yet: `{ "set": "scopes.root.foo.bar.baz", "literal": 1 }` works because paths are backed by Proxy internally.
 - However, expressions must NEVER read a scope path that hasn't been set yet. If `scopes.root.foo` is not initialized, no expression should reference it. Always initialize before reading.
-- **CRITICAL: All `seed` expressions within a single element are evaluated BEFORE any values are written.** This means a later seed in the same element CANNOT read a value set by an earlier seed in the same array. If seed B depends on a value set by seed A, they must be in **different elements** — put seed A in a parent element and seed B in a child element. Child element seeds run after the parent element's seeds have fully completed.
+- **Dependent seeds are fine in one element.** Seed steps run in dependency order: a step that reads a path an earlier step in the same array writes waits for that write, while steps that depend on nothing before them run in parallel. Write `{ "set": "scopes.root.city", "literal": "Oslo" }` followed by `{ "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }` in the same `seed` array. Child element seeds still run after the parent element's seeds complete.
 - The root element should initialize all root-level state in its `seed` before any child references it.
 
 ## 4. Scopes
@@ -75,7 +81,7 @@ Stream elements in order: emit the root element first, then its children depth-f
 - Inside a list item scope: `scopes.<as>.item` is the current item value (the element from the array), and `scopes.<as>.index` is the current zero-based index.
 - Scope names must be globally unique across ALL lists in the entire output, regardless of nesting depth. For example, do not use `as: "item"` on two different lists.
 - A parent scope can access all child item scopes via `childScopes`: `scopes.root.childScopes.row` returns the array of all `row` scopes (one per list item).
-- For nested lists (lists within lists), chain `childScopes`: `scopes.root.childScopes.row.childScopes.nestedItem`.
+- For nested lists, index into the array before chaining: `scopes.root.childScopes.row[0].childScopes.nestedItem` (each element of `childScopes.row` is a full item scope), or aggregate with `.map` / `.reduce` over `scopes.root.childScopes.row`.
 - `childScopes` is useful for aggregation (e.g., summing a field across all rows).
 
 ## 5. Reactivity
@@ -92,7 +98,7 @@ Stream elements in order: emit the root element first, then its children depth-f
 - `each` is a **bare JavaScript expression string** (like `hidden`, not a `ValueSource`). Prefer the simplest form — a plain reference to a state array, e.g. `"scopes.root.rows"` or `"scopes.row.nestedItems"`. An inline array-returning expression also works, and is the right tool for a **derived** list: `"each": "scopes.root.rows.filter(r => r.active)"` (per §3/§5 a filtered/sorted view belongs inline here, not pre-computed into `seed`). The underlying state array must be initialized via `seed` (on this element or an ancestor) before the list renders; `each` yields `[]` if it would otherwise be undefined.
 - Always provide `keyBy` when list items are objects with a unique identifier (e.g., `"keyBy": "id"`). This enables stable re-rendering on mutations (add/remove/reorder). Without `keyBy`, items are keyed by index.
 - The list element's `component` is rendered once per item in the array — it wraps each individual item, not the whole list. For example, a list with `component: "TableRow"` renders one `<tr>` per item.
-- The list element can have `props` that are evaluated per-item with the item scope available. E.g., `"props": { "expr": "{\"children\": scopes.row.item.name}" }`.
+- The list element can have `props` that are evaluated per-item with the item scope available: `"props": { "expr": "({ children: scopes.row.item.name })" }`. For a text prop read a **field** of `scopes.<as>.item`, never the item itself — `scopes.row.item` is the whole record (see §2).
 - List elements can have `children` which are also rendered per-item. Inside children, the item scope is available.
 - A list element can never be the root — lists cannot be the top-level element. Always wrap a list in a container element (e.g., `TableBody` or `FlexCol`).
 
