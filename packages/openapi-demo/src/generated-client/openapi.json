@@ -1,0 +1,783 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "uicast OpenAPI demo",
+    "version": "0.0.0",
+    "description": "The demo's own API. Because it is built from Vovk controllers, `vovk generate` emits an OpenAPI document for it — which the app can then connect to as an API like any other."
+  },
+  "components": {
+    "schemas": {
+      "HttpStatus": {
+        "type": "integer",
+        "description": "HTTP status code",
+        "enum": [
+          100,
+          101,
+          102,
+          103,
+          200,
+          201,
+          202,
+          203,
+          204,
+          205,
+          206,
+          300,
+          301,
+          302,
+          303,
+          304,
+          307,
+          308,
+          400,
+          401,
+          402,
+          403,
+          404,
+          405,
+          406,
+          407,
+          408,
+          409,
+          410,
+          411,
+          412,
+          413,
+          414,
+          415,
+          416,
+          417,
+          418,
+          421,
+          422,
+          424,
+          428,
+          429,
+          500,
+          501,
+          502,
+          503,
+          504,
+          505
+        ]
+      },
+      "VovkErrorResponse": {
+        "type": "object",
+        "description": "Vovk error response",
+        "properties": {
+          "cause": {
+            "description": "Error cause of any shape"
+          },
+          "statusCode": {
+            "$ref": "#/components/schemas/HttpStatus"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "isError": {
+            "type": "boolean",
+            "const": true,
+            "description": "Indicates that this object represents an error"
+          }
+        },
+        "required": [
+          "statusCode",
+          "message",
+          "isError"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "paths": {
+    "/api/connections": {
+      "get": {
+        "summary": "List connected APIs",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ConnectionController } from '@uicast/openapi-demo';\n\nconst response = await ConnectionController.getConnections();\n\nconsole.log(response); \n/* \n[\n    {\n        id: -9007199254740991,\n        // Short identifier, and the prefix of every derived tool name.\n        name: \"string\",\n        // URL of the API's OpenAPI document.\n        openapiUrl: \"string\",\n        authType: \"none\",\n        // Header or query parameter carrying the credential.\n        authName: \"string\",\n        // Whether a credential is stored. The credential itself is never returned.\n        configured: true,\n        createdAt: \"string\"\n    }\n]\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ConnectionController\n\nresponse = ConnectionController.get_connections()\n\nprint(response)\n[\n    {\n        \"id\": -9007199254740991,\n        # Short identifier, and the prefix of every derived tool name.\n        \"name\": \"string\",\n        # URL of the API's OpenAPI document.\n        \"openapiUrl\": \"string\",\n        \"authType\": \"none\",\n        # Header or query parameter carrying the credential.\n        \"authName\": \"string\",\n        # Whether a credential is stored. The credential itself is never returned.\n        \"configured\": true,\n        \"createdAt\": \"string\"\n    }\n]"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::connection_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = connection_controller::get_connections(\n    (), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output [\n        {\n            id: -9007199254740991,\n            // Short identifier, and the prefix of every derived tool name.\n            name: \"string\",\n            // URL of the API's OpenAPI document.\n            openapiUrl: \"string\",\n            authType: \"none\",\n            // Header or query parameter carrying the credential.\n            authName: \"string\",\n            // Whether a credential is stored. The credential itself is never returned.\n            configured: true,\n            createdAt: \"string\"\n        }\n    ] \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "name": {
+                        "type": "string",
+                        "description": "Short identifier, and the prefix of every derived tool name."
+                      },
+                      "openapiUrl": {
+                        "type": "string",
+                        "description": "URL of the API's OpenAPI document."
+                      },
+                      "authType": {
+                        "type": "string",
+                        "enum": [
+                          "none",
+                          "header",
+                          "query"
+                        ]
+                      },
+                      "authName": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Header or query parameter carrying the credential."
+                      },
+                      "configured": {
+                        "type": "boolean",
+                        "description": "Whether a credential is stored. The credential itself is never returned."
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name",
+                      "openapiUrl",
+                      "authType",
+                      "authName",
+                      "configured",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Connect an API",
+        "description": "Stores the OpenAPI document URL and how the API authenticates. Called from the connection form the model generates, so its shape is what the model is taught to fill in.",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ConnectionController } from '@uicast/openapi-demo';\n\nconst response = await ConnectionController.createConnection({\n    body: {\n        // Short identifier for the API, e.g. `stripe`.\n        name: \"pattern-string\",\n        // URL of the API's OpenAPI document.\n        openapiUrl: \"https://example.com\",\n        // How the credential travels with each request.\n        authType: \"none\"\n    },\n});\n\nconsole.log(response); \n/* \n{\n    id: -9007199254740991,\n    // Short identifier, and the prefix of every derived tool name.\n    name: \"string\",\n    // URL of the API's OpenAPI document.\n    openapiUrl: \"string\",\n    authType: \"none\",\n    // Header or query parameter carrying the credential.\n    authName: \"string\",\n    // Whether a credential is stored. The credential itself is never returned.\n    configured: true,\n    createdAt: \"string\",\n    // The operations this API now exposes. They become callable functions on the next turn, not this one.\n    operations: [\n        \"string\"\n    ]\n}\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ConnectionController\n\nresponse = ConnectionController.create_connection(\n    body={\n        # Short identifier for the API, e.g. `stripe`.\n        \"name\": \"pattern-string\",\n        # URL of the API's OpenAPI document.\n        \"openapiUrl\": \"https://example.com\",\n        # How the credential travels with each request.\n        \"authType\": \"none\"\n    },\n)\n\nprint(response)\n{\n    \"id\": -9007199254740991,\n    # Short identifier, and the prefix of every derived tool name.\n    \"name\": \"string\",\n    # URL of the API's OpenAPI document.\n    \"openapiUrl\": \"string\",\n    \"authType\": \"none\",\n    # Header or query parameter carrying the credential.\n    \"authName\": \"string\",\n    # Whether a credential is stored. The credential itself is never returned.\n    \"configured\": true,\n    \"createdAt\": \"string\",\n    # The operations this API now exposes. They become callable functions on the next turn, not this one.\n    \"operations\": [\n        \"string\"\n    ]\n}"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::connection_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = connection_controller::create_connection(\n    from_value(json!({\n        // Short identifier for the API, e.g. `stripe`.\n        \"name\": \"pattern-string\",\n        // URL of the API's OpenAPI document.\n        \"openapiUrl\": \"https://example.com\",\n        // How the credential travels with each request.\n        \"authType\": \"none\"\n    })).unwrap(), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output {\n        id: -9007199254740991,\n        // Short identifier, and the prefix of every derived tool name.\n        name: \"string\",\n        // URL of the API's OpenAPI document.\n        openapiUrl: \"string\",\n        authType: \"none\",\n        // Header or query parameter carrying the credential.\n        authName: \"string\",\n        // Whether a credential is stored. The credential itself is never returned.\n        configured: true,\n        createdAt: \"string\",\n        // The operations this API now exposes. They become callable functions on the next turn, not this one.\n        operations: [\n            \"string\"\n        ]\n    } \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Short identifier, and the prefix of every derived tool name."
+                    },
+                    "openapiUrl": {
+                      "type": "string",
+                      "description": "URL of the API's OpenAPI document."
+                    },
+                    "authType": {
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "header",
+                        "query"
+                      ]
+                    },
+                    "authName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Header or query parameter carrying the credential."
+                    },
+                    "configured": {
+                      "type": "boolean",
+                      "description": "Whether a credential is stored. The credential itself is never returned."
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "operations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "The operations this API now exposes. They become callable functions on the next turn, not this one."
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "openapiUrl",
+                    "authType",
+                    "authName",
+                    "configured",
+                    "createdAt",
+                    "operations"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Request body",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40,
+                    "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+                    "description": "Short identifier for the API, e.g. `stripe`."
+                  },
+                  "openapiUrl": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "URL of the API's OpenAPI document."
+                  },
+                  "authType": {
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "header",
+                      "query"
+                    ],
+                    "description": "How the credential travels with each request."
+                  },
+                  "authName": {
+                    "description": "Header or query parameter name, e.g. `Authorization`.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "authPrefix": {
+                    "description": "Prepended to the credential, e.g. `Bearer `.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "credential": {
+                    "description": "The API key or token itself.",
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "name",
+                  "openapiUrl",
+                  "authType"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/connections/{id}": {
+      "get": {
+        "summary": "Get one connected API",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ConnectionController } from '@uicast/openapi-demo';\n\nconst response = await ConnectionController.getConnection({\n    params: {\n        id: \"string\"\n    },\n});\n\nconsole.log(response); \n/* \n{\n    id: -9007199254740991,\n    // Short identifier, and the prefix of every derived tool name.\n    name: \"string\",\n    // URL of the API's OpenAPI document.\n    openapiUrl: \"string\",\n    authType: \"none\",\n    // Header or query parameter carrying the credential.\n    authName: \"string\",\n    // Whether a credential is stored. The credential itself is never returned.\n    configured: true,\n    createdAt: \"string\"\n}\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ConnectionController\n\nresponse = ConnectionController.get_connection(\n    params={\n        \"id\": \"string\"\n    },\n)\n\nprint(response)\n{\n    \"id\": -9007199254740991,\n    # Short identifier, and the prefix of every derived tool name.\n    \"name\": \"string\",\n    # URL of the API's OpenAPI document.\n    \"openapiUrl\": \"string\",\n    \"authType\": \"none\",\n    # Header or query parameter carrying the credential.\n    \"authName\": \"string\",\n    # Whether a credential is stored. The credential itself is never returned.\n    \"configured\": true,\n    \"createdAt\": \"string\"\n}"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::connection_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = connection_controller::get_connection(\n    (), /* body */ \n    (), /* query */ \n    from_value(json!({\n        \"id\": \"string\"\n    })).unwrap(), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output {\n        id: -9007199254740991,\n        // Short identifier, and the prefix of every derived tool name.\n        name: \"string\",\n        // URL of the API's OpenAPI document.\n        openapiUrl: \"string\",\n        authType: \"none\",\n        // Header or query parameter carrying the credential.\n        authName: \"string\",\n        // Whether a credential is stored. The credential itself is never returned.\n        configured: true,\n        createdAt: \"string\"\n    } \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "Short identifier, and the prefix of every derived tool name."
+                    },
+                    "openapiUrl": {
+                      "type": "string",
+                      "description": "URL of the API's OpenAPI document."
+                    },
+                    "authType": {
+                      "type": "string",
+                      "enum": [
+                        "none",
+                        "header",
+                        "query"
+                      ]
+                    },
+                    "authName": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Header or query parameter carrying the credential."
+                    },
+                    "configured": {
+                      "type": "boolean",
+                      "description": "Whether a credential is stored. The credential itself is never returned."
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "openapiUrl",
+                    "authType",
+                    "authName",
+                    "configured",
+                    "createdAt"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Disconnect an API",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ConnectionController } from '@uicast/openapi-demo';\n\nconst response = await ConnectionController.deleteConnection({\n    params: {\n        id: \"string\"\n    },\n});\n\nconsole.log(response); \n/* \n{\n    id: -9007199254740991\n}\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ConnectionController\n\nresponse = ConnectionController.delete_connection(\n    params={\n        \"id\": \"string\"\n    },\n)\n\nprint(response)\n{\n    \"id\": -9007199254740991\n}"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::connection_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = connection_controller::delete_connection(\n    (), /* body */ \n    (), /* query */ \n    from_value(json!({\n        \"id\": \"string\"\n    })).unwrap(), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output {\n        id: -9007199254740991\n    } \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tools": {
+      "get": {
+        "summary": "List callable operations",
+        "description": "Every operation of every connected API, derived from its OpenAPI document.",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ToolController } from '@uicast/openapi-demo';\n\nconst response = await ToolController.getTools();\n\nconsole.log(response); \n/* \n{\n    tools: [\n        {\n            // The identifier a uicast expression calls.\n            name: \"string\",\n            description: \"string\",\n            inputSchema: {\n                additionalProp: null\n            },\n            // Null when the API declares no response shape for the operation.\n            outputSchema: {\n                additionalProp: null\n            }\n        }\n    ],\n    failures: [\n        {\n            connectionId: -9007199254740991,\n            name: \"string\",\n            error: \"string\"\n        }\n    ]\n}\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ToolController\n\nresponse = ToolController.get_tools()\n\nprint(response)\n{\n    \"tools\": [\n        {\n            # The identifier a uicast expression calls.\n            \"name\": \"string\",\n            \"description\": \"string\",\n            \"inputSchema\": {\n                \"additionalProp\": null\n            },\n            # Null when the API declares no response shape for the operation.\n            \"outputSchema\": {\n                \"additionalProp\": null\n            }\n        }\n    ],\n    \"failures\": [\n        {\n            \"connectionId\": -9007199254740991,\n            \"name\": \"string\",\n            \"error\": \"string\"\n        }\n    ]\n}"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::tool_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = tool_controller::get_tools(\n    (), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output {\n        tools: [\n            {\n                // The identifier a uicast expression calls.\n                name: \"string\",\n                description: \"string\",\n                inputSchema: {\n                    additionalProp: null\n                },\n                // Null when the API declares no response shape for the operation.\n                outputSchema: {\n                    additionalProp: null\n                }\n            }\n        ],\n        failures: [\n            {\n                connectionId: -9007199254740991,\n                name: \"string\",\n                error: \"string\"\n            }\n        ]\n    } \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "tools": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "description": "The identifier a uicast expression calls."
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "inputSchema": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {}
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "outputSchema": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {}
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Null when the API declares no response shape for the operation."
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "description",
+                          "inputSchema",
+                          "outputSchema"
+                        ]
+                      }
+                    },
+                    "failures": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "connectionId": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "error": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "connectionId",
+                          "name",
+                          "error"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "tools",
+                    "failures"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tools/call": {
+      "post": {
+        "summary": "Call an operation",
+        "description": "Runs one derived operation server-side, so the connection's credential never reaches the browser.",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ToolController } from '@uicast/openapi-demo';\n\nconst response = await ToolController.callTool({\n    body: {\n        // Tool name, e.g. `stripe_listCharges`.\n        name: \"string\"\n    },\n});\n\nconsole.log(response); \n/* \n{\n    result: null\n}\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ToolController\n\nresponse = ToolController.call_tool(\n    body={\n        # Tool name, e.g. `stripe_listCharges`.\n        \"name\": \"string\"\n    },\n)\n\nprint(response)\n{\n    \"result\": null\n}"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::tool_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = tool_controller::call_tool(\n    from_value(json!({\n        // Tool name, e.g. `stripe_listCharges`.\n        \"name\": \"string\"\n    })).unwrap(), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output {\n        result: null\n    } \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "object",
+                  "properties": {
+                    "result": {}
+                  },
+                  "required": [
+                    "result"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "description": "Request body",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Tool name, e.g. `stripe_listCharges`."
+                  },
+                  "input": {
+                    "type": "object",
+                    "properties": {
+                      "body": {},
+                      "query": {},
+                      "params": {}
+                    }
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat": {
+      "get": {
+        "summary": "List chats",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ChatController } from '@uicast/openapi-demo';\n\nconst response = await ChatController.getChats();\n\nconsole.log(response); \n/* \n[\n    {\n        id: \"string\",\n        title: \"string\",\n        createdAt: \"string\"\n    }\n]\n*/"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ChatController\n\nresponse = ChatController.get_chats()\n\nprint(response)\n[\n    {\n        \"id\": \"string\",\n        \"title\": \"string\",\n        \"createdAt\": \"string\"\n    }\n]"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::chat_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = chat_controller::get_chats(\n    (), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n\nmatch response {\n    Ok(output) => println!(\"{:?}\", output),\n    /* \n    output [\n        {\n            id: \"string\",\n            title: \"string\",\n            createdAt: \"string\"\n        }\n    ] \n    */\n    Err(e) => println!(\"error: {:?}\", e),\n  }\n}"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$schema": "https://json-schema.org/draft/2020-12/schema",
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "createdAt"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/chat/messages": {
+      "post": {
+        "summary": "Send a message",
+        "description": "Streams the assistant's reply as an AI SDK UI message stream. The reply may contain `uicast` fences, whose functions are the operations of every connected API.",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { ChatController } from '@uicast/openapi-demo';\n\nconst response = await ChatController.sendMessage();"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import ChatController\n\nresponse = ChatController.send_message()"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::chat_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = chat_controller::send_message(\n    (), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n}"
+          }
+        ]
+      }
+    },
+    "/api/generation/generate": {
+      "post": {
+        "summary": "Generate a page",
+        "description": "Streams JSONLines: one line per element as the model emits it, then a `done` control line. A page that already has entries is edited rather than regenerated.",
+        "x-codeSamples": [
+          {
+            "label": "TypeScript RPC",
+            "lang": "typescript",
+            "source": "import { GenerationController } from '@uicast/openapi-demo';\n\nconst response = await GenerationController.generate();"
+          },
+          {
+            "label": "Python RPC",
+            "lang": "python",
+            "source": "from @uicast/openapi_demo import GenerationController\n\nresponse = GenerationController.generate()"
+          },
+          {
+            "label": "Rust RPC",
+            "lang": "rust",
+            "source": "use @uicast/openapi_demo::generation_controller;\nuse serde_json::{ \n  from_value, \n  json \n};\n#[tokio::main]\nasync fn main() {\n  let response = generation_controller::generate(\n    (), /* body */ \n    (), /* query */ \n    (), /* params */ \n    None, /* headers (HashMap) */ \n    None, /* api_root */\n    false, /* disable_client_validation */\n  ).await;\n}"
+          }
+        ]
+      }
+    }
+  }
+}

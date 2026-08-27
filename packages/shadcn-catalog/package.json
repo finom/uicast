@@ -58,6 +58,7 @@
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react-day-picker": "^10.0.1",
+    "react-is": "^19.2.0",
     "react-resizable-panels": "^4.10.0",
     "recharts": "^3.8.1",
     "streamdown": "^2.5.0",
