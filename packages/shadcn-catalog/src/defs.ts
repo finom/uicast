@@ -1,186 +1,186 @@
 // Layout & Container
-import { CardDef } from "./catalog/card/def";
-import { FlexRowDef } from "./catalog/flex-row/def";
-import { FlexColDef } from "./catalog/flex-col/def";
-import { DividerDef } from "./catalog/divider/def";
-import { AccordionDef } from "./catalog/accordion/def";
-import { AccordionItemDef } from "./catalog/accordion-item/def";
-import { DrawerDef } from "./catalog/drawer/def";
-import { GridDef } from "./catalog/grid/def";
-import { StackDef } from "./catalog/stack/def";
-import { SpacerDef } from "./catalog/spacer/def";
+import { CardDef } from "./uicast/card/def";
+import { FlexRowDef } from "./uicast/flex-row/def";
+import { FlexColDef } from "./uicast/flex-col/def";
+import { DividerDef } from "./uicast/divider/def";
+import { AccordionDef } from "./uicast/accordion/def";
+import { AccordionItemDef } from "./uicast/accordion-item/def";
+import { DrawerDef } from "./uicast/drawer/def";
+import { GridDef } from "./uicast/grid/def";
+import { StackDef } from "./uicast/stack/def";
+import { SpacerDef } from "./uicast/spacer/def";
 
 // Typography & Display
-import { HeadingDef } from "./catalog/heading/def";
-import { TextDef } from "./catalog/text/def";
-import { BadgeDef } from "./catalog/badge/def";
-import { LabelDef } from "./catalog/label/def";
-import { IconDef } from "./catalog/icon/def";
-import { TagDef } from "./catalog/tag/def";
-import { StatDef } from "./catalog/stat/def";
+import { HeadingDef } from "./uicast/heading/def";
+import { TextDef } from "./uicast/text/def";
+import { BadgeDef } from "./uicast/badge/def";
+import { LabelDef } from "./uicast/label/def";
+import { IconDef } from "./uicast/icon/def";
+import { TagDef } from "./uicast/tag/def";
+import { StatDef } from "./uicast/stat/def";
 
 // Tabs
-import { TabsDef } from "./catalog/tabs/def";
-import { TabListDef } from "./catalog/tab-list/def";
-import { TabTriggerDef } from "./catalog/tab-trigger/def";
-import { TabContentDef } from "./catalog/tab-content/def";
+import { TabsDef } from "./uicast/tabs/def";
+import { TabListDef } from "./uicast/tab-list/def";
+import { TabTriggerDef } from "./uicast/tab-trigger/def";
+import { TabContentDef } from "./uicast/tab-content/def";
 
 // Feedback
-import { AlertDef } from "./catalog/alert/def";
-import { SkeletonDef } from "./catalog/skeleton/def";
-import { EmptyStateDef } from "./catalog/empty-state/def";
-import { ToastDef } from "./catalog/toast/def";
-import { SpinnerDef } from "./catalog/spinner/def";
+import { AlertDef } from "./uicast/alert/def";
+import { SkeletonDef } from "./uicast/skeleton/def";
+import { EmptyStateDef } from "./uicast/empty-state/def";
+import { ToastDef } from "./uicast/toast/def";
+import { SpinnerDef } from "./uicast/spinner/def";
 
 // Form
-import { InputDef } from "./catalog/input/def";
-import { TextareaDef } from "./catalog/textarea/def";
-import { NumberInputDef } from "./catalog/number-input/def";
-import { SelectDef } from "./catalog/select/def";
-import { MultiSelectDef } from "./catalog/multi-select/def";
-import { DatePickerDef } from "./catalog/date-picker/def";
-import { DateRangePickerDef } from "./catalog/date-range-picker/def";
-import { TimePickerDef } from "./catalog/time-picker/def";
-import { CheckboxDef } from "./catalog/checkbox/def";
-import { RadioDef } from "./catalog/radio/def";
-import { SwitchDef } from "./catalog/switch/def";
-import { FileUploadDef } from "./catalog/file-upload/def";
-import { ColorPickerDef } from "./catalog/color-picker/def";
-import { ButtonDef } from "./catalog/button/def";
-import { IconButtonDef } from "./catalog/icon-button/def";
-import { ButtonGroupDef } from "./catalog/button-group/def";
-import { FieldDef } from "./catalog/field/def";
-import { FieldLabelDef } from "./catalog/field-label/def";
-import { FieldDescriptionDef } from "./catalog/field-description/def";
+import { InputDef } from "./uicast/input/def";
+import { TextareaDef } from "./uicast/textarea/def";
+import { NumberInputDef } from "./uicast/number-input/def";
+import { SelectDef } from "./uicast/select/def";
+import { MultiSelectDef } from "./uicast/multi-select/def";
+import { DatePickerDef } from "./uicast/date-picker/def";
+import { DateRangePickerDef } from "./uicast/date-range-picker/def";
+import { TimePickerDef } from "./uicast/time-picker/def";
+import { CheckboxDef } from "./uicast/checkbox/def";
+import { RadioDef } from "./uicast/radio/def";
+import { SwitchDef } from "./uicast/switch/def";
+import { FileUploadDef } from "./uicast/file-upload/def";
+import { ColorPickerDef } from "./uicast/color-picker/def";
+import { ButtonDef } from "./uicast/button/def";
+import { IconButtonDef } from "./uicast/icon-button/def";
+import { ButtonGroupDef } from "./uicast/button-group/def";
+import { FieldDef } from "./uicast/field/def";
+import { FieldLabelDef } from "./uicast/field-label/def";
+import { FieldDescriptionDef } from "./uicast/field-description/def";
 
 // Overlay
-import { ModalDef } from "./catalog/modal/def";
-import { ConfirmDialogDef } from "./catalog/confirm-dialog/def";
-import { DropdownMenuDef } from "./catalog/dropdown-menu/def";
-import { DropdownMenuItemDef } from "./catalog/dropdown-menu-item/def";
-import { PopoverDef } from "./catalog/popover/def";
+import { ModalDef } from "./uicast/modal/def";
+import { ConfirmDialogDef } from "./uicast/confirm-dialog/def";
+import { DropdownMenuDef } from "./uicast/dropdown-menu/def";
+import { DropdownMenuItemDef } from "./uicast/dropdown-menu-item/def";
+import { PopoverDef } from "./uicast/popover/def";
 
 // Data Display
-import { ListDef } from "./catalog/list/def";
-import { DataGridDef } from "./catalog/data-grid/def";
-import { AvatarDef } from "./catalog/avatar/def";
-import { TooltipDef } from "./catalog/tooltip/def";
-import { ProgressBarDef } from "./catalog/progress-bar/def";
-import { ImageDef } from "./catalog/image/def";
+import { ListDef } from "./uicast/list/def";
+import { DataGridDef } from "./uicast/data-grid/def";
+import { AvatarDef } from "./uicast/avatar/def";
+import { TooltipDef } from "./uicast/tooltip/def";
+import { ProgressBarDef } from "./uicast/progress-bar/def";
+import { ImageDef } from "./uicast/image/def";
 
 // Table
-import { TableDef } from "./catalog/table/def";
-import { TableHeaderDef } from "./catalog/table-header/def";
-import { TableBodyDef } from "./catalog/table-body/def";
-import { TableFooterDef } from "./catalog/table-footer/def";
-import { TableRowDef } from "./catalog/table-row/def";
-import { TableHeadDef } from "./catalog/table-head/def";
-import { TableCellDef } from "./catalog/table-cell/def";
+import { TableDef } from "./uicast/table/def";
+import { TableHeaderDef } from "./uicast/table-header/def";
+import { TableBodyDef } from "./uicast/table-body/def";
+import { TableFooterDef } from "./uicast/table-footer/def";
+import { TableRowDef } from "./uicast/table-row/def";
+import { TableHeadDef } from "./uicast/table-head/def";
+import { TableCellDef } from "./uicast/table-cell/def";
 
 // Navigation
-import { PaginationDef } from "./catalog/pagination/def";
-import { BreadcrumbDef } from "./catalog/breadcrumb/def";
-import { StepperDef } from "./catalog/stepper/def";
+import { PaginationDef } from "./uicast/pagination/def";
+import { BreadcrumbDef } from "./uicast/breadcrumb/def";
+import { StepperDef } from "./uicast/stepper/def";
 
 // Charts
-import { BarChartDef } from "./catalog/bar-chart/def";
-import { LineChartDef } from "./catalog/line-chart/def";
-import { PieChartDef } from "./catalog/pie-chart/def";
-import { AreaChartDef } from "./catalog/area-chart/def";
-import { FunnelChartDef } from "./catalog/funnel-chart/def";
+import { BarChartDef } from "./uicast/bar-chart/def";
+import { LineChartDef } from "./uicast/line-chart/def";
+import { PieChartDef } from "./uicast/pie-chart/def";
+import { AreaChartDef } from "./uicast/area-chart/def";
+import { FunnelChartDef } from "./uicast/funnel-chart/def";
 
 // Navigation & Wayfinding (new)
-import { SidebarDef } from "./catalog/sidebar/def";
-import { NavigationMenuDef } from "./catalog/navigation-menu/def";
-import { MenubarDef } from "./catalog/menubar/def";
-import { CommandMenuDef } from "./catalog/command-menu/def";
-import { LinkDef } from "./catalog/link/def";
-import { ContextMenuDef } from "./catalog/context-menu/def";
+import { SidebarDef } from "./uicast/sidebar/def";
+import { NavigationMenuDef } from "./uicast/navigation-menu/def";
+import { MenubarDef } from "./uicast/menubar/def";
+import { CommandMenuDef } from "./uicast/command-menu/def";
+import { LinkDef } from "./uicast/link/def";
+import { ContextMenuDef } from "./uicast/context-menu/def";
 
 // Form & Input (new)
-import { ComboboxDef } from "./catalog/combobox/def";
-import { SliderDef } from "./catalog/slider/def";
-import { RangeSliderDef } from "./catalog/range-slider/def";
-import { PasswordInputDef } from "./catalog/password-input/def";
-import { SearchInputDef } from "./catalog/search-input/def";
-import { PhoneInputDef } from "./catalog/phone-input/def";
-import { CurrencyInputDef } from "./catalog/currency-input/def";
-import { MaskedInputDef } from "./catalog/masked-input/def";
-import { PinInputDef } from "./catalog/pin-input/def";
-import { TagInputDef } from "./catalog/tag-input/def";
-import { RatingDef } from "./catalog/rating/def";
-import { CodeEditorDef } from "./catalog/code-editor/def";
-import { SignaturePadDef } from "./catalog/signature-pad/def";
-import { ToggleDef } from "./catalog/toggle/def";
-import { ToggleGroupDef } from "./catalog/toggle-group/def";
-import { SegmentedControlDef } from "./catalog/segmented-control/def";
-import { FormSectionDef } from "./catalog/form-section/def";
+import { ComboboxDef } from "./uicast/combobox/def";
+import { SliderDef } from "./uicast/slider/def";
+import { RangeSliderDef } from "./uicast/range-slider/def";
+import { PasswordInputDef } from "./uicast/password-input/def";
+import { SearchInputDef } from "./uicast/search-input/def";
+import { PhoneInputDef } from "./uicast/phone-input/def";
+import { CurrencyInputDef } from "./uicast/currency-input/def";
+import { MaskedInputDef } from "./uicast/masked-input/def";
+import { PinInputDef } from "./uicast/pin-input/def";
+import { TagInputDef } from "./uicast/tag-input/def";
+import { RatingDef } from "./uicast/rating/def";
+import { CodeEditorDef } from "./uicast/code-editor/def";
+import { SignaturePadDef } from "./uicast/signature-pad/def";
+import { ToggleDef } from "./uicast/toggle/def";
+import { ToggleGroupDef } from "./uicast/toggle-group/def";
+import { SegmentedControlDef } from "./uicast/segmented-control/def";
+import { FormSectionDef } from "./uicast/form-section/def";
 
 // Layout & Structure (new)
-import { ContainerDef } from "./catalog/container/def";
-import { AspectRatioDef } from "./catalog/aspect-ratio/def";
-import { ScrollAreaDef } from "./catalog/scroll-area/def";
-import { CollapsibleDef } from "./catalog/collapsible/def";
-import { ResizablePanelDef } from "./catalog/resizable-panel/def";
-import { SheetDef } from "./catalog/sheet/def";
-import { StickyHeaderDef } from "./catalog/sticky-header/def";
-import { PageHeaderDef } from "./catalog/page-header/def";
-import { ToolbarDef } from "./catalog/toolbar/def";
+import { ContainerDef } from "./uicast/container/def";
+import { AspectRatioDef } from "./uicast/aspect-ratio/def";
+import { ScrollAreaDef } from "./uicast/scroll-area/def";
+import { CollapsibleDef } from "./uicast/collapsible/def";
+import { ResizablePanelDef } from "./uicast/resizable-panel/def";
+import { SheetDef } from "./uicast/sheet/def";
+import { StickyHeaderDef } from "./uicast/sticky-header/def";
+import { PageHeaderDef } from "./uicast/page-header/def";
+import { ToolbarDef } from "./uicast/toolbar/def";
 
 // Data Display (new)
-import { CalendarDef } from "./catalog/calendar/def";
-import { TimelineDef } from "./catalog/timeline/def";
-import { TreeViewDef } from "./catalog/tree-view/def";
-import { DescriptionListDef } from "./catalog/description-list/def";
-import { CodeBlockDef } from "./catalog/code-block/def";
-import { MarkdownViewerDef } from "./catalog/markdown-viewer/def";
-import { AvatarGroupDef } from "./catalog/avatar-group/def";
-import { StatusIndicatorDef } from "./catalog/status-indicator/def";
-import { CarouselDef } from "./catalog/carousel/def";
-import { CalloutDef } from "./catalog/callout/def";
-import { KBDDef } from "./catalog/kbd/def";
-import { HighlightDef } from "./catalog/highlight/def";
-import { RelativeTimeDef } from "./catalog/relative-time/def";
-import { TruncatedTextDef } from "./catalog/truncated-text/def";
-import { CopyButtonDef } from "./catalog/copy-button/def";
-import { QRCodeDef } from "./catalog/qr-code/def";
-import { BarcodeDef } from "./catalog/barcode/def";
+import { CalendarDef } from "./uicast/calendar/def";
+import { TimelineDef } from "./uicast/timeline/def";
+import { TreeViewDef } from "./uicast/tree-view/def";
+import { DescriptionListDef } from "./uicast/description-list/def";
+import { CodeBlockDef } from "./uicast/code-block/def";
+import { MarkdownViewerDef } from "./uicast/markdown-viewer/def";
+import { AvatarGroupDef } from "./uicast/avatar-group/def";
+import { StatusIndicatorDef } from "./uicast/status-indicator/def";
+import { CarouselDef } from "./uicast/carousel/def";
+import { CalloutDef } from "./uicast/callout/def";
+import { KBDDef } from "./uicast/kbd/def";
+import { HighlightDef } from "./uicast/highlight/def";
+import { RelativeTimeDef } from "./uicast/relative-time/def";
+import { TruncatedTextDef } from "./uicast/truncated-text/def";
+import { CopyButtonDef } from "./uicast/copy-button/def";
+import { QRCodeDef } from "./uicast/qr-code/def";
+import { BarcodeDef } from "./uicast/barcode/def";
 
 // Charts (new)
-import { ScatterChartDef } from "./catalog/scatter-chart/def";
-import { RadarChartDef } from "./catalog/radar-chart/def";
-import { DonutChartDef } from "./catalog/donut-chart/def";
-import { GaugeChartDef } from "./catalog/gauge-chart/def";
-import { SparklineDef } from "./catalog/sparkline/def";
-import { HeatmapDef } from "./catalog/heatmap/def";
-import { TreemapChartDef } from "./catalog/treemap-chart/def";
-import { WaterfallChartDef } from "./catalog/waterfall-chart/def";
-import { SankeyChartDef } from "./catalog/sankey-chart/def";
-import { ComboChartDef } from "./catalog/combo-chart/def";
-import { GanttChartDef } from "./catalog/gantt-chart/def";
-import { BubbleChartDef } from "./catalog/bubble-chart/def";
+import { ScatterChartDef } from "./uicast/scatter-chart/def";
+import { RadarChartDef } from "./uicast/radar-chart/def";
+import { DonutChartDef } from "./uicast/donut-chart/def";
+import { GaugeChartDef } from "./uicast/gauge-chart/def";
+import { SparklineDef } from "./uicast/sparkline/def";
+import { HeatmapDef } from "./uicast/heatmap/def";
+import { TreemapChartDef } from "./uicast/treemap-chart/def";
+import { WaterfallChartDef } from "./uicast/waterfall-chart/def";
+import { SankeyChartDef } from "./uicast/sankey-chart/def";
+import { ComboChartDef } from "./uicast/combo-chart/def";
+import { GanttChartDef } from "./uicast/gantt-chart/def";
+import { BubbleChartDef } from "./uicast/bubble-chart/def";
 
 // Feedback & Status (new)
-import { BannerDef } from "./catalog/banner/def";
-import { InlineMessageDef } from "./catalog/inline-message/def";
-import { AlertDialogDef } from "./catalog/alert-dialog/def";
-import { CircularProgressDef } from "./catalog/circular-progress/def";
-import { CountdownTimerDef } from "./catalog/countdown-timer/def";
-import { NotificationBadgeDef } from "./catalog/notification-badge/def";
+import { BannerDef } from "./uicast/banner/def";
+import { InlineMessageDef } from "./uicast/inline-message/def";
+import { AlertDialogDef } from "./uicast/alert-dialog/def";
+import { CircularProgressDef } from "./uicast/circular-progress/def";
+import { CountdownTimerDef } from "./uicast/countdown-timer/def";
+import { NotificationBadgeDef } from "./uicast/notification-badge/def";
 
 // Specialized / Business-Specific (new)
-import { KanbanBoardDef } from "./catalog/kanban-board/def";
-import { SortableListDef } from "./catalog/sortable-list/def";
-import { VirtualListDef } from "./catalog/virtual-list/def";
-import { MapDef } from "./catalog/map/def";
-import { OrgChartDef } from "./catalog/org-chart/def";
-import { FlowDiagramDef } from "./catalog/flow-diagram/def";
-import { ChatBubbleDef } from "./catalog/chat-bubble/def";
-import { VideoPlayerDef } from "./catalog/video-player/def";
-import { CronBuilderDef } from "./catalog/cron-builder/def";
-import { FilterBuilderDef } from "./catalog/filter-builder/def";
-import { FormulaBarDef } from "./catalog/formula-bar/def";
-import { DiffViewerDef } from "./catalog/diff-viewer/def";
+import { KanbanBoardDef } from "./uicast/kanban-board/def";
+import { SortableListDef } from "./uicast/sortable-list/def";
+import { VirtualListDef } from "./uicast/virtual-list/def";
+import { MapDef } from "./uicast/map/def";
+import { OrgChartDef } from "./uicast/org-chart/def";
+import { FlowDiagramDef } from "./uicast/flow-diagram/def";
+import { ChatBubbleDef } from "./uicast/chat-bubble/def";
+import { VideoPlayerDef } from "./uicast/video-player/def";
+import { CronBuilderDef } from "./uicast/cron-builder/def";
+import { FilterBuilderDef } from "./uicast/filter-builder/def";
+import { FormulaBarDef } from "./uicast/formula-bar/def";
+import { DiffViewerDef } from "./uicast/diff-viewer/def";
 
 export {
   CardDef,
