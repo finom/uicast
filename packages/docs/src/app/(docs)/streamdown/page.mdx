@@ -1,10 +1,9 @@
 # Streamdown plugin
 
-`@uicast/streamdown` puts generated UI inside a Markdown chat reply. With the
-raw-JSONL setup from [Streaming](/react/streaming), the model's entire output
-is entries; on a chat surface the reply is Markdown — prose, headings, code —
-and the entries ride inside it, in a fenced code block whose language token is
-`uicast`:
+`@uicast/streamdown` puts generated UI inside a Markdown chat reply. In the
+raw-JSONL setup from [Streaming](/streaming) the whole output is entries. On a
+chat surface the reply is Markdown, and the entries sit inside a fenced code
+block tagged `uicast`:
 
 ````md
 Here's this month's revenue at a glance:
@@ -17,13 +16,13 @@ Here's this month's revenue at a glance:
 The stat is live — it recomputes from the database on every view.
 ````
 
-[Streamdown](https://streamdown.ai/) (≥ 2.5) renders Markdown as it streams and
-lets a plugin claim a fence language. This package ships that plugin: blocks
-tagged `uicast` mount as an [`<EntriesRenderer>`](/react/renderer) under your
-chat's `<RendererProvider>`; every other fence stays ordinary highlighted code.
-The language token is the entire routing contract — which is why the
-[fence prompt partial](/prompt#chat-surfaces) forbids the model from using any
-other token for entries.
+[Streamdown](https://streamdown.ai/) (2.5+) renders Markdown as it streams and
+lets a plugin claim a fence language. This package is that plugin: `uicast`
+blocks mount as an [`<EntriesRenderer>`](/react/renderer) under your chat's
+`<RendererProvider>`, and every other fence stays highlighted code.
+
+The language token is the whole routing contract, which is why the
+[fence prompt partial](/prompt#chat-surfaces) forbids any other token.
 
 ## `createFenceRenderer`
 
@@ -38,15 +37,13 @@ type FenceRendererOptions = {
 };
 ```
 
-Everything else — implementations, functions, fallback UI — comes from the
-[`<RendererProvider>`](/react/renderer) wrapping your conversation, and the
-entries come from the fence content: each completed JSONL line is parsed into
-an entry and mounts immediately, while the partial last line waits until its
-newline arrives. A streaming fence grows into UI line by line, exactly like the
-raw-JSONL path.
+Implementations, functions and fallback UI all come from the
+[`<RendererProvider>`](/react/renderer) around your conversation. The entries
+come from the fence: each completed line mounts immediately, and a partial last
+line waits for its newline.
 
-Call it **once per option set** — at module scope, or inside `useMemo` — and
-reuse the returned object:
+Call it **once per option set**, at module scope or in `useMemo`, and reuse the
+result:
 
 ```tsx
 import { Streamdown } from "streamdown";
@@ -70,34 +67,29 @@ export function Chat({ replies }: { replies: string[] }) {
 }
 ```
 
-The identity rule is not a style preference. Streamdown re-renders on every
-streamed token, and a fresh component type per render would remount the
-block each time — re-running [seeds](/entry/state), wiping its state, and
-re-firing every host-function call in them. If your options depend on props,
-wrap the call in `useMemo`; never call it inline in JSX.
+**The conversation is one app.** Every block under one `<RendererProvider>`
+shares the same `root` scope. The fence at the top of this page seeds
+`scopes.root.orders`; a later reply writes the same path:
 
-Two behaviors worth knowing:
+```jsonl
+{"key":"root","component":"Button","seed":[{"set":"scopes.root.orders","expr":"listOrders()"}],"props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.orders","expr":"listOrders()"}]}}
+```
 
-- **The conversation is one app.** Every block under one `<RendererProvider>`
-  renders against the same `root` scope: a write in one block is live in every
-  block that reads the path. The prompt partial teaches the model to treat
-  `scopes.root` as the app's store — reuse an existing path for the same data,
-  introduce new paths for new state — and to seed everything a block reads,
-  so a block also works extracted on its own (seeds are first-writer-wins, so
-  the repeat costs nothing in the chat). Element keys stay per-fence — only
-  state is shared.
-- **Blocks mount client-side only.** Seeds call host functions, and host
-  functions usually `fetch` browser-relative URLs — running them during SSR
-  would fail or double-fire. When a chat page server-renders persisted
-  messages, the fence renders nothing until hydration, then mounts.
+Click Refresh and the `Stat` in the earlier block updates. Both fences name an
+element `root` — keys are per-fence, only state is shared.
+
+**Every block seeds everything it reads**, even when an earlier block already
+seeded it. That repeat is deliberate: it is what lets any block be saved as a
+standalone page.
+
+**Blocks render after hydration, never during SSR**, so a server-rendered chat
+page shows an empty fence until the browser takes over.
 
 ## `showSourceToggle`
 
-With `showSourceToggle: true`, each block gains a **Rendered / Source**
-switcher: Source shows the raw JSONL the model emitted, Rendered shows the
-mounted UI. The block stays mounted (hidden) while Source is shown, so
-switching back doesn't reset its state. Off by default — it's a
-development and demo aid, not end-user chrome.
+With `showSourceToggle: true`, each block gets a **Rendered / Source** switcher.
+The block stays mounted while Source is shown, so switching back does not reset
+its state. Off by default — a development aid, not something end users need.
 
 ## Wrappers that forward `plugins`
 
@@ -112,41 +104,16 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 <MessageResponse plugins={plugins}>{part.text}</MessageResponse>
 ```
 
-## `FENCE_LANGUAGE` and `parseFenceCode`
-
-```ts
-const FENCE_LANGUAGE = "uicast";
-
-function parseFenceCode(code: string, cache?: Map<string, ComponentEntry>): ComponentEntry[];
-```
-
-`FENCE_LANGUAGE` is the token the plugin registers for — import it instead of
-retyping the string when you build your own integration. `parseFenceCode` is
-the fence-body parser the plugin uses internally: one `JSON.parse` per line,
-skipping blank lines, lines that aren't valid JSON, and values that aren't
-entries — the same line-level tolerance [`streamJsonLines`](/react/streaming)
-applies to raw streams, plus an entry-shape check the raw reader deliberately
-leaves to its caller. Exported for hosts that render fences through something other
-than Streamdown.
-
-Pass a `cache` (one `Map` per block, kept in a ref) when the fence streams: an
-unchanged line then returns the **same entry object** it returned last tick.
-The engine keys on entry identity — store wake-ups, failed-seed retry gating,
-and error-boundary resets all compare objects — so parsing without a cache
-re-renders settled nodes on every token.
-
 ## The prompt side
 
-Rendering is half the contract — the model also has to *know* to emit the
-fence. `@uicast/streamdown/prompt` exports `getFencePartialPrompt()`, the
-system-prompt section that teaches that fence syntax plus the conversation's
-shared-state rules — one live `root` scope across every block, first-writer-wins
-seeding, and partial replacement applying only within a single fence.
-Compose it after the core partials; [Assembling the prompt](/prompt) shows the
-full stack.
+Rendering is half the contract; the model also has to know to emit the fence.
+`@uicast/streamdown/prompt` exports `getFencePartialPrompt()`, which teaches the
+fence syntax and the shared-state rules: one `root` scope across every block,
+first-writer-wins seeding, and partial replacement only within a fence. Compose
+it after the core partials — see [Assembling the prompt](/prompt).
 
 ## Where to go next
 
 - [Assembling the prompt](/prompt) — the system prompt that makes the model emit the fence.
 - [Renderer](/react/renderer) — the `<RendererProvider>` the fences render under.
-- [Streaming](/react/streaming) — the raw-JSONL path this plugin inverts.
+- [Streaming](/streaming) — the raw-JSONL path this plugin inverts.

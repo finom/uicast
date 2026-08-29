@@ -6,18 +6,15 @@ import { OrdersExample } from "@/lib/mini-examples/orders";
 
 # Concepts
 
-Here is a whole uicast document — four lines, one per element — and, on the
-right, those four lines running. It loads orders from a backend, shows the
-count, renders one row per order, and refetches on a click. Every concept on
-this page is in there. Open *How it's built* to see the same UI written by hand
-in React, the component definitions the model reads, and the prompt they
-generate.
+A complete uicast document, four entries. It loads orders from a backend, shows
+the count, renders one row each, and refetches on click. Every concept on this
+page is in it.
 
 <OrdersExample />
 
 ## The tree is built from keys
 
-There is no nesting in the file — the tree comes from **key reference**. `card`
+Nothing is nested in the file. The tree is built from **key references**. `card`
 lists `["title","refresh","rows"]`, so those three are its children:
 
 ```
@@ -26,26 +23,23 @@ card ─┬─ title
       └─ rows  (repeats: one element per order)
 ```
 
-`card` is the **root** because no other line names it in a `children` array.
-Nothing marks it as the root; it is derived structurally. That is also why a
-document streams top-down: the parent has to arrive before the children it
-references, and until a child's line arrives the renderer shows a placeholder
-in its slot.
+`card` is the **root** because no other line lists it as a child. This is also
+why documents stream top down: a parent must arrive before its children, and until a child's line
+arrives the renderer shows a placeholder.
 
 ## One line, many elements: lists
 
-The `rows` line carries `each`, so it is a **list** — it repeats for every item
-in the collection:
+The `rows` line has an `each` field, which makes it a **list**. It repeats once
+for every item in the array:
 
 ```jsonc
 { "each": "scopes.root.orders", "as": "order", "keyBy": "id" }
 ```
 
-- **`each`** — the array to iterate, evaluated in the *parent's* scope.
-- **`as`** — names the per-item scope. Inside this element you read
-  `scopes.order.item` (the order), `scopes.order.index` (0, 1, 2 …), and
-  `scopes.order.id` (its stable identity).
-- **`keyBy`** — which field is that identity: `"id"` means `item.id`.
+- **`each`** — the array to repeat over, evaluated in the *parent's* scope.
+- **`as`** — names the per-item scope. Inside, you read `scopes.order.item`
+  (the order), `scopes.order.index` (0, 1, 2 …), and `scopes.order.id`.
+- **`keyBy`** — which field that id comes from. `"id"` means `item.id`.
 
 So with three orders in state, one entry produces three elements:
 
@@ -55,147 +49,156 @@ So with three orders in state, one entry produces three elements:
 | `{ id: 8, customer: "Jonas", total: 15 }` | `1` | Jonas · 15 |
 | `{ id: 9, customer: "Priya", total: 92 }` | `2` | Priya · 92 |
 
-An element is a list **iff** it carries `each` — there is no `type: "list"`.
 
 ## State lives in scopes
 
-State is a flat namespace of reactive bags. This document has two:
+State is a flat set of named reactive containers. This document has two:
 
 - **`scopes.root`** — one per app, shared by every element. Here it holds
   `orders`, put there by the `seed` on line 1.
 - **`scopes.order`** — one per row, created by the list's `as`. Line 4 reads
-  `scopes.order.item.customer` inside it.
+  `scopes.order.item.customer`.
 
-Scopes never nest into each other: `scopes.order` is its own bag, not a branch
-of `scopes.root`. See [State &amp; Scopes](/entry/state).
+The names are flat — `scopes.order` is not part of `scopes.root` — but an
+element still reaches every scope around it. A list inside a list creates an
+inner scope, and an element there reads them all:
+
+```jsonc
+{ "key": "orders", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
+{ "key": "lines",  "each": "scopes.order.item.lines", "as": "line",
+  "props": { "expr": "({ text: scopes.order.item.id + ' / ' + scopes.line.item.sku })" } }
+```
+
+That element reads `root`, `order` and `line` at once, which is why every `as`
+name must be unique in the document — a repeat silently hides the outer one.
+See [State &amp; Scopes](/entry/state).
+
+### Reading the item scopes from above
+
+The `$135 total` sits on the card, outside the list, so it has to reach into the
+per-row scopes. A list publishes them to the scope above under
+**`childScopes.<as>`**, one entry per item:
+
+```js
+scopes.root.childScopes.order   // → [ {item, index, id}, {item, index, id}, {item, index, id} ]
+```
+
+The total line just sums `item.total` across them:
+
+```jsonc
+{ "key": "total", "component": "Heading", "props": { "expr":
+  "({ text: '$' + (scopes.root.childScopes?.order ?? []).reduce((sum, s) => sum + s.item.total, 0) + ' total' })" } }
+```
+
+Two details matter:
+
+- **`?.order ?? []` is required.** The key does not exist until the list has
+  rendered. Without the guard the element fails into its error slot and stays
+  there — it is not retried once `childScopes` appears.
+- **It republishes when the list changes, not when one item changes.** Refresh
+  replaces `scopes.root.orders`, the rows rebuild, and the total re-runs:
+  135 → 160 → 83. A write *inside* one item scope notifies only that item.
+
+So use `childScopes` when a row holds state the source array does not — a
+selection, an edited draft — and read it from a **callback**. When the number
+is derivable from the array, read the array:
+`scopes.root.orders.reduce((sum, o) => sum + o.total, 0)` needs no guard.
 
 ## Reading state subscribes to it
 
 Line 2 reads `scopes.root.orders.length`. Nobody declared that dependency — the
-engine extracts it from the expression text and subscribes the element to that
-path:
+engine reads it out of the expression and subscribes the element to that path:
 
 ```jsonc
-{ "props": { "expr": "({ children: scopes.root.orders.length + ' orders' })" } }
+{ "props": { "expr": "({ text: scopes.root.orders.length + ' orders' })" } }
 //                                 └── auto-subscribes to scopes.root.orders.length
 ```
 
-Click **Refresh** → the callback writes `scopes.root.orders` → the heading and
-every row re-render, because a write wakes readers of that path *and of every
-path beneath it*. The button never mentions the heading. See
+Click **Refresh**, the callback writes `scopes.root.orders`, and the heading and
+every row re-render — a write notifies readers of that path and of every path
+below it. The button never mentions the heading. See
 [Reactivity](/entry/reactivity).
 
 ## Expressions compute; `set` changes
 
-`props.expr`, `hidden`, `each`, and the `expr` of any `seed` / `callbacks` step
-hold **one JavaScript expression**, evaluated against the scopes. Two rules:
+`props.expr`, `hidden`, `each`, and the `expr` of any `seed` or `callbacks` step
+hold **one JavaScript expression**, evaluated against the scopes. Two rules.
 
-**Pure** — an expression returns a value and changes nothing. The only way to
-write state is the `set` field of a step:
+**An expression only computes.** The only way to write state is a step's `set`
+field:
 
 ```jsonc
-{ "expr": "scopes.root.count + 1" }                          // ✓ computes
-{ "set": "scopes.root.count", "expr": "currentValue + 1" }   // ✓ computes, then writes
-{ "expr": "scopes.root.count = 1" }                          // ✗ rejected: assignment
+{ "expr": "scopes.root.count + 1" }                          // ✅ computes
+{ "set": "scopes.root.count", "expr": "currentValue + 1" }   // ✅ computes, then writes
+{ "expr": "scopes.root.count = 1" }                          // ❌ rejected: assignment
 ```
 
-**Stateless** — the same scopes must give the same result. A reactive site
-re-evaluates on every change to a path it reads, so non-determinism renders
-inconsistently:
+**The same state must give the same result.** Expressions re-run whenever a path
+they read changes, so anything random or time-based renders inconsistently:
 
 ```jsonc
-{ "props": { "expr": "({ id: Math.random() })" } }        // ✗ different every render
-{ "seed": [{ "set": "scopes.root.id", "expr": "..." }] }  // ✓ compute once, read the stored value
+{ "props": { "expr": "({ id: Math.random() })" } }        // ❌ different every render
+{ "seed": [{ "set": "scopes.root.id", "expr": "..." }] }  // ✅ compute once, read the stored value
 ```
 
 ## What makes a document valid
 
-Most render failures are one of these:
+Most render failures are one of these.
 
-**Exactly one root.** One element whose `key` appears in no other `children`:
+**Exactly one root** — the one element whose `key` appears in no other
+`children`:
 
 ```jsonl
-{"key":"a","component":"Card","children":["b"]}   ✓ root
-{"key":"b","component":"Text"}                     ✓ referenced once
-{"key":"c","component":"Text"}                     ✗ second root — nobody references c
+{"key":"a","component":"Card","children":["b"]}   ✅ root
+{"key":"b","component":"Text"}                     ✅ referenced once
+{"key":"c","component":"Text"}                     ⚠️ second root — nobody references c
 ```
 
-(Several roots don't crash — the renderer wraps them in a synthetic fragment —
-but one root is the contract.)
+Several roots will not crash — the renderer wraps them in a fragment — but one
+root is the contract.
 
-**A list is never the root.** `each` needs a parent to repeat inside:
+**A list is never the root.** An entry with `each` needs a parent to repeat
+inside:
 
 ```jsonl
-{"key":"rows","component":"OrderRow","each":"scopes.root.orders","as":"order"}   ✗ as the root
-{"key":"card","component":"Card","children":["rows"]}                            ✓ wrap it
+{"key":"rows","component":"OrderRow","each":"scopes.root.orders","as":"order"}   ⚠️ as the root
+{"key":"card","component":"Card","children":["rows"]}                            ✅ wrap it
 ```
 
-**Scope names are unique.** Two lists sharing an `as` collide, because scopes
-are one flat namespace:
+**Scope names must be unique.** Two lists sharing an `as` collide, since scope
+names are one flat namespace:
 
 ```jsonl
-{"key":"orders","each":"scopes.root.orders","as":"row", ...}     ✗ both write scopes.row
+{"key":"orders","each":"scopes.root.orders","as":"row", ...}     ❌ both write scopes.row
 {"key":"invoices","each":"scopes.root.invoices","as":"row", ...}
 ```
 
 **Reactive expressions are synchronous.** `props`, `hidden`, and `each` cannot
-call host functions — those belong in `seed` (on mount) and `callbacks` (on an
-event), the two places the engine awaits a result before writing it. Write
-`listOrders()`, never `await listOrders()`.
+call host functions. Those belong in `seed` (on mount) and `callbacks` (on an
+event) — the two places the engine awaits a result. Write `listOrders()`, never
+`await listOrders()`.
 
-**Re-emitting a key is a patch, not an error.** Send the line again and that
-element is replaced in place — this is how [edit turns](/prompt) work:
+**Re-sending a key is an update, not an error.** The element is replaced in
+place. This is how [edit turns](/prompt) work:
 
 ```jsonl
-{"key":"title","component":"Heading","props":{"expr":"({ children: 'Orders' })"}}
-{"key":"title","component":"Heading","props":{"expr":"({ children: 'All orders' })"}}
+{"key":"title","component":"Heading","props":{"expr":"({ text: 'Orders' })"}}
+{"key":"title","component":"Heading","props":{"expr":"({ text: 'All orders' })"}}
 ```
-
-## Why it looks like this
-
-The entry format is a declarative UI language — components, reactive state,
-derived values, conditional rendering, lists, events — in the same family as
-JSX. What differs is *who writes it*:
-
-| | JSX / React / Vue | Entry format |
-|---|---|---|
-| Author | human developer | language model |
-| Optimized for | reading, refactoring | generation — few tokens, low ambiguity, streaming |
-| Components | open — you write them | fixed — chosen from a catalog |
-| Logic | arbitrary code | pure expressions over a fixed scope |
-| Unit | a component / module | one line (one entry) |
-| Output | source → build → deploy | a data stream, rendered directly |
-
-An open-ended language is a feature for a person and a liability for a
-generator — more ways to be wrong, to hallucinate an import, to emit code that
-won't run. The entry format spends expressiveness to buy reliability: a flat
-grammar, a closed component set, no modules or side effects, and output that is
-a static asset rather than a codebase. It is **not** a tool that writes React
-for you to own and deploy — the model's output *is* the running app.
 
 ## Vocabulary
 
-Every term the docs lean on, in one place:
+Words uicast uses in a specific way. One is narrower than usual: **props**
+excludes event handlers — a definition declares `props` and `callbacks`
+separately, and an entry sets them as separate fields.
 
 | Term | Meaning |
 | --- | --- |
-| **document** | One complete UI: a flat set of entries forming a tree with one root. Streamed as JSONLines, one entry per line. |
-| **entry** | One line of the stream — the flat JSON object describing a single element. The unit you (or the model) author; the [Component Entry Format](/entry) section is its reference. |
-| **element** | The node of the UI tree an entry describes. The entry is the JSON; the element is what mounts. |
-| **root** | The single element no other element lists in `children`. Derived structurally, never flagged. |
-| **list** | An element that repeats: it carries [`each`](/entry/fields) (the collection) and `as` (the per-item scope name). |
-| **item** | One repetition of a list, with its own scope: `scopes.<as>.item`, `.index`, `.id`. |
-| **scope** | A named reactive state bag. `scopes.root` shared by every document under one provider, plus one scope per list item. See [State & Scopes](/entry/state). |
+| **uicast document** | One complete UI: a flat set of entries forming a tree with one **root** — the entry no other entry lists in `children`, derived structurally rather than flagged. Streamed as JSONLines, one entry per line. |
+| **entry** | One line of that stream: the JSON describing a single node. You author entries; the node that mounts from one is its **element**. See [Component Entry Format](/entry). |
+| **list** | An entry that repeats, marked by [`each`](/entry/fields) (the collection) with `as` naming the per-item scope. Each repetition is an **item**, read as `scopes.<as>.item`, `.index`, `.id`. |
+| **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
 | **expression** | A single JavaScript expression evaluated against the scopes — the format's only dynamic surface, guarded by SaferEval: an allow-list plus a static pass, [not a sandbox](/entry/expressions#safety). |
-| **value source** | How a dynamic value is produced: `{ "literal": … }` used verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
-| **step** (assignment) | A value source plus a `set` scope path to write. `seed` and `callbacks` are lists of steps; a callback step may omit `set` (running purely for its side effect) and may carry a `confirm` message that gates it. |
-| **seed** | An entry's mount-time steps — they initialize scope state once, before the element's children mount. |
-| **callback** | An entry's reaction to a component event: steps run with the event payload bound as `evt`. See [Event handling](/events). |
-| **`evt`** | The event payload inside a callback's steps — its shape is exactly what the definition's callback schema declares. |
-| **component** | A catalog member an entry can name — a definition/implementation pair. |
-| **definition** (def) | The model-facing half: `name`, `description`, props and callback schemas. Drives the prompt. See [Component definition](/def). |
-| **implementation** (impl) | The React half that renders the component. See [Component implementation](/react/impl). |
-| **catalog** | The set of def/impl pairs a host registers — e.g. `@uicast/shadcn-catalog`. |
-| **host functions** | The async functions a host exposes for expressions to call — load data, save changes, run actions. Each is a [`standard-tool`](https://standard-tool.js.org/) (`StandardToolV0`): name, description, optional schemas, `execute`. See [Host functions](/functions). |
-| **renderer** | `@uicast/react`'s `<EntriesRenderer>`: mounts a document against the implementations, functions, and shared store of its `<RendererProvider>`. See [Renderer](/react/renderer). |
-| **partial replacement** | Re-emitting an already-seen `key` replaces that element, keeping the children its new `children` array still references — the format's only patch operation, and how [edit turns](/prompt) work. |
+| **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
+| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react/impl). |
+| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/functions). |

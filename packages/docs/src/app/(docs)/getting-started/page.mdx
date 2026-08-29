@@ -1,116 +1,95 @@
 # Getting started
 
-Install the packages from npm (they are in beta, under the `beta` dist-tag —
-pin the versions):
+Type a prompt, get a working UI — composed from components you register and data
+you expose. This guide uses the ready-made shadcn catalog, so there are no
+components to write first.
+
+## 1. Install
 
 ```sh
-npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta @uicast/streamdown@beta
+npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool ai @tanstack/react-query zod
 ```
 
-- **`@uicast/core`** — both halves of the framework-agnostic engine, React-free:
-  - the **runtime** — the JSONLines model, an expression evaluator that
-    validates code for safety, the reactive proxy state store, and
-    `createComponentDefinition` for declaring components;
-  - the **prompt builders** (`@uicast/core/prompt`) — the partials that turn
-    your catalog and functions into the system prompt the model reads, plus the
-    [edit and recovery](/prompt#edit-and-recovery-turns) turn builders. Nothing
-    generates a document without them; see [Assembling the prompt](/prompt).
-- **`@uicast/react`** — the React binding that mounts a document:
-  `<RendererProvider>` + `<EntriesRenderer>` and
-  `createComponentImplementation`.
-- **`@uicast/shadcn-catalog`** — a plug-and-play catalog built on shadcn/ui,
-  for starting fast; real apps typically define their own catalog (optional).
-- **`@uicast/streamdown`** — the Streamdown plugin: entries ride inside
-  `uicast` code fences in Markdown chat replies, plus the matching fence prompt
-  partial (optional).
+- **`@uicast/shadcn-catalog`** — ~100 components built on shadcn/ui, each with
+  the definition the model reads.
+- **`@uicast/core`** — the engine and the [prompt builders](/prompt).
+  **`@uicast/react`** — the renderer.
+- **`standard-tool`**, **`ai`**, **`@tanstack/react-query`** — host functions,
+  the model call, the streaming query.
 
-The packages ship compiled ESM with type declarations and resolve through their
-`exports` maps like any npm dependency — no bundler configuration or path
-aliases needed.
+The packages are beta, under the `beta` dist-tag.
 
-## A document is a stream of lines
+To use your own components instead, write a [definition](/def) and an
+[implementation](/react/impl) for each, and register those.
 
-Each line is one element — a `ComponentEntry` — and the lines form a tree by
-**key reference**: an element lists its children's `key`s, and the children are
-separate lines.
+The catalog ships its own stylesheet, so there is no Tailwind config to write:
 
-```jsonl
-{ "key": "card",  "component": "Card", "children": ["title", "note"] }
-{ "key": "title", "component": "Text", "props": { "literal": { "children": "Hello" } } }
-{ "key": "note",  "component": "Text", "props": { "literal": { "children": "Aside" } } }
+```css filename="app/globals.css"
+/* Optional — preflight and the shadcn palette, if you never ran `shadcn init`. */
+@import "@uicast/shadcn-catalog/theme.css";
+@import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-`card` is the **root** — not because of its name, but because no line lists
-`"card"` in a `children` array. Drop `"note"` from that array and `note`
-becomes a second root:
+Every rule uses a CSS variable (`background-color: var(--card)`), so your own
+theme restyles the catalog just like it restyles your components.
 
-```jsonl
-{ "key": "card", "component": "Card", "children": ["title"] }
-{ "key": "note", "component": "Text", "props": { "literal": { "children": "Aside" } } }
-```
+## 2. Expose your data
 
-The renderer mounts both, but a well-formed document has exactly one root — a
-second one usually means a `children` entry was dropped.
+The catalog gives the model components. **Host functions** give it your backend
+— one [`standard-tool`](https://standard-tool.js.org/) per function it may call.
 
-The model emits parents before children, so the tree reveals top-down as it
-streams. Mid-stream, only the parent line may have arrived:
+Both files below import this one: the route reads the schemas, the page runs the
+functions. `execute` runs in the **browser**, so fetch over HTTP — a database
+client here would ship your credentials to the client bundle.
 
-```jsonl
-{ "key": "card", "component": "Card", "children": ["title"] }
-```
-
-The `title` slot stays mounted and renders `defaultComponents.placeholder`.
-There is **no built-in placeholder** — register one, or that slot renders
-nothing:
-
-```tsx
-import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
-
-<RendererProvider
-  implementations={allImplementations}
-  defaultComponents={{ placeholder: () => <Skeleton className="h-4 w-24" /> }}
->
-  <EntriesRenderer entries={entries} />
-</RendererProvider>
-```
-
-Mount them with [`<EntriesRenderer entries={…} />`](/react/renderer)
-inside a `<RendererProvider>` — the provider carries the catalog's
-implementations and any host `functions` your expressions call:
-
-```tsx
-<RendererProvider implementations={allImplementations} functions={hostFunctions}>
-  <EntriesRenderer entries={entries} />
-</RendererProvider>
-```
-
-`allImplementations` comes from the catalog; `hostFunctions` is yours — one
-[`standard-tool`](https://standard-tool.js.org/) per callable:
-
-```tsx
+```ts filename="src/tools/list-orders.ts"
 import z from "zod";
 import { standardTool } from "standard-tool";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
 
-const getWeather = standardTool({
-  name: "getWeather",
-  description: "Current weather for a city.",
-  inputSchema: z.object({ city: z.string() }),
-  outputSchema: z.object({ tempC: z.number() }),
-  execute: async ({ city }) => ({ tempC: 14 }),
+export const listOrders = standardTool({
+  name: "listOrders",
+  description: "Orders, newest first.",
+  inputSchema: z.object({
+    page: z.number().int().min(1).default(1).meta({ description: "1-based page number" }),
+    status: z
+      .enum(["all", "open", "refunded"])
+      .default("all")
+      .meta({ description: "Filter by order status" }),
+  }),
+  outputSchema: z.object({
+    orders: z.array(
+      z.object({
+        id: z.number().int().meta({ description: "Order id" }),
+        customer: z.string().meta({ description: "Who placed it" }),
+        total: z.number().meta({ description: "Order total, in dollars" }),
+      }),
+    ),
+    pageCount: z.number().int().meta({ description: "Total number of pages" }),
+  }),
+  execute: async ({ page, status }) =>
+    (await fetch(`/api/orders?page=${page}&status=${status}`)).json(),
 });
-
-const hostFunctions = [getWeather];
 ```
 
-An entry then calls it by its bare name:
-`{ "set": "scopes.root.weather", "expr": "getWeather({ city: 'Oslo' })" }`.
+```ts filename="src/tools/index.ts"
+import { listOrders } from "./list-orders";
 
-Getting a model to *produce* those lines is the other half: assemble the system
-prompt from `@uicast/core/prompt`, which describes your catalog and functions to
-the model.
+export const tools = [listOrders];
+```
 
-```ts
+`inputSchema` is what lets the model paginate and filter on its own; it is
+checked before `execute` runs. `outputSchema` is how it knows it can write
+`scopes.root.orders[0].customer`. Every `description` reaches the model word for
+word. See [Host functions](/functions).
+
+## 3. Generate on the server
+
+The prompt is built from the same catalog and functions the page uses, so the
+two cannot go out of sync. The model already writes JSONLines, so the route passes its
+text straight through — each line goes out as soon as it is complete:
+
+```ts filename="app/api/generate/route.ts"
+import { createTextStreamResponse, streamText } from "ai";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -119,22 +98,120 @@ import {
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
+import { tools } from "@/tools";
+
+export const maxDuration = 300;
 
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
   getExpressionsPartialPrompt(),
-  getComponentsPartialPrompt({ definitions: allDefinitions }),
-  getFunctionsPartialPrompt({ functions: hostFunctions }),
+  getComponentsPartialPrompt({
+    definitions: allDefinitions,
+    commonEvents: allCommonEventSchemas,
+  }),
+  getFunctionsPartialPrompt({ functions: tools }),
 ].join("\n\n");
+
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+  // A bare model id resolves through the Vercel AI Gateway — set AI_GATEWAY_API_KEY.
+  const result = streamText({ model: "anthropic/claude-opus-5", system, prompt });
+
+  return createTextStreamResponse({
+    stream: result.textStream,
+    headers: { "content-type": "application/jsonl; charset=utf-8" },
+  });
+}
 ```
 
-Order matters — the expressions block refers to the functions "listed below" it.
-Pass the **same** `hostFunctions` array here and to the provider, so the prompt
-and the runtime can't drift. See [Assembling the prompt](/prompt).
+Order matters: the expressions block refers to the functions listed after it.
+See [Assembling the prompt](/prompt).
+
+## 4. Render on the page
+
+`streamedQuery` turns an `AsyncIterable` into an array that grows as values
+arrive. `streamJsonLines` returns one; the renderer takes the array:
+
+```tsx filename="app/page.tsx"
+"use client";
+import {
+  QueryClient,
+  QueryClientProvider,
+  experimental_streamedQuery as streamedQuery,
+  useQuery,
+} from "@tanstack/react-query";
+import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
+import { useState } from "react";
+import { tools } from "@/tools";
+
+const fallbackComponents = {
+  confirm: ConfirmModal,
+  placeholder: () => <Skeleton className="h-4 w-24" />,
+};
+
+function Generated({ prompt }: { prompt: string }) {
+  const { data: entries = [] } = useQuery({
+    queryKey: ["generate", prompt],
+    enabled: prompt !== "",
+    staleTime: Number.POSITIVE_INFINITY,
+    queryFn: streamedQuery({
+      streamFn: async () => {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!res.ok || !res.body) throw new Error(`Generation failed (${res.status})`);
+        return streamJsonLines<ComponentEntry>(res.body);
+      },
+    }),
+  });
+
+  return (
+    <RendererProvider
+      implementations={allImplementations}
+      functions={tools}
+      fallbackComponents={fallbackComponents}
+    >
+      <EntriesRenderer entries={entries} />
+    </RendererProvider>
+  );
+}
+
+export default function Home() {
+  const [client] = useState(() => new QueryClient());
+  const [draft, setDraft] = useState("");
+  const [prompt, setPrompt] = useState("");
+
+  return (
+    <QueryClientProvider client={client}>
+      <form onSubmit={(e) => { e.preventDefault(); setPrompt(draft); }}>
+        <input value={draft} onChange={(e) => setDraft(e.target.value)} />
+        <button type="submit">Generate</button>
+      </form>
+      <Generated prompt={prompt} />
+    </QueryClientProvider>
+  );
+}
+```
+
+> Show this week's orders in a table, with a refund button on each row.
+
+The model writes parents before children, so the page fills in from the top.
+A child that has not arrived yet shows the `placeholder` component — there is
+**no built-in one**, so an unset slot stays empty. Finished parts are never
+rebuilt, and a `seed` that already fetched does not fetch again.
 
 ## Where to go next
 
+- [Streaming](/streaming) — saving entries as they stream.
+- [Component definition](/def) and [Component implementation](/react/impl) —
+  replacing the catalog with your own design system.
+- [Host functions](/functions) — changing data, confirmation, refetching.
 - [Concepts](/concepts) — the element model, expressions, and scopes.
-- [Assembling the prompt](/prompt) — what the model has to be told.
-- [Functions](/functions) — wiring data loading, saving, and actions.

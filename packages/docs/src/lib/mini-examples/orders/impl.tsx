@@ -1,8 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Button as UIButton } from "@uicast/shadcn-catalog/ui/button";
-import { Card, CardContent } from "@uicast/shadcn-catalog/ui/card";
+import { Button as UIButton } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ButtonDef, CardDef, HeadingDef, OrderRowDef } from "./def";
 
+// card/impl.tsx
 export const CardImpl = createComponentImplementation({
   def: CardDef,
   render: ({ children }) => (
@@ -12,11 +13,13 @@ export const CardImpl = createComponentImplementation({
   ),
 });
 
+// heading/impl.tsx
 export const HeadingImpl = createComponentImplementation({
   def: HeadingDef,
-  render: ({ children }) => <div className="font-semibold">{children}</div>,
+  render: ({ text }) => <div className="font-semibold">{text}</div>,
 });
 
+// button/impl.tsx
 export const ButtonImpl = createComponentImplementation({
   def: ButtonDef,
   render: ({ label, onClick }) => (
@@ -31,6 +34,7 @@ export const ButtonImpl = createComponentImplementation({
   ),
 });
 
+// order-row/impl.tsx
 export const OrderRowImpl = createComponentImplementation({
   def: OrderRowDef,
   render: ({ customer, total }) => (

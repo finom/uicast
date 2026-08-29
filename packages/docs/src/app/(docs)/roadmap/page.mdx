@@ -2,50 +2,12 @@
 
 Where uicast is headed.
 
-## Error recovery
-
-All three [error recovery](/error-recovery) mechanisms are in place:
-**self-correction** (the model re-emits a `key` with fixed content, taught by
-the prompt as a last resort), **user-triggered recovery** (a Recover button in
-the host's error slot reports the failure via `getErrorRecoveryPrompt`), and
-**self-healing** — the host wires the provider's `onError` into that same
-recovery turn automatically. The classification that makes the loop safe is
-built in: every failure is an
-[`EntryError`](/error-recovery#classification-entryerror-and-onerror)
-(`fault: document / environment / unknown`, tagged at the throw site), so the
-host feeds back only what a re-emission can fix. The loop and its retry
-budget are deliberately host code — like the Recover button, only the host
-knows how to reach its model. *All three mechanisms: shipped.*
-
-## Prompt-driven partial replacement
-
-Both halves are in place. The runtime supports
-[partial replacement](/entry/fields#key) — re-emit a line with an existing `key`
-and the engine swaps that subtree in place — and the prompt side ships as
-[`getEditRequestPrompt`](/prompt#edit-and-recovery-turns): the host replays the
-document as an assistant turn, sends the change request as the next user turn,
-and the model re-emits only the elements that change (`missingKeys` covers the
-tail of a truncated generation). The demo app's edit flow runs on it.
-*Runtime: shipped · prompt tooling: shipped.*
-
 ## Reactive `loading` placeholders
 
-Every element already shows a placeholder while an async
-[`seed`](/entry/fields#seed) resolves or before it has streamed in. A planned
-`loading` field generalizes that to any reactive condition: a bare
-[expression](/entry/expressions), evaluated like [`hidden`](/entry/fields#hidden),
-that renders the element's placeholder while it is truthy and swaps the real
-component back when it goes falsy — a skeleton for "this data is refreshing"
-without unmounting or losing sibling state. Where `hidden` toggles visibility
-(React `<Activity>`), `loading` toggles the placeholder. *Runtime: placeholder
-machinery exists · schema + renderer + prompt: not started.*
-
-## Prompt compression
-
-The system prompt a host [assembles from the partial builders](/prompt) is
-deliberately explicit: the output contract, the expression rules, and the
-component menu spell everything out. A planned compression pass rewrites that
-surface to say the same things in far fewer tokens — same contract, same
-component information, tighter wording — cutting the fixed input cost every
-generation pays, without changing what the model emits. *Prompt surface:
-shipped · compression pass: not started.*
+An element already shows a placeholder while an async
+[`seed`](/entry/fields#seed) resolves. A planned `loading` field would extend
+that to any condition: a bare [expression](/entry/expressions), evaluated like
+[`hidden`](/entry/fields#hidden), showing the placeholder while truthy. Where
+`hidden` toggles visibility, `loading` toggles the placeholder — a skeleton for
+refreshing data, without unmounting anything. *Placeholder machinery exists;
+schema, renderer and prompt: not started.*

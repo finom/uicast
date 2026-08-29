@@ -1,218 +1,246 @@
 # JavaScript Expressions
 
-An **expression** is a short JavaScript string the engine evaluates against the
-current scopes. Expressions are where an entry's logic lives — derived props,
-conditional visibility, the value a seed or callback writes. They are plain
-JavaScript, [validated for safety](#safety) before they run; there is no custom
-language to learn.
+An **expression** is a short JavaScript string evaluated against the current
+scopes. It is where an entry's logic lives: derived props, conditional
+visibility, the value a seed or callback writes. Plain JavaScript,
+[checked for safety](#safety) before it runs.
 
 ## Where expressions appear
 
-- **`props`** — the `expr` form of its [value source](/entry/value-sources), computing
-  the props object: `({ text: scopes.root.title })`.
-- **`hidden`** — a bare expression; the element is hidden when it is truthy:
-  `scopes.cart.items.length === 0`.
-- **`each`** (lists) — a bare expression returning the array to iterate:
-  `scopes.root.rows`.
-- **`seed` / `callbacks`** — the `expr` of an assignment; its result is written
-  to the assignment's `set` path.
+Every site, in one product search (`scopes.root.products` is seeded higher up):
 
-`hidden` and `each` are **bare strings**, not value sources — there is no
-`{ "expr": … }` wrapper. Inside `callbacks`, expressions also see `evt` (the
-event payload); inside `seed` and `callbacks` alike they may call the host
-[`functions`](/functions) passed to the provider — the two sites where an async
-result is awaited before it is written. Inside a `seed` or `callback` **assignment** they also see
-[`currentValue`](/entry/value-sources#valuesourceassignment) — the value
-currently at that assignment's `set` path, for read-modify-write
-(`currentValue + 1`, `!currentValue`).
+```jsonc
+{ "key": "search", "component": "SearchInput",
+  "seed": [{ "set": "scopes.root.query", "literal": "" }],
+  "props": { "expr": "({ value: scopes.root.query })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.query", "expr": "evt.value" }] } }
+{ "key": "empty", "component": "Text", "hidden": "scopes.root.products.length > 0",
+  "props": { "literal": { "text": "No products" } } }
+{ "key": "rows", "component": "Text", "as": "row", "keyBy": "id",
+  "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))",
+  "props": { "expr": "({ text: scopes.row.item.name })" } }
+```
+
+`props` is a [value source](/entry/value-sources): `expr` computes the props
+object, `literal` is taken as-is. `hidden` and `each` are **bare strings**, not
+value sources.
+
+Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
+may call host [`functions`](/functions), since those are the two sites where an
+async result is awaited. A step with a `set` also sees
+[`currentValue`](/entry/value-sources#valuesourceassignment), whatever is at
+that path now.
 
 ## Pure and stateless
 
 Two rules hold everywhere:
 
-- **Pure** — an expression computes and returns a value; it must never mutate
-  state or cause a side effect. State changes happen only through the `set`
-  field of a seed or callback assignment. (A side effect inside an expression
-  corrupts state, because the engine re-evaluates expressions freely.)
-- **Stateless** — an expression must be a deterministic function of the scopes
-  (and `evt`) it reads: no `Math.random()`, no clock reads, no counter that
-  survives between evaluations. Need a random value or a timestamp? Produce it
-  once via a `set` and read it back from scope.
+- **Pure** — it computes and returns a value, and changes nothing. State is
+  written only through a step's `set`.
+- **Stateless** — the same scopes must give the same result. No `Math.random()`,
+  no clock reads, no counter surviving between evaluations.
 
-Purity is a **contract, not an enforced boundary**. The [safety pass](#safety)
-rejects an assignment written as the whole expression — `scopes.x = 1` fails
-validation — but one smuggled inside a function body,
-`(() => { scopes.x = y; return y })()`, is legal syntax to it, because function
-bodies legitimately assign (a `.reduce` accumulator, a local in a callback).
-That write-during-render is exactly the corruption the rule exists to prevent:
-the engine re-evaluates expressions freely and re-fires the write, looping or
-going stale. Don't lean on the validator to catch it.
+`Date` is allow-listed, so a clock read does not fail — it drifts. `props`
+re-evaluates on every render; `seed` runs once:
+
+```jsonc
+// ❌ a new timestamp every render pass
+{ "props": { "expr": "({ text: 'Draft ' + Date.now() })" } }
+
+// ✅ produced once, read back from the path
+{ "seed": [{ "set": "scopes.root.draftId", "expr": "Date.now()" }],
+  "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
+```
+
+A write to `scopes` is rejected wherever it appears — a function body makes
+assignment legal, not assignment *to state*:
+
+```js
+// ❌ both rejected — sandbox-violation
+scopes.root.hits = 1
+scopes.root.rows.map(r => { scopes.root.hits++; return r })
+
+// ✅ a write rooted at a local is fine
+scopes.root.rows.reduce((acc, r) => { acc.n += r.qty; return acc }, { n: 0 })
+```
+
+Purity is still a **contract, not an enforced boundary**. Only a literal
+`scopes.…` target is visible to a static pass. An alias is not caught, and the
+count grows on every re-evaluation:
+
+```js
+// ❌ just as wrong, and NOT rejected
+scopes.root.rows.map(r => { const s = scopes.root; s.hits = s.hits + 1; return r })
+```
 
 ## Reactivity
 
-Reading a scope path inside a **reactive** site — `props`, `hidden`, or `each` —
-auto-subscribes it: when that path is written, the site re-evaluates and the
-element re-renders. You never declare a dependency list; the engine extracts the
-read set from the expression text.
+Reading a scope path in a **reactive** site — `props`, `hidden`, `each` —
+subscribes to it. Write that path and the site re-evaluates. You never declare
+dependencies; the engine reads them out of the expression text.
 
-That read set comes from a **static** scan of the expression, not from running
-it. A dependency is a literal path chain — `scopes.root.user.name` — and the
-scan stops each chain at the first method call or computed member: an `each` of
-`scopes.inv.rows.filter(r => r.active)` subscribes to `scopes.inv.rows`, not to
-`.filter` or to `r.active`. So read scope paths as **literal chains**: a
-computed read like `scopes.root[key]` is invisible to the scan and never
-auto-subscribes.
+The scan is **static**, not a trace of a run. A dependency is a literal path
+chain like `scopes.root.user.name`, and each chain stops at the first method
+call or computed member: `scopes.inv.rows.filter(r => r.active)` subscribes to
+`scopes.inv.rows` and nothing deeper. So write literal chains — a computed read
+like `scopes.root[key]` is invisible to the scan and never subscribes.
 
-`seed` (once, at mount) and `callbacks` (on an event) are **not** reactive — they
-run when triggered, not when their reads change. So a derived value — a filtered
-list, a sum, a formatted string — belongs inline in a reactive site, where it
-recomputes automatically, never precomputed into `seed` (which would go stale).
-Their read sets aren't wasted, though: in an effectful site the same extraction
-**orders the steps**.
+`seed` and `callbacks` are **not** reactive: they run when triggered, not when
+their reads change. A derived value computed in `seed` freezes at its mount-time
+answer:
 
-[Reactivity &amp; Dependencies](/entry/reactivity) covers the whole mechanism —
-what wakes a subscriber, and how step ordering falls out of the same read sets.
+```jsonc
+// ❌ filtered once at mount — typing in the search box changes nothing
+{ "seed": [{ "set": "scopes.root.visible",
+             "expr": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))" }],
+  "each": "scopes.root.visible" }
+
+// ✅ the same expression at the reactive site — subscribed to products and query
+{ "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))" }
+```
+
+The same read sets are not wasted in `seed` and `callbacks` — there they
+**order the steps** instead.
+
+[Reactivity &amp; Dependencies](/entry/reactivity) covers both.
 
 ## What JavaScript is allowed
 
-Write ordinary JavaScript: property access, ternaries, template literals, array
-methods (`map` / `filter` / `reduce`), object and array literals. An expression
-must be a **single expression**, not a statement — reach for a ternary, not an
-`if`. A fixed allow-list of globals is in scope (`Math`, `JSON`, `Intl`,
-`Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `Map`, `Set`,
-`RegExp`, `URL`, `Error`, …); ambient capabilities like `fetch`, `window`, and
-`process` are not — see [Safety](#safety) for how that line is enforced.
+Ordinary JavaScript: property access, ternaries, template literals, array
+methods, object and array literals. It must be a **single expression**, not a
+statement — a ternary, not an `if`.
 
-That single-expression rule is **top-level only**. Inside an arrow-function body
-the full statement grammar is legal — an `if`, a `switch`, a `for` loop, a local
-`const` — because a body is where real JavaScript runs. The engine tolerates
-this deliberately: a model told "no statements" will still occasionally emit a
-`switch`, and rejecting it would fail the whole element, so a stylistic slip
-degrades to "works, just longer" instead of a broken render. Both of these
-compute the same value:
+A fixed allow-list of globals is in scope (`Math`, `JSON`, `Intl`, `Object`,
+`Array`, `Number`, `String`, `Boolean`, `Date`, `Map`, `Set`, `RegExp`, `URL`,
+`Error`, …). `fetch`, `window` and `process` are not — see
+[Safety](#safety).
+
+The single-expression rule is **top-level only**. Inside a callback passed to a
+method the full statement grammar is legal — an `if`, a `switch`, a local
+`const` — because that is where real JavaScript runs:
 
 ```js
-// preferred — one ternary
+// ✅ statements are fine inside a callback body
+scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green"; default: return "red" } })
+```
+
+An **immediately-invoked function is rejected**. Its only use is to run
+statements where a single value belongs, and a ternary says the same thing:
+
+```js
+// ✅ one ternary
 scopes.order.status === "paid" ? "green" : scopes.order.status === "pending" ? "amber" : "red"
 
-// tolerated — a switch inside an arrow IIFE: more tokens, identical result
-(s => { switch (s) { case "paid": return "green"; case "pending": return "amber"; default: return "red" } })(scopes.order.status)
+// ❌ rejected — an IIFE is not a value
+(s => { switch (s) { case "paid": return "green"; default: return "red" } })(scopes.order.status)
 ```
 
 ## Why JavaScript, not a sandbox or a DSL
 
-Evaluating model-generated JavaScript in the page's own realm is a deliberate
-choice, reached after two alternatives fell short:
+Expressions run in the page's own realm. A sandbox — iframe, VM, realm — cannot
+hold the reactive [scope store](/entry/state), because it is a Proxy and does
+not cross the boundary. A dedicated expression language like CEL is safe by
+construction, but the model produced far more invalid expressions against its
+stricter grammar.
 
-- **A sandbox** — iframe, VM, or realm. Strong isolation, but slow to spin up
-  per evaluation, and the reactive [scope store](/entry/state) is a Proxy that
-  can't cross the boundary: sandboxing it defeats the same-realm reads the
-  renderer is built on.
-- **A dedicated expression language** — CEL and its kin, safe by construction.
-  On paper the best fit; in practice the model produced far more invalid
-  expressions, its strict typing tripping up generation constantly.
+JavaScript with a static check keeps Proxy state working and the model fluent.
+Each expression is parsed wrapped as `void ( … )`, so any top-level statement is
+already a syntax error, with no extra check.
 
-JavaScript with a static check won: the model writes it fluently, evaluation
-stays in-realm so Proxy state just works, and a single cheap AST pass — the
-evaluator is **SaferEval** — gives predictable safety. Each expression is parsed
-wrapped as `void ( … )`, which forces expression context (so a leading brace
-opens an object literal rather than a block) and makes any top-level statement a
-syntax error for free. The trade-off is the subject of the next section: that
-AST pass is a security boundary maintained by hand, not an isolation guarantee.
+The tradeoff is that a static check only blocks what it names — see
+[Safety](#safety).
 
 ## Safety
 
-The engine treats every expression as untrusted and gates it two ways before it
-runs.
+Every expression is untrusted, and gated twice before it runs.
+
+### The two gates
 
 **An allow-list of names, not a block-list.** An expression may reference only
-the names it is handed — the injected context (`scopes`, `evt`, and the host
-`functions`) plus a fixed set of safe globals (`Math`, `JSON`, `Date`, `Error`,
-…). Every other free identifier — an unknown global, a misspelled function, an
-ambient capability like `fetch` or `process` — is rejected _before_ the
-expression runs. That direction is the point: rather than enumerate the
-dangerous names and ban them (a block-list always misses the next one), the
-engine permits a known-safe set and refuses the rest, so a new runtime global or
-a typo'd host call fails closed instead of slipping through.
+what it is handed: `scopes`, `evt`, the host `functions`, and a fixed set of safe
+globals. Every other free identifier is rejected before it runs. That direction
+matters — a block-list always misses the next dangerous name, so a new runtime
+global or a typo'd host call fails closed instead.
 
-**A structural guardrail.** A static pass over the parsed syntax also rejects
-top-level statements (an expression must be a single expression — assignments,
-`++`, and the comma operator are legal only inside a callback body), dynamic
-`import()` and meta-properties (`import.meta`, `new.target`), the `eval` /
-`arguments` identifiers, tagged template literals, and prototype/accessor
-escapes (`constructor`,
-`__proto__`, `prototype`, `__defineGetter__` and friends); the dangerous
-capability globals are bound to `undefined` on top of that, as defence in depth.
-One gap is deliberate: only *static* property names are checked, since banning
-computed keys would ban `arr[i]`.
+**A structural guardrail.** A static pass also rejects top-level statements,
+writes to `scopes` / `evt` / `currentValue` at any depth, immediately-invoked
+functions, dynamic `import()`, meta-properties, `eval` and `arguments`, tagged
+templates, and prototype escapes (`constructor`, `__proto__`, `prototype`, …).
+The dangerous globals are bound to `undefined` on top of that. Only *static*
+property names are checked — banning computed keys would ban `arr[i]`.
 
 A rejection at either gate is a classified
-[`EntryError`](/error-recovery#classification-entryerror-and-onerror) —
-`expression-syntax`, `sandbox-violation`, or `unknown-reference`, all
-**document** faults — contained to the element's error slot like any other
-failure.
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror) — a
+**document** fault, contained to the element's error slot like any other
+failure:
 
-Widen the allow-list with extra benign globals through the config provider —
-one `<RendererProvider>` configures every `<EntriesRenderer>` beneath it:
+| expression | reason |
+| --- | --- |
+| `if (scopes.root.n) 1` | `expression-syntax` — a statement, so the `void ( … )` wrapper makes it a parse error |
+| `scopes.root.count = 1` | `sandbox-violation` — a write to `scopes`, at any depth |
+| `fetchProducts()` | `unknown-reference` — a free identifier nobody handed in |
+| `fetch("/api")` | `unknown-reference` — shadowed rather than allow-listed, so the allow-list gate sees an unknown name too |
+
+### Adding your own globals
 
 ```tsx
-<RendererProvider allowedGlobals={["structuredClone", "crypto"]} implementations={implementations}>
+<RendererProvider allowGlobals={["structuredClone", "crypto"]} implementations={implementations}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>
 ```
 
-`allowedGlobals` is **additive** — the built-in safe set still applies — and
-deliberately **cannot** re-enable the shadowed capability globals (`fetch`,
-`Function`, `setTimeout`, …); those stay blocked whatever you list.
+You also need to pass the same list to the prompt, or the model is never told
+the names exist and will not use them:
 
-Even so, this is a **guardrail, not a sandbox** — and the gap is fundamental to
-static analysis, not a bug awaiting a fix. The prototype-escape block only
-catches a **static** key; a **computed** one is undecidable at validation time
-and reaches the real `Function` constructor at runtime:
+```ts
+getExpressionsPartialPrompt({ allowGlobals: ["structuredClone", "crypto"] })
+```
+
+`allowGlobals` is **additive**, and cannot re-enable the shadowed globals
+(`fetch`, `Function`, `setTimeout`, …). Those stay blocked whatever you list.
+
+### Where the guardrail ends
+
+This is a **guardrail, not a sandbox**, and the gap is inherent to static
+analysis. The prototype-escape check sees only a static key; a computed one is
+undecidable at validation time and reaches the real `Function` at runtime:
 
 ```js
 ({})["constructor"]                                        // blocked — static key
-({})["con" + "structor"]                                   // slips through — computed key
+({})["con" + "structor"]                                   // not caught — computed key
 ({})["con"+"structor"]["con"+"structor"]("return fetch")() // full escape → the real fetch
 ```
 
-That last function is built by `Function(...)` at runtime, so it is never
-AST-validated and receives none of the shadowed globals — the shadowing is fully
-defeated, and it recovers `fetch`, `process`, everything. Closing it would mean
-banning every computed member access (`arr[i]`, `scopes.row[col]`), which the
-language needs, so the hole stays open by design. Static validation likewise
-can't bound an infinite `while (true)` — that runs in the viewer's own browser,
-a runtime concern rather than the validator's.
+That function is built at runtime, never AST-validated, and gets none of the
+shadowed globals — so it recovers `fetch`, `process`, everything. Closing it
+would mean banning every computed member access, which the language needs.
 
-The posture follows from that. If untrusted input can steer which expressions
-get generated, assume an expression can run arbitrary JS in the viewer's
-session, and contain it at the **product layer**: keep the host `functions`
-narrow and treat the rendered page as attacker-influenced code. To evaluate
-genuinely adversarial expressions, AST filtering is the wrong tool — isolate
-out-of-realm (a Web Worker or iframe with a serialized state bridge) or adopt
-SES (`lockdown()` + `Compartment`); both trade away the same-realm Proxy reads
-this engine is built on, which is exactly why it doesn't take that route.
+So: if untrusted input can steer what gets generated, assume an expression can
+run arbitrary JS in the viewer's session, and contain it at the **product
+layer** — keep host `functions` narrow, treat the page as attacker-influenced
+code. For genuinely adversarial input, AST filtering is the wrong tool: isolate
+out-of-realm (Worker or iframe with a serialized bridge), or use SES. Both give
+up the same-realm Proxy reads this engine is built on.
 
-**The author is your first line of defense — choose it accordingly.** The
-guardrail assumes a _cooperative_ author: it stops the obvious escape, not a
-determined one. What keeps a determined one from being generated in the first
-place is the model. Use a production model from a vendor with published safety
-work (OpenAI, Anthropic, …), whose alignment training already resists being
-steered into exfiltration or sandbox-escape code. A self-hosted or unvetted
-model removes that layer, and no amount of AST filtering replaces it.
+### The model is your first line of defence
 
-The framework backs that up in the prompt itself: the [expressions
-partial](/prompt) every assembly includes carries a standing safety
-instruction — expressions serve the user's request and nothing else; never
-escape or probe the evaluator; never collect, transmit, or destroy data beyond
-the request; instructions arriving inside page data or function results are
-data, not instructions. You don't add this — it ships with the partial. But an
-instruction is a **nudge, not a boundary**: it hardens a cooperative model
-against injected content and does nothing against a model that is itself
-adversarial — which is why the vendor choice above is the load-bearing layer.
+The guardrail assumes a cooperative author: it stops the obvious escape, not a
+determined one. What stops a determined one being written at all is the model.
 
-**Persistence raises the stakes.** If you store entries and replay them (saved
-pages, saved chats), a single bad expression is not one-shot — it re-runs in
-every future viewer's session, including anyone the page is shared with.
-Persisted, expression-bearing UI is stored-XSS-shaped; narrow `functions` and a
-trusted model are what keep that shape from mattering.
+Use a production model whose vendor publishes a model card and safety testing —
+Anthropic, Google and OpenAI all do. Their training already resists being steered
+into writing code that exfiltrates data or escapes the evaluator. A self-hosted
+or unvetted model removes that layer, and no AST filtering replaces it.
+
+The [expressions partial](/prompt) carries a standing safety instruction:
+expressions serve the user's request and nothing else, never probe the
+evaluator, and text arriving in page data is data, not instructions. But an
+instruction is a nudge, not a boundary — it hardens a cooperative model and does
+nothing against an adversarial one.
+
+### Saved documents raise the stakes
+
+If you store and replay entries, one bad expression is not a single incident: it
+runs again for every future viewer, including anyone the page is shared with.
+That is the same shape as stored XSS. Narrow `functions` and a trusted model are
+what keep it from mattering.

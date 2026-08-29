@@ -1,15 +1,17 @@
+---
+asIndexPage: true
+---
+
 # React
 
-The React binding of uicast, exported from `@uicast/react`. Everything the
-browser side of the engine touches lives here:
+The React binding, exported from `@uicast/react`:
 
 - [Component implementation](/react/impl) — `createComponentImplementation`,
   the React half of a component pair.
 - [Renderer](/react/renderer) — `<RendererProvider>` and `<EntriesRenderer>`,
   the mount point that turns entries into live UI.
-- [Streaming](/react/streaming) — consuming a generation stream end to end,
-  from the model to the renderer.
 
-The model-facing half — [definitions](/def), the
-[entry format](/entry), and [expressions](/entry/expressions) — is
-framework-agnostic and lives in [`@uicast/core`](/core).
+The model-facing half — [definitions](/def), the [entry format](/entry),
+[expressions](/entry/expressions) — is framework-agnostic and lives in
+[`@uicast/core`](/api#uicastcore). Reading the stream is too. React only comes in at the
+end, when you pass the entries to `<EntriesRenderer>`.

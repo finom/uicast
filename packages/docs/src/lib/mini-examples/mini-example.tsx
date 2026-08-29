@@ -1,6 +1,6 @@
 "use client";
 import { ChevronRight } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useCallback, useRef, useState, type ReactNode } from "react";
 
 // Provenance of each part, mirroring the pipeline the docs teach.
 const PROV = {
@@ -8,6 +8,7 @@ const PROV = {
   gen: "generated from definition",
   llm: "the LLM generates",
   glue: "you mount it",
+  example: "example",
 } as const;
 type Prov = keyof typeof PROV;
 type Lang = "js" | "jsx" | "json" | "md";
@@ -20,6 +21,8 @@ export type CodePart = {
   code?: string;
   lang?: Lang;
   variants?: CodeVariant[];
+  /** Which variant opens selected. Defaults to the first. */
+  defaultVariant?: number;
   node?: ReactNode;
 };
 export type SetupPart = CodePart;
@@ -117,8 +120,8 @@ const Chip = ({ prov }: { prov: Prov }) => (
   </span>
 );
 
-function CodeCard({ name, file, prov, code, lang, variants, node }: CodePart) {
-  const [sel, setSel] = useState(0);
+function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node }: CodePart) {
+  const [sel, setSel] = useState(defaultVariant ?? 0);
   const active = variants?.[sel] ?? { code: code ?? "", lang: lang ?? "json" };
   return (
     <div className="mx-card" data-mdx={node ? "true" : undefined}>
@@ -168,6 +171,13 @@ function CodeCard({ name, file, prov, code, lang, variants, node }: CodePart) {
   );
 }
 
+// Where the key tooltip sits, in coordinates relative to the `.mini-example`
+// root. It cannot live inside the code block: `.mx-pre` scrolls and `.mx-card`
+// clips, so an absolutely positioned child of either is cut off at the first
+// line. One tooltip at the root, positioned from the hovered key's rect,
+// escapes both.
+type Tip = { text: string; x: number; y: number };
+
 export function MiniExample({
   entry,
   result,
@@ -179,9 +189,42 @@ export function MiniExample({
   setup: SetupPart[];
   open?: boolean;
 }) {
+  const rootRef = useRef<HTMLElement>(null);
+  const [tip, setTip] = useState<Tip | null>(null);
+
+  // Delegated: the keys are highlighter output, not React nodes.
+  const onOver = useCallback((event: React.MouseEvent) => {
+    const key = (event.target as HTMLElement).closest?.(".tk-key");
+    const root = rootRef.current;
+    const text = key?.getAttribute("data-tip");
+    if (!key || !root || !text) return;
+    const k = key.getBoundingClientRect();
+    const r = root.getBoundingClientRect();
+    setTip({ text, x: k.left - r.left, y: k.top - r.top - 7 });
+  }, []);
+
+  const onOut = useCallback((event: React.MouseEvent) => {
+    const from = (event.target as HTMLElement).closest?.(".tk-key");
+    const to = (event.relatedTarget as HTMLElement | null)?.closest?.(".tk-key");
+    if (from && from !== to) setTip(null);
+  }, []);
+
   return (
-    <article className="mini-example">
+    <article
+      className="mini-example"
+      ref={rootRef}
+      onMouseOver={onOver}
+      onMouseOut={onOut}
+      // A code block scrolls under the tooltip, which would leave it pointing at
+      // the wrong token; drop it instead of tracking the scroll.
+      onScrollCapture={() => setTip(null)}
+    >
       <style>{CSS}</style>
+      {tip ? (
+        <span className="mx-tip" style={{ left: tip.x, top: tip.y }}>
+          {tip.text}
+        </span>
+      ) : null}
 
       <div className="mx-hero">
         <CodeCard {...entry} />
@@ -220,7 +263,7 @@ const CSS = `
   --accent:#5650e6;--accent-soft:#ecebff;--teal:#0c8a72;--teal-soft:#e0f4ef;--warn:#bf5a12;--warn-soft:#f7e6d4;--slate:#5f6675;--slate-soft:#edeef3;
   --code-bg:#f7f7fb;--code-border:#ececf2;--app-bg:#f3f4f8;--app-grid:rgba(24,24,52,.045);
   --tok-comment:#8e909c;--tok-str:#0c8a72;--tok-num:#bf5a12;--tok-kw:#8a4fd6;--tok-fn:#2f6fd0;--tok-punct:#a6a8b4;
-  display:block;background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  display:block;position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;
   padding:26px 26px 22px;margin:26px 0;box-shadow:0 1px 2px rgba(20,20,40,.03);
   color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
 }
@@ -241,6 +284,7 @@ const CSS = `
 .mini-example .mx-prov[data-prov=glue]{color:var(--warn);background:var(--warn-soft)}
 .mini-example .mx-prov[data-prov=gen]{color:var(--teal);background:var(--teal-soft)}
 .mini-example .mx-prov[data-prov=llm]{color:var(--accent);background:var(--accent-soft)}
+.mini-example .mx-prov[data-prov=example]{color:var(--muted);background:var(--slate-soft)}
 .mini-example .mx-copy{flex:none;border:1px solid var(--code-border);background:transparent;color:var(--muted);font:500 10.5px 'IBM Plex Mono',monospace;padding:4px 9px;border-radius:7px;cursor:pointer}
 .mini-example .mx-copy:hover{color:var(--text);border-color:var(--faint)}
 .mini-example .mx-switch-row{display:flex;padding:8px 12px;border-bottom:1px solid var(--code-border)}
@@ -273,13 +317,10 @@ const CSS = `
 .mini-example .tk-punct{color:var(--tok-punct)}
 .mini-example .tk-muted{color:var(--muted)}
 .mini-example .tk-key{position:relative;cursor:help;text-decoration:underline dotted;text-decoration-color:var(--faint);text-underline-offset:3px}
-.mini-example .tk-key::after{content:attr(data-tip);position:absolute;left:0;bottom:calc(100% + 7px);z-index:30;width:max-content;max-width:230px;padding:7px 10px;background:var(--text);color:var(--surface);border-radius:8px;font:450 11.5px/1.45 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:normal;white-space:normal;text-align:left;box-shadow:0 8px 24px rgba(15,15,35,.22);opacity:0;transform:translateY(3px);pointer-events:none;transition:opacity .12s ease,transform .12s ease}
-.mini-example .tk-key:hover::after{opacity:1;transform:translateY(0)}
+.mini-example .mx-tip{position:absolute;z-index:30;width:max-content;max-width:min(230px,100%);padding:7px 10px;background:var(--text);color:var(--surface);border-radius:8px;font:450 11.5px/1.45 'IBM Plex Sans',system-ui,sans-serif;letter-spacing:normal;white-space:normal;text-align:left;box-shadow:0 8px 24px rgba(15,15,35,.22);pointer-events:none;transform:translateY(-100%)}
 .mini-example .mx-result{border-color:var(--border);background-color:var(--app-bg);background-image:radial-gradient(var(--app-grid) 1px,transparent 1px);background-size:13px 13px}
 .mini-example .mx-result .mx-card-head{border-bottom-color:var(--border);background:var(--surface)}
 .mini-example .mx-live-body{flex:1;display:flex;align-items:center;justify-content:center;padding:30px 20px;min-height:128px}
-.mini-example .mx-live-body button{font:600 14px 'IBM Plex Sans',system-ui,sans-serif;background:var(--accent);color:#fff;border:none;padding:11px 18px;border-radius:10px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.2)}
-.mini-example .mx-live-body button:hover{filter:brightness(1.06)}
 .mini-example .mx-built{margin-top:16px}
 .mini-example .mx-built>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:9px;padding:10px 2px;color:var(--muted);font-size:13px;font-weight:500;user-select:none}
 .mini-example .mx-built>summary::-webkit-details-marker{display:none}

@@ -47,14 +47,14 @@ export const boardLines: ComponentEntry[] = [
   {
     key: "title",
     component: "Heading",
-    props: { literal: { level: "2", children: "Flow board" } },
+    props: { literal: { level: "2", text: "Flow board" } },
   },
   {
     key: "subtitle",
     component: "Text",
     props: {
       literal: {
-        children:
+        text:
           "One bespoke component, two custom event shapes: dragging a node emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to } — both flowing through the same declarative callback mechanism.",
         variant: "muted",
       },
@@ -113,7 +113,7 @@ export const boardLines: ComponentEntry[] = [
   {
     key: "auto-btn",
     component: "Button",
-    props: { literal: { children: "Auto-arrange", variant: "outline" } },
+    props: { literal: { text: "Auto-arrange", variant: "outline" } },
     callbacks: {
       onClick: [
         {
@@ -130,7 +130,7 @@ export const boardLines: ComponentEntry[] = [
   {
     key: "clear-btn",
     component: "Button",
-    props: { literal: { children: "Clear links", variant: "ghost" } },
+    props: { literal: { text: "Clear links", variant: "ghost" } },
     callbacks: {
       onClick: [
         {
@@ -170,7 +170,7 @@ export const boardLines: ComponentEntry[] = [
     key: "evt-text",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",
+      expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",
     },
   },
 ];

@@ -1,0 +1,130 @@
+# Next.js demo
+
+`packages/nextjs-demo` is a small back office over three tables: products,
+customers and orders in a local SQLite database. It has some hand-written UI — a
+sidebar, a chat panel, the shell — but not one component for the screens. Every
+table, form and detail view is generated.
+
+It shows the **front-end-less pattern** — uicast's name for an app with no
+pages. There is a data model, an HTTP API over it, tools describing that API,
+and a component catalog. The screens are generated per request, so nobody writes
+the table, the form, the filter bar, or the wiring between them.
+
+## Install and run
+
+```sh
+npm install                                   # repo root
+npm run db:migrate -w @uicast/nextjs-demo
+npm run db:seed -w @uicast/nextjs-demo
+npm run dev -w @uicast/nextjs-demo
+```
+
+Put `AI_GATEWAY_API_KEY` in `packages/nextjs-demo/.env.local` — a plain model id
+resolves through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway).
+`AI_MODEL` and `AI_MAX_OUTPUT_TOKENS` are optional.
+
+Then **Create page** for a full generated page, or **New chat** for answers that
+render as live UI:
+
+- `Order dashboard with quick status actions`
+- `Product catalog with an add-product form`
+- `How much did we earn this month?`
+- `Help me clear the pending queue`
+
+The generated UIs are apps, not pictures: forms validate and submit, buttons
+mutate the database through the domain tools, destructive actions ask for
+confirmation, and every widget bound to the same state moves together.
+
+## What you still write
+
+| You write | The model writes |
+|---|---|
+| The **data model** — tables, relations, constraints. | Which fields to show, and in what order. |
+| The **API** — one endpoint per resource operation. | Which endpoints a screen calls, and when. |
+| The **tools** — a typed description of that API. | The calls themselves, inside expressions. |
+| The **catalog** — your design system as def/impl pairs. | The composition: what goes in what, with which props. |
+
+Everything on the left you would have written anyway.
+
+## The tools are your own API
+
+A tool is not a second backend. Each is a few lines over the same REST endpoint
+a hand-written front end would have called:
+
+```ts filename="src/tools/list-products.ts"
+export const listProducts = standardTool({
+  name: "listProducts",
+  description: "List all products.",
+  outputSchema: z.array(productOutput),
+  execute: () => apiFetch("/api/products"),
+});
+```
+
+`productOutput` comes from the Drizzle table, so the schema the model reads and
+the one the database enforces are the same declaration. Fifteen of these cover
+the demo — `list` / `get` / `create` / `update` / `delete` across **products**,
+**customers** and **orders**. That is everything the model is given.
+
+## The model gets the domain, not the platform
+
+The demo's database also holds `pages`, `component_entries`, `chats` and
+`messages` — the app's own tables. They have endpoints, and are deliberately
+**left out** of the tool set:
+
+```ts
+// The full set handed to the prompt assembler. Page/entry endpoints are
+// intentionally excluded — the page system isn't the model's to mutate.
+export const domainTools: StandardToolV0[] = [
+  listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer,
+  listProducts, getProduct, createProduct, updateProduct, deleteProduct,
+  listOrders, getOrder, createOrder, updateOrder, deleteOrder,
+];
+```
+
+A generated page can create an order. It cannot create a page, edit another
+page's entries, or read the chat history — not because a rule forbids it, but
+because those functions were never handed to it. The tool list is the
+boundary.
+
+## A saved page is rows, not code
+
+Generation streams [entries](/entry) into `component_entries`, one row per line,
+keyed by page. Serving that page later is a query and a mount — no build step,
+no deploy, no file written. Editing it is another generation appended to the
+same page, using [partial replacement](/entry/fields#key) to re-emit only the
+keys that changed.
+
+The demo carries the same amount of front-end code whether it has three pages
+or three hundred: none.
+
+## Layout
+
+```
+packages/nextjs-demo
+├── src/db/schema.ts     products · customers · orders   (the domain)
+│                        pages · component_entries       (generated UI, persisted)
+│                        chats · messages                (the chat surface)
+├── src/tools/           15 standard-tools over the REST API
+├── src/app/api/         the REST API itself, plus /api/generate
+└── src/app/pages/[id]   mounts a saved document
+```
+
+SQLite through Drizzle and `better-sqlite3` — a file at `./data/app.db`, WAL
+mode, foreign keys on. Nothing about the pattern needs SQLite; it is simply the
+smallest example that shows the *database* is the app.
+
+Generation is streamed to the browser as described in
+[Streaming](/streaming), with the prompt assembled from `allDefinitions` and
+`domainTools` — see [Assembling the prompt](/prompt).
+
+## Where the pattern stops
+
+It is a pattern, not a law. A screen with a hard visual contract — a marketing
+page, a print-precise invoice, a chart with hand-tuned axes — is faster to write
+than to describe, and nothing here prevents writing it. The pattern pays off on
+the long tail: the fortieth admin view, the one-off report, the filter somebody
+needs on Tuesday.
+
+The lever is the catalog. A generated screen can only be as good as the
+components it is composing, which is why [component definitions](/def) are where
+the effort goes once the API exists.

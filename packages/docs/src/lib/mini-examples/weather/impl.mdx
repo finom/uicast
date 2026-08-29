@@ -1,6 +1,13 @@
-```js localpath="packages/docs/src/lib/mini-examples/weather/impl.js"
+```tsx localpath="packages/docs/src/lib/mini-examples/weather/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
-import { Card, CardContent } from "@uicast/shadcn-catalog/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { WeatherCardDef } from "./def";
 
 const CITIES = ["Amsterdam", "Tokyo", "Oslo"];
@@ -10,15 +17,18 @@ export const WeatherCardImpl = createComponentImplementation({
   render: ({ city, tempC, condition, onCity }) => (
     <Card className="w-55">
       <CardContent className="grid gap-3 text-center">
-        <select
-          className="justify-self-center rounded-md border border-input bg-transparent px-2 py-1 text-sm"
-          value={city}
-          onChange={(e) => onCity({ city: e.target.value })}
-        >
-          {CITIES.map((name) => (
-            <option key={name}>{name}</option>
-          ))}
-        </select>
+        <Select value={city} onValueChange={(value) => onCity({ city: value })}>
+          <SelectTrigger size="sm" className="justify-self-center">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CITIES.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {tempC === undefined ? (
           <div className="text-sm text-muted-foreground">Loading…</div>
         ) : (

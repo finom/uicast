@@ -1,13 +1,13 @@
 # Component definition
 
-A catalog component is a **pair**: a *definition* and an *implementation*. The
-definition — a `def.ts` module — is the half a model reads; the implementation —
-its `impl.tsx` partner — is the half React runs. An [entry](/entry/fields)'s
+A catalog component is a **pair**: `def.ts` is the half the model reads,
+`impl.tsx` the half React runs (React today; a definition is
+framework-agnostic, and another binding would pair it with its own
+implementation). An [entry](/entry/fields)'s
 [`component`](/entry/fields#component), [`props`](/entry/fields#props), and
-[`callbacks`](/entry/fields#callbacks) fields all name into the definition: it is
-the contract that tells the model a component exists, what props it accepts, and
-what events it emits. This page is the definition; everything the model knows
-about a component, it knows from here.
+[`callbacks`](/entry/fields#callbacks) all name into the definition — it is the
+contract saying a component exists, what props it takes, and what events it
+sends. Everything the model knows about a component comes from here.
 
 ```ts
 interface ComponentDefinition {
@@ -19,19 +19,15 @@ interface ComponentDefinition {
 }
 ```
 
-Both `props` and every callback are a `StandardSchemaV1 & StandardJSONSchemaV1`
-(from [`@standard-schema/spec`](https://standardschema.dev), aliased `CombinedSpec`
-in core): a schema that is both a runtime validator *and* serializable to JSON
-Schema. uicast draws on the JSON-Schema half — it is what renders into the
-prompt as a type — and on the inferred TypeScript types the implementation reads
-back; the engine does **not** validate props against the schema at render time
-(an entry's `props` value source is evaluated and handed to the implementation
-as-is). Any library implementing StandardSchema
-and StandardJSONSchema qualifies; the catalog uses Zod throughout. You build the object with `createComponentDefinition`, which infers
-the `props` and `callbacks` types at the call site — so the implementation can read
-them back — and returns it unchanged.
+`props` and every callback must be a `StandardSchemaV1 & StandardJSONSchemaV1`
+(from [`@standard-schema/spec`](https://standardschema.dev), aliased
+`CombinedSpec` in core): a runtime validator that also converts to JSON Schema.
+The JSON Schema is printed into the prompt as a TypeScript-like signature. The
+implementation receives the actual type, inferred from the same schema.
 
-```ts
+Zod 4.2+, Valibot and ArkType all qualify; the examples use Zod.
+
+```ts filename="src/uicast/badge/def.ts"
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
@@ -40,12 +36,12 @@ export const BadgeDef = createComponentDefinition({
   description:
     "A small status indicator badge for labels, counts, or tags. Use it for " +
     "status (active, pending), categories, counts, or any short label.",
-  props: z.strictObject({
-    children: z.any().optional().meta({ description: "The badge text content" }),
+  props: z.object({
+    text: z.string().optional().meta({ description: "The badge text content" }),
     variant: z
-      .enum(["default", "secondary", "destructive", "outline"])
-      .default("default")
-      .meta({ description: "Visual style: default, secondary, destructive, outline" }),
+      .enum(["neutral", "info", "warning", "danger"])
+      .default("neutral")
+      .meta({ description: "Visual style: neutral, info, warning, danger" }),
   }),
 });
 ```
@@ -53,68 +49,65 @@ export const BadgeDef = createComponentDefinition({
 ## `name`
 The exact string the model writes in an entry's
 [`component`](/entry/fields#component) field — **PascalCase**, unique across the
-catalog. The renderer maps it to the implementation, and the prompt builder lists
-it in the component menu; two defs with the same `name` is an error.
+catalog. The renderer maps it to the implementation; the prompt builder lists it
+under `# Available Components`. Two defs sharing a name throw
+`Duplicate component name: "Badge"`.
 
 ## `description`
-Prose the model reads to decide *when* to reach for the component. It is
-documentation written **for a model, not a person**: say what the component is and
-the situations it fits, the way the `Badge` description above names "status,
-categories, counts." This text is the component's entire briefing — a vague one
-means the model either misuses the component or skips it.
+The model's whole briefing on the component: it reads this to decide *when* to
+use it, and the text lands word for word on the `- Badge — …` line below.
 
 ## `props` — the contract with the model
-A schema describing the props object. It is serialized into the system prompt as a
-TypeScript-like type, so everything you attach to a field is information the model
-sees:
-
-- `.meta({ description })` — what the field means;
-- `.default(…)` — marks the field **optional** in the prompt, exactly like
-  `.optional()`; the default *value* never reaches the prompt and the engine
-  never applies it, so the implementation supplies it
-  (`render: ({ variant = "default" }) => …`). Put it in `.meta({ description })`
-  if the model should know it;
-- `.optional()` — that the field may be left out.
-
-Fed to `getComponentsPartialPrompt({ definitions: [BadgeDef] })`, the def above
-becomes exactly this under `# Component Details` — this text, verbatim, is what
-the model reads:
+Whatever you put in the schema, the model sees. Omit it for a component that
+takes none, like a layout wrapper. `getComponentsPartialPrompt` turns the def
+above into:
 
 ```
-- Badge — A small status indicator badge for displaying labels, counts, or tags. Renders as an inline pill-shaped element. Use Badge to show status (active, pending), categories, counts, or any short label that needs visual emphasis.
+- Badge — A small status indicator badge for labels, counts, or tags. Use it for status (active, pending), categories, counts, or any short label.
   Props:
-    - children?: unknown — The badge text content
-    - variant?: "default" | "secondary" | "destructive" | "outline" — Visual style: default (primary color), secondary (muted), destructive (red/danger), outline (bordered only)
+    - text?: string — The badge text content
+    - variant?: "neutral" | "info" | "warning" | "danger" = "neutral" — Visual style: neutral, info, warning, danger
 ```
 
-`z.any().optional()` prints as `unknown`; `variant` is marked `?` because of
-`.default("default")` — and the default *value* appears nowhere on the line.
+Describe **every** field with `.meta` — an undescribed one prints as a bare type,
+and the model is left guessing which of the four a paid order wants.
+`.default("neutral")` marks `variant` optional for the model, prints as `=
+"neutral"` so the model knows what omitting it gives, and supplies that value
+when an entry does omit it — props are parsed through this schema before
+[`render`](/react/impl) sees them, so the implementation just reads `variant`.
 
-That is the shape an entry's [`props`](/entry/fields#props) value source has to
-produce:
+An entry's [`props`](/entry/fields#props) then has to produce that shape:
 
 ```jsonc
 { "key": "order-status", "component": "Badge",
-  "props": { "expr": "({ children: scopes.root.order.status, variant: scopes.root.order.status === 'paid' ? 'default' : 'destructive' })" } }
+  "props": { "expr": "({ text: scopes.root.order.status, variant: scopes.root.order.status === 'paid' ? 'neutral' : 'danger' })" } }
 ```
 
-Describe **every** field with `.meta`: `props` is the contract, and an
-undocumented field is a field the model has to guess.
+Prefer `z.object` over `z.strictObject`: a prop the model invented is dropped in
+parsing, where a strict schema would fail the whole element over it. A declared
+prop of the wrong type still fails — that is the one that breaks rendering.
+
+**Never `children`.** That name is the entry field listing child element keys, so
+a def declaring it as a prop throws on creation. Name the prop for what it holds
+— `text`, `title`, `label`. Nested elements still reach the implementation as
+React `children`, see [`impl.tsx`](/react/impl).
 
 ## `callbacks` — event payloads
-An optional map of event name → payload schema. Each entry declares the shape of
-`evt` the model can read inside that callback's
-[steps](/entry/fields#callbacks) — the exact fields it sees when it writes
-`{ "expr": "evt.value" }`.
+An optional map of event name to payload schema. Each declares the shape of
+`evt` inside that callback's [steps](/entry/fields#callbacks) — the exact fields
+available when the model writes `{ "expr": "evt.value" }`.
 
 ```ts
-callbacks: {
-  onChange: z.strictObject({
-    value: z.string().meta({ description: "The current value" }),
-  }),
-  onClear: z.strictObject({}).meta({ description: "Clear button clicked" }),
-  onKeyDown: keyboardEventSchema,
-}
+createComponentDefinition({
+  // …
+  callbacks: {
+    onChange: z.object({
+      value: z.string().meta({ description: "The current value" }),
+    }),
+    onClear: z.null().meta({ description: "Clear button clicked" }),
+    onKeyDown: keyboardEventSchema,
+  },
+});
 ```
 
 With `keyboardEventSchema` registered as a common event, that block renders as:
@@ -123,11 +116,11 @@ With `keyboardEventSchema` registered as a common event, that block renders as:
   Event handlers:
     - onChange(evt)
       - value: string — The current value
-    - onClear(evt: {}) — Clear button clicked
+    - onClear() — Clear button clicked
     - onKeyDown(evt: KeyboardEvent)
 ```
 
-which is the whole reason the model can write this, and nothing else:
+That block is the only reason the model can write this:
 
 ```jsonc
 { "key": "search", "component": "SearchInput",
@@ -135,50 +128,95 @@ which is the whole reason the model can write this, and nothing else:
   "callbacks": { "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }] } }
 ```
 
-The payload schema is the model's only knowledge of `evt`: the `onChange` above is
-why `evt.value` is a valid expression and `evt.text` is not. A callback whose
-payload carries nothing still gets an empty `z.strictObject({})`, so the model
-knows the event exists — or, by convention, `z.null()`, which marks the event as
-carrying **no payload**. Both sides follow from it — `callbacks: { onPress:
-z.null().meta({ description: "Fires when pressed" }) }` prints as
+A callback carrying nothing is **`z.null()`**, which prints as a no-argument
+call:
 
 ```
   Event handlers:
     - onPress() — Fires when pressed
 ```
 
-and the implementation's handler takes nothing:
-`render: ({ onPress }) => <button onClick={() => onPress?.()}>Press</button>`.
 
-**Shared events.** Payloads that recur across many components — a click's mouse
-position, a keypress — are defined once as common-event schemas
-(`mouseEventSchema`, `keyboardEventSchema`) and referenced by name, rather than
-re-inlined on every component that fires them. In the prompt they render as a
-single named block, which keeps the component menu small.
+The implementation follows the same schema —
+`render: ({ onPress }) => <button onClick={() => onPress()}>Press</button>`.
+Every declared callback is callable even if no entry wired it; an unwired
+handler is a no-op, so implementations never guard.
 
-The link is the schema's **JSON-Schema `$id`**: a callback whose payload carries
-the same `$id` as a registered common event (Zod: `.meta({ $id: "MouseEvent" })`)
-renders as a reference to that named type instead of re-inlining the shape.
-Matching is purely on `$id`, so it stays library-agnostic — anything that emits
-one participates. Assembling the prompt with a common event that has **no** `$id`,
-or a **duplicate** `$id`, throws; a callback whose payload matches no registered
-`$id` simply inlines as usual.
+### Shared events
+`onClick` fires from a dozen components, and its payload would print on each of
+them. Write it once, with a JSON Schema `$id`:
+
+```ts
+// src/uicast/events/keyboard.ts
+export const keyboardEventSchema = z
+  .object({
+    key: z.string().meta({ description: 'The key value (e.g. "Enter", "a")' }),
+    repeat: z.boolean().meta({ description: "Whether the key is auto-repeating" }),
+  })
+  .meta({ $id: "KeyboardEvent", description: "Fires on a key press" });
+
+// in every def that fires it
+createComponentDefinition({
+  // …
+  callbacks: { onKeyDown: keyboardEventSchema },
+});
+
+// and once, where the prompt is assembled
+getComponentsPartialPrompt({ definitions, commonEvents: [keyboardEventSchema] });
+```
+
+The fields now print once, and each handler is one line — `onKeyDown(evt: KeyboardEvent)`:
+
+```
+# Common Events
+
+- KeyboardEvent — Fires on a key press
+  - key: string — The key value (e.g. "Enter", "a")
+  - repeat: boolean — Whether the key is auto-repeating
+```
+
+Matching is on `$id` alone. Leave the schema out of `commonEvents` and its
+fields inline under every handler instead; a common event with no `$id`, or two
+sharing one, throws at assembly.
+
+The implementation still owes that exact payload, since a React event object is
+not it:
+
+```tsx
+createComponentImplementation({
+  // …
+  render: ({ onKeyDown }) => (
+    <input onKeyDown={(e) => onKeyDown({ key: e.key, repeat: e.repeat })} />
+  ),
+});
+```
 
 ## `hidden` — host-only components
-`hidden: true` keeps the def in the renderer's registry — so entries that
-reference it still mount — but filters it out of the prompt, from both the
-component list and the schema dump. Use it for host infrastructure the model
-should never emit itself; the synthetic root fragment that hosts a document's
-startup callback is the canonical case.
+`hidden: true` keeps a def out of the prompt while leaving it in the renderer's
+registry: an entry naming it still mounts, but the model is never told it
+exists.
 
 ## Registration
-A definition is inert until it sits in two places:
+A definition does nothing until it is registered twice: once for the prompt,
+once for the renderer.
 
-- the catalog's **definitions** array (`allDefinitions`) — this drives the prompt;
-- the matching **implementation**, in the array handed to the renderer — this
-  drives rendering.
+```tsx
+import { getComponentsPartialPrompt } from "@uicast/core/prompt";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { BadgeDef } from "./badge/def";
+import { BadgeImpl } from "./badge/impl";
 
-Nothing links the two automatically. Add a component and you update both maps, or
-the model can emit a component that won't render — or you ship an implementation
-the model was never told about. The definition you write here is one half of the
-pair; its [`impl.tsx` partner](/react/impl) is the other.
+getComponentsPartialPrompt({ definitions: [...allDefinitions, BadgeDef] });
+
+<RendererProvider implementations={[...allImplementations, BadgeImpl]}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+Register only the def and the model emits a `Badge` that lands in the
+[`error` slot](/error-recovery) as `reason: "unknown-component"`; register only
+the impl and the model was never told the component exists.
+
+The [`impl.tsx` half](/react/impl) is next.

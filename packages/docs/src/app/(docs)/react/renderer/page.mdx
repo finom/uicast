@@ -1,15 +1,14 @@
 # Renderer
 
-The React binding is two pieces. `<RendererProvider>` is the **host side**: it
-carries your [component implementations](/react/impl), the
-[host functions](/functions), the engine's fallback UI — and **one shared
-reactive store** for everything beneath it. `<EntriesRenderer>` is the **mount
-point**: give it a stream of [entries](/entry) and it renders the entry tree
-into live React, evaluating every expression against that shared state and
-re-rendering each node as the state changes.
+Two pieces, both from `@uicast/react`.
 
-Both are exported from `@uicast/react`. This is the **host** side of the
-engine; the [entry format](/entry) is what the model produces for it.
+`<RendererProvider>` is the **host side**: your
+[implementations](/react/impl), your [host functions](/functions), the engine's
+fallback UI, and one shared reactive store for everything beneath it.
+
+`<EntriesRenderer>` is the **mount point**: give it [entries](/entry) and it
+renders them, evaluating every expression against that store and re-rendering as
+state changes.
 
 ## Mounting a document
 
@@ -17,121 +16,152 @@ engine; the [entry format](/entry) is what the model produces for it.
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 
+const entries = [
+  { key: "hello", component: "Text", props: { literal: { text: "Hello" } } },
+];
+
 <RendererProvider implementations={allImplementations} functions={hostFunctions}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
-That is the whole contract. The provider builds a `name → implementation`
-lookup and creates the group's **root scope**; the renderer walks the entries
-in tree order and mounts each one — evaluating its `props`, `hidden`, `seed`,
-and `callbacks` against that scope.
+The provider builds the `name → implementation` lookup and creates the group's
+**root scope**. The renderer walks the entries in
+tree order and mounts each one.
 
 ## One store, many renderers
 
 Every `<EntriesRenderer>` under the same provider renders against the **same
-`root` scope**. A write in one document — a callback assignment, a seed — is
-live in every other document that reads the path:
+`root` scope**:
 
 ```tsx
 <RendererProvider implementations={allImplementations} functions={hostFunctions}>
-  <EntriesRenderer entries={ordersBlock} />   {/* seeds scopes.root.orders */}
-  <EntriesRenderer entries={statsBlock} />    {/* reads scopes.root.orders — live */}
+  <EntriesRenderer entries={ordersBlock} />
+  <EntriesRenderer entries={statsBlock} />
 </RendererProvider>;
 ```
 
-This is what makes chat surfaces coherent: each ```` ```uicast ```` block in a
-conversation is its own `<EntriesRenderer>`, and together they behave as **one
-app** — the same path means the same data in every block (see
-[Streamdown plugin](/streamdown)). Seeds use first-writer-wins semantics
-(`default: true`), so a repeated seed never clobbers state that already exists —
-which is why the fence prompt makes every block seed everything it reads: a
-no-op in the chat, and the block still works extracted as a standalone page.
+```jsonc
+// ordersBlock
+{ "key": "new-order", "component": "Button",
+  "seed": [{ "set": "scopes.root.orderCount", "literal": 1 }],
+  "props": { "literal": { "text": "New order" } },
+  "callbacks": { "onClick": [{ "set": "scopes.root.orderCount", "expr": "currentValue + 1" }] } }
 
-To *isolate* documents instead, give each its own provider.
+// statsBlock
+{ "key": "order-count", "component": "Stat",
+  "seed": [{ "set": "scopes.root.orderCount", "literal": 0 }],
+  "props": { "expr": "({ label: 'Orders', value: scopes.root.orderCount })" } }
+```
+
+The Stat shows `1`, not `0`: [`seed`](/entry/fields#seed) is first-writer-wins,
+so the second block's seed leaves what the first wrote. Click the button and it
+shows `2`.
+
+This is why the fence prompt makes every block seed everything it reads — a
+no-op beside a block that already seeded it, and the block still works on its
+own. Each ```` ```uicast ```` block is its own `<EntriesRenderer>` (see
+[Streamdown plugin](/streamdown)).
+
+To isolate documents instead, give each its own provider.
 
 ## `RendererProvider` props
 
-- **`implementations`** — the [`ComponentImplementation`](/react/impl) array the entries
-  can mount, partner to the def [registration](/def#registration). On a duplicate
-  `name` the **later entry wins** (`[...allImplementations, MyCard]` replaces the
-  catalog's `MyCard`) and a `console.error` is logged. `RootFragment` is
-  **reserved**: the provider merges its own host implementation in under that
-  name *after* your array, so one you name `RootFragment` is silently replaced.
-- **`functions`** *(optional)* — a `StandardToolV0[]`
-  ([standard-tool](https://standard-tool.js.org/): each entry a `name`, a
-  `description`, optional input/output schemas, and an `execute`). They are
-  exposed as **bare identifiers** to every expression the engine evaluates, though the contract scopes calls to
-  [`seed`](/entry/fields#seed) and [`callbacks`](/entry/fields#callbacks),
-  written `name(input)`: `props` and `hidden` evaluate synchronously during
-  render, so the prompt forbids host calls there. This is how a generated UI
-  reaches your API — see [Host functions](/functions).
-- **`defaultComponents`** *(optional)* — the engine's fallback UI; see
-  [below](#defaultcomponents--the-engines-fallback-ui).
-- **`allowedGlobals`** *(optional)* — extra expression globals; see
+- **`implementations`** — the [`ComponentImplementation`](/react/impl) array,
+  partner to the def [registration](/def#registration). A duplicate `name`
+  throws. To replace a catalog component, filter its name out of both arrays
+  rather than appending over it.
+- **`functions`** *(optional)* — a `StandardToolV0[]`; how a generated UI reaches
+  your API. See [Host functions](/functions).
+- **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
+  [below](#fallbackcomponents--the-engines-fallback-ui).
+- **`allowGlobals`** *(optional)* — extra expression globals; see
   [below](#allowedglobals--extend-the-expression-allow-list).
-- **`init`** *(optional)* — a one-shot side effect for the whole group: it runs
-  once, when the first `<EntriesRenderer>` mounts, before its entries evaluate.
-  It receives `{ scopes }` and may seed `scopes.root.*`; a returned Promise
-  suspends the awaiting renderers until it resolves. Use it to preload state
-  the documents read — see [State &amp; Scopes](/entry/state).
-- **`onError`** *(optional)* — called once per classified failure: every failure
-  the `error` slot shows, **plus callback failures, which never render a slot**
-  (a callback doesn't render, so `onError` is its only channel). It receives the
-  same `EntryError`. Branch on `error.fault`: `"document"`
-  means the model's output is at fault and a recovery re-emission can fix it;
-  `"environment"` means host code failed. See
-  [Error recovery § Classification](/error-recovery#classification-entryerror-and-onerror).
+- **`init`** *(optional)* — a one-shot side effect for the whole group, to
+  preload state the documents read; see
+  [below](#init--preload-state-for-the-group) and
+  [State &amp; Scopes](/entry/state).
+- **`onError`** *(optional)* — called once per classified failure: everything the
+  `error` slot shows, **plus callback failures**, which render no slot at all. See
+  [Error recovery](/error-recovery#classification-entryerror-and-onerror).
 - **`scopes`** *(optional)* — extra named scopes exposed alongside `root`, for
-  host context the documents may read (`scopes.userCtx.…`). Each value must be a
-  reactive scope built with [`createProxyScope`](/core#scopes) — a plain object
-  has no `$set` / `$emitter`. Captured on mount, so build it at module scope.
+  host context the documents may read; see
+  [below](#scopes--host-context-alongside-root).
 
-`<EntriesRenderer>` takes one prop: **`entries`** — the
-[`ComponentEntry`](/entry) lines to render, in tree order. Pass a **new array**
-as lines stream in (`[...entries, next]`) — `<EntriesRenderer>` is memoized on
-the `entries` reference, so an in-place `push` renders nothing. Settled subtrees
-don't re-render as later entries arrive.
-It must be rendered inside a `<RendererProvider>` and throws a clear error
-otherwise.
+`<EntriesRenderer>` takes one prop, **`entries`**, memoized on the array
+reference — so a streaming line must arrive as a new array:
+
+```tsx
+setEntries((prev) => [...prev, next]); // ✅ new reference — the line mounts
+entries.push(next); //                    ❌ same reference — nothing renders
+```
+
+Settled subtrees do not re-render as later entries arrive. It throws if rendered
+outside a `<RendererProvider>`.
 
 ### Pass stable references
 
-`implementations` and `functions` feed a React context whose identity must stay
-stable, or **every node re-renders**. Define them as module constants (or
-memoize) — never an inline `[...]` or `Object.values(...)` rebuilt each render.
+`implementations` and `functions` feed a context whose identity must stay stable,
+or **every element re-renders**. Use module constants:
 
 ```tsx
-const implementations = [...allImplementations, MyCard]; // module scope ✓
-const functions = [saveRow, deleteRow]; //                   module scope ✓
+const implementations = [...allImplementations, MyCard]; // ✅ module scope
+const functions = [listRows, deleteRow]; //                 ✅ module scope
+
+// ❌ a fresh array each render — every node under it re-renders
+<RendererProvider implementations={[...allImplementations, MyCard]}>…</RendererProvider>;
 ```
 
-### `defaultComponents` — the engine's fallback UI
+### `functions` — callable from `seed` and `callbacks`
 
-The slots the engine renders on its own behalf, distinct from `implementations`
-(the components the model names). Three are wired:
+Host functions appear in expressions as **bare identifiers**, called
+`name(input)`, and only in [`seed`](/entry/fields#seed) and
+[`callbacks`](/entry/fields#callbacks):
+
+```jsonc
+{ "key": "grid", "component": "DataGrid",
+  "seed": [{ "set": "scopes.root.rows", "expr": "listRows()" }],
+  "props": { "expr": "({ columns: [{ key: 'name', header: 'Name' }], rows: scopes.root.rows })" },
+  "callbacks": { "onRowClick": [
+    { "expr": "deleteRow({ id: evt.row.id })" },        // no `set` — runs for its effect alone
+    { "set": "scopes.root.rows", "expr": "listRows()" }
+  ] } }
+```
+
+`props` and `hidden` evaluate synchronously, so the same call in `props` hands
+the component a Promise instead of rows, and re-fires on every render:
+
+```jsonc
+// ❌
+{ "key": "grid", "component": "DataGrid",
+  "props": { "expr": "({ columns: [{ key: 'name', header: 'Name' }], rows: listRows() })" } }
+```
+
+### `fallbackComponents` — the engine's fallback UI
+
+The slots the engine renders itself, as opposed to `implementations`, which the
+model names. Three:
 
 | Slot | Rendered when | Default if omitted |
 |---|---|---|
-| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry/fields#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending node stays empty |
+| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry/fields#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending element stays empty |
 | `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
 | `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | bare inline-styled `div` |
 
-Each slot is optional; supply only the ones you want to style. The `confirm`
-and `error` defaults keep the engine renderable with **zero UI dependencies**;
-the catalog ships polished versions — `ConfirmModal`, `RenderError` — that you
-wire in explicitly:
+Each is optional. The built-in `confirm` and `error` keep the engine renderable
+with **zero UI dependencies**; the catalog ships nicer ones you wire in
+yourself:
 
 ```tsx
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import {
   ConfirmModal,
   RenderError,
-} from "@uicast/shadcn-catalog/default-components";
+} from "@uicast/shadcn-catalog/fallback-components";
 
 <RendererProvider
   implementations={allImplementations}
-  defaultComponents={{
+  fallbackComponents={{
     confirm: ConfirmModal,
     error: RenderError,
   }}
@@ -140,10 +170,7 @@ import {
 </RendererProvider>;
 ```
 
-Like `implementations`, pass a **stable reference**: it folds into the same
-context.
-
-To author your own slot, match the props the engine hands it — both types are
+To write your own slot, match the props the engine passes. Both types are
 exported from `@uicast/react`:
 
 ```ts
@@ -160,35 +187,124 @@ type ErrorComponentProps = {
 };
 ```
 
-Every failure arrives as an [`EntryError`](/error-recovery#classification-entryerror-and-onerror)
-— an unknown component name included, as `reason: "unknown-component"` — so one
-`error` component can show case-specific UI by switching on `error.reason`.
+Every failure arrives as an
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror), including
+an unknown component name, so one component can branch on it:
 
-`confirm` is a **controlled** dialog — always mounted, shown by `open` — so your
-component holds no open/closed state of its own; the engine owns it. The
-`placeholder` slot takes **no props** (`() => ReactElement`).
+```tsx
+const ErrorSlot = ({ error, elementKey }: ErrorComponentProps) => {
+  if (error.reason === "unknown-component")
+    return <div>No implementation for “{elementKey}”</div>;
+  // a "document" fault is the model's to fix; an "environment" fault is yours
+  if (error.fault === "document")
+    return <button onClick={() => regenerate(elementKey)}>Regenerate</button>;
+  return <div>Something broke here: {error.message}</div>;
+};
+```
 
-### `allowedGlobals` — extend the expression allow-list
+`regenerate` is your app's re-emission trigger — see
+[Error recovery](/error-recovery).
 
-Expressions may reference only a fixed [safe set of globals](/entry/expressions#safety)
-(`Math`, `JSON`, `Date`, …); anything else is rejected before it runs.
-`allowedGlobals` **adds** to that set — benign globals the default list omits:
+`confirm` is a **controlled** dialog: always mounted, shown by `open`, so your
+component holds no state of its own. A callback step carrying `confirm:` opens
+it:
+
+```jsonc
+{ "key": "delete", "component": "Button",
+  "props": { "literal": { "text": "Delete", "variant": "destructive" } },
+  "callbacks": { "onClick": [
+    { "confirm": "Delete this row? This can't be undone.", "expr": "deleteRow({ id: scopes.root.rowId })" },
+    { "set": "scopes.root.rows", "expr": "listRows()" }
+  ] } }
+```
+
+Cancel and neither step runs — a `confirm` step is a barrier.
+
+The `placeholder` slot takes **no props**.
+
+### `allowGlobals` — extend the expression allow-list
+
+Expressions may reference only a fixed
+[safe set of globals](/entry/expressions#safety). `allowGlobals` **adds** to
+it:
 
 ```tsx
 <RendererProvider
   implementations={allImplementations}
-  allowedGlobals={["structuredClone", "crypto"]}
+  allowGlobals={["structuredClone", "crypto"]}
 >
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
-It is **additive only**: it cannot re-enable the capability globals the engine
-shadows (`fetch`, `Function`, `setTimeout`, …), which stay blocked whatever you
-list. See [Safety](/entry/expressions#safety) for the full model.
+You also need to pass the same list to
+[`getExpressionsPartialPrompt`](/prompt), or the model is never told the names
+exist and will not use them.
+
+**Additive only.** It cannot re-enable the globals the engine shadows (`fetch`,
+`Function`, `setTimeout`, …). See [Safety](/entry/expressions#safety).
+
+### `init` — preload state for the group
+
+Runs once, when the first `<EntriesRenderer>` mounts, before its entries
+evaluate:
+
+```tsx
+import type { InitFn } from "@uicast/react";
+
+const init: InitFn = async ({ scopes }) => {
+  // a plain assignment through the Proxy emits the change events a `$set` does
+  (scopes.root as Record<string, unknown>).user = await fetchUser();
+};
+
+<RendererProvider implementations={implementations} init={init}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+Every entry under it can read `scopes.root.user.name` on its first render. A
+returned Promise suspends the group, which shows the
+[`placeholder` slot](#fallbackcomponents--the-engines-fallback-ui) until it
+resolves.
+
+### `scopes` — host context alongside `root`
+
+Each value must be a scope built with [`createProxyScope`](/api#uicastcore); a plain
+object has no `$set` or `$emitter`. Captured on mount, so build it at module
+scope:
+
+```tsx
+import { createProxyScope } from "@uicast/core";
+
+const userCtx = createProxyScope({ name: "Hopper", plan: "pro" });
+
+<RendererProvider implementations={implementations} scopes={{ userCtx }}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+An entry reads it exactly like `root`:
+
+```jsonc
+{ "key": "hello", "component": "Text",
+  "props": { "expr": "({ text: 'Hi ' + scopes.userCtx.name })" } }
+```
+
+**Tell the model it exists.** No prompt builder reads this prop, so a model that
+was never told will never emit `scopes.userCtx`. Describe it through
+`getScopePartialPrompt`'s `note`, which is appended verbatim:
+
+```ts
+getScopePartialPrompt({
+  kind: "page",
+  note: "A read-only scope `scopes.userCtx` is available: `name` (string) and `plan` ('free' | 'pro'). Read it for greetings and gating; never write to it.",
+});
+```
+
+Nothing checks that the note and the object agree. Keep them in step yourself.
 
 ## Where to go next
 
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
-- [JavaScript Expressions](/entry/expressions) — what runs inside an entry, and the allow-list `allowedGlobals` extends.
+- [JavaScript Expressions](/entry/expressions) — what runs inside an entry, and the allow-list `allowGlobals` extends.

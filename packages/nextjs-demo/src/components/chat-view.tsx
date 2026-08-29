@@ -11,7 +11,7 @@ import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { type ErrorComponentProps, RendererProvider } from "@uicast/react";
-import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
+import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { createFenceRenderer } from "@uicast/streamdown";
@@ -115,7 +115,7 @@ export function ChatView({
     <RendererProvider
       implementations={allImplementations}
       functions={domainTools}
-      defaultComponents={rendererDefaults}
+      fallbackComponents={rendererDefaults}
     >
       <div className="mx-auto flex h-full max-w-3xl flex-col p-4">
         <Conversation className="flex-1">

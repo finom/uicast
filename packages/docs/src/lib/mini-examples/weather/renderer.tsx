@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { WeatherCardImpl } from "./impl";
-import { getWeather } from "./functions";
+import { getWeather } from "./tools";
 import weatherEntries from "./entries.json";
 
 const implementations = [WeatherCardImpl];

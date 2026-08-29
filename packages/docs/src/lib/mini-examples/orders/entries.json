@@ -3,12 +3,12 @@
     "key": "card",
     "component": "Card",
     "seed": [{ "set": "scopes.root.orders", "expr": "listOrders()" }],
-    "children": ["title", "refresh", "rows"]
+    "children": ["title", "refresh", "rows", "total"]
   },
   {
     "key": "title",
     "component": "Heading",
-    "props": { "expr": "({ children: scopes.root.orders.length + ' orders' })" }
+    "props": { "expr": "({ text: scopes.root.orders.length + ' orders' })" }
   },
   {
     "key": "refresh",
@@ -26,6 +26,13 @@
     "keyBy": "id",
     "props": {
       "expr": "({ customer: scopes.order.item.customer, total: scopes.order.item.total })"
+    }
+  },
+  {
+    "key": "total",
+    "component": "Heading",
+    "props": {
+      "expr": "({ text: '$' + (scopes.root.childScopes?.order ?? []).reduce((sum, s) => sum + s.item.total, 0) + ' total' })"
     }
   }
 ]

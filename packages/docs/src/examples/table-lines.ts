@@ -24,22 +24,22 @@ export const tableLines: ComponentEntry[] = [
   {
     key: "th-a",
     component: "TableHead",
-    props: { literal: { children: "A" } },
+    props: { literal: { text: "A" } },
   },
   {
     key: "th-b",
     component: "TableHead",
-    props: { literal: { children: "B" } },
+    props: { literal: { text: "B" } },
   },
   {
     key: "th-sum",
     component: "TableHead",
-    props: { literal: { children: "Sum" } },
+    props: { literal: { text: "Sum" } },
   },
   {
     key: "th-actions",
     component: "TableHead",
-    props: { literal: { children: "Actions" } },
+    props: { literal: { text: "Actions" } },
   },
   {
     key: "tbody",
@@ -101,7 +101,7 @@ export const tableLines: ComponentEntry[] = [
     key: "sum-text",
     component: "Text",
     props: {
-      expr: "({children: scopes.row.item.a + scopes.row.item.b})",
+      expr: "({text: scopes.row.item.a + scopes.row.item.b})",
     },
   },
   {
@@ -113,7 +113,7 @@ export const tableLines: ComponentEntry[] = [
     key: "delete-btn",
     component: "Button",
     props: {
-      literal: { children: "Delete", variant: "destructive", size: "sm" },
+      literal: { text: "Delete", variant: "destructive", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -142,7 +142,7 @@ export const tableLines: ComponentEntry[] = [
   {
     key: "td-total-label",
     component: "TableCell",
-    props: { literal: { children: "Total" } },
+    props: { literal: { text: "Total" } },
   },
   {
     key: "td-add-btn",
@@ -153,7 +153,7 @@ export const tableLines: ComponentEntry[] = [
     key: "add-btn",
     component: "Button",
     props: {
-      literal: { children: "+ Add Row", variant: "outline", size: "sm" },
+      literal: { text: "+ Add Row", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -173,7 +173,7 @@ export const tableLines: ComponentEntry[] = [
   {
     key: "total-sum-text",
     component: "Text",
-    props: { expr: "({children: scopes.root.totalSum})" },
+    props: { expr: "({text: scopes.root.totalSum})" },
   },
   {
     key: "td-row-count",
@@ -190,7 +190,7 @@ export const tableLines: ComponentEntry[] = [
     ],
     component: "Text",
     props: {
-      expr: '({children: scopes.root.rows.length + " rows " + scopes.root.foo })',
+      expr: '({text: scopes.root.rows.length + " rows " + scopes.root.foo })',
     },
   },
 ] as const;

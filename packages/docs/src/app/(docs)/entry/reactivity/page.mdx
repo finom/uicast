@@ -1,75 +1,105 @@
 # Reactivity & Dependencies
 
-You never declare what an expression depends on — the runtime reads it off the
-expression text. Every `scopes.<scope>.<path>` access in an expression is
-extracted by static analysis (the same parser that validates the expression for
-[safety](/entry/expressions#safety)), and that read set drives two different
-mechanisms depending on where the expression sits.
+You never declare what an expression depends on. Every `scopes.<scope>.<path>`
+access is extracted by static analysis — the same parser that checks the
+expression for [safety](/entry/expressions#safety) — and that read set drives
+two different mechanisms, depending on where the expression sits.
 
 ## Reactive sites: subscriptions
 
-`props.expr`, `hidden`, and `each` re-evaluate when state changes. For each
-extracted read, the element subscribes to that path in the reactive store, and
-a write to it re-renders exactly the elements that read it — nothing else.
+`props.expr`, `hidden`, and `each` re-evaluate when state changes. Each read
+becomes a subscription, and a write re-renders exactly the elements reading that
+path.
 
-```jsonc
-{ "props": { "expr": "({ text: scopes.root.products.length + ' products' })" } }
+```jsonl
+{"key":"count","component":"Text","props":{"expr":"({ text: scopes.root.products.length + ' products' })"}}
 ```
 
-This element subscribes to `products.length`. Two rules govern what wakes it:
+`count` subscribes to `scopes.root.products.length`. A write to that path or any
+path above it notifies it; a write below it does not. So only the first of these
+re-renders `count`:
 
-- **A write to the exact path wakes it** — `$set("products.length", …)`,
-  hypothetically.
-- **A write to an ancestor path wakes it too** — replacing `products`
-  wholesale (the usual mutate-then-refetch shape) re-renders every reader of
-  `products.length`, `products.0.name`, and so on: writing a path replaces
-  everything beneath it.
+```jsonc
+{ "set": "scopes.root.products", "expr": "listProducts()" }     // ✅ replaces the array
+{ "set": "scopes.root.products.0.name", "literal": "Renamed" }  // ❌ stays asleep
+```
 
-The reverse does **not** hold: writing `products.0.name` does not wake a
-reader of `products` — a deep write is not a replacement of the whole.
+One expression can produce several subscriptions. Two entries from a larger
+document, whose ancestor seeds `scopes.root.products`:
 
-Method calls truncate the extracted path at the call:
-`scopes.root.products.filter(p => p.stock < 25)` subscribes to `products`
-(the array the filter runs over), and any other path the callback reads —
-`scopes.root.query`, say — is extracted as its own subscription. A search box
-writing `query` re-renders the filtered list with no wiring.
+```jsonl
+{"key":"search","component":"SearchInput","seed":[{"set":"scopes.root.query","literal":""}],"props":{"expr":"({ value: scopes.root.query })"},"callbacks":{"onChange":[{"set":"scopes.root.query","expr":"evt.value"}]}}
+{"key":"rows","component":"Text","each":"scopes.root.products.filter(p => p.name.includes(scopes.root.query))","as":"row","keyBy":"id","props":{"expr":"({ text: scopes.row.item.name })"}}
+```
+
+`rows` subscribes to `scopes.root.products` (a method call truncates the path, so
+the dependency is the array, not the call) and to `scopes.root.query`. Neither
+entry mentions the other. Typing writes `query`, and the list re-filters.
 
 ## Effectful sites: ordering
 
 `seed` and `callbacks` run once per trigger, so their read sets drive
-**ordering**, not subscriptions. Steps are partitioned into dependency waves:
-
-- A step that reads a path an earlier step `set` — including implicitly via
-  [`currentValue`](/entry/value-sources#valuesourceassignment) — waits for
-  that write to land before it evaluates.
-- Steps with no such dependency share a wave. In `seed`, a wave's steps run
-  **in parallel** — independent data loads don't serialize.
-- In callbacks, a step that calls a [host function](/functions) additionally
-  waits for every step before it: a mutation's effect is invisible to path
-  analysis (a refetch after a delete reads nothing the delete writes, but
-  depends on it all the same), so effectful steps never race.
-- A `confirm` step is a barrier in both directions: everything before it
-  settles first, and nothing after it starts until it's confirmed.
-
-So this seed does what it looks like it does — the second step sees the first
-step's write, because it reads it:
+**ordering** instead. Steps are split into dependency waves: a step reading a
+path an earlier step wrote — including through
+[`currentValue`](/entry/value-sources#valuesourceassignment) — lands in a later
+wave, and independent steps share one.
 
 ```jsonc
-"seed": [
-  { "set": "scopes.root.city", "literal": "Amsterdam" },
-  { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }
-]
+{ // …
+  "seed": [
+    { "set": "scopes.root.city", "literal": "Amsterdam" },
+    { "set": "scopes.root.weather", "expr": "getWeather({ city: scopes.root.city })" }
+  ] }
 ```
+
+Two waves: `weather` reads `city`, so it waits. Give the second step nothing to
+wait for and both share one wave, running in parallel:
+
+```jsonc
+{ // …
+  "seed": [
+    { "set": "scopes.root.products", "expr": "listProducts()" },
+    { "set": "scopes.root.categories", "expr": "listCategories()" }
+  ] }
+```
+
+Callbacks add two barriers the scan cannot infer. A step calling a
+[host function](/functions) waits for everything before it, since a mutation's
+effect is invisible. A `confirm` step is a barrier in both directions:
+
+```jsonc
+{ // …
+  "callbacks": { "onClick": [
+    { "expr": "deleteProduct({ id: scopes.row.item.id })", "confirm": "Delete this product?" },
+    { "set": "scopes.root.products", "expr": "listProducts()" }
+  ] } }
+```
+
+Two waves, never one: step one carries `confirm`, step two calls a host
+function. The refetch reads nothing the delete writes, so path analysis alone
+would have run them together.
 
 ## Keep paths static
 
-Extraction is static analysis over the expression text, so the runtime can
-only see paths written out literally. A computed access like
-`scopes.root[scopes.root.key]` evaluates fine, and the *key* read
-(`scopes.root.key`) is extracted — but the **target** path it resolves to at
-runtime is not: the element won't re-render when that target changes, and a
-step reading it won't be ordered after a step writing it. Write the path you
-mean.
+Extraction is static, so the runtime only sees paths written out literally:
+
+```jsonl
+{"key":"selected","component":"Text","props":{"expr":"({ text: scopes.root.rows[scopes.root.sel].name })"}}
+```
+
+Two paths are extracted: `scopes.root.rows` and `scopes.root.sel`. The path the
+key *resolves* to is not, so writing `scopes.root.rows.2.name` leaves `selected`
+asleep. Write the path you mean.
+
+## No dependency loops
+
+A reactive site cannot write. `props`, `hidden` and `each` only compute; state is
+written only by a `seed` step at mount or a `callbacks` step on an event, and
+neither re-runs because a render happened. The React failure — an effect writing
+state it also reads — has no path here.
+
+An implementation can still do it: a `useEffect` that calls one of its callbacks
+on every render loops like any React component.
 
 ## Where to go next
 

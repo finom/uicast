@@ -1,7 +1,7 @@
 import z from "zod";
 import { standardTool } from "standard-tool";
 
-const TABLE = {
+const TABLE: Record<string, { tempC: number; condition: string }> = {
   Amsterdam: { tempC: 14, condition: "Drizzle" },
   Tokyo: { tempC: 24, condition: "Clear" },
   Oslo: { tempC: 8, condition: "Cloudy" },
@@ -18,7 +18,6 @@ export const getWeather = standardTool({
     condition: z.string().meta({ description: "One-word sky condition" }),
   }),
   async execute({ city }) {
-    // Pretend to be a slow backend, so the async call is visible.
     await new Promise((resolve) => setTimeout(resolve, 500));
     return TABLE[city] ?? { tempC: 20, condition: "Unknown" };
   },

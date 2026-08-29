@@ -1,95 +1,123 @@
 # Assembling the prompt
 
-The generation model works from a system prompt that teaches five things: the
-output contract, how ambitious to be, the expression language, the component
-menu, and the host functions (`StandardToolV0[]`). Core ships each as a
-**prompt-partial builder** —
-a function returning one self-contained block — and deliberately ships no
-assembler. Your app composes the blocks, because two of them are yours: the
-scope depends on your surface, and the components and functions depend on what
-you register and mount.
+The system prompt teaches five things: the output contract, how ambitious to be,
+the expression language, the component menu, and the host functions.
 
-The prompt and the runtime are two views of one configuration. The definitions
-you advertise must be the implementations you mount; the functions you
-advertise must be the array you pass to `<RendererProvider>`'s `functions` prop. Build
-both from the same values and they can't drift.
+Core ships each as a **prompt-partial builder** — a function returning one
+self-contained block — and no assembler. Your app composes them, because the
+scope depends on your surface and the components and functions depend on what
+you register.
+
+The definitions you advertise must be the implementations you mount, and the
+functions you advertise must be the array you pass to `<RendererProvider>`. Build
+both from the same values and they cannot go out of sync.
 
 ## The convention
 
-Every builder returns a block that starts with its own `#` heading and carries
-no leading or trailing blank lines. Assembly is a join, and the join owns the
+Every builder returns a block starting with its own `#` heading, with no leading
+or trailing blank lines. Assembly is a join, and the join owns the
 separators:
 
 ```ts
 const system = [...parts].filter(Boolean).join("\n\n");
 ```
 
-`filter(Boolean)` matters once parts are conditional — a builder with nothing
-to say can return `""` and drop out without leaving a double blank line. Every
-core builder takes a single options object (empty today for some), so options
-can grow without breaking call sites.
-
 ## The core partials
 
-All from [`@uicast/core/prompt`](/core):
+All from [`@uicast/core/prompt`](/api#uicastcore):
 
 | Builder | Emits |
 | --- | --- |
 | `getCommonInstructionsPartialPrompt()` | The output contract — JSONL entries, keys and children, partial replacement. |
-| `getScopePartialPrompt({ kind, approxElements?, note? })` | `# Scope` — how much to build on this surface. |
-| `getExpressionsPartialPrompt()` | `# JavaScript Expressions` — the `expr` syntax, the [safety](/entry/expressions#safety) rules, and the `scopes` / `evt` / `currentValue` context. |
+| `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
+| `getExpressionsPartialPrompt({ allowGlobals? })` | The `expr` syntax, the [safety](/entry/expressions#safety) rules, and the `scopes` / `evt` / `currentValue` context. |
 | `getComponentsPartialPrompt({ definitions, commonEvents? })` | The component menu, serialized from your [definitions](/def). |
-| `getFunctionsPartialPrompt({ functions })` | `# Available Functions` — names and signatures, from your [tools](/functions). |
+| `getFunctionsPartialPrompt({ functions })` | Names and signatures, from your [tools](/functions). |
 
-Three of them are worth a closer look:
+**Components** serializes the [defs](/def) you register:
 
-**Scope** is where the host states what a response *is*. `kind: "page"` asks
-for a complete functional page and treats a terse request as the obvious full
-version of it; `"widget"` asks for one self-contained embeddable piece;
-`"answer"` asks for the compact UI that answers a question in conversation.
-`approxElements` adds a soft size anchor ("around ~N elements — a hint, not a
-quota") and `note` appends one host-specific paragraph verbatim.
+```ts
+const StatDef = createComponentDefinition({
+  name: "Stat",
+  description: "A KPI display.",
+  props: z.object({
+    label: z.string().meta({ description: "The metric label" }),
+  }),
+});
+```
 
-**Expressions** embeds the [allow-list](/entry/expressions#safety) straight from the evaluator's
-own globals table, so what the prompt permits and what
-[SaferEval](/entry/expressions) actually allows can never drift. It also
-carries the standing [safety instruction](/entry/expressions#safety) —
-expressions serve the user's request and nothing else — so every assembly
-ships it without the host adding anything. Its closing line refers to the host
-functions "listed below" — which fixes part of your assembly order.
+`getComponentsPartialPrompt({ definitions: [StatDef] })` returns:
 
-**Functions** renders the same tool array you hand to the
-[`<RendererProvider>`](/react/renderer)'s `functions` prop — pass one shared value to
-both. The signature format and its rules (what an
-[undeclared return](/functions#undeclared-returns) means, and how
-[shared types](/functions#shared-types) are hoisted) are covered in
+```
+# Available Components
+
+Stat
+
+# Component Details
+
+- Stat — A KPI display.
+  Props:
+    - label: string — The metric label
+```
+
+**Scope** says what a response *is*. `kind: "page"` asks for a complete page and
+reads a terse request as the full version of it. `"widget"` is one embeddable
+piece; `"answer"` is the compact UI that answers a question in conversation.
+
+`getScopePartialPrompt({ kind: "answer", approxElements: 10 })` emits the rules
+for that kind, then the size hint:
+
+```
+- Use the fewest elements that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
+- Bind real data via host functions — the answer must show actual values, not placeholders.
+
+A typical response on this surface is around ~10 elements (JSONL lines) — treat this as a hint about ambition, not a quota.
+```
+
+`note` appends one more host-specific paragraph after that, verbatim.
+
+**Expressions** carries the standing
+[safety instruction](/entry/expressions#safety), so every assembly ships it
+without the host adding anything. Its allow-list line is a slot in the authored
+`md/EXPRESSIONS.md`:
+
+```
+- Available globals (use ONLY these — referencing any other global is rejected before the expression runs, not silently `undefined`): 🔴ALLOWED_GLOBALS🔴.
+```
+
+`getExpressionsPartialPrompt()` fills that token from the same `ALLOWED_GLOBALS`
+table [SaferEval](/entry/expressions) checks against, so the two cannot go out of
+sync. If you widen the evaluator with
+[`<RendererProvider allowGlobals>`](/react/renderer), pass the same list here —
+otherwise the model is never told those names exist.
+
+**Functions** renders the tool array. Its signature format,
+[undeclared returns](/functions#undeclared-returns), and
+[shared types](/functions#shared-types) are covered in
 [Host functions](/functions).
 
 ## Order
 
-The blocks are sections of one document, and two dependencies constrain their
-order: the contract comes first (everything else refines it), and expressions
-must precede functions because the expressions block points at the function
-list below it. The natural order:
+Two dependencies fix the order. The contract comes first, since everything else
+refines it, and expressions must come before functions, since that block points
+at the list below it. In that order the headings are:
 
-1. Common instructions
-2. Scope
-3. Expressions
-4. Components
-5. Functions
+| Builder | Headings it emits |
+| --- | --- |
+| `getCommonInstructionsPartialPrompt()` | `# Overview`, `# Output Format`, `# Rules` |
+| `getScopePartialPrompt()` | `# Scope` |
+| `getExpressionsPartialPrompt()` | `# JavaScript Expressions` |
+| `getComponentsPartialPrompt()` | `# Available Components`, `# Shared Types` and `# Common Events` (each only when there is something to hoist), `# Component Details` |
+| `getFunctionsPartialPrompt()` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when there is something to hoist) |
+| `getFencePartialPrompt()` | `# Emitting UI` |
 
 ## Chat surfaces
 
-On a chat surface the reply is Markdown and entries ride inside a
-` ```uicast ` fence — the [Streamdown plugin](/streamdown) renders them.
-`@uicast/streamdown/prompt` ships the matching partial,
-`getFencePartialPrompt()`: it teaches exactly that fence syntax — the token,
-one JSON object per line, prose outside the fence — plus the conversation's
-shared-state rules: all fences render against one shared `root` scope (the
-conversation is one app), the same path means the same data in every block,
-and seeds are first-writer-wins so repeated loads never clobber state. Compose it last, after the core partials that define what the
-entries themselves are. Raw-JSONL surfaces (a page builder streaming entries
-straight to the [renderer](/react/streaming)) skip it.
+On a chat surface the reply is Markdown, and the entries sit inside a
+` ```uicast ` fence, rendered by the [Streamdown plugin](/streamdown).
+`@uicast/streamdown/prompt` ships the matching `getFencePartialPrompt()`: the
+fence syntax plus the conversation's [shared-state rules](/streamdown). Compose
+it last. A raw-JSONL surface skips it.
 
 ## A complete assembly
 
@@ -121,29 +149,40 @@ const system = [
 ].join("\n\n");
 ```
 
-A page-builder surface is the same stack with `kind: "page"` (plus, say,
-`approxElements: 30`) and without the fence partial.
+A page-builder surface is the same stack with `kind: "page"` and no fence
+partial.
 
 ## Edit and recovery turns
 
-Two builders are *not* system-prompt partials — they produce **user-turn
-message content**:
+Two builders are not system-prompt partials. They produce **user-turn message
+content**.
 
-`getEditRequestPrompt({ request, missingKeys? })` drives incremental edits.
-The host replays the page's stored JSONL as an assistant turn, then sends this
-as the next user turn — the change request plus the delta convention: re-emit
-a key to replace its subtree, leave everything else alone. The model then
-emits only what changes, which is dramatically cheaper than regenerating the
-page. `missingKeys` lists keys the stored tree references but never received —
-the tail of a truncated generation — telling the model those elements don't
-exist and must be emitted fresh rather than kept by reference.
+`getEditRequestPrompt({ request, missingKeys? })` drives edits. The host replays
+the stored JSONL as an assistant turn, then sends this as the next user turn:
 
-`getErrorRecoveryPrompt({ failures })` reports runtime render failures back to
-the model so it re-emits the failed elements corrected — the user-triggered
-recovery flow behind a Recover button the host renders in its `error` slot. On a page surface it is
-typically passed through the edit pipeline above as the request; on a chat
-surface it goes out as a plain user message. See
-[Error recovery](/error-recovery) for the full picture.
+```ts
+const messages = [
+  { role: "assistant", content: storedLines.map((l) => JSON.stringify(l)).join("\n") },
+  { role: "user", content: getEditRequestPrompt({ request: "Make the total large." }) },
+];
+```
+
+The builder appends the delta convention, and the model answers with the delta
+alone — here one line, reusing the key:
+
+```jsonl
+{"key":"total","component":"Text","props":{"expr":"({ text: scopes.root.total, variant: 'large' })"}}
+```
+
+Every other key is untouched, and a successful `seed` on a re-emitted key does
+not re-run — new state belongs on a new key. `missingKeys` lists keys the stored
+tree references but never received, the tail of a truncated generation, so the
+model emits them fresh instead of keeping them by reference.
+
+`getErrorRecoveryPrompt({ failures })` reports runtime failures back so the model
+re-emits those elements corrected. On a page it goes through the edit pipeline
+above; in a chat it is a plain user message. See
+[Error recovery](/error-recovery).
 
 ## Where to go next
 

@@ -1,4 +1,4 @@
-```js localpath="packages/docs/src/lib/mini-examples/counter/def.js"
+```ts localpath="packages/docs/src/lib/mini-examples/counter/def.ts"
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
@@ -6,7 +6,7 @@ export const CounterDef = createComponentDefinition({
   name: "Counter",
   description:
     "A button that shows a number and increments it on each click.",
-  props: z.strictObject({
+  props: z.object({
     count: z.number().default(0).meta({ description: "The number to display" }),
   }),
   callbacks: {

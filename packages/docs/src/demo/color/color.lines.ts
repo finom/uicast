@@ -36,14 +36,14 @@ export const colorLines: ComponentEntry[] = [
   {
     key: "title",
     component: "Heading",
-    props: { literal: { level: "2", children: "Palette studio" } },
+    props: { literal: { level: "2", text: "Palette studio" } },
   },
   {
     key: "subtitle",
     component: "Text",
     props: {
       literal: {
-        children:
+        text:
           "Bespoke color components emit a structured { hex, h, s, l } payload — one event carrying several channels — straight into a reactive scope.",
         variant: "muted",
       },
@@ -153,7 +153,7 @@ export const colorLines: ComponentEntry[] = [
   {
     key: "suggest-btn",
     component: "Button",
-    props: { literal: { children: "Suggest palette", variant: "outline" } },
+    props: { literal: { text: "Suggest palette", variant: "outline" } },
     callbacks: {
       onClick: [
         {
@@ -170,7 +170,7 @@ export const colorLines: ComponentEntry[] = [
   {
     key: "add-btn",
     component: "Button",
-    props: { literal: { children: "Add current", variant: "outline" } },
+    props: { literal: { text: "Add current", variant: "outline" } },
     callbacks: {
       onClick: [
         {
@@ -187,7 +187,7 @@ export const colorLines: ComponentEntry[] = [
   {
     key: "reset-btn",
     component: "Button",
-    props: { literal: { children: "Reset", variant: "ghost" } },
+    props: { literal: { text: "Reset", variant: "ghost" } },
     callbacks: {
       onClick: [
         {
@@ -220,7 +220,7 @@ export const colorLines: ComponentEntry[] = [
     key: "css-text",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.hex + '  ·  hsl(' + scopes.root.h + ' ' + scopes.root.s + '% ' + scopes.root.l + '%)  ·  alpha ' + scopes.root.alpha + '%', variant: 'muted' })",
+      expr: "({ text: scopes.root.hex + '  ·  hsl(' + scopes.root.h + ' ' + scopes.root.s + '% ' + scopes.root.l + '%)  ·  alpha ' + scopes.root.alpha + '%', variant: 'muted' })",
     },
   },
   {
@@ -233,7 +233,7 @@ export const colorLines: ComponentEntry[] = [
     key: "evt-text",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",
+      expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",
     },
   },
 ];

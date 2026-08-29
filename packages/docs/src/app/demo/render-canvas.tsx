@@ -3,14 +3,14 @@ import Skeleton from "react-loading-skeleton";
 import {
   ConfirmModal,
   RenderError,
-} from "@uicast/shadcn-catalog/default-components";
+} from "@uicast/shadcn-catalog/fallback-components";
 import type { ComponentEntry } from "@uicast/core";
 import {
   type ComponentImplementation,
   EntriesRenderer,
   RendererProvider,
 } from "@uicast/react";
-import type { DefaultComponents } from "@uicast/react/types";
+import type { FallbackComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";
 
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and as
@@ -50,21 +50,21 @@ const DEFAULT_COMPONENTS = {
 /**
  * The right-hand pane: the engine rendering the revealed entries with the demo's
  * catalog + host functions (both supplied by the active `DemoConfig`). The
- * catalog's `ConfirmModal`, passed via the `defaultComponents.confirm` slot, routes
+ * catalog's `ConfirmModal`, passed via the `fallbackComponents.confirm` slot, routes
  * every `confirm:` in a callback through the shadcn modal.
  */
 export function RenderCanvas({
   lines,
   catalog,
   functions,
-  defaultComponents,
+  fallbackComponents,
   outlineKey,
   onHoverKey,
 }: {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
   functions: StandardToolV0[];
-  defaultComponents?: DefaultComponents;
+  fallbackComponents?: FallbackComponents;
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
@@ -90,7 +90,7 @@ export function RenderCanvas({
         <RendererProvider
           implementations={catalog}
           functions={functions}
-          defaultComponents={defaultComponents ?? DEFAULT_COMPONENTS}
+          fallbackComponents={fallbackComponents ?? DEFAULT_COMPONENTS}
         >
           <EntriesRenderer entries={lines} />
         </RendererProvider>

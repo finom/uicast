@@ -1,30 +1,52 @@
+---
+title: The expression-driven generative UI framework
+---
+
+import { Hero } from "@/components/hero";
+import { Steps } from "@/components/steps";
 import { CounterExample } from "@/lib/mini-examples/counter";
 import { TrackerExample } from "@/lib/mini-examples/tracker";
 import { WeatherExample } from "@/lib/mini-examples/weather";
 
-# uicast
+<Hero />
+
+<Steps />
+
+<CounterExample />
 
 **uicast is a UI framework whose language is written by models, not people.**
 It gives a language model what JSX gives a developer — components, state,
-events — with every design choice flipped from *easy for a person to maintain*
-to *reliable for a model to generate*.
+events. The difference: JSX is designed to be easy for a person to maintain,
+uicast to be reliable for a model to generate.
 
-An LLM emits one JSON object per line; the engine mounts each line in tree
-order against a reactive state store, turning the stream into a complete,
-interactive front-end app. You supply a pre-built **component catalog** to
-render from and the **functions** the UI can call to load data, save changes,
-and run actions. The emitted JSONLines are a static asset — serve them like a
-regular HTML page, with no build or deploy step per generation.
+The model writes one JSON object per line. The engine places each line in the
+tree and wires it to a reactive state store, and the result is a working
+front-end app. The lines are just data, so there is no build or deploy step per
+page.
 
-What sets uicast apart is **expressions**. Frameworks in this space make the
-model either write real code — expressive, but unpredictable and impossible to
-trust without a sandbox — or fill a strict declarative schema — safe, but every
-behavior must be built into the host ahead of time. uicast sits between: the
-document is declarative JSONLines, while derived values, visibility, and event
-handling are short JavaScript expressions, checked against an
-[allow-list](/entry/expressions#safety) before they run and evaluated against
-reactive scopes. The model writes the app's logic without writing the
-app's code.
+What makes uicast different is **expressions**.
+
+Other frameworks pick one of two options. Either the model writes real code,
+which can do anything but is unsafe to run without a sandbox. Or it fills a
+fixed schema, which is safe, but every behaviour must be built into the host in
+advance.
+
+uicast sits in between. The document is plain JSONLines, and computed values,
+visibility, and event handling are short JavaScript expressions checked against
+an [allow-list](/entry/expressions#safety) before they run. Nothing the model
+writes becomes code you ship: it never defines a component, imports a module,
+or adds a file. The largest thing it writes is **one expression**.
+
+```js
+// scopes.root.orders === [{ total: 2 }, { total: 3 }]
+scopes.root.orders.reduce((a, o) => a + o.total, 0)  // ✅ → 5
+listOrders()                                         // ✅ a host function you registered,
+                                                     //    callable in seed and callbacks
+fetch("/api/orders")                                 // ❌ throws — "fetch" is not
+                                                     //    available in expressions
+document.cookie                                      // ❌ throws — so do "window",
+                                                     //    "localStorage", "eval", …
+```
 
 | Approach | Predictability | Expressiveness | Safety |
 | --- | --- | --- | --- |
@@ -32,39 +54,126 @@ app's code.
 | **uicast** | high | high | high |
 | Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
 
-## The smallest document
+## The model works from a developer's brief
 
-One component, one entry — a counter. The component is a pair: a definition the
-model reads and a React implementation that draws it. The single JSONLines entry
-below wires that pair to `scopes.root.count` — seeding the value, passing it
-down as a prop, and incrementing it on click.
+The model never starts from a blank page. It gets the brief you would give a new
+front-end developer: here are the components, here are the endpoints, build the
+page. Both lists are generated from your code:
 
-<CounterExample />
+```md
+# Available Components
+
+Card, Heading, Text, Badge, Button, Table, TableRow, TableCell
+
+# Common Events
+
+- MouseEvent — Callback for a mouse event such as a click
+  - clientX: number — The X coordinate of the pointer relative to the viewport
+  - …
+
+# Component Details
+
+- Button — A clickable button for triggering actions. …
+  Props:
+    - text?: string — The button label text
+    - variant?: "default" | "destructive" | "outline" | … — Visual variant
+    - disabled?: boolean — Whether the button is disabled
+  Event handlers:
+    - onClick(evt: MouseEvent)
+
+… one entry per component …
+
+# Available Functions
+
+listOrders, refundOrder
+
+# Function Details
+
+- listOrders() => {
+    id: number /* Order id */;
+    customer: string /* Who placed it */;
+    total: number /* Order total, in dollars */;
+  }[]: Every order, newest first.
+- refundOrder({
+    id: number /* Order id */;
+  }) => unknown: Refund one order.
+```
+
+> Show this week's orders, with a refund button on each row.
+
+Both lists are fixed. The **catalog** is your design system, already built and
+reviewed — the model picks from it and cannot invent a component. The
+**functions** are your endpoints, each a
+[`standard-tool`](https://standard-tool.js.org/), and it cannot call anything
+else.
+
+Every description is one you already wrote on a schema field or a prop, passed
+through word for word. Nothing repeats: a shared payload is printed once under
+`# Common Events` and referred to as `evt: MouseEvent`, and a shared type once
+under `# Shared Types`.
+
+A developer with this brief writes JSX; the model writes uicast entries. See
+[Assembling the prompt](/prompt).
 
 ## Events carry payloads
 
-A component can emit structured events, not just clicks. This square reports
-the pointer position through an `onMove` payload; the entry writes it to state
-in one step, and the props read it back — the dot and the readout are pure
-derivation, with no host call involved.
+An event can carry data, not just report that something happened. The square
+below sends the pointer position as an `onMove` payload; the entry writes it to
+state, and the props read it back. No host function is involved.
+
+Inside a callback, **`evt` is that payload** — the only way to read what the
+user just did. Its shape is whatever the [definition](/def) declares, so
+`onMove` here means `evt.x` and `evt.y` are numbers. `evt` exists only in
+`callbacks`, never in `props`, `hidden`, or `seed`.
 
 <TrackerExample />
 
 ## Calling host functions
 
-Expressions call **host functions** — the async functions you register with the
-renderer, each one a [`standard-tool`](https://standard-tool.js.org/)
-(`StandardToolV0`: a name, a description, schemas, and an `execute`). That is
-how a generated document reaches a backend.
+Expressions can call **host functions** — the functions you register with the
+renderer, and how a document reaches a backend. Each is a
+[`standard-tool`](https://standard-tool.js.org/): a name, a description,
+schemas, and `execute`.
 
-`getWeather` here is one of them: an **async** call that takes ~500 ms. Picking
-a city runs a two-step callback — the first step stores the choice, the second
-calls `getWeather({ city: scopes.root.city })`, which reads the path the first
-step just wrote, so the runtime orders them. The engine **awaits** the result
-before writing it to state, which is why the card can show a pending state
-while the call is in flight, and why the expression itself never says `await`.
+`getWeather` below is **async**, about 500 ms. Picking a city runs a two-step
+callback: the first stores the city, the second calls
+`getWeather({ city: scopes.root.city })` and reads the path the first just
+wrote, so the runtime orders them. The engine waits for the result before
+writing it, which is why the card can show a loading state and why the
+expression never says `await`.
 
 <WeatherExample />
+
+## Streaming a generation
+
+Each line renders as soon as it is complete, so the page builds itself while the
+model is still writing. TanStack Query's `streamedQuery` turns an
+`AsyncIterable` into an array that grows as values arrive — which is what
+`streamJsonLines` returns and what the renderer takes:
+
+```tsx
+const { data: lines = [], isFetching } = useQuery({
+  queryKey: ["generate", prompt],
+  queryFn: streamedQuery({
+    streamFn: async () => {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+      });
+      return streamJsonLines<ComponentEntry>(res.body);
+    },
+  }),
+});
+
+<EntriesRenderer entries={lines} />   // grows line by line; isFetching is the spinner
+```
+
+The model writes parents before children, so the page fills in from the top: a
+Card appears under its title with a placeholder where its child will go.
+Finished parts are never rebuilt, and a `seed` that already fetched does not
+fetch again.
+
+[Streaming](/streaming) covers the server side.
 
 ## Next steps
 

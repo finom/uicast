@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Card, CardContent } from "@uicast/shadcn-catalog/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { TrackPadDef } from "./def";
 
 export const TrackPadImpl = createComponentImplementation({
@@ -17,7 +17,7 @@ export const TrackPadImpl = createComponentImplementation({
         }}
         onMouseLeave={() => onLeave()}
       >
-        {x === undefined ? (
+        {x === undefined || y === undefined ? (
           <span className="text-sm text-muted-foreground">Hover here</span>
         ) : (
           <>

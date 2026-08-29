@@ -4,17 +4,6 @@ const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
   concepts: "Concepts",
-  def: "Component definition",
-  react: {
-    title: "React",
-    items: {
-      impl: "Component implementation",
-      renderer: "Renderer",
-      streaming: "Streaming",
-    },
-  },
-  core: "Core",
-  functions: "Host functions",
   entry: {
     title: "Component Entry Format",
     items: {
@@ -25,10 +14,22 @@ const meta: MetaRecord = {
       state: "State & Scopes",
     },
   },
+  def: "Component definition",
+  react: {
+    title: "React",
+    items: {
+      impl: "Component implementation",
+      renderer: "Renderer",
+    },
+  },
+  functions: "Host functions",
   events: "Event handling",
-  streamdown: "Streamdown plugin",
   prompt: "Assembling the prompt",
+  streaming: "Streaming",
   "error-recovery": "Error recovery",
+  streamdown: "Streamdown plugin",
+  "nextjs-demo": "Next.js demo",
+  api: "API reference",
   roadmap: "Roadmap",
   // External links live in the top bar, not the sidebar: `type: "page"` moves an
   // item out of the sidebar into the navbar, and `href` makes it a plain link.

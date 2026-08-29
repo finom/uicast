@@ -41,14 +41,14 @@ export const studioLines: ComponentEntry[] = [
   {
     key: "title",
     component: "Heading",
-    props: { literal: { level: "2", children: "Groovebox" } },
+    props: { literal: { level: "2", text: "Groovebox" } },
   },
   {
     key: "subtitle",
     component: "Text",
     props: {
       literal: {
-        children:
+        text:
           "Every pad, knob, and step below is a bespoke component emitting its own custom event payload — all wired declaratively into one reactive scope.",
         variant: "muted",
       },
@@ -177,7 +177,7 @@ export const studioLines: ComponentEntry[] = [
   {
     key: "randomize-btn",
     component: "Button",
-    props: { literal: { children: "Randomize pattern", variant: "outline" } },
+    props: { literal: { text: "Randomize pattern", variant: "outline" } },
     callbacks: {
       onClick: [
         {
@@ -194,7 +194,7 @@ export const studioLines: ComponentEntry[] = [
   {
     key: "clear-btn",
     component: "Button",
-    props: { literal: { children: "Clear", variant: "ghost" } },
+    props: { literal: { text: "Clear", variant: "ghost" } },
     callbacks: {
       onClick: [
         {
@@ -234,7 +234,7 @@ export const studioLines: ComponentEntry[] = [
     key: "evt-text",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
+      expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
     },
   },
 ];

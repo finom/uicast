@@ -1,47 +1,67 @@
 # Event handling
 
-An event is the one place all three parts of a component meet. The
-[definition](/def) names what an event carries, the [implementation](/react/impl) fires
-it, and the [entry](/entry/fields#callbacks) decides what happens — and a single
-object, `evt`, threads through all three. The reference pages describe each field on
-its own; this page follows one event across the seams, so you can see how they lock
-together.
-
-> A user action calls the impl's callback → the engine binds that payload as `evt`
-> → it runs the entry's steps for that event → the steps write state → everything
-> reading that state re-renders.
+An event is where all three parts of a component meet. The [definition](/def)
+names what it carries, the [implementation](/react/impl) fires it, and the
+[entry](/entry/fields#callbacks) decides what happens. One object, `evt`, runs
+through all three. This page follows a single event across them.
 
 ## The same event in three places
 
-One event — `onChange` on a search box — is declared once, fired once, and handled
-once, across three files:
+`onChange` on a search box: declared once, fired once, handled once.
 
-```ts
-// def.ts — the payload schema: what `evt` will carry
-callbacks: {
-  onChange: z.strictObject({ value: z.string() }),
-}
+```ts filename="def.ts"
+createComponentDefinition({
+  // …
+  // the payload schema: what `evt` will carry
+  callbacks: {
+    onChange: z.object({
+      value: z.string().meta({ description: "The current search value" }),
+    }),
+    onKeyDown: keyboardEventSchema,
+  },
+});
 ```
 
-```tsx
-// impl.tsx — fire it with a payload that matches the schema
-<Input onChange={(e) => onChange?.({ value: e.target.value })} />
+```tsx filename="impl.tsx"
+createComponentImplementation({
+  // …
+  // fire it with a payload that matches the schema
+  render: ({ onChange }) => (
+    <Input onChange={(e) => onChange({ value: e.target.value })} />
+  ),
+});
 ```
 
-```jsonc
-// the entry — react to it; `evt` is the payload the impl passed
+```jsonc filename="the entry"
+// react to it; `evt` is the payload the impl passed
 { "callbacks": {
   "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }]
 } }
 ```
 
-The def names the field, the impl fills it, the entry reads it. `evt.value` resolves
-*precisely* because the def declared `value` and the impl passed it under that name —
-three files, one agreed shape.
+The model never sees the def, only what `getComponentsPartialPrompt` prints:
+
+```
+  Event handlers:
+    - onChange(evt)
+      - value: string — The current search value
+    - onKeyDown(evt: KeyboardEvent)
+```
+
+`onKeyDown` costs one line because `keyboardEventSchema` is a **common event**: a
+payload printed once for the whole catalog instead of re-inlined on every
+component that fires it. That takes two things, and neither alone is enough:
+
+1. the payload schema carries a JSON Schema **`$id`** — `.meta({ $id: "KeyboardEvent" })`;
+2. that same schema is passed to `getComponentsPartialPrompt` as **`commonEvents`**.
+
+Matching is on `$id` alone, and an unregistered payload just inlines as usual.
+One with no `$id`, or two sharing one, throws at assembly. The shadcn catalog
+ships `allCommonEventSchemas` ready to pass. See [Shared events](/def).
 
 ## Following one keystroke
 
-Take that search box with a two-step reaction:
+The same search box, with a two-step reaction:
 
 ```jsonc
 { "callbacks": { "onChange": [
@@ -61,76 +81,76 @@ A user types `abc`:
 5. Every `props` / `each` expression that reads `q` or `results` re-evaluates and
    re-renders — the results list updates itself.
 
-The component never knew any of this would happen. It emitted a payload; the entry
-described the consequence.
+The component knew none of this. It emitted a payload; the entry described the
+consequence.
 
-## The engine is the glue
+## What the engine does with a callback
 
-When the impl calls a callback, the **engine** — not the component — runs the
-entry's steps. For the fired event it:
+When the impl calls a callback, the **engine** runs the entry's steps, not the
+component. It:
 
 1. binds the impl's payload as `evt`;
-2. runs the steps in **[dependency waves](/entry/reactivity)** — a step that reads
-   a path an earlier step wrote waits for that write (step two above reads the `q`
-   step one set), and so does any step that calls a host function, so mutations
-   never race; steps that depend on nothing before them run together;
-3. evaluates each step's `expr` against `evt`, the current `scopes`, the host
-   functions, and — for a step with a `set` — `currentValue`, the value that path
-   holds before the write; then writes the result to its `set` path — a step with no `set` runs
-   purely for its effect, like a fire-and-forget host call;
-4. if a step carries a `confirm`, asks first; on cancel, that step **and every step
-   after it** are skipped — so a `confirm` on the first dangerous step guards the
-   rest;
-5. yields for a tick between waves, so each write has landed before a dependent
+2. runs the steps in **[dependency waves](/entry/reactivity)** — a step reading a
+   path an earlier step wrote waits for that write, and so does any host-function
+   step, so mutations never race. Independent steps run together;
+3. evaluates each `expr` against `evt`, `scopes`, the host functions, and
+   `currentValue`, then writes the result to the step's `set` path;
+4. asks first if a step carries a `confirm`; on cancel, that step **and every one
+   after it** are skipped;
+5. yields for a tick between waves, so a write lands before a dependent
    expression reads it.
 
-Only the events the entry actually wires get a handler built — an `onClear` the
-model didn't use is simply absent from the impl's props, which is why
-implementations call their callbacks with [`?.`](/react/impl).
+Every callback the def declares is callable, whether or not the entry wired it.
+An unwired one is a no-op, so [implementations](/react/impl) never guard.
 
 ## Why it's split this way
 
-The split is what makes model-authored behavior safe:
+The split is what makes model-authored behaviour safe.
 
-- **The schema is the shared vocabulary.** The def's payload schema is compiled into
-  the model's prompt *and* type-checked against the impl, so the `evt` the model
-  reads and the payload the impl sends are written against one declaration. The
-  prompt is why the model reads `evt.value`, not `evt.text`, out of a `{ value }`
-  payload; the impl's inferred types are why a developer can't quietly rename the
-  field it passes. The engine doesn't validate payloads at runtime — the agreement
-  is enforced where each side is authored. One declaration, two consumers, no glue
-  code to keep in sync.
-- **The impl is a dumb emitter.** It turns a React event into a payload and knows
-  nothing about the reaction. The reaction lives in the entry — *data*, not code —
-  which is exactly what lets a model express behavior (set this, fetch that, confirm
-  before deleting) without writing or touching React.
-- **One mechanism covers every interaction.** There is no second, "custom event"
-  API: a DOM-ish payload (`evt.value`), a structured record (`{ hex, h, s, l }`),
-  a spatial one (`{ from, to }`) all travel the same def → impl → entry path. A
-  component models any interaction as an event carrying exactly the payload its
-  handler needs.
+- **The schema is the shared vocabulary.** It goes into the model's prompt and
+  type-checks against the impl, so the `evt` the model reads and the payload the
+  impl sends come from one declaration. The engine parses the payload through it
+  before the steps run, so a payload missing a field fails loudly instead of
+  reaching the model's expression as `undefined`.
+- **The impl only sends the payload.** It turns a React event into a payload and knows
+  nothing about the reaction. The reaction lives in the entry, as data, which is
+  what lets a model express behaviour without touching React.
+- **One mechanism covers every interaction.** A DOM-ish payload (`evt.value`), a
+  record (`{ hex, h, s, l }`), a range (`{ from, to }`) all travel the same
+  def → impl → entry path. There is no separate custom-event API.
 - **Effects are explicit and reactive.** Steps are
-  [pure expressions](/entry/expressions); their only way to change *document
-  state* is the `set` field (a step can still reach the outside world through a
-  host function, but nothing inside the document changes without a `set`). So the same evaluator that computes `props` also runs events, and
-  [reactivity](/entry/reactivity) falls out for free — a `set` writes a scope path,
-  and every expression reading that path (or any path beneath it) re-renders. The
-  same read-set extraction that builds those subscriptions also orders the steps.
-  No event bus, no manual subscriptions.
+  [pure expressions](/entry/expressions), and the only way to change document
+  state is `set`. So the evaluator that computes `props` also runs events, and
+  [reactivity](/entry/reactivity) comes free: a `set` writes a path, and every
+  expression reading it re-renders. No event bus, no manual subscriptions.
 
-It's the division uicast draws everywhere: the model authors data, the host
-supplies capability, and a schema is the contract that keeps the two honest.
 
-## Patterns worth knowing
+## Common patterns
 
-- **Read-after-write** — a step that reads a path an earlier step set is ordered
-  after it automatically (the search example chains `q` into the fetch); write the
-  chain, the runtime sequences it.
-- **Side-effect steps** — a step with no `set` runs only for its effect, e.g.
-  `track({ event: "search" })`.
-- **Confirm before damage** — gate a destructive step with
-  [`confirm`](/entry/value-sources#confirmablevaluesourceassignment); cancelling it
-  skips that step and everything after it.
-- **Shared payloads** — recurring events (a click's coordinates, a keypress) reuse
-  the catalog's [common-event schemas](/def) instead of redeclaring the payload on
-  every component.
+**Side-effect step** — no `set`, so the result is evaluated and discarded:
+
+```jsonc
+{ "expr": "track({ event: 'search' })" }
+```
+
+**Read-modify-write** — `currentValue` is what the `set` path holds before this
+write, so the path is named once:
+
+```jsonc
+{ "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" }
+```
+
+`scopes.root.tags` was seeded to `[]`, so each event appends to what is already
+there.
+
+**Confirm before damage** — [`confirm`](/entry/value-sources#confirmablevaluesourceassignment)
+is a sibling key on the step:
+
+```jsonc
+{ "callbacks": { "onClick": [
+  { "confirm": "Delete every completed task?", "expr": "deleteCompleted()" },
+  { "set": "scopes.root.tasks", "expr": "listTasks()" }
+] } }
+```
+
+Gating the first step is enough — decline, and the refetch never runs either.

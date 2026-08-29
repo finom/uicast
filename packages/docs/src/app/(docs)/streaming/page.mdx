@@ -1,0 +1,135 @@
+# Streaming
+
+A document arrives one line at a time, and each line mounts as soon as it is
+complete. Two hops carry it: a route that runs the model and relays its output,
+and a component that reads that response into a growing array.
+
+Both are wired here with the [AI SDK](https://ai-sdk.dev) and
+[TanStack Query](https://tanstack.com/query).
+
+## The route
+
+The AI SDK's [`streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text)
+gives you the output as a stream of text, which is already JSONLines. Relaying it
+is one call to `createTextStreamResponse`:
+
+```ts filename="app/api/generate/route.ts"
+import { createTextStreamResponse, streamText } from "ai";
+
+// A generation runs for minutes — give the handler room.
+export const runtime = "nodejs";
+export const maxDuration = 300;
+
+export async function POST(req: Request) {
+  const { prompt } = await req.json();
+
+  // A bare model id resolves through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
+  const result = streamText({ model: "anthropic/claude-opus-5", system, prompt });
+
+  return createTextStreamResponse({
+    stream: result.textStream,
+    headers: { "content-type": "application/jsonl; charset=utf-8" },
+  });
+}
+```
+
+### Persisting as it streams
+
+To keep a page after the request, read the stream on the way past. Entries are
+stored as each line completes, not when the generation ends:
+
+```ts
+async function* lines() {
+  for await (const value of streamJsonLines(result.textStream)) {
+    if (!isComponentEntry(value)) continue;
+    await db.insert(componentEntries).values({ data: value });
+    yield `${JSON.stringify(value)}\n`;
+  }
+}
+
+return createTextStreamResponse({
+  stream: new ReadableStream<string>({
+    async start(controller) {
+      for await (const line of lines()) controller.enqueue(line);
+      controller.close();
+    },
+  }),
+  headers: { "content-type": "application/jsonl; charset=utf-8" },
+});
+```
+
+`isComponentEntry` keeps a non-entry out of the table. `streamJsonLines<T>` does
+not validate — `<T>` is your assertion, like `res.json() as T` — so it yields
+every line that parsed. The guard checks that `key` and `component` are strings
+and that `children`, if present, is an array (a string `children` would be
+iterated letter by letter, one phantom child each).
+
+## The page
+
+TanStack Query's
+[`streamedQuery`](https://tanstack.com/query/latest/docs/reference/streamedQuery)
+takes an `AsyncIterable` and appends each value to the cached array, re-rendering
+per chunk — what the reader yields, and what the renderer wants:
+
+```tsx
+"use client";
+import {
+  experimental_streamedQuery as streamedQuery,
+  useQuery,
+} from "@tanstack/react-query";
+import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+
+const { data: entries = [], isFetching } = useQuery({
+  queryKey: ["generate", prompt],
+  queryFn: streamedQuery({
+    streamFn: async ({ signal }) => {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt }),
+        signal,
+      });
+      if (!res.ok || !res.body) throw new Error(`Generation failed (${res.status})`);
+      return streamJsonLines<ComponentEntry>(res.body);
+    },
+  }),
+});
+
+<RendererProvider
+  implementations={allImplementations}
+  functions={hostFunctions}
+  fallbackComponents={{ placeholder: () => <Skeleton className="h-6 w-24" /> }}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+`data` is the entries received so far. It grows line by line while `isFetching`
+stays `true`, so that is your spinner — no separate loading state.
+
+## The half-arrived tree
+
+`entries` after one line, a parent naming a child that has not arrived:
+
+```jsonl
+{"key":"panel","component":"Card","props":{"literal":{"title":"Orders"}},"seed":[{"set":"scopes.root.open","expr":"countOpen()"}],"children":["stat"]}
+```
+
+The Card is on screen under its "Orders" title, with
+[`fallbackComponents.placeholder`](/react/renderer) standing in for `stat`. With
+no placeholder registered, that slot renders nothing. The next line lands:
+
+```jsonl
+{"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
+```
+
+The placeholder swaps for the Stat. The Card was never remounted, so
+`countOpen()` does not run again — a growing array reveals the tree, it does not
+rebuild it.
+
+## Where to go next
+
+- [Renderer](/react/renderer) — mounting the entries you just streamed.
+- [Core](/api#uicastcore) — `streamJsonLines`' signature and tolerance rules.
+- [Getting started](/getting-started) — the whole loop, end to end.

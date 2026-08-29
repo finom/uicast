@@ -16,7 +16,7 @@ export const formLines: ComponentEntry[] = [
   {
     key: "field1-label",
     component: "FieldLabel",
-    props: { literal: { children: "Count" } },
+    props: { literal: { text: "Count" } },
   },
   {
     key: "input1",
@@ -31,6 +31,6 @@ export const formLines: ComponentEntry[] = [
   {
     key: "field1-desc",
     component: "FieldDescription",
-    props: { literal: { children: "Enter a number value" } },
+    props: { literal: { text: "Enter a number value" } },
   },
 ] as const;

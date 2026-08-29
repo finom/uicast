@@ -25,12 +25,12 @@ export const asyncLines: ComponentEntry[] = [
   {
     key: "th-name",
     component: "TableHead",
-    props: { literal: { children: "Name" } },
+    props: { literal: { text: "Name" } },
   },
   {
     key: "th-email",
     component: "TableHead",
-    props: { literal: { children: "Email" } },
+    props: { literal: { text: "Email" } },
   },
   {
     key: "users-tbody",
@@ -53,7 +53,7 @@ export const asyncLines: ComponentEntry[] = [
   {
     key: "name-text",
     component: "Text",
-    props: { expr: "({children: scopes.user.item.fullName})" },
+    props: { expr: "({text: scopes.user.item.fullName})" },
   },
   {
     key: "td-email",
@@ -63,6 +63,6 @@ export const asyncLines: ComponentEntry[] = [
   {
     key: "email-text",
     component: "Text",
-    props: { expr: "({children: scopes.user.item.email})" },
+    props: { expr: "({text: scopes.user.item.email})" },
   },
 ] as const;

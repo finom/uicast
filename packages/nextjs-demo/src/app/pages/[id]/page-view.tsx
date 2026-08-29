@@ -21,7 +21,7 @@ import {
   RendererProvider,
 } from "@uicast/react";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { ConfirmModal } from "@uicast/shadcn-catalog/default-components";
+import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
@@ -323,7 +323,7 @@ export function PageView({
                 key={page.id}
                 implementations={allImplementations}
                 functions={domainTools}
-                defaultComponents={rendererDefaults}
+                fallbackComponents={rendererDefaults}
               >
                 <EntriesRenderer entries={entries} />
               </RendererProvider>

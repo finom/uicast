@@ -1,72 +1,84 @@
 # Value Sources
 
-A **value source** is how an entry expresses a single value — either a static
-value or one computed from a JavaScript expression, in three forms that build on
-one another:
+A **value source** is how an entry expresses one value: static, or computed from
+a JavaScript expression. Three forms:
 
 ```ts
-ValueSource                      = { expr } | { literal }
-ValueSourceAssignment            = ValueSource & { set }
-ConfirmableValueSourceAssignment = ValueSource & { set?, confirm? }
+ValueSource                      = { expr } | { literal }             // props
+ValueSourceAssignment            = ValueSource & { set }              // seed steps
+ConfirmableValueSourceAssignment = ValueSource & { set?, confirm? }   // callback steps
 ```
 
-Each form builds on the one before it — the confirmable form adds `confirm`
-and relaxes `set` to optional; [**Entry fields**](/entry/fields) covers which
-entry field takes which form.
+A callback step may **drop `set`** and run purely for its effect — a `seed` step
+never can, since a seed exists to put something in scope.
+
+[Entry fields](/entry/fields) covers which field takes which form.
 
 ## ValueSource
 
-The base form: a value, given one of two ways.
-
-- `{ "literal": <value> }` — taken **verbatim**. Any JSON value, never
-  evaluated; `{ "literal": "scopes.x" }` is the string `"scopes.x"`, not a
-  lookup.
-- `{ "expr": "<expression>" }` — a [JavaScript expression](/entry/expressions),
-  evaluated against the current scopes. Its result is the value.
+A value, given one of two ways.
 
 ```jsonc
-{ "literal": "Hello" }
-{ "expr": "scopes.root.title" }
+{ "literal": "Hello" }           // any JSON value, used as-is
+{ "expr": "scopes.root.title" }  // a JavaScript expression, evaluated against the scopes
 ```
+
+`expr` takes any [JavaScript expression](/entry/expressions).
 
 ## ValueSourceAssignment
 
-A `ValueSource` plus a `set`: evaluate the value, then **write it to the scope
-path** named by `set`. How the write lands depends on the site: a `callbacks`
-step overwrites the path, while a `seed` step is applied **first-writer-wins** —
-it assigns only if the path is still `undefined`, so two entries seeding the same
-path don't clobber each other (see [state](/entry/state#lifecycle)).
+A `ValueSource` plus a `set`: evaluate, then **write to the scope path** `set`
+names.
 
 ```jsonc
 { "set": "scopes.root.count", "literal": 0 }
 { "set": "scopes.root.itemCount", "expr": "scopes.cart.items.length" }
 { "set": "scopes.root.count", "expr": "currentValue + 1" }  // read-modify-write
+{ "set": "scopes.root.open", "expr": "!currentValue" }      // unset → undefined → true
 ```
 
-Inside the `expr`, the name **`currentValue`** is bound to the value currently at
-the `set` path — the one about to be replaced. It turns an assignment into a
-**read-modify-write** without re-naming the path: `currentValue + 1` to increment,
-`!currentValue` to toggle a flag, `[...currentValue, evt.item]` to append. It is
-`undefined` when the path has never been set, so a first-time `!currentValue` is
-`true`. `currentValue` exists **only** in an assignment's `expr` — the `set` is
-what defines it — never in a bare [`props`](/entry/fields#props),
-[`hidden`](/entry/fields#hidden), or [`each`](/entry/fields#each) expression.
+**`currentValue`** is whatever sits at the `set` path now — the value about to
+be replaced. It makes an assignment a read-modify-write without naming the path
+twice. `set` is what defines it, so in a bare
+[`props`](/entry/fields#props), [`hidden`](/entry/fields#hidden), or
+[`each`](/entry/fields#each) expression it does not exist:
+
+```jsonc
+// ❌ no `set` here — throws: "currentValue" is not available in expressions
+{ "hidden": "!currentValue" }
+```
+
+How the write lands depends on the site. A `callbacks` step overwrites. A `seed`
+step is **first-writer-wins**: it assigns only if the path is still
+`undefined`:
+
+```jsonc
+{ "key": "filters", "component": "Card", "children": ["status-input"],
+  "seed": [{ "set": "scopes.root.status", "literal": "open" }] }
+{ "key": "status-input", "component": "Input",
+  "seed": [{ "set": "scopes.root.status", "literal": "all" }],
+  "props": { "expr": "({ value: scopes.root.status })" } }
+```
+
+The input renders `open`. The parent seeds before the child mounts, so the
+child's write is a silent no-op — two entries seeding one path never clobber
+each other (see [state](/entry/state#lifecycle)). The same `set` in a
+`callbacks` step would write `all`.
 
 ## ConfirmableValueSourceAssignment
 
-A `ValueSource` plus an optional `set` and an optional `confirm`: the write is
-gated by a confirmation message. If the user declines, the assignment — and every
-step after it — is skipped. `set` is optional in this form: a
-[callback](/entry/fields#callbacks) step with no `set` evaluates its `expr` and
-discards the result — a fire-and-forget host call. (`seed` steps take the plain
-assignment form, where `set` is required.) A confirmed step is also an [ordering
-barrier](/entry/reactivity): everything before it settles before the prompt
-appears, and nothing after it starts until it passes.
+`confirm` gates the step behind a confirmation message.
 
 ```jsonc
-{
-  "set": "scopes.root.result",
-  "expr": "deleteUser({ id: scopes.row.item.id })",
-  "confirm": "Delete this user? This cannot be undone."
-}
+{ // …
+  "callbacks": { "onClick": [
+    { "expr": "deleteUser({ id: scopes.row.item.id })",
+      "confirm": "Delete this user? This cannot be undone." },
+    { "set": "scopes.root.users", "expr": "listUsers()" }
+  ] } }
 ```
+
+No `set` on the first step, so the delete's return value is discarded. Decline
+the prompt and neither step runs. A confirmed step is also an
+[ordering barrier](/entry/reactivity): everything before it settles first, and
+nothing after it starts until it passes.

@@ -61,14 +61,14 @@ export const nastenkaLines = [
   {
     key: "welcome-heading",
     component: "Heading",
-    props: { literal: { level: "2", children: "Привет, Настенька! 🎀✨" } },
+    props: { literal: { level: "2", text: "Привет, Настенька! 🎀✨" } },
   },
   {
     key: "welcome-text",
     component: "Text",
     props: {
       literal: {
-        children:
+        text:
           "Эта страничка создана специально для тебя, чтобы поднять настроение 💕",
         variant: "lead",
       },
@@ -85,7 +85,7 @@ export const nastenkaLines = [
     component: "Button",
     props: {
       literal: {
-        children: "✨ Добавить блеска! ✨",
+        text: "✨ Добавить блеска! ✨",
         variant: "default",
         size: "lg",
       },
@@ -103,7 +103,7 @@ export const nastenkaLines = [
     key: "sparkle-count-badge",
     component: "Badge",
     props: {
-      expr: "({ children: '✨ × ' + scopes.root.sparkleCount, variant: scopes.root.sparkleCount > 10 ? 'default' : 'secondary' })",
+      expr: "({ text: '✨ × ' + scopes.root.sparkleCount, variant: scopes.root.sparkleCount > 10 ? 'default' : 'secondary' })",
     },
   },
   {
@@ -133,7 +133,7 @@ export const nastenkaLines = [
     component: "Button",
     props: {
       literal: {
-        children: "🎁 Новый комплимент!",
+        text: "🎁 Новый комплимент!",
         variant: "outline",
         size: "lg",
       },
@@ -167,7 +167,7 @@ export const nastenkaLines = [
   {
     key: "cat-display",
     component: "Heading",
-    props: { expr: "({ level: '1', children: scopes.root.catMood })" },
+    props: { expr: "({ level: '1', text: scopes.root.catMood })" },
   },
   {
     key: "cat-pet-row",
@@ -178,7 +178,7 @@ export const nastenkaLines = [
   {
     key: "pet-btn",
     component: "Button",
-    props: { literal: { children: "🤗 Погладить котика", variant: "default" } },
+    props: { literal: { text: "🤗 Погладить котика", variant: "default" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.petCount", expr: "currentValue + 1" },
@@ -193,7 +193,7 @@ export const nastenkaLines = [
     key: "feed-btn",
     component: "Button",
     props: {
-      literal: { children: "🐟 Покормить котика", variant: "secondary" },
+      literal: { text: "🐟 Покормить котика", variant: "secondary" },
     },
     callbacks: {
       onClick: [
@@ -206,7 +206,7 @@ export const nastenkaLines = [
     key: "cat-status",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.petCount === 0 ? 'Котик ждёт внимания...' : scopes.root.petCount < 5 ? 'Котик доволен! Мур~' : scopes.root.petCount < 10 ? 'Котик очень счастлив! Мур-мур-мур! 💕' : 'Котик в полном восторге от Настеньки!!! 😻💖✨', variant: 'muted' })",
+      expr: "({ text: scopes.root.petCount === 0 ? 'Котик ждёт внимания...' : scopes.root.petCount < 5 ? 'Котик доволен! Мур~' : scopes.root.petCount < 10 ? 'Котик очень счастлив! Мур-мур-мур! 💕' : 'Котик в полном восторге от Настеньки!!! 😻💖✨', variant: 'muted' })",
     },
   },
   {
@@ -247,7 +247,7 @@ export const nastenkaLines = [
   {
     key: "rose-btn",
     component: "Button",
-    props: { literal: { children: "🌹 Роза", variant: "outline", size: "sm" } },
+    props: { literal: { text: "🌹 Роза", variant: "outline", size: "sm" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.flowers", expr: "[...currentValue, '🌹']" },
@@ -259,7 +259,7 @@ export const nastenkaLines = [
     key: "tulip-btn",
     component: "Button",
     props: {
-      literal: { children: "🌷 Тюльпан", variant: "outline", size: "sm" },
+      literal: { text: "🌷 Тюльпан", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -272,7 +272,7 @@ export const nastenkaLines = [
     key: "sunflower-btn",
     component: "Button",
     props: {
-      literal: { children: "🌻 Подсолнух", variant: "outline", size: "sm" },
+      literal: { text: "🌻 Подсолнух", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -285,7 +285,7 @@ export const nastenkaLines = [
     key: "cherry-btn",
     component: "Button",
     props: {
-      literal: { children: "🌸 Сакура", variant: "outline", size: "sm" },
+      literal: { text: "🌸 Сакура", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -298,7 +298,7 @@ export const nastenkaLines = [
     key: "daisy-btn",
     component: "Button",
     props: {
-      literal: { children: "🌼 Ромашка", variant: "outline", size: "sm" },
+      literal: { text: "🌼 Ромашка", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -311,7 +311,7 @@ export const nastenkaLines = [
     key: "lily-btn",
     component: "Button",
     props: {
-      literal: { children: "💐 Букетик", variant: "outline", size: "sm" },
+      literal: { text: "💐 Букетик", variant: "outline", size: "sm" },
     },
     callbacks: {
       onClick: [
@@ -324,14 +324,14 @@ export const nastenkaLines = [
     key: "flower-bouquet",
     component: "Heading",
     props: {
-      expr: "({ level: '3', children: scopes.root.flowers.length === 0 ? '🌱 Сад пока пуст...' : scopes.root.flowers.join(' ') })",
+      expr: "({ level: '3', text: scopes.root.flowers.length === 0 ? '🌱 Сад пока пуст...' : scopes.root.flowers.join(' ') })",
     },
   },
   {
     key: "flower-count-text",
     component: "Text",
     props: {
-      expr: "({ children: scopes.root.flowerCount === 0 ? 'Добавь цветочков!' : 'В букете: ' + scopes.root.flowerCount + ' ' + (scopes.root.flowerCount === 1 ? 'цветок' : scopes.root.flowerCount < 5 ? 'цветка' : 'цветков') + ' 💕', variant: 'muted' })",
+      expr: "({ text: scopes.root.flowerCount === 0 ? 'Добавь цветочков!' : 'В букете: ' + scopes.root.flowerCount + ' ' + (scopes.root.flowerCount === 1 ? 'цветок' : scopes.root.flowerCount < 5 ? 'цветка' : 'цветков') + ' 💕', variant: 'muted' })",
     },
   },
   {
@@ -339,7 +339,7 @@ export const nastenkaLines = [
     component: "Button",
     props: {
       literal: {
-        children: "🗑️ Начать новый букет",
+        text: "🗑️ Начать новый букет",
         variant: "ghost",
         size: "sm",
       },
@@ -372,7 +372,7 @@ export const nastenkaLines = [
     key: "hearts-display",
     component: "Heading",
     props: {
-      expr: "({ level: '3', children: scopes.root.hearts.length === 0 ? 'Нажми кнопку, чтобы собрать сердечки!' : scopes.root.hearts.join(' ') })",
+      expr: "({ level: '3', text: scopes.root.hearts.length === 0 ? 'Нажми кнопку, чтобы собрать сердечки!' : scopes.root.hearts.join(' ') })",
     },
   },
   {
@@ -390,7 +390,7 @@ export const nastenkaLines = [
   {
     key: "pink-heart-btn",
     component: "Button",
-    props: { literal: { children: "💗", size: "lg" } },
+    props: { literal: { text: "💗", size: "lg" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.hearts", expr: "[...currentValue, '💗']" },
@@ -400,7 +400,7 @@ export const nastenkaLines = [
   {
     key: "red-heart-btn",
     component: "Button",
-    props: { literal: { children: "❤️", size: "lg", variant: "destructive" } },
+    props: { literal: { text: "❤️", size: "lg", variant: "destructive" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.hearts", expr: "[...currentValue, '❤️']" },
@@ -410,7 +410,7 @@ export const nastenkaLines = [
   {
     key: "purple-heart-btn",
     component: "Button",
-    props: { literal: { children: "💜", size: "lg", variant: "secondary" } },
+    props: { literal: { text: "💜", size: "lg", variant: "secondary" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.hearts", expr: "[...currentValue, '💜']" },
@@ -420,7 +420,7 @@ export const nastenkaLines = [
   {
     key: "sparkling-heart-btn",
     component: "Button",
-    props: { literal: { children: "💖", size: "lg", variant: "outline" } },
+    props: { literal: { text: "💖", size: "lg", variant: "outline" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.hearts", expr: "[...currentValue, '💖']" },
@@ -431,7 +431,7 @@ export const nastenkaLines = [
     key: "clear-hearts-btn",
     component: "Button",
     props: {
-      literal: { children: "Начать заново", variant: "ghost", size: "sm" },
+      literal: { text: "Начать заново", variant: "ghost", size: "sm" },
     },
     callbacks: { onClick: [{ set: "scopes.root.hearts", literal: [] }] },
   },
@@ -469,7 +469,7 @@ export const nastenkaLines = [
     key: "mood-happy",
     component: "Button",
     props: {
-      expr: "({ children: '😊 Счастье', variant: scopes.root.mood === 'happy' ? 'default' : 'outline' })",
+      expr: "({ text: '😊 Счастье', variant: scopes.root.mood === 'happy' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "happy" }] },
   },
@@ -477,7 +477,7 @@ export const nastenkaLines = [
     key: "mood-love",
     component: "Button",
     props: {
-      expr: "({ children: '🥰 Любовь', variant: scopes.root.mood === 'love' ? 'default' : 'outline' })",
+      expr: "({ text: '🥰 Любовь', variant: scopes.root.mood === 'love' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "love" }] },
   },
@@ -485,7 +485,7 @@ export const nastenkaLines = [
     key: "mood-star",
     component: "Button",
     props: {
-      expr: "({ children: '🤩 Восторг', variant: scopes.root.mood === 'star' ? 'default' : 'outline' })",
+      expr: "({ text: '🤩 Восторг', variant: scopes.root.mood === 'star' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "star" }] },
   },
@@ -493,7 +493,7 @@ export const nastenkaLines = [
     key: "mood-chill",
     component: "Button",
     props: {
-      expr: "({ children: '😌 Спокойствие', variant: scopes.root.mood === 'chill' ? 'default' : 'outline' })",
+      expr: "({ text: '😌 Спокойствие', variant: scopes.root.mood === 'chill' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "chill" }] },
   },
@@ -501,7 +501,7 @@ export const nastenkaLines = [
     key: "mood-sleepy",
     component: "Button",
     props: {
-      expr: "({ children: '😴 Сонливость', variant: scopes.root.mood === 'sleepy' ? 'default' : 'outline' })",
+      expr: "({ text: '😴 Сонливость', variant: scopes.root.mood === 'sleepy' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "sleepy" }] },
   },
@@ -509,7 +509,7 @@ export const nastenkaLines = [
     key: "mood-party",
     component: "Button",
     props: {
-      expr: "({ children: '🥳 Веселье', variant: scopes.root.mood === 'party' ? 'default' : 'outline' })",
+      expr: "({ text: '🥳 Веселье', variant: scopes.root.mood === 'party' ? 'default' : 'outline' })",
     },
     callbacks: { onClick: [{ set: "scopes.root.mood", literal: "party" }] },
   },

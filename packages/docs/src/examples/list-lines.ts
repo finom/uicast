@@ -21,12 +21,12 @@ export const listLines: ComponentEntry[] = [
   {
     key: "item-badge",
     component: "Badge",
-    props: { expr: "({ children: scopes.row.item })" },
+    props: { expr: "({ text: scopes.row.item })" },
   },
   {
     key: "add-item-button",
     component: "Button",
-    props: { literal: { children: "Add Item", variant: "outline" } },
+    props: { literal: { text: "Add Item", variant: "outline" } },
     callbacks: {
       onClick: [
         {

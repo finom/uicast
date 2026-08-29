@@ -1,116 +1,177 @@
 # State & Scopes
 
-All state lives in **scopes** — a flat namespace of reactive bags that
-expressions read from, and `set` assignments write to. Expressions see exactly
-one variable, `scopes`, and address state by name and path:
+All state lives in **scopes**: a flat namespace of reactive containers that
+expressions read and `set` assignments write. An expression sees one variable,
+`scopes`, and addresses state by name and path:
 
 ```
 scopes.<scopeName>.<path>     // e.g. scopes.root.searchTerm
 ```
 
-`scopes` is **flat, not a deep tree**: the first segment is a *scope name*,
-everything after is a path inside that scope. Nesting — a list inside a list —
-is captured by *naming* (each scope is independent), never by chaining
-`scopes.a.b.c.d`.
+## What a scope actually is
+
+Every scope is a `createProxyScope` object from [`@uicast/core`](/api#uicastcore):
+a native JavaScript `Proxy` over a plain object, no state library underneath.
+
+```ts
+const root = createProxyScope<{ count: number; user?: { name: string } }>({ count: 0 });
+
+root.$emitter.on("user", () => { /* … */ });  // subscribe to a path
+
+root.count = 1;                            // write — emits
+root.user.name = "Ada";                    // ❌ throws — `user` is undefined
+root.$set("user", { name: "Ada" });        // ✅ set the parent, then write into it
+root.$set("count", 0, { default: true });  // no-op — writes only if unset
+```
+
+Reads are plain property access, and both write forms emit. `$set` adds the
+dotted path, and `default: true`, which is what a [`seed`](#lifecycle) step uses
+so two entries seeding one path do not overwrite each other.
 
 ## The root scope
 
-`scopes.root` is always present — the one app-wide scope. App-level state —
-search terms, the active tab, which modal is open — lives here:
+`scopes.root` is always present, and is the only app-wide scope. Search terms,
+the active tab, which modal is open — all here:
 
 ```jsonc
-{ "props": { "expr": "({ value: scopes.root.searchTerm })" } }
+{ "key": "search", "component": "SearchInput",
+  "seed": [{ "set": "scopes.root.searchTerm", "literal": "" }],
+  "props": { "expr": "({ value: scopes.root.searchTerm })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.searchTerm", "expr": "evt.value" }] } }
 ```
 
-There is no other "global"; every other scope belongs to a list item (or is a
-host-provided context scope). `root` belongs to the
-[`<RendererProvider>`](/react/renderer), not to a single document — every
-document under one provider shares it, so a group of documents behaves as one
-app with one store. On a chat surface that is what lets blocks share live
-state: the same path means the same data in every block.
+Every other scope belongs to a list item or comes from the host. `root` belongs
+to the [`<RendererProvider>`](/react/renderer), not to one document, so every
+document under one provider shares it. On a chat surface that is what lets
+blocks share live state.
 
 ## Item scopes
 
-A [list](/entry/fields#list-fields) element (one carrying `each`) renders its
-`component` once per item, and gives **each item its own scope**, named by the
-list's `as`. Inside a row, that scope exposes the item:
-
-- `scopes.<as>.item` — the row's record (the array element)
-- `scopes.<as>.index` — its zero-based position
-- `scopes.<as>.id` — its stable key (from `keyBy`)
+A [list](/entry/fields#list-fields) renders its `component` once per item and
+gives **each item its own scope**, named by `as`:
 
 ```jsonc
-{ "key": "orders", "component": "OrderCard",
+{ "key": "orders", "component": "Card",
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "children": ["order-title"] }
 { "key": "order-title", "component": "Text",
-  "props": { "expr": "({ children: scopes.order.item.customer })" } }
+  "props": { "expr": "({ text: (scopes.order.index + 1) + '. ' + scopes.order.item.customer + ' #' + scopes.order.id })" } }
 ```
 
-Two things follow:
+Over `[{ id: "a1", customer: "Ada" }, { id: "b2", customer: "Grace" }]` that is
+`1. Ada #a1` then `2. Grace #b2`. `item` is the record, `index` its zero-based
+position, `id` the key `keyBy` picked (the index when there is no `keyBy`).
 
-- **A list is N scopes, not one.** Every rendered row gets its *own* bag, so
-  per-row state — `scopes.order.expanded` — is genuinely per row, with no index
-  juggling and no collisions between rows.
-- **Scopes are lexical.** An inner subtree sees every enclosing scope: a row
-  reads its own `scopes.order.*` *and* `scopes.root.*`. A nested list stacks
-  another name on top, so a line inside an order sees `root`, `order`, and
-  `line` at once. Scope names must therefore be **globally unique** — never two
-  lists with `as: "item"`.
+**A list is N scopes, not one**, so per-row state like `scopes.order.expanded` is
+genuinely per row.
+
+**Scopes stack**, so names must be globally unique. Reusing one does not error —
+it silently shadows:
+
+```jsonc
+// ❌ the inner `as` overwrites the outer. Inside a line item, `scopes.item` IS
+//   the line item, and the order it belongs to is unreachable.
+{ "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "item", "children": ["lines"] }
+{ "key": "lines", "component": "Text", "each": "scopes.item.item.lines", "as": "item",
+  "props": { "expr": "({ text: scopes.item.item.sku })" } }
+
+// ✅ distinct names stack — a line item sees root, order and line at once.
+{ "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
+{ "key": "lines", "component": "Text", "each": "scopes.order.item.lines", "as": "line",
+  "props": { "expr": "({ text: scopes.order.item.id + ' / ' + scopes.line.item.sku })" } }
+```
 
 ## Reaching across rows
 
-A list is N independent scopes, so to read *across* them — a sum, a count, a
-filter over every row — a parent reads **`childScopes`**, the array of its rows'
-live scopes:
+To read *across* rows — a sum, a count — use **`childScopes`**, the array of the
+rows' live scopes. The list publishes it *after* it commits, so read it from a
+`callbacks` step and park the result on a plain path:
 
 ```jsonc
-{ "expr": "scopes.root.childScopes.order.reduce((s, o) => s + o.item.total, 0)" }
+{ "key": "orders", "component": "Card",
+  "each": "scopes.root.orders", "as": "order", "keyBy": "id", "children": ["order-title"] }
+{ "key": "recount", "component": "Button", "props": { "literal": { "text": "Recount" } },
+  "callbacks": { "onClick": [
+    { "set": "scopes.root.total",
+      "expr": "scopes.root.childScopes.order.reduce((s, o) => s + o.item.total, 0)" }] } }
+{ "key": "total", "component": "Text", "props": { "expr": "({ text: scopes.root.total })" } }
 ```
 
-`childScopes.<as>` lives on the scope that *contains* the list: the orders' rows
-hang off `root`, and each order's lines hang off that `order` scope
-(`scopes.order.childScopes.line`). Each entry is itself a full scope, so the
-chain keeps going — `scopes.root.childScopes.order[0].childScopes.line[0]`.
+`childScopes.<as>` lives on the scope *containing* the list. Each entry is itself
+a full scope, so the chain continues:
+`scopes.root.childScopes.order[0].childScopes.line[0]`.
 
 ## Reading and writing
 
 - **Reads** are plain property access inside an [expression](/entry/expressions):
   `scopes.root.count`, `scopes.order.item.total`.
-- **Writes happen only through `set`** — the `set` field of a `seed` or
-  `callbacks` [assignment](/entry/value-sources). Expressions are pure; you never
-  assign to `scopes` inside one. A `seed` initializes a path once at mount;
-  `callbacks` update it in response to an event. A `set` path **creates its
-  intermediates**, so `scopes.root.filters.date.from` works with nothing seeded
-  above it — the levels it creates are plain objects, so seed real arrays
-  explicitly.
+- **Writes happen only through `set`**, on a `seed` or `callbacks`
+  [assignment](/entry/value-sources). `seed` initializes a path at mount;
+  `callbacks` update it on an event.
 
-Subscriptions run **one way, downward**: a reader wakes on a write to the path
-it reads *or to any path above it*. Replacing `scopes.root.user` wholesale wakes
-a reader of `scopes.root.user.name`, because writing a path replaces everything
-beneath it. Writing *finer* than a reader is the direction that misses — a
-reader of `scopes.root.rows` is not woken by a write to `scopes.root.rows.0.qty`,
-since a deep write is not a replacement of the whole.
+A `set` path whose parent is not set throws, so seed the container first:
 
-That asymmetry is why the convention is to **replace arrays and objects
-wholesale** — write a new array to `scopes.root.rows` rather than mutating one
-cell. It's the shape every mutate-then-refetch callback already produces, and it
-wakes every reader beneath the path, however deep. How a read becomes a
-subscription is covered in [Reactivity & Dependencies](/entry/reactivity).
+```jsonc
+// ❌ nothing seeded `tags` — this fails instead of guessing a shape
+{ "set": "scopes.root.tags.0", "literal": "new" }
+
+// ✅ seed the real array, then replace the whole array.
+{ "set": "scopes.root.tags", "literal": [] }                          // in `seed`
+{ "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" } // in a callback
+```
+
+Subscriptions run **one way, downward**. A reader is notified when its own path
+is written, or any path above it — never a path below it.
+
+```jsonc
+{ "set": "scopes.root.rows", "expr": "listRows()" }  // notifies a reader of scopes.root.rows.length
+{ "set": "scopes.root.rows.0.qty", "literal": 3 }    // notifies nothing reading scopes.root.rows
+```
+
+So **replace the whole array or object**, rather than writing into it. That is
+what a mutate-then-refetch callback already produces, and it notifies every
+reader below the path. See [Reactivity & Dependencies](/entry/reactivity).
 
 ## Lifecycle
 
-A scope path is initialized once, by a `seed`, when its element mounts, and then
-persists for the life of the page — across every re-render, and even while the
-element is `hidden` (a hidden element keeps its state and restores it when shown
-again). Always initialize a path before an expression reads it; a path that was
-never seeded reads back as `undefined`.
+A `seed` initializes a path when its element mounts, and it then persists for the
+life of the page — through re-renders, and while the element is `hidden`. A path
+that was never seeded reads back as `undefined`.
 
-State can also arrive from the host: [`<RendererProvider init>`](/react/renderer)
-runs once when the first renderer mounts, before its entries evaluate, and writes
-`scopes.root.*` through the live proxy — unconditionally, unlike a seed.
+A `seed` is **first-writer-wins**: it assigns only if the path is still
+`undefined`.
 
-A `seed` is applied **first-writer-wins**: it assigns only if the path is still
-`undefined`. So two elements that seed the same path don't clobber each other,
-and a value the user has already changed survives a re-mount instead of snapping
-back to its seed.
+```jsonc
+{ "key": "panel", "component": "Card", "seed": [{ "set": "scopes.root.sort", "literal": "name" }],
+  "children": ["label"] }
+{ "key": "label", "component": "Text", "seed": [{ "set": "scopes.root.sort", "literal": "price" }],
+  "props": { "expr": "({ text: scopes.root.sort })" } }
+```
+
+Renders `name`. `panel` seeds before `label` mounts, so `label`'s seed finds the
+path defined and writes nothing — a no-op, not an error. The same `set` in a
+`callbacks` step would write `price`. This is also why a value the user changed
+survives a re-mount instead of snapping back.
+
+State can also come from the host. [`<RendererProvider>`](/react/renderer) takes
+two ways in:
+
+```tsx
+<RendererProvider
+  implementations={allImplementations}
+  scopes={{ userCtx: createProxyScope({ id: 7, name: "Ada" }) }}
+  init={({ scopes }) => {
+    (scopes.root as Record<string, unknown>).theme = "dark";
+  }}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>
+```
+
+`scopes` adds named containers alongside `root`, captured on mount; entries read
+them as `scopes.userCtx.name`. `init` runs once before any entry evaluates and
+writes straight through the live proxy — unconditionally, unlike a seed, so a
+later `seed` for the same path is a no-op.
+
+Any extra scope you pass must also be described in your system prompt; the
+prompt builders only know about `root` and the list scopes.

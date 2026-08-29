@@ -5,11 +5,12 @@ const ORDERS = [
   { id: 7, customer: "Maya Chen", total: 40 },
   { id: 8, customer: "Jonas Berg", total: 15 },
   { id: 9, customer: "Priya Nair", total: 92 },
+  { id: 10, customer: "Tomas Ruiz", total: 28 },
 ];
 
 export const listOrders = standardTool({
   name: "listOrders",
-  description: "Every order, newest first.",
+  description: "The three most recent orders.",
   outputSchema: z.array(
     z.object({
       id: z.number().int().meta({ description: "Order id" }),
@@ -18,11 +19,8 @@ export const listOrders = standardTool({
     }),
   ),
   async execute() {
-    // A real backend would be slower; the shuffle makes a refetch visible.
     await new Promise((resolve) => setTimeout(resolve, 350));
-    const rotated = [...ORDERS];
-    rotated.push(rotated.shift());
-    ORDERS.splice(0, ORDERS.length, ...rotated);
-    return rotated;
+    ORDERS.splice(0, ORDERS.length, ...ORDERS.slice(1), ...ORDERS.slice(0, 1));
+    return ORDERS.slice(0, 3);
   },
 });

@@ -4,35 +4,27 @@ asIndexPage: true
 
 # Component Entry Format
 
-A **uicast** document is a stream of JSONLines, and each line is one
-**component entry** — the flat JSON object that describes a single element of
-the document. An entry names the `component` to render, gives it an identity
-(`key`), and optionally carries its `props`, initial state (`seed`), visibility
-(`hidden`), event handlers (`callbacks`), and `children` — plus the list fields
-`each` / `as` / `keyBy` when the line repeats. The engine reads entries in order
-and mounts them into a tree by key reference.
+A uicast document is a stream of JSONLines, and each line is one **component
+entry**: a flat JSON object describing one element. It names the `component`,
+carries a `key`, and optionally `props`, `seed`, `hidden`, `callbacks`, and
+`children` — plus `each` / `as` / `keyBy` when the line repeats. The engine
+mounts them into a tree by key reference.
 
-It is not a new language. The envelope is [**plain JSONLines**](https://jsonlines.org/) — one JSON object
-per line, nothing custom — and the dynamic fields (`props`, `hidden`, `each`,
-and the `expr` of a `seed` or `callback`) are **ordinary JavaScript
-expressions**, evaluated against the document's reactive scopes. There is no
-grammar to learn beyond JSON and the JavaScript you already write — which is
-what keeps the format small enough for a model to emit fluently, in very few
-tokens.
+There is no new language here: the dynamic fields are ordinary
+[JavaScript expressions](/entry/expressions) over the document's scopes.
 
 Every one of those fields, once:
 
 ```jsonl
 {"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"children":["task-rows","empty-note","refresh"]}
-{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ children: scopes.task.item.title })"}}
-{"key":"empty-note","component":"Text","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"children":"No tasks yet"}}}
-{"key":"refresh","component":"Button","props":{"literal":{"children":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.tasks","expr":"listTasks()"}]}}
+{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.item.title })"}}
+{"key":"empty-note","component":"Text","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"text":"No tasks yet"}}}
+{"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.tasks","expr":"listTasks()"}]}}
 ```
 
-`task-card` is the root — no `children` array mentions it. `task-rows` repeats
-one `Text` per task. `empty-note` disappears once tasks exist. `refresh`
-refetches on click.
+`task-card` is the root, since no `children` array mentions it. `task-rows`
+repeats one `Text` per task, `empty-note` disappears once tasks exist, and
+`refresh` refetches on click.
 
-[**Entry fields**](/entry/fields) is the field-by-field reference for that
-object: every key an entry can carry, what it holds, and which deeper mechanism
-it draws on.
+[Entry fields](/entry/fields) is the reference for every key an entry can
+carry.

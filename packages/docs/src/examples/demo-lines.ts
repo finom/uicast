@@ -47,7 +47,7 @@ export const demoLines: ComponentEntry[] = [
     key: "heading",
     component: "Heading",
     props: {
-      literal: { level: "1", children: "Project Management Dashboard" },
+      literal: { level: "1", text: "Project Management Dashboard" },
     },
   },
   {
@@ -133,12 +133,12 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "tab-trigger-tasks",
     component: "TabTrigger",
-    props: { literal: { value: "tasks", children: "Tasks Board" } },
+    props: { literal: { value: "tasks", text: "Tasks Board" } },
   },
   {
     key: "tab-trigger-team",
     component: "TabTrigger",
-    props: { literal: { value: "team", children: "Team Management" } },
+    props: { literal: { value: "team", text: "Team Management" } },
   },
   {
     key: "tab-content-tasks",
@@ -176,7 +176,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "add-task-btn",
     component: "Button",
-    props: { literal: { children: "+ Add Task" } },
+    props: { literal: { text: "+ Add Task" } },
     callbacks: { onClick: [{ set: "scopes.root.showAddTask", literal: true }] },
   },
   {
@@ -197,27 +197,27 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "th-title",
     component: "TableHead",
-    props: { literal: { children: "Title" } },
+    props: { literal: { text: "Title" } },
   },
   {
     key: "th-desc",
     component: "TableHead",
-    props: { literal: { children: "Description" } },
+    props: { literal: { text: "Description" } },
   },
   {
     key: "th-status",
     component: "TableHead",
-    props: { literal: { children: "Status" } },
+    props: { literal: { text: "Status" } },
   },
   {
     key: "th-user",
     component: "TableHead",
-    props: { literal: { children: "Assigned To" } },
+    props: { literal: { text: "Assigned To" } },
   },
   {
     key: "th-actions",
     component: "TableHead",
-    props: { literal: { children: "Actions" } },
+    props: { literal: { text: "Actions" } },
   },
   {
     key: "tasks-tbody",
@@ -247,7 +247,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "title-text",
     component: "Text",
-    props: { expr: "({children: scopes.taskRow.item.title})" },
+    props: { expr: "({text: scopes.taskRow.item.title})" },
   },
   {
     key: "td-desc",
@@ -258,7 +258,7 @@ export const demoLines: ComponentEntry[] = [
     key: "desc-text",
     component: "Text",
     props: {
-      expr: '({children: scopes.taskRow.item.description, variant: "muted"})',
+      expr: '({text: scopes.taskRow.item.description, variant: "muted"})',
     },
   },
   {
@@ -270,7 +270,7 @@ export const demoLines: ComponentEntry[] = [
     key: "status-badge",
     component: "Badge",
     props: {
-      expr: '({children: scopes.taskRow.item.status === "IN_PROGRESS" ? "In Progress" : (scopes.taskRow.item.status === "IN_REVIEW" ? "In Review" : (scopes.taskRow.item.status === "DONE" ? "Done" : "To Do")), variant: scopes.taskRow.item.status === "DONE" ? "default" : (scopes.taskRow.item.status === "IN_PROGRESS" ? "secondary" : (scopes.taskRow.item.status === "IN_REVIEW" ? "outline" : "destructive"))})',
+      expr: '({text: scopes.taskRow.item.status === "IN_PROGRESS" ? "In Progress" : (scopes.taskRow.item.status === "IN_REVIEW" ? "In Review" : (scopes.taskRow.item.status === "DONE" ? "Done" : "To Do")), variant: scopes.taskRow.item.status === "DONE" ? "default" : (scopes.taskRow.item.status === "IN_PROGRESS" ? "secondary" : (scopes.taskRow.item.status === "IN_REVIEW" ? "outline" : "destructive"))})',
     },
   },
   {
@@ -282,7 +282,7 @@ export const demoLines: ComponentEntry[] = [
     key: "user-name-text",
     component: "Text",
     props: {
-      expr: '({children: scopes.root.users.find(u => u.id === scopes.taskRow.item.userId)?.fullName ?? "Unassigned"})',
+      expr: '({text: scopes.root.users.find(u => u.id === scopes.taskRow.item.userId)?.fullName ?? "Unassigned"})',
     },
   },
   {
@@ -298,7 +298,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "task-edit-item",
     component: "DropdownMenuItem",
-    props: { literal: { children: "Edit" } },
+    props: { literal: { text: "Edit" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.editTaskId", expr: "scopes.taskRow.item.id" },
@@ -322,7 +322,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "task-delete-item",
     component: "DropdownMenuItem",
-    props: { literal: { children: "Delete", variant: "destructive" } },
+    props: { literal: { text: "Delete", variant: "destructive" } },
     callbacks: {
       onClick: [
         {
@@ -402,7 +402,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "add-user-btn",
     component: "Button",
-    props: { literal: { children: "+ Add User" } },
+    props: { literal: { text: "+ Add User" } },
     callbacks: { onClick: [{ set: "scopes.root.showAddUser", literal: true }] },
   },
   {
@@ -423,22 +423,22 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "uth-name",
     component: "TableHead",
-    props: { literal: { children: "Full Name" } },
+    props: { literal: { text: "Full Name" } },
   },
   {
     key: "uth-email",
     component: "TableHead",
-    props: { literal: { children: "Email" } },
+    props: { literal: { text: "Email" } },
   },
   {
     key: "uth-tasks",
     component: "TableHead",
-    props: { literal: { children: "Task Count" } },
+    props: { literal: { text: "Task Count" } },
   },
   {
     key: "uth-actions",
     component: "TableHead",
-    props: { literal: { children: "Actions" } },
+    props: { literal: { text: "Actions" } },
   },
   {
     key: "users-tbody",
@@ -468,7 +468,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "uname-text",
     component: "Text",
-    props: { expr: "({children: scopes.userRow.item.fullName})" },
+    props: { expr: "({text: scopes.userRow.item.fullName})" },
   },
   {
     key: "utd-email",
@@ -479,7 +479,7 @@ export const demoLines: ComponentEntry[] = [
     key: "uemail-text",
     component: "Text",
     props: {
-      expr: '({children: scopes.userRow.item.email, variant: "muted"})',
+      expr: '({text: scopes.userRow.item.email, variant: "muted"})',
     },
   },
   {
@@ -491,7 +491,7 @@ export const demoLines: ComponentEntry[] = [
     key: "task-count-badge",
     component: "Badge",
     props: {
-      expr: '({children: scopes.root.tasks.filter(t => t.userId === scopes.userRow.item.id).length, variant: "secondary"})',
+      expr: '({text: scopes.root.tasks.filter(t => t.userId === scopes.userRow.item.id).length, variant: "secondary"})',
     },
   },
   {
@@ -507,7 +507,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "user-edit-item",
     component: "DropdownMenuItem",
-    props: { literal: { children: "Edit" } },
+    props: { literal: { text: "Edit" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.editUserId", expr: "scopes.userRow.item.id" },
@@ -523,7 +523,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "user-delete-item",
     component: "DropdownMenuItem",
-    props: { literal: { children: "Delete", variant: "destructive" } },
+    props: { literal: { text: "Delete", variant: "destructive" } },
     callbacks: {
       onClick: [
         {
@@ -607,7 +607,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-task-title",
     component: "FieldLabel",
-    props: { literal: { children: "Title" } },
+    props: { literal: { text: "Title" } },
   },
   {
     key: "input-new-task-title",
@@ -627,7 +627,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-task-desc",
     component: "FieldLabel",
-    props: { literal: { children: "Description" } },
+    props: { literal: { text: "Description" } },
   },
   {
     key: "input-new-task-desc",
@@ -647,7 +647,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-task-status",
     component: "FieldLabel",
-    props: { literal: { children: "Status" } },
+    props: { literal: { text: "Status" } },
   },
   {
     key: "select-new-task-status",
@@ -667,7 +667,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-task-user",
     component: "FieldLabel",
-    props: { literal: { children: "Assign To" } },
+    props: { literal: { text: "Assign To" } },
   },
   {
     key: "select-new-task-user",
@@ -688,7 +688,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "cancel-add-task-btn",
     component: "Button",
-    props: { literal: { children: "Cancel", variant: "outline" } },
+    props: { literal: { text: "Cancel", variant: "outline" } },
     callbacks: {
       onClick: [{ set: "scopes.root.showAddTask", literal: false }],
     },
@@ -696,7 +696,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "submit-add-task-btn",
     component: "Button",
-    props: { literal: { children: "Create Task" } },
+    props: { literal: { text: "Create Task" } },
     callbacks: {
       onClick: [
         {
@@ -751,7 +751,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-task-title",
     component: "FieldLabel",
-    props: { literal: { children: "Title" } },
+    props: { literal: { text: "Title" } },
   },
   {
     key: "input-edit-task-title",
@@ -771,7 +771,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-task-desc",
     component: "FieldLabel",
-    props: { literal: { children: "Description" } },
+    props: { literal: { text: "Description" } },
   },
   {
     key: "input-edit-task-desc",
@@ -791,7 +791,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-task-status",
     component: "FieldLabel",
-    props: { literal: { children: "Status" } },
+    props: { literal: { text: "Status" } },
   },
   {
     key: "select-edit-task-status",
@@ -811,7 +811,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-task-user",
     component: "FieldLabel",
-    props: { literal: { children: "Assign To" } },
+    props: { literal: { text: "Assign To" } },
   },
   {
     key: "select-edit-task-user",
@@ -832,7 +832,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "cancel-edit-task-btn",
     component: "Button",
-    props: { literal: { children: "Cancel", variant: "outline" } },
+    props: { literal: { text: "Cancel", variant: "outline" } },
     callbacks: {
       onClick: [{ set: "scopes.root.showEditTask", literal: false }],
     },
@@ -840,7 +840,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "submit-edit-task-btn",
     component: "Button",
-    props: { literal: { children: "Save Changes" } },
+    props: { literal: { text: "Save Changes" } },
     callbacks: {
       onClick: [
         {
@@ -889,7 +889,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-user-name",
     component: "FieldLabel",
-    props: { literal: { children: "Full Name" } },
+    props: { literal: { text: "Full Name" } },
   },
   {
     key: "input-new-user-name",
@@ -909,7 +909,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-new-user-email",
     component: "FieldLabel",
-    props: { literal: { children: "Email" } },
+    props: { literal: { text: "Email" } },
   },
   {
     key: "input-new-user-email",
@@ -930,7 +930,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "cancel-add-user-btn",
     component: "Button",
-    props: { literal: { children: "Cancel", variant: "outline" } },
+    props: { literal: { text: "Cancel", variant: "outline" } },
     callbacks: {
       onClick: [{ set: "scopes.root.showAddUser", literal: false }],
     },
@@ -938,7 +938,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "submit-add-user-btn",
     component: "Button",
-    props: { literal: { children: "Create User" } },
+    props: { literal: { text: "Create User" } },
     callbacks: {
       onClick: [
         {
@@ -989,7 +989,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-user-name",
     component: "FieldLabel",
-    props: { literal: { children: "Full Name" } },
+    props: { literal: { text: "Full Name" } },
   },
   {
     key: "input-edit-user-name",
@@ -1009,7 +1009,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "lbl-edit-user-email",
     component: "FieldLabel",
-    props: { literal: { children: "Email" } },
+    props: { literal: { text: "Email" } },
   },
   {
     key: "input-edit-user-email",
@@ -1030,7 +1030,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "cancel-edit-user-btn",
     component: "Button",
-    props: { literal: { children: "Cancel", variant: "outline" } },
+    props: { literal: { text: "Cancel", variant: "outline" } },
     callbacks: {
       onClick: [{ set: "scopes.root.showEditUser", literal: false }],
     },
@@ -1038,7 +1038,7 @@ export const demoLines: ComponentEntry[] = [
   {
     key: "submit-edit-user-btn",
     component: "Button",
-    props: { literal: { children: "Save Changes" } },
+    props: { literal: { text: "Save Changes" } },
     callbacks: {
       onClick: [
         {

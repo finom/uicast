@@ -12,13 +12,13 @@ export const countLines: ComponentEntry[] = [
     key: "count-text",
     component: "Text",
     props: {
-      expr: '({ children: scopes.root.count, variant: "large" })',
+      expr: '({ text: scopes.root.count, variant: "large" })',
     },
   },
   {
     key: "count-btn",
     component: "Button",
-    props: { literal: { children: "Increment" } },
+    props: { literal: { text: "Increment" } },
     callbacks: {
       onClick: [{ set: "scopes.root.count", expr: "currentValue + 1" }],
     },

@@ -1,124 +1,119 @@
 # Component implementation
 
-A component is a **pair**: a [definition](/def) (`def.ts`, the half the model
-reads) and an *implementation* (`impl.tsx`, the half React runs). The definition is
-the contract — name, props, events; the implementation is the React component that
-contract resolves to. Where the def tells the model *what a component is*, the impl
-decides *what it renders* — almost always by wrapping a real React component (in the
-catalog, shadcn/ui).
+A component is a **pair**: a [definition](/def) the model reads, and an
+implementation React runs. The def says what the component is; the impl decides
+what it renders, usually by wrapping a real React component.
 
-```tsx
+```tsx filename="src/uicast/badge/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
 import { Badge } from "./badge";
 import { BadgeDef } from "./def";
 
 export const BadgeImpl = createComponentImplementation({
   def: BadgeDef,
-  render: ({ children, variant = "default" }) => (
-    <Badge variant={variant}>
-      {String(children ?? "")}
-    </Badge>
+  render: ({ text, children, variant }) => (
+    <Badge variant={variant}>{children ?? text}</Badge>
   ),
 });
 ```
 
-`createComponentImplementation` comes from `@uicast/react` — the React binding,
-not core (the def's factory was core's, agnostic of any framework). It takes the
-`def` and a `render` function and returns the implementation you register with the
-renderer.
+`createComponentImplementation` comes from `@uicast/react`, not core — core stays
+framework-agnostic. It takes the `def` and a `render` function and returns the
+implementation you register.
 
 ## The render function
 
 `render` receives a single argument, **typed against the def**:
 
-- **props** — inferred from the def's `props` schema, already **resolved**. The
-  engine evaluates the entry's [`props`](/entry/fields#props) value source against
-  state and hands you the final object; you only ever see values, never
-  expressions. When a scope path the props read changes the engine re-evaluates and
-  re-renders — so the implementation is a plain function of its props, holding no
-  engine state of its own.
-- **callbacks** — one `(payload) => Promise<void>` per key in the def's
-  `callbacks`. Each is **optional**: an entry may wire none, some, or all. Calling
-  one runs that entry's [callback steps](/entry/fields#callbacks) with `evt` bound
-  to the payload you pass — so the payload **must match the def's callback schema**.
-  That schema is the contract the model wrote its `evt.…` expressions against.
-- **`children`** — the rendered child elements, when the entry lists `children`.
-  Rendered children win: an entry with a `children` array hands you those; an
-  entry with none lets a `children` value supplied through `props` survive
-  instead — so a component can fall back to `props.children` text when the entry
-  gives it no subtree.
-- **`generatedKey`** — the entry's `key`, passed to every implementation. The
-  engine doesn't read it, but if you want you can spread it onto a rendered node as
-  an attribute (`data-key={generatedKey}`, or any name of your choosing) to map a
-  DOM node back to its entry. The catalog does this by convention — `data-key` on
-  each component's outermost node, for its selection and inspection tooling — but
-  the engine never reads it; ignore it if you have no such need.
+- **props** — inferred from the def's `props` schema, already **resolved**: the
+  engine evaluates the entry's [`props`](/entry/fields#props) value source
+  against state, parses the result through that schema, and hands you its
+  output. You never see an expression, and every `.default()` is already
+  applied.
 
-```tsx
+  ```jsonc
+  { "key": "total", "component": "Text", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
+  // render receives { text: "Open: 3", generatedKey: "total" }
+  // …and is called again with "Open: 4" the moment something writes scopes.root.open
+  ```
+
+  An implementation is a plain function of its props. It holds no engine state.
+- **callbacks** — one `(payload) => Promise<void>` per key in the def's
+  `callbacks`, always present even if the entry wired none. Calling one runs that
+  entry's [callback steps](/entry/fields#callbacks) with `evt` bound to your
+  payload, parsed through the same schema.
+- **`children`** — the rendered child elements, present only when the entry has a
+  `children` array. It is never a prop — a def declaring one
+  [throws](/def#props--the-contract-with-the-model).
+- **`generatedKey`** — the entry's `key`, yours to use or ignore. The engine
+  never reads it back. The shadcn catalog puts it on the outermost node as
+  `data-key`, which a "click an element to revise it" tool can use.
+
+```tsx filename="src/uicast/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
   render: ({ value, onChange, onClear, onKeyDown }) => (
     <div>
       <Input
         value={String(value ?? "")}
-        onChange={(e) => onChange?.({ value: e.target.value })}
-        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
+        onChange={(e) => onChange({ value: e.target.value })}
+        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
       />
-      <button onClick={() => onClear?.({})}>clear</button>
+      <button onClick={() => onClear()}>clear</button>
     </div>
   ),
 });
 ```
 
-`onChange?.({ value: … })` passes exactly the shape
-`SearchInputDef.callbacks.onChange` declared — which is why the model's `evt.value`
-resolves. For a shared event, build the payload with the catalog's `pick*` helper
-(`pickKeyboardEvent`) so it matches the [common-event schema](/def). The
-optional-call `?.` matters: invoke a handler only when the entry actually provides
-it.
+`onChange({ value: … })` passes exactly the shape the def declared, which is why
+the model's `evt.value` resolves. A React event object is not a payload, so a
+shared event needs narrowing to the declared fields first — `pickKeyboardEvent`
+above is a local helper doing exactly that, one line per field in the
+[common-event schema](/def#callbacks--event-payloads).
 
 ## Placeholder
 
-Pass an optional `placeholder` — a zero-argument component — to stand in for
-this component's pending **content**. It renders in two gaps: in the slot of
-each child whose entry hasn't streamed in yet, and, on a non-list entry, in place of the
-children while an async [`seed`](/entry/fields#seed) on the entry resolves. On a
-**list** entry the seed gate covers the whole list, so the parent's placeholder
-fills it, not this component's own. The
-component itself still mounts around it — the gap before the component's *own*
-entry arrives is filled by its parent's placeholder, not its own.
+An optional `placeholder` fills a component's **content** while something is
+still missing. Three cases, all inside an already-mounted parent:
 
-```tsx
-export const ChartImpl = createComponentImplementation({
-  def: ChartDef,
-  render: ({ data }) => <Chart data={data} />,
+- a child entry has not streamed in yet — the **parent's** placeholder fills the
+  empty slot, since the missing child has no implementation to ask;
+- the element's own `seed` is still running, when it calls an async host
+  function;
+- the group's [`init`](/react/renderer#init--preload-state-for-the-group) is
+  still running, which fills every pending slot in the group at once.
+
+A component's placeholder never covers its own arrival — that gap belongs to its
+parent.
+
+```tsx filename="src/uicast/card/impl.tsx"
+export const CardImpl = createComponentImplementation({
+  def: CardDef,
+  render: ({ title, children }) => <Card title={title}>{children}</Card>,
   placeholder: () => <Skeleton className="h-40" />,
 });
 ```
 
-A per-implementation `placeholder` takes precedence over the global
-[`defaultComponents.placeholder`](/react/renderer); with neither set, the pending
-node renders nothing.
+```jsonc
+// while getSales() is in flight, CardImpl's placeholder replaces the Card's
+// children — the Card itself, "Sales" heading and all, is already on screen
+{ "key": "panel", "component": "Card", "props": { "literal": { "title": "Sales" } },
+  "seed": [{ "set": "scopes.root.sales", "expr": "getSales()" }], "children": ["chart"] }
 
-## When `render` throws
+// once the seed settles, a "chart" line that hasn't streamed in yet leaves an
+// empty slot — filled by CardImpl's placeholder again, since the gap is the parent's
+{ "key": "chart", "component": "BarChart",
+  "props": { "expr": "({ data: scopes.root.sales, xKey: 'month', yKeys: ['total'] })" } }
+```
 
-Every element renders inside its own error boundary, so a throw in `render`
-replaces just that element with the [`error` slot](/react/renderer) — parents
-and siblings keep working. The failure is
-[classified](/error-recovery#classification-entryerror-and-onerror) by checking
-the resolved props against the def's schema: props that **fail** it file as
-`invalid-props` (a document fault — the model wrote bad props), props it
-**accepts** file as `implementation` (an environment fault — your code crashed
-on legal input). The split is only as sharp as the schema — `z.any()` props
-wave every shape through, so every crash files as `implementation`. A precise
-props schema is what buys precise fault attribution.
+`BarChartImpl`'s own placeholder shows in neither case. A per-implementation
+`placeholder` beats the global
+[`fallbackComponents.placeholder`](/react/renderer); with neither, the pending
+element renders nothing.
 
 ## Registration
 
-`createComponentImplementation` returns a `ComponentImplementation`. Collect every
-one into the array passed to the [provider](/react/renderer) — `<RendererProvider implementations={...}>` —
-which builds the name → implementation map used to mount each entry. This is the
-partner to the def's [definitions array](/def#registration): the def map drives the
-prompt, the implementation array drives rendering. Add a component and you update
-both — the model can't emit what isn't defined, and you can't render what isn't
-implemented.
+Collect every implementation into the array passed to
+`<RendererProvider implementations={...}>`. That is the partner to the def's
+[definitions array](/def#registration): defs drive the prompt, implementations
+drive rendering. Adding a component means updating both.

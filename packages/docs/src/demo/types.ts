@@ -1,6 +1,6 @@
 import type { ComponentEntry } from "@uicast/core";
 import type { ComponentImplementation } from "@uicast/react";
-import type { DefaultComponents } from "@uicast/react/types";
+import type { FallbackComponents } from "@uicast/react/types";
 import type { StandardToolV0 } from "standard-tool";
 
 /**
@@ -26,7 +26,7 @@ export interface DemoConfig {
   /** Base catalog + the demo's bespoke renderers: `[...allImplementations, ...bespoke]`. */
   catalog: ComponentImplementation[];
   /** Host fallback UI for the engine (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
-  defaultComponents?: DefaultComponents;
+  fallbackComponents?: FallbackComponents;
   /** Runs on first Play, before the count resets. Inventory → `seedIfEmpty`. */
   onPlay?: () => void | Promise<void>;
   /** Runs on Replay (wipe + reseed). Inventory → `resetInventory`. */
