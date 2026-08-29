@@ -39,7 +39,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       },
     ];
     const { container, emit } = mountEntries(lines, {
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     expect(container.textContent).toContain("bad failed:");
     expect(container.textContent).toContain("sibling-alive");
@@ -76,7 +76,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       },
     ];
     const { container, emit } = mountEntries(lines, {
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     expect(container.textContent).toContain("parent-alive");
     expect(container.textContent).toContain("sibling-alive");
@@ -116,7 +116,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
     ];
     const { container, emit } = mountEntries(lines, {
       rootScope: { items: ["first-item", "second-item"] },
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     expect(container.textContent).toContain("parent-alive");
     expect(container.textContent).toContain("sibling-alive");
@@ -152,7 +152,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       },
     ];
     const { container, emit } = mountEntries(lines, {
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     await waitFor(() => {
       expect(container.textContent).toContain("seeder failed:");
@@ -221,7 +221,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       },
     ];
     const { container, emit } = mountEntries(lines, {
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     expect(container.textContent).toContain("foo failed:");
     expect(container.textContent).not.toContain("bar-content");
@@ -298,7 +298,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
     ];
     const { container, emit } = mountEntries(lines, {
       functions,
-      defaultComponents: errorSlot,
+      fallbackComponents: errorSlot,
     });
     await waitFor(() => {
       expect(container.textContent).toContain("seeder failed: SEED_FAIL");

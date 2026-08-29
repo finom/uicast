@@ -109,7 +109,7 @@ describe("EntryRenderer — seeds on list elements", () => {
       },
     ];
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    const { container } = mountEntries(lines, { defaultComponents: errorSlot });
+    const { container } = mountEntries(lines, { fallbackComponents: errorSlot });
     await waitFor(() => {
       expect(container.textContent).toContain("the-list failed:");
     });

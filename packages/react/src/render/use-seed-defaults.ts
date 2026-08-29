@@ -42,14 +42,14 @@ export function useSeedDefaults({
   scopes,
   init,
   functions,
-  allowedGlobals,
+  allowGlobals,
   enabled,
 }: {
   element: ComponentEntry | undefined;
   scopes: Scopes;
   init?: InitFn;
   functions?: StandardToolV0[];
-  allowedGlobals?: string[];
+  allowGlobals?: string[];
   enabled: boolean;
 }): SeedResult {
   // Wakes the component when an async seed settles — success clears the
@@ -95,7 +95,7 @@ export function useSeedDefaults({
           const value = evaluate(
             step,
             { scopes, currentValue },
-            { functions, allowedGlobals },
+            { functions, allowGlobals },
           );
           return { targetScope, targetPath, value };
         });

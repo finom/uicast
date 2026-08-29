@@ -44,11 +44,11 @@ export type ErrorComponentProps = {
 };
 
 // The engine's own fallback UI, shared via
-// `<RendererProvider defaultComponents={...}>` — distinct from the catalog
+// `<RendererProvider fallbackComponents={...}>` — distinct from the catalog
 // `implementations`. `confirm` omitted falls back to `window.confirm`; the
 // `error` default is a bare inline-styled div (shadcn version in
 // @uicast/shadcn-catalog).
-export type DefaultComponents = {
+export type FallbackComponents = {
   placeholder?: () => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
   error?: (props: ErrorComponentProps) => ReactElement | null;
@@ -56,11 +56,11 @@ export type DefaultComponents = {
 
 export type RendererRegistry = {
   implementations: Record<string, ComponentImplementation>;
-  defaultComponents?: DefaultComponents;
+  fallbackComponents?: FallbackComponents;
   // Host callables exposed as bare identifiers to every evaluate() under this provider.
   functions?: StandardToolV0[];
   // Extra globals expressions may reference, from the RendererProvider.
-  allowedGlobals?: string[];
+  allowGlobals?: string[];
   // Reported for every classified failure (boundary catches and callback
   // failures alike) — the Renderer's `onError` prop.
   onError?: (error: EntryError) => void;
@@ -91,9 +91,9 @@ export type RendererProviderProps = {
   implementations: ComponentImplementation[];
   /**
    * The engine's own fallback UI — placeholder, confirm, and error slots (see
-   * `DefaultComponents`). Omitted slots use the built-in defaults.
+   * `FallbackComponents`). Omitted slots use the built-in defaults.
    */
-  defaultComponents?: DefaultComponents;
+  fallbackComponents?: FallbackComponents;
   /**
    * Host functions exposed as bare identifiers in every evaluate() call
    * (callbacks invoke them as `name(input)`). Pass a stable reference.
@@ -106,7 +106,7 @@ export type RendererProviderProps = {
    * the shadowed capability globals (fetch, Function, setTimeout, …); those stay
    * blocked regardless.
    */
-  allowedGlobals?: string[];
+  allowGlobals?: string[];
   /**
    * Called once per classified failure, with the same EntryError the error slot
    * receives. Branch on `error.fault`: `"document"` means the model's output is

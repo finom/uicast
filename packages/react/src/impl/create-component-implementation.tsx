@@ -16,12 +16,53 @@ import type { ComponentImplementation } from "../types";
 
 // A `null` callback payload means "no event data": the handler is a no-arg
 // function (`onClick()`), not `(evt: null)`.
-type CallbackFn<S extends CombinedSpec> = [StandardSchemaV1.InferOutput<S>] extends [null]
+//
+// The argument is the schema's INPUT: the implementation supplies the payload
+// and the engine parses it, so a field with a `.default()` is the caller's to
+// omit and the engine's to fill — the steps then see the parsed output.
+type CallbackFn<S extends CombinedSpec> = [StandardSchemaV1.InferInput<S>] extends [null]
   ? () => Promise<void>
-  : (args: StandardSchemaV1.InferOutput<S>) => Promise<void>;
+  : (args: StandardSchemaV1.InferInput<S>) => Promise<void>;
 
 type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {
   [K in keyof T]: CallbackFn<T[K]>;
+};
+
+/** `issues` → one readable line: `variant: Invalid option; total: Expected number`. */
+const describeIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
+  issues
+    .map((issue) => {
+      const path = issue.path
+        ?.map((segment) => (typeof segment === "object" ? segment.key : segment))
+        .join(".");
+      return path ? `${path}: ${issue.message}` : issue.message;
+    })
+    .join("; ");
+
+/**
+ * Parse a value through a spec and return its OUTPUT — the shape the schema
+ * promises, defaults applied. That is what `render` and a callback's `evt` are
+ * typed as (`InferOutput`), so handing over the raw input would be the engine
+ * breaking its own contract.
+ *
+ * An async validator can't answer inside a synchronous render, so its value
+ * passes through unparsed rather than blocking; the same is true of a validator
+ * that throws. Both are the schema library's problem, not the document's.
+ */
+const parseSpec = (
+  spec: CombinedSpec,
+  value: unknown,
+): { ok: true; value: unknown } | { ok: false; message: string } => {
+  let result: ReturnType<CombinedSpec["~standard"]["validate"]>;
+  try {
+    result = spec["~standard"].validate(value);
+  } catch {
+    return { ok: true, value };
+  }
+  if (result instanceof Promise) return { ok: true, value };
+  return result.issues
+    ? { ok: false, message: describeIssues(result.issues) }
+    : { ok: true, value: result.value };
 };
 
 export const createComponentImplementation = <
@@ -49,27 +90,67 @@ export const createComponentImplementation = <
   }) => {
     const { entry, children } = myprops;
     const confirm = useConfirm();
-    const { functions, allowedGlobals, onError } = useRendererRegistry();
-    const props: StandardSchemaV1.InferOutput<TProps> = entry.props
-      ? (evaluate(
-          entry.props,
-          { scopes: myprops.scopes },
-          { functions, allowedGlobals },
-        ) as StandardSchemaV1.InferOutput<TProps>)
-      : ({} as StandardSchemaV1.InferOutput<TProps>);
+    const { functions, allowGlobals, onError } = useRendererRegistry();
+    // Evaluate the entry's props, then parse them through the def's schema:
+    // the result is the schema's output — every `.default()` applied — which is
+    // what `render` is typed to receive. Props that fail the schema are a
+    // document fault, caught here rather than as a render crash later.
+    const rawProps = entry.props
+      ? evaluate(entry.props, { scopes: myprops.scopes }, { functions, allowGlobals })
+      : {};
+    const parsed = parseSpec(def.props, rawProps);
+    if (!parsed.ok) {
+      throw new EntryError(
+        `Props do not match the ${def.name} schema — ${parsed.message}`,
+        { reason: "invalid-props", elementKey: entry.key },
+      );
+    }
+    const props = parsed.value as StandardSchemaV1.InferOutput<TProps>;
     const hidden = entry.hidden
       ? evaluate(
           { expr: entry.hidden },
           { scopes: myprops.scopes },
-          { functions, allowedGlobals },
+          { functions, allowGlobals },
         )
       : false;
     const entryCallbacks = entry.callbacks ? entry.callbacks : {};
+    // Every callback the DEF declares is callable, whether or not this entry
+    // wired it: the def is the implementation's contract, so `onFocus()` must
+    // not blow up just because the document had no use for it. Keys the entry
+    // wired get the step runner below; the rest resolve to a no-op. Entry keys
+    // the def never declared are kept too — harmless, since no implementation
+    // reads them.
+    const handlerKeys = [
+      ...new Set([...Object.keys(def.callbacks ?? {}), ...Object.keys(entryCallbacks)]),
+    ];
     const callbacks = Object.fromEntries(
-      Object.keys(entryCallbacks).map((key) => [
+      handlerKeys.map((key) => [
         key,
         async (evt: unknown) => {
+          if (!entryCallbacks[key]) return;
           try {
+            // The payload comes from the implementation, not the document, so
+            // a mismatch is an implementation bug — and one worth catching:
+            // a missing field would otherwise surface as `evt.foo` quietly
+            // reading `undefined` inside the model's expression. A `null`
+            // payload declares "no event data", which is what `onPress()`
+            // passes as `undefined`.
+            const payloadSpec = def.callbacks?.[key];
+            let payload = evt;
+            if (payloadSpec) {
+              // A payload-free handler is called as `onPress()`, so `evt` is
+              // `undefined` where the schema says `null`. Retry once against
+              // `null` rather than make every such def write `.nullish()`.
+              let attempt = parseSpec(payloadSpec, evt);
+              if (!attempt.ok && evt === undefined) attempt = parseSpec(payloadSpec, null);
+              if (!attempt.ok) {
+                throw new EntryError(
+                  `Callback "${key}" on ${def.name} was given a payload its schema rejects — ${attempt.message}`,
+                  { reason: "implementation", elementKey: entry.key },
+                );
+              }
+              payload = attempt.value;
+            }
             // Pre-validate every set path — a path that doesn't parse names
             // something that doesn't exist (document fault), and failing
             // before any step runs keeps a bad path from stranding the
@@ -117,8 +198,8 @@ export const createComponentImplementation = <
                   value: (async () =>
                     evaluate(
                       setExpr,
-                      { evt, scopes: myprops.scopes, currentValue },
-                      { functions, allowedGlobals },
+                      { evt: payload, scopes: myprops.scopes, currentValue },
+                      { functions, allowGlobals },
                     ))(),
                 };
               });
@@ -169,20 +250,9 @@ export const createComponentImplementation = <
       });
     } catch (err) {
       if (EntryError.is(err)) throw err;
-      // The render threw — decide whose fault, on the error path only: props
-      // that FAIL the def's schema mean the document sent a forbidden shape;
-      // props that pass mean the implementation broke on legal input. (An
-      // async validator can't answer here — file it as implementation.)
-      let reason: "invalid-props" | "implementation" = "implementation";
-      try {
-        const validation = def.props["~standard"].validate(props);
-        if (!(validation instanceof Promise) && validation.issues) {
-          reason = "invalid-props";
-        }
-      } catch {
-        // A validator that itself throws can't testify either way.
-      }
-      throw EntryError.wrap(err, reason, entry.key);
+      // Props already passed the def's schema above, so a render that throws
+      // here broke on input its own contract accepts — an implementation bug.
+      throw EntryError.wrap(err, "implementation", entry.key);
     }
 
     if (entry.hidden) {

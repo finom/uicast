@@ -15,7 +15,7 @@ describe("EntryRenderer — errors", () => {
     ];
     const seen: EntryError[] = [];
     const { container } = mountEntries(lines, {
-      defaultComponents: {
+      fallbackComponents: {
         error: ({ error, elementKey }) => {
           seen.push(error);
           return (
@@ -77,7 +77,7 @@ describe("EntryRenderer — errors", () => {
     consoleError.mockRestore();
   });
 
-  it("renders the defaultComponents.error slot when a renderer throws", () => {
+  it("renders the fallbackComponents.error slot when a renderer throws", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
@@ -89,7 +89,7 @@ describe("EntryRenderer — errors", () => {
       },
     ];
     const { container } = mountEntries(lines, {
-      defaultComponents: {
+      fallbackComponents: {
         error: ({ error, elementKey }) => (
           <div>
             {elementKey} failed: {error.message}

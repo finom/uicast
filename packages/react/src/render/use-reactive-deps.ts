@@ -1,6 +1,18 @@
-import { useEffect, useReducer } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { extractDeps, parseScope, type ComponentEntry } from "@uicast/core";
 import type { Scopes } from "../types";
+
+// Total emits across every scope this node can read. Subscribing happens in an
+// effect, one commit after the value was computed, so a write landing in
+// between (a sibling's effect — a list publishing `childScopes.<as>`, say)
+// fires before the handler exists. Comparing this count across that gap is how
+// the node notices it missed one; the paths themselves are not read, so it
+// stays an integer compare per render.
+function emitCount(scopes: Scopes): number {
+  let total = 0;
+  for (const key in scopes) total += scopes[key]?.$emitter.version ?? 0;
+  return total;
+}
 
 // Subscribe the node to every reactive path its entry reads (auto-derived from
 // the expression text), re-rendering when any changes. `skip` lets the
@@ -11,6 +23,12 @@ export function useReactiveDeps(
   skip = false,
 ): void {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
+
+  // Written during render, on purpose: it has to be the count as of the render
+  // whose output is on screen, which is the thing the effect below compares to.
+  const countAtRender = useRef(0);
+  countAtRender.current = emitCount(scopes);
+
   useEffect(() => {
     if (!element || skip) return;
     let deps: string[];
@@ -42,6 +60,12 @@ export function useReactiveDeps(
       const unsubscribe = scopes[targetScope]?.$emitter.on(targetPath, forceRender);
       if (unsubscribe) unsubscribers.push(unsubscribe);
     }
+
+    // Catch up on anything written between the render above and this line. The
+    // re-render re-reads the scopes and refreshes `countAtRender`, and this
+    // effect does not re-run for it, so it settles in one extra pass.
+    if (emitCount(scopes) !== countAtRender.current) forceRender();
+
     return () => {
       for (const unsub of unsubscribers) unsub();
     };

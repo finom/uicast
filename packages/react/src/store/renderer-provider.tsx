@@ -42,9 +42,9 @@ const RendererGroupContext = createContext<RendererGroup | null>(null);
  */
 export function RendererProvider({
   implementations,
-  defaultComponents,
+  fallbackComponents,
   functions,
-  allowedGlobals,
+  allowGlobals,
   onError,
   init,
   scopes: extraScopes,
@@ -82,14 +82,18 @@ export function RendererProvider({
     };
   }, [scopes, init]);
 
-  // name→implementation lookup. Last entry wins on a duplicate (and logs);
+  // name→implementation lookup. A duplicate name throws, the way
+  // `getComponentsPartialPrompt` does for defs: the prompt cannot be built with
+  // one, so an array carrying one could never have reached a working
+  // generation. To replace a catalog component, filter its name out rather than
+  // appending over it — the def array needs the same treatment anyway.
   // RootFragment is merged in last as host infrastructure.
   const implementationsByName = useMemo(() => {
     const map: Record<string, ComponentImplementation> = {};
     for (const impl of implementations) {
       if (impl.def.name in map) {
-        console.error(
-          `[uicast] Duplicate component name "${impl.def.name}" in implementations — the later one wins.`,
+        throw new Error(
+          `[uicast] Duplicate component name "${impl.def.name}" in implementations.`,
         );
       }
       map[impl.def.name] = impl;
@@ -101,18 +105,18 @@ export function RendererProvider({
   const registryValue = useMemo<RendererRegistry>(
     () => ({
       implementations: implementationsByName,
-      defaultComponents,
+      fallbackComponents,
       functions,
-      allowedGlobals,
+      allowGlobals,
       onError,
     }),
-    [implementationsByName, defaultComponents, functions, allowedGlobals, onError],
+    [implementationsByName, fallbackComponents, functions, allowGlobals, onError],
   );
 
   return (
     <RendererGroupContext.Provider value={group}>
       <RendererRegistryProvider value={registryValue}>
-        <ConfirmHost confirm={defaultComponents?.confirm}>{children}</ConfirmHost>
+        <ConfirmHost confirm={fallbackComponents?.confirm}>{children}</ConfirmHost>
       </RendererRegistryProvider>
     </RendererGroupContext.Provider>
   );

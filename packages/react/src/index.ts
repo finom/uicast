@@ -4,7 +4,7 @@ export type {
   ErrorComponentProps,
   EntriesRendererProps,
   RendererProviderProps,
-  DefaultComponents,
+  FallbackComponents,
   InitContext,
   InitFn,
   Scopes,

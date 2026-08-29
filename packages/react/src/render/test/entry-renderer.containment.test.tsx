@@ -37,7 +37,7 @@ describe("EntryRenderer — containment edges", () => {
         props: { expr: "({ text: 'keys:' + Object.keys(scopes.root).length })" },
       },
     ];
-    const { container } = mountEntries(lines, { defaultComponents: errorSlot });
+    const { container } = mountEntries(lines, { fallbackComponents: errorSlot });
     expect(container.textContent).toContain("parent-alive");
     expect(container.textContent).toContain("keys:");
     expect(container.textContent).not.toContain("failed:");
@@ -67,7 +67,7 @@ describe("EntryRenderer — containment edges", () => {
     await act(async () => {
       ({ container } = mountEntries(lines, {
         functions,
-        defaultComponents: errorSlot,
+        fallbackComponents: errorSlot,
       }));
     });
     // Pre-seed render failed and latched.

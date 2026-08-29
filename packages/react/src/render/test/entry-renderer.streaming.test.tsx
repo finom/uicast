@@ -21,7 +21,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountEntries(lines, {
-			defaultComponents: { placeholder: () => <span data-test-placeholder>loading…</span> },
+			fallbackComponents: { placeholder: () => <span data-test-placeholder>loading…</span> },
 		});
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 	});
@@ -42,7 +42,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 					// `placeholder` arg. We can't easily attach one to an unknown
 					// component name, so we use the global default for this test.
 				},
-				defaultComponents: {
+				fallbackComponents: {
 					placeholder: () => (
 						<span data-test-placeholder>default-placeholder</span>
 					),
@@ -132,7 +132,7 @@ describe("EntryRenderer — streaming + seed", () => {
 				},
 			},
 		];
-		const defaultComponents = {
+		const fallbackComponents = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
 
@@ -156,12 +156,12 @@ describe("EntryRenderer — streaming + seed", () => {
 		];
 
 		const { rerender, container } = render(
-			<RendererProvider defaultComponents={defaultComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>,
+			<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<RendererProvider defaultComponents={defaultComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
+		rerender(<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
 
 		// Parent's seed still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

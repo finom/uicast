@@ -11,10 +11,10 @@ describe("RendererProvider — shared group store", () => {
     {
       key: "writer",
       component: "Button",
-      seed: [{ set: "scopes.root.orders.count", literal: 1 }],
+      seed: [{ set: "scopes.root.orderCount", literal: 1 }],
       props: { literal: { label: "bump" } },
       callbacks: {
-        onClick: [{ set: "scopes.root.orders.count", expr: "currentValue + 1" }],
+        onClick: [{ set: "scopes.root.orderCount", expr: "currentValue + 1" }],
       },
     },
   ];
@@ -22,7 +22,7 @@ describe("RendererProvider — shared group store", () => {
     {
       key: "reader",
       component: "Box",
-      props: { expr: "({ text: scopes.root.orders.count + ' orders' })" },
+      props: { expr: "({ text: scopes.root.orderCount + ' orders' })" },
     },
   ];
 
@@ -48,8 +48,8 @@ describe("RendererProvider — shared group store", () => {
       {
         key: "late",
         component: "Box",
-        seed: [{ set: "scopes.root.orders.count", literal: 99 }],
-        props: { expr: "({ text: 'late:' + scopes.root.orders.count })" },
+        seed: [{ set: "scopes.root.orderCount", literal: 99 }],
+        props: { expr: "({ text: 'late:' + scopes.root.orderCount })" },
       },
     ];
     const { container } = render(

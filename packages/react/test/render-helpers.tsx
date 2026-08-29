@@ -14,7 +14,7 @@ import {
   type ComponentImplementation,
   createComponentImplementation,
 } from "@uicast/react";
-import type { DefaultComponents } from "@uicast/react/types";
+import type { FallbackComponents } from "@uicast/react/types";
 import { EntryRenderer } from "@uicast/react/render/entry-renderer";
 import { RendererRegistryProvider } from "@uicast/react/store/renderer-registry";
 import {
@@ -28,7 +28,7 @@ const boxDef = createComponentDefinition({
   name: "Box",
   description: "A plain div with optional text",
   props: z.object({
-    text: z.string().optional(),
+    text: z.union([z.string(), z.number()]).optional(),
     className: z.string().optional(),
   }),
 });
@@ -105,7 +105,7 @@ type MountOptions = {
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
   functions?: StandardToolV0[];
-  defaultComponents?: DefaultComponents;
+  fallbackComponents?: FallbackComponents;
   onError?: (error: EntryError) => void;
   /** Wrap the renderer in an additional element. */
   wrapper?: (children: ReactNode) => ReactElement;
@@ -138,7 +138,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
       <RendererRegistryProvider
         value={{
           implementations: options.implementations ?? defaultImplementations,
-          defaultComponents: options.defaultComponents,
+          fallbackComponents: options.fallbackComponents,
           functions: options.functions,
           onError: options.onError,
         }}

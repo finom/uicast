@@ -6,7 +6,7 @@ import type { ConfirmComponentProps } from "../../types";
 
 // The engine half of the confirm flow: `ConfirmHost` (mounted by <RendererProvider>)
 // owns the pending-confirm state and the internal context; a host supplies only
-// a stateless modal via the `defaultComponents.confirm` slot. The shadcn modal itself
+// a stateless modal via the `fallbackComponents.confirm` slot. The shadcn modal itself
 // lives in `@uicast/shadcn-catalog` (tested there once that package grows a test
 // harness).
 const Modal = ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) =>

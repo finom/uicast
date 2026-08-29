@@ -1,4 +1,3 @@
-import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { createComponentImplementation } from "../impl/create-component-implementation";
 
@@ -11,7 +10,6 @@ export const RootFragmentImpl = createComponentImplementation({
     name: "RootFragment",
     description:
       "Host-only wrapper that renders its children directly with no DOM. Not emitted by the LLM.",
-    props: z.strictObject({}),
     hidden: true,
   }),
   render: ({ children }) => <>{children}</>,

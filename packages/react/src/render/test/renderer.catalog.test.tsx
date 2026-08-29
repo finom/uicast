@@ -55,10 +55,12 @@ describe("Renderer — catalog prop", () => {
     expect(rootA).not.toBe(rootB);
   });
 
-  it("on a duplicate component name the later renderer wins and logs an error", () => {
-    // Two implementations share the def name "Box". The provider builds its map
-    // last-wins (so `[...base, Override]` overrides), logging a console.error so
-    // an *accidental* double-registration is still loud.
+  it("throws on a duplicate component name", () => {
+    // Two implementations share the def name "Box". `getComponentsPartialPrompt`
+    // refuses to build a prompt from duplicate def names, so an implementations
+    // array carrying one could never have reached a working generation — the
+    // provider refuses it the same way. Overriding a catalog component means
+    // filtering its name out of both arrays.
     const boxDef = createComponentDefinition({
       name: "Box",
       description: "test box",
@@ -75,16 +77,11 @@ describe("Renderer — catalog prop", () => {
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
-    const { container } = render(
-      <RendererProvider implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
-    );
-
-    // The later renderer wins the name; the earlier one never renders.
-    expect(container.textContent).toContain("second");
-    expect(container.textContent).not.toContain("first");
-    expect(errorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Duplicate component name "Box"'),
-    );
+    expect(() =>
+      render(
+        <RendererProvider implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
+      ),
+    ).toThrow(/Duplicate component name "Box"/);
     errorSpy.mockRestore();
   });
 });

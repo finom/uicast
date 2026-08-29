@@ -54,7 +54,7 @@ const EntryRendererInner = ({
 }: EntryRendererProps): React.ReactElement => {
   // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
-  const { implementations, defaultComponents, functions, allowedGlobals, onError } =
+  const { implementations, fallbackComponents, functions, allowGlobals, onError } =
     useRendererRegistry();
 
   // A list entry reached as a child slot iterates its items; reached per-item
@@ -77,14 +77,14 @@ const EntryRendererInner = ({
     scopes,
     init,
     functions,
-    allowedGlobals,
+    allowGlobals,
     enabled: seedEnabled,
   });
 
   // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
   // wakes it when the entry arrives.
   if (!element) {
-    const Fallback = fallback ?? defaultComponents?.placeholder ?? NullPlaceholder;
+    const Fallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
     return <Fallback />;
   }
 
@@ -93,10 +93,10 @@ const EntryRendererInner = ({
     // bad list expression latches the list slot, not the parent's subtree. An
     // async seed on the list element gates the iteration behind Suspense, so
     // `each` first evaluates against seeded state.
-    const ListFallback = fallback ?? defaultComponents?.placeholder ?? NullPlaceholder;
+    const ListFallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
     return (
       <ErrorBoundary
-        errorComponent={defaultComponents?.error}
+        errorComponent={fallbackComponents?.error}
         elementKey={elementKey}
         resetToken={pending ?? element}
         onError={onError}
@@ -123,7 +123,7 @@ const EntryRendererInner = ({
     // reset token) recovers it like any corrected element.
     return (
       <ErrorBoundary
-        errorComponent={defaultComponents?.error}
+        errorComponent={fallbackComponents?.error}
         elementKey={elementKey}
         resetToken={element}
         onError={onError}
@@ -141,7 +141,7 @@ const EntryRendererInner = ({
   }
 
   const Placeholder =
-    implEntry?.placeholder ?? defaultComponents?.placeholder ?? NullPlaceholder;
+    implEntry?.placeholder ?? fallbackComponents?.placeholder ?? NullPlaceholder;
 
   const children = element.children?.length
     ? element.children.map((childKey) => (
@@ -162,7 +162,7 @@ const EntryRendererInner = ({
 
   return (
     <ErrorBoundary
-      errorComponent={defaultComponents?.error}
+      errorComponent={fallbackComponents?.error}
       elementKey={elementKey}
       // While an async seed is in flight the token is the batch promise: if the
       // fallback throws against pre-seed state, the latch clears when the seed
@@ -199,12 +199,12 @@ const ListEntryRendererInner = ({
   scopes: Scopes;
 }): React.ReactElement | null => {
   const element = useElement(elementKey);
-  const { functions, allowedGlobals } = useRendererRegistry();
+  const { functions, allowGlobals } = useRendererRegistry();
   useReactiveDeps(element, scopes);
 
   const list = element && isComponentListEntry(element) ? element : null;
   const rawItems = list
-    ? evaluate({ expr: list.each }, { scopes }, { functions, allowedGlobals })
+    ? evaluate({ expr: list.each }, { scopes }, { functions, allowGlobals })
     : [];
   if (list && rawItems != null && !Array.isArray(rawItems)) {
     // Contract violation: `each` must yield an array. Throwing here lands in
@@ -225,6 +225,10 @@ const ListEntryRendererInner = ({
   const itemScopeName = list?.as;
   useEffect(() => {
     if (!itemScopeName) return;
+    // `$set` no longer invents a missing parent, so establish `childScopes`
+    // before writing into it. Two writes on the first render only; keeping the
+    // per-`as` path means a reader of `childScopes.<as>` is woken precisely.
+    lastScope.$set("childScopes", {}, { default: true });
     lastScope.$set(
       `childScopes.${itemScopeName}`,
       rows.map((row) => row.itemProxy),
