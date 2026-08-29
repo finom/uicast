@@ -56,7 +56,7 @@ const CustomContent = (props: Record<string, unknown>) => {
 
 export const TreemapChartImpl = createComponentImplementation({
   def: TreemapChartDef,
-  render: ({ data = [], height = 300, generatedKey }) => {
+  render: ({ data = [], height, generatedKey }) => {
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
         <Treemap

@@ -7,8 +7,8 @@ export const SegmentedControlImpl = createComponentImplementation({
   render: ({
     value,
     options = [],
-    disabled = false,
-    size = "default",
+    disabled,
+    size,
     onChange,
     generatedKey,
   }) => {
@@ -17,7 +17,7 @@ export const SegmentedControlImpl = createComponentImplementation({
         type="single"
         value={value}
         onValueChange={(newValue) => {
-          if (newValue) onChange?.({ value: newValue });
+          if (newValue) onChange({ value: newValue });
         }}
         size={size}
         disabled={disabled}

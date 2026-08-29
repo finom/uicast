@@ -5,7 +5,7 @@ export const LineChartDef = createComponentDefinition({
   name: "LineChart",
   description:
     "A line chart for visualizing data trends over time or continuous categories. Each line represents a data series. Use LineChart for time series, trends, progress tracking, etc. The 'data' prop is an array of objects, 'xKey' is the key for x-axis labels, and 'yKeys' are the keys for line values.",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.record(

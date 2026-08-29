@@ -9,8 +9,8 @@ export const StepperImpl = createComponentImplementation({
   def: StepperDef,
   render: ({
     steps = [],
-    currentStep = 0,
-    orientation = "horizontal",
+    currentStep,
+    orientation,
     onStepClick,
     generatedKey,
   }) => {
@@ -64,7 +64,7 @@ export const StepperImpl = createComponentImplementation({
                     isCurrent && "border-2 border-primary text-primary",
                     !isCompleted && !isCurrent && "text-muted-foreground",
                   )}
-                  onClick={() => onStepClick?.({ step: i })}
+                  onClick={() => onStepClick({ step: i })}
                 >
                   {isCompleted ? <Check className="size-4" /> : i + 1}
                 </Button>

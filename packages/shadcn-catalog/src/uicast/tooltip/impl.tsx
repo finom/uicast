@@ -9,7 +9,7 @@ import { TooltipDef } from "./def";
 
 export const TooltipImpl = createComponentImplementation({
   def: TooltipDef,
-  render: ({ content, side = "top", children, generatedKey }) => {
+  render: ({ content, side, children, generatedKey }) => {
     return (
       <TooltipProvider>
         <ShadcnTooltip>

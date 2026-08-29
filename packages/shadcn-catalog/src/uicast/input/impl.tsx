@@ -7,9 +7,9 @@ export const InputImpl = createComponentImplementation({
   def: InputDef,
   render: ({
     value,
-    type = "text",
+    type,
     placeholder,
-    disabled = false,
+    disabled,
     onChange,
     onFocus,
     onBlur,
@@ -24,20 +24,20 @@ export const InputImpl = createComponentImplementation({
         placeholder={placeholder}
         disabled={disabled}
         onChange={(e) =>
-          onChange?.({
+          onChange({
             value: e.target.value,
             valueAsNumber: e.target.valueAsNumber || 0,
           })
         }
-        onFocus={() => onFocus?.({})}
+        onFocus={() => onFocus()}
         onBlur={(e) =>
-          onBlur?.({
+          onBlur({
             value: e.target.value,
             valueAsNumber: e.target.valueAsNumber || 0,
           })
         }
-        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-        onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+        onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
         data-key={generatedKey}
       />
     );

@@ -4,10 +4,10 @@ import { LabelDef } from "./def";
 
 export const LabelImpl = createComponentImplementation({
   def: LabelDef,
-  render: ({ children, htmlFor, generatedKey }) => {
+  render: ({ text, children, htmlFor, generatedKey }) => {
     return (
       <ShadcnLabel htmlFor={htmlFor} data-key={generatedKey}>
-        {children}
+        {children ?? text}
       </ShadcnLabel>
     );
   },

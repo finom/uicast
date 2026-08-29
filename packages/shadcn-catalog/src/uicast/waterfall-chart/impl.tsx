@@ -16,10 +16,10 @@ export const WaterfallChartImpl = createComponentImplementation({
   def: WaterfallChartDef,
   render: ({
     data = [],
-    height = 300,
-    positiveColor = "#82ca9d",
-    negativeColor = "#ff6b6b",
-    totalColor = "#8884d8",
+    height,
+    positiveColor,
+    negativeColor,
+    totalColor,
     generatedKey,
   }) => {
     let running = 0;

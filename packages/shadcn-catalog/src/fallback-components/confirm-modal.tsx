@@ -11,7 +11,7 @@ import {
 } from "../components/ui/dialog";
 
 // Shadcn confirm modal — the visual half of the confirm flow. Wire it up as
-// `<RendererConfigProvider defaultComponents={{ confirm: ConfirmModal }}>`;
+// `<RendererConfigProvider fallbackComponents={{ confirm: ConfirmModal }}>`;
 // stateless, the engine drives `open`/`message` and settles via
 // `onConfirm`/`onCancel`.
 export const ConfirmModal = ({

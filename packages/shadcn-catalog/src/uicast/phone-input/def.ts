@@ -6,7 +6,7 @@ export const PhoneInputDef = createComponentDefinition({
   name: "PhoneInput",
   description:
     "A phone number input with country code picker. Renders a select for country code and an input for the phone number. Use PhoneInput for contact forms, user registration, or any phone number entry.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().optional().meta({
       description: "The full phone number value (e.g. +1 555-1234)",
     }),
@@ -35,7 +35,7 @@ export const PhoneInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z
         .string()
         .meta({ description: "The phone number without country code" }),

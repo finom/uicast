@@ -5,7 +5,7 @@ export const ComboboxDef = createComponentDefinition({
   name: "Combobox",
   description:
     "An autocomplete + select hybrid component. Combines a text input with a dropdown list for search-and-select. Use Combobox for searchable dropdowns like country selectors, user pickers, or any list where users need to filter options by typing.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().optional().meta({
       description: "The currently selected value",
     }),
@@ -33,7 +33,7 @@ export const ComboboxDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z.string().meta({ description: "The newly selected value" }),
       label: z
         .string()

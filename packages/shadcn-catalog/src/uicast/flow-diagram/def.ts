@@ -5,7 +5,7 @@ export const FlowDiagramDef = createComponentDefinition({
   name: "FlowDiagram",
   description:
     "A simple linear flow diagram. Renders the nodes in sequence with an arrow between consecutive steps — edges only toggle the arrow and its label, branching is not drawn. Use FlowDiagram for linear business processes, pipeline visualization, or any step-by-step sequence.",
-  props: z.strictObject({
+  props: z.object({
     nodes: z
       .array(
         z.object({

@@ -5,7 +5,7 @@ export const DividerDef = createComponentDefinition({
   name: "Divider",
   description:
     "A horizontal or vertical divider line for visually separating content sections. Use Divider between card sections, form groups, or any content that needs a visual break.",
-  props: z.strictObject({
+  props: z.object({
     orientation: z
       .enum(["horizontal", "vertical"])
       .default("horizontal")

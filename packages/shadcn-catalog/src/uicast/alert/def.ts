@@ -5,7 +5,7 @@ export const AlertDef = createComponentDefinition({
   name: "Alert",
   description:
     "A feedback alert banner for displaying important messages to the user. Shows an icon, title, and optional description. Use Alert for success messages, error notices, warnings, or informational banners.",
-  props: z.strictObject({
+  props: z.object({
     title: z.string().meta({ description: "The alert heading text" }),
     description: z.string().optional().meta({
       description: "Optional longer description text below the title",

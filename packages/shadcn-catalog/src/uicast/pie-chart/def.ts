@@ -5,7 +5,7 @@ export const PieChartDef = createComponentDefinition({
   name: "PieChart",
   description:
     "A pie/donut chart for visualizing proportions and parts-of-a-whole relationships. Use PieChart for market share, budget breakdown, category distribution, etc. The 'data' prop is an array of objects with 'name' (string) and 'value' (number) keys. Set 'donut' to true for a donut chart with a hole in the center.",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.object({

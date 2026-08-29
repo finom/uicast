@@ -5,9 +5,9 @@ import { mouseEventSchema } from "../../events/mouse";
 export const ButtonDef = createComponentDefinition({
   name: "Button",
   description:
-    "A clickable button for triggering actions. Supports multiple visual variants and sizes. Use Button for form submissions, actions, navigation triggers, or any interactive click target. The children prop sets the button label text.",
-  props: z.strictObject({
-    children: z.any().optional().meta({ description: "The button label text" }),
+    "A clickable button for triggering actions. Supports multiple visual variants and sizes. Use Button for form submissions, actions, navigation triggers, or any interactive click target. The `text` prop sets the button label.",
+  props: z.object({
+    text: z.union([z.string(), z.number()]).optional().meta({ description: "The button label text" }),
     variant: z
       .enum(["default", "destructive", "outline", "secondary", "ghost", "link"])
       .default("default")

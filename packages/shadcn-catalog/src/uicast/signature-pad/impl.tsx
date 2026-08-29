@@ -8,10 +8,10 @@ import { SignaturePadDef } from "./def";
 export const SignaturePadImpl = createComponentImplementation({
   def: SignaturePadDef,
   render: ({
-    width = 400,
-    height = 200,
-    penColor = "#000000",
-    disabled = false,
+    width,
+    height,
+    penColor,
+    disabled,
     label,
     onEnd,
     onClear,
@@ -54,14 +54,14 @@ export const SignaturePadImpl = createComponentImplementation({
 
     const endDraw = useCallback(() => {
       isDrawingRef.current = false;
-      onEnd?.({ isEmpty: false });
+      onEnd({ isEmpty: false });
     }, [onEnd]);
 
     const clearCanvas = () => {
       const ctx = getCtx();
       if (ctx && canvasRef.current) {
         ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        onClear?.({});
+        onClear();
       }
     };
 

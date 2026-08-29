@@ -10,8 +10,8 @@ import { BannerDef } from "./def";
 export const BannerImpl = createComponentImplementation({
   def: BannerDef,
   render: ({
-    variant = "info",
-    dismissible = true,
+    variant,
+    dismissible,
     icon,
     onDismiss,
     children,
@@ -72,7 +72,7 @@ export const BannerImpl = createComponentImplementation({
             className="size-6 shrink-0"
             onClick={() => {
               setVisible(false);
-              onDismiss?.({});
+              onDismiss();
             }}
           >
             <X className="size-4" />

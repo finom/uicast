@@ -16,8 +16,8 @@ import { CommandMenuDef } from "./def";
 export const CommandMenuImpl = createComponentImplementation({
   def: CommandMenuDef,
   render: ({
-    open = false,
-    placeholder = "Type a command or search...",
+    open,
+    placeholder,
     groups = [],
     onSelect,
     onOpenChange,
@@ -35,7 +35,7 @@ export const CommandMenuImpl = createComponentImplementation({
       <span data-key={generatedKey}>
         <CommandDialog
           open={open}
-          onOpenChange={(v: boolean) => onOpenChange?.({ open: v })}
+          onOpenChange={(v: boolean) => onOpenChange({ open: v })}
         >
           <Command>
             <CommandInput placeholder={placeholder} />
@@ -47,7 +47,7 @@ export const CommandMenuImpl = createComponentImplementation({
                     <CommandItem
                       key={ii}
                       onSelect={() => {
-                        onSelect?.({
+                        onSelect({
                           label: item.label,
                           groupHeading: group.heading,
                         });

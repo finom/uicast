@@ -5,11 +5,11 @@ import { ProgressBarDef } from "./def";
 export const ProgressBarImpl = createComponentImplementation({
   def: ProgressBarDef,
   render: ({
-    value = 0,
-    max = 100,
-    showLabel = false,
-    color = "default",
-    size = "md",
+    value,
+    max,
+    showLabel,
+    color,
+    size,
     generatedKey,
   }) => {
     const percentage = Math.min(100, Math.max(0, (value / max) * 100));

@@ -19,7 +19,7 @@ export const ChatBubbleImpl = createComponentImplementation({
               "flex gap-3",
               msg.isOwn ? "flex-row-reverse" : "flex-row",
             )}
-            onClick={() => onMessageClick?.({ id: msg.id })}
+            onClick={() => onMessageClick({ id: msg.id })}
           >
             <Avatar className="size-8 shrink-0">
               {msg.avatar && <AvatarImage src={msg.avatar} alt={msg.sender} />}
@@ -36,7 +36,7 @@ export const ChatBubbleImpl = createComponentImplementation({
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-xs font-medium">{msg.sender}</span>
                 {msg.timestamp && (
-                  <span className="text-[10px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {msg.timestamp}
                   </span>
                 )}

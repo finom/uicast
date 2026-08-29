@@ -6,8 +6,8 @@ export const FileUploadImpl = createComponentImplementation({
   def: FileUploadDef,
   render: ({
     accept,
-    multiple = false,
-    disabled = false,
+    multiple,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -34,7 +34,7 @@ export const FileUploadImpl = createComponentImplementation({
               size: f.size,
               type: f.type,
             }));
-            onChange?.({ files });
+            onChange({ files });
           }}
         />
       </label>

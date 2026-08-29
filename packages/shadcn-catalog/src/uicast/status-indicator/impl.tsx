@@ -5,10 +5,10 @@ import { StatusIndicatorDef } from "./def";
 export const StatusIndicatorImpl = createComponentImplementation({
   def: StatusIndicatorDef,
   render: ({
-    status = "default",
+    status,
     label,
-    pulse = false,
-    size = "default",
+    pulse,
+    size,
     generatedKey,
   }) => {
     const colorMap: Record<string, string> = {

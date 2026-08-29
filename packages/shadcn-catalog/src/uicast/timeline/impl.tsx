@@ -28,7 +28,7 @@ export const TimelineImpl = createComponentImplementation({
           <div
             key={i}
             className="relative flex gap-4 pb-8 last:pb-0 cursor-pointer"
-            onClick={() => onItemClick?.({ index: i, title: item.title })}
+            onClick={() => onItemClick({ index: i, title: item.title })}
           >
             <div className="flex flex-col items-center">
               <div

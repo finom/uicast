@@ -5,8 +5,8 @@ import { ColorPickerDef } from "./def";
 export const ColorPickerImpl = createComponentImplementation({
   def: ColorPickerDef,
   render: ({
-    value = "#000000",
-    disabled = false,
+    value,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -16,14 +16,14 @@ export const ColorPickerImpl = createComponentImplementation({
           type="color"
           value={value}
           disabled={disabled}
-          onChange={(e) => onChange?.({ value: e.target.value })}
+          onChange={(e) => onChange({ value: e.target.value })}
           className="size-9 cursor-pointer rounded-md border border-input p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
         />
         <Input
           type="text"
           value={value}
           disabled={disabled}
-          onChange={(e) => onChange?.({ value: e.target.value })}
+          onChange={(e) => onChange({ value: e.target.value })}
           className="w-28"
         />
       </div>

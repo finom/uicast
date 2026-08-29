@@ -6,11 +6,11 @@ export const ImageImpl = createComponentImplementation({
   def: ImageDef,
   render: ({
     src,
-    alt = "",
+    alt,
     width,
     height,
-    rounded = "md",
-    objectFit = "cover",
+    rounded,
+    objectFit,
     onClick,
     generatedKey,
   }) => {
@@ -33,7 +33,7 @@ export const ImageImpl = createComponentImplementation({
         alt={alt}
         className={`${radiusMap[rounded]} ${fitMap[objectFit]}`}
         style={{ width: width ?? "100%", height: height ?? "auto" }}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       />
     );

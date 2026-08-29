@@ -5,7 +5,7 @@ export const OrgChartDef = createComponentDefinition({
   name: "OrgChart",
   description:
     "An organizational hierarchy chart. Renders a tree-like structure showing reporting relationships. Use OrgChart for company org charts, team structures, or any hierarchical people/role display.",
-  props: z.strictObject({
+  props: z.object({
     root: z
       .object({
         name: z.string().meta({ description: "Person/role name" }),

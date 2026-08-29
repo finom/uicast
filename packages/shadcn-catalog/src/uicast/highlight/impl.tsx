@@ -13,8 +13,8 @@ export const HighlightImpl = createComponentImplementation({
   render: ({
     text,
     highlight,
-    color = "yellow",
-    caseSensitive = false,
+    color,
+    caseSensitive,
     generatedKey,
   }) => {
     if (!highlight) {

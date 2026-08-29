@@ -5,9 +5,9 @@ import { FlexColDef } from "./def";
 export const FlexColImpl = createComponentImplementation({
   def: FlexColDef,
   render: ({
-    gap = "2",
-    align = "stretch",
-    justify = "start",
+    gap,
+    align,
+    justify,
     children,
     onClick,
     generatedKey,
@@ -40,7 +40,7 @@ export const FlexColImpl = createComponentImplementation({
     return (
       <div
         className={`flex flex-col ${gapMap[gap]} ${alignMap[align]} ${justifyMap[justify]}`}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {children}

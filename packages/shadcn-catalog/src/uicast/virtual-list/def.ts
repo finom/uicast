@@ -5,7 +5,7 @@ export const VirtualListDef = createComponentDefinition({
   name: "VirtualList",
   description:
     "A virtualized list for efficiently rendering large datasets. Only renders visible items for performance. Use VirtualList for large datasets like logs, contacts, search results, or any list with hundreds+ items.",
-  props: z.strictObject({
+  props: z.object({
     items: z
       .array(
         z.object({

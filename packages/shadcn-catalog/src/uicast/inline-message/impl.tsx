@@ -5,7 +5,7 @@ import { InlineMessageDef } from "./def";
 
 export const InlineMessageImpl = createComponentImplementation({
   def: InlineMessageDef,
-  render: ({ variant = "info", message, generatedKey }) => {
+  render: ({ variant, message, generatedKey }) => {
     const iconMap = {
       info: Info,
       success: CheckCircle,

@@ -95,7 +95,7 @@ export const FilterBuilderImpl = createComponentImplementation({
                 value={filter.field}
                 onValueChange={(v) => updateFilter(i, "field", v)}
               >
-                <SelectTrigger className="w-[150px] h-9">
+                <SelectTrigger className="w-38 h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -111,7 +111,7 @@ export const FilterBuilderImpl = createComponentImplementation({
                 value={filter.operator}
                 onValueChange={(v) => updateFilter(i, "operator", v)}
               >
-                <SelectTrigger className="w-[120px] h-9">
+                <SelectTrigger className="w-30 h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,7 +172,7 @@ export const FilterBuilderImpl = createComponentImplementation({
             <Plus className="mr-1 size-3.5" />
             Add Filter
           </Button>
-          <Button size="sm" onClick={() => onApply?.({ filters })}>
+          <Button size="sm" onClick={() => onApply({ filters })}>
             Apply
           </Button>
         </div>

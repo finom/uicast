@@ -6,7 +6,7 @@ export const PasswordInputDef = createComponentDefinition({
   name: "PasswordInput",
   description:
     "A password input with a show/hide toggle button. Renders a text input with masked characters and an eye icon to toggle visibility. Use PasswordInput for login forms, registration, or any password entry field.",
-  props: z.strictObject({
+  props: z.object({
     value: z.any().meta({ description: "The current password value" }),
     placeholder: z.string().default("Enter password").meta({
       description: "Placeholder text",
@@ -18,11 +18,11 @@ export const PasswordInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z.string().meta({ description: "The current password value" }),
     }),
-    onFocus: z.strictObject({}),
-    onBlur: z.strictObject({
+    onFocus: z.null(),
+    onBlur: z.object({
       value: z.string().meta({ description: "The password value on blur" }),
     }),
   },

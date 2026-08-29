@@ -5,7 +5,7 @@ export const WaterfallChartDef = createComponentDefinition({
   name: "WaterfallChart",
   description:
     "A waterfall chart showing cumulative effect of sequential positive/negative values. Each bar starts where the previous one ended. Use WaterfallChart for financial statements, profit/loss breakdown, budget variance analysis, etc.",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.object({

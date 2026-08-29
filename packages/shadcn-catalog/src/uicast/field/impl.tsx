@@ -3,7 +3,7 @@ import { FieldDef } from "./def";
 
 export const FieldImpl = createComponentImplementation({
   def: FieldDef,
-  render: ({ disabled = false, children, generatedKey }) => {
+  render: ({ disabled, children, generatedKey }) => {
     return (
       <div
         className="flex flex-col gap-2"

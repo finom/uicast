@@ -7,13 +7,14 @@ import { LinkDef } from "./def";
 export const LinkImpl = createComponentImplementation({
   def: LinkDef,
   render: ({
+    text,
     children,
     href,
-    variant = "default",
-    size = "default",
-    underline = "hover",
-    external = false,
-    disabled = false,
+    variant,
+    size,
+    underline,
+    external,
+    disabled,
     onClick,
     generatedKey,
   }) => {
@@ -31,10 +32,10 @@ export const LinkImpl = createComponentImplementation({
           underline === "none" && "no-underline",
         )}
         disabled={disabled}
-        onClick={() => onClick?.({ href })}
+        onClick={() => onClick({ href })}
         data-key={generatedKey}
       >
-        {children}
+        {children ?? text}
         {external && <ExternalLink className="size-3" />}
       </Button>
     );

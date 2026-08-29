@@ -9,7 +9,7 @@ export const DateRangePickerImpl = createComponentImplementation({
     endDate,
     min,
     max,
-    disabled = false,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -22,7 +22,7 @@ export const DateRangePickerImpl = createComponentImplementation({
           max={endDate || max}
           disabled={disabled}
           onChange={(e) =>
-            onChange?.({
+            onChange({
               startDate: e.target.value,
               endDate: endDate ?? "",
             })
@@ -36,7 +36,7 @@ export const DateRangePickerImpl = createComponentImplementation({
           max={max}
           disabled={disabled}
           onChange={(e) =>
-            onChange?.({
+            onChange({
               startDate: startDate ?? "",
               endDate: e.target.value,
             })

@@ -6,9 +6,10 @@ import { DropdownMenuItemDef } from "./def";
 export const DropdownMenuItemImpl = createComponentImplementation({
   def: DropdownMenuItemDef,
   render: ({
+    text,
     children,
-    variant = "default",
-    disabled = false,
+    variant,
+    disabled,
     onClick,
     generatedKey,
   }) => {
@@ -16,10 +17,10 @@ export const DropdownMenuItemImpl = createComponentImplementation({
       <ShadcnDropdownMenuItem
         variant={variant}
         disabled={disabled}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
-        {children}
+        {children ?? text}
       </ShadcnDropdownMenuItem>
     );
   },

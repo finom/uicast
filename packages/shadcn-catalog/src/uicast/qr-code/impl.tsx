@@ -10,9 +10,9 @@ export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({
     value,
-    size = 200,
-    bgColor = "#ffffff",
-    fgColor = "#000000",
+    size,
+    bgColor,
+    fgColor,
     generatedKey,
   }) => (
     <Card

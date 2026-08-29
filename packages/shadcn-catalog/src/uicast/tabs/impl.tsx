@@ -15,7 +15,7 @@ export const TabsImpl = createComponentImplementation({
       <ShadcnTabs
         value={value}
         defaultValue={defaultValue}
-        onValueChange={(v) => onValueChange?.({ value: v })}
+        onValueChange={(v) => onValueChange({ value: v })}
         data-key={generatedKey}
       >
         {children}

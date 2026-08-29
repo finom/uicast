@@ -5,7 +5,7 @@ export const StepperDef = createComponentDefinition({
   name: "Stepper",
   description:
     "A stepper/wizard component showing progress through a multi-step process. Displays numbered steps with labels, highlighting the current step and indicating completed/upcoming steps. Use Stepper for multi-step forms, onboarding wizards, checkout flows, or any sequential process.",
-  props: z.strictObject({
+  props: z.object({
     steps: z
       .array(
         z.object({

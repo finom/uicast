@@ -6,9 +6,9 @@ export const VideoPlayerImpl = createComponentImplementation({
   render: ({
     src,
     poster,
-    autoplay = false,
-    muted = false,
-    loop = false,
+    autoplay,
+    muted,
+    loop,
     width,
     onPlay,
     onPause,
@@ -29,9 +29,9 @@ export const VideoPlayerImpl = createComponentImplementation({
           controls
           className="w-full"
           style={width ? { width } : undefined}
-          onPlay={() => onPlay?.({})}
-          onPause={() => onPause?.({})}
-          onEnded={() => onEnded?.({})}
+          onPlay={() => onPlay()}
+          onPause={() => onPause()}
+          onEnded={() => onEnded()}
         />
       </div>
     );

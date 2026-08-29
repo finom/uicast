@@ -7,10 +7,10 @@ import { RatingDef } from "./def";
 export const RatingImpl = createComponentImplementation({
   def: RatingDef,
   render: ({
-    value = 0,
-    max = 5,
-    size = "default",
-    disabled = false,
+    value,
+    max,
+    size,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -37,7 +37,7 @@ export const RatingImpl = createComponentImplementation({
               )}
               disabled={disabled}
               onClick={() => {
-                if (!disabled) onChange?.({ value: i + 1 });
+                if (!disabled) onChange({ value: i + 1 });
               }}
             >
               <Star

@@ -6,11 +6,11 @@ import { NotificationBadgeDef } from "./def";
 export const NotificationBadgeImpl = createComponentImplementation({
   def: NotificationBadgeDef,
   render: ({
-    count = 0,
-    max = 99,
-    variant = "destructive",
-    dot = false,
-    showZero = false,
+    count,
+    max,
+    variant,
+    dot,
+    showZero,
     children,
     generatedKey,
   }) => {
@@ -35,7 +35,7 @@ export const NotificationBadgeImpl = createComponentImplementation({
           ) : (
             <Badge
               variant={variant}
-              className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-[10px] font-medium justify-center"
+              className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-xs font-medium justify-center"
             >
               {displayCount}
             </Badge>

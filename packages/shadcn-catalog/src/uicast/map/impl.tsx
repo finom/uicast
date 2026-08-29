@@ -6,10 +6,10 @@ export const MapImpl = createComponentImplementation({
   def: MapDef,
   render: ({
     center,
-    zoom = 13,
+    zoom,
     markers = [],
-    width = 600,
-    height = 400,
+    width,
+    height,
     onMarkerClick,
     generatedKey,
   }) => {
@@ -40,7 +40,7 @@ export const MapImpl = createComponentImplementation({
               top: `${50 - (marker.lat - center.lat) * zoom * 50}%`,
             }}
             onClick={() =>
-              onMarkerClick?.({
+              onMarkerClick({
                 lat: marker.lat,
                 lng: marker.lng,
                 label: marker.label,
@@ -49,7 +49,7 @@ export const MapImpl = createComponentImplementation({
           >
             <MapPin className="size-6 text-destructive fill-destructive" />
             {marker.label && (
-              <span className="text-[10px] font-medium bg-background/80 px-1 rounded-sm">
+              <span className="text-xs font-medium bg-background/80 px-1 rounded-sm">
                 {marker.label}
               </span>
             )}

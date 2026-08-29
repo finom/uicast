@@ -5,7 +5,7 @@ export const CalendarDef = createComponentDefinition({
   name: "Calendar",
   description:
     "A month-grid calendar with selectable dates and built-in month navigation. Use Calendar for date selection, event calendars, or scheduling interfaces.",
-  props: z.strictObject({
+  props: z.object({
     selected: z.string().optional().meta({
       description: "The selected date as ISO string (YYYY-MM-DD)",
     }),
@@ -14,7 +14,7 @@ export const CalendarDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onSelect: z.strictObject({
+    onSelect: z.object({
       date: z
         .string()
         .meta({ description: "The selected date as ISO string (YYYY-MM-DD)" }),

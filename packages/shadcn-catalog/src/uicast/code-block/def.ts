@@ -5,7 +5,7 @@ export const CodeBlockDef = createComponentDefinition({
   name: "CodeBlock",
   description:
     "A syntax-highlighted read-only code display block. Renders code with a monospaced font, optional language label, and copy button. Use CodeBlock for displaying code snippets, API responses, configuration examples, etc.",
-  props: z.strictObject({
+  props: z.object({
     code: z.string().meta({
       description: "The code content to display",
     }),
@@ -20,7 +20,7 @@ export const CodeBlockDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onCopy: z.strictObject({}).meta({
+    onCopy: z.null().meta({
       description: "Callback when the code is copied to clipboard",
     }),
   },

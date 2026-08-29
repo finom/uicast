@@ -8,11 +8,11 @@ import { PinInputDef } from "./def";
 export const PinInputImpl = createComponentImplementation({
   def: PinInputDef,
   render: ({
-    value = "",
-    length = 6,
-    mask = false,
-    disabled = false,
-    type = "numeric",
+    value,
+    length,
+    mask,
+    disabled,
+    type,
     onChange,
     onComplete,
     onKeyDown,
@@ -31,7 +31,7 @@ export const PinInputImpl = createComponentImplementation({
       while (newChars.length < length) newChars.push("");
       newChars[index] = char;
       const newValue = newChars.join("");
-      onChange?.({ value: newValue });
+      onChange({ value: newValue });
 
       if (char && index < length - 1) {
         inputRefs.current[index + 1]?.focus();
@@ -40,7 +40,7 @@ export const PinInputImpl = createComponentImplementation({
       // join() collapses empty positions, so the joined value reaches the
       // full length exactly when every position holds a character.
       if (newValue.length === length) {
-        onComplete?.({ value: newValue });
+        onComplete({ value: newValue });
       }
     };
 
@@ -60,12 +60,12 @@ export const PinInputImpl = createComponentImplementation({
             className={cn("size-12 text-center text-lg font-semibold")}
             onChange={(e) => handleInput(i, e.target.value)}
             onKeyDown={(e) => {
-              onKeyDown?.(pickKeyboardEvent(e));
+              onKeyDown(pickKeyboardEvent(e));
               if (e.key === "Backspace" && !chars[i] && i > 0) {
                 inputRefs.current[i - 1]?.focus();
               }
             }}
-            onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+            onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           />
         ))}
       </div>

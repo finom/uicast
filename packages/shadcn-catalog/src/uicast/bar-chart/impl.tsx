@@ -18,8 +18,8 @@ export const BarChartImpl = createComponentImplementation({
     xKey,
     yKeys = [],
     colors,
-    height = 300,
-    stacked = false,
+    height,
+    stacked,
     generatedKey,
   }) => {
     const defaultColors = [

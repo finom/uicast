@@ -4,7 +4,7 @@ import { SankeyChartDef } from "./def";
 
 export const SankeyChartImpl = createComponentImplementation({
   def: SankeyChartDef,
-  render: ({ nodes = [], links = [], height = 400, generatedKey }) => {
+  render: ({ nodes = [], links = [], height, generatedKey }) => {
     const sankeyData = { nodes, links };
 
     return (

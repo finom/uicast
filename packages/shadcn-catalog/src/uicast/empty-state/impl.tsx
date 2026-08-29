@@ -6,7 +6,7 @@ import { EmptyStateDef } from "./def";
 export const EmptyStateImpl = createComponentImplementation({
   def: EmptyStateDef,
   render: ({
-    title = "No data",
+    title,
     description,
     children,
     onClick,
@@ -15,7 +15,7 @@ export const EmptyStateImpl = createComponentImplementation({
     return (
       <div
         className="flex flex-col items-center justify-center py-12 text-center"
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         <InboxIcon className="size-12 text-muted-foreground mb-4" />

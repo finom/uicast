@@ -11,7 +11,7 @@ import { ModalDef } from "./def";
 export const ModalImpl = createComponentImplementation({
   def: ModalDef,
   render: ({
-    open = false,
+    open,
     title,
     description,
     children,
@@ -20,7 +20,7 @@ export const ModalImpl = createComponentImplementation({
   }) => {
     return (
       <span data-key={generatedKey}>
-        <Dialog open={open} onOpenChange={(v) => onOpenChange?.({ open: v })}>
+        <Dialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <DialogContent>
             {(title || description) && (
               <DialogHeader>

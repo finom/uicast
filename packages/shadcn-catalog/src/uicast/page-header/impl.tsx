@@ -36,7 +36,7 @@ export const PageHeaderImpl = createComponentImplementation({
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
-                          onBreadcrumbClick?.({ index: i, label: bc.label });
+                          onBreadcrumbClick({ index: i, label: bc.label });
                         }}
                       >
                         {bc.label}

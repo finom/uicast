@@ -34,8 +34,8 @@ function describeCron(cron: string): string {
 export const CronBuilderImpl = createComponentImplementation({
   def: CronBuilderDef,
   render: ({
-    value = "* * * * *",
-    showPreview = true,
+    value,
+    showPreview,
     onChange,
     generatedKey,
   }) => {
@@ -54,7 +54,7 @@ export const CronBuilderImpl = createComponentImplementation({
       // render-scope values would still be the previous ones.
       const next = [minute, hour, day, month, weekday];
       next[index] = v;
-      onChange?.({ value: next.join(" ") });
+      onChange({ value: next.join(" ") });
     };
 
     const minuteOpts = [

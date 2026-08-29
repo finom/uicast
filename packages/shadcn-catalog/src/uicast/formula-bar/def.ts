@@ -5,7 +5,7 @@ export const FormulaBarDef = createComponentDefinition({
   name: "FormulaBar",
   description:
     "A formula/expression input with cell reference support, similar to spreadsheet formula bar. Renders an input with a formula icon. Use FormulaBar for spreadsheet-like apps, calculated fields, or expression editors.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().default("").meta({
       description: "Current formula value",
     }),

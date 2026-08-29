@@ -14,9 +14,9 @@ export const PieChartImpl = createComponentImplementation({
   render: ({
     data: rawData = [],
     colors,
-    height = 300,
-    donut = false,
-    showLabels = true,
+    height,
+    donut,
+    showLabels,
     generatedKey,
   }) => {
     const data = rawData.map((d) => ({ ...d, value: Number(d.value) }));

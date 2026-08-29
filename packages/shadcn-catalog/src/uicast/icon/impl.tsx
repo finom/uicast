@@ -5,7 +5,7 @@ import { IconDef } from "./def";
 
 export const IconImpl = createComponentImplementation({
   def: IconDef,
-  render: ({ name, size = "md", color, generatedKey }) => {
+  render: ({ name, size, color, generatedKey }) => {
     const sizeMap: Record<string, string> = {
       sm: "size-4",
       md: "size-5",

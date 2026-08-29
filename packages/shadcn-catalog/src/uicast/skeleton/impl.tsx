@@ -5,9 +5,9 @@ import { SkeletonDef } from "./def";
 export const SkeletonImpl = createComponentImplementation({
   def: SkeletonDef,
   render: ({
-    width = "100%",
-    height = "1.25rem",
-    rounded = "md",
+    width,
+    height,
+    rounded,
     generatedKey,
   }) => {
     const radiusMap: Record<string, string> = {

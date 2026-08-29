@@ -6,7 +6,7 @@ export const InputDef = createComponentDefinition({
   name: "Input",
   description:
     "A text input field for single-line text, email, password, or number entry. Renders a styled input element. Use Input for form fields. For labels and descriptions, wrap with Field, FieldLabel, and FieldDescription components. For a dedicated numeric stepper, see NumberInput.",
-  props: z.strictObject({
+  props: z.object({
     value: z.any().meta({ description: "The current input value" }),
     type: z
       .enum(["text", "email", "password", "number", "tel", "url", "search"])
@@ -24,7 +24,7 @@ export const InputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z
         .string()
         .meta({ description: "The current string value of the input" }),
@@ -32,8 +32,8 @@ export const InputDef = createComponentDefinition({
         description: "The current value as a number (0 if NaN)",
       }),
     }),
-    onFocus: z.strictObject({}),
-    onBlur: z.strictObject({
+    onFocus: z.null(),
+    onBlur: z.object({
       value: z.string().meta({
         description: "The current string value of the input on blur",
       }),

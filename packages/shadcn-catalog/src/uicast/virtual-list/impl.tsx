@@ -6,8 +6,8 @@ export const VirtualListImpl = createComponentImplementation({
   def: VirtualListDef,
   render: ({
     items = [],
-    height = 400,
-    itemHeight = 48,
+    height,
+    itemHeight,
     onItemClick,
     generatedKey,
   }) => {
@@ -53,7 +53,7 @@ export const VirtualListImpl = createComponentImplementation({
                   height: itemHeight,
                 }}
                 onClick={() =>
-                  onItemClick?.({ id: item.id, index: actualIndex })
+                  onItemClick({ id: item.id, index: actualIndex })
                 }
               >
                 <span className="text-sm">{item.primary}</span>

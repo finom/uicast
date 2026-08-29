@@ -10,7 +10,7 @@ export const NumberInputImpl = createComponentImplementation({
     min,
     max,
     step,
-    disabled = false,
+    disabled,
     placeholder,
     onChange,
     onKeyDown,
@@ -26,9 +26,9 @@ export const NumberInputImpl = createComponentImplementation({
         step={step}
         disabled={disabled}
         placeholder={placeholder}
-        onChange={(e) => onChange?.({ value: e.target.valueAsNumber || 0 })}
-        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-        onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+        onChange={(e) => onChange({ value: e.target.valueAsNumber || 0 })}
+        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+        onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
         data-key={generatedKey}
       />
     );

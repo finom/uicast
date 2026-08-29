@@ -5,7 +5,7 @@ export const HeatmapDef = createComponentDefinition({
   name: "Heatmap",
   description:
     "A heatmap for visualizing matrix data with color intensity. Renders a grid of colored cells based on values. Use Heatmap for correlation matrices, activity calendars, hour-by-day usage patterns, geographic intensity, etc.",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.object({

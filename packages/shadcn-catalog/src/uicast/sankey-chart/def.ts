@@ -5,7 +5,7 @@ export const SankeyChartDef = createComponentDefinition({
   name: "SankeyChart",
   description:
     "A Sankey diagram for flow/relationship visualization between nodes. Shows how values flow between source and target nodes. Use SankeyChart for user flow, budget allocation, energy flow, conversion funnels, etc.",
-  props: z.strictObject({
+  props: z.object({
     nodes: z
       .array(
         z.object({

@@ -5,7 +5,7 @@ export const FilterBuilderDef = createComponentDefinition({
   name: "FilterBuilder",
   description:
     "A dynamic filter/query builder for constructing conditions. Renders rows of field/operator/value filters that users can add/remove. Use FilterBuilder for data filtering, report criteria, advanced search, or query composition.",
-  props: z.strictObject({
+  props: z.object({
     fields: z
       .array(
         z.object({

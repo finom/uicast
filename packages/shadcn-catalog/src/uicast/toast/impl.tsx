@@ -9,11 +9,11 @@ import { ToastDef } from "./def";
 export const ToastImpl = createComponentImplementation({
   def: ToastDef,
   render: ({
-    open = false,
+    open,
     title,
     description,
-    variant = "default",
-    position = "bottom-right",
+    variant,
+    position,
     onClose,
     generatedKey,
   }) => {
@@ -49,7 +49,7 @@ export const ToastImpl = createComponentImplementation({
               variant="ghost"
               size="icon"
               className="shrink-0 size-6 -mr-1 -mt-1"
-              onClick={() => onClose?.({})}
+              onClick={() => onClose()}
             >
               <X className="size-4" />
             </Button>

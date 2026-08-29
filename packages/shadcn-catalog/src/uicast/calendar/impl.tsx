@@ -19,7 +19,7 @@ function formatLocalDate(date: Date): string {
 
 export const CalendarImpl = createComponentImplementation({
   def: CalendarDef,
-  render: ({ selected, disabled = false, onSelect, generatedKey }) => {
+  render: ({ selected, disabled, onSelect, generatedKey }) => {
     const selectedDate = selected ? parseLocalDate(selected) : undefined;
 
     return (
@@ -29,7 +29,7 @@ export const CalendarImpl = createComponentImplementation({
           selected={selectedDate}
           onSelect={(date) => {
             if (date) {
-              onSelect?.({
+              onSelect({
                 date: formatLocalDate(date),
               });
             }

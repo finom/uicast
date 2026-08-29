@@ -18,7 +18,7 @@ export const RadarChartImpl = createComponentImplementation({
     dataKey,
     valueKeys = [],
     colors,
-    height = 300,
+    height,
     generatedKey,
   }) => {
     const defaultColors = [

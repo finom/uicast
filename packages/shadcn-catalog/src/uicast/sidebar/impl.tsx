@@ -18,8 +18,8 @@ export const SidebarImpl = createComponentImplementation({
   def: SidebarDef,
   render: ({
     sections = [],
-    collapsed = false,
-    width = "256px",
+    collapsed,
+    width,
     onNavigate,
     onToggleCollapse,
     generatedKey,
@@ -45,7 +45,7 @@ export const SidebarImpl = createComponentImplementation({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => onToggleCollapse?.({ collapsed: !collapsed })}
+              onClick={() => onToggleCollapse({ collapsed: !collapsed })}
             >
               {collapsed ? (
                 <ChevronRight className="size-4" />
@@ -73,7 +73,7 @@ export const SidebarImpl = createComponentImplementation({
                         collapsed && "justify-center px-2",
                       )}
                       onClick={() =>
-                        onNavigate?.({
+                        onNavigate({
                           sectionIndex: si,
                           itemIndex: ii,
                           label: item.label,

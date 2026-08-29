@@ -10,7 +10,7 @@ import { AccordionItemDef } from "./def";
 
 export const AccordionItemImpl = createComponentImplementation({
   def: AccordionItemDef,
-  render: ({ title, open = false, children, onToggle, generatedKey }) => {
+  render: ({ title, open, children, onToggle, generatedKey }) => {
     const [isOpen, setIsOpen] = useState(open);
 
     useEffect(() => {
@@ -25,7 +25,7 @@ export const AccordionItemImpl = createComponentImplementation({
         onValueChange={(val) => {
           const newOpen = val === generatedKey;
           setIsOpen(newOpen);
-          onToggle?.({ open: newOpen });
+          onToggle({ open: newOpen });
         }}
         data-key={generatedKey}
       >

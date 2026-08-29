@@ -16,7 +16,7 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export const AlertImpl = createComponentImplementation({
   def: AlertDef,
-  render: ({ title, description, status = "info", generatedKey }) => {
+  render: ({ title, description, status, generatedKey }) => {
     const variant = status === "error" ? "destructive" : "default";
     return (
       <ShadcnAlert variant={variant} data-key={generatedKey}>

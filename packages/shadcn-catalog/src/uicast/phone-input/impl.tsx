@@ -27,9 +27,9 @@ export const PhoneInputImpl = createComponentImplementation({
   def: PhoneInputDef,
   render: ({
     value,
-    countryCode = "+1",
-    placeholder = "Phone number",
-    disabled = false,
+    countryCode,
+    placeholder,
+    disabled,
     countryCodes,
     onChange,
     onKeyDown,
@@ -44,7 +44,7 @@ export const PhoneInputImpl = createComponentImplementation({
         <Select
           value={countryCode}
           onValueChange={(code) =>
-            onChange?.({
+            onChange({
               value: phoneValue,
               countryCode: code,
               fullNumber: `${code} ${phoneValue}`,
@@ -52,7 +52,7 @@ export const PhoneInputImpl = createComponentImplementation({
           }
           disabled={disabled}
         >
-          <SelectTrigger className="w-[100px]">
+          <SelectTrigger className="w-25">
             <SelectValue placeholder="Code" />
           </SelectTrigger>
           <SelectContent>
@@ -69,14 +69,14 @@ export const PhoneInputImpl = createComponentImplementation({
           placeholder={placeholder}
           disabled={disabled}
           onChange={(e) =>
-            onChange?.({
+            onChange({
               value: e.target.value,
               countryCode,
               fullNumber: `${countryCode} ${e.target.value}`,
             })
           }
-          onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-          onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+          onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="flex-1"
         />
       </div>

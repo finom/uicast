@@ -20,11 +20,11 @@ export const CountdownTimerImpl = createComponentImplementation({
   def: CountdownTimerDef,
   render: ({
     targetDate,
-    showDays = true,
-    showHours = true,
-    showMinutes = true,
-    showSeconds = true,
-    size = "default",
+    showDays,
+    showHours,
+    showMinutes,
+    showSeconds,
+    size,
     onComplete,
     generatedKey,
   }) => {
@@ -38,14 +38,14 @@ export const CountdownTimerImpl = createComponentImplementation({
         setTimeLeft(updated);
         if (updated.expired) {
           clearInterval(interval);
-          onComplete?.({});
+          onComplete();
         }
       }, 1000);
       return () => clearInterval(interval);
     }, [targetDate]);
 
     const sizeClasses = {
-      sm: { num: "text-lg font-semibold", label: "text-[10px]" },
+      sm: { num: "text-lg font-semibold", label: "text-xs" },
       default: { num: "text-2xl font-bold", label: "text-xs" },
       lg: { num: "text-4xl font-bold", label: "text-sm" },
     };

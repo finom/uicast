@@ -11,17 +11,17 @@ import { DrawerDef } from "./def";
 export const DrawerImpl = createComponentImplementation({
   def: DrawerDef,
   render: ({
-    open = false,
+    open,
     title,
     description,
-    side = "right",
+    side,
     children,
     onOpenChange,
     generatedKey,
   }) => {
     return (
       <span data-key={generatedKey}>
-        <Sheet open={open} onOpenChange={(v) => onOpenChange?.({ open: v })}>
+        <Sheet open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <SheetContent side={side}>
             {(title || description) && (
               <SheetHeader>

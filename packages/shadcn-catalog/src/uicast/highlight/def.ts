@@ -5,7 +5,7 @@ export const HighlightDef = createComponentDefinition({
   name: "Highlight",
   description:
     "A text highlighting/search match marking component. Highlights specified text within content. Use Highlight for search result highlighting, keyword emphasis, or marking important text.",
-  props: z.strictObject({
+  props: z.object({
     text: z.string().meta({
       description: "The full text content",
     }),

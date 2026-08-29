@@ -10,8 +10,8 @@ export const PasswordInputImpl = createComponentImplementation({
   def: PasswordInputDef,
   render: ({
     value,
-    placeholder = "Enter password",
-    disabled = false,
+    placeholder,
+    disabled,
     onChange,
     onFocus,
     onBlur,
@@ -28,11 +28,11 @@ export const PasswordInputImpl = createComponentImplementation({
           value={value as string | undefined}
           placeholder={placeholder}
           disabled={disabled}
-          onChange={(e) => onChange?.({ value: e.target.value })}
-          onFocus={() => onFocus?.({})}
-          onBlur={(e) => onBlur?.({ value: e.target.value })}
-          onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-          onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+          onChange={(e) => onChange({ value: e.target.value })}
+          onFocus={() => onFocus()}
+          onBlur={(e) => onBlur({ value: e.target.value })}
+          onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="pr-10"
         />
         <Button

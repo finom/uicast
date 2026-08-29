@@ -12,7 +12,7 @@ export const TableRowImpl = createComponentImplementation({
   render: ({ children, onClick, generatedKey }) => {
     return (
       <ShadcnTableRow
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {children}

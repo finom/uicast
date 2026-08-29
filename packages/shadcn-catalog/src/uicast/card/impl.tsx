@@ -14,7 +14,7 @@ export const CardImpl = createComponentImplementation({
   render: ({ title, description, children, onClick, generatedKey }) => {
     return (
       <Card
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {(title || description) && (

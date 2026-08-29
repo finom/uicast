@@ -13,11 +13,11 @@ import { AlertDialogDef } from "./def";
 export const AlertDialogImpl = createComponentImplementation({
   def: AlertDialogDef,
   render: ({
-    open = false,
+    open,
     title,
     description,
-    actionLabel = "OK",
-    variant = "default",
+    actionLabel,
+    variant,
     onAction,
     generatedKey,
   }) => {
@@ -35,7 +35,7 @@ export const AlertDialogImpl = createComponentImplementation({
           <DialogFooter>
             <Button
               variant={variant === "destructive" ? "destructive" : "default"}
-              onClick={() => onAction?.({})}
+              onClick={() => onAction()}
             >
               {actionLabel}
             </Button>

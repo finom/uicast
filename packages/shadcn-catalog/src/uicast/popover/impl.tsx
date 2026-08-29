@@ -10,22 +10,22 @@ import { PopoverDef } from "./def";
 export const PopoverImpl = createComponentImplementation({
   def: PopoverDef,
   render: ({
-    open = false,
+    open,
     triggerLabel,
-    side = "bottom",
+    side,
     children,
     onOpenChange,
     generatedKey,
   }) => {
     return (
       <span data-key={generatedKey}>
-        <Popover open={open} onOpenChange={(v) => onOpenChange?.({ open: v })}>
+        <Popover open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">
               {triggerLabel ?? "More"}
             </Button>
           </PopoverTrigger>
-          <PopoverContent side={side} className="w-auto min-w-[200px]">
+          <PopoverContent side={side} className="w-auto min-w-50">
             {children}
           </PopoverContent>
         </Popover>

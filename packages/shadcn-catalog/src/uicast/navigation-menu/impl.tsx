@@ -21,7 +21,7 @@ export const NavigationMenuImpl = createComponentImplementation({
               <NavigationMenuItem key={i}>
                 <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:grid-cols-2">
+                  <ul className="grid w-100 gap-3 p-4 md:grid-cols-2">
                     {item.children.map((child, ci) => (
                       <li key={ci}>
                         <NavigationMenuLink asChild>
@@ -29,7 +29,7 @@ export const NavigationMenuImpl = createComponentImplementation({
                             type="button"
                             className="block w-full select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-left"
                             onClick={() =>
-                              onNavigate?.({
+                              onNavigate({
                                 label: child.label,
                                 parentLabel: item.label,
                               })
@@ -54,7 +54,7 @@ export const NavigationMenuImpl = createComponentImplementation({
               <NavigationMenuItem key={i}>
                 <NavigationMenuLink
                   className={navigationMenuTriggerStyle()}
-                  onClick={() => onNavigate?.({ label: item.label })}
+                  onClick={() => onNavigate({ label: item.label })}
                 >
                   {item.label}
                 </NavigationMenuLink>

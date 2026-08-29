@@ -4,7 +4,7 @@ import { SpinnerDef } from "./def";
 
 export const SpinnerImpl = createComponentImplementation({
   def: SpinnerDef,
-  render: ({ size = "md", label, generatedKey }) => {
+  render: ({ size, label, generatedKey }) => {
     const sizeMap: Record<string, string> = {
       sm: "size-4",
       md: "size-6",

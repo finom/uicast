@@ -5,7 +5,7 @@ export const GanttChartDef = createComponentDefinition({
   name: "GanttChart",
   description:
     "A Gantt chart for project scheduling and task timeline visualization. Renders horizontal bars along a time axis. Use GanttChart for project planning, sprint timelines, event scheduling, or any time-based task visualization.",
-  props: z.strictObject({
+  props: z.object({
     tasks: z
       .array(
         z.object({

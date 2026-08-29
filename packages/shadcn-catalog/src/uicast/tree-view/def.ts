@@ -5,7 +5,7 @@ export const TreeViewDef = createComponentDefinition({
   name: "TreeView",
   description:
     "A hierarchical expandable list for file systems, org trees, or category browsing. Renders a tree structure with expandable/collapsible nodes. Use TreeView for file explorers, organization charts, category navigation, etc.",
-  props: z.strictObject({
+  props: z.object({
     items: z
       .array(
         z.object({

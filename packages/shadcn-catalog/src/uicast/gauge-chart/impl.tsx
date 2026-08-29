@@ -5,11 +5,11 @@ export const GaugeChartImpl = createComponentImplementation({
   def: GaugeChartDef,
   render: ({
     value,
-    min = 0,
-    max = 100,
+    min,
+    max,
     label,
-    color = "#8884d8",
-    height = 200,
+    color,
+    height,
     generatedKey,
   }) => {
     const range = max - min;

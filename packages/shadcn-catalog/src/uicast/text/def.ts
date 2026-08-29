@@ -4,10 +4,10 @@ import { createComponentDefinition } from "@uicast/core";
 export const TextDef = createComponentDefinition({
   name: "Text",
   description:
-    "A text display component for rendering inline or block text. Renders a span (inline) or p (block) element. Use Text for body copy, labels, descriptions, or any general-purpose text content. Can display dynamic values by passing them as children.",
-  props: z.strictObject({
-    children: z
-      .any()
+    "A text display component for rendering inline or block text. Renders a span (inline) or p (block) element. Use Text for body copy, labels, descriptions, or any general-purpose text content. Pass a dynamic value through the `text` prop.",
+  props: z.object({
+    text: z
+      .union([z.string(), z.number()])
       .optional()
       .meta({ description: "The text content to display" }),
     variant: z

@@ -6,7 +6,7 @@ export const StackDef = createComponentDefinition({
   name: "Stack",
   description:
     "A flex container that stacks children either vertically or horizontally with configurable spacing. Stack is a simpler alternative to FlexRow/FlexCol when you just need basic stacking with a gap. Use Stack for quick vertical or horizontal layouts.",
-  props: z.strictObject({
+  props: z.object({
     direction: z.enum(["vertical", "horizontal"]).default("vertical").meta({
       description: "Stack direction: vertical (column) or horizontal (row)",
     }),

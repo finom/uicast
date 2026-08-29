@@ -5,7 +5,7 @@ export const InlineMessageDef = createComponentDefinition({
   name: "InlineMessage",
   description:
     "An inline contextual message for form fields or sections. Renders a small styled message with an icon. Use InlineMessage for field validation hints, warnings, or info messages within forms.",
-  props: z.strictObject({
+  props: z.object({
     variant: z
       .enum(["info", "success", "warning", "error"])
       .default("info")

@@ -5,11 +5,11 @@ import { FlexRowDef } from "./def";
 export const FlexRowImpl = createComponentImplementation({
   def: FlexRowDef,
   render: ({
-    gap = "2",
-    align = "center",
-    justify = "start",
-    wrap = false,
-    equalWidth = false,
+    gap,
+    align,
+    justify,
+    wrap,
+    equalWidth,
     children,
     onClick,
     generatedKey,
@@ -43,7 +43,7 @@ export const FlexRowImpl = createComponentImplementation({
     return (
       <div
         className={`flex flex-row ${gapMap[gap]} ${alignMap[align]} ${justifyMap[justify]} ${wrap ? "flex-wrap" : ""} ${equalWidth ? "*:flex-1 *:min-w-0" : ""}`}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {children}

@@ -5,7 +5,7 @@ export const FunnelChartDef = createComponentDefinition({
   name: "FunnelChart",
   description:
     "A funnel chart for visualizing stages in a pipeline or conversion process. Each stage is narrower than the previous one. Use FunnelChart for sales funnels, conversion funnels, recruitment pipelines, or any sequential stage-based data. The 'data' prop is an array of objects with 'name' (string) and 'value' (number) keys, ordered from largest (top) to smallest (bottom).",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.object({

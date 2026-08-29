@@ -5,7 +5,7 @@ export const ScatterChartDef = createComponentDefinition({
   name: "ScatterChart",
   description:
     "A scatter plot for visualizing correlation between two numeric variables. Each point represents a data observation. Use ScatterChart for analyzing relationships, distribution patterns, outlier detection, or comparing two metrics (height vs weight, price vs quantity, etc.).",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.record(

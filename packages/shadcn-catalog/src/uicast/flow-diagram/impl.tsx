@@ -8,7 +8,7 @@ export const FlowDiagramImpl = createComponentImplementation({
   render: ({
     nodes = [],
     edges = [],
-    direction = "vertical",
+    direction,
     onNodeClick,
     generatedKey,
   }) => {
@@ -46,11 +46,11 @@ export const FlowDiagramImpl = createComponentImplementation({
             >
               <div
                 className={cn(
-                  "flex items-center justify-center border-2 px-6 py-3 cursor-pointer shadow-sm hover:shadow-md transition-shadow min-w-[120px] text-center",
+                  "flex items-center justify-center border-2 px-6 py-3 cursor-pointer shadow-sm hover:shadow-md transition-shadow min-w-30 text-center",
                   shapeClass,
                 )}
                 onClick={() =>
-                  onNodeClick?.({ id: node.id, label: node.label })
+                  onNodeClick({ id: node.id, label: node.label })
                 }
               >
                 <span className="text-sm font-medium">{node.label}</span>

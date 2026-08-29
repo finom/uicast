@@ -32,7 +32,7 @@ export const BreadcrumbImpl = createComponentImplementation({
                       <button
                         type="button"
                         onClick={() =>
-                          onNavigate?.({ index: i, label: item.label })
+                          onNavigate({ index: i, label: item.label })
                         }
                       >
                         {item.label}

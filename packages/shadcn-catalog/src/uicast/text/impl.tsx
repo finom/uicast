@@ -4,8 +4,9 @@ import { TextDef } from "./def";
 export const TextImpl = createComponentImplementation({
   def: TextDef,
   render: ({
+    text,
     children,
-    variant = "body",
+    variant,
     as: Tag = "span",
     generatedKey,
   }) => {
@@ -18,7 +19,7 @@ export const TextImpl = createComponentImplementation({
     };
     return (
       <Tag className={styles[variant]} data-key={generatedKey}>
-        {children}
+        {children ?? text}
       </Tag>
     );
   },

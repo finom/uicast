@@ -44,9 +44,9 @@ export const DiffViewerImpl = createComponentImplementation({
   render: ({
     oldText,
     newText,
-    oldTitle = "Original",
-    newTitle = "Modified",
-    mode = "split",
+    oldTitle,
+    newTitle,
+    mode,
     generatedKey,
   }) => {
     const diff = computeLineDiff(oldText, newText);

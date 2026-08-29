@@ -10,9 +10,9 @@ export const CodeBlockImpl = createComponentImplementation({
   def: CodeBlockDef,
   render: ({
     code,
-    language = "plaintext",
-    showLineNumbers = false,
-    showCopyButton = true,
+    language,
+    showLineNumbers,
+    showCopyButton,
     onCopy,
     generatedKey,
   }) => {
@@ -22,7 +22,7 @@ export const CodeBlockImpl = createComponentImplementation({
     const handleCopy = async () => {
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      onCopy?.({});
+      onCopy();
       setTimeout(() => setCopied(false), 2000);
     };
 

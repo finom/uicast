@@ -9,9 +9,9 @@ export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
   render: ({
     value,
-    placeholder = "Search...",
-    disabled = false,
-    loading = false,
+    placeholder,
+    disabled,
+    loading,
     onChange,
     onClear,
     onSubmit,
@@ -27,12 +27,12 @@ export const SearchInputImpl = createComponentImplementation({
           value={strValue}
           placeholder={placeholder}
           disabled={disabled}
-          onChange={(e) => onChange?.({ value: e.target.value })}
+          onChange={(e) => onChange({ value: e.target.value })}
           onKeyDown={(e) => {
-            onKeyDown?.(pickKeyboardEvent(e));
-            if (e.key === "Enter") onSubmit?.({ value: strValue });
+            onKeyDown(pickKeyboardEvent(e));
+            if (e.key === "Enter") onSubmit({ value: strValue });
           }}
-          onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="pl-9 pr-16"
         />
         <div className="absolute right-1 flex items-center gap-1">
@@ -45,7 +45,7 @@ export const SearchInputImpl = createComponentImplementation({
               variant="ghost"
               size="icon"
               className="size-7"
-              onClick={() => onClear?.({})}
+              onClick={() => onClear()}
             >
               <X className="size-4" />
             </Button>

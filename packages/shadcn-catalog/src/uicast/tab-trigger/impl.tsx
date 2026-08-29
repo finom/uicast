@@ -4,10 +4,10 @@ import { TabTriggerDef } from "./def";
 
 export const TabTriggerImpl = createComponentImplementation({
   def: TabTriggerDef,
-  render: ({ value, children, generatedKey }) => {
+  render: ({ value, text, children, generatedKey }) => {
     return (
       <TabsTrigger value={value} data-key={generatedKey}>
-        {String(children ?? value)}
+        {children ?? text ?? value}
       </TabsTrigger>
     );
   },

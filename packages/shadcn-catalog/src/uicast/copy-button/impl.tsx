@@ -8,9 +8,9 @@ export const CopyButtonImpl = createComponentImplementation({
   def: CopyButtonDef,
   render: ({
     text,
-    label = "Copy",
-    variant = "outline",
-    size = "sm",
+    label,
+    variant,
+    size,
     onCopy,
     generatedKey,
   }) => {
@@ -19,7 +19,7 @@ export const CopyButtonImpl = createComponentImplementation({
     const handleCopy = async () => {
       await navigator.clipboard.writeText(text);
       setCopied(true);
-      onCopy?.({ text });
+      onCopy({ text });
       setTimeout(() => setCopied(false), 2000);
     };
 

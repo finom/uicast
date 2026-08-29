@@ -6,7 +6,7 @@ export const GridDef = createComponentDefinition({
   name: "Grid",
   description:
     "A CSS Grid container for arranging children in a responsive grid layout. Use Grid for card grids, image galleries, dashboard widgets, or any multi-column layout. Specify 'columns' for the number of columns, and children fill cells left-to-right, top-to-bottom.",
-  props: z.strictObject({
+  props: z.object({
     columns: z.enum(["1", "2", "3", "4", "5", "6"]).default("3").meta({
       description: "Number of grid columns (1-6)",
     }),

@@ -5,7 +5,7 @@ export const RangeSliderDef = createComponentDefinition({
   name: "RangeSlider",
   description:
     "A dual-thumb slider for selecting a min/max range. Use RangeSlider for price range filters, date ranges, or any numeric range selection.",
-  props: z.strictObject({
+  props: z.object({
     min: z.number().default(0).meta({
       description: "The minimum possible value",
     }),
@@ -29,7 +29,7 @@ export const RangeSliderDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.strictObject({
+    onChange: z.object({
       valueLow: z.number().meta({ description: "The new low value" }),
       valueHigh: z.number().meta({ description: "The new high value" }),
     }),

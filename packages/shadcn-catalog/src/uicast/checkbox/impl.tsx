@@ -5,8 +5,8 @@ import { CheckboxDef } from "./def";
 export const CheckboxImpl = createComponentImplementation({
   def: CheckboxDef,
   render: ({
-    checked = false,
-    disabled = false,
+    checked,
+    disabled,
     label,
     onChange,
     generatedKey,
@@ -20,7 +20,7 @@ export const CheckboxImpl = createComponentImplementation({
           id={id}
           checked={checked}
           disabled={disabled}
-          onCheckedChange={(v) => onChange?.({ checked: v === true })}
+          onCheckedChange={(v) => onChange({ checked: v === true })}
         />
         {label && (
           <label

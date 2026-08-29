@@ -5,7 +5,7 @@ export const TreemapChartDef = createComponentDefinition({
   name: "TreemapChart",
   description:
     "A treemap for hierarchical data as nested rectangles. Each rectangle's area is proportional to its value. Use TreemapChart for disk usage, portfolio allocation, organizational budgets, or hierarchical proportional data.",
-  props: z.strictObject({
+  props: z.object({
     data: z
       .array(
         z.object({

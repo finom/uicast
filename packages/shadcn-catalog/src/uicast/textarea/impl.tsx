@@ -8,8 +8,8 @@ export const TextareaImpl = createComponentImplementation({
   render: ({
     value,
     placeholder,
-    disabled = false,
-    rows = 3,
+    disabled,
+    rows,
     onChange,
     onFocus,
     onBlur,
@@ -24,18 +24,18 @@ export const TextareaImpl = createComponentImplementation({
         disabled={disabled}
         rows={rows}
         onChange={(e) =>
-          onChange?.({
+          onChange({
             value: e.target.value,
           })
         }
-        onFocus={() => onFocus?.({})}
+        onFocus={() => onFocus()}
         onBlur={(e) =>
-          onBlur?.({
+          onBlur({
             value: e.target.value,
           })
         }
-        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-        onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+        onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
         data-key={generatedKey}
       />
     );

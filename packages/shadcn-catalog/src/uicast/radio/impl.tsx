@@ -8,15 +8,15 @@ export const RadioImpl = createComponentImplementation({
   render: ({
     value,
     options = [],
-    orientation = "vertical",
-    disabled = false,
+    orientation,
+    disabled,
     onChange,
     generatedKey,
   }) => {
     return (
       <RadioGroup
         value={value}
-        onValueChange={(v) => onChange?.({ value: v })}
+        onValueChange={(v) => onChange({ value: v })}
         disabled={disabled}
         className={
           orientation === "horizontal" ? "flex flex-row gap-4" : "grid gap-2"

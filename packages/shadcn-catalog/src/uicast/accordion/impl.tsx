@@ -5,8 +5,8 @@ import { AccordionDef } from "./def";
 export const AccordionImpl = createComponentImplementation({
   def: AccordionDef,
   render: ({
-    type = "single",
-    collapsible = true,
+    type,
+    collapsible,
     children,
     generatedKey,
   }) => {

@@ -26,7 +26,7 @@ export const ContextMenuImpl = createComponentImplementation({
                 variant={
                   item.variant === "destructive" ? "destructive" : "default"
                 }
-                onClick={() => onAction?.({ label: item.label, index: i })}
+                onClick={() => onAction({ label: item.label, index: i })}
               >
                 {item.label}
                 {item.shortcut && (

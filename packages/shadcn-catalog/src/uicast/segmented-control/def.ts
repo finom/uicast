@@ -5,7 +5,7 @@ export const SegmentedControlDef = createComponentDefinition({
   name: "SegmentedControl",
   description:
     "A pill-style switcher as an alternative to tabs for filters. Renders a group of segments with a sliding selection indicator. Use SegmentedControl for view filters, period selectors, or any single-select option set.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().meta({
       description: "The currently selected segment value",
     }),
@@ -25,7 +25,7 @@ export const SegmentedControlDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z
         .string()
         .meta({ description: "The newly selected segment value" }),

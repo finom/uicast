@@ -11,7 +11,7 @@ import { FunnelChartDef } from "./def";
 
 export const FunnelChartImpl = createComponentImplementation({
   def: FunnelChartDef,
-  render: ({ data = [], colors, height = 300, generatedKey }) => {
+  render: ({ data = [], colors, height, generatedKey }) => {
     const defaultColors = [
       "#8884d8",
       "#83a6ed",

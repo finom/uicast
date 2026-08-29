@@ -17,8 +17,8 @@ export const ScatterChartImpl = createComponentImplementation({
     xKey,
     yKey,
     nameKey,
-    color = "#8884d8",
-    height = 300,
+    color,
+    height,
     generatedKey,
   }) => {
     return (

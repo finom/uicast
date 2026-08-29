@@ -71,7 +71,7 @@ const CardView = ({
         {card.tag && (
           <Badge
             variant="outline"
-            className="mt-2 text-[10px]"
+            className="mt-2 text-xs"
             style={
               card.tagColor
                 ? {
@@ -258,7 +258,7 @@ export const KanbanBoardImpl = createComponentImplementation({
         .find((c) => c.id === toColumnId)!
         .cards.findIndex((c) => c.id === activeId);
       if (origin.columnId === toColumnId && origin.index === toIndex) return;
-      onCardMove?.({
+      onCardMove({
         cardId: activeId,
         fromColumnId: origin.columnId,
         toColumnId,

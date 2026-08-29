@@ -5,7 +5,7 @@ export const ConfirmDialogDef = createComponentDefinition({
   name: "ConfirmDialog",
   description:
     "A confirmation dialog that asks the user to confirm or cancel an action. Shows a title, description, and Confirm/Cancel buttons. Use ConfirmDialog for destructive actions like deleting items, or any action requiring user confirmation before proceeding.",
-  props: z.strictObject({
+  props: z.object({
     open: z
       .boolean()
       .default(false)
@@ -32,10 +32,10 @@ export const ConfirmDialogDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onConfirm: z.object({}).meta({
+    onConfirm: z.null().meta({
       description: "Callback when the user clicks the confirm button",
     }),
-    onCancel: z.object({}).meta({
+    onCancel: z.null().meta({
       description: "Callback when the user clicks cancel or closes the dialog",
     }),
   },

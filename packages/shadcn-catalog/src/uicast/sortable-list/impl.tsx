@@ -6,7 +6,7 @@ import { SortableListDef } from "./def";
 
 export const SortableListImpl = createComponentImplementation({
   def: SortableListDef,
-  render: ({ items = [], showIndex = true, onItemClick, generatedKey }) => {
+  render: ({ items = [], showIndex, onItemClick, generatedKey }) => {
     const getIcon = (iconName?: string) => {
       if (!iconName) return null;
       const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
@@ -21,7 +21,7 @@ export const SortableListImpl = createComponentImplementation({
           <div
             key={item.id}
             className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 hover:bg-accent cursor-pointer transition-colors"
-            onClick={() => onItemClick?.({ id: item.id, index: i })}
+            onClick={() => onItemClick({ id: item.id, index: i })}
           >
             <GripVertical className="size-4 shrink-0 text-muted-foreground cursor-grab" />
             {showIndex && (

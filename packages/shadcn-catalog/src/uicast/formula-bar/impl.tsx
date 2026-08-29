@@ -8,9 +8,9 @@ export const FormulaBarImpl = createComponentImplementation({
   def: FormulaBarDef,
   render: ({
     value: initialValue = "",
-    placeholder = "Enter formula (e.g. =SUM(A1:A10))",
+    placeholder,
     cellReference,
-    disabled = false,
+    disabled,
     onChange,
     onSubmit,
     generatedKey,
@@ -23,7 +23,7 @@ export const FormulaBarImpl = createComponentImplementation({
         data-key={generatedKey}
       >
         {cellReference && (
-          <div className="flex items-center justify-center border-r px-3 py-1.5 bg-muted min-w-[60px]">
+          <div className="flex items-center justify-center border-r px-3 py-1.5 bg-muted min-w-15">
             <span className="text-sm font-mono font-medium">
               {cellReference}
             </span>
@@ -36,11 +36,11 @@ export const FormulaBarImpl = createComponentImplementation({
           value={value}
           onChange={(e) => {
             setValue(e.target.value);
-            onChange?.({ value: e.target.value });
+            onChange({ value: e.target.value });
           }}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
-              onSubmit?.({ value });
+              onSubmit({ value });
             }
           }}
           placeholder={placeholder}

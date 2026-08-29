@@ -13,19 +13,19 @@ import { ConfirmDialogDef } from "./def";
 export const ConfirmDialogImpl = createComponentImplementation({
   def: ConfirmDialogDef,
   render: ({
-    open = false,
-    title = "Are you sure?",
+    open,
+    title,
     description,
-    confirmLabel = "Confirm",
-    cancelLabel = "Cancel",
-    variant = "default",
+    confirmLabel,
+    cancelLabel,
+    variant,
     onConfirm,
     onCancel,
     generatedKey,
   }) => {
     return (
       <span data-key={generatedKey}>
-        <Dialog open={open} onOpenChange={(v) => !v && onCancel?.({})}>
+        <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
@@ -34,10 +34,10 @@ export const ConfirmDialogImpl = createComponentImplementation({
               )}
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => onCancel?.({})}>
+              <Button variant="outline" onClick={() => onCancel()}>
                 {cancelLabel}
               </Button>
-              <Button variant={variant} onClick={() => onConfirm?.({})}>
+              <Button variant={variant} onClick={() => onConfirm()}>
                 {confirmLabel}
               </Button>
             </DialogFooter>

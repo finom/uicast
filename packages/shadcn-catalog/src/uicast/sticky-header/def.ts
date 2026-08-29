@@ -5,7 +5,7 @@ export const StickyHeaderDef = createComponentDefinition({
   name: "StickyHeader",
   description:
     "Content that pins to the top on scroll. Renders a header bar that becomes fixed when scrolled past. Use StickyHeader for page titles with actions, toolbars, or any content that should remain visible when scrolling.",
-  props: z.strictObject({
+  props: z.object({
     zIndex: z.number().default(10).meta({
       description: "z-index for stacking context",
     }),

@@ -5,9 +5,9 @@ import { ContainerDef } from "./def";
 export const ContainerImpl = createComponentImplementation({
   def: ContainerDef,
   render: ({
-    maxWidth = "lg",
-    padding = "default",
-    gap = "6",
+    maxWidth,
+    padding,
+    gap,
     children,
     generatedKey,
   }) => {

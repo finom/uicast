@@ -21,7 +21,7 @@ export const ComboChartImpl = createComponentImplementation({
     lineKeys = [],
     barColors,
     lineColors,
-    height = 300,
+    height,
     generatedKey,
   }) => {
     const defaultBarColors = ["#8884d8", "#82ca9d", "#ffc658"];

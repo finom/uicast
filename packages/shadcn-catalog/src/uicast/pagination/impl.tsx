@@ -13,7 +13,7 @@ export const PaginationImpl = createComponentImplementation({
   render: ({
     currentPage,
     totalPages,
-    showFirstLast = true,
+    showFirstLast,
     onPageChange,
     generatedKey,
   }) => {
@@ -40,7 +40,7 @@ export const PaginationImpl = createComponentImplementation({
             variant="outline"
             size="icon"
             disabled={currentPage <= 1}
-            onClick={() => onPageChange?.({ page: 1 })}
+            onClick={() => onPageChange({ page: 1 })}
           >
             <ChevronsLeft className="size-4" />
           </Button>
@@ -49,7 +49,7 @@ export const PaginationImpl = createComponentImplementation({
           variant="outline"
           size="icon"
           disabled={currentPage <= 1}
-          onClick={() => onPageChange?.({ page: currentPage - 1 })}
+          onClick={() => onPageChange({ page: currentPage - 1 })}
         >
           <ChevronLeft className="size-4" />
         </Button>
@@ -58,7 +58,7 @@ export const PaginationImpl = createComponentImplementation({
             key={page}
             variant={page === currentPage ? "default" : "outline"}
             size="icon"
-            onClick={() => onPageChange?.({ page })}
+            onClick={() => onPageChange({ page })}
           >
             {page}
           </Button>
@@ -67,7 +67,7 @@ export const PaginationImpl = createComponentImplementation({
           variant="outline"
           size="icon"
           disabled={currentPage >= totalPages}
-          onClick={() => onPageChange?.({ page: currentPage + 1 })}
+          onClick={() => onPageChange({ page: currentPage + 1 })}
         >
           <ChevronRight className="size-4" />
         </Button>
@@ -76,7 +76,7 @@ export const PaginationImpl = createComponentImplementation({
             variant="outline"
             size="icon"
             disabled={currentPage >= totalPages}
-            onClick={() => onPageChange?.({ page: totalPages })}
+            onClick={() => onPageChange({ page: totalPages })}
           >
             <ChevronsRight className="size-4" />
           </Button>

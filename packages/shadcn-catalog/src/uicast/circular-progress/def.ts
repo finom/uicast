@@ -5,7 +5,7 @@ export const CircularProgressDef = createComponentDefinition({
   name: "CircularProgress",
   description:
     "A circular/ring progress indicator with percentage. Renders a circular progress ring. Use CircularProgress for loading states with known percentage, skill levels, completion rates, or upload progress.",
-  props: z.strictObject({
+  props: z.object({
     value: z.number().default(0).meta({
       description: "Progress value (0-100)",
     }),

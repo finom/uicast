@@ -15,8 +15,8 @@ export const DataGridImpl = createComponentImplementation({
   render: ({
     columns = [],
     rows = [],
-    maxHeight = "400px",
-    striped = true,
+    maxHeight,
+    striped,
     onRowClick,
     generatedKey,
   }) => {
@@ -46,7 +46,7 @@ export const DataGridImpl = createComponentImplementation({
                   className={`cursor-pointer ${
                     striped && rowIndex % 2 === 1 ? "bg-muted/30" : ""
                   }`}
-                  onClick={() => onRowClick?.({ rowIndex, row })}
+                  onClick={() => onRowClick({ rowIndex, row })}
                 >
                   {columns.map((col) => (
                     <TableCell key={col.key}>

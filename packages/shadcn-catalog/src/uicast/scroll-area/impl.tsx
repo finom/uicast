@@ -5,9 +5,9 @@ import { ScrollAreaDef } from "./def";
 export const ScrollAreaImpl = createComponentImplementation({
   def: ScrollAreaDef,
   render: ({
-    height = "300px",
+    height,
     width,
-    orientation = "vertical",
+    orientation,
     children,
     generatedKey,
   }) => {

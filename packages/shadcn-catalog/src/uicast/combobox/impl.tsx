@@ -22,11 +22,11 @@ export const ComboboxImpl = createComponentImplementation({
   def: ComboboxDef,
   render: ({
     value,
-    placeholder = "Select an option...",
-    searchPlaceholder = "Search...",
+    placeholder,
+    searchPlaceholder,
     options = [],
-    disabled = false,
-    emptyMessage = "No results found.",
+    disabled,
+    emptyMessage,
     onChange,
     generatedKey,
   }) => {
@@ -59,7 +59,7 @@ export const ComboboxImpl = createComponentImplementation({
                     key={option.value}
                     value={option.label}
                     onSelect={() => {
-                      onChange?.({ value: option.value, label: option.label });
+                      onChange({ value: option.value, label: option.label });
                       setOpen(false);
                     }}
                   >

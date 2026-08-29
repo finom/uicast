@@ -5,7 +5,7 @@ export const ChatBubbleDef = createComponentDefinition({
   name: "ChatBubble",
   description:
     "A chat message bubble for messaging interfaces. Renders a styled message bubble with sender info and timestamp. Use ChatBubble for chat UIs, customer support widgets, AI conversation displays, or any messaging interface.",
-  props: z.strictObject({
+  props: z.object({
     messages: z
       .array(
         z.object({

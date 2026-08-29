@@ -18,9 +18,9 @@ export const AreaChartImpl = createComponentImplementation({
     xKey,
     yKeys = [],
     colors,
-    height = 300,
-    stacked = false,
-    curved = true,
+    height,
+    stacked,
+    curved,
     generatedKey,
   }) => {
     const defaultColors = [

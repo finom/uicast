@@ -5,13 +5,13 @@ import { RangeSliderDef } from "./def";
 export const RangeSliderImpl = createComponentImplementation({
   def: RangeSliderDef,
   render: ({
-    min = 0,
-    max = 100,
-    step = 1,
-    valueLow = 25,
-    valueHigh = 75,
-    disabled = false,
-    showValues = false,
+    min,
+    max,
+    step,
+    valueLow,
+    valueHigh,
+    disabled,
+    showValues,
     onChange,
     generatedKey,
   }) => {
@@ -29,7 +29,7 @@ export const RangeSliderImpl = createComponentImplementation({
           step={step}
           disabled={disabled}
           onValueChange={(values) =>
-            onChange?.({
+            onChange({
               valueLow: values[0],
               valueHigh: values[1],
             })

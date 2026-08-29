@@ -6,10 +6,11 @@ import { ButtonDef } from "./def";
 export const ButtonImpl = createComponentImplementation({
   def: ButtonDef,
   render: ({
+    text,
     children,
-    variant = "default",
-    size = "default",
-    disabled = false,
+    variant,
+    size,
+    disabled,
     onClick,
     generatedKey,
   }) => {
@@ -18,10 +19,10 @@ export const ButtonImpl = createComponentImplementation({
         variant={variant}
         size={size}
         disabled={disabled}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
-        {children}
+        {children ?? text}
       </ShadcnButton>
     );
   },

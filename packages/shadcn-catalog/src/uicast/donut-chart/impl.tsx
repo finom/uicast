@@ -13,9 +13,9 @@ export const DonutChartImpl = createComponentImplementation({
   def: DonutChartDef,
   render: ({
     data = [],
-    height = 300,
-    innerRadius = 60,
-    outerRadius = 100,
+    height,
+    innerRadius,
+    outerRadius,
     centerLabel,
     generatedKey,
   }) => {

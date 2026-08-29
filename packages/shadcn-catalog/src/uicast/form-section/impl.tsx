@@ -20,8 +20,8 @@ export const FormSectionImpl = createComponentImplementation({
   render: ({
     title,
     description,
-    collapsible = false,
-    defaultCollapsed = false,
+    collapsible,
+    defaultCollapsed,
     children,
     generatedKey,
   }) => {

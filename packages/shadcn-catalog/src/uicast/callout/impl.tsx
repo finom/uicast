@@ -11,7 +11,7 @@ import { CalloutDef } from "./def";
 
 export const CalloutImpl = createComponentImplementation({
   def: CalloutDef,
-  render: ({ variant = "info", title, children, generatedKey }) => {
+  render: ({ variant, title, children, generatedKey }) => {
     const iconMap = {
       info: Info,
       tip: Lightbulb,

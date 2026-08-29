@@ -5,11 +5,11 @@ import { CodeEditorDef } from "./def";
 export const CodeEditorImpl = createComponentImplementation({
   def: CodeEditorDef,
   render: ({
-    value = "",
-    placeholder = "Enter code...",
-    disabled = false,
-    minHeight = "200px",
-    showLineNumbers = true,
+    value,
+    placeholder,
+    disabled,
+    minHeight,
+    showLineNumbers,
     onChange,
     generatedKey,
   }) => {
@@ -40,7 +40,7 @@ export const CodeEditorImpl = createComponentImplementation({
           value={value}
           placeholder={placeholder}
           disabled={disabled}
-          onChange={(e) => onChange?.({ value: e.target.value })}
+          onChange={(e) => onChange({ value: e.target.value })}
           className={cn(
             "flex-1 resize-none bg-transparent p-3 leading-6 focus:outline-none",
             "text-foreground placeholder:text-muted-foreground",

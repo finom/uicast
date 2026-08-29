@@ -5,7 +5,7 @@ export const VideoPlayerDef = createComponentDefinition({
   name: "VideoPlayer",
   description:
     "An HTML5 video player with controls. Renders a video element with source and configuration. Use VideoPlayer for media content, tutorials, product demos, or any video playback.",
-  props: z.strictObject({
+  props: z.object({
     src: z.string().meta({
       description: "Video source URL",
     }),
@@ -27,13 +27,13 @@ export const VideoPlayerDef = createComponentDefinition({
   }),
   callbacks: {
     onPlay: z
-      .strictObject({})
+      .null()
       .meta({ description: "Callback when video starts playing" }),
     onPause: z
-      .strictObject({})
+      .null()
       .meta({ description: "Callback when video is paused" }),
     onEnded: z
-      .strictObject({})
+      .null()
       .meta({ description: "Callback when video ends" }),
   },
 });

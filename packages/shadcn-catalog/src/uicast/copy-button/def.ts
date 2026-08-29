@@ -5,7 +5,7 @@ export const CopyButtonDef = createComponentDefinition({
   name: "CopyButton",
   description:
     "A click-to-copy button with visual feedback. Copies specified text to clipboard and shows a checkmark on success. Use CopyButton for API keys, URLs, IDs, or any text that users need to copy.",
-  props: z.strictObject({
+  props: z.object({
     text: z.string().meta({
       description: "The text to copy to clipboard",
     }),
@@ -23,7 +23,7 @@ export const CopyButtonDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onCopy: z.strictObject({
+    onCopy: z.object({
       text: z.string().meta({ description: "The text that was copied" }),
     }),
   },

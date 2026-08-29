@@ -25,7 +25,7 @@ export const MenubarImpl = createComponentImplementation({
                   <MenubarItem
                     disabled={item.disabled}
                     onClick={() =>
-                      onAction?.({
+                      onAction({
                         menuLabel: menu.label,
                         itemLabel: item.label,
                       })

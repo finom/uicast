@@ -5,7 +5,7 @@ export const DescriptionListDef = createComponentDefinition({
   name: "DescriptionList",
   description:
     "A label-value pair display for detail views. Renders a structured list of terms and descriptions. Use DescriptionList for profile details, order summaries, setting displays, or any key-value data presentation.",
-  props: z.strictObject({
+  props: z.object({
     items: z
       .array(
         z.object({

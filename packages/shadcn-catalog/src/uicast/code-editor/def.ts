@@ -5,7 +5,7 @@ export const CodeEditorDef = createComponentDefinition({
   name: "CodeEditor",
   description:
     "A plain-text code input area. Renders a monospaced textarea with line numbers for code editing — no syntax highlighting. Use CodeEditor for configuration input, code snippets, template editing, or any structured text entry.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().default("").meta({
       description: "The code content",
     }),
@@ -27,7 +27,7 @@ export const CodeEditorDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z.string().meta({ description: "The updated code content" }),
     }),
   },

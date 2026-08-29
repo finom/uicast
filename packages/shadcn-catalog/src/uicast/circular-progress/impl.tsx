@@ -4,11 +4,11 @@ import { CircularProgressDef } from "./def";
 export const CircularProgressImpl = createComponentImplementation({
   def: CircularProgressDef,
   render: ({
-    value = 0,
-    size = 80,
-    strokeWidth = 8,
-    color = "var(--color-primary)",
-    showValue = true,
+    value,
+    size,
+    strokeWidth,
+    color,
+    showValue,
     label,
     generatedKey,
   }) => {

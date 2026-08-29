@@ -11,10 +11,10 @@ import { SheetDef } from "./def";
 export const SheetImpl = createComponentImplementation({
   def: SheetDef,
   render: ({
-    open = false,
+    open,
     title,
     description,
-    side = "right",
+    side,
     children,
     onOpenChange,
     generatedKey,
@@ -23,7 +23,7 @@ export const SheetImpl = createComponentImplementation({
       <span data-key={generatedKey}>
         <ShadcnSheet
           open={open}
-          onOpenChange={(v) => onOpenChange?.({ open: v })}
+          onOpenChange={(v) => onOpenChange({ open: v })}
         >
           <SheetContent side={side}>
             {(title || description) && (

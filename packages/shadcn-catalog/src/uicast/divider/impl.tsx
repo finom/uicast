@@ -4,7 +4,7 @@ import { DividerDef } from "./def";
 
 export const DividerImpl = createComponentImplementation({
   def: DividerDef,
-  render: ({ orientation = "horizontal", generatedKey }) => {
+  render: ({ orientation, generatedKey }) => {
     return <Separator orientation={orientation} data-key={generatedKey} />;
   },
 });

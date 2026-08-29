@@ -5,8 +5,8 @@ import { ToolbarDef } from "./def";
 export const ToolbarImpl = createComponentImplementation({
   def: ToolbarDef,
   render: ({
-    variant = "default",
-    size = "default",
+    variant,
+    size,
     children,
     generatedKey,
   }) => {

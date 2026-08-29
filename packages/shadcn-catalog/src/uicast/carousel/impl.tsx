@@ -7,8 +7,8 @@ import { CarouselDef } from "./def";
 export const CarouselImpl = createComponentImplementation({
   def: CarouselDef,
   render: ({
-    orientation = "horizontal",
-    loop = false,
+    orientation,
+    loop,
     children,
     generatedKey,
   }) => {

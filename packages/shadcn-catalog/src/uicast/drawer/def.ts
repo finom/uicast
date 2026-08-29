@@ -5,7 +5,7 @@ export const DrawerDef = createComponentDefinition({
   name: "Drawer",
   description:
     "A slide-out panel that appears from the edge of the screen. Controlled by the 'open' prop. Contains a title, optional description, and any children components. Use Drawer for side navigation, detail panels, forms, or filters. Similar to Modal but slides in from the side rather than appearing centered.",
-  props: z.strictObject({
+  props: z.object({
     open: z.boolean().default(false).meta({
       description: "Whether the drawer is open/visible",
     }),

@@ -9,7 +9,7 @@ import { AvatarGroupDef } from "./def";
 
 export const AvatarGroupImpl = createComponentImplementation({
   def: AvatarGroupDef,
-  render: ({ avatars = [], max = 5, size = "default", generatedKey }) => {
+  render: ({ avatars = [], max, size, generatedKey }) => {
     const visible = avatars.slice(0, max);
     const overflow = avatars.length - max;
 

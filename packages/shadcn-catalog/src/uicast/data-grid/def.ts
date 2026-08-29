@@ -5,7 +5,7 @@ export const DataGridDef = createComponentDefinition({
   name: "DataGrid",
   description:
     "A data grid for displaying large tabular datasets with fixed headers and scrollable body. Supports column definitions and large row counts with overflow scrolling. Use DataGrid for large datasets, reports, or any data that needs a compact scrollable table view. For simpler tables, use Table with TableHeader/TableBody/TableRow/TableCell instead.",
-  props: z.strictObject({
+  props: z.object({
     columns: z
       .array(
         z.object({

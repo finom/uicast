@@ -5,8 +5,8 @@ import { SwitchDef } from "./def";
 export const SwitchImpl = createComponentImplementation({
   def: SwitchDef,
   render: ({
-    checked = false,
-    disabled = false,
+    checked,
+    disabled,
     label,
     onChange,
     generatedKey,
@@ -20,7 +20,7 @@ export const SwitchImpl = createComponentImplementation({
           id={id}
           checked={checked}
           disabled={disabled}
-          onCheckedChange={(v) => onChange?.({ checked: v })}
+          onCheckedChange={(v) => onChange({ checked: v })}
         />
         {label && (
           <label

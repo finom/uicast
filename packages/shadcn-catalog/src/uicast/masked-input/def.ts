@@ -6,7 +6,7 @@ export const MaskedInputDef = createComponentDefinition({
   name: "MaskedInput",
   description:
     "A pattern-enforced input for formatted data like SSN, card numbers, dates. Displays a mask pattern and auto-formats input. Use MaskedInput for credit card numbers, social security numbers, date entries, etc.",
-  props: z.strictObject({
+  props: z.object({
     value: z.string().optional().meta({
       description: "The current input value",
     }),
@@ -24,7 +24,7 @@ export const MaskedInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z
         .string()
         .meta({ description: "The formatted value with mask applied" }),

@@ -6,8 +6,8 @@ export const DescriptionListImpl = createComponentImplementation({
   def: DescriptionListDef,
   render: ({
     items = [],
-    layout = "vertical",
-    columns = "1",
+    layout,
+    columns,
     generatedKey,
   }) => {
     return (

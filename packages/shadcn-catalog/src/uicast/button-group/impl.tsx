@@ -3,7 +3,7 @@ import { ButtonGroupDef } from "./def";
 
 export const ButtonGroupImpl = createComponentImplementation({
   def: ButtonGroupDef,
-  render: ({ attached = true, children, generatedKey }) => {
+  render: ({ attached, children, generatedKey }) => {
     return (
       <div
         className={

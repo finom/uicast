@@ -8,8 +8,8 @@ export const TruncatedTextImpl = createComponentImplementation({
   def: TruncatedTextDef,
   render: ({
     text,
-    maxLines = 2,
-    expandable = true,
+    maxLines,
+    expandable,
     onToggle,
     generatedKey,
   }) => {
@@ -39,7 +39,7 @@ export const TruncatedTextImpl = createComponentImplementation({
             className="mt-1 h-auto p-0 text-xs font-medium"
             onClick={() => {
               setExpanded((prev) => !prev);
-              onToggle?.({ expanded: !expanded });
+              onToggle({ expanded: !expanded });
             }}
           >
             {expanded ? "Show less" : "Show more"}

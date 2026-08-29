@@ -28,7 +28,7 @@ export const KanbanBoardDef = createComponentDefinition({
   name: "KanbanBoard",
   description:
     "A Kanban-style board of columns and cards with drag-and-drop: cards can be dragged within a column and between columns, and are also clickable. Use KanbanBoard for project management, task tracking, pipeline workflows, or any column-based workflow.",
-  props: z.strictObject({
+  props: z.object({
     columns: z
       .array(columnSchema)
       .meta({ description: "Array of column definitions with their cards" }),

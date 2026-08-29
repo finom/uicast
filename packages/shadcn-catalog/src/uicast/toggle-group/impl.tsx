@@ -7,12 +7,12 @@ import { ToggleGroupDef } from "./def";
 export const ToggleGroupImpl = createComponentImplementation({
   def: ToggleGroupDef,
   render: ({
-    type = "single",
+    type,
     value,
     items = [],
-    variant = "default",
-    size = "default",
-    disabled = false,
+    variant,
+    size,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -29,7 +29,7 @@ export const ToggleGroupImpl = createComponentImplementation({
         type={type}
         value={value}
         onValueChange={(newValue: string | string[]) =>
-          onChange?.({ value: newValue })
+          onChange({ value: newValue })
         }
         variant={variant}
         size={size}

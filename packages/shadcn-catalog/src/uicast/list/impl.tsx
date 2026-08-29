@@ -4,8 +4,8 @@ import { ListDef } from "./def";
 export const ListImpl = createComponentImplementation({
   def: ListDef,
   render: ({
-    ordered = false,
-    styleType = "disc",
+    ordered,
+    styleType,
     children,
     generatedKey,
   }) => {

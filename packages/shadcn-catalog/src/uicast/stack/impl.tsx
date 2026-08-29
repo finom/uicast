@@ -5,9 +5,9 @@ import { StackDef } from "./def";
 export const StackImpl = createComponentImplementation({
   def: StackDef,
   render: ({
-    direction = "vertical",
-    gap = "2",
-    align = "stretch",
+    direction,
+    gap,
+    align,
     children,
     onClick,
     generatedKey,
@@ -33,7 +33,7 @@ export const StackImpl = createComponentImplementation({
     return (
       <div
         className={`flex ${dirClass} ${gapMap[gap]} ${alignMap[align]}`}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {children}

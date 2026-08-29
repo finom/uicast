@@ -5,7 +5,7 @@ export const ToggleDef = createComponentDefinition({
   name: "Toggle",
   description:
     "A single toggle button that can be pressed or unpressed. Use Toggle for bold/italic formatting buttons, show/hide toggles, or any binary state button.",
-  props: z.strictObject({
+  props: z.object({
     pressed: z.boolean().default(false).meta({
       description: "Whether the toggle is pressed/active",
     }),
@@ -20,7 +20,7 @@ export const ToggleDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onPressedChange: z.strictObject({
+    onPressedChange: z.object({
       pressed: z.boolean().meta({ description: "The new pressed state" }),
     }),
   },

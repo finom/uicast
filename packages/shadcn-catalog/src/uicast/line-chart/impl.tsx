@@ -18,8 +18,8 @@ export const LineChartImpl = createComponentImplementation({
     xKey,
     yKeys = [],
     colors,
-    height = 300,
-    curved = true,
+    height,
+    curved,
     generatedKey,
   }) => {
     const defaultColors = [

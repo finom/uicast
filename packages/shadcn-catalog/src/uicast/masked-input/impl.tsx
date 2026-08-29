@@ -47,9 +47,9 @@ export const MaskedInputImpl = createComponentImplementation({
   def: MaskedInputDef,
   render: ({
     value,
-    mask = "###-##-####",
+    mask,
     placeholder,
-    disabled = false,
+    disabled,
     onChange,
     onKeyDown,
     onKeyUp,
@@ -63,10 +63,10 @@ export const MaskedInputImpl = createComponentImplementation({
         onChange={(e) => {
           const rawInput = e.target.value.replace(/[^a-zA-Z0-9]/g, "");
           const { formatted, rawValue } = applyMask(rawInput, mask);
-          onChange?.({ value: formatted, rawValue });
+          onChange({ value: formatted, rawValue });
         }}
-        onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-        onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+        onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
         data-key={generatedKey}
       />
     );

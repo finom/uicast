@@ -3,7 +3,7 @@ import { HeadingDef } from "./def";
 
 export const HeadingImpl = createComponentImplementation({
   def: HeadingDef,
-  render: ({ level = "2", children, generatedKey }) => {
+  render: ({ level, text, children, generatedKey }) => {
     const Tag = `h${level}` as keyof Pick<
       React.JSX.IntrinsicElements,
       "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
@@ -18,7 +18,7 @@ export const HeadingImpl = createComponentImplementation({
     };
     return (
       <Tag className={sizes[level]} data-key={generatedKey}>
-        {children}
+        {children ?? text}
       </Tag>
     );
   },

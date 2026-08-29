@@ -5,7 +5,7 @@ export const AvatarGroupDef = createComponentDefinition({
   name: "AvatarGroup",
   description:
     "Stacked/overlapping avatar cluster with +N overflow. Renders a row of overlapping avatar circles. Use AvatarGroup for team member displays, assignee lists, participant counts, etc.",
-  props: z.strictObject({
+  props: z.object({
     avatars: z
       .array(
         z.object({

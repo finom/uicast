@@ -11,10 +11,10 @@ import { MultiSelectDef } from "./def";
 export const MultiSelectImpl = createComponentImplementation({
   def: MultiSelectDef,
   render: ({
-    value = [],
+    value,
     options = [],
     placeholder,
-    disabled = false,
+    disabled,
     onChange,
     generatedKey,
   }) => {
@@ -25,7 +25,7 @@ export const MultiSelectImpl = createComponentImplementation({
       const next = value.includes(optValue)
         ? value.filter((v) => v !== optValue)
         : [...value, optValue];
-      onChange?.({ value: next });
+      onChange({ value: next });
     };
 
     return (
@@ -67,7 +67,7 @@ export const MultiSelectImpl = createComponentImplementation({
         </Button>
         {open && (
           <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-md">
-            <ScrollArea className="max-h-[200px] p-1">
+            <ScrollArea className="max-h-50 p-1">
               {options.map((opt) => (
                 <div
                   key={opt.value}

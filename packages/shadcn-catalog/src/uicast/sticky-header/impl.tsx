@@ -5,9 +5,9 @@ import { StickyHeaderDef } from "./def";
 export const StickyHeaderImpl = createComponentImplementation({
   def: StickyHeaderDef,
   render: ({
-    zIndex = 10,
-    bordered = true,
-    blurred = true,
+    zIndex,
+    bordered,
+    blurred,
     children,
     generatedKey,
   }) => {

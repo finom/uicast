@@ -10,9 +10,9 @@ import { Children } from "react";
 export const ResizablePanelImpl = createComponentImplementation({
   def: ResizablePanelDef,
   render: ({
-    direction = "horizontal",
-    defaultSize = 50,
-    minSize = 20,
+    direction,
+    defaultSize,
+    minSize,
     children,
     generatedKey,
   }) => {
@@ -23,7 +23,7 @@ export const ResizablePanelImpl = createComponentImplementation({
     return (
       <ResizablePanelGroup
         orientation={direction}
-        className="min-h-[200px] rounded-lg border"
+        className="min-h-50 rounded-lg border"
         data-key={generatedKey}
       >
         <ResizablePanel defaultSize={defaultSize} minSize={minSize}>

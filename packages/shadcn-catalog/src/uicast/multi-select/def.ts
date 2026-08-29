@@ -5,7 +5,7 @@ export const MultiSelectDef = createComponentDefinition({
   name: "MultiSelect",
   description:
     "A multi-select dropdown for choosing multiple options from a list. Renders a trigger that opens a dropdown with checkboxes. Selected values are shown as tags in the trigger area. Use MultiSelect for filters, categories, permissions, or any field where multiple choices are needed.",
-  props: z.strictObject({
+  props: z.object({
     value: z.array(z.string()).default([]).meta({
       description: "Array of currently selected option values",
     }),
@@ -27,7 +27,7 @@ export const MultiSelectDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.strictObject({
+    onChange: z.object({
       value: z.array(z.string()).meta({
         description: "The updated array of selected values after toggling",
       }),

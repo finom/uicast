@@ -5,7 +5,7 @@ export const CarouselDef = createComponentDefinition({
   name: "Carousel",
   description:
     "A content/image slider stepped with previous/next arrow buttons. Renders one slide at a time. Use Carousel for image galleries, testimonials, product images, or any slide-based content.",
-  props: z.strictObject({
+  props: z.object({
     orientation: z.enum(["horizontal", "vertical"]).default("horizontal").meta({
       description: "Carousel scroll direction",
     }),

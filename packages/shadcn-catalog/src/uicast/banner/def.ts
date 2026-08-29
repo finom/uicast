@@ -5,7 +5,7 @@ export const BannerDef = createComponentDefinition({
   name: "Banner",
   description:
     "A full-width banner notification for system-wide announcements or alerts. Renders a colored strip across the top or in-page. Use Banner for maintenance notices, feature announcements, promotions, or site-wide alerts.",
-  props: z.strictObject({
+  props: z.object({
     variant: z
       .enum(["info", "success", "warning", "error"])
       .default("info")
@@ -20,10 +20,10 @@ export const BannerDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onDismiss: z.strictObject({}).meta({
+    onDismiss: z.null().meta({
       description: "Callback when the banner is dismissed",
     }),
-    onAction: z.strictObject({}).meta({
+    onAction: z.null().meta({
       description: "Callback when the action button is clicked",
     }),
   },

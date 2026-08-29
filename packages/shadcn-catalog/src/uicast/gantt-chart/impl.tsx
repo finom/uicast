@@ -16,7 +16,7 @@ export const GanttChartImpl = createComponentImplementation({
   def: GanttChartDef,
   render: ({
     tasks = [],
-    totalUnits = 20,
+    totalUnits,
     generatedKey,
   }) => {
     const unitHeaders = Array.from({ length: totalUnits }, (_, i) => i + 1);
@@ -26,13 +26,13 @@ export const GanttChartImpl = createComponentImplementation({
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b">
-              <th className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-medium min-w-[150px]">
+              <th className="sticky left-0 z-10 bg-background px-3 py-2 text-left font-medium min-w-38">
                 Task
               </th>
               {unitHeaders.map((u) => (
                 <th
                   key={u}
-                  className="px-1 py-2 text-center text-xs font-medium text-muted-foreground min-w-[30px]"
+                  className="px-1 py-2 text-center text-xs font-medium text-muted-foreground min-w-7.5"
                 >
                   {u}
                 </th>

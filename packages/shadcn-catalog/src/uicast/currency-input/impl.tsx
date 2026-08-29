@@ -19,10 +19,10 @@ export const CurrencyInputImpl = createComponentImplementation({
   def: CurrencyInputDef,
   render: ({
     value,
-    currency = "USD",
-    locale = "en-US",
-    placeholder = "0.00",
-    disabled = false,
+    currency,
+    locale,
+    placeholder,
+    disabled,
     onChange,
     onKeyDown,
     onKeyUp,
@@ -54,13 +54,13 @@ export const CurrencyInputImpl = createComponentImplementation({
           disabled={disabled}
           onChange={(e) => {
             const numValue = parseFloat(e.target.value) || 0;
-            onChange?.({
+            onChange({
               value: numValue,
               formatted: formatCurrency(numValue),
             });
           }}
-          onKeyDown={(e) => onKeyDown?.(pickKeyboardEvent(e))}
-          onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
+          onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="pl-8"
           step="0.01"
         />

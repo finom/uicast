@@ -5,12 +5,12 @@ import { SliderDef } from "./def";
 export const SliderImpl = createComponentImplementation({
   def: SliderDef,
   render: ({
-    value = 0,
-    min = 0,
-    max = 100,
-    step = 1,
-    disabled = false,
-    showValue = false,
+    value,
+    min,
+    max,
+    step,
+    disabled,
+    showValue,
     onChange,
     generatedKey,
   }) => {
@@ -22,7 +22,7 @@ export const SliderImpl = createComponentImplementation({
           max={max}
           step={step}
           disabled={disabled}
-          onValueChange={(values) => onChange?.({ value: values[0] })}
+          onValueChange={(values) => onChange({ value: values[0] })}
           className="flex-1"
         />
         {showValue && (

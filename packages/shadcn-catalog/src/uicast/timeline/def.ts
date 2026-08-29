@@ -5,7 +5,7 @@ export const TimelineDef = createComponentDefinition({
   name: "Timeline",
   description:
     "A chronological event display for activity logs, history, and progress tracking. Renders a vertical timeline with events. Use Timeline for activity feeds, order histories, deployment logs, or any sequential events.",
-  props: z.strictObject({
+  props: z.object({
     items: z
       .array(
         z.object({

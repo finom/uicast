@@ -28,9 +28,9 @@ export const HeatmapImpl = createComponentImplementation({
     data = [],
     rows = [],
     cols = [],
-    minColor = "#f0f9ff",
-    maxColor = "#1e40af",
-    showValues = true,
+    minColor,
+    maxColor,
+    showValues,
     generatedKey,
   }) => {
     const values = data.map((d) => d.value);

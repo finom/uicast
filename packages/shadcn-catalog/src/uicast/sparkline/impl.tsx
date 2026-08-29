@@ -12,10 +12,10 @@ export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
   render: ({
     data = [],
-    width = 100,
-    height = 30,
-    color = "#8884d8",
-    filled = false,
+    width,
+    height,
+    color,
+    filled,
     generatedKey,
   }) => {
     const chartData = data.map((value, i) => ({ i, value }));

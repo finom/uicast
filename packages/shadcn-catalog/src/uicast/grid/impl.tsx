@@ -4,7 +4,7 @@ import { GridDef } from "./def";
 
 export const GridImpl = createComponentImplementation({
   def: GridDef,
-  render: ({ columns = "3", gap = "4", children, onClick, generatedKey }) => {
+  render: ({ columns, gap, children, onClick, generatedKey }) => {
     const colsMap: Record<string, string> = {
       "1": "grid-cols-1",
       "2": "grid-cols-2",
@@ -27,7 +27,7 @@ export const GridImpl = createComponentImplementation({
     return (
       <div
         className={`grid ${colsMap[columns]} ${gapMap[gap]}`}
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
         {children}

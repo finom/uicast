@@ -5,7 +5,7 @@ export const CommandMenuDef = createComponentDefinition({
   name: "CommandMenu",
   description:
     "A ⌘K command palette for search, jump-to, and actions. Renders a dialog with a search input and grouped command items. Use CommandMenu for global search, quick navigation, and action execution.",
-  props: z.strictObject({
+  props: z.object({
     open: z.boolean().default(false).meta({
       description: "Whether the command menu is open",
     }),

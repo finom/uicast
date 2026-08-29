@@ -7,9 +7,10 @@ import { TagDef } from "./def";
 export const TagImpl = createComponentImplementation({
   def: TagDef,
   render: ({
+    text,
     children,
-    variant = "secondary",
-    removable = false,
+    variant,
+    removable,
     onClick,
     onRemove,
     generatedKey,
@@ -18,17 +19,17 @@ export const TagImpl = createComponentImplementation({
       <Badge
         variant={variant}
         className="gap-1 cursor-pointer"
-        onClick={(e) => onClick?.(pickMouseEvent(e))}
+        onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >
-        {String(children ?? "")}
+        {children ?? text}
         {removable && (
           <button
             type="button"
             className="ml-0.5 rounded-full outline-none hover:bg-foreground/20 p-0.5"
             onClick={(e) => {
               e.stopPropagation();
-              onRemove?.({});
+              onRemove({});
             }}
           >
             <X className="size-3" />

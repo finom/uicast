@@ -9,9 +9,9 @@ import { TagInputDef } from "./def";
 export const TagInputImpl = createComponentImplementation({
   def: TagInputDef,
   render: ({
-    tags = [],
-    placeholder = "Add a tag...",
-    disabled = false,
+    tags,
+    placeholder,
+    disabled,
     maxTags,
     onAdd,
     onRemove,
@@ -28,7 +28,7 @@ export const TagInputImpl = createComponentImplementation({
       if (maxTags && tags.length >= maxTags) return;
 
       const newTags = [...tags, trimmed];
-      onAdd?.({ tag: trimmed, tags: newTags });
+      onAdd({ tag: trimmed, tags: newTags });
       setInputValue("");
     };
 
@@ -46,7 +46,7 @@ export const TagInputImpl = createComponentImplementation({
                 className="ml-1 rounded-full outline-none hover:bg-muted-foreground/20"
                 onClick={() => {
                   const newTags = tags.filter((_, idx) => idx !== i);
-                  onRemove?.({ tag, index: i, tags: newTags });
+                  onRemove({ tag, index: i, tags: newTags });
                 }}
               >
                 <X className="size-3" />
@@ -60,7 +60,7 @@ export const TagInputImpl = createComponentImplementation({
           disabled={disabled || (maxTags != null && tags.length >= maxTags)}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={(e) => {
-            onKeyDown?.(pickKeyboardEvent(e));
+            onKeyDown(pickKeyboardEvent(e));
             if (e.key === "Enter") {
               e.preventDefault();
               handleAdd();
@@ -68,15 +68,15 @@ export const TagInputImpl = createComponentImplementation({
             if (e.key === "Backspace" && !inputValue && tags.length > 0) {
               const lastTag = tags[tags.length - 1];
               const newTags = tags.slice(0, -1);
-              onRemove?.({
+              onRemove({
                 tag: lastTag,
                 index: tags.length - 1,
                 tags: newTags,
               });
             }
           }}
-          onKeyUp={(e) => onKeyUp?.(pickKeyboardEvent(e))}
-          className="min-w-[120px] flex-1 border-0 p-0 focus-visible:ring-0"
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
+          className="min-w-30 flex-1 border-0 p-0 focus-visible:ring-0"
         />
       </div>
     );

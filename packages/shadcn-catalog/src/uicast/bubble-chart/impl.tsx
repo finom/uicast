@@ -17,8 +17,8 @@ export const BubbleChartImpl = createComponentImplementation({
     data = [],
     xLabel,
     yLabel,
-    color = "#8884d8",
-    height = 300,
+    color,
+    height,
     generatedKey,
   }) => {
     const zValues = data.map((d) => d.z);

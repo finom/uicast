@@ -4,9 +4,9 @@ import { TableCellDef } from "./def";
 
 export const TableCellImpl = createComponentImplementation({
   def: TableCellDef,
-  render: ({ children, generatedKey }) => {
+  render: ({ text, children, generatedKey }) => {
     return (
-      <ShadcnTableCell data-key={generatedKey}>{children}</ShadcnTableCell>
+      <ShadcnTableCell data-key={generatedKey}>{children ?? text}</ShadcnTableCell>
     );
   },
 });
