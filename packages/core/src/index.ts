@@ -1,6 +1,6 @@
 // uicast public API. Prompt-partial builders live in uicast/prompt.
 
-export { createComponentDefinition } from "./def/create-component-definition";
+export { createComponentDefinition, NO_PROPS } from "./def/create-component-definition";
 
 export { evaluate } from "./expr/evaluate";
 export { extractDeps } from "./expr/extract-deps";

@@ -60,41 +60,42 @@ describe("SaferEval — allowed expressions", () => {
     // C-style for with i++ (ForStatement + UpdateExpression)
     expect(
       evalr.eval(
-        "(n => { let t = 0; for (let i = 0; i < n; i++) { t += i; } return t; })(4)",
+        "ns.map(n => { let t = 0; for (let i = 0; i < n; i++) { t += i; } return t; })",
+        { ns: [4] },
       ),
-    ).toBe(6);
+    ).toEqual([6]);
 
     // for-of + continue
     expect(
       evalr.eval(
-        "(arr => { let s = 0; for (const x of arr) { if (x % 2 === 0) continue; s += x; } return s; })(xs)",
+        "[xs].map(arr => { let s = 0; for (const x of arr) { if (x % 2 === 0) continue; s += x; } return s; })",
         { xs: [1, 2, 3, 4] },
       ),
-    ).toBe(4);
+    ).toEqual([4]);
 
     // for-in
     expect(
       evalr.eval(
-        '(o => { const keys = []; for (const k in o) { keys.push(k); } return keys.join(","); })({ a: 1, b: 2 })',
+        '[{ a: 1, b: 2 }].map(o => { const keys = []; for (const k in o) { keys.push(k); } return keys.join(","); })',
       ),
-    ).toBe("a,b");
+    ).toEqual(["a,b"]);
 
     // while + do-while
     expect(
-      evalr.eval("(n => { let i = 0; while (i < n) { i++; } return i; })(3)"),
-    ).toBe(3);
+      evalr.eval("[3].map(n => { let i = 0; while (i < n) { i++; } return i; })"),
+    ).toEqual([3]);
     expect(
       evalr.eval(
-        "(n => { let i = 0; do { i++; } while (i < n); return i; })(3)",
+        "[3].map(n => { let i = 0; do { i++; } while (i < n); return i; })",
       ),
-    ).toBe(3);
+    ).toEqual([3]);
 
     // try / catch / throw
     expect(
       evalr.eval(
-        '(x => { try { if (!x) throw new Error("no"); return x; } catch { return -1; } })(0)',
+        '[0].map(x => { try { if (!x) throw new Error("no"); return x; } catch { return -1; } })',
       ),
-    ).toBe(-1);
+    ).toEqual([-1]);
   });
 });
 
@@ -258,10 +259,10 @@ describe("SaferEval — allowlist enforcement", () => {
       6,
     );
     expect(
-      strict.eval("(n => { const t = n * 2; return t; })(arr.length)", {
+      strict.eval("[arr.length].map(n => { const t = n * 2; return t; })", {
         arr: [1, 2, 3],
       }),
-    ).toBe(6);
+    ).toEqual([6]);
     expect(strict.eval("xs.map((x, i = 0) => x + i)", { xs: [5] })).toEqual([5]);
   });
 
@@ -284,6 +285,50 @@ describe("SaferEval — allowlist enforcement", () => {
   it("leaves enforcement off by default", () => {
     const loose = new SaferEval({ allowGlobals: ["Math"] });
     expect(loose.eval("new Set([1, 2, 2]).size")).toBe(2);
+  });
+});
+
+describe("SaferEval — writes to injected state", () => {
+  const ctx = { scopes: { root: { hits: 1, rows: [{ qty: 1 }] } }, evt: { value: "x" } };
+
+  // A function body makes assignment legal; it does not make assignment *to
+  // `scopes`* legal. Every one of these is a write during evaluation.
+  it.each([
+    ["top level", "scopes.root.hits = 1"],
+    ["inside a callback body", "scopes.root.rows.map(r => { scopes.root.hits = 2; return r })"],
+    ["compound assignment", "scopes.root.rows.map(r => { scopes.root.hits += 1; return r })"],
+    ["update expression", "scopes.root.rows.map(r => { scopes.root.hits++; return r })"],
+    ["delete", "scopes.root.rows.map(r => { delete scopes.root.hits; return r })"],
+    ["array destructuring", "scopes.root.rows.map(r => { [scopes.root.hits] = [2]; return r })"],
+    ["object destructuring", "scopes.root.rows.map(r => { ({ a: scopes.root.hits } = { a: 2 }); return r })"],
+    ["computed key", "scopes.root.rows.map(r => { scopes.root['hi' + 'ts'] = 2; return r })"],
+    ["evt", "scopes.root.rows.map(r => { evt.value = 1; return r })"],
+  ])("rejects a write to injected state: %s", (_name, expr) => {
+    expect(() => new SaferEval().eval(expr, ctx)).toThrow(SaferEvalError);
+  });
+
+  it("still allows writes rooted at a local", () => {
+    const evalr = new SaferEval();
+    expect(
+      evalr.eval("scopes.root.rows.reduce((acc, r) => { acc.n = (acc.n || 0) + r.qty; return acc }, {}).n", ctx),
+    ).toBe(1);
+    expect(evalr.eval("scopes.root.rows.map(r => { let n = 0; n++; return n })", ctx)).toEqual([1]);
+  });
+});
+
+describe("SaferEval — immediately-invoked functions", () => {
+  it.each([
+    ["arrow", "(() => 1)()"],
+    ["arrow with a body", "(s => { switch (s) { default: return 1 } })(2)"],
+    ["function expression", "(function () { return 1 })()"],
+  ])("rejects an IIFE: %s", (_name, expr) => {
+    expect(() => new SaferEval().eval(expr)).toThrow(SaferEvalError);
+  });
+
+  it("leaves a callback passed to a method alone", () => {
+    const evalr = new SaferEval();
+    expect(evalr.eval("xs.map(x => x * 2)", { xs: [1, 2] })).toEqual([2, 4]);
+    expect(evalr.eval("xs.filter(x => x > 1).length", { xs: [1, 2] })).toBe(1);
   });
 });
 

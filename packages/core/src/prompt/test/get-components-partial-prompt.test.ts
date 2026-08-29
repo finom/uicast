@@ -93,11 +93,11 @@ describe("getComponentsPartialPrompt — common events", () => {
 		});
 
 		expect(out).toContain("# Common Events");
-		expect(out).toContain("fires on click");
+		expect(out).toContain("- MouseEvent — fires on click");
 		expect(out).toContain("onClick(evt: MouseEvent)");
-		// The payload type renders once (in the common block), not on every
+		// The payload's fields render once (in the common block), not on every
 		// component that wires the handler — that's the whole point.
-		expect(out.split("{ x: number }").length - 1).toBe(1);
+		expect(out.split("- x: number").length - 1).toBe(1);
 	});
 
 	it("inlines a callback whose `$id` was not passed as a common event", () => {
@@ -185,7 +185,7 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 				"",
 				"- Counter — A button that shows a number and increments it on each click.",
 				"  Props:",
-				"    - count?: number — The number to display",
+				"    - count?: number = 0 — The number to display",
 				"  Event handlers:",
 				"    - onClick() — Fires when the counter is pressed",
 			].join("\n"),
@@ -206,6 +206,24 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 		const out = getComponentsPartialPrompt({ definitions: [A] });
 		expect(out).toContain("    - onSelect(evt) — Fires on selection");
 		expect(out).toContain("      - id: string — The chosen row id");
+	});
+
+	it("prints a schema default the way TypeScript writes one", () => {
+		// The engine applies the default before `render` sees the prop, so it is
+		// what the model gets by omitting the field — worth telling it.
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({
+				size: z.enum(["sm", "lg"]).default("lg"),
+				rows: z.array(z.string()).default([]),
+				open: z.boolean().default(false).meta({ description: "Starts open" }),
+			}),
+		});
+		const out = getComponentsPartialPrompt({ definitions: [A] });
+		expect(out).toContain('    - size?: "sm" | "lg" = "lg"');
+		expect(out).toContain("    - rows?: string[] = []");
+		expect(out).toContain("    - open?: boolean = false — Starts open");
 	});
 
 	it("leaves a description-less prop as a bare type", () => {

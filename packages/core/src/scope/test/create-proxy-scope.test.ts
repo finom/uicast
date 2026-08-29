@@ -98,10 +98,20 @@ describe("createProxyScope — writes and emits", () => {
 });
 
 describe("createProxyScope — $set", () => {
-  it("$set walks dotted segments, creating intermediates", () => {
-    const state = createProxyScope<{ a?: { b?: { c?: string } } }>({});
+  it("$set walks dotted segments once the parents exist", () => {
+    const state = createProxyScope<{ a?: { b?: { c?: string } } }>({
+      a: { b: {} },
+    });
     state.$set("a.b.c", "hello");
     expect(state.a?.b?.c).toBe("hello");
+  });
+
+  // Inventing the parent would make a typo (`usre.name`) and `tags.0` silent
+  // no-ops. Throwing turns both into a classified document fault.
+  it("$set throws instead of inventing a missing parent", () => {
+    const state = createProxyScope<Record<string, unknown>>({});
+    expect(() => state.$set("a.b.c", "hello")).toThrow(/"a" is not set/);
+    expect(state.a).toBeUndefined();
   });
 
   it("$set with { default: true } only writes when the leaf is undefined", () => {

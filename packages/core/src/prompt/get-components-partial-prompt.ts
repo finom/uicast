@@ -46,7 +46,16 @@ const describeFields = (
   return Object.entries(schema.properties).map(([name, field]) => {
     const optional = required.includes(name) ? "" : "?";
     const description = field.description;
-    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field), { namedRefs })}${
+    // A schema `default` is applied before the implementation sees the prop, so
+    // it is what the model gets by omitting the field — printed the way
+    // TypeScript writes one. Without it the model can only guess, and guesses
+    // by restating the default it can't see.
+    const hasDefault =
+      field !== null && typeof field === "object" && "default" in field;
+    const fallback = hasDefault
+      ? ` = ${JSON.stringify((field as { default?: unknown }).default)}`
+      : "";
+    return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field), { namedRefs })}${fallback}${
       description ? ` — ${description}` : ""
     }`;
   });
@@ -64,7 +73,7 @@ const describeFields = (
  *
  * `commonEvents` hoists handlers shared across many components (e.g. `onClick`)
  * out of every entry. Each passed schema must carry a JSON Schema `$id`; its
- * payload is rendered once as a named type under `# Common Events`, and a
+ * payload is described once under `# Common Events`, and a
  * component whose callback is one of them references it as `evt: <$id>` instead
  * of re-inlining the payload — killing the per-component duplication. A callback
  * is matched by its `$id`, so it stays library-agnostic (anything that emits
@@ -119,11 +128,20 @@ export function getComponentsPartialPrompt({
       throw new Error(`Duplicate common event id: "${id}"`);
     }
     commonIds.add(id);
-    const ts = JSONSchemaToTs(stripRootDescription(jsonSchema), {
-      namedRefs: shared.add(jsonSchema),
-    });
+    const refs = shared.add(jsonSchema);
     const description = (jsonSchema as { description?: string }).description;
-    commonLines.push(`- ${id}: ${ts}${description ? ` — ${description}` : ""}`);
+    const tail = description ? ` — ${description}` : "";
+    // An object payload lists its fields as bullets, the same shape a
+    // component's own callback options take — one style for event fields
+    // wherever they appear. Anything else (a `null` payload, a union) has no
+    // fields to list, so it keeps the inline type.
+    const fieldLines = describeFields(jsonSchema, "  ", refs);
+    if (fieldLines.length) {
+      commonLines.push(`- ${id}${tail}`, ...fieldLines);
+    } else {
+      const ts = JSONSchemaToTs(stripRootDescription(jsonSchema), { namedRefs: refs });
+      commonLines.push(`- ${id}: ${ts}${tail}`);
+    }
   }
 
   const visible = defs.filter((def) => !def.hidden);

@@ -61,6 +61,55 @@ const FORBIDDEN_PROPERTIES = new Set([
   "__lookupSetter__",
 ]);
 
+// The names the engine injects into every expression. A write rooted at one of
+// them is a side effect on shared state, so it is rejected at any depth — unlike
+// a plain assignment, which is legal inside a body (a `.reduce` accumulator, a
+// local). Only a literal `scopes.…` target is visible here: aliasing it first
+// (`const s = scopes.root; s.x = 1`) is undecidable statically, so purity stays
+// a contract. See the Expressions docs page, § Pure and stateless.
+const PROTECTED_ROOTS = new Set(["scopes", "evt", "currentValue"]);
+
+// Walk a write target down to the identifier it is rooted at:
+// `scopes.root.a[i]` → "scopes"; `acc.total` → "acc"; `[a, b]` → null.
+function writeTargetRoot(node: acorn.AnyNode | null | undefined): string | null {
+  if (!node || typeof node !== "object") return null;
+  if (node.type === "Identifier") return node.name;
+  if (node.type === "MemberExpression") return writeTargetRoot(node.object);
+  return null;
+}
+
+// Every identifier a write lands on, including through destructuring patterns
+// (`[scopes.root.a] = xs`, `({ x: scopes.root.a } = o)`).
+function writeTargetRoots(node: acorn.AnyNode | null | undefined): string[] {
+  if (!node || typeof node !== "object") return [];
+  switch (node.type) {
+    case "ArrayPattern":
+      return node.elements.flatMap((e) => writeTargetRoots(e));
+    case "ObjectPattern":
+      return node.properties.flatMap((prop) =>
+        writeTargetRoots(prop.type === "Property" ? prop.value : prop.argument),
+      );
+    case "AssignmentPattern":
+      return writeTargetRoots(node.left);
+    case "RestElement":
+      return writeTargetRoots(node.argument);
+    default: {
+      const root = writeTargetRoot(node);
+      return root ? [root] : [];
+    }
+  }
+}
+
+function rejectProtectedWrite(target: acorn.AnyNode | null | undefined): void {
+  for (const root of writeTargetRoots(target)) {
+    if (PROTECTED_ROOTS.has(root)) {
+      throw new SaferEvalError(
+        `Assigning to "${root}" is not allowed — expressions compute a value; write state through a step's "set" field`,
+      );
+    }
+  }
+}
+
 // Recursively walk the parsed expression, throwing on anything disallowed.
 // insideFunctionBody flips once inside an arrow / function body, where the
 // BODY_ONLY_EXPRESSIONS become legal. Entry point is acorn's Program node.
@@ -96,6 +145,32 @@ export function validateNode(
     throw new SaferEvalError(
       `"${node.type}" is only allowed inside a function body, not as the whole expression`,
     );
+  }
+
+  // Writing to injected state, at any depth — a function body makes assignment
+  // legal, not assignment *to `scopes`*.
+  if (node.type === "AssignmentExpression") rejectProtectedWrite(node.left);
+  if (node.type === "UpdateExpression") rejectProtectedWrite(node.argument);
+  if (node.type === "UnaryExpression" && node.operator === "delete")
+    rejectProtectedWrite(node.argument);
+
+  // An immediately-invoked function is the only way to run statements in an
+  // expression, and everything it can express a ternary can too. Rejecting it
+  // keeps the grammar to one value; a callback *passed* to `.map` / `.reduce` is
+  // untouched, since its callee is the method, not a function literal.
+  if (node.type === "CallExpression") {
+    const callee =
+      node.callee.type === "ParenthesizedExpression"
+        ? node.callee.expression
+        : node.callee;
+    if (
+      callee.type === "ArrowFunctionExpression" ||
+      callee.type === "FunctionExpression"
+    ) {
+      throw new SaferEvalError(
+        "Immediately-invoked functions are not allowed — an expression must be a single value; use a ternary",
+      );
+    }
   }
 
   // Tagged templates invoke an arbitrary tag function.

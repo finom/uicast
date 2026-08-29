@@ -191,16 +191,16 @@ export class SaferEval {
   }
 
   // Allowlist gate: every free identifier must be an injected context name, a
-  // base allowed global, or one the host opted into via allowedGlobals.
+  // base allowed global, or one the host opted into via allowGlobals.
   #checkAllowlist(
     freeIds: string[],
     contextKeys: string[],
-    allowedGlobals: string[],
+    allowGlobals: string[],
   ): void {
     const allowed = new Set([
       ...contextKeys,
       ...this.#allowGlobals,
-      ...allowedGlobals,
+      ...allowGlobals,
     ]);
     for (const id of freeIds) {
       if (!allowed.has(id)) {
@@ -217,11 +217,11 @@ export class SaferEval {
   eval(
     expression: string,
     context: Record<string, unknown> = {},
-    allowedGlobals: string[] = [],
+    allowGlobals: string[] = [],
   ): unknown {
     if (this.#enforceAllowlist) {
       const { freeIds } = this.validate(expression);
-      this.#checkAllowlist(freeIds, Object.keys(context), allowedGlobals);
+      this.#checkAllowlist(freeIds, Object.keys(context), allowGlobals);
     }
     const evaluator = this.compile(expression);
     return evaluator(context);

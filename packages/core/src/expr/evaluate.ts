@@ -32,7 +32,7 @@ const wrapEvalError = (err: unknown): EntryError => {
 export const evaluate = (
   expr: ValueSource,
   context: Record<string, unknown>,
-  options?: { functions?: StandardToolV0[]; allowedGlobals?: string[] },
+  options?: { functions?: StandardToolV0[]; allowGlobals?: string[] },
 ): unknown => {
   if ("literal" in expr) return expr.literal;
   if (!expr.expr) return null;
@@ -61,7 +61,7 @@ export const evaluate = (
     const result = saferEval.eval(
       expr.expr,
       { ...context, ...functions },
-      options?.allowedGlobals,
+      options?.allowGlobals,
     );
     return result instanceof Promise
       ? result.catch((err) => {

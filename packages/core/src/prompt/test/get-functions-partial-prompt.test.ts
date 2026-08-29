@@ -41,6 +41,69 @@ describe("getFunctionsPartialPrompt", () => {
 		);
 	});
 
+	it.each(["scopes", "evt", "currentValue"])(
+		"rejects a tool named %s, which would shadow the expression context",
+		(name) => {
+			const clashing = standardTool({
+				name,
+				description: "Shadows a context binding.",
+				execute: async () => undefined,
+			});
+			expect(() => getFunctionsPartialPrompt({ functions: [clashing] })).toThrow(
+				`Host function name "${name}" is reserved`,
+			);
+		},
+	);
+
+	it("rejects two tools sharing a name", () => {
+		const make = (description: string) =>
+			standardTool({ name: "listRows", description, execute: async () => undefined });
+		expect(() =>
+			getFunctionsPartialPrompt({ functions: [make("A."), make("B.")] }),
+		).toThrow('Duplicate host function name: "listRows"');
+	});
+
+	it("renders a tool's title before its description", () => {
+		const listOrders = standardTool({
+			name: "listOrders",
+			title: "List orders",
+			description: "Every order, newest first.",
+			execute: async () => undefined,
+		});
+		expect(getFunctionsPartialPrompt({ functions: [listOrders] })).toContain(
+			"- listOrders() => unknown: List orders — Every order, newest first.",
+		);
+	});
+
+	it("prints shared types after the function details, not before", () => {
+		const Person = z
+			.object({ id: z.string(), name: z.string().optional() })
+			.meta({ id: "Person" });
+		const getOwner = standardTool({
+			name: "getOwner",
+			description: "Who owns it.",
+			outputSchema: z.object({ owner: Person }),
+			execute: async () => ({ owner: { id: "1" } }),
+		});
+		expect(getFunctionsPartialPrompt({ functions: [getOwner] })).toBe(
+			[
+				"# Available Functions",
+				"",
+				"getOwner",
+				"",
+				"# Function Details",
+				"",
+				"- getOwner() => {",
+				"    owner: Person;",
+				"  }: Who owns it.",
+				"",
+				"# Shared Types",
+				"",
+				"- Person: { id: string; name?: string }",
+			].join("\n"),
+		);
+	});
+
 	it("indents nested objects one level deeper and keeps undescribed fields bare", () => {
 		const ship = standardTool({
 			name: "ship",

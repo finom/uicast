@@ -1,3 +1,5 @@
+import { EntryError } from "../entry-error";
+
 type EventHandler<T = unknown> = (payload: T) => void;
 
 interface ChangePayload<T = unknown> {
@@ -10,12 +12,25 @@ interface Emitter {
   on<T = unknown>(type: string, handler: EventHandler<T>): () => void;
   off<T = unknown>(type: string, handler: EventHandler<T>): void;
   emit<T = unknown>(type: string, payload: T): void;
+  /**
+   * Count of emits so far. A subscriber that registers its handler after
+   * rendering (React subscribes in an effect) compares this against the value
+   * it saw while rendering: if it advanced, a write landed in between and the
+   * handler was not yet attached to hear it, so the subscriber must re-read.
+   * Without it that write is lost to that subscriber until the next one.
+   */
+  readonly version: number;
 }
 
 function createEmitter(): Emitter {
   const events = new Map<string, Set<EventHandler<any>>>();
+  let version = 0;
 
   return {
+    get version() {
+      return version;
+    },
+
     on(type, handler) {
       const handlers = events.get(type);
       if (handlers) handlers.add(handler);
@@ -28,6 +43,7 @@ function createEmitter(): Emitter {
     },
 
     emit(type, payload) {
+      version++;
       events.get(type)?.forEach((fn) => {
         fn(payload);
       });
@@ -66,10 +82,18 @@ function createProxyScope<T extends object>(
     const keys = path.split(".");
     let current: any = proxy;
 
+    // A missing parent throws rather than being invented. Creating one silently
+    // turns two document mistakes into no-ops: a typo (`usre.name`) writes a
+    // second key nobody reads, and `tags.0` builds `{ "0": … }` instead of an
+    // array. Throwing makes both a classified document fault, which the error
+    // slot shows and recovery can feed back to the model.
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (current[key] === undefined || current[key] === null) {
-        current[key] = {};
+        throw new EntryError(
+          `Cannot set "${path}": "${keys.slice(0, i + 1).join(".")}" is not set. Seed the parent path first.`,
+          { reason: "unknown-reference" },
+        );
       }
       current = current[key];
     }
