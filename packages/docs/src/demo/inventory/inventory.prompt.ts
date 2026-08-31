@@ -1,4 +1,4 @@
-import { seedProducts } from "../lib/seed";
+import { seedProducts } from "@/lib/seed";
 
 /**
  * The illustrative prompt that "generated" the inventory app — shown next to

@@ -3,6 +3,7 @@ title: The expression-driven generative UI framework
 ---
 
 import { Hero } from "@/components/hero";
+import { HeroIllustration } from "@/components/hero-illustration";
 import { Steps } from "@/components/steps";
 import { CounterExample } from "@/lib/mini-examples/counter";
 import { TrackerExample } from "@/lib/mini-examples/tracker";
@@ -12,30 +13,30 @@ import { WeatherExample } from "@/lib/mini-examples/weather";
 
 <Steps />
 
-<CounterExample />
+<div className="mb-12">
+  <HeroIllustration />
+</div>
 
 **uicast is a UI framework whose language is written by models, not people.**
 It gives a language model what JSX gives a developer — components, state,
 events. The difference: JSX is designed to be easy for a person to maintain,
-uicast to be reliable for a model to generate.
+**uicast** to be reliable for a model to generate.
 
 The model writes one JSON object per line. The engine places each line in the
 tree and wires it to a reactive state store, and the result is a working
 front-end app. The lines are just data, so there is no build or deploy step per
 page.
 
-What makes uicast different is **expressions**.
+<CounterExample />
 
-Other frameworks pick one of two options. Either the model writes real code,
-which can do anything but is unsafe to run without a sandbox. Or it fills a
-fixed schema, which is safe, but every behaviour must be built into the host in
-advance.
+What makes **uicast** different is **expressions**.
 
-uicast sits in between. The document is plain JSONLines, and computed values,
-visibility, and event handling are short JavaScript expressions checked against
-an [allow-list](/entry/expressions#safety) before they run. Nothing the model
-writes becomes code you ship: it never defines a component, imports a module,
-or adds a file. The largest thing it writes is **one expression**.
+Structured generation renders safely as it streams, but the logic wiring its
+components is a closed vocabulary — a fixed set of bindings, conditions, and
+format operators, so a genuinely new computation means new host code. **uicast**
+makes that logic open-ended JavaScript instead: computed values, visibility, and
+event handling are expressions, checked against an
+[allow-list](/entry/expressions#safety) before they run.
 
 ```js
 // scopes.root.orders === [{ total: 2 }, { total: 3 }]
@@ -57,27 +58,19 @@ document.cookie                                      // ❌ throws — so do "wi
 ## The model works from a developer's brief
 
 The model never starts from a blank page. It gets the brief you would give a new
-front-end developer: here are the components, here are the endpoints, build the
-page. Both lists are generated from your code:
+front-end developer — the components and the endpoints, generated from your code:
 
 ```md
 # Available Components
 
 Card, Heading, Text, Badge, Button, Table, TableRow, TableCell
 
-# Common Events
-
-- MouseEvent — Callback for a mouse event such as a click
-  - clientX: number — The X coordinate of the pointer relative to the viewport
-  - …
-
 # Component Details
 
-- Button — A clickable button for triggering actions. …
+- Button — A clickable button.
   Props:
-    - text?: string — The button label text
-    - variant?: "default" | "destructive" | "outline" | … — Visual variant
-    - disabled?: boolean — Whether the button is disabled
+    - text?: string — The button label
+    - variant?: "default" | "destructive" | "outline" | …
   Event handlers:
     - onClick(evt: MouseEvent)
 
@@ -89,46 +82,33 @@ listOrders, refundOrder
 
 # Function Details
 
-- listOrders() => {
-    id: number /* Order id */;
-    customer: string /* Who placed it */;
-    total: number /* Order total, in dollars */;
-  }[]: Every order, newest first.
-- refundOrder({
-    id: number /* Order id */;
-  }) => unknown: Refund one order.
+- listOrders() => { id: number; customer: string; total: number }[]: Every order, newest first.
+- refundOrder({ id: number }) => unknown: Refund one order.
 ```
 
-> Show this week's orders, with a refund button on each row.
+> Show this week's orders, with refund buttons.
 
-Both lists are fixed. The **catalog** is your design system, already built and
-reviewed — the model picks from it and cannot invent a component. The
-**functions** are your endpoints, each a
-[`standard-tool`](https://standard-tool.js.org/), and it cannot call anything
-else.
+Both lists are fixed: the **catalog** is your design system, so the model picks
+a component and never invents one; the **functions** are your endpoints, each a
+[`standard-tool`](https://standard-tool.js.org/), and it can call nothing else.
+Every description is one you already wrote on a prop or schema field, passed
+through word for word. A developer with this brief writes JSX; the model writes
+**uicast** entries — see [Assembling the prompt](/prompt).
 
-Every description is one you already wrote on a schema field or a prop, passed
-through word for word. Nothing repeats: a shared payload is printed once under
-`# Common Events` and referred to as `evt: MouseEvent`, and a shared type once
-under `# Shared Types`.
+## Events carry declared payloads
 
-A developer with this brief writes JSX; the model writes uicast entries. See
-[Assembling the prompt](/prompt).
-
-## Events carry payloads
-
-An event can carry data, not just report that something happened. The square
-below sends the pointer position as an `onMove` payload; the entry writes it to
-state, and the props read it back. No host function is involved.
+An event can carry data. The square below sends the pointer position as an
+`onMove` payload; the entry writes it to state, and the props read it back. No
+host function is involved.
 
 Inside a callback, **`evt` is that payload** — the only way to read what the
-user just did. Its shape is whatever the [definition](/def) declares, so
-`onMove` here means `evt.x` and `evt.y` are numbers. `evt` exists only in
-`callbacks`, never in `props`, `hidden`, or `seed`.
+user just did. It is not React's `SyntheticEvent`; its shape is whatever the
+[definition](/def) declares, so `onMove` here means `evt.x` and `evt.y` are
+numbers.
 
 <TrackerExample />
 
-## Calling host functions
+## Expressions call host functions
 
 Expressions can call **host functions** — the functions you register with the
 renderer, and how a document reaches a backend. Each is a
@@ -138,45 +118,39 @@ schemas, and `execute`.
 `getWeather` below is **async**, about 500 ms. Picking a city runs a two-step
 callback: the first stores the city, the second calls
 `getWeather({ city: scopes.root.city })` and reads the path the first just
-wrote, so the runtime orders them. The engine waits for the result before
-writing it, which is why the card can show a loading state and why the
-expression never says `await`.
+wrote, so the runtime orders them. The engine waits for the async result before
+writing it to state.
 
 <WeatherExample />
 
-## Streaming a generation
+## Chat replies carry live UI
 
-Each line renders as soon as it is complete, so the page builds itself while the
-model is still writing. TanStack Query's `streamedQuery` turns an
-`AsyncIterable` into an array that grows as values arrive — which is what
-`streamJsonLines` returns and what the renderer takes:
+A model's Markdown reply can stream a working app inline, not just static text.
+The [Streamdown](/streamdown) plugin renders any `uicast` fenced block as a live
+[`<EntriesRenderer>`](/react/renderer) inside the streamed Markdown, leaving
+every other fence as highlighted code:
 
-```tsx
-const { data: lines = [], isFetching } = useQuery({
-  queryKey: ["generate", prompt],
-  queryFn: streamedQuery({
-    streamFn: async () => {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        body: JSON.stringify({ prompt }),
-      });
-      return streamJsonLines<ComponentEntry>(res.body);
-    },
-  }),
-});
+````md
+Here are this week's orders:
 
-<EntriesRenderer entries={lines} />   // grows line by line; isFetching is the spinner
+```uicast
+{"key":"orders","component":"Table", … }
 ```
 
-The model writes parents before children, so the page fills in from the top: a
-Card appears under its title with a placeholder where its child will go.
-Finished parts are never rebuilt, and a `seed` that already fetched does not
-fetch again.
+Want me to refund any of them?
+````
 
-[Streaming](/streaming) covers the server side.
+The whole chat runs under one [`<RendererProvider>`](/react/renderer), so every
+widget streamed into it shares the same `root` scope and can share state. Yet
+each fenced block is a complete document on its own — lift one out and it renders
+standalone, so a widget the user likes can be saved as its own view. See the
+[Streamdown plugin](/streamdown).
 
 ## Next steps
 
 - [Getting started](/getting-started) — install the packages and render your
   first document.
 - [Concepts](/concepts) — the model, expressions, and scopes.
+- [Component definition](/def) and [Component implementation](/react/impl) —
+  build your own components.
+- [Streaming](/streaming) — render entries as they arrive, client and server.

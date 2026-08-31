@@ -10,10 +10,10 @@ components to write first.
 npm install @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool ai @tanstack/react-query zod
 ```
 
-- **`@uicast/shadcn-catalog`** — ~100 components built on shadcn/ui, each with
+- **`@uicast/shadcn-catalog`** — 150 components built on shadcn/ui, each with
   the definition the model reads.
 - **`@uicast/core`** — the engine and the [prompt builders](/prompt).
-  **`@uicast/react`** — the renderer.
+- **`@uicast/react`** — the renderer.
 - **`standard-tool`**, **`ai`**, **`@tanstack/react-query`** — host functions,
   the model call, the streaming query.
 
@@ -78,7 +78,7 @@ export const tools = [listOrders];
 ```
 
 `inputSchema` is what lets the model paginate and filter on its own; it is
-checked before `execute` runs. `outputSchema` is how it knows it can write
+checked before `execute` runs. `outputSchema` is how the model knows it can write
 `scopes.root.orders[0].customer`. Every `description` reaches the model word for
 word. See [Host functions](/functions).
 
@@ -98,7 +98,6 @@ import {
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { tools } from "@/tools";
 
 export const maxDuration = 300;
@@ -107,10 +106,7 @@ const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
   getExpressionsPartialPrompt(),
-  getComponentsPartialPrompt({
-    definitions: allDefinitions,
-    commonEvents: allCommonEventSchemas,
-  }),
+  getComponentsPartialPrompt({ definitions: allDefinitions }),
   getFunctionsPartialPrompt({ functions: tools }),
 ].join("\n\n");
 
@@ -131,8 +127,8 @@ See [Assembling the prompt](/prompt).
 
 ## 4. Render on the page
 
-`streamedQuery` turns an `AsyncIterable` into an array that grows as values
-arrive. `streamJsonLines` returns one; the renderer takes the array:
+React Query's `streamedQuery` turns an `AsyncIterable` into an array that grows
+as values arrive. `streamJsonLines` returns one; the renderer takes the array:
 
 ```tsx filename="app/page.tsx"
 "use client";
@@ -201,17 +197,18 @@ export default function Home() {
 }
 ```
 
-> Show this week's orders in a table, with a refund button on each row.
+> Show this week's orders, with refund buttons.
 
 The model writes parents before children, so the page fills in from the top.
 A child that has not arrived yet shows the `placeholder` component — there is
 **no built-in one**, so an unset slot stays empty. Finished parts are never
-rebuilt, and a `seed` that already fetched does not fetch again.
+rebuilt, and a [`seed`](/entry/fields#seed) that already fetched does not fetch
+again.
 
 ## Where to go next
 
-- [Streaming](/streaming) — saving entries as they stream.
+- [Concepts](/concepts) — the element model, expressions, and scopes.
 - [Component definition](/def) and [Component implementation](/react/impl) —
   replacing the catalog with your own design system.
 - [Host functions](/functions) — changing data, confirmation, refetching.
-- [Concepts](/concepts) — the element model, expressions, and scopes.
+- [Streaming](/streaming) — saving entries as they stream.

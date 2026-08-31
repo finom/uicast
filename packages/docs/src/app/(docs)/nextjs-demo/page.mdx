@@ -5,8 +5,8 @@ customers and orders in a local SQLite database. It has some hand-written UI —
 sidebar, a chat panel, the shell — but not one component for the screens. Every
 table, form and detail view is generated.
 
-It shows the **front-end-less pattern** — uicast's name for an app with no
-pages. There is a data model, an HTTP API over it, tools describing that API,
+It shows the **front-end-less pattern** — **uicast**'s name for an app with no
+hand-written screens. There is a data model, an HTTP API over it, tools describing that API,
 and a component catalog. The screens are generated per request, so nobody writes
 the table, the form, the filter bar, or the wiring between them.
 
@@ -31,9 +31,9 @@ render as live UI:
 - `How much did we earn this month?`
 - `Help me clear the pending queue`
 
-The generated UIs are apps, not pictures: forms validate and submit, buttons
-mutate the database through the domain tools, destructive actions ask for
-confirmation, and every widget bound to the same state moves together.
+The generated UIs are fully working: forms validate and submit, buttons mutate
+the database through the domain tools, destructive actions ask for confirmation,
+and every widget bound to the same state moves together.
 
 ## What you still write
 
@@ -42,7 +42,7 @@ confirmation, and every widget bound to the same state moves together.
 | The **data model** — tables, relations, constraints. | Which fields to show, and in what order. |
 | The **API** — one endpoint per resource operation. | Which endpoints a screen calls, and when. |
 | The **tools** — a typed description of that API. | The calls themselves, inside expressions. |
-| The **catalog** — your design system as def/impl pairs. | The composition: what goes in what, with which props. |
+| The **catalog** — your design system as [def/impl pairs](/def). | The composition: what goes in what, with which props. |
 
 Everything on the left you would have written anyway.
 
@@ -51,7 +51,7 @@ Everything on the left you would have written anyway.
 A tool is not a second backend. Each is a few lines over the same REST endpoint
 a hand-written front end would have called:
 
-```ts filename="src/tools/list-products.ts"
+```ts filename="src/tools/products.ts"
 export const listProducts = standardTool({
   name: "listProducts",
   description: "List all products.",

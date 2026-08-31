@@ -1,19 +1,14 @@
 import type { MetaRecord } from "nextra";
 
+// Builder-first order: after Concepts come the pages a developer writes code
+// against (def, impl/renderer, functions, events), then the surfaces (prompt,
+// streaming, streamdown, error recovery, demo). The Component Entry Format
+// deep dive sits last, as reference depth. streamdown precedes error recovery
+// because recovery's chat section assumes the fence model.
 const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
   concepts: "Concepts",
-  entry: {
-    title: "Component Entry Format",
-    items: {
-      fields: "Entry fields",
-      "value-sources": "Value Sources",
-      expressions: "JavaScript Expressions",
-      reactivity: "Reactivity & Dependencies",
-      state: "State & Scopes",
-    },
-  },
   def: "Component definition",
   react: {
     title: "React",
@@ -26,9 +21,20 @@ const meta: MetaRecord = {
   events: "Event handling",
   prompt: "Assembling the prompt",
   streaming: "Streaming",
-  "error-recovery": "Error recovery",
   streamdown: "Streamdown plugin",
-  "nextjs-demo": "Next.js demo",
+  "error-recovery": "Error recovery",
+  "nextjs-demo": "Next.js demo 🔧",
+  skill: "Agent skill",
+  entry: {
+    title: "Component Entry Format",
+    items: {
+      fields: "Entry fields",
+      "value-sources": "Value Sources",
+      state: "State & Scopes",
+      expressions: "JavaScript Expressions",
+      reactivity: "Reactivity & Dependencies",
+    },
+  },
   api: "API reference",
   roadmap: "Roadmap",
   // External links live in the top bar, not the sidebar: `type: "page"` moves an

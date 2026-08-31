@@ -27,7 +27,8 @@ value sources.
 
 Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
 may call host [`functions`](/functions), since those are the two sites where an
-async result is awaited. A step with a `set` also sees
+async result is awaited — a host call in `props`, `hidden`, or `each` is
+rejected into the element's error slot. A step with a `set` also sees
 [`currentValue`](/entry/value-sources#valuesourceassignment), whatever is at
 that path now.
 
@@ -56,7 +57,7 @@ A write to `scopes` is rejected wherever it appears — a function body makes
 assignment legal, not assignment *to state*:
 
 ```js
-// ❌ both rejected — sandbox-violation
+// ❌ both rejected — guardrail-violation
 scopes.root.hits = 1
 scopes.root.rows.map(r => { scopes.root.hits++; return r })
 
@@ -69,7 +70,7 @@ Purity is still a **contract, not an enforced boundary**. Only a literal
 count grows on every re-evaluation:
 
 ```js
-// ❌ just as wrong, and NOT rejected
+// ⚠️ just as wrong, and NOT rejected
 scopes.root.rows.map(r => { const s = scopes.root; s.hits = s.hits + 1; return r })
 ```
 
@@ -99,7 +100,7 @@ answer:
 { "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))" }
 ```
 
-The same read sets are not wasted in `seed` and `callbacks` — there they
+The same reads are not wasted in `seed` and `callbacks` — there they
 **order the steps** instead.
 
 [Reactivity &amp; Dependencies](/entry/reactivity) covers both.
@@ -131,7 +132,7 @@ statements where a single value belongs, and a ternary says the same thing:
 // ✅ one ternary
 scopes.order.status === "paid" ? "green" : scopes.order.status === "pending" ? "amber" : "red"
 
-// ❌ rejected — an IIFE is not a value
+// ❌ rejected
 (s => { switch (s) { case "paid": return "green"; default: return "red" } })(scopes.order.status)
 ```
 
@@ -144,7 +145,7 @@ construction, but the model produced far more invalid expressions against its
 stricter grammar.
 
 JavaScript with a static check keeps Proxy state working and the model fluent.
-Each expression is parsed wrapped as `void ( … )`, so any top-level statement is
+Each expression is parsed as `void ( … )`, so any top-level statement is
 already a syntax error, with no extra check.
 
 The tradeoff is that a static check only blocks what it names — see
@@ -177,27 +178,16 @@ failure:
 | expression | reason |
 | --- | --- |
 | `if (scopes.root.n) 1` | `expression-syntax` — a statement, so the `void ( … )` wrapper makes it a parse error |
-| `scopes.root.count = 1` | `sandbox-violation` — a write to `scopes`, at any depth |
+| `scopes.root.count = 1` | `guardrail-violation` — a write to `scopes`, at any depth |
 | `fetchProducts()` | `unknown-reference` — a free identifier nobody handed in |
 | `fetch("/api")` | `unknown-reference` — shadowed rather than allow-listed, so the allow-list gate sees an unknown name too |
 
 ### Adding your own globals
 
-```tsx
-<RendererProvider allowGlobals={["structuredClone", "crypto"]} implementations={implementations}>
-  <EntriesRenderer entries={entries} />
-</RendererProvider>
-```
-
-You also need to pass the same list to the prompt, or the model is never told
-the names exist and will not use them:
-
-```ts
-getExpressionsPartialPrompt({ allowGlobals: ["structuredClone", "crypto"] })
-```
-
-`allowGlobals` is **additive**, and cannot re-enable the shadowed globals
-(`fetch`, `Function`, `setTimeout`, …). Those stay blocked whatever you list.
+The host can extend the allow-list with benign globals of its own — see
+[`allowGlobals` on the Renderer page](/react/renderer#allowglobals--extend-the-expression-allow-list).
+It is additive only: the shadowed capability globals (`fetch`, `Function`,
+`setTimeout`, …) stay blocked whatever you list.
 
 ### Where the guardrail ends
 

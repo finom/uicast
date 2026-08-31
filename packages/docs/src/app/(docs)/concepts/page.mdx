@@ -6,21 +6,25 @@ import { OrdersExample } from "@/lib/mini-examples/orders";
 
 # Concepts
 
-A complete uicast document, four entries. It loads orders from a backend, shows
-the count, renders one row each, and refetches on click. Every concept on this
-page is in it.
+A complete **uicast** document, six entries. It loads products from a backend,
+shows the count, renders one row per product with an editable quantity, edits a
+product's name and price through a modal, and keeps the total in step with
+every edit. Every concept on this page is in it.
 
 <OrdersExample />
 
 ## The tree is built from keys
 
 Nothing is nested in the file. The tree is built from **key references**. `card`
-lists `["title","refresh","rows"]`, so those three are its children:
+lists `["title","refresh","rows","total","editor"]`, so those five are its
+children:
 
 ```
 card ─┬─ title
       ├─ refresh
-      └─ rows  (repeats: one element per order)
+      ├─ rows  (repeats: one element per product)
+      ├─ total
+      └─ editor  (hidden until a row's ✎ is pressed)
 ```
 
 `card` is the **root** because no other line lists it as a child. This is also
@@ -33,21 +37,21 @@ The `rows` line has an `each` field, which makes it a **list**. It repeats once
 for every item in the array:
 
 ```jsonc
-{ "each": "scopes.root.orders", "as": "order", "keyBy": "id" }
+{ "each": "scopes.root.products", "as": "product", "keyBy": "id" }
 ```
 
 - **`each`** — the array to repeat over, evaluated in the *parent's* scope.
-- **`as`** — names the per-item scope. Inside, you read `scopes.order.item`
-  (the order), `scopes.order.index` (0, 1, 2 …), and `scopes.order.id`.
+- **`as`** — names the per-item scope. Inside, you read `scopes.product.item`
+  (the product), `scopes.product.index` (0, 1, 2 …), and `scopes.product.id`.
 - **`keyBy`** — which field that id comes from. `"id"` means `item.id`.
 
-So with three orders in state, one entry produces three elements:
+So with three products in state, one entry produces three elements:
 
-| `scopes.order.item` | `scopes.order.index` | rendered |
+| `scopes.product.item` | `scopes.product.index` | rendered |
 |---|---|---|
-| `{ id: 7, customer: "Maya", total: 40 }` | `0` | Maya · 40 |
-| `{ id: 8, customer: "Jonas", total: 15 }` | `1` | Jonas · 15 |
-| `{ id: 9, customer: "Priya", total: 92 }` | `2` | Priya · 92 |
+| `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }` | `0` | Espresso Beans · $15 × 1 |
+| `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }` | `1` | Pour-Over Kettle · $23 × 4 |
+| `{ id: 10, name: "Ceramic Mug", price: 14, qty: 2 }` | `2` | Ceramic Mug · $14 × 2 |
 
 
 ## State lives in scopes
@@ -55,69 +59,74 @@ So with three orders in state, one entry produces three elements:
 State is a flat set of named reactive containers. This document has two:
 
 - **`scopes.root`** — one per app, shared by every element. Here it holds
-  `orders`, put there by the `seed` on line 1.
-- **`scopes.order`** — one per row, created by the list's `as`. Line 4 reads
-  `scopes.order.item.customer`.
+  `products`, put there by the [`seed`](/entry/fields#seed) on line 1.
+- **`scopes.product`** — one per row, created by the list's `as`. Line 4 reads
+  `scopes.product.item.name`.
 
-The names are flat — `scopes.order` is not part of `scopes.root` — but an
+The names are flat — `scopes.product` is not part of `scopes.root` — but an
 element still reaches every scope around it. A list inside a list creates an
 inner scope, and an element there reads them all:
 
 ```jsonc
-{ "key": "orders", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
-{ "key": "lines",  "each": "scopes.order.item.lines", "as": "line",
+{ "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
+{ "key": "lines",  "component": "Text", "each": "scopes.order.item.lines", "as": "line",
   "props": { "expr": "({ text: scopes.order.item.id + ' / ' + scopes.line.item.sku })" } }
 ```
 
 That element reads `root`, `order` and `line` at once, which is why every `as`
-name must be unique in the document — a repeat silently hides the outer one.
+name must be unique in the document — a repeated name silently hides the outer
+scope.
 See [State &amp; Scopes](/entry/state).
 
-### Reading the item scopes from above
+### Editing a row updates the total
 
-The `$135 total` sits on the card, outside the list, so it has to reach into the
-per-row scopes. A list publishes them to the scope above under
-**`childScopes.<as>`**, one entry per item:
-
-```js
-scopes.root.childScopes.order   // → [ {item, index, id}, {item, index, id}, {item, index, id} ]
-```
-
-The total line just sums `item.total` across them:
+The `$135 total` sits on the card, outside the list, and reads the source
+array:
 
 ```jsonc
 { "key": "total", "component": "Heading", "props": { "expr":
-  "({ text: '$' + (scopes.root.childScopes?.order ?? []).reduce((sum, s) => sum + s.item.total, 0) + ' total' })" } }
+  "({ text: '$' + scopes.root.products.reduce((sum, p) => sum + p.price * p.qty, 0) + ' total' })" } }
 ```
 
-Two details matter:
+Type in a row's quantity input and its callback writes the row's own scope:
 
-- **`?.order ?? []` is required.** The key does not exist until the list has
-  rendered. Without the guard the element fails into its error slot and stays
-  there — it is not retried once `childScopes` appears.
-- **It republishes when the list changes, not when one item changes.** Refresh
-  replaces `scopes.root.orders`, the rows rebuild, and the total re-runs:
-  135 → 160 → 83. A write *inside* one item scope notifies only that item.
+```jsonc
+{ "onQtyChange": [{ "set": "scopes.product.item.qty", "expr": "evt.value" }] }
+```
 
-So use `childScopes` when a row holds state the source array does not — a
-selection, an edited draft — and read it from a **callback**. When the number
-is derivable from the array, read the array:
-`scopes.root.orders.reduce((sum, o) => sum + o.total, 0)` needs no guard.
+The write lands in one row's scope, but it **counts as a write to the array it
+came from** — so the total, which reads `scopes.root.products`, recomputes.
+The other direction needs no special rule: the edit dialog's Save replaces the
+array with `products.map(...)`, and everything reading it — the rows included —
+re-renders.
+
+Row state that lives outside the array is reached through `childScopes` —
+[State &amp; Scopes](/entry/state#reaching-across-rows).
+
+Both edits also call `updateProduct(...)` in a second step — a
+[host function](/functions) that persists the change, so a reload keeps it.
+Save asks first: its first step carries a
+[`confirm`](/entry/value-sources#confirmablevaluesourceassignment) message, and
+declining skips that step and everything after it. The styled dialog that asks
+is the host's
+[`fallbackComponents.confirm`](/react/renderer#fallbackcomponents--the-engines-fallback-ui) — one
+component answering every `confirm` in every document.
 
 ## Reading state subscribes to it
 
-Line 2 reads `scopes.root.orders.length`. Nobody declared that dependency — the
-engine reads it out of the expression and subscribes the element to that path:
+The `rows` list reads `scopes.root.products` in its `each`. Nobody declared
+that dependency — the engine reads it out of the expression and subscribes the
+element to that path:
 
 ```jsonc
-{ "props": { "expr": "({ text: scopes.root.orders.length + ' orders' })" } }
-//                                 └── auto-subscribes to scopes.root.orders.length
+{ "key": "rows", "each": "scopes.root.products", "as": "product", "keyBy": "id" }
+//                        └── auto-subscribes to scopes.root.products
 ```
 
-Click **Refresh**, the callback writes `scopes.root.orders`, and the heading and
-every row re-render — a write notifies readers of that path and of every path
-below it. The button never mentions the heading. See
-[Reactivity](/entry/reactivity).
+Click **Refresh**, the callback writes `scopes.root.products`. A write wakes
+readers of that path and of any path under it, so the rows rebuild and the
+`N products` count updates with them. The callback never names the elements it
+wakes — the wiring is automatic. See [Reactivity](/entry/reactivity).
 
 ## Expressions compute; `set` changes
 
@@ -149,7 +158,7 @@ Most render failures are one of these.
 `children`:
 
 ```jsonl
-{"key":"a","component":"Card","children":["b"]}   ✅ root
+{"key":"a","component":"Card","children":["b"]}    ✅ root
 {"key":"b","component":"Text"}                     ✅ referenced once
 {"key":"c","component":"Text"}                     ⚠️ second root — nobody references c
 ```
@@ -157,38 +166,42 @@ Most render failures are one of these.
 Several roots will not crash — the renderer wraps them in a fragment — but one
 root is the contract.
 
-**A list is never the root.** An entry with `each` needs a parent to repeat
-inside:
+**A list belongs in a container.** An entry with `each` repeats its `component`
+per item, so it needs a parent to sit in:
 
 ```jsonl
-{"key":"rows","component":"OrderRow","each":"scopes.root.orders","as":"order"}   ⚠️ as the root
-{"key":"card","component":"Card","children":["rows"]}                            ✅ wrap it
+{"key":"rows","component":"ProductRow","each":"scopes.root.products","as":"product"}   ⚠️ as the root
+{"key":"card","component":"Card","children":["rows"]}                                  ✅ wrap it
 ```
+
+A root list still renders — the engine wraps every root in a fragment — but its
+rows then sit loose at the top level, so give them a container.
 
 **Scope names must be unique.** Two lists sharing an `as` collide, since scope
 names are one flat namespace:
 
 ```jsonl
-{"key":"orders","each":"scopes.root.orders","as":"row", ...}     ❌ both write scopes.row
+{"key":"products","each":"scopes.root.products","as":"row", ...}   ❌ both write scopes.row
 {"key":"invoices","each":"scopes.root.invoices","as":"row", ...}
 ```
 
 **Reactive expressions are synchronous.** `props`, `hidden`, and `each` cannot
-call host functions. Those belong in `seed` (on mount) and `callbacks` (on an
-event) — the two places the engine awaits a result. Write `listOrders()`, never
-`await listOrders()`.
+call host functions — the engine rejects the call into the element's error slot.
+Host calls belong in `seed` (on mount) and `callbacks` (on an event), the two
+places the engine awaits a result. Write `listProducts()`, never
+`await listProducts()`.
 
 **Re-sending a key is an update, not an error.** The element is replaced in
 place. This is how [edit turns](/prompt) work:
 
 ```jsonl
-{"key":"title","component":"Heading","props":{"expr":"({ text: 'Orders' })"}}
-{"key":"title","component":"Heading","props":{"expr":"({ text: 'All orders' })"}}
+{"key":"title","component":"Heading","props":{"expr":"({ text: 'Products' })"}}
+{"key":"title","component":"Heading","props":{"expr":"({ text: 'All products' })"}}
 ```
 
 ## Vocabulary
 
-Words uicast uses in a specific way. One is narrower than usual: **props**
+Words **uicast** uses in a specific way. One is narrower than usual: **props**
 excludes event handlers — a definition declares `props` and `callbacks`
 separately, and an entry sets them as separate fields.
 

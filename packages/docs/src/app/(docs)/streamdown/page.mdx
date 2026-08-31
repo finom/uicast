@@ -21,8 +21,13 @@ lets a plugin claim a fence language. This package is that plugin: `uicast`
 blocks mount as an [`<EntriesRenderer>`](/react/renderer) under your chat's
 `<RendererProvider>`, and every other fence stays highlighted code.
 
-The language token is the whole routing contract, which is why the
-[fence prompt partial](/prompt#chat-surfaces) forbids any other token.
+The language token does all the routing, so the
+[fence prompt partial](/prompt#chat-surfaces) tells the model to use `uicast`
+and no other token.
+
+```bash
+npm install @uicast/streamdown@beta streamdown
+```
 
 ## `createFenceRenderer`
 
@@ -37,13 +42,10 @@ type FenceRendererOptions = {
 };
 ```
 
-Implementations, functions and fallback UI all come from the
+Implementations, functions, and fallback UI all come from the
 [`<RendererProvider>`](/react/renderer) around your conversation. The entries
 come from the fence: each completed line mounts immediately, and a partial last
 line waits for its newline.
-
-Call it **once per option set**, at module scope or in `useMemo`, and reuse the
-result:
 
 ```tsx
 import { Streamdown } from "streamdown";

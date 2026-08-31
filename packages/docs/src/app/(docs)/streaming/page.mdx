@@ -124,9 +124,9 @@ no placeholder registered, that slot renders nothing. The next line lands:
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
 ```
 
-The placeholder swaps for the Stat. The Card was never remounted, so
-`countOpen()` does not run again — a growing array reveals the tree, it does not
-rebuild it.
+The placeholder swaps for the Stat. `countOpen()` does not run again — a
+[`seed`](/entry/fields#seed) runs once and does not re-fire once it has set its
+path. A growing array reveals the tree, it does not rebuild it.
 
 ## Where to go next
 

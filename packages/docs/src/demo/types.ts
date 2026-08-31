@@ -1,6 +1,6 @@
 import type { ComponentEntry } from "@uicast/core";
 import type { ComponentImplementation } from "@uicast/react";
-import type { FallbackComponents } from "@uicast/react/types";
+import type { FallbackComponents } from "@uicast/react";
 import type { StandardToolV0 } from "standard-tool";
 
 /**

@@ -23,8 +23,7 @@ import { ThemeToggle } from "./theme-toggle";
 // Reveal pacing is proportional to each entry's serialized size: a bigger line
 // "takes longer to stream in", mirroring real token-by-token generation. At
 // 8ms/char the smallest entries land in ~0.5s and the largest in a few seconds.
-// MIN/MAX are guards against pathological lines — for the current artifact
-// nothing clamps, so the delay is purely `JSON.stringify(line).length × rate`.
+// MIN/MAX are guards against pathological lines.
 const MS_PER_CHAR = 8;
 const MIN_REVEAL_MS = 250;
 const MAX_REVEAL_MS = 6000;

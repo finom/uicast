@@ -14,7 +14,7 @@ interface ComponentEntry {
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;  // event → steps
   each?: Expression;    // array to iterate — its presence marks a list
   as?: string;          // per-item scope name
-  keyBy?: "_index" | "_item" | (string & {});  // per-item identity
+  keyBy?: string;      // per-item identity field
 }
 ```
 
@@ -77,18 +77,8 @@ expression reads. See [Reactivity](/entry/reactivity).
 { "props": { "literal": { "variant": "outline" } } }
 ```
 
-A prop rendered as text takes a **primitive**. An object there throws at render
-(*"Objects are not valid as a React child"*), so read the field, not the
-record:
-
-```jsonc
-{ "props": { "expr": "({ text: scopes.member.item })" } }        // ❌ whole record
-{ "props": { "expr": "({ text: scopes.member.item.name })" } }   // ✅
-```
-
-Props the definition types as objects or arrays — a table's `rows`, a select's
-`options` — take objects as normal. The [definition](/def) says which is
-which.
+Props that fail the [definition](/def)'s schema raise `invalid-props` in the
+element's error slot before render runs.
 
 ### `hidden`
 A bare [JavaScript expression](/entry/expressions), with no `literal` form, that
@@ -119,21 +109,10 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
 - **Runs once, on success.** Re-renders never re-run it, and a line kept alive
   through partial replacement is not re-seeded. A seed that *failed* never
   landed, so a corrected re-emission seeds normally.
-- **Seed state, not derivations.** Values that are *initialized then read or
-  mutated* — form fields, selections, fetched lists — belong here. Anything
-  *computed from* other state goes inline in `props` / `hidden` / `each`:
-
-  ```jsonc
-  // ❌ filtered once at mount — ticking a task off changes nothing
-  { "seed": [{ "set": "scopes.root.open", "expr": "scopes.root.tasks.filter(t => !t.done)" }] }
-  { "each": "scopes.root.open" }
-
-  // ✅ the same expression at the reactive site — re-runs on every write to tasks
-  { "each": "scopes.root.tasks.filter(t => !t.done)" }
-  ```
-
-  Reading `scopes.root.open` is not the problem — the list does subscribe to it.
-  The problem is that nothing ever writes it again.
+- **Seed state, not derivations.** Seed the values that change later — form
+  fields, selections, fetched lists. A value *computed from* other state goes
+  in `props` / `hidden` / `each` instead: `seed` runs once, so it would freeze
+  at its mount-time answer.
 - **Dependent seeds work.** Steps run in [dependency waves](/entry/reactivity):
 
   ```jsonc
@@ -163,9 +142,9 @@ that event. Each step is an
 } }
 ```
 
-- **Steps run in [dependency order](/entry/reactivity)**: a host-function step
-  waits for everything before it, and a step reading a path an earlier one wrote
-  waits for that write. Independent steps run in parallel.
+- **Steps run in [dependency order](/entry/reactivity)**: a step reading a path
+  an earlier one wrote waits for that write; independent pure steps run in
+  parallel; a [host-function](/functions) step is a barrier, alone in its wave.
 - **`evt`** is the event payload, shaped by the component's callback
   [definition](/def).
 - **`currentValue`** is bound to the value currently at the step's `set` path,
@@ -201,19 +180,6 @@ it:
 Three tasks give one `<tbody>` with three `<tr>`s. The list's `children` repeat
 with it, and each copy reads its own row's `scopes.task`.
 
-In TypeScript a list narrows from `ComponentEntry` to `ComponentListEntry`, where
-`each` and `as` are required:
-
-```ts
-import { isComponentEntry, isComponentListEntry } from "@uicast/core";
-
-function scopeNameOf(value: unknown): string | null {
-  if (!isComponentEntry(value)) return null;      // parsed JSON of unknown shape
-  if (!isComponentListEntry(value)) return null;  // an entry, but not a list
-  return value.as;                                // string, not string | undefined
-}
-```
-
 The per-item state these create lives in
 [item scopes](/entry/state#item-scopes).
 
@@ -245,9 +211,8 @@ in a nested list and the inner one replaces the outer:
 How to derive `scopes.<as>.id`, the stable identity per item:
 
 ```jsonc
-{ "each": "scopes.root.tasks", "as": "task", "keyBy": "id" }     // { id: 7 } → 7; an item with no `id` falls back to its index
-{ "each": "scopes.root.tags",  "as": "tag",  "keyBy": "_item" }  // "home" → scopes.tag.item and .id are "home"
-{ "each": "scopes.root.tasks", "as": "task" }                    // default "_index" → ids 0, 1, 2 …
+{ "each": "scopes.root.tasks", "as": "task", "keyBy": "id" }  // { id: 7 } → 7; an item with no `id` falls back to its index
+{ "each": "scopes.root.tasks", "as": "task" }                 // no keyBy → ids 0, 1, 2 …
 ```
 
 **Give object items a stable key.** Without one, in-place edits shift rows and

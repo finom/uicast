@@ -1,8 +1,8 @@
 # Error recovery
 
 Generation is probabilistic. Even a strong model sometimes emits a broken
-expression — a blocked global, a function that does not exist, state nothing
-ever set.
+expression — a blocked global, a function that does not exist, state that
+nothing ever set.
 
 Two layers answer that. **Containment** boxes a failure into the element that
 carries it, so one bad line never takes down the page. **Recovery** gets a
@@ -38,8 +38,7 @@ class EntryError extends Error {
   elementKey?: string; // the element the failure belongs to
   cause?: unknown; // the original error
 
-  static is(err: unknown): err is EntryError;
-  static wrap(err: unknown, reason: EntryErrorReason, key?: string): EntryError;
+  static is(err: unknown): err is EntryError; // cross-copy-safe check — use over `instanceof`
 }
 ```
 
@@ -48,7 +47,7 @@ Test with **`EntryError.is(err)`**, not `instanceof`.
 | `reason` | Meaning | `fault` |
 |---|---|---|
 | `expression-syntax` | the expression doesn't parse | `document` |
-| `sandbox-violation` | the expression uses blocked syntax or APIs | `document` |
+| `guardrail-violation` | the expression uses blocked syntax or APIs, or a `set` path writes by numeric key | `document` |
 | `unknown-reference` | an unregistered function, global, or scope path | `document` |
 | `unknown-component` | the `component` name has no implementation | `document` |
 | `invalid-list` | `each` didn't evaluate to an array | `document` |
@@ -115,7 +114,13 @@ reports it as a new turn. `getErrorRecoveryPrompt` formats the report:
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 
 getErrorRecoveryPrompt({
-  failures: [{ key: "chart", message: "chartData.map is not a function" }],
+  failures: [
+    {
+      key: "chart",
+      message: "chartData.map is not a function",
+      reason: error.reason, // optional
+    },
+  ],
 });
 ```
 
@@ -124,19 +129,14 @@ returns:
 ```
 The generated UI hit runtime errors:
 
-- Element `chart`: chartData.map is not a function
+- Element `chart`: chartData.map is not a function (expression-runtime — a valid expression threw at runtime)
 
 Diagnose each failure and emit a corrected version of the failed element, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another element sets up (e.g. a `seed` elsewhere), correct that element as well.
 ```
 
-It names no surface; the output conventions come from the surface's own
-prompt:
-
-- **Page surface** — send it like an [edit turn](/prompt#edit-and-recovery-turns):
-  replay the document as an assistant turn, pass the recovery message as the
-  request. The model emits only the corrected elements.
-- **Chat surface** — send it as a plain user message. Keys are per-fence, so the
-  model replies with a corrected fence.
+The `reason` annotation tells the model the failure class, not just the
+message. An `environment` fault gets none — host failures are not the model's
+to fix.
 
 The built-in error components only display the error. The Recover button is host
 UI, since only the host knows how to reach its model:
@@ -153,7 +153,11 @@ const fallbackComponents = {
       {error.fault !== "environment" && elementKey && (
         <button
           onClick={() =>
-            sendRecoveryTurn({ key: elementKey, message: error.message })
+            sendRecoveryTurn({
+              key: elementKey,
+              message: error.message,
+              reason: error.reason,
+            })
           }
         >
           Recover
@@ -167,7 +171,7 @@ const fallbackComponents = {
 `sendRecoveryTurn` is host code: on a page it starts an edit run, in a chat it
 calls `sendMessage`. Both halves of the classification work here — `reason` picks
 the copy, `fault` decides whether to offer Recover at all. Offer it for every
-fault but `environment`; an `unknown` one is worth the single attempt.
+fault but `environment`; an `unknown` one is worth a single attempt.
 
 ## 3. Self-healing
 
@@ -184,7 +188,11 @@ the button sends:
       reportToMonitoring(error);
       return;
     }
-    sendRecoveryTurn({ key: error.elementKey, message: error.message });
+    sendRecoveryTurn({
+      key: error.elementKey,
+      message: error.message,
+      reason: error.reason,
+    });
   }}
 >
   <EntriesRenderer entries={entries} />
@@ -192,7 +200,7 @@ the button sends:
 ```
 
 Same `sendRecoveryTurn` as above; only the caller differs. The gate is stricter
-though: the button offers `unknown` faults to a human's judgment, an automatic
+though: the button offers `unknown` faults to a human's judgment; an automatic
 loop feeds back only what is provably the model's.
 
 The error slot keeps showing while the turn is running, and unmounts when the

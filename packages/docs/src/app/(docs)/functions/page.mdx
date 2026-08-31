@@ -1,28 +1,14 @@
 # Host functions
 
-A document is just data — on its own it cannot call an API or change anything.
-**Host functions** are the bridge: functions you supply, called by name from
-[expressions](/entry/expressions). Anything the host can do qualifies, async or
-not. They are the third thing an expression can reach, alongside `scopes` and
-`evt`.
+A document is just data — on its own it reaches no API. **Host functions** are
+the bridge: functions you supply, called by name from
+[expressions](/entry/expressions) (alongside `scopes` and `evt`), sync or async.
 
-Each is a [`standard-tool`](https://standard-tool.js.org/): a `name`, a
-`description`, and optional input/output schemas that are
-`StandardSchemaV1 & StandardJSONSchemaV1` (from
-[`@standard-schema/spec`](https://standardschema.dev), aliased `CombinedSpec` in
-core) — a runtime validator that also converts to JSON Schema. That description
-is what tells the model the function exists and how to call it.
-
-uicast defines no tool type of its own. Everything that takes host functions —
-[`<RendererProvider functions>`](/react/renderer),
-[`evaluate`](/api#uicastcore)'s `options.functions`,
-[`getFunctionsPartialPrompt`](/api#uicastcoreprompt) — is typed against
-**`StandardToolV0`**, so any tool satisfying it works.
-
-`execute` runs **wherever the renderer runs** — in the browser, with the React
-binding. So reach your data over HTTP, against routes you already have. A
-database client inside `execute` would ship to the client with its
-credentials.
+Each is a [`standard-tool`](https://standard-tool.js.org/) (`StandardToolV0`): a
+`name`, a `description` the model reads to call it, and optional
+`StandardSchemaV1 & StandardJSONSchemaV1` input/output schemas. `execute` runs
+where the renderer runs — the browser, with the React binding — so reach your
+data over HTTP; a database client would ship its credentials to the client.
 
 ## Anatomy of a host function
 
@@ -60,15 +46,18 @@ The fields:
   `async` function either way, and the engine awaits the result before writing
   it. See [Errors](#errors).
 
-Zod 4.2+, Valibot and ArkType all qualify.
+Zod 4.2+, Valibot, and ArkType all qualify.
 
 ### Errors
 
-An error thrown from `execute` is caught by the engine, marked a
-`host-function` failure — the host's problem, not the document's — and passed to
-[`onError`](/react/renderer). A failed [`seed`](/entry/fields#seed) also shows
-the [`error` slot](/react/renderer). In a [`callback`](/entry/fields#callbacks), the
-steps after the failed one do not run, and writes that already happened stay.
+An error thrown from `execute` is caught by the engine and classified. Your
+input schema rejecting the arguments is the document's fault —
+`invalid-arguments`, which the [recovery loop](/error-recovery) can feed back
+to the model. Anything else is a `host-function` failure: the host's problem,
+not the document's. Both reach [`onError`](/react/renderer). A failed
+[`seed`](/entry/fields#seed) also shows the [`error` slot](/react/renderer). In
+a [`callback`](/entry/fields#callbacks), the steps after the failed one do not
+run, and writes that already happened stay.
 
 ## Wiring into the renderer
 
@@ -121,13 +110,8 @@ three are refused at prompt assembly, as are duplicate names:
 standardTool({ name: "scopes", /* … */ });        // ❌ Host function name "scopes" is reserved
 standardTool({ name: "evt", /* … */ });           // ❌ reserved
 standardTool({ name: "currentValue", /* … */ });  // ❌ reserved
-standardTool({ name: "row", /* … */ });           // ✅ the row scope lives at scopes.row — no clash
+standardTool({ name: "listOrders", /* … */ });     // ✅ anything else is fine
 ```
-
-A scope key is safe, since scopes are only reached through `scopes.`.
-
-**No `await`.** The engine awaits a step's result before writing it, so the bare
-call is enough. The prompt tells the model exactly that.
 
 ## Where they run: `seed` and `callbacks`
 
@@ -154,21 +138,15 @@ sites:
     ] } }
   ```
 
-Not in `props`, `hidden`, or `each`. Those run synchronously on every render, so
-a host call there hands the expression a pending Promise instead of data, and a
-render must stay [pure](/entry/expressions#pure-and-stateless). The rule:
-**derived values in `props`, effects in `seed` and `callbacks`.**
+Not in `props`, `hidden`, or `each`. Those run synchronously on every render,
+so the engine rejects a host call there as a classified error in the element's
+error slot. The rule: **derived values in `props`, effects in `seed` and
+`callbacks`.**
 
-### Callback step mechanics
+### Mutate, then re-fetch
 
-Steps run in **[dependency order](/entry/reactivity#effectful-sites-ordering)**.
-A step calling a host function waits for everything before it, since a
-mutation's effect is invisible to path analysis. A step reading a path an
-earlier step wrote (including through `currentValue`) waits for that write.
-Independent pure steps run together.
-
-Because a mutation returns only the row it changed, the usual shape is to
-**re-read after a write**:
+A mutation returns only what it changed, so the usual shape is to call it, then
+re-read in the next step:
 
 ```jsonl
 { "key": "del", "component": "Button",
@@ -178,9 +156,9 @@ Because a mutation returns only the row it changed, the usual shape is to
   ] } }
 ```
 
-Two waves — [`confirm`](/entry/fields#callbacks) is a barrier, and so is any
-host-function step. Cancel the dialog and nothing runs. Step one has no `set`,
-so its return value is discarded: a step may run purely for its effect.
+Step one has no `set` — it runs for its effect alone. A host-function step is a
+barrier, so the re-fetch waits for the delete, and `confirm` gates both. Step
+ordering in full: [Reactivity](/entry/reactivity#effectful-sites-ordering).
 
 ## Advertising to the model
 
@@ -295,7 +273,7 @@ const Person = z
 - Node: { name?: string; children?: Node[] } — A folder or file.
 ```
 
-Drop the `.meta({ id })` and `Person` inlines at both sites instead.
+Without the `.meta({ id })`, `Person` is inlined at both sites instead.
 
 [Components](/def) hoist their own types into a separate `# Shared Types` block;
 nothing crosses between the two.

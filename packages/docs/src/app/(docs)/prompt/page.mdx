@@ -1,16 +1,14 @@
 # Assembling the prompt
 
 The system prompt teaches five things: the output contract, how ambitious to be,
-the expression language, the component menu, and the host functions.
+the expression language, the component menu, and the host functions. Core ships
+each as a **prompt-partial builder** — a self-contained block — and no
+assembler; your app composes them, since scope, components, and functions depend
+on what you register.
 
-Core ships each as a **prompt-partial builder** — a function returning one
-self-contained block — and no assembler. Your app composes them, because the
-scope depends on your surface and the components and functions depend on what
-you register.
-
-The definitions you advertise must be the implementations you mount, and the
-functions you advertise must be the array you pass to `<RendererProvider>`. Build
-both from the same values and they cannot go out of sync.
+Advertise what you mount: the definitions must match the implementations, and
+the functions must match the array on `<RendererProvider>`. Build both from the
+same values and they cannot drift.
 
 ## The convention
 
@@ -31,7 +29,7 @@ All from [`@uicast/core/prompt`](/api#uicastcore):
 | `getCommonInstructionsPartialPrompt()` | The output contract — JSONL entries, keys and children, partial replacement. |
 | `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
 | `getExpressionsPartialPrompt({ allowGlobals? })` | The `expr` syntax, the [safety](/entry/expressions#safety) rules, and the `scopes` / `evt` / `currentValue` context. |
-| `getComponentsPartialPrompt({ definitions, commonEvents? })` | The component menu, serialized from your [definitions](/def). |
+| `getComponentsPartialPrompt({ definitions })` | The component menu, serialized from your [definitions](/def). |
 | `getFunctionsPartialPrompt({ functions })` | Names and signatures, from your [tools](/functions). |
 
 **Components** serializes the [defs](/def) you register:
@@ -71,7 +69,7 @@ for that kind, then the size hint:
 - Use the fewest elements that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
 - Bind real data via host functions — the answer must show actual values, not placeholders.
 
-A typical response on this surface is around ~10 elements (JSONL lines) — treat this as a hint about ambition, not a quota.
+A typical response on this surface is around 10 elements (JSONL lines) — treat this as a hint about ambition, not a quota.
 ```
 
 `note` appends one more host-specific paragraph after that, verbatim.
@@ -107,7 +105,7 @@ at the list below it. In that order the headings are:
 | `getCommonInstructionsPartialPrompt()` | `# Overview`, `# Output Format`, `# Rules` |
 | `getScopePartialPrompt()` | `# Scope` |
 | `getExpressionsPartialPrompt()` | `# JavaScript Expressions` |
-| `getComponentsPartialPrompt()` | `# Available Components`, `# Shared Types` and `# Common Events` (each only when there is something to hoist), `# Component Details` |
+| `getComponentsPartialPrompt()` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted) |
 | `getFunctionsPartialPrompt()` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when there is something to hoist) |
 | `getFencePartialPrompt()` | `# Emitting UI` |
 
@@ -133,17 +131,13 @@ import {
 } from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { tools } from "./tools";
 
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "answer" }),
   getExpressionsPartialPrompt(),
-  getComponentsPartialPrompt({
-    definitions: allDefinitions,
-    commonEvents: allCommonEventSchemas,
-  }),
+  getComponentsPartialPrompt({ definitions: allDefinitions }),
   getFunctionsPartialPrompt({ functions: tools }),
   getFencePartialPrompt(),
 ].join("\n\n");

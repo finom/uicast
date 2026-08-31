@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { GitHubIcon } from "nextra/icons";
+import { BetaBadge } from "./beta-badge";
 
 /**
  * The docs index doubles as the front door, so its first screen is a hero
@@ -13,9 +14,7 @@ export function Hero() {
     <div className="clear-both mb-12 flex flex-col items-center gap-4 border-b pb-12 pt-6 text-center">
       <h1 className="flex flex-wrap items-center justify-center gap-3 text-5xl font-bold tracking-tight sm:text-6xl">
         uicast
-        <span className="rounded-full border border-current px-3 py-1 align-middle text-sm font-semibold uppercase tracking-widest text-muted-foreground sm:text-base">
-          beta
-        </span>
+        <BetaBadge />
       </h1>
       <p className="text-balance text-lg font-medium text-muted-foreground sm:text-xl">
         The expression-driven generative UI framework

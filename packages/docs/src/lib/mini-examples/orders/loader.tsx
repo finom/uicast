@@ -1,7 +1,7 @@
 "use client";
 import type { ComponentEntry } from "@uicast/core";
 import { useEffect, useState } from "react";
-import { Orders } from "./renderer";
+import { Products } from "./renderer";
 
 /**
  * Docs-only. The example's entries are served as a static asset and loaded
@@ -18,5 +18,5 @@ export function OrdersLoader() {
       .then(setEntries);
   }, []);
 
-  return entries ? <Orders entries={entries} /> : null;
+  return entries ? <Products entries={entries} /> : null;
 }

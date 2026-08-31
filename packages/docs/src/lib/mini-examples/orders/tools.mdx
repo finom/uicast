@@ -2,27 +2,76 @@
 import z from "zod";
 import { standardTool } from "standard-tool";
 
-const ORDERS = [
-  { id: 7, customer: "Maya Chen", total: 40 },
-  { id: 8, customer: "Jonas Berg", total: 15 },
-  { id: 9, customer: "Priya Nair", total: 92 },
-  { id: 10, customer: "Tomas Ruiz", total: 28 },
+const PRODUCTS = [
+  { id: 7, name: "Filter Papers", price: 8, qty: 5 },
+  { id: 8, name: "Espresso Beans", price: 15, qty: 1 },
+  { id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 },
+  { id: 10, name: "Ceramic Mug", price: 14, qty: 2 },
 ];
 
-export const listOrders = standardTool({
-  name: "listOrders",
-  description: "The three most recent orders.",
+// The "database": hard-coded products, with edits kept as per-id overrides in
+// localStorage so they survive a reload.
+const KEY = "uicast-docs-products";
+
+type Override = { name?: string; price?: number; qty?: number };
+
+function readOverrides(): Record<string, Override> {
+  try {
+    return JSON.parse(localStorage.getItem(KEY) ?? "{}");
+  } catch {
+    return {};
+  }
+}
+
+export const listProducts = standardTool({
+  name: "listProducts",
+  description: "The three most recently stocked products.",
   outputSchema: z.array(
     z.object({
-      id: z.number().int().meta({ description: "Order id" }),
-      customer: z.string().meta({ description: "Who placed it" }),
-      total: z.number().meta({ description: "Order total, in dollars" }),
+      id: z.number().int().meta({ description: "Product id" }),
+      name: z.string().meta({ description: "Product name" }),
+      price: z.number().meta({ description: "Unit price, in dollars" }),
+      qty: z.number().meta({ description: "Quantity in the cart" }),
     }),
   ),
   async execute() {
     await new Promise((resolve) => setTimeout(resolve, 350));
-    ORDERS.splice(0, ORDERS.length, ...ORDERS.slice(1), ...ORDERS.slice(0, 1));
-    return ORDERS.slice(0, 3);
+    PRODUCTS.splice(
+      0,
+      PRODUCTS.length,
+      ...PRODUCTS.slice(1),
+      ...PRODUCTS.slice(0, 1),
+    );
+    const overrides = readOverrides();
+    return PRODUCTS.slice(0, 3).map((product) => ({
+      ...product,
+      ...overrides[product.id],
+    }));
+  },
+});
+
+export const updateProduct = standardTool({
+  name: "updateProduct",
+  description: "Update one product's name, unit price, or quantity.",
+  inputSchema: z.object({
+    id: z.number().int().meta({ description: "Product id" }),
+    name: z.string().optional().meta({ description: "New product name" }),
+    price: z.number().optional().meta({ description: "New unit price" }),
+    qty: z.number().optional().meta({ description: "New quantity" }),
+  }),
+  async execute({ id, name, price, qty }) {
+    const overrides = readOverrides();
+    overrides[id] = {
+      ...overrides[id],
+      ...(name !== undefined && { name }),
+      ...(price !== undefined && { price }),
+      ...(qty !== undefined && { qty }),
+    };
+    try {
+      localStorage.setItem(KEY, JSON.stringify(overrides));
+    } catch {
+      // Storage unavailable (private mode) — the edit still lives in state.
+    }
   },
 });
 ```

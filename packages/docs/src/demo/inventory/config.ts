@@ -1,10 +1,10 @@
 "use client";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
-import { inventoryFunctions } from "@/lib/functions";
 import { resetInventory, seedIfEmpty } from "@/lib/seed";
-import { inventoryLines } from "../inventory.lines";
-import { inventoryPrompt } from "../inventory.prompt";
 import type { DemoConfig } from "../types";
+import { inventoryFunctions } from "./functions";
+import { inventoryLines } from "./inventory.lines";
+import { inventoryPrompt } from "./inventory.prompt";
 
 /**
  * The original demo, now expressed as a {@link DemoConfig}. Its data layer

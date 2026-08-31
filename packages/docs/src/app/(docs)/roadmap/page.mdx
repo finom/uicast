@@ -1,13 +1,16 @@
 # Roadmap
 
-Where uicast is headed.
+Where **uicast** is headed.
 
 ## Reactive `loading` placeholders
 
-An element already shows a placeholder while an async
-[`seed`](/entry/fields#seed) resolves. A planned `loading` field would extend
-that to any condition: a bare [expression](/entry/expressions), evaluated like
-[`hidden`](/entry/fields#hidden), showing the placeholder while truthy. Where
-`hidden` toggles visibility, `loading` toggles the placeholder — a skeleton for
-refreshing data, without unmounting anything. *Placeholder machinery exists;
-schema, renderer and prompt: not started.*
+A `loading` field on the entry: a bare [expression](/entry/expressions),
+evaluated like [`hidden`](/entry/fields#hidden), showing the element's
+[placeholder](/react/renderer) while truthy — a skeleton over refreshing data,
+without unmounting anything.
+
+## Pure host functions in reactive sites
+
+An opt-in mark — `meta: { pure: true }` on the tool — declaring a host function
+synchronous, deterministic, and effect-free. Marked functions become callable
+in `props`, `hidden`, and `each`; unmarked ones stay rejected there.

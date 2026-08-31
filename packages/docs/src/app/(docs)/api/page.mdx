@@ -7,7 +7,7 @@ configuration is needed.
 | --- | --- |
 | [`@uicast/core`](#uicastcore) | The engine: entry types, the expression evaluator, reactive scopes, the prompt builders. No React. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
-| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | ~100 ready components as def/impl pairs, over shadcn/ui. |
+| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 150 ready components as def/impl pairs, over shadcn/ui. |
 | [`@uicast/streamdown`](#uicaststreamdown) | Renders `uicast` fences inside a Markdown chat reply. |
 
 ## `@uicast/core`
@@ -18,20 +18,21 @@ The engine, framework-agnostic. See [Core concepts](/concepts).
 
 | Export | What it does |
 |---|---|
-| `createComponentDefinition(def)` | Builds a [component definition](/def). Throws on a `children` prop or callback field. |
-| `NO_PROPS` | The props schema a def with no `props` falls back to. |
-| `evaluate(source, context, options?)` | Evaluates a [value source](/entry/value-sources) against `scopes` / `evt` / `currentValue`, with `options.functions` and `options.allowGlobals`. |
-| `extractDeps(entry)` | The reactive `scopes.X.Y` paths an entry reads across `props`, `hidden` and `each`. See [Reactivity](/entry/reactivity). |
-| `planStepWaves(steps, isBarrier?)` | Partitions `seed` / `callbacks` steps into [dependency waves](/entry/reactivity#effectful-sites-ordering). |
+| `createComponentDefinition(def)` | Builds a [component definition](/def). |
 | `createProxyScope(initial?)` | One reactive [scope](/entry/state): a proxied state bag that emits on write. |
-| `parseScope(key, prefix?)` | Splits a scope key: `"scopes.root.user.name"` → `["root", "user.name"]`. |
-| `buildElementsById(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry/fields#partial-replacement). |
-| `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding every parseable JSON value and skipping prose, blank lines and partial lines. |
+| `buildElementsByKey(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry/fields#partial-replacement). |
+| `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding each parseable JSON line and skipping prose and partial lines. |
 | `isComponentEntry`, `isComponentListEntry` | Runtime type guards. |
 | `EntryError` | The classified failure every fault arrives as. See [Error recovery](/error-recovery). |
 
 Types: `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
-`CombinedSpec`, `ReactiveProxy`, `EntryErrorReason`, `EntryFault`.
+`CombinedSpec`, `ValueSource`, `ValueSourceAssignment`,
+`ConfirmableValueSourceAssignment`, `ReactiveProxy`, `EntryErrorReason`,
+`EntryFault`.
+
+`@uicast/core/internal` holds the engine plumbing the React binding runs on
+(the evaluator, dependency extraction, wave planning). It carries **no semver
+guarantee** — don't build on it.
 
 ### `@uicast/core/prompt`
 
@@ -41,8 +42,8 @@ The [prompt-partial builders](/prompt). Each takes one options object.
 |---|---|
 | `getCommonInstructionsPartialPrompt()` | The output contract — entries, keys, partial replacement. |
 | `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
-| `getExpressionsPartialPrompt({ allowGlobals? })` | The [expression](/entry/expressions) rules and the safe globals. |
-| `getComponentsPartialPrompt({ definitions, commonEvents? })` | The component menu, from your [definitions](/def). |
+| `getExpressionsPartialPrompt({ allowGlobals?, extraScopes? })` | The [expression](/entry/expressions) rules, the safe globals, and any host scopes. |
+| `getComponentsPartialPrompt({ definitions })` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events` automatically. |
 | `getFunctionsPartialPrompt({ functions })` | Call signatures, from your [host functions](/functions). |
 | `getEditRequestPrompt({ request, missingKeys? })` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |
 | `getErrorRecoveryPrompt({ failures })` | A user-turn message naming the elements that failed. |
@@ -61,8 +62,8 @@ The React binding. Re-exports nothing from core — import from both.
 | `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair. See [impl](/react/impl). |
 
 Types: `ComponentImplementation`, `RendererProviderProps`,
-`EntriesRendererProps`, `FallbackComponents`, `ConfirmComponentProps`,
-`ErrorComponentProps`, `InitFn`, `InitContext`, `Scopes`.
+`EntriesRendererProps`, `FallbackComponents`, `PlaceholderComponentProps`,
+`ConfirmComponentProps`, `ErrorComponentProps`, `InitFn`, `InitContext`, `Scopes`.
 
 ## `@uicast/shadcn-catalog`
 
@@ -73,10 +74,10 @@ A ready catalog, and a demo of what one looks like. See
 |---|---|
 | `@uicast/shadcn-catalog/defs` | `allDefinitions`, plus every definition by name (`CardDef`, `ButtonDef`, …) — pass to `getComponentsPartialPrompt`. |
 | `@uicast/shadcn-catalog/impls` | `allImplementations`, plus every implementation by name — pass to `<RendererProvider>`. |
-| `@uicast/shadcn-catalog/events` | `allCommonEventSchemas`, for `commonEvents`. See [Shared events](/def#shared-events). |
+| `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema` — the shared event payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
 | `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
 | `@uicast/shadcn-catalog/ui/*` | The 37 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
-| `@uicast/shadcn-catalog/catalog.css` | Every utility the components use, with no palette — your `@theme` overrides all of it. |
+| `@uicast/shadcn-catalog/catalog.css` | Every utility the components use, with no palette — your `@theme` supplies all of it. |
 | `@uicast/shadcn-catalog/theme.css` | Optional baseline: preflight plus the shadcn palette. |
 
 ## `@uicast/streamdown`
@@ -87,8 +88,6 @@ Entries inside a ` ```uicast ` fence in a Markdown reply. See
 | Export | What it does |
 |---|---|
 | `createFenceRenderer(options?)` | The Streamdown renderer for `uicast` fences. Call once and reuse. |
-| `FENCE_LANGUAGE` | The fence token, `"uicast"`. |
-| `parseFenceCode(code, cache?)` | The fence-body parser, for a host rendering fences without Streamdown. |
 | `getFencePartialPrompt()` | From `@uicast/streamdown/prompt`: the fence syntax and shared-state rules. |
 
 Types: `FenceRendererOptions`.

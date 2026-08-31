@@ -76,17 +76,15 @@ To isolate documents instead, give each its own provider.
 - **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
   [below](#fallbackcomponents--the-engines-fallback-ui).
 - **`allowGlobals`** *(optional)* — extra expression globals; see
-  [below](#allowedglobals--extend-the-expression-allow-list).
-- **`init`** *(optional)* — a one-shot side effect for the whole group, to
-  preload state the documents read; see
+  [below](#allowglobals--extend-the-expression-allow-list).
+- **`init`** *(optional)* — a one-shot side effect for the whole group: preload
+  the state documents read, and optionally
+  [expose extra named scopes](#extra-named-scopes) beyond `root`. See
   [below](#init--preload-state-for-the-group) and
   [State &amp; Scopes](/entry/state).
 - **`onError`** *(optional)* — called once per classified failure: everything the
   `error` slot shows, **plus callback failures**, which render no slot at all. See
   [Error recovery](/error-recovery#classification-entryerror-and-onerror).
-- **`scopes`** *(optional)* — extra named scopes exposed alongside `root`, for
-  host context the documents may read; see
-  [below](#scopes--host-context-alongside-root).
 
 `<EntriesRenderer>` takes one prop, **`entries`**, memoized on the array
 reference — so a streaming line must arrive as a new array:
@@ -96,8 +94,8 @@ setEntries((prev) => [...prev, next]); // ✅ new reference — the line mounts
 entries.push(next); //                    ❌ same reference — nothing renders
 ```
 
-Settled subtrees do not re-render as later entries arrive. It throws if rendered
-outside a `<RendererProvider>`.
+Settled subtrees do not re-render as later entries arrive. `<EntriesRenderer>`
+throws if rendered outside a `<RendererProvider>`.
 
 ### Pass stable references
 
@@ -114,7 +112,7 @@ const functions = [listRows, deleteRow]; //                 ✅ module scope
 
 ### `functions` — callable from `seed` and `callbacks`
 
-Host functions appear in expressions as **bare identifiers**, called
+Host functions appear in expressions as **bare identifiers**, called as
 `name(input)`, and only in [`seed`](/entry/fields#seed) and
 [`callbacks`](/entry/fields#callbacks):
 
@@ -158,10 +156,12 @@ import {
   ConfirmModal,
   RenderError,
 } from "@uicast/shadcn-catalog/fallback-components";
+import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 
 <RendererProvider
   implementations={allImplementations}
   fallbackComponents={{
+    placeholder: () => <Skeleton className="h-8 w-full" />,
     confirm: ConfirmModal,
     error: RenderError,
   }}
@@ -170,10 +170,18 @@ import {
 </RendererProvider>;
 ```
 
-To write your own slot, match the props the engine passes. Both types are
-exported from `@uicast/react`:
+Each slot receives props. `placeholder` gets a `reason` — why it is showing, so
+you can draw a skeleton while data loads but nothing while a slot streams in.
+`confirm` and `error` carry their payloads. All three types are exported from
+`@uicast/react`:
 
 ```ts
+type PlaceholderComponentProps = {
+  reason: "streaming" | "seeding";
+  //       │             └─ the entry is here, its async `seed` / `init` is resolving
+  //       └─ the entry has not streamed in yet
+};
+
 type ConfirmComponentProps = {
   open: boolean;      // the dialog is always mounted; this toggles it
   message: string;    // the callback step's `confirm:` text
@@ -220,8 +228,6 @@ it:
 
 Cancel and neither step runs — a `confirm` step is a barrier.
 
-The `placeholder` slot takes **no props**.
-
 ### `allowGlobals` — extend the expression allow-list
 
 Expressions may reference only a fixed
@@ -267,18 +273,23 @@ returned Promise suspends the group, which shows the
 [`placeholder` slot](#fallbackcomponents--the-engines-fallback-ui) until it
 resolves.
 
-### `scopes` — host context alongside `root`
+### Extra named scopes
 
-Each value must be a scope built with [`createProxyScope`](/api#uicastcore); a plain
-object has no `$set` or `$emitter`. Captured on mount, so build it at module
-scope:
+`init` can also expose scopes beyond `root`. Build one with
+[`createProxyScope`](/api#uicastcore) above the provider — so you keep the
+handle — and assign it onto the `scopes` object `init` receives; it is present
+before any entry evaluates:
 
 ```tsx
 import { createProxyScope } from "@uicast/core";
 
 const userCtx = createProxyScope({ name: "Hopper", plan: "pro" });
 
-<RendererProvider implementations={implementations} scopes={{ userCtx }}>
+const init: InitFn = ({ scopes }) => {
+  scopes.userCtx = userCtx;
+};
+
+<RendererProvider implementations={implementations} init={init}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -290,18 +301,25 @@ An entry reads it exactly like `root`:
   "props": { "expr": "({ text: 'Hi ' + scopes.userCtx.name })" } }
 ```
 
-**Tell the model it exists.** No prompt builder reads this prop, so a model that
-was never told will never emit `scopes.userCtx`. Describe it through
-`getScopePartialPrompt`'s `note`, which is appended verbatim:
+Because you hold `userCtx`, host code can update it whenever —
+`userCtx.plan = "free"` — and every document reading it re-renders. That is the
+reason to inject a scope rather than just seed `scopes.root` in `init`: a living
+handle the host can drive from outside a document.
+
+**Tell the model it exists.** No prompt builder knows about a scope you inject,
+so a model never told about it will never emit `scopes.userCtx`. List it with
+`getExpressionsPartialPrompt`'s `extraScopes`:
 
 ```ts
-getScopePartialPrompt({
-  kind: "page",
-  note: "A read-only scope `scopes.userCtx` is available: `name` (string) and `plan` ('free' | 'pro'). Read it for greetings and gating; never write to it.",
+getExpressionsPartialPrompt({
+  extraScopes: [
+    { name: "userCtx", description: "the signed-in user: name (string), plan ('free' | 'pro'); read-only" },
+  ],
 });
 ```
 
-Nothing checks that the note and the object agree. Keep them in step yourself.
+Nothing checks that the description and the object agree. Keep them in step
+yourself.
 
 ## Where to go next
 

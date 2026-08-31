@@ -5,7 +5,6 @@ import { countLines } from "./count-lines";
 import { demoLines } from "./demo-lines";
 import { formLines } from "./form-lines";
 import { listLines } from "./list-lines";
-import { nastenkaLines } from "./nastenka-lines";
 import { tableLines } from "./table-lines";
 
 export {
@@ -15,7 +14,6 @@ export {
   demoLines,
   formLines,
   listLines,
-  nastenkaLines,
   tableLines,
 };
 

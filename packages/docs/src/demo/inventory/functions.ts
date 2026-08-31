@@ -1,6 +1,6 @@
 import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
-import { db, type Product } from "./db";
+import { db, type Product } from "@/lib/db";
 
 /**
  * The host functions exposed to expressions via `<RendererProvider functions=…>`.

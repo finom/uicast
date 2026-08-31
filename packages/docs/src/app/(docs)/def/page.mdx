@@ -5,7 +5,7 @@ A catalog component is a **pair**: `def.ts` is the half the model reads,
 framework-agnostic, and another binding would pair it with its own
 implementation). An [entry](/entry/fields)'s
 [`component`](/entry/fields#component), [`props`](/entry/fields#props), and
-[`callbacks`](/entry/fields#callbacks) all name into the definition — it is the
+[`callbacks`](/entry/fields#callbacks) all point into the definition — it is the
 contract saying a component exists, what props it takes, and what events it
 sends. Everything the model knows about a component comes from here.
 
@@ -15,7 +15,7 @@ interface ComponentDefinition {
   description: string;   // prose the model reads to decide when to use it
   props: StandardSchemaV1 & StandardJSONSchemaV1; // the props object
   callbacks?: Record<string, StandardSchemaV1 & StandardJSONSchemaV1>; // event → payload
-  hidden?: boolean;      // host-only — kept out of the model's prompt
+  hidden?: boolean;      // kept out of the model's prompt, still renderable
 }
 ```
 
@@ -70,7 +70,7 @@ above into:
 ```
 
 Describe **every** field with `.meta` — an undescribed one prints as a bare type,
-and the model is left guessing which of the four a paid order wants.
+and the model is left guessing which variant a paid order wants.
 `.default("neutral")` marks `variant` optional for the model, prints as `=
 "neutral"` so the model knows what omitting it gives, and supplies that value
 when an entry does omit it — props are parsed through this schema before
@@ -90,7 +90,7 @@ prop of the wrong type still fails — that is the one that breaks rendering.
 **Never `children`.** That name is the entry field listing child element keys, so
 a def declaring it as a prop throws on creation. Name the prop for what it holds
 — `text`, `title`, `label`. Nested elements still reach the implementation as
-React `children`, see [`impl.tsx`](/react/impl).
+React `children` — see [`impl.tsx`](/react/impl).
 
 ## `callbacks` — event payloads
 An optional map of event name to payload schema. Each declares the shape of
@@ -160,12 +160,11 @@ createComponentDefinition({
   // …
   callbacks: { onKeyDown: keyboardEventSchema },
 });
-
-// and once, where the prompt is assembled
-getComponentsPartialPrompt({ definitions, commonEvents: [keyboardEventSchema] });
 ```
 
-The fields now print once, and each handler is one line — `onKeyDown(evt: KeyboardEvent)`:
+The `$id` is the whole signal — `getComponentsPartialPrompt` finds it on the
+callback and hoists the payload automatically, nothing else to pass. The fields
+now print once, and each handler is one line — `onKeyDown(evt: KeyboardEvent)`:
 
 ```
 # Common Events
@@ -175,9 +174,9 @@ The fields now print once, and each handler is one line — `onKeyDown(evt: Keyb
   - repeat: boolean — Whether the key is auto-repeating
 ```
 
-Matching is on `$id` alone. Leave the schema out of `commonEvents` and its
-fields inline under every handler instead; a common event with no `$id`, or two
-sharing one, throws at assembly.
+A payload with no `$id` prints inline under every handler instead. Two callbacks
+naming the same `$id` with different payloads throw at assembly — a shared `$id`
+must mean one shape.
 
 The implementation still owes that exact payload, since a React event object is
 not it:
@@ -191,10 +190,10 @@ createComponentImplementation({
 });
 ```
 
-## `hidden` — host-only components
+## `hidden` — keep a def out of the prompt
 `hidden: true` keeps a def out of the prompt while leaving it in the renderer's
 registry: an entry naming it still mounts, but the model is never told it
-exists.
+exists. The engine's own RootFragment uses it.
 
 ## Registration
 A definition does nothing until it is registered twice: once for the prompt,

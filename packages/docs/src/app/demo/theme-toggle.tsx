@@ -18,17 +18,9 @@ const THEMES = [
 ] as const;
 
 /**
- * Theme switcher covering all three next-themes modes — Light, Dark, and System
- * (follow the OS). A plain light/dark toggle can't express "System", so once
- * clicked the user could never get back to following the OS; the menu makes all
- * three reachable and the radio group marks the active one.
- *
- * The trigger shows the icon of the *chosen* mode (so "System" is visible at a
- * glance, not hidden behind whatever it resolved to). The chosen theme is only
- * known on the client, so the trigger icon stays invisible until mounted — that
- * keeps SSR and the first client render identical (no hydration mismatch). The
- * menu items live in a portal that only renders on open, so they don't affect
- * hydration.
+ * Light / Dark / System menu — a plain toggle can't express System. The chosen
+ * theme is client-only, so the trigger icon stays invisible until mounted,
+ * keeping SSR and the first client render identical.
  */
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();

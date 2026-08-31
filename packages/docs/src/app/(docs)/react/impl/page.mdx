@@ -2,7 +2,8 @@
 
 A component is a **pair**: a [definition](/def) the model reads, and an
 implementation React runs. The def says what the component is; the impl decides
-what it renders, usually by wrapping a real React component.
+what it renders — a wrapper over a component from your design system, or plain
+markup.
 
 ```tsx filename="src/uicast/badge/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
@@ -17,9 +18,8 @@ export const BadgeImpl = createComponentImplementation({
 });
 ```
 
-`createComponentImplementation` comes from `@uicast/react`, not core — core stays
-framework-agnostic. It takes the `def` and a `render` function and returns the
-implementation you register.
+`createComponentImplementation` comes from `@uicast/react`. It takes the `def`
+and a `render` function and returns the implementation you register.
 
 ## The render function
 
@@ -57,7 +57,7 @@ export const SearchInputImpl = createComponentImplementation({
       <Input
         value={String(value ?? "")}
         onChange={(e) => onChange({ value: e.target.value })}
-        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+        onKeyDown={(e) => onKeyDown({ key: e.key, repeat: e.repeat })}
       />
       <button onClick={() => onClear()}>clear</button>
     </div>
@@ -66,25 +66,27 @@ export const SearchInputImpl = createComponentImplementation({
 ```
 
 `onChange({ value: … })` passes exactly the shape the def declared, which is why
-the model's `evt.value` resolves. A React event object is not a payload, so a
-shared event needs narrowing to the declared fields first — `pickKeyboardEvent`
-above is a local helper doing exactly that, one line per field in the
+the model's `evt.value` resolves. A React event object is not a payload, so
+narrow it to the declared fields yourself — the `onKeyDown` handler builds
+`{ key, repeat }` by hand, one entry per field in the
 [common-event schema](/def#callbacks--event-payloads).
 
 ## Placeholder
 
 An optional `placeholder` fills a component's **content** while something is
-still missing. Three cases, all inside an already-mounted parent:
+still missing. Two cases, both inside an already-mounted parent:
 
 - a child entry has not streamed in yet — the **parent's** placeholder fills the
   empty slot, since the missing child has no implementation to ask;
 - the element's own `seed` is still running, when it calls an async host
-  function;
-- the group's [`init`](/react/renderer#init--preload-state-for-the-group) is
-  still running, which fills every pending slot in the group at once.
+  function.
 
-A component's placeholder never covers its own arrival — that gap belongs to its
-parent.
+The placeholder is passed `{ reason: "streaming" | "seeding" }` — the two cases
+above — so one function can draw a different loader for each.
+
+(A pending group [`init`](/react/renderer#init--preload-state-for-the-group)
+suspends whole documents behind the global `fallbackComponents.placeholder`
+only — per-component placeholders play no part there.)
 
 ```tsx filename="src/uicast/card/impl.tsx"
 export const CardImpl = createComponentImplementation({

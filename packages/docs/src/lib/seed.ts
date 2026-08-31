@@ -5,7 +5,7 @@ const SEED_COUNT = 48;
 
 function makeProducts(count: number): NewProduct[] {
   // Fixed seed → the same catalog on every machine, so the data sample embedded
-  // in the demo prompt (see src/demo/inventory.prompt.ts) always matches the
+  // in the demo prompt (see src/demo/inventory/inventory.prompt.ts) always matches the
   // rows that actually land in the database.
   faker.seed(123);
   return Array.from({ length: count }, () => ({

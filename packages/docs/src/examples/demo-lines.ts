@@ -121,7 +121,7 @@ export const demoLines: ComponentEntry[] = [
     component: "Tabs",
     props: { expr: "({value: scopes.root.activeTab})" },
     callbacks: {
-      onValueChange: [{ set: "scopes.root.activeTab", expr: "evt.value" }],
+      onChange: [{ set: "scopes.root.activeTab", expr: "evt.value" }],
     },
     children: ["tab-list", "tab-content-tasks", "tab-content-team"],
   },

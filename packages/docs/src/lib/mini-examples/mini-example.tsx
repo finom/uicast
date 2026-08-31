@@ -52,8 +52,8 @@ const KEY_TIPS: Record<string, string> = {
   onClick: "An event handler; its assignments run on click.",
 };
 
-// Lightweight token highlighter (ported from the design). Emits `tk-*` spans the
-// stylesheet colours per theme — kept local so docs code stays framework-free.
+// Lightweight token highlighter. Emits `tk-*` spans that the stylesheet
+// colours per theme — kept local so docs code stays framework-free.
 function highlight(code: string, lang: Lang): string {
   if (lang === "md") {
     return code
@@ -293,7 +293,7 @@ const CSS = `
 .mini-example .mx-switch-btn+.mx-switch-btn{border-left:1px solid var(--code-border)}
 .mini-example .mx-switch-btn[data-active=true]{background:var(--accent-soft);color:var(--accent)}
 .mini-example .mx-switch-btn:not([data-active=true]):hover{color:var(--text)}
-.mini-example .mx-pre{margin:0;padding:14px 16px;overflow:auto;font:500 12.5px/1.65 'IBM Plex Mono',monospace;color:var(--text)}
+.mini-example .mx-pre{margin:0;padding:14px 16px;overflow:auto;max-height:1000px;font:500 12.5px/1.65 'IBM Plex Mono',monospace;color:var(--text)}
 .mini-example .mx-pre code{font:inherit;display:block;white-space:pre}
 .mini-example .mx-stack{display:grid}
 .mini-example .mx-stack>.mx-pre{grid-area:1/1;min-width:0}

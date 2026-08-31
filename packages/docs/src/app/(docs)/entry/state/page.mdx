@@ -43,7 +43,7 @@ the active tab, which modal is open — all here:
 Every other scope belongs to a list item or comes from the host. `root` belongs
 to the [`<RendererProvider>`](/react/renderer), not to one document, so every
 document under one provider shares it. On a chat surface that is what lets
-blocks share live state.
+[blocks](/streamdown) share live state.
 
 ## Item scopes
 
@@ -83,23 +83,36 @@ it silently shadows:
 
 ## Reaching across rows
 
-To read *across* rows — a sum, a count — use **`childScopes`**, the array of the
-rows' live scopes. The list publishes it *after* it commits, so read it from a
-`callbacks` step and park the result on a plain path:
+An aggregate — a sum, a count — reads the **source array**:
 
 ```jsonc
-{ "key": "orders", "component": "Card",
-  "each": "scopes.root.orders", "as": "order", "keyBy": "id", "children": ["order-title"] }
-{ "key": "recount", "component": "Button", "props": { "literal": { "text": "Recount" } },
-  "callbacks": { "onClick": [
-    { "set": "scopes.root.total",
-      "expr": "scopes.root.childScopes.order.reduce((s, o) => s + o.item.total, 0)" }] } }
-{ "key": "total", "component": "Text", "props": { "expr": "({ text: scopes.root.total })" } }
+{ "key": "total", "component": "Text", "props": { "expr":
+  "({ text: scopes.root.orders.reduce((s, o) => s + o.qty * o.price, 0) })" } }
 ```
 
-`childScopes.<as>` lives on the scope *containing* the list. Each entry is itself
-a full scope, so the chain continues:
+A row edit through its item scope counts as a write to that array
+([Reactivity](/entry/reactivity#reactive-sites-subscriptions)), so this
+recomputes on every edit, add, and remove.
+
+**`childScopes`** is the escape hatch for state that exists only *inside* the
+rows — per-row flags like `scopes.order.expanded`, written by callbacks, absent
+from the source array. It is the array of the rows' live scopes, on the scope
+*containing* the list; each entry is a full scope, so the chain continues:
 `scopes.root.childScopes.order[0].childScopes.line[0]`.
+
+```jsonc
+{ "key": "open-count", "component": "Text", "props": { "expr":
+  "({ text: (scopes.root.childScopes?.order ?? []).filter(o => o.expanded).length + ' open' })" } }
+```
+
+A write into any row's scope — a flag flipping — wakes this reader.
+
+Two rules when you read it:
+
+- **Guard it** — the key does not exist until the list has rendered, and an
+  unguarded read on that first pass throws into the error slot.
+- **Keep data out of it** — a total or a count reads the source array above.
+  The data lives there, and the read needs no guard.
 
 ## Reading and writing
 
@@ -112,25 +125,32 @@ a full scope, so the chain continues:
 A `set` path whose parent is not set throws, so seed the container first:
 
 ```jsonc
-// ❌ nothing seeded `tags` — this fails instead of guessing a shape
-{ "set": "scopes.root.tags.0", "literal": "new" }
+// ❌ nothing seeded `filters` — this fails instead of guessing a shape
+{ "set": "scopes.root.filters.status", "literal": "open" }
 
-// ✅ seed the real array, then replace the whole array.
-{ "set": "scopes.root.tags", "literal": [] }                          // in `seed`
-{ "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" } // in a callback
+// ✅ seed the container, then write into it
+{ "set": "scopes.root.filters", "literal": {} }             // in `seed`
+{ "set": "scopes.root.filters.status", "literal": "open" }  // in a callback
 ```
 
-Subscriptions run **one way, downward**. A reader is notified when its own path
-is written, or any path above it — never a path below it.
+Writes wake **downward only**: a write wakes readers of that path and of
+everything under it — never above it. Writing `filters.status` above never
+wakes a reader of `filters`. Not a proxy limitation — a choice: waking upward
+would mean one deep write redraws every reader of every container above it. So
+when a container's readers must see a change, **replace the container**.
+
+An array makes this trap too easy to hit — poke one row by index, and the list
+and every total reading the array would stay stale — so a numeric key in a
+`set` path is rejected outright:
 
 ```jsonc
-{ "set": "scopes.root.rows", "expr": "listRows()" }  // notifies a reader of scopes.root.rows.length
-{ "set": "scopes.root.rows.0.qty", "literal": 3 }    // notifies nothing reading scopes.root.rows
+{ "set": "scopes.root.rows", "expr": "listRows()" }  // ✅ notifies every reader of the array
+{ "set": "scopes.root.rows.0.qty", "literal": 3 }    // ❌ rejected — numeric key in a set path
 ```
 
-So **replace the whole array or object**, rather than writing into it. That is
-what a mutate-then-refetch callback already produces, and it notifies every
-reader below the path. See [Reactivity & Dependencies](/entry/reactivity).
+Edit a row through its item scope instead — a `scopes.<as>.item.*` write counts
+as a write to the list's source array — or replace the array with `.map(...)`.
+See [Reactivity & Dependencies](/entry/reactivity).
 
 ## Lifecycle
 
@@ -153,25 +173,14 @@ path defined and writes nothing — a no-op, not an error. The same `set` in a
 `callbacks` step would write `price`. This is also why a value the user changed
 survives a re-mount instead of snapping back.
 
-State can also come from the host. [`<RendererProvider>`](/react/renderer) takes
-two ways in:
+State can also come from the host through
+[`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group):
+it preloads `scopes.root` once before any entry evaluates, and can
+[expose extra named scopes](/react/renderer#extra-named-scopes) alongside `root`
+(read as `scopes.userCtx.name`) — a proxy the host keeps and can update later.
 
-```tsx
-<RendererProvider
-  implementations={allImplementations}
-  scopes={{ userCtx: createProxyScope({ id: 7, name: "Ada" }) }}
-  init={({ scopes }) => {
-    (scopes.root as Record<string, unknown>).theme = "dark";
-  }}
->
-  <EntriesRenderer entries={entries} />
-</RendererProvider>
-```
-
-`scopes` adds named containers alongside `root`, captured on mount; entries read
-them as `scopes.userCtx.name`. `init` runs once before any entry evaluates and
-writes straight through the live proxy — unconditionally, unlike a seed, so a
-later `seed` for the same path is a no-op.
-
-Any extra scope you pass must also be described in your system prompt; the
-prompt builders only know about `root` and the list scopes.
+Declare any extra scope to the model too —
+`getExpressionsPartialPrompt({ extraScopes: [{ name: "userCtx", description: "the signed-in user: name (string), plan ('free' | 'pro')" }] })`
+lists it next to `root`, so the prompt's "invent no other scope" rule stays
+consistent with your setup. The description is all the model ever sees of the
+scope, so spell out its shape in it.

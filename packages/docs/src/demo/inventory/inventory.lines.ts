@@ -13,7 +13,7 @@ import type { ComponentEntry } from "@uicast/core";
  *   read whole-array paths that the CRUD callbacks re-write wholesale — which
  *   is what makes the UI stay in sync after add/edit/delete.
  * - List items are read as `scopes.row.item.*`.
- * - `seed` whose expr returns a Promise suspend that element (Suspense),
+ * - `seed` whose expr returns a Promise suspends that element (Suspense),
  *   showing a placeholder until the data resolves — the async-seed showcase.
  */
 export const inventoryLines: ComponentEntry[] = [

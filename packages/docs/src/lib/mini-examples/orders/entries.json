@@ -2,37 +2,76 @@
   {
     "key": "card",
     "component": "Card",
-    "seed": [{ "set": "scopes.root.orders", "expr": "listOrders()" }],
-    "children": ["title", "refresh", "rows", "total"]
+    "seed": [{ "set": "scopes.root.products", "expr": "listProducts()" }],
+    "children": ["title", "refresh", "rows", "total", "editor"]
   },
   {
     "key": "title",
     "component": "Heading",
-    "props": { "expr": "({ text: scopes.root.orders.length + ' orders' })" }
+    "props": { "expr": "({ text: scopes.root.products.length + ' products' })" }
   },
   {
     "key": "refresh",
     "component": "Button",
     "props": { "literal": { "label": "Refresh" } },
     "callbacks": {
-      "onClick": [{ "set": "scopes.root.orders", "expr": "listOrders()" }]
+      "onClick": [{ "set": "scopes.root.products", "expr": "listProducts()" }]
     }
   },
   {
     "key": "rows",
-    "component": "OrderRow",
-    "each": "scopes.root.orders",
-    "as": "order",
+    "component": "ProductRow",
+    "each": "scopes.root.products",
+    "as": "product",
     "keyBy": "id",
     "props": {
-      "expr": "({ customer: scopes.order.item.customer, total: scopes.order.item.total })"
+      "expr": "({ name: scopes.product.item.name, price: scopes.product.item.price, qty: scopes.product.item.qty })"
+    },
+    "callbacks": {
+      "onQtyChange": [
+        { "set": "scopes.product.item.qty", "expr": "evt.value" },
+        { "expr": "updateProduct({ id: scopes.product.id, qty: evt.value })" }
+      ],
+      "onEdit": [
+        { "set": "scopes.root.draftName", "expr": "scopes.product.item.name" },
+        { "set": "scopes.root.draftPrice", "expr": "scopes.product.item.price" },
+        { "set": "scopes.root.editingId", "expr": "scopes.product.id" }
+      ]
     }
   },
   {
     "key": "total",
     "component": "Heading",
     "props": {
-      "expr": "({ text: '$' + (scopes.root.childScopes?.order ?? []).reduce((sum, s) => sum + s.item.total, 0) + ' total' })"
+      "expr": "({ text: '$' + scopes.root.products.reduce((sum, p) => sum + p.price * p.qty, 0) + ' total' })"
+    }
+  },
+  {
+    "key": "editor",
+    "component": "EditDialog",
+    "hidden": "!scopes.root.editingId",
+    "seed": [
+      { "set": "scopes.root.draftName", "literal": "" },
+      { "set": "scopes.root.draftPrice", "literal": 0 }
+    ],
+    "props": {
+      "expr": "({ name: scopes.root.draftName, price: scopes.root.draftPrice })"
+    },
+    "callbacks": {
+      "onNameChange": [{ "set": "scopes.root.draftName", "expr": "evt.value" }],
+      "onPriceChange": [{ "set": "scopes.root.draftPrice", "expr": "evt.value" }],
+      "onSave": [
+        {
+          "confirm": "Apply these changes to the product?",
+          "set": "scopes.root.products",
+          "expr": "scopes.root.products.map(p => p.id === scopes.root.editingId ? { ...p, name: scopes.root.draftName, price: scopes.root.draftPrice } : p)"
+        },
+        {
+          "expr": "updateProduct({ id: scopes.root.editingId, name: scopes.root.draftName, price: scopes.root.draftPrice })"
+        },
+        { "set": "scopes.root.editingId", "literal": null }
+      ],
+      "onCancel": [{ "set": "scopes.root.editingId", "literal": null }]
     }
   }
 ]

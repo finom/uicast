@@ -7,7 +7,7 @@ through all three. This page follows a single event across them.
 
 ## The same event in three places
 
-`onChange` on a search box: declared once, fired once, handled once.
+`onChange` on a search box, in the def, the impl, and the entry:
 
 ```ts filename="def.ts"
 createComponentDefinition({
@@ -39,7 +39,7 @@ createComponentImplementation({
 } }
 ```
 
-The model never sees the def, only what `getComponentsPartialPrompt` prints:
+In the prompt:
 
 ```
   Event handlers:
@@ -48,16 +48,10 @@ The model never sees the def, only what `getComponentsPartialPrompt` prints:
     - onKeyDown(evt: KeyboardEvent)
 ```
 
-`onKeyDown` costs one line because `keyboardEventSchema` is a **common event**: a
-payload printed once for the whole catalog instead of re-inlined on every
-component that fires it. That takes two things, and neither alone is enough:
-
-1. the payload schema carries a JSON Schema **`$id`** — `.meta({ $id: "KeyboardEvent" })`;
-2. that same schema is passed to `getComponentsPartialPrompt` as **`commonEvents`**.
-
-Matching is on `$id` alone, and an unregistered payload just inlines as usual.
-One with no `$id`, or two sharing one, throws at assembly. The shadcn catalog
-ships `allCommonEventSchemas` ready to pass. See [Shared events](/def).
+`onKeyDown` costs one line because `keyboardEventSchema` is a **common event**:
+a payload printed once for the whole catalog instead of re-inlined on every
+component that fires it. Giving the schema a `$id` is all it takes — declaring
+one is covered in [Shared events](/def#shared-events).
 
 ## Following one keystroke
 
@@ -90,9 +84,8 @@ When the impl calls a callback, the **engine** runs the entry's steps, not the
 component. It:
 
 1. binds the impl's payload as `evt`;
-2. runs the steps in **[dependency waves](/entry/reactivity)** — a step reading a
-   path an earlier step wrote waits for that write, and so does any host-function
-   step, so mutations never race. Independent steps run together;
+2. runs the steps in **[dependency waves](/entry/reactivity#effectful-sites-ordering)**
+   — host-function steps are barriers, so mutations never race;
 3. evaluates each `expr` against `evt`, `scopes`, the host functions, and
    `currentValue`, then writes the result to the step's `set` path;
 4. asks first if a step carries a `confirm`; on cancel, that step **and every one
@@ -103,31 +96,9 @@ component. It:
 Every callback the def declares is callable, whether or not the entry wired it.
 An unwired one is a no-op, so [implementations](/react/impl) never guard.
 
-## Why it's split this way
-
-The split is what makes model-authored behaviour safe.
-
-- **The schema is the shared vocabulary.** It goes into the model's prompt and
-  type-checks against the impl, so the `evt` the model reads and the payload the
-  impl sends come from one declaration. The engine parses the payload through it
-  before the steps run, so a payload missing a field fails loudly instead of
-  reaching the model's expression as `undefined`.
-- **The impl only sends the payload.** It turns a React event into a payload and knows
-  nothing about the reaction. The reaction lives in the entry, as data, which is
-  what lets a model express behaviour without touching React.
-- **One mechanism covers every interaction.** A DOM-ish payload (`evt.value`), a
-  record (`{ hex, h, s, l }`), a range (`{ from, to }`) all travel the same
-  def → impl → entry path. There is no separate custom-event API.
-- **Effects are explicit and reactive.** Steps are
-  [pure expressions](/entry/expressions), and the only way to change document
-  state is `set`. So the evaluator that computes `props` also runs events, and
-  [reactivity](/entry/reactivity) comes free: a `set` writes a path, and every
-  expression reading it re-renders. No event bus, no manual subscriptions.
-
-
 ## Common patterns
 
-**Side-effect step** — no `set`, so the result is evaluated and discarded:
+**Side-effect step** — no `set`, so the result is discarded:
 
 ```jsonc
 { "expr": "track({ event: 'search' })" }

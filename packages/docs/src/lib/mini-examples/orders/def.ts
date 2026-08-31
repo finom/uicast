@@ -28,12 +28,39 @@ export const ButtonDef = createComponentDefinition({
   },
 });
 
-// order-row/def.ts
-export const OrderRowDef = createComponentDefinition({
-  name: "OrderRow",
-  description: "One order: who placed it and what it came to.",
+// product-row/def.ts
+export const ProductRowDef = createComponentDefinition({
+  name: "ProductRow",
+  description: "One product: its name, unit price, and an editable quantity.",
   props: z.object({
-    customer: z.string().meta({ description: "Who placed the order" }),
-    total: z.number().meta({ description: "Order total, in dollars" }),
+    name: z.string().meta({ description: "Product name" }),
+    price: z.number().meta({ description: "Unit price, in dollars" }),
+    qty: z.number().meta({ description: "Quantity in the cart" }),
   }),
+  callbacks: {
+    onQtyChange: z.object({
+      value: z.number().meta({ description: "The new quantity" }),
+    }),
+    onEdit: z.null().meta({ description: "Fires when the edit button is pressed" }),
+  },
+});
+
+// edit-dialog/def.ts
+export const EditDialogDef = createComponentDefinition({
+  name: "EditDialog",
+  description: "A modal editing a product's name and unit price.",
+  props: z.object({
+    name: z.string().meta({ description: "The product name being edited" }),
+    price: z.number().meta({ description: "The unit price being edited" }),
+  }),
+  callbacks: {
+    onNameChange: z.object({
+      value: z.string().meta({ description: "The new name" }),
+    }),
+    onPriceChange: z.object({
+      value: z.number().meta({ description: "The new price" }),
+    }),
+    onSave: z.null().meta({ description: "Fires on Save" }),
+    onCancel: z.null().meta({ description: "Fires on Cancel" }),
+  },
 });

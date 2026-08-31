@@ -5,8 +5,14 @@ import {
 import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
 import { MiniExample, type SetupPart } from "../mini-example";
 import { OrdersLoader } from "./loader";
-import { ButtonDef, CardDef, HeadingDef, OrderRowDef } from "./def";
-import { listOrders } from "./tools";
+import {
+  ButtonDef,
+  CardDef,
+  EditDialogDef,
+  HeadingDef,
+  ProductRowDef,
+} from "./def";
+import { listProducts, updateProduct } from "./tools";
 import DefMdx from "./def.mdx";
 import ImplMdx from "./impl.mdx";
 import ToolsMdx from "./tools.mdx";
@@ -17,9 +23,9 @@ import orderEntries from "./entries.json";
 
 const PROMPT = [
   getComponentsPartialPrompt({
-    definitions: [CardDef, HeadingDef, ButtonDef, OrderRowDef],
+    definitions: [CardDef, HeadingDef, ButtonDef, ProductRowDef, EditDialogDef],
   }),
-  getFunctionsPartialPrompt({ functions: [listOrders] }),
+  getFunctionsPartialPrompt({ functions: [listProducts, updateProduct] }),
 ].join("\n\n");
 
 const setup: SetupPart[] = [
