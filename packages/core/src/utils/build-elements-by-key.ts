@@ -1,10 +1,10 @@
 import type { ComponentEntry } from "../types";
 
 /**
- * Collect all descendant IDs of a given entry (not including the entry itself)
- * by walking its children array recursively.
+ * Collect all descendant keys of an entry (not including the entry itself)
+ * by walking its children arrays recursively.
  */
-function collectDescendantIds(
+function collectDescendantKeys(
   id: string,
   map: Record<string, ComponentEntry>,
 ): Set<string> {
@@ -26,9 +26,9 @@ function collectDescendantIds(
 }
 
 /**
- * Build an elements-by-key map from the NDJSON lines array.
+ * Build an elements-by-key map from the document's entries.
  *
- * When an entry with a duplicate key is encountered (i.e. the LLM re-emits a
+ * When an entry with a duplicate key is encountered (i.e. the LLM re-emits an
  * entry to correct a mistake), the old subtree is removed before inserting
  * the replacement — except old nodes the new `children` array still
  * references (directly or through a kept child), which survive with their
@@ -36,14 +36,14 @@ function collectDescendantIds(
  * that entry, keeping existing children by reference, without regenerating
  * the entire tree.
  */
-export function buildElementsById(
+export function buildElementsByKey(
   lines: ComponentEntry[],
 ): Record<string, ComponentEntry> {
   const map: Record<string, ComponentEntry> = {};
 
   for (const line of lines) {
     if (map[line.key]) {
-      const oldDescendants = collectDescendantIds(line.key, map);
+      const oldDescendants = collectDescendantKeys(line.key, map);
       const kept = new Set<string>();
       const stack = [...(line.children ?? [])];
       while (stack.length > 0) {

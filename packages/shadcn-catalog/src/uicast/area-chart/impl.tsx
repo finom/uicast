@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { AreaChartDef } from "./def";
 
 export const AreaChartImpl = createComponentImplementation({
@@ -23,15 +24,7 @@ export const AreaChartImpl = createComponentImplementation({
     curved,
     generatedKey,
   }) => {
-    const defaultColors = [
-      "#8884d8",
-      "#82ca9d",
-      "#ffc658",
-      "#ff7300",
-      "#0088fe",
-      "#00c49f",
-    ];
-    const areaColors = colors ?? defaultColors;
+    const areaColors = colors ?? defaultChartColors;
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
         <RechartsAreaChart data={data}>

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { ComponentEntry } from "@uicast/core";
+import { createProxyScope, type ComponentEntry } from "@uicast/core";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 
@@ -91,6 +91,35 @@ describe("RendererProvider — shared group store", () => {
     expect(init).toHaveBeenCalledTimes(1);
     expect(container.textContent).toContain("a:yes");
     expect(container.textContent).toContain("b:yes");
+  });
+
+  it("init can add a named host scope that documents read, and the host keeps the handle", () => {
+    const userLines: ComponentEntry[] = [
+      {
+        key: "who",
+        component: "Box",
+        props: { expr: "({ text: 'user:' + scopes.userCtx.name })" },
+      },
+    ];
+    // The host owns the proxy above the provider and injects it in `init`, so it
+    // is present before any entry evaluates — and the host can update it later.
+    const userCtx = createProxyScope<{ name: string }>({ name: "Hopper" });
+    const { container } = render(
+      <RendererProvider
+        implementations={defaultImplementationsList}
+        init={({ scopes }) => {
+          (scopes as Record<string, unknown>).userCtx = userCtx;
+        }}
+      >
+        <EntriesRenderer entries={userLines} />
+      </RendererProvider>,
+    );
+    expect(container.textContent).toContain("user:Hopper");
+
+    act(() => {
+      userCtx.name = "Lovelace";
+    });
+    expect(container.textContent).toContain("user:Lovelace");
   });
 
   it("throws a clear error outside a RendererProvider", () => {

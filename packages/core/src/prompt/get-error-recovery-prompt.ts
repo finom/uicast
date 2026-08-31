@@ -1,8 +1,16 @@
+import {
+	type EntryErrorReason,
+	FAULT_BY_REASON,
+	REASON_DESCRIPTIONS,
+} from "../entry-error";
+
 export type RenderFailure = {
 	/** The `key` of the element whose render failed. */
 	key: string;
 	/** The runtime error message, verbatim. */
 	message: string;
+	/** The failure's `EntryError.reason`, when the host has it — annotates the line with what that class of failure means. */
+	reason?: EntryErrorReason;
 };
 
 export type ErrorRecoveryPromptOptions = {
@@ -11,14 +19,9 @@ export type ErrorRecoveryPromptOptions = {
 };
 
 /**
- * The user-turn message for user-triggered error recovery: an element failed
- * at runtime (its error slot rendered), and the host asks the model to re-emit
- * it corrected. Deliberately surface-neutral — it states the failures and the
- * fix request, while the output conventions come from the surface's own
- * prompt: on a page surface the host passes this through its edit pipeline
- * (replayed document + `getEditRequestPrompt`, which carries the delta
- * convention), on a chat surface it goes out as a plain user message and the
- * model replies with a corrected fence.
+ * The user-turn message for error recovery: an element failed at runtime and
+ * the host asks the model to re-emit it corrected. Surface-neutral — a page
+ * host sends it through its edit pipeline, a chat host as a plain message.
  *
  * Not a system-prompt partial: this is per-turn message content, composed by
  * the host into `messages`, not into `system`.
@@ -27,7 +30,12 @@ export function getErrorRecoveryPrompt({
 	failures,
 }: ErrorRecoveryPromptOptions): string {
 	const list = failures
-		.map((failure) => `- Element \`${failure.key}\`: ${failure.message}`)
+		.map(({ key, message, reason }) => {
+			const line = `- Element \`${key}\`: ${message}`;
+			// Environment faults aren't the model's to fix — no annotation.
+			if (!reason || FAULT_BY_REASON[reason] === "environment") return line;
+			return `${line} (${reason} — ${REASON_DESCRIPTIONS[reason]})`;
+		})
 		.join("\n");
 	return [
 		"The generated UI hit runtime errors:",

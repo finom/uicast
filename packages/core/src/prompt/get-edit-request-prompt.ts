@@ -11,15 +11,10 @@ export type EditRequestPromptOptions = {
 };
 
 /**
- * The user-turn message for an incremental edit. The host replays the page's
- * current JSONL as an assistant turn, then sends this as the next user turn:
- * the change request plus the delta convention (re-emit a key to replace its
- * subtree — the Partial Replacement rule the system prompt already teaches).
- * The model then emits only the elements that change instead of the whole
- * page — cheaper and faster, since output tokens dominate both.
- *
- * Not a system-prompt partial: this is per-turn message content, composed by
- * the host into `messages`, not into `system`.
+ * The user-turn message for an incremental edit: the host replays the page's
+ * current JSONL as an assistant turn, then sends this — the change request
+ * plus the re-emit-a-key delta convention — so the model emits only the
+ * elements that change. Per-turn message content, not a system-prompt partial.
  */
 export function getEditRequestPrompt({
 	request,

@@ -1,6 +1,6 @@
-import { act } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "@uicast/core";
+import { act, fireEvent, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import type { EntryError, ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — lists", () => {
@@ -109,4 +109,310 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).not.toContain("banana");
   });
 
+  it("keyBy keeps a row's state with its item when the array is reordered", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        keyBy: "id",
+        children: ["mark", "flag"],
+      },
+      {
+        key: "mark",
+        component: "Button",
+        props: { expr: "({ label: 'mark-' + scopes.row.item.id })" },
+        callbacks: { onClick: [{ set: "scopes.row.flag", literal: true }] },
+      },
+      {
+        key: "flag",
+        component: "Box",
+        props: {
+          expr: "({ text: scopes.row.item.id + ':' + !!scopes.row.flag })",
+        },
+      },
+    ];
+    const { container, scopes, getByText } = mountEntries(lines, {
+      rootScope: { items: [{ id: 1 }, { id: 2 }] },
+    });
+    await act(async () => {
+      fireEvent.click(getByText("mark-1"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("1:true");
+    });
+    expect(container.textContent).toContain("2:false");
+
+    // Replace the source array reversed — the flag must travel with id 1,
+    // not stay at position 0.
+    act(() => {
+      scopes.root.$set("items", [{ id: 2 }, { id: 1 }]);
+    });
+    expect(container.textContent).toContain("1:true");
+    expect(container.textContent).toContain("2:false");
+  });
+
+  it("keys primitives by index — per-item state is positional", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        children: ["mark", "flag"],
+      },
+      {
+        key: "mark",
+        component: "Button",
+        props: { expr: "({ label: 'mark-' + scopes.row.item })" },
+        callbacks: { onClick: [{ set: "scopes.row.flag", literal: true }] },
+      },
+      {
+        key: "flag",
+        component: "Box",
+        props: { expr: "({ text: scopes.row.item + ':' + !!scopes.row.flag })" },
+      },
+    ];
+    const { container, scopes, getByText } = mountEntries(lines, {
+      rootScope: { items: ["a", "b"] },
+    });
+    await act(async () => {
+      fireEvent.click(getByText("mark-a"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("a:true");
+    });
+    expect(container.textContent).toContain("b:false");
+
+    // Reverse the array — identity is the index, so the flag stays at
+    // position 0, now "b".
+    act(() => {
+      scopes.root.$set("items", ["b", "a"]);
+    });
+    expect(container.textContent).toContain("b:true");
+    expect(container.textContent).toContain("a:false");
+  });
+
+  it("routes a non-array each through the error slot and recovers on re-emit", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const seen: EntryError[] = [];
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.n",
+        props: { expr: "({ text: scopes.row.item })" },
+      },
+    ];
+    const { container, emit } = mountEntries(lines, {
+      rootScope: { n: 42, items: ["first-item", "second-item"] },
+      onError: (error) => seen.push(error),
+      fallbackComponents: {
+        error: ({ error, elementKey }) => (
+          <div>
+            {elementKey} failed: {error.message}
+          </div>
+        ),
+      },
+    });
+    expect(container.textContent).toContain(
+      'rows failed: List "each" must evaluate to an array',
+    );
+    expect(seen[0]?.reason).toBe("invalid-list");
+
+    emit({
+      key: "rows",
+      component: "Box",
+      as: "row",
+      each: "scopes.root.items",
+      props: { expr: "({ text: scopes.row.item })" },
+    });
+    expect(container.textContent).not.toContain("rows failed:");
+    expect(container.textContent).toContain("first-item");
+    expect(container.textContent).toContain("second-item");
+    consoleError.mockRestore();
+  });
+
+  it("a row's item write wakes readers of the source array", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows", "total"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        keyBy: "id",
+        children: ["bump"],
+      },
+      {
+        key: "bump",
+        component: "Button",
+        props: { expr: "({ label: 'bump-' + scopes.row.item.id })" },
+        callbacks: {
+          onClick: [{ set: "scopes.row.item.qty", expr: "currentValue + 1" }],
+        },
+      },
+      {
+        key: "total",
+        component: "Box",
+        props: {
+          expr: "({ text: 'total:' + scopes.root.items.reduce((s, i) => s + i.qty, 0) })",
+        },
+      },
+    ];
+    const { container, getByText } = mountEntries(lines, {
+      rootScope: { items: [{ id: 1, qty: 1 }, { id: 2, qty: 2 }] },
+    });
+    expect(container.textContent).toContain("total:3");
+    await act(async () => {
+      fireEvent.click(getByText("bump-1"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("total:4");
+    });
+  });
+
+  it("a step reading the source array waits for a sibling item write", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows", "sum"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        keyBy: "id",
+        children: ["set5"],
+      },
+      {
+        key: "set5",
+        component: "Button",
+        props: { expr: "({ label: 'set5-' + scopes.row.item.id })" },
+        callbacks: {
+          onClick: [
+            { set: "scopes.row.item.qty", literal: 5 },
+            {
+              set: "scopes.root.sum",
+              expr: "scopes.root.items.reduce((s, i) => s + i.qty, 0)",
+            },
+          ],
+        },
+      },
+      {
+        key: "sum",
+        component: "Box",
+        props: { expr: "({ text: 'sum:' + scopes.root.sum })" },
+      },
+    ];
+    const { container, getByText } = mountEntries(lines, {
+      rootScope: { items: [{ id: 1, qty: 1 }, { id: 2, qty: 2 }] },
+    });
+    await act(async () => {
+      fireEvent.click(getByText("set5-1"));
+    });
+    // 5 + 2 — the reduce ran in a later wave and saw the fresh qty. One wave
+    // would have read the pre-write value and produced 3.
+    await waitFor(() => {
+      expect(container.textContent).toContain("sum:7");
+    });
+  });
+
+  it("a row-flag write wakes readers of childScopes", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows", "open"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        keyBy: "id",
+        children: ["toggle"],
+      },
+      {
+        key: "toggle",
+        component: "Button",
+        props: { expr: "({ label: 'toggle-' + scopes.row.item.id })" },
+        callbacks: {
+          onClick: [{ set: "scopes.row.expanded", expr: "!currentValue" }],
+        },
+      },
+      {
+        key: "open",
+        component: "Box",
+        props: {
+          expr: "({ text: 'open:' + (scopes.root.childScopes?.row ?? []).filter(r => r.expanded).length })",
+        },
+      },
+    ];
+    const { container, getByText } = mountEntries(lines, {
+      rootScope: { items: [{ id: 1 }, { id: 2 }] },
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("open:0");
+    });
+    await act(async () => {
+      fireEvent.click(getByText("toggle-1"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("open:1");
+    });
+  });
+
+  it("a nested item write cascades to the outermost source array", async () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["orders", "grand"] },
+      {
+        key: "orders",
+        component: "Box",
+        as: "order",
+        each: "scopes.root.orders",
+        keyBy: "id",
+        children: ["items"],
+      },
+      {
+        key: "items",
+        component: "Box",
+        as: "line",
+        each: "scopes.order.item.lines",
+        keyBy: "sku",
+        children: ["bump"],
+      },
+      {
+        key: "bump",
+        component: "Button",
+        props: { expr: "({ label: 'bump-' + scopes.line.item.sku })" },
+        callbacks: {
+          onClick: [{ set: "scopes.line.item.qty", expr: "currentValue + 1" }],
+        },
+      },
+      {
+        key: "grand",
+        component: "Box",
+        props: {
+          expr: "({ text: 'grand:' + scopes.root.orders.reduce((s, o) => s + o.lines.reduce((t, l) => t + l.qty, 0), 0) })",
+        },
+      },
+    ];
+    const { container, getByText } = mountEntries(lines, {
+      rootScope: {
+        orders: [
+          { id: 1, lines: [{ sku: "a", qty: 1 }] },
+          { id: 2, lines: [{ sku: "b", qty: 2 }] },
+        ],
+      },
+    });
+    expect(container.textContent).toContain("grand:3");
+    await act(async () => {
+      fireEvent.click(getByText("bump-a"));
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("grand:4");
+    });
+  });
 });

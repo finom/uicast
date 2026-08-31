@@ -1,4 +1,9 @@
-import { type JSONSchema, JSONSchemaToTs } from "./json-schema-to-ts";
+import { dashTail, stripRootDescription } from "./describe";
+import {
+	type JSONSchema,
+	JSONSchemaToTs,
+	resolveRef,
+} from "./json-schema-to-ts";
 
 /**
  * A definition hoisted out of some schema's `$defs` / `definitions` and given
@@ -40,23 +45,74 @@ const toTypeName = (key: string, ordinal: number): string => {
 	return /^[A-Za-z_]/.test(cleaned) ? cleaned : `Type${ordinal}`;
 };
 
+/** Every `$ref` pointer that appears anywhere inside `node`. */
+const collectRefs = (node: unknown, out: Set<string>): void => {
+	if (node === null || typeof node !== "object") return;
+	if (Array.isArray(node)) {
+		for (const item of node) collectRefs(item, out);
+		return;
+	}
+	for (const [key, value] of Object.entries(node)) {
+		if (key === "$ref" && typeof value === "string") out.add(value);
+		else collectRefs(value, out);
+	}
+};
+
 /**
- * Collects the `$defs` / `definitions` of every schema handed to it, so a
- * prompt can print each named type ONCE and reference it by name everywhere
- * else — the same trick `commonEvents` plays for shared event payloads.
- *
- * Two things this buys, both of which the inlining renderer gets wrong:
- *
- * - **Recursion becomes expressible.** Inlining a self-referential schema
- *   bottoms out at the cycle guard, so a tree renders one level deep and then
- *   `unknown[]` — silently, as if that were the shape. Named, it is exactly
- *   `type Node = { children?: Node[] }`.
- * - **A type shared by ten tools is printed once**, not ten times.
- *
- * Every definition is hoisted, not just the multiply-referenced ones: a schema
- * author puts something in `$defs` because it is a named concept, and picking
- * which ones "deserve" a name would make the output depend on usage counts the
- * reader can't see.
+ * A definition's identity for dedup. Textual equality is not enough: two
+ * documents can hold byte-identical defs whose internal `$ref`s point at
+ * DIFFERENT targets — deduping those would print a wrong type. So each
+ * referenced pointer's resolved content is folded in, cycles marked.
+ */
+const fingerprintNode = (
+	node: unknown,
+	doc: unknown,
+	expanding = new Set<string>(),
+): string => {
+	const base = JSON.stringify(node);
+	const refs = new Set<string>();
+	collectRefs(node, refs);
+	if (refs.size === 0) return base;
+	const parts = [...refs].sort().map((pointer) => {
+		if (expanding.has(pointer)) return `${pointer}=~cycle`;
+		expanding.add(pointer);
+		const part = `${pointer}=${fingerprintNode(resolveRef(pointer, doc), doc, expanding)}`;
+		expanding.delete(pointer);
+		return part;
+	});
+	return `${base}|${parts.join("|")}`;
+};
+
+/** Does `node` reference `pointer`, directly or through other definitions? */
+const isSelfReferential = (
+	pointer: string,
+	node: unknown,
+	doc: unknown,
+): boolean => {
+	const seen = new Set<string>();
+	const stack = [node];
+	while (stack.length > 0) {
+		const refs = new Set<string>();
+		collectRefs(stack.pop(), refs);
+		for (const ref of refs) {
+			if (ref === pointer) return true;
+			if (!seen.has(ref)) {
+				seen.add(ref);
+				stack.push(resolveRef(ref, doc));
+			}
+		}
+	}
+	return false;
+};
+
+/**
+ * Collects the `$defs` / `definitions` of every schema handed to it, so the
+ * prompt prints each named type once and references it by name — which also
+ * makes recursion expressible (inlined, a self-referential schema silently
+ * degrades to `unknown[]` at the cycle guard; named, it is exactly
+ * `type Node = { children?: Node[] }`). Every definition is hoisted, not just
+ * multiply-referenced ones — `$defs` means "a named concept", and hoisting by
+ * usage count would make the output depend on counts the reader can't see.
  */
 export function collectSharedTypes(): SharedTypes {
 	const entries: Entry[] = [];
@@ -71,7 +127,9 @@ export function collectSharedTypes(): SharedTypes {
 
 		// A document that is nothing but a `$ref` into its own definitions has no
 		// shape of its own; naming that target would render the whole schema as a
-		// bare word and move the payload out of the site that needs it.
+		// bare word and move the payload out of the site that needs it. Exception:
+		// a RECURSIVE target (the shape a top-level `z.lazy` emits) must still be
+		// hoisted, or its recursion degrades to `unknown[]`.
 		const rootRef = typeof doc.$ref === "string" ? doc.$ref : null;
 
 		for (const defsKey of DEFS_KEYS) {
@@ -79,8 +137,10 @@ export function collectSharedTypes(): SharedTypes {
 			if (!defs || typeof defs !== "object") continue;
 			for (const [key, node] of Object.entries(defs)) {
 				const pointer = `#/${defsKey}/${escapePointer(key)}`;
-				if (pointer === rootRef) continue;
-				const fingerprint = JSON.stringify(node);
+				if (pointer === rootRef && !isSelfReferential(pointer, node, doc)) {
+					continue;
+				}
+				const fingerprint = fingerprintNode(node, doc);
 
 				// Walk past names already spoken for by a DIFFERENT type; landing on
 				// one that already holds this same type means it is printed already.
@@ -107,13 +167,10 @@ export function collectSharedTypes(): SharedTypes {
 			// Rendered from the NODE, not through its `$ref` — so the definition's
 			// own self-references resolve to its name instead of expanding.
 			const description = (entry.node as JSONSchema | null)?.description;
-			const body = JSONSchemaToTs(
-				description
-					? { ...(entry.node as JSONSchema), description: undefined }
-					: entry.node,
-				{ namedRefs: entry.refs },
-			);
-			return `- ${entry.name}: ${body}${description ? ` — ${description}` : ""}`;
+			const body = JSONSchemaToTs(stripRootDescription(entry.node), {
+				namedRefs: entry.refs,
+			});
+			return `- ${entry.name}: ${body}${dashTail(description)}`;
 		});
 
 	return { add, lines };

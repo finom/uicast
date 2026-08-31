@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "../../types";
-import { buildElementsById } from "../utils";
+import { buildElementsByKey } from "../build-elements-by-key";
 
 const e = (key: string, children?: string[]): ComponentEntry => ({
   key,
@@ -8,10 +8,10 @@ const e = (key: string, children?: string[]): ComponentEntry => ({
   children,
 });
 
-describe("buildElementsById", () => {
+describe("buildElementsByKey", () => {
   it("indexes entries by key", () => {
     const lines: ComponentEntry[] = [e("a"), e("b"), e("c")];
-    const map = buildElementsById(lines);
+    const map = buildElementsByKey(lines);
     expect(Object.keys(map).sort()).toEqual(["a", "b", "c"]);
     expect(map.a).toBe(lines[0]);
   });
@@ -30,7 +30,7 @@ describe("buildElementsById", () => {
       e("a", ["a2"]),
       e("a2"),
     ];
-    const map = buildElementsById(reemitted);
+    const map = buildElementsByKey(reemitted);
     expect(map.a).toBeDefined();
     expect(map.a.children).toEqual(["a2"]);
     expect(map.a2).toBeDefined();
@@ -41,7 +41,7 @@ describe("buildElementsById", () => {
 
   it("treats the most recent occurrence of a key as the winner", () => {
     const lines: ComponentEntry[] = [e("x"), { ...e("x"), component: "Y" }];
-    const map = buildElementsById(lines);
+    const map = buildElementsByKey(lines);
     expect(map.x.component).toBe("Y");
   });
 
@@ -58,7 +58,7 @@ describe("buildElementsById", () => {
       e("root", ["heading", "text", "quote"]),
       e("quote"),
     ];
-    const map = buildElementsById(reemitted);
+    const map = buildElementsByKey(reemitted);
     expect(map.root.children).toEqual(["heading", "text", "quote"]);
     expect(map.heading).toBeDefined();
     expect(map.text).toBeDefined();
@@ -75,7 +75,7 @@ describe("buildElementsById", () => {
     ];
     // Re-emit `root` dropping `b` but keeping `a` by reference: a1 survives, b goes.
     const reemitted: ComponentEntry[] = [...initial, e("root", ["a"])];
-    const map = buildElementsById(reemitted);
+    const map = buildElementsByKey(reemitted);
     expect(map.a).toBeDefined();
     expect(map.a1).toBeDefined();
     expect(map.b).toBeUndefined();
@@ -89,7 +89,7 @@ describe("buildElementsById", () => {
       e("c"),
       e("a", ["c"]),
     ];
-    const map = buildElementsById(lines);
+    const map = buildElementsByKey(lines);
     expect(map.a.children).toEqual(["c"]);
     expect(map.c).toBeDefined();
     expect(map.b).toBeUndefined();

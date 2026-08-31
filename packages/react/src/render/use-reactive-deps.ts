@@ -1,5 +1,10 @@
 import { useEffect, useReducer, useRef } from "react";
-import { extractDeps, parseScope, type ComponentEntry } from "@uicast/core";
+import type { ComponentEntry } from "@uicast/core";
+import {
+  extractDeps,
+  parseScope,
+  type DepsPart,
+} from "@uicast/core/internal";
 import type { Scopes } from "../types";
 
 // Total emits across every scope this node can read. Subscribing happens in an
@@ -15,12 +20,15 @@ function emitCount(scopes: Scopes): number {
 }
 
 // Subscribe the node to every reactive path its entry reads (auto-derived from
-// the expression text), re-rendering when any changes. `skip` lets the
-// list-container pass leave the list's deps to ListEntryRenderer.
+// the expression text), re-rendering when any changes. `mode` picks the slice
+// (see DepsPart): the list container subscribes to `each` only, each item to
+// props + hidden only — subscribing both to everything would double-render
+// every row. `"skip"` lets the container pass leave the list's deps to
+// ListEntryRenderer entirely.
 export function useReactiveDeps(
   element: ComponentEntry | undefined,
   scopes: Scopes,
-  skip = false,
+  mode: DepsPart | "skip" = "all",
 ): void {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
 
@@ -30,10 +38,10 @@ export function useReactiveDeps(
   countAtRender.current = emitCount(scopes);
 
   useEffect(() => {
-    if (!element || skip) return;
+    if (!element || mode === "skip") return;
     let deps: string[];
     try {
-      deps = extractDeps(element);
+      deps = extractDeps(element, mode);
     } catch {
       // An unparseable expression throws at dep extraction too, but an effect
       // throw would latch the PARENT's boundary. The same expression throws
@@ -69,5 +77,5 @@ export function useReactiveDeps(
     return () => {
       for (const unsub of unsubscribers) unsub();
     };
-  }, [element, scopes, skip]);
+  }, [element, scopes, mode]);
 }

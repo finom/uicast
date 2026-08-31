@@ -20,7 +20,7 @@ export const ToggleDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onPressedChange: z.object({
+    onChange: z.object({
       pressed: z.boolean().meta({ description: "The new pressed state" }),
     }),
   },

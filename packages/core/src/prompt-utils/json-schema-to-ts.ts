@@ -8,16 +8,11 @@ type JSONSchemaType =
 	| "integer";
 
 /**
- * JSON Schema shape this module reads — a recursive structural type covering
- * the draft-07 / 2020-12 keywords a Standard-Schema `toJSONSchema()` can emit
- * (primitives, composition, objects, arrays/tuples, `$ref` + `$defs`, and the
- * refinement keywords that constrain a value without changing its TypeScript
- * type). Every sub-schema slot is another `JSONSchema`.
- *
- * `JSONSchemaToTs` still takes `unknown` and narrows at runtime, because a
- * schema value can also be a boolean (`true`/`false`) — and, in legacy
- * draft-07, an `items` array — which this object type intentionally doesn't
- * model. The function reads back through itself, so the recursion stays loose.
+ * JSON Schema shape this module reads — the draft-07 / 2020-12 keywords a
+ * Standard-Schema `toJSONSchema()` can emit. `JSONSchemaToTs` still takes
+ * `unknown` and narrows at runtime, because a schema value can also be a
+ * boolean (`true`/`false`) — and, in legacy draft-07, an `items` array —
+ * which this object type intentionally doesn't model.
  */
 export interface JSONSchema {
 	$schema?:
@@ -37,20 +32,19 @@ export interface JSONSchema {
 	exclusiveMaximum?: number;
 	minItems?: number;
 	maxItems?: number;
+	$id?: string;
 	title?: string;
 	description?: string;
 	properties?: { [key: string]: JSONSchema };
 	required?: string[];
 	examples?: unknown[];
 	not?: JSONSchema;
-	// support both $defs and definitions
 	$defs?: { [key: string]: JSONSchema };
 	definitions?: { [key: string]: JSONSchema };
 	additionalProperties?: boolean | JSONSchema;
 	anyOf?: JSONSchema[];
 	oneOf?: JSONSchema[];
 	allOf?: JSONSchema[];
-	// older schema
 	const?: unknown;
 	example?: unknown;
 	// binary
@@ -58,8 +52,6 @@ export interface JSONSchema {
 	contentMediaType?: string;
 	minLength?: number;
 	maxLength?: number;
-	// explicit TypeScript-type override for code generation
-	"x-tsType"?: string;
 }
 
 export type JSONSchemaToTsOptions = {
@@ -71,14 +63,11 @@ export type JSONSchemaToTsOptions = {
 	 */
 	multiline?: string;
 	/**
-	 * Pointers whose target is rendered as a NAME instead of its expansion —
-	 * `{ "#/$defs/Person": "Person" }` turns every `$ref` to that pointer into
-	 * the bare word `Person`. The caller is responsible for printing the
-	 * definitions somewhere the reader can see (the prompt's shared-types
-	 * block); see `collectSharedTypes`.
-	 *
-	 * This is what makes a recursive schema expressible: `Node` referencing
-	 * itself renders as `Node`, where inlining bottoms out at `unknown`.
+	 * Pointers rendered as a NAME instead of their expansion —
+	 * `{ "#/$defs/Person": "Person" }`. The caller prints the definitions
+	 * where the reader can see them (see `collectSharedTypes`). This is what
+	 * makes a recursive schema expressible: `Node` referencing itself renders
+	 * as `Node`, where inlining bottoms out at `unknown`.
 	 */
 	namedRefs?: Record<string, string>;
 };
@@ -125,7 +114,7 @@ type Ctx = {
  * Recursive worker. Renders the node's type, then — when the node carries a
  * `description` — appends it as a trailing ` /* … *​/` comment, so per-field
  * docs (Zod `.describe()` / `.meta({ description })`) survive into the prompt
- * at every nesting level. Nodes without a description add nothing.
+ * at every nesting level.
  */
 function toTs(
 	jsonSchema: unknown,
@@ -149,12 +138,7 @@ function toTs(
 	return base;
 }
 
-/**
- * Type rendering without the description pass. `root` is the document the
- * first call was handed (the resolution base for `$ref`); `seen` is the set of
- * refs currently being expanded on this path, so a cycle short-circuits to
- * `unknown` instead of recursing forever.
- */
+/** Type rendering without the description pass (see `Ctx` for what travels). */
 function toTsBase(
 	jsonSchema: unknown,
 	ctx: Ctx,
@@ -229,88 +213,98 @@ function toTsBase(
 		schema.properties ||
 		schema.additionalProperties !== undefined
 	) {
-		const props = schema.properties || {};
-		const required = schema.required || [];
-
-		const childMl = ml ? { pad: ml.pad, depth: ml.depth + 1 } : null;
-		const propStrings = Object.entries(props).map(([key, value]) => {
-			const isRequired = required.includes(key);
-			const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
-				? key
-				: JSON.stringify(key);
-			return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, ctx, childMl)}`;
-		});
-
-		let additionalType: string | null = null;
-		if (schema.additionalProperties === true) {
-			additionalType = "unknown";
-		} else if (
-			schema.additionalProperties &&
-			typeof schema.additionalProperties === "object"
-		) {
-			additionalType = toTs(schema.additionalProperties, ctx);
-		}
-
-		if (propStrings.length === 0 && additionalType) {
-			return `{ [key: string]: ${additionalType} }`;
-		}
-		if (propStrings.length === 0 && !additionalType) {
-			return schema.additionalProperties === false
-				? "{}"
-				: "{ [key: string]: unknown }";
-		}
-
-		let result: string;
-		if (ml) {
-			// One property per line: fields one level deeper than this object's
-			// braces, the closing brace back at the object's own level.
-			const inner = ml.pad + "  ".repeat(ml.depth + 1);
-			const closing = ml.pad + "  ".repeat(ml.depth);
-			result = `{\n${inner}${propStrings.join(`;\n${inner}`)};\n${closing}}`;
-		} else {
-			result = `{ ${propStrings.join("; ")} }`;
-		}
-		if (additionalType) {
-			result = `(${result} & { [key: string]: ${additionalType} })`;
-		}
-		return result;
+		return renderObject(schema, ctx, ml);
 	}
 
 	if (type === "array" || schema.items || schema.prefixItems) {
-		if (schema.prefixItems) {
-			const tupleTypes = schema.prefixItems.map((s) => toTs(s, ctx));
-			if (schema.items === false) return `[${tupleTypes.join(", ")}]`;
-			const restType = schema.items ? toTs(schema.items, ctx) : "unknown";
-			return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
-		}
-
-		if (schema.items !== undefined && schema.items !== null) {
-			if (Array.isArray(schema.items)) {
-				const tupleTypes = schema.items.map((s) => toTs(s, ctx));
-				if (schema.additionalItems === false) {
-					return `[${tupleTypes.join(", ")}]`;
-				}
-				const restType = schema.additionalItems
-					? toTs(schema.additionalItems, ctx)
-					: "unknown";
-				return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
-			}
-			const itemTs = toTs(schema.items, ctx, ml);
-			// An item type ENDING in an annotation must be parenthesized —
-			// `string /* x */[]` reads as if the comment interrupts the type;
-			// `(string /* x */)[]` keeps the array suffix unambiguous. A comment
-			// safely inside braces (`{ a: string /* x */ }[]`) needs nothing.
-			return itemTs.endsWith("*/") ? `(${itemTs})[]` : `${itemTs}[]`;
-		}
-
-		return "unknown[]";
-	}
-
-	if (schema.properties) {
-		return toTs({ ...schema, type: "object" }, ctx);
+		return renderArray(schema, ctx, ml);
 	}
 
 	return "unknown";
+}
+
+/** The object branch of `toTsBase`: properties, index signatures, layout. */
+function renderObject(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
+	const props = schema.properties || {};
+	const required = schema.required || [];
+
+	const childMl = ml ? { pad: ml.pad, depth: ml.depth + 1 } : null;
+	const propStrings = Object.entries(props).map(([key, value]) => {
+		const isRequired = required.includes(key);
+		const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)
+			? key
+			: JSON.stringify(key);
+		return `${safeName}${isRequired ? "" : "?"}: ${toTs(value, ctx, childMl)}`;
+	});
+
+	let additionalType: string | null = null;
+	if (schema.additionalProperties === true) {
+		additionalType = "unknown";
+	} else if (
+		schema.additionalProperties &&
+		typeof schema.additionalProperties === "object"
+	) {
+		// Deliberately single-line even in multiline mode: the value type sits
+		// inside an index-signature wrapper, where one line reads best.
+		additionalType = toTs(schema.additionalProperties, ctx);
+	}
+
+	if (propStrings.length === 0 && additionalType) {
+		return `{ [key: string]: ${additionalType} }`;
+	}
+	if (propStrings.length === 0 && !additionalType) {
+		return schema.additionalProperties === false
+			? "{}"
+			: "{ [key: string]: unknown }";
+	}
+
+	let result: string;
+	if (ml) {
+		// One property per line: fields one level deeper than this object's
+		// braces, the closing brace back at the object's own level.
+		const inner = ml.pad + "  ".repeat(ml.depth + 1);
+		const closing = ml.pad + "  ".repeat(ml.depth);
+		result = `{\n${inner}${propStrings.join(`;\n${inner}`)};\n${closing}}`;
+	} else {
+		result = `{ ${propStrings.join("; ")} }`;
+	}
+	if (additionalType) {
+		result = `(${result} & { [key: string]: ${additionalType} })`;
+	}
+	return result;
+}
+
+/** The array branch of `toTsBase`: tuples (both drafts) and plain item arrays. */
+function renderArray(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
+	// Tuple members are deliberately single-line even in multiline mode —
+	// a tuple reads as one bracketed row.
+	if (schema.prefixItems) {
+		const tupleTypes = schema.prefixItems.map((s) => toTs(s, ctx));
+		if (schema.items === false) return `[${tupleTypes.join(", ")}]`;
+		const restType = schema.items ? toTs(schema.items, ctx) : "unknown";
+		return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
+	}
+
+	if (schema.items !== undefined && schema.items !== null) {
+		if (Array.isArray(schema.items)) {
+			const tupleTypes = schema.items.map((s) => toTs(s, ctx));
+			if (schema.additionalItems === false) {
+				return `[${tupleTypes.join(", ")}]`;
+			}
+			const restType = schema.additionalItems
+				? toTs(schema.additionalItems, ctx)
+				: "unknown";
+			return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
+		}
+		const itemTs = toTs(schema.items, ctx, ml);
+		// An item type ENDING in an annotation must be parenthesized —
+		// `string /* x */[]` reads as if the comment interrupts the type;
+		// `(string /* x */)[]` keeps the array suffix unambiguous. A comment
+		// safely inside braces (`{ a: string /* x */ }[]`) needs nothing.
+		return itemTs.endsWith("*/") ? `(${itemTs})[]` : `${itemTs}[]`;
+	}
+
+	return "unknown[]";
 }
 
 /**
@@ -319,7 +313,7 @@ function toTsBase(
  * for a non-local ref (`https://…`, bare `#`) or a path that doesn't exist —
  * the caller renders those as `unknown`.
  */
-function resolveRef(ref: string, root: unknown): unknown {
+export function resolveRef(ref: string, root: unknown): unknown {
 	if (!ref.startsWith("#/")) return undefined;
 	const segments = ref
 		.slice(2)

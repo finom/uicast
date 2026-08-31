@@ -8,7 +8,6 @@ import {
 } from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
@@ -93,7 +92,6 @@ export async function POST(req: Request) {
     getExpressionsPartialPrompt(),
     getComponentsPartialPrompt({
       definitions: allDefinitions,
-      commonEvents: allCommonEventSchemas,
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
     getFencePartialPrompt(),

@@ -16,6 +16,7 @@
     "paths": {
       "@uicast/shadcn-catalog/*": ["./src/*"],
       "@uicast/core": ["../core/src/index.ts"],
+      "@uicast/core/internal": ["../core/src/internal.ts"],
       "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
       "@uicast/react": ["../react/src/index.ts"],
       "@uicast/react/*": ["../react/src/*"]

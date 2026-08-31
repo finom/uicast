@@ -1,16 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { GanttChartDef } from "./def";
-
-const defaultColors = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff7300",
-  "#0088fe",
-  "#00c49f",
-];
 
 export const GanttChartImpl = createComponentImplementation({
   def: GanttChartDef,
@@ -51,7 +43,18 @@ export const GanttChartImpl = createComponentImplementation({
                   const isStart = u === task.start + 1;
                   const isEnd = u === task.start + task.duration;
                   const barColor =
-                    task.color ?? defaultColors[ti % defaultColors.length];
+                    task.color ??
+                    defaultChartColors[ti % defaultChartColors.length];
+                  // this cell's share of the progress fill: 1 before the
+                  // boundary, fractional at it, 0 after
+                  const progressFill = Math.min(
+                    Math.max(
+                      ((task.progress ?? 0) / 100) * task.duration -
+                        (u - task.start - 1),
+                      0,
+                    ),
+                    1,
+                  );
 
                   return (
                     <td key={u} className="px-0 py-2 relative">
@@ -64,13 +67,18 @@ export const GanttChartImpl = createComponentImplementation({
                           )}
                           style={{ backgroundColor: barColor, opacity: 0.8 }}
                         >
-                          {task.progress !== undefined && isStart && (
+                          {task.progress !== undefined && progressFill > 0 && (
                             <div
-                              className="h-full rounded-l-md"
+                              className={cn(
+                                "h-full",
+                                isStart && "rounded-l-md",
+                                isEnd && progressFill === 1 && "rounded-r-md",
+                              )}
                               style={{
-                                width: `${task.progress}%`,
-                                backgroundColor: barColor,
-                                opacity: 1,
+                                width: `${progressFill * 100}%`,
+                                // darkens the bar; a same-color fill would be
+                                // invisible under the bar's group opacity
+                                backgroundColor: "rgb(0 0 0 / 0.25)",
                               }}
                             />
                           )}

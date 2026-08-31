@@ -60,8 +60,13 @@ export const WaterfallChartImpl = createComponentImplementation({
             }}
           />
           <ReferenceLine y={0} stroke="#666" />
-          <Bar dataKey="base" stackId="waterfall" fill="transparent" />
-          <Bar dataKey="value" stackId="waterfall">
+          <Bar
+            isAnimationActive={false}
+            dataKey="base"
+            stackId="waterfall"
+            fill="transparent"
+          />
+          <Bar isAnimationActive={false} dataKey="value" stackId="waterfall">
             {processedData.map((entry, i) => (
               <Cell
                 key={i}

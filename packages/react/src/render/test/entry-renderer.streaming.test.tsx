@@ -1,8 +1,13 @@
 import type { StandardToolV0 } from "standard-tool";
-import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import type { ComponentEntry } from "@uicast/core";
+import {
+	createComponentImplementation,
+	EntriesRenderer,
+	RendererProvider,
+} from "@uicast/react";
+import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { z } from "zod";
 import {
 	defaultImplementations,
 	defaultImplementationsList,
@@ -10,7 +15,7 @@ import {
 } from "../../../test/render-helpers";
 
 describe("EntryRenderer — streaming / placeholders", () => {
-	it("renders a placeholder when a referenced child hasn't streamed yet", () => {
+	it("renders a placeholder when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
 		// Root references a child entry by key that isn't in the elements map.
 		const lines: ComponentEntry[] = [
 			{
@@ -21,35 +26,47 @@ describe("EntryRenderer — streaming / placeholders", () => {
 			},
 		];
 		const { container } = mountEntries(lines, {
-			fallbackComponents: { placeholder: () => <span data-test-placeholder>loading…</span> },
+			fallbackComponents: {
+				placeholder: ({ reason }) => <span data-test-placeholder>{reason}</span>,
+			},
 		});
-		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
+		const ph = container.querySelector("[data-test-placeholder]");
+		expect(ph).not.toBeNull();
+		// An unstreamed child slot is "streaming", not "seeding".
+		expect(ph?.textContent).toBe("streaming");
 	});
 
-	it("uses the per-component placeholder if registered", () => {
+	it("uses the parent's per-component placeholder for an unstreamed child, over the global one", () => {
+		// A placeholder registered on the implementation fills that component's
+		// unstreamed child slots — it wins over `fallbackComponents.placeholder`.
+		const phBoxImpl = createComponentImplementation({
+			def: createComponentDefinition({
+				name: "PhBox",
+				description: "A box with its own placeholder",
+				props: z.object({}),
+			}),
+			render: ({ children, generatedKey }) => (
+				<div data-key={generatedKey}>{children}</div>
+			),
+			placeholder: () => <span data-box-ph />,
+		});
 		const { container } = mountEntries(
 			[
 				{
 					key: "root",
-					component: "Box",
+					component: "PhBox",
 					children: ["pending"],
 				},
 			],
 			{
-				implementations: {
-					...defaultImplementations,
-					// Component-level placeholders attach via createComponentImplementation's
-					// `placeholder` arg. We can't easily attach one to an unknown
-					// component name, so we use the global default for this test.
-				},
+				implementations: { ...defaultImplementations, PhBox: phBoxImpl },
 				fallbackComponents: {
-					placeholder: () => (
-						<span data-test-placeholder>default-placeholder</span>
-					),
+					placeholder: () => <span data-global-ph />,
 				},
 			},
 		);
-		expect(container.textContent).toContain("default-placeholder");
+		expect(container.querySelector("[data-box-ph]")).not.toBeNull();
+		expect(container.querySelector("[data-global-ph]")).toBeNull();
 	});
 
 	it("falls back to null placeholder when none is provided", () => {
@@ -71,7 +88,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 // a growing `lines` array. Every already-mounted entry's `seed` must run
 // exactly once — even as later entries arrive — or stream-time UIs would
 // silently re-seed scopes and clobber user-set state. The invariant is held by
-// the per-entry seed attempt (`attemptRef` in useSeedDefaults) with stable React
+// the per-entry seed attempt (`attemptRef` in useSeed) with stable React
 // keys per entry; these tests pin that contract against accidental refactors
 // (e.g. dropping the ref, swapping the keying strategy, or remounting on
 // elements-prop identity change).

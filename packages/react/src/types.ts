@@ -18,9 +18,19 @@ export type ComponentImplementation<
   render: (props: {
     entry: ComponentEntry;
     children: ReactNode;
-    scopes: Record<string, any>;
+    scopes: Scopes;
   }) => ReactElement;
-  placeholder: (() => ReactElement) | null;
+  placeholder: ((props: PlaceholderComponentProps) => ReactElement) | null;
+};
+
+// The `placeholder` slot, told why it is showing:
+// - `"streaming"` — the entry has not arrived yet (a child slot still filling
+//   in as the document streams).
+// - `"seeding"` — the entry is here, but its async `seed` (or the group `init`)
+//   is still resolving.
+// A placeholder that renders the same UI either way can ignore it.
+export type PlaceholderComponentProps = {
+  reason: "streaming" | "seeding";
 };
 
 // The host confirm modal's contract. The engine keeps it mounted and drives it
@@ -49,7 +59,7 @@ export type ErrorComponentProps = {
 // `error` default is a bare inline-styled div (shadcn version in
 // @uicast/shadcn-catalog).
 export type FallbackComponents = {
-  placeholder?: () => ReactElement | null;
+  placeholder?: (props: PlaceholderComponentProps) => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
   error?: (props: ErrorComponentProps) => ReactElement | null;
 };
@@ -62,7 +72,7 @@ export type RendererRegistry = {
   // Extra globals expressions may reference, from the RendererProvider.
   allowGlobals?: string[];
   // Reported for every classified failure (boundary catches and callback
-  // failures alike) — the Renderer's `onError` prop.
+  // failures alike) — the RendererProvider's `onError` prop.
   onError?: (error: EntryError) => void;
 };
 
@@ -86,7 +96,8 @@ export type RendererProviderProps = {
   /**
    * The component implementations. Pass a stable reference — it feeds the
    * registry context, so a fresh array each render re-renders every node.
-   * Duplicate names: the later one wins (`[...base, Override]`) and logs.
+   * Duplicate names throw — to replace a catalog component, filter its name
+   * out of the array first.
    */
   implementations: ComponentImplementation[];
   /**
@@ -116,16 +127,13 @@ export type RendererProviderProps = {
   onError?: (error: EntryError) => void;
   /**
    * One-shot side-effect for the whole group: runs once, when the first
-   * <EntriesRenderer> mounts, before its entries evaluate. May seed
-   * `scopes.root.*`; a returned Promise suspends the awaiting renderers until
-   * it resolves.
+   * <EntriesRenderer> mounts, before its entries evaluate. Seeds `scopes.root.*`,
+   * and can expose extra named scopes by assigning them onto the `scopes` object
+   * it receives (`scopes.userCtx = createProxyScope(...)`) — a proxy the host
+   * keeps a reference to and can update later. A returned Promise suspends the
+   * awaiting renderers until it resolves.
    */
   init?: InitFn;
-  /**
-   * Extra named scopes to expose alongside the shared `root` — host context
-   * such as user info (`scopes.userCtx.…`). Captured on mount.
-   */
-  scopes?: Scopes;
 };
 
 export type EntriesRendererProps = {

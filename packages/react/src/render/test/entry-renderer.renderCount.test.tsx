@@ -4,7 +4,8 @@ import { act, render } from "@testing-library/react";
 import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
-import type { InitFn } from "@uicast/react/types";
+import type { InitFn } from "@uicast/react";
+import { mountEntries } from "../../../test/render-helpers";
 
 // ---------------------------------------------------------------------------
 // Render-once guarantee.
@@ -14,10 +15,9 @@ import type { InitFn } from "@uicast/react/types";
 // ancestor re-renders for its own reasons. (Under React StrictMode in dev,
 // every render is intentionally double-invoked, so the cap there is 2.)
 //
-// These tests pin that contract. Before the per-node subscription refactor a
-// settled leaf re-rendered once per streaming tick (the "storm"): a leaf that
-// appeared on tick 2 of a 5-tick reveal rendered 4 times. The assertions below
-// would have read 4, not 1.
+// These tests pin that contract against the "storm" failure mode: without
+// per-node subscriptions a settled leaf re-renders once per streaming tick —
+// a leaf appearing on tick 2 of a 5-tick reveal would read 4 below, not 1.
 // ---------------------------------------------------------------------------
 
 const boxDef = createComponentDefinition({
@@ -144,9 +144,91 @@ describe("EntryRenderer — render-once on state change", () => {
         "changed";
     });
 
-    // Parent re-rendered (it reads `label`); the child did not — the memo bails
-    // the parent→child cascade that existed before the refactor.
+    // Parent re-rendered (it reads `label`); the child did not — the memo
+    // bails the parent→child cascade.
     expect(counts.root).toBe(2);
     expect(counts.child).toBe(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// List subscriptions are split: the container subscribes to the `each` deps
+// only, each item to its props + hidden deps only. Counts alone can't see the
+// container (the impl render never runs for the container pass), so `gate` —
+// a root path read ONLY by `each` — counts container evaluations instead.
+// `counts.rows` aggregates the impl renders of every row.
+// ---------------------------------------------------------------------------
+
+describe("EntryRenderer — list container vs item subscriptions", () => {
+  function listSetup() {
+    const counts: Record<string, number> = {};
+    const boxRenderer = createComponentImplementation({
+      def: boxDef,
+      render: ({ text, children, generatedKey }) => {
+        counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
+        return (
+          <div data-key={generatedKey}>
+            {text}
+            {children}
+          </div>
+        );
+      },
+    });
+    const eachEvals = { count: 0 };
+    const rootScope = {
+      suffix: "",
+      items: [{ label: "a" }, { label: "b" }],
+      get gate() {
+        eachEvals.count += 1;
+        return true;
+      },
+    };
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.gate ? scopes.root.items : scopes.root.items",
+        props: {
+          expr: "({ text: scopes.row.item.label + scopes.root.suffix })",
+        },
+      },
+    ];
+    const mounted = mountEntries(lines, {
+      rootScope,
+      implementations: { Box: boxRenderer },
+    });
+    return { counts, eachEvals, ...mounted };
+  }
+
+  it("a write to a root path only the items' props read does not re-render the container", () => {
+    const { counts, eachEvals, scopes } = listSetup();
+    expect(eachEvals.count).toBe(1);
+    expect(counts.rows).toBe(2);
+
+    act(() => {
+      scopes.root.$set("suffix", "!");
+    });
+    // Both rows re-rendered (their props read `suffix`); the container never
+    // re-evaluated `each`.
+    expect(counts.rows).toBe(4);
+    expect(eachEvals.count).toBe(1);
+  });
+
+  it("a write to the each source re-renders the container once and each row once", () => {
+    const { counts, eachEvals, scopes, container } = listSetup();
+    expect(eachEvals.count).toBe(1);
+    expect(counts.rows).toBe(2);
+
+    act(() => {
+      scopes.root.$set("items", [{ label: "c" }, { label: "d" }]);
+    });
+    expect(container.textContent).toContain("c");
+    expect(container.textContent).toContain("d");
+    // One container evaluation, one render per row — rows wake through their
+    // rebuilt item scopes, not through a second subscription of their own.
+    expect(eachEvals.count).toBe(2);
+    expect(counts.rows).toBe(4);
   });
 });

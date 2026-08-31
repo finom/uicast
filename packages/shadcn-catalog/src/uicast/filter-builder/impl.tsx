@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import {
@@ -51,11 +51,20 @@ export const FilterBuilderImpl = createComponentImplementation({
     onApply,
     generatedKey,
   }) => {
-    const [filters, setFilters] = useState<FilterRow[]>(
+    const seedFilters = (): FilterRow[] =>
       initialFilters ?? [
         { field: fields[0]?.name ?? "", operator: "equals", value: "" },
-      ],
-    );
+      ];
+    // Local mirror of the `filters` prop. Props re-evaluate with a fresh
+    // identity every render, so the mirror resyncs by content — local edits
+    // win in between.
+    const propsKey = JSON.stringify(initialFilters);
+    const [filters, setFilters] = useState<FilterRow[]>(seedFilters);
+    const lastPropsKey = useRef(propsKey);
+    if (lastPropsKey.current !== propsKey) {
+      lastPropsKey.current = propsKey;
+      setFilters(seedFilters());
+    }
 
     const addFilter = () => {
       setFilters([

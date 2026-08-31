@@ -5,7 +5,7 @@ import type { StandardToolV0 } from "standard-tool";
 import {
   createComponentDefinition,
   createProxyScope,
-  buildElementsById,
+  buildElementsByKey,
   type ComponentEntry,
   type EntryError,
   type ReactiveProxy,
@@ -13,8 +13,8 @@ import {
 import {
   type ComponentImplementation,
   createComponentImplementation,
+  type FallbackComponents,
 } from "@uicast/react";
-import type { FallbackComponents } from "@uicast/react/types";
 import { EntryRenderer } from "@uicast/react/render/entry-renderer";
 import { RendererRegistryProvider } from "@uicast/react/store/renderer-registry";
 import {
@@ -117,7 +117,7 @@ type MountOptions = {
  * render result plus the live scopes map so tests can drive state.
  */
 export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}) {
-  const elements = buildElementsById(lines);
+  const elements = buildElementsByKey(lines);
   const scopes: Record<string, ReactiveProxy> = {
     root: createProxyScope(options.rootScope ?? {}),
   };
@@ -155,7 +155,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
   // element (partial replacement), exactly like a live JSONL stream would.
   const emit = (...more: ComponentEntry[]) => {
     lines = [...lines, ...more];
-    act(() => store.setMap(buildElementsById(lines)));
+    act(() => store.setMap(buildElementsByKey(lines)));
   };
 
   return { ...result, scopes, store, emit };

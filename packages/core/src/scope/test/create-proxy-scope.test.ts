@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { EntryError } from "../../entry-error";
 import { createEmitter, createProxyScope } from "../create-proxy-scope";
 
 describe("createProxyScope — reads", () => {
@@ -97,6 +98,59 @@ describe("createProxyScope — writes and emits", () => {
   });
 });
 
+describe("createProxyScope — emitter version", () => {
+  it("starts at 0 and advances on a real write with no subscribers", () => {
+    const state = createProxyScope<{ count: number }>({ count: 0 });
+    expect(state.$emitter.version).toBe(0);
+    state.count = 1;
+    expect(state.$emitter.version).toBe(1);
+  });
+
+  it("does not advance on an idempotent same-value write", () => {
+    const state = createProxyScope<{ count: number }>({ count: 5 });
+    state.count = 5;
+    expect(state.$emitter.version).toBe(0);
+  });
+
+  it("advances by 2 for writes to two different paths", () => {
+    const state = createProxyScope<{ a: number; b: number }>({ a: 1, b: 1 });
+    state.a = 2;
+    state.b = 2;
+    expect(state.$emitter.version).toBe(2);
+  });
+});
+
+describe("createProxyScope — array mutation through the proxy", () => {
+  it("push emits on the new index path, not on exact \"rows\"", () => {
+    const state = createProxyScope<{ rows: { id: number }[] }>({
+      rows: [{ id: 1 }, { id: 2 }],
+    });
+    const indexSpy = vi.fn();
+    const rowsSpy = vi.fn();
+    state.$emitter.on("rows.2", indexSpy);
+    state.$emitter.on("rows", rowsSpy);
+    state.rows.push({ id: 3 });
+    expect(indexSpy).toHaveBeenCalledOnce();
+    expect(rowsSpy).not.toHaveBeenCalled();
+  });
+
+  // Known limitation, pinned: by the time push writes `length`, the raw
+  // array's length has already advanced from the index write, so the length
+  // write is idempotent and never emits. A "rows.length" subscriber only
+  // wakes when the array itself is replaced (the ancestor-write test above).
+  // Any future fix must consciously flip this assertion.
+  it("push does NOT wake a \"rows.length\" subscriber (pinned limitation)", () => {
+    const state = createProxyScope<{ rows: { id: number }[] }>({
+      rows: [{ id: 1 }],
+    });
+    const lengthSpy = vi.fn();
+    state.$emitter.on("rows.length", lengthSpy);
+    state.rows.push({ id: 2 });
+    expect(state.rows).toHaveLength(2);
+    expect(lengthSpy).not.toHaveBeenCalled();
+  });
+});
+
 describe("createProxyScope — $set", () => {
   it("$set walks dotted segments once the parents exist", () => {
     const state = createProxyScope<{ a?: { b?: { c?: string } } }>({
@@ -114,6 +168,28 @@ describe("createProxyScope — $set", () => {
     expect(state.a).toBeUndefined();
   });
 
+  it("$set on a missing parent throws a classified unknown-reference EntryError", () => {
+    const state = createProxyScope<Record<string, unknown>>({});
+    try {
+      state.$set("a.b", 1);
+      expect.unreachable();
+    } catch (err) {
+      expect(EntryError.is(err) && err.reason).toBe("unknown-reference");
+    }
+  });
+
+  it("$set through a primitive parent throws the same classified error", () => {
+    const state = createProxyScope<{ count: number }>({ count: 5 });
+    try {
+      state.$set("count.x", 1);
+      expect.unreachable();
+    } catch (err) {
+      expect(EntryError.is(err) && err.reason).toBe("unknown-reference");
+      expect(err).toMatchObject({ message: expect.stringContaining('"count" is not an object') });
+    }
+    expect(state.count).toBe(5);
+  });
+
   it("$set with { default: true } only writes when the leaf is undefined", () => {
     const state = createProxyScope<{ count?: number }>({});
     state.$set("count", 1, { default: true });
@@ -123,6 +199,13 @@ describe("createProxyScope — $set", () => {
     // without the flag it overwrites as usual
     state.$set("count", 99);
     expect(state.count).toBe(99);
+  });
+
+  it("$set with { default: true } does not overwrite an existing null", () => {
+    // Absence is `undefined` only — a seeded null is a value, not a hole.
+    const state = createProxyScope<{ x: null | number }>({ x: null });
+    state.$set("x", 5, { default: true });
+    expect(state.x).toBeNull();
   });
 });
 
@@ -150,12 +233,21 @@ describe("createEmitter — standalone", () => {
     expect(b).toHaveBeenCalledWith({ v: 1 });
   });
 
-  it("off() detaches the handler", () => {
+  it("the function returned by on() detaches the handler", () => {
     const e = createEmitter();
     const spy = vi.fn();
-    e.on("foo", spy);
-    e.off("foo", spy);
+    const off = e.on("foo", spy);
+    off();
     e.emit("foo", 1);
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("'*' receives every emit, whatever the path", () => {
+    const e = createEmitter();
+    const seen: string[] = [];
+    e.on("*", () => seen.push("any"));
+    e.emit("foo", 1);
+    e.emit("bar.baz", 2);
+    expect(seen).toEqual(["any", "any"]);
   });
 });

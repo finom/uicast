@@ -13,8 +13,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./*": "./dist/*"
+    }
   },
   "files": [
     "dist",
@@ -25,7 +24,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "prepublishOnly": "npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -53,5 +52,15 @@
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "vitest": "^4.1.0"
-  }
+  },
+  "homepage": "https://github.com/finom/uicast#readme",
+  "keywords": [
+    "generative-ui",
+    "llm",
+    "react",
+    "renderer",
+    "streaming",
+    "ui",
+    "agent"
+  ]
 }

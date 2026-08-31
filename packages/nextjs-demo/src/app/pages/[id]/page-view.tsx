@@ -6,25 +6,16 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { type ComponentEntry, streamJsonLines } from "@uicast/core";
-import {
-  getCommonInstructionsPartialPrompt,
-  getComponentsPartialPrompt,
-  getErrorRecoveryPrompt,
-  getExpressionsPartialPrompt,
-  getFunctionsPartialPrompt,
-  getScopePartialPrompt,
-  type RenderFailure,
-} from "@uicast/core/prompt";
+import { getErrorRecoveryPrompt, type RenderFailure } from "@uicast/core/prompt";
 import {
   type ErrorComponentProps,
   EntriesRenderer,
   RendererProvider,
 } from "@uicast/react";
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
-import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, Pencil, ScrollText, Sparkles } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -78,24 +69,9 @@ export function PageView({
   const [promptOpen, setPromptOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Same assembly as the generate endpoint — repeated here so the viewer shows
-  // exactly what the endpoint builds.
-  const systemPrompt = useMemo(
-    () =>
-      promptOpen
-        ? [
-            getCommonInstructionsPartialPrompt(),
-            getScopePartialPrompt({ kind: "page" }),
-            getExpressionsPartialPrompt(),
-            getComponentsPartialPrompt({
-              definitions: allDefinitions,
-              commonEvents: allCommonEventSchemas,
-            }),
-            getFunctionsPartialPrompt({ functions: domainTools }),
-          ].join("\n\n")
-        : null,
-    [promptOpen],
-  );
+  // The generate endpoint's own assembly, so the viewer shows exactly what
+  // the endpoint sends.
+  const systemPrompt = useMemo(() => (promptOpen ? buildPageSystemPrompt() : null), [promptOpen]);
 
   const {
     data: lines,

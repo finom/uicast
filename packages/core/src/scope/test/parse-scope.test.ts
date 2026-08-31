@@ -18,15 +18,9 @@ describe("parseScope", () => {
     expect(() => parseScope("noDots")).toThrow(/Invalid scope key/);
   });
 
-  it("strips a custom prefix passed as the 2nd argument", () => {
-    expect(parseScope("state.root.count", "state")).toEqual(["root", "count"]);
-  });
-
-  it("leaves the key untouched when it doesn't start with the custom prefix", () => {
-    // "scopes" is not the active prefix here, so it's treated as the scope name.
-    expect(parseScope("scopes.root.count", "state")).toEqual([
-      "scopes",
-      "root.count",
-    ]);
+  it("throws on a bare scope name with no leaf path", () => {
+    // "scopes.root" normalizes to just "root" — a whole-scope read, not a path
+    // into one. useReactiveDeps deliberately catches this throw for such reads.
+    expect(() => parseScope("scopes.root")).toThrow(/Invalid scope key/);
   });
 });

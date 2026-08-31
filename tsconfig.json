@@ -15,6 +15,7 @@
     "incremental": true,
     "paths": {
       "@uicast/core": ["./packages/core/src/index.ts"],
+      "@uicast/core/internal": ["./packages/core/src/internal.ts"],
       "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],
       "@uicast/react": ["./packages/react/src/index.ts"],
       "@uicast/react/*": ["./packages/react/src/*"],

@@ -4,8 +4,7 @@ import { Card, CardContent } from "../../components/ui/card";
 import { QRCodeDef } from "./def";
 
 // Rendered locally via qrcode.react — the encoded value never leaves the page
-// (the previous implementation hot-linked a third-party image service, which
-// shipped the value to it in the URL and broke offline).
+// (a hot-linked image service would ship it in the URL and break offline).
 export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({

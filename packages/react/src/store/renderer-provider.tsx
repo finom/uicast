@@ -23,7 +23,7 @@ type RendererGroup = {
   scopes: Scopes;
   /**
    * Group-level `init`, latched to run once no matter how many renderers
-   * mount. The first renderer's seed pass executes it (keeping the existing
+   * mount. The first renderer's seed pass executes it (keeping the
    * error classification and Suspense gating); the rest await the same result.
    */
   init?: InitFn;
@@ -32,13 +32,10 @@ type RendererGroup = {
 const RendererGroupContext = createContext<RendererGroup | null>(null);
 
 /**
- * The host side of uicast's React binding: provides the component registry,
- * host functions, fallback UI, and — critically — ONE shared reactive store to
- * every <EntriesRenderer> beneath it. All renderers in the group read and
- * write the same `root` scope, so state written by one document (a chat
- * block, a page section) is live in all of them — a group of documents
- * behaves as one app with one store, where the same path means the same
- * data in every document.
+ * The host side of the React binding: the component registry, host functions,
+ * fallback UI, and — critically — ONE shared reactive store for every
+ * <EntriesRenderer> beneath it. A group of documents behaves as one app with
+ * one store: the same path means the same data in every document.
  */
 export function RendererProvider({
   implementations,
@@ -47,21 +44,16 @@ export function RendererProvider({
   allowGlobals,
   onError,
   init,
-  scopes: extraScopes,
   children,
 }: RendererProviderProps & { children: ReactNode }) {
   // The group's root proxy — created once, lives as long as the provider.
   const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
-  // biome-ignore lint/correctness/useExhaustiveDependencies: extra host scopes are captured on mount by design — the store's identity must not churn
-  const scopes = useMemo<Scopes>(
-    () => ({ ...extraScopes, root: rootRef.current! }),
-    [],
-  );
+  // One stable store for the group's lifetime — root captured once. `init` can
+  // assign more named scopes onto this object.
+  const scopes = useMemo<Scopes>(() => ({ root: rootRef.current! }), []);
 
-  // Run-once latch for the group init. Execution stays inside the first
-  // renderer's seed pass — that keeps host-init failures classified and the
-  // Suspense gate working — while every other renderer awaits the same result.
+  // Run-once latch — see RendererGroup.init.
   const initBoxRef = useRef<{ ran: boolean; result: unknown }>({
     ran: false,
     result: undefined,
@@ -82,12 +74,10 @@ export function RendererProvider({
     };
   }, [scopes, init]);
 
-  // name→implementation lookup. A duplicate name throws, the way
-  // `getComponentsPartialPrompt` does for defs: the prompt cannot be built with
-  // one, so an array carrying one could never have reached a working
-  // generation. To replace a catalog component, filter its name out rather than
-  // appending over it — the def array needs the same treatment anyway.
-  // RootFragment is merged in last as host infrastructure.
+  // name→implementation lookup. A duplicate name throws, matching the prompt
+  // builder — an array carrying one could never have reached a working
+  // generation. Replace a catalog component by filtering its name out, not
+  // appending over it. RootFragment is merged in last as host infrastructure.
   const implementationsByName = useMemo(() => {
     const map: Record<string, ComponentImplementation> = {};
     for (const impl of implementations) {

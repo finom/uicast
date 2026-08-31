@@ -55,7 +55,12 @@ export const BubbleChartImpl = createComponentImplementation({
               );
             }}
           />
-          <Scatter data={data} fill={color} fillOpacity={0.6} />
+          <Scatter
+            isAnimationActive={false}
+            data={data}
+            fill={color}
+            fillOpacity={0.6}
+          />
         </ScatterChart>
       </ResponsiveContainer>
     );

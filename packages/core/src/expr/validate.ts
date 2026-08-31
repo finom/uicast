@@ -7,11 +7,11 @@ import { isNode } from "./ast-utils";
 // Full threat model: the Expressions docs page, § Safety.
 
 // Which EntryError reason an evaluation failure maps to. Defaults to
-// "sandbox-violation" (every policy rejection in this file); the parse and
+// "guardrail-violation" (every policy rejection in this file); the parse and
 // allowlist sites in safer-eval.ts override it.
 export type SaferEvalErrorReason =
   | "expression-syntax"
-  | "sandbox-violation"
+  | "guardrail-violation"
   | "unknown-reference";
 
 export class SaferEvalError extends Error {
@@ -19,7 +19,7 @@ export class SaferEvalError extends Error {
 
   constructor(
     message: string,
-    reason: SaferEvalErrorReason = "sandbox-violation",
+    reason: SaferEvalErrorReason = "guardrail-violation",
   ) {
     super(message);
     this.name = "SaferEvalError";
@@ -157,15 +157,16 @@ export function validateNode(
   // An immediately-invoked function is the only way to run statements in an
   // expression, and everything it can express a ternary can too. Rejecting it
   // keeps the grammar to one value; a callback *passed* to `.map` / `.reduce` is
-  // untouched, since its callee is the method, not a function literal.
-  if (node.type === "CallExpression") {
-    const callee =
-      node.callee.type === "ParenthesizedExpression"
-        ? node.callee.expression
-        : node.callee;
+  // untouched, since its callee is the method, not a function literal. `new` on
+  // an inline function or class is the same trick and gets the same rejection.
+  // (acorn folds parentheses — no preserveParens — so a parenthesized callee is
+  // already the inner node here.)
+  if (node.type === "CallExpression" || node.type === "NewExpression") {
+    const callee = node.callee;
     if (
       callee.type === "ArrowFunctionExpression" ||
-      callee.type === "FunctionExpression"
+      callee.type === "FunctionExpression" ||
+      callee.type === "ClassExpression"
     ) {
       throw new SaferEvalError(
         "Immediately-invoked functions are not allowed — an expression must be a single value; use a ternary",

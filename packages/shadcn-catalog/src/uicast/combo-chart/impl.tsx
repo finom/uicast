@@ -10,6 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { ComboChartDef } from "./def";
 
 export const ComboChartImpl = createComponentImplementation({
@@ -24,10 +25,8 @@ export const ComboChartImpl = createComponentImplementation({
     height,
     generatedKey,
   }) => {
-    const defaultBarColors = ["#8884d8", "#82ca9d", "#ffc658"];
-    const defaultLineColors = ["#ff7300", "#0088fe", "#00c49f"];
-    const bColors = barColors ?? defaultBarColors;
-    const lColors = lineColors ?? defaultLineColors;
+    const bColors = barColors ?? defaultChartColors.slice(0, 3);
+    const lColors = lineColors ?? defaultChartColors.slice(3);
 
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>

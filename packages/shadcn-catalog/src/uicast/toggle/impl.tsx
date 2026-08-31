@@ -10,15 +10,13 @@ export const ToggleImpl = createComponentImplementation({
     size,
     disabled,
     children,
-    onPressedChange,
+    onChange,
     generatedKey,
   }) => {
     return (
       <Toggle
         pressed={pressed}
-        onPressedChange={(isPressed) =>
-          onPressedChange({ pressed: isPressed })
-        }
+        onPressedChange={(isPressed) => onChange({ pressed: isPressed })}
         variant={variant}
         size={size}
         disabled={disabled}

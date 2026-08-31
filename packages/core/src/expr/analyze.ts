@@ -43,18 +43,6 @@ function collectChain(node: acorn.AnyNode | null | undefined): string[] | null {
   return null;
 }
 
-// A computed key can read scopes itself (`scopes.x[scopes.y]`), so walk the
-// computed parts of a chain too.
-function walkComputedKeysWithin(memberExpr: acorn.AnyNode, out: Set<string>): void {
-  let cur: acorn.AnyNode = memberExpr;
-  while (cur.type === "MemberExpression") {
-    if (cur.computed) {
-      walkScopeReads(cur.property, out);
-    }
-    cur = cur.object;
-  }
-}
-
 // The recursive walker behind extractScopeReads().
 function walkScopeReads(
   node: acorn.AnyNode | null | undefined,
@@ -70,7 +58,6 @@ function walkScopeReads(
       const chain = collectChain(callee.object);
       if (chain && chain[0] === "scopes" && chain.length > 1) {
         out.add(chain.join("."));
-        walkComputedKeysWithin(callee.object, out);
       } else {
         walkScopeReads(callee.object, out);
       }
@@ -88,7 +75,6 @@ function walkScopeReads(
     const chain = collectChain(node);
     if (chain && chain[0] === "scopes" && chain.length > 1) {
       out.add(chain.join("."));
-      walkComputedKeysWithin(node, out);
       return;
     }
     // Not a scopes chain (or it hit a computed segment) — recurse for nested reads.

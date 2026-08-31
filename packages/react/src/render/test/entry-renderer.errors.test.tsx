@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { StandardToolV0 } from "standard-tool";
 import type { EntryError, ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
@@ -130,34 +131,70 @@ describe("EntryRenderer — errors", () => {
     expect(container.textContent).toContain("sibling-survives");
     consoleError.mockRestore();
   });
+});
 
-  it("ErrorBoundary catches an expression-evaluation error too", () => {
+// The contract bans host functions (and `await`) in reactive sites — they
+// re-evaluate on every state change. The engine throws a classified error
+// instead of letting the Promise leak into render as a truthy object.
+describe("EntryRenderer — host function call in a reactive site", () => {
+  const functions: StandardToolV0[] = [
+    { name: "loadThing", description: "", execute: async () => "value" },
+  ];
+
+  const mountLine = (line: ComponentEntry) => {
+    const seen: EntryError[] = [];
+    const result = mountEntries([line], {
+      functions,
+      onError: (error) => seen.push(error),
+      fallbackComponents: {
+        error: ({ error }) => <div>slot: {error.reason}</div>,
+      },
+    });
+    return { ...result, seen };
+  };
+
+  it("props evaluating to a Promise fails as guardrail-violation", () => {
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
-
-    const lines: ComponentEntry[] = [
-      {
-        key: "root",
-        component: "Box",
-        children: ["bad", "good"],
-      },
-      {
-        key: "bad",
-        component: "Box",
-        // Reads a path through `null`, triggering a runtime error inside evaluate().
-        props: { expr: "({ text: scopes.root.missing.deeper.fragile })" },
-      },
-      {
-        key: "good",
-        component: "Box",
-        props: { expr: "({ text: 'still-here' })" },
-      },
-    ];
-    const { container } = mountEntries(lines, {
-      rootScope: { missing: null },
+    const { container, seen } = mountLine({
+      key: "root",
+      component: "Box",
+      props: { expr: "loadThing()" },
     });
-    expect(container.textContent).toContain("still-here");
+    expect(container.textContent).toContain("slot: guardrail-violation");
+    expect(seen[0]?.reason).toBe("guardrail-violation");
+    consoleError.mockRestore();
+  });
+
+  it("hidden evaluating to a Promise fails as guardrail-violation", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const { container, seen } = mountLine({
+      key: "root",
+      component: "Box",
+      hidden: "loadThing()",
+      props: { expr: "({ text: 'never-shown' })" },
+    });
+    expect(container.textContent).toContain("slot: guardrail-violation");
+    expect(seen[0]?.reason).toBe("guardrail-violation");
+    consoleError.mockRestore();
+  });
+
+  it("a list each evaluating to a Promise fails as guardrail-violation", () => {
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
+    const { container, seen } = mountLine({
+      key: "root",
+      component: "Box",
+      each: "loadThing()",
+      as: "row",
+      props: { expr: "({ text: scopes.row.item })" },
+    });
+    expect(container.textContent).toContain("slot: guardrail-violation");
+    expect(seen[0]?.reason).toBe("guardrail-violation");
     consoleError.mockRestore();
   });
 });

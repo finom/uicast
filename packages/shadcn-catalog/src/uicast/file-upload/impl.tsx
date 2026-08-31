@@ -34,6 +34,8 @@ export const FileUploadImpl = createComponentImplementation({
               size: f.size,
               type: f.type,
             }));
+            // so re-selecting the same file fires a change event again
+            e.target.value = "";
             onChange({ files });
           }}
         />

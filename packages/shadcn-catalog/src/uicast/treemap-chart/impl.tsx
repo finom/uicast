@@ -1,17 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { TreemapChartDef } from "./def";
 
-const defaultColors = [
-  "#8884d8",
-  "#82ca9d",
-  "#ffc658",
-  "#ff7300",
-  "#0088fe",
-  "#00c49f",
-  "#ff6b6b",
-  "#a855f7",
-];
+const defaultColors = [...defaultChartColors, "#ff6b6b", "#a855f7"];
 
 const CustomContent = (props: Record<string, unknown>) => {
   const { x, y, width, height, name, index } = props as {
@@ -60,6 +52,7 @@ export const TreemapChartImpl = createComponentImplementation({
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
         <Treemap
+          isAnimationActive={false}
           data={data}
           dataKey="value"
           nameKey="name"

@@ -1,15 +1,22 @@
 "use client";
-import React, { memo, Suspense, use, useEffect, type ReactNode } from "react";
-import { EntryError, isComponentListEntry, evaluate } from "@uicast/core";
+import React, { memo, Suspense, use, useEffect, useRef, type ReactNode } from "react";
+import { EntryError, isComponentListEntry } from "@uicast/core";
+import {
+  evaluate,
+  findNumericSetPath,
+  numericSetPathError,
+} from "@uicast/core/internal";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { ErrorBoundary } from "../providers/error-boundary";
 import { useElement } from "../store/elements-store";
-import type { InitFn, Scopes } from "../types";
+import type { InitFn, PlaceholderComponentProps, Scopes } from "../types";
 import { useReactiveDeps } from "./use-reactive-deps";
-import { useSeedDefaults } from "./use-seed-defaults";
+import { useSeed } from "./use-seed";
 import { useItemScopes } from "./use-item-scopes";
 
-type PlaceholderComponent = () => React.ReactElement | null;
+type PlaceholderComponent = (
+  props: PlaceholderComponentProps,
+) => React.ReactElement | null;
 
 const NullPlaceholder: PlaceholderComponent = () => null;
 
@@ -71,8 +78,11 @@ const EntryRendererInner = ({
   // would run an element's seed once per row.
   const seedEnabled = !asListItem && (isListContainer || willRender);
 
-  useReactiveDeps(element, scopes, isListContainer);
-  const { pending, error: seedError } = useSeedDefaults({
+  // The container pass skips subscribing (ListEntryRenderer owns the list's
+  // deps); an item pass subscribes to props + hidden only — the container
+  // already re-renders every row when `each` changes.
+  useReactiveDeps(element, scopes, isListContainer ? "skip" : asListItem ? "render" : "all");
+  const { pending, error: seedError } = useSeed({
     element,
     scopes,
     init,
@@ -81,11 +91,32 @@ const EntryRendererInner = ({
     enabled: seedEnabled,
   });
 
+  const Fallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
+
   // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
   // wakes it when the entry arrives.
   if (!element) {
-    const Fallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
-    return <Fallback />;
+    return <Fallback reason="streaming" />;
+  }
+
+  // Numeric-key `set` paths are rejected off the entry's static strings at
+  // first render, so the fault surfaces while the model is still streaming —
+  // not when a customer first fires the callback (the only steps `useSeed`
+  // wouldn't catch anyway).
+  const invalidSet = findNumericSetPath(element);
+  if (invalidSet) {
+    return (
+      <ErrorBoundary
+        errorComponent={fallbackComponents?.error}
+        elementKey={elementKey}
+        resetToken={element}
+        onError={onError}
+      >
+        <ThrowError
+          error={numericSetPathError(invalidSet.set, invalidSet.segment, elementKey)}
+        />
+      </ErrorBoundary>
+    );
   }
 
   if (isListContainer) {
@@ -93,7 +124,6 @@ const EntryRendererInner = ({
     // bad list expression latches the list slot, not the parent's subtree. An
     // async seed on the list element gates the iteration behind Suspense, so
     // `each` first evaluates against seeded state.
-    const ListFallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
     return (
       <ErrorBoundary
         errorComponent={fallbackComponents?.error}
@@ -104,7 +134,7 @@ const EntryRendererInner = ({
         {seedError ? (
           <ThrowError error={seedError} />
         ) : pending ? (
-          <Suspense fallback={<ListFallback />}>
+          <Suspense fallback={<Fallback reason="seeding" />}>
             <SuspendUntil promise={pending}>
               <ListEntryRenderer elementKey={elementKey} scopes={scopes} />
             </SuspendUntil>
@@ -176,7 +206,7 @@ const EntryRendererInner = ({
         <Suspense
           fallback={
             <Component entry={element} scopes={scopes}>
-              <Placeholder />
+              <Placeholder reason="seeding" />
             </Component>
           }
         >
@@ -200,12 +230,20 @@ const ListEntryRendererInner = ({
 }): React.ReactElement | null => {
   const element = useElement(elementKey);
   const { functions, allowGlobals } = useRendererRegistry();
-  useReactiveDeps(element, scopes);
+  useReactiveDeps(element, scopes, "each");
 
   const list = element && isComponentListEntry(element) ? element : null;
   const rawItems = list
     ? evaluate({ expr: list.each }, { scopes }, { functions, allowGlobals })
     : [];
+  if (rawItems instanceof Promise) {
+    // The contract bans host functions (and `await`) in reactive sites; a
+    // Promise here would otherwise fail as a vague "not an array".
+    throw new EntryError(
+      `"each" of ${elementKey} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
+      { reason: "guardrail-violation", elementKey },
+    );
+  }
   if (list && rawItems != null && !Array.isArray(rawItems)) {
     // Contract violation: `each` must yield an array. Throwing here lands in
     // the list slot's own boundary (this component renders inside it).
@@ -217,23 +255,46 @@ const ListEntryRendererInner = ({
   const items = (rawItems as unknown[] | null | undefined) ?? [];
   const rows = useItemScopes(scopes, list, items);
 
-  // Expose the per-item proxies to the parent scope as `childScopes.<as>` so
-  // list-level expressions can aggregate over items. Written post-commit: a
-  // render-phase `$set` would dispatch subscribed components' reducers while
-  // this component renders, which React forbids.
-  const lastScope = scopes[Object.keys(scopes)[Object.keys(scopes).length - 1]];
+  // Publish the per-item proxies as `childScopes.<as>` on the containing
+  // scope. Post-commit only: a render-phase `$set` would dispatch subscribers
+  // mid-render, which React forbids. Scopes are appended parents-first and
+  // `as` names are contract-unique, so the LAST key is the innermost scope —
+  // the one this list lives in.
+  const innermostScope = scopes[Object.keys(scopes)[Object.keys(scopes).length - 1]];
   const itemScopeName = list?.as;
+  // The effect re-runs on every list commit (`rows` is fresh each render);
+  // skip republishing only when every row's `itemScopes` reference survived.
+  // useItemScopes rebuilds those exactly when item value or index changed, so
+  // a same-id refetch still republishes (the emit is the only wake childScopes
+  // readers get) while a true no-op commit stays silent.
+  const publishedRef = useRef<{
+    scope: (typeof scopes)[string];
+    name: string;
+    rowScopes: Scopes[];
+  } | null>(null);
   useEffect(() => {
     if (!itemScopeName) return;
-    // `$set` no longer invents a missing parent, so establish `childScopes`
-    // before writing into it. Two writes on the first render only; keeping the
-    // per-`as` path means a reader of `childScopes.<as>` is woken precisely.
-    lastScope.$set("childScopes", {}, { default: true });
-    lastScope.$set(
+    const rowScopes = rows.map((row) => row.itemScopes);
+    const prev = publishedRef.current;
+    if (
+      prev &&
+      prev.scope === innermostScope &&
+      prev.name === itemScopeName &&
+      prev.rowScopes.length === rowScopes.length &&
+      rowScopes.every((rowScope, i) => rowScope === prev.rowScopes[i])
+    ) {
+      return;
+    }
+    publishedRef.current = { scope: innermostScope, name: itemScopeName, rowScopes };
+    // `$set` throws on a missing parent, so establish `childScopes` before
+    // writing into it. Keeping the per-`as` path means a reader of
+    // `childScopes.<as>` is woken precisely.
+    innermostScope.$set("childScopes", {}, { default: true });
+    innermostScope.$set(
       `childScopes.${itemScopeName}`,
       rows.map((row) => row.itemProxy),
     );
-  }, [lastScope, itemScopeName, rows]);
+  }, [innermostScope, itemScopeName, rows]);
 
   if (!element) return null;
 

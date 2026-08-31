@@ -14,6 +14,31 @@ describe("getErrorRecoveryPrompt", () => {
 		expect(out).toContain("`kpi`: scopes.root.totals is undefined");
 	});
 
+	it("annotates a failure with its reason and description", () => {
+		const out = getErrorRecoveryPrompt({
+			failures: [
+				{
+					key: "kpi",
+					message: "x is not defined",
+					reason: "unknown-reference",
+				},
+			],
+		});
+		expect(out).toContain(
+			"- Element `kpi`: x is not defined (unknown-reference — the expression references a name that doesn't exist",
+		);
+	});
+
+	it("leaves environment-fault reasons unannotated", () => {
+		const out = getErrorRecoveryPrompt({
+			failures: [
+				{ key: "kpi", message: "fetch failed", reason: "host-function" },
+			],
+		});
+		expect(out).toContain("- Element `kpi`: fetch failed\n");
+		expect(out).not.toContain("host-function");
+	});
+
 	it("asks for a corrected re-emit under the same key, fixing the cause", () => {
 		const out = getErrorRecoveryPrompt({
 			failures: [{ key: "table", message: "boom" }],

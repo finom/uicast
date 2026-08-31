@@ -1,3 +1,4 @@
+import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
 import type { CombinedSpec, ComponentDefinition } from "../types";
 
 /** A component that takes no props at all — the schema `props` defaults to. */
@@ -10,10 +11,9 @@ const EMPTY_OBJECT_SCHEMA = {
 } as const;
 
 /**
- * The props schema of a component that declares none. Hand-written rather than
- * built with a schema library, since core stays library-agnostic. It accepts
- * anything: a propless component has no shape to be wrong about, so it never
- * blames the document on the error path.
+ * The props schema of a propless component. Hand-written — core stays schema-
+ * library-agnostic — and accepting anything: no shape to be wrong about, so it
+ * never blames the document.
  */
 export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
   "~standard": {
@@ -28,36 +28,28 @@ export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
 };
 
 /**
- * `children` is the entry's own field — the array of child keys the renderer
- * turns into nested elements — so a component may not also declare it as a
- * prop. One name would then carry two different things, and whichever the
- * renderer injects last would silently win. Name the prop for what it holds
- * (`text`, `label`, `title`); nested content arrives as children on its own.
+ * `children` is the entry's own field (child element keys), so a def may not
+ * also declare it — one name carrying two things, with whichever the renderer
+ * injects last silently winning. Name the prop for what it holds.
  */
 const RESERVED_PROP = "children";
 
 /** Top-level property names of a spec's JSON Schema; `[]` if it isn't an object schema. */
 const propertyNames = (spec: CombinedSpec): string[] => {
-  let jsonSchema: unknown;
   try {
-    jsonSchema = spec["~standard"].jsonSchema.input({ target: "draft-2020-12" });
+    const { properties } = specToJSONSchema(spec);
+    return properties ? Object.keys(properties) : [];
   } catch {
     // A spec that cannot convert fails loudly in the prompt builder instead.
     return [];
   }
-  const properties = (jsonSchema as { properties?: Record<string, unknown> } | null)
-    ?.properties;
-  return properties ? Object.keys(properties) : [];
 };
 
 /**
- * Value-side constructor for a {@link ComponentDefinition} (the type lives in
- * `types.ts`). Infers the concrete `props` / `callbacks` specs at the call site
- * and returns the def unchanged — its purpose is the inference + a single typed
- * authoring shape; `createComponentImplementation` later reads those inferred
- * types off the returned def. `props` may be omitted by a component that takes
- * none. It rejects a `children` prop or callback field, which would collide
- * with the entry field of the same name.
+ * Value-side constructor for a {@link ComponentDefinition}: infers the concrete
+ * `props` / `callbacks` specs at the call site and returns the def unchanged —
+ * `createComponentImplementation` reads those inferred types off it. `props`
+ * may be omitted; a `children` prop or callback field is rejected.
  */
 export const createComponentDefinition = <
   TProps extends CombinedSpec = typeof NO_PROPS,

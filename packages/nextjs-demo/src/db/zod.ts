@@ -50,18 +50,6 @@ export const orderOutput = orderInsert.extend({
 // ---- pages (no tools; route validation only) ----
 export const pageInsert = z.object({
   title: z.string().min(1),
-  // Generated from the title by POST /api/pages when omitted.
-  slug: z.string().optional(),
-  icon: z.string().nullish(),
-  position: z.number().int().optional(),
   prompt: z.string().nullish(),
 });
 export const pageUpdate = pageInsert.partial();
-
-// ---- component entries (no tools; route validation only) ----
-export const entryInsert = z.object({
-  pageId: z.number().int(),
-  parentId: z.number().int().nullish(),
-  data: z.unknown(),
-});
-export const entryUpdate = entryInsert.partial();

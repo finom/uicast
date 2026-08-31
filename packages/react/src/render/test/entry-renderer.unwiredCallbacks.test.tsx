@@ -1,3 +1,4 @@
+import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
@@ -53,7 +54,11 @@ describe("callbacks the def declares but the entry omits", () => {
       [{ key: "p", component: "Caller", callbacks: { onClick: [{ set: "scopes.root.x", literal: 1 }] } }],
       { implementations: { Caller: calling } },
     );
-    container.querySelector("button")?.click();
+    await act(async () => {
+      container.querySelector("button")?.click();
+      // One macrotask: steps that wrongly ran async would have landed by now.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     expect((scopes.root as unknown as { x?: unknown }).x).toBeUndefined();
   });
 });

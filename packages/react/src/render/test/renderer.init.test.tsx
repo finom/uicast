@@ -1,7 +1,7 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import type { InitFn } from "@uicast/react/types";
+import type { InitFn } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 

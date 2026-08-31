@@ -12,7 +12,6 @@ import { SaferEvalError, validateNode } from "./validate";
 // shadow ambient globals as undefined params, run in-realm so Proxy state works.
 // Guardrail, not a sandbox — see the Expressions docs page, § Safety.
 
-// Re-exported from validate.ts for callers of this module.
 export { SaferEvalError };
 
 // The AsyncFunction constructor, for expressions that use `await`.
@@ -21,8 +20,8 @@ const AsyncFunction = Object.getPrototypeOf(async () => {})
 
 type CacheEntry = {
   isAsync: boolean;
-  scopeReads: string[];
-  freeIds: string[];
+  scopeReads: readonly string[];
+  freeIds: readonly string[];
   // Built lazily on first compile(); validate()/scopeReads() leave it unset.
   fn?: (context: Record<string, unknown>) => unknown;
 };
@@ -59,13 +58,10 @@ export class SaferEval {
     );
   }
 
-  // Parse + validate without running. Throws SaferEvalError if invalid; returns
-  // isAsync + scopeReads and caches the analysis (compile() builds the fn later).
-  validate(expression: string): {
-    isAsync: boolean;
-    scopeReads: string[];
-    freeIds: string[];
-  } {
+  // Parse + validate + analyse, once per expression (cached). Throws
+  // SaferEvalError if invalid. The arrays are frozen because callers get the
+  // cache's own copies — a mutation would poison every later call.
+  #analyze(expression: string): CacheEntry {
     if (typeof expression !== "string") {
       throw new SaferEvalError("Expression must be a string", "expression-syntax");
     }
@@ -76,13 +72,7 @@ export class SaferEval {
     }
 
     const cached = this.#cache.get(expression);
-    if (cached) {
-      return {
-        isAsync: cached.isAsync,
-        scopeReads: cached.scopeReads,
-        freeIds: cached.freeIds,
-      };
-    }
+    if (cached) return cached;
 
     // Parse as `"use strict"; void (expr)`: void(...) forces expression context
     // (so `{...}` is an object literal, not a block), and strict mode rejects
@@ -104,52 +94,60 @@ export class SaferEval {
 
     validateNode(ast);
 
-    const analysis = {
+    const entry: CacheEntry = {
       isAsync: containsAwait(ast),
-      scopeReads: extractScopeReads(ast),
-      freeIds: extractFreeIdentifiers(ast),
+      scopeReads: Object.freeze(extractScopeReads(ast)),
+      freeIds: Object.freeze(extractFreeIdentifiers(ast)),
     };
 
-    // Cache the analysis (no fn yet); evict oldest when full.
+    // Evict oldest when full.
     if (this.#cache.size >= this.#maxCacheSize) {
       const firstKey = this.#cache.keys().next().value;
       if (firstKey !== undefined) this.#cache.delete(firstKey);
     }
-    this.#cache.set(expression, { ...analysis });
+    this.#cache.set(expression, entry);
 
-    return analysis;
+    return entry;
+  }
+
+  // Parse + validate without running. Throws SaferEvalError if invalid.
+  validate(expression: string): {
+    isAsync: boolean;
+    scopeReads: readonly string[];
+    freeIds: readonly string[];
+  } {
+    const { isAsync, scopeReads, freeIds } = this.#analyze(expression);
+    return { isAsync, scopeReads, freeIds };
   }
 
   // Compile to a reusable fn (returns a Promise if the expr uses `await`).
   compile(expression: string): (context: Record<string, unknown>) => unknown {
-    const { isAsync } = this.validate(expression);
-    const entry = this.#cache.get(expression);
-    if (!entry) {
-      // Unreachable — validate() just inserted this entry.
-      throw new SaferEvalError(
-        `Cache entry missing for expression: ${expression}`,
-      );
-    }
+    const entry = this.#analyze(expression);
     if (entry.fn) return entry.fn;
 
     const expr = expression.trim();
-    const Ctor = isAsync ? AsyncFunction : Function;
+    const Ctor = entry.isAsync ? AsyncFunction : Function;
 
     // Single-slot cache: new Ctor bakes in the param names (context keys ∪ shadow
     // params), so it recompiles only if the context shape changes — which it
     // doesn't in practice (a given expr always sees the same keys).
     let cachedSig: string | undefined;
     let cachedFn: ((...args: unknown[]) => unknown) | undefined;
+    let cachedShadowCount = 0;
 
     const evaluator = (context: Record<string, unknown>) => {
       const contextKeys = Object.keys(context);
       const sig = contextKeys.join("\u0000");
       if (sig !== cachedSig) {
-        // Context keys become params; shadow params follow, bound to undefined.
-        const allParams = [...contextKeys, ...this.#shadowParams];
+        // A context key can collide with a shadow param (a host tool named
+        // "fetch"). Dropping the shadow lets the injected value win — and
+        // avoids the duplicate-param SyntaxError strict mode would throw.
+        const keySet = new Set(contextKeys);
+        const shadows = this.#shadowParams.filter((p) => !keySet.has(p));
         try {
           cachedFn = new Ctor(
-            ...allParams,
+            ...contextKeys,
+            ...shadows,
             `"use strict"; return (${expr})`,
           ) as (...args: unknown[]) => unknown;
         } catch (e: unknown) {
@@ -161,13 +159,15 @@ export class SaferEval {
             "expression-syntax",
           );
         }
+        cachedShadowCount = shadows.length;
         cachedSig = sig;
       }
 
-      // Args match allParams: context values (Object.keys order) then shadow fills.
+      // Args match the params: context values (Object.keys order), then an
+      // undefined per remaining shadow param.
       const allArgs = [
         ...Object.values(context),
-        ...new Array(this.#shadowParams.length).fill(undefined),
+        ...new Array(cachedShadowCount).fill(undefined),
       ];
       return (cachedFn as (...args: unknown[]) => unknown)(...allArgs);
     };
@@ -177,23 +177,19 @@ export class SaferEval {
   }
 
   isAsync(expression: string): boolean {
-    const cached = this.#cache.get(expression);
-    if (cached) return cached.isAsync;
-    return this.validate(expression).isAsync;
+    return this.#analyze(expression).isAsync;
   }
 
   // Every `scopes.X.Y` path the expression reads — the renderer auto-subscribes
   // to these instead of the LLM writing a deps array.
-  scopeReads(expression: string): string[] {
-    const cached = this.#cache.get(expression);
-    if (cached) return cached.scopeReads;
-    return this.validate(expression).scopeReads;
+  scopeReads(expression: string): readonly string[] {
+    return this.#analyze(expression).scopeReads;
   }
 
   // Allowlist gate: every free identifier must be an injected context name, a
   // base allowed global, or one the host opted into via allowGlobals.
   #checkAllowlist(
-    freeIds: string[],
+    freeIds: readonly string[],
     contextKeys: string[],
     allowGlobals: string[],
   ): void {
@@ -220,7 +216,7 @@ export class SaferEval {
     allowGlobals: string[] = [],
   ): unknown {
     if (this.#enforceAllowlist) {
-      const { freeIds } = this.validate(expression);
+      const { freeIds } = this.#analyze(expression);
       this.#checkAllowlist(freeIds, Object.keys(context), allowGlobals);
     }
     const evaluator = this.compile(expression);

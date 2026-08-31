@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -39,12 +39,23 @@ export const CronBuilderImpl = createComponentImplementation({
     onChange,
     generatedKey,
   }) => {
+    // Local mirror of the `value` prop — a document change to the prop
+    // resyncs the five parts; local edits win in between.
     const parts = value.split(" ");
     const [minute, setMinute] = useState(parts[0] ?? "*");
     const [hour, setHour] = useState(parts[1] ?? "*");
     const [day, setDay] = useState(parts[2] ?? "*");
     const [month, setMonth] = useState(parts[3] ?? "*");
     const [weekday, setWeekday] = useState(parts[4] ?? "*");
+    const lastPropValue = useRef(value);
+    if (lastPropValue.current !== value) {
+      lastPropValue.current = value;
+      setMinute(parts[0] ?? "*");
+      setHour(parts[1] ?? "*");
+      setDay(parts[2] ?? "*");
+      setMonth(parts[3] ?? "*");
+      setWeekday(parts[4] ?? "*");
+    }
 
     const cronStr = `${minute} ${hour} ${day} ${month} ${weekday}`;
 

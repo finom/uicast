@@ -125,4 +125,41 @@ describe("EntryRenderer — EntryError classification", () => {
     expect(seen[0].fault).toBe("environment");
     consoleError.mockRestore();
   });
+
+  it("rejects a numeric-key callback `set` path at mount as `guardrail-violation`", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { seen, onError } = collect();
+    const lines: ComponentEntry[] = [
+      {
+        key: "grid",
+        component: "Box",
+        props: { literal: { text: "cells" } },
+        callbacks: { onClick: [{ set: "scopes.root.rows.0.qty", literal: 3 }] },
+      },
+    ];
+    const { container } = mountEntries(lines, { onError });
+    // Rejected off the entry's static strings — no click needed.
+    expect(seen).toHaveLength(1);
+    expect(seen[0].reason).toBe("guardrail-violation");
+    expect(seen[0].fault).toBe("document");
+    expect(seen[0].elementKey).toBe("grid");
+    expect(container.textContent).toContain("numeric key");
+    consoleError.mockRestore();
+  });
+
+  it("rejects a numeric-key seed `set` path as `guardrail-violation`", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { seen, onError } = collect();
+    const lines: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        seed: [{ set: "scopes.root.rows.0", literal: 1 }],
+      },
+    ];
+    mountEntries(lines, { onError });
+    expect(seen[0]?.reason).toBe("guardrail-violation");
+    expect(seen[0]?.fault).toBe("document");
+    consoleError.mockRestore();
+  });
 });

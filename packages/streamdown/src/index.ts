@@ -2,7 +2,5 @@
 
 export {
 	createFenceRenderer,
-	FENCE_LANGUAGE,
 	type FenceRendererOptions,
 } from "./create-fence-renderer";
-export { parseFenceCode } from "./parse-fence-code";

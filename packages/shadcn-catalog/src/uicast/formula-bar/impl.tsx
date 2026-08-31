@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Input } from "../../components/ui/input";
 import { FunctionSquare } from "lucide-react";
 import { FormulaBarDef } from "./def";
@@ -15,7 +15,14 @@ export const FormulaBarImpl = createComponentImplementation({
     onSubmit,
     generatedKey,
   }) => {
+    // Local mirror of the `value` prop — a document change to the prop
+    // resyncs it; local edits win in between.
     const [value, setValue] = useState(initialValue);
+    const lastPropValue = useRef(initialValue);
+    if (lastPropValue.current !== initialValue) {
+      lastPropValue.current = initialValue;
+      setValue(initialValue);
+    }
 
     return (
       <div

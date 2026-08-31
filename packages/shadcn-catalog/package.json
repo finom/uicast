@@ -42,10 +42,11 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && npm run build:css",
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && npm run build:css",
     "prepublishOnly": "npm run build",
     "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG",
-    "build:css": "tailwindcss -i styles/entry.css -o dist/catalog.css --minify && tailwindcss -i styles/theme-entry.css -o dist/theme.css --minify"
+    "build:css": "tailwindcss -i styles/entry.css -o dist/catalog.css --minify && tailwindcss -i styles/theme-entry.css -o dist/theme.css --minify",
+    "test": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -61,7 +62,6 @@
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react-day-picker": "^10.0.1",
-    "react-is": "^19.2.0",
     "react-resizable-panels": "^4.10.0",
     "recharts": "^3.8.1",
     "streamdown": "^2.5.0",
@@ -76,6 +76,18 @@
     "@tailwindcss/cli": "^4.3.3",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "tw-animate-css": "^1.4.0"
-  }
+    "happy-dom": "^20.11.15",
+    "tw-animate-css": "^1.4.0",
+    "vitest": "^4.1.11"
+  },
+  "homepage": "https://github.com/finom/uicast#readme",
+  "keywords": [
+    "generative-ui",
+    "llm",
+    "shadcn",
+    "radix",
+    "component-catalog",
+    "ui",
+    "react"
+  ]
 }

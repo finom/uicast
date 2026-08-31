@@ -24,17 +24,10 @@ export type ConfirmableValueSourceAssignment = {
 } & ValueSource;
 
 /**
- * The uicast entry model. One line of a uicast document is a
- * `ComponentEntry`. A `ComponentListEntry` is an entry that repeats: it carries
- * `each` (the array to iterate) plus `as` and an optional `keyBy`.
- *
- * There is no separate "plain entry" type and no
- * `ComponentEntry | ComponentListEntry` union: the list fields (`each`, `as`,
- * `keyBy`) live on `ComponentEntry` as optional, so one type describes every
- * line and a heterogeneous `ComponentEntry[]` can hold list lines directly.
- * `ComponentListEntry` is the same shape with `each`/`as` required — narrow
- * `ComponentEntry` → `ComponentListEntry` with `isComponentListEntry` (presence
- * of `each`).
+ * One line of a uicast document. The list fields (`each`, `as`, `keyBy`) live
+ * here as optionals — no plain/list union, so a heterogeneous
+ * `ComponentEntry[]` holds list lines directly; `ComponentListEntry` is the
+ * same shape with them required (narrow via `isComponentListEntry`).
  */
 export interface ComponentEntry {
   key: string;
@@ -44,30 +37,21 @@ export interface ComponentEntry {
   hidden?: Expression;
   callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
   children?: string[];
-  // List fields — present only when the entry repeats (`each` is the marker).
-  // Optional here so a heterogeneous `ComponentEntry[]` can hold list lines
-  // directly; `ComponentListEntry` below is the same shape with `each`/`as`
-  // required.
+  // List fields — see the doc above; `ComponentListEntry` requires them.
   each?: Expression;
   as?: string;
-  keyBy?: (string & {}) | "_index" | "_item";
+  // Item field carrying the stable per-item identity; absent (or missing on
+  // an item) → the index.
+  keyBy?: string;
 }
 
-/**
- * A list entry repeats — the same shape as `ComponentEntry` with the iteration
- * fields required. `each` is the structural marker (its presence is what makes
- * an entry a list); `as` names the per-item scope.
- */
+/** A `ComponentEntry` whose iteration fields are required; `as` names the per-item scope. */
 export interface ComponentListEntry extends ComponentEntry {
   each: Expression;
   as: string;
 }
 
-/**
- * Narrow a `ComponentEntry` to a `ComponentListEntry`. List-ness is the
- * presence of `each` — there is no `kind` discriminator, exactly like root-ness
- * (derived from an entry being referenced by no other entry's `children`).
- */
+/** List-ness is the presence of `each` — no `kind` discriminator. */
 export function isComponentListEntry(
   entry: ComponentEntry,
 ): entry is ComponentListEntry {
@@ -90,9 +74,7 @@ export function isComponentEntry(value: unknown): value is ComponentEntry {
   );
 }
 
-/**
- * An interface that combines StandardJSONSchema and StandardSchema.
- * */
+/** A schema usable both ways: runtime validation (Standard Schema) plus JSON Schema serialization for the prompt. */
 export type CombinedSpec<Input = unknown, Output = Input> = StandardSchemaV1<Input, Output> &
   StandardJSONSchemaV1<Input, Output>;
 

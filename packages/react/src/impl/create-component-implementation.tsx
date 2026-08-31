@@ -2,17 +2,19 @@ import { Activity, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import {
   EntryError,
-  parseScope,
-  evaluate,
-  planStepWaves,
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
 } from "@uicast/core";
+import { evaluate } from "@uicast/core/internal";
 import { useConfirm } from "../providers/confirm";
-import { readScopePath } from "../read-scope-path";
 import { useRendererRegistry } from "../store/renderer-registry";
-import type { ComponentImplementation } from "../types";
+import type {
+  ComponentImplementation,
+  PlaceholderComponentProps,
+  Scopes,
+} from "../types";
+import { runCallbackSteps } from "./run-callback-steps";
 
 // A `null` callback payload means "no event data": the handler is a no-arg
 // function (`onClick()`), not `(evt: null)`.
@@ -81,14 +83,17 @@ export const createComponentImplementation = <
     } & StandardSchemaV1.InferOutput<TProps> &
       CallbacksToFunctions<TCallbacks>,
   ) => React.ReactElement;
-  placeholder?: () => React.ReactElement;
+  placeholder?: (props: PlaceholderComponentProps) => React.ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
-  const component = (myprops: {
+  const component = ({
+    entry,
+    children,
+    scopes,
+  }: {
     entry: ComponentEntry;
     children: ReactNode;
-    scopes: Record<string, any>;
+    scopes: Scopes;
   }) => {
-    const { entry, children } = myprops;
     const confirm = useConfirm();
     const { functions, allowGlobals, onError } = useRendererRegistry();
     // Evaluate the entry's props, then parse them through the def's schema:
@@ -96,8 +101,17 @@ export const createComponentImplementation = <
     // what `render` is typed to receive. Props that fail the schema are a
     // document fault, caught here rather than as a render crash later.
     const rawProps = entry.props
-      ? evaluate(entry.props, { scopes: myprops.scopes }, { functions, allowGlobals })
+      ? evaluate(entry.props, { scopes }, { functions, allowGlobals })
       : {};
+    // The contract bans host functions (and `await`) in reactive sites: they
+    // re-evaluate on every state change. Without this check the Promise would
+    // leak into render as a truthy object — a silent wrong screen.
+    if (rawProps instanceof Promise) {
+      throw new EntryError(
+        `"props" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
+        { reason: "guardrail-violation", elementKey: entry.key },
+      );
+    }
     const parsed = parseSpec(def.props, rawProps);
     if (!parsed.ok) {
       throw new EntryError(
@@ -107,19 +121,18 @@ export const createComponentImplementation = <
     }
     const props = parsed.value as StandardSchemaV1.InferOutput<TProps>;
     const hidden = entry.hidden
-      ? evaluate(
-          { expr: entry.hidden },
-          { scopes: myprops.scopes },
-          { functions, allowGlobals },
-        )
+      ? evaluate({ expr: entry.hidden }, { scopes }, { functions, allowGlobals })
       : false;
+    if (hidden instanceof Promise) {
+      throw new EntryError(
+        `"hidden" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
+        { reason: "guardrail-violation", elementKey: entry.key },
+      );
+    }
     const entryCallbacks = entry.callbacks ? entry.callbacks : {};
-    // Every callback the DEF declares is callable, whether or not this entry
-    // wired it: the def is the implementation's contract, so `onFocus()` must
-    // not blow up just because the document had no use for it. Keys the entry
-    // wired get the step runner below; the rest resolve to a no-op. Entry keys
-    // the def never declared are kept too — harmless, since no implementation
-    // reads them.
+    // Every callback the DEF declares is callable, wired or not — the def is
+    // the implementation's contract, so `onFocus()` must not blow up because
+    // the document had no use for it. Unwired keys resolve to a no-op.
     const handlerKeys = [
       ...new Set([...Object.keys(def.callbacks ?? {}), ...Object.keys(entryCallbacks)]),
     ];
@@ -129,18 +142,15 @@ export const createComponentImplementation = <
         async (evt: unknown) => {
           if (!entryCallbacks[key]) return;
           try {
-            // The payload comes from the implementation, not the document, so
-            // a mismatch is an implementation bug — and one worth catching:
-            // a missing field would otherwise surface as `evt.foo` quietly
-            // reading `undefined` inside the model's expression. A `null`
-            // payload declares "no event data", which is what `onPress()`
-            // passes as `undefined`.
+            // The payload comes from the implementation, so a mismatch is an
+            // implementation bug — caught here rather than surfacing as
+            // `evt.foo` quietly reading `undefined` in the model's expression.
             const payloadSpec = def.callbacks?.[key];
             let payload = evt;
             if (payloadSpec) {
-              // A payload-free handler is called as `onPress()`, so `evt` is
-              // `undefined` where the schema says `null`. Retry once against
-              // `null` rather than make every such def write `.nullish()`.
+              // A payload-free handler passes `undefined` where the schema
+              // says `null` — retry against `null` rather than make every
+              // such def write `.nullish()`.
               let attempt = parseSpec(payloadSpec, evt);
               if (!attempt.ok && evt === undefined) attempt = parseSpec(payloadSpec, null);
               if (!attempt.ok) {
@@ -151,81 +161,19 @@ export const createComponentImplementation = <
               }
               payload = attempt.value;
             }
-            // Pre-validate every set path — a path that doesn't parse names
-            // something that doesn't exist (document fault), and failing
-            // before any step runs keeps a bad path from stranding the
-            // parallel steps of its wave mid-flight.
-            const allSteps = entryCallbacks[key];
-            const targets = new Map<(typeof allSteps)[number], [string, string]>();
-            for (const setExpr of allSteps) {
-              if (!setExpr.set) continue;
-              try {
-                targets.set(setExpr, parseScope(setExpr.set));
-              } catch (err) {
-                throw EntryError.wrap(err, "unknown-reference", entry.key);
-              }
-            }
-            // Steps run in dependency waves: a step that reads a path an
-            // earlier step sets waits for that write; independent steps run
-            // in parallel. A `confirm` step is a barrier wave of its own —
-            // and so is any step that calls a host function: a mutation's
-            // effect is invisible to path analysis (the refetch after a
-            // delete depends on it without reading any path it writes), so
-            // effectful steps keep their order. Only pure steps parallelize.
-            const callsHostFunction = (expr: string | undefined): boolean =>
-              !!expr &&
-              !!functions?.some((fn) =>
-                new RegExp(`\\b${fn.name}\\s*\\(`).test(expr),
-              );
-            const waves = planStepWaves(allSteps, (step) =>
-              callsHostFunction("expr" in step ? step.expr : undefined),
-            );
-            for (const wave of waves) {
-              if (wave[0].confirm) {
-                const confirmed = await confirm(wave[0].confirm);
-                if (!confirmed) return;
-              }
-              const evaluated = wave.map((setExpr) => {
-                const target = targets.get(setExpr) ?? null;
-                const currentValue = target
-                  ? readScopePath(myprops.scopes[target[0]], target[1])
-                  : undefined;
-                // Evaluate inside an async thunk: a synchronous throw becomes
-                // a rejection, so allSettled observes every step and nothing
-                // rejects unhandled.
-                return {
-                  target,
-                  value: (async () =>
-                    evaluate(
-                      setExpr,
-                      { evt: payload, scopes: myprops.scopes, currentValue },
-                      { functions, allowGlobals },
-                    ))(),
-                };
-              });
-              // Let every step in the wave settle, apply the successful writes
-              // in step order, then fail on the first rejection — so parallel
-              // peers of a failed step still land, and later waves are skipped.
-              const settled = await Promise.allSettled(evaluated.map((e) => e.value));
-              let firstError: unknown = null;
-              settled.forEach((result, i) => {
-                if (result.status === "fulfilled") {
-                  const { target } = evaluated[i];
-                  if (target) {
-                    myprops.scopes[target[0]].$set(target[1], result.value);
-                  }
-                } else if (firstError === null) {
-                  firstError = result.reason;
-                }
-              });
-              if (firstError !== null) throw firstError;
-              await new Promise((resolve) => setTimeout(resolve, 0));
-            }
+            await runCallbackSteps({
+              steps: entryCallbacks[key],
+              payload,
+              scopes,
+              confirm,
+              functions,
+              allowGlobals,
+              elementKey: entry.key,
+            });
           } catch (err) {
-            // A callback failure (bad expression, rejecting host function)
-            // must not vanish as an unhandled rejection. Steps after the
-            // failed one are skipped; state already written stays. Callbacks
-            // don't render, so there's no error slot — onError is the channel.
+            // A callback failure must not vanish as an unhandled rejection.
+            // Callbacks don't render, so there's no error slot — onError is
+            // the channel. Later steps are skipped; written state stays.
             const entryError = EntryError.wrap(err, "unknown", entry.key);
             onError?.(entryError);
             console.error(

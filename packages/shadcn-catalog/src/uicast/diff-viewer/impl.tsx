@@ -5,7 +5,7 @@ import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DiffViewerDef } from "./def";
 
 // Real LCS line diffing via jsdiff, flattened to one row per line — an
-// inserted line no longer cascades mismatches through the rest of the text.
+// inserted line can't cascade mismatches through the rest of the text.
 function computeLineDiff(oldText: string, newText: string) {
   const result: {
     type: "unchanged" | "added" | "removed";

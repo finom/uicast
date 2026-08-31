@@ -11,7 +11,7 @@ export default async function ChatPage({ params }: { params: Promise<{ id: strin
   const { id } = await params;
 
   // No notFound() for an unknown id: a freshly minted chat can be reloaded
-  // before its first message lands — it simply starts empty.
+  // before its first message lands — it starts empty.
   const rows = await db
     .select()
     .from(chatMessages)

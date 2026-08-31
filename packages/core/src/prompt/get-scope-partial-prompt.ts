@@ -6,7 +6,7 @@ export type ScopePromptOptions = {
 	 * - `"answer"` — a compact answer to a question inside a conversation.
 	 */
 	kind: "page" | "widget" | "answer";
-	/** Soft size anchor, rendered as a hint ("around ~N elements"), not a quota. */
+	/** Soft size anchor, rendered as a hint ("around N elements"), not a quota. */
 	approxElements?: number;
 	/** Host-specific context, appended verbatim as the section's last paragraph. */
 	note?: string;
@@ -35,9 +35,8 @@ const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
  * partial is where the host says whether a request means a complete page, an
  * embeddable widget, or a compact conversational answer.
  *
- * A partial-prompt primitive: compose it right after
- * `getCommonInstructionsPartialPrompt()` so the scope guidance sits with the
- * output contract. core ships the pieces; the app owns the assembly.
+ * Compose right after `getCommonInstructionsPartialPrompt()` so the scope
+ * guidance sits with the output contract.
  */
 export function getScopePartialPrompt({
 	kind,
@@ -48,7 +47,7 @@ export function getScopePartialPrompt({
 		"# Scope",
 		KIND_SECTIONS[kind],
 		approxElements !== undefined
-			? `A typical response on this surface is around ~${approxElements} elements (JSONL lines) — treat this as a hint about ambition, not a quota.`
+			? `A typical response on this surface is around ${approxElements} elements (JSONL lines) — treat this as a hint about ambition, not a quota.`
 			: "",
 		note ?? "",
 	]

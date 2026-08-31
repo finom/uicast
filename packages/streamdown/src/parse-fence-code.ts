@@ -4,20 +4,13 @@ import { isComponentEntry, type ComponentEntry } from "@uicast/core";
 export const FENCE_LANGUAGE = "uicast";
 
 /**
- * Parse the body of a ```uicast fence into ComponentEntry lines.
+ * Parse a ```uicast fence body into ComponentEntry lines. Streaming-safe:
+ * unparseable lines (the incomplete last line, stray prose) are skipped.
  *
- * Streaming-safe: a line that does not parse as JSON (typically the
- * still-incomplete last line of a streaming fence, or stray prose) is
- * skipped, so the result is always the complete entries emitted so far.
- *
- * Pass a `cache` (one per fence block) to keep entry object identity stable
- * across streaming re-parses: an unchanged line returns the same object the
- * previous tick produced. The engine keys on entry identity — per-key store
- * wake-ups, failed-seed retry gating, and error-boundary reset all compare
- * objects — so re-minting entries every tick would re-render settled nodes
- * and retry failed seeds on every token. Two byte-identical duplicate lines
- * share one object, which matches replacement semantics: re-emitting an
- * identical line is a no-op replacement.
+ * Pass a `cache` (one per fence block) so an unchanged line returns the same
+ * object across re-parses. The engine keys on entry identity — store wake-ups,
+ * failed-seed retries, boundary resets — so re-minting entries every tick
+ * would re-render settled nodes and retry failed seeds on every token.
  */
 export function parseFenceCode(
   code: string,

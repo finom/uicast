@@ -1,20 +1,11 @@
 import { type ModelMessage, streamText } from "ai";
-import { buildElementsById, streamJsonLines, type ComponentEntry } from "@uicast/core";
-import {
-  getCommonInstructionsPartialPrompt,
-  getComponentsPartialPrompt,
-  getEditRequestPrompt,
-  getExpressionsPartialPrompt,
-  getFunctionsPartialPrompt,
-  getScopePartialPrompt,
-} from "@uicast/core/prompt";
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allCommonEventSchemas } from "@uicast/shadcn-catalog/events";
+import { buildElementsByKey, streamJsonLines, type ComponentEntry } from "@uicast/core";
+import { getEditRequestPrompt } from "@uicast/core/prompt";
 import { asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
-import { domainTools } from "@/tools";
+import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
@@ -65,7 +56,7 @@ export async function POST(req: Request) {
   // in the edit request so the model re-emits them instead of keeping them by
   // reference.
   const storedEntries = rows.map((row) => row.data as ComponentEntry);
-  const storedByKey = buildElementsById(storedEntries);
+  const storedByKey = buildElementsByKey(storedEntries);
   const missingKeys = [
     ...new Set(
       Object.values(storedByKey)
@@ -81,16 +72,7 @@ export async function POST(req: Request) {
       ]
     : [{ role: "user", content: `Page title: ${page.title}\n\n${prompt}` }];
 
-  const system = [
-    getCommonInstructionsPartialPrompt(),
-    getScopePartialPrompt({ kind: "page" }),
-    getExpressionsPartialPrompt(),
-    getComponentsPartialPrompt({
-      definitions: allDefinitions,
-      commonEvents: allCommonEventSchemas,
-    }),
-    getFunctionsPartialPrompt({ functions: domainTools }),
-  ].join("\n\n");
+  const system = buildPageSystemPrompt();
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({
@@ -123,14 +105,14 @@ export async function POST(req: Request) {
         }
 
         // Keep only the current tree in the DB: a re-emitted key shadows its old
-        // row and replaced subtree at render time (buildElementsById); here the
+        // row and replaced subtree at render time (buildElementsByKey); here the
         // shadowed rows are physically deleted so storage matches what renders.
         const stored = await db
           .select({ id: componentEntries.id, data: componentEntries.data })
           .from(componentEntries)
           .where(eq(componentEntries.pageId, page.id))
           .orderBy(asc(componentEntries.id));
-        const current = buildElementsById(stored.map((row) => row.data as ComponentEntry));
+        const current = buildElementsByKey(stored.map((row) => row.data as ComponentEntry));
         const lastIdByKey = new Map<string, number>();
         for (const row of stored) lastIdByKey.set((row.data as ComponentEntry).key, row.id);
         const keepIds = new Set(Object.keys(current).map((key) => lastIdByKey.get(key)));

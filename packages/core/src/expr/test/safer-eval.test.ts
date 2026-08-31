@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EntryError } from "../../entry-error";
+import { evaluate } from "../evaluate";
 import { SaferEval, SaferEvalError } from "../safer-eval";
 
 const evalr = new SaferEval();
@@ -153,6 +155,15 @@ describe("SaferEval — disallowed expressions", () => {
     expect(() => evalr.eval("throw new Error('x')")).toThrow(SaferEvalError);
     expect(() => evalr.eval("while(true) 1")).toThrow(SaferEvalError);
     expect(() => evalr.eval("for(let i=0;i<1;i++) i")).toThrow(SaferEvalError);
+    expect(() => evalr.eval("if (true) 1")).toThrow(SaferEvalError);
+  });
+
+  it("rejects `arguments` inside a function body", () => {
+    // `arguments` can't be shadowed as a strict-mode param — it's blocked as a
+    // reference instead.
+    expect(() =>
+      evalr.eval("xs.map(function () { return arguments })", { xs: [1] }),
+    ).toThrow(SaferEvalError);
   });
 
   it("rejects access to constructor / __proto__ / prototype", () => {
@@ -321,6 +332,8 @@ describe("SaferEval — immediately-invoked functions", () => {
     ["arrow", "(() => 1)()"],
     ["arrow with a body", "(s => { switch (s) { default: return 1 } })(2)"],
     ["function expression", "(function () { return 1 })()"],
+    ["new on a function expression", "new (function () { this.x = 1 })()"],
+    ["new on a class expression", "new (class { constructor() { this.x = 1 } })()"],
   ])("rejects an IIFE: %s", (_name, expr) => {
     expect(() => new SaferEval().eval(expr)).toThrow(SaferEvalError);
   });
@@ -329,6 +342,54 @@ describe("SaferEval — immediately-invoked functions", () => {
     const evalr = new SaferEval();
     expect(evalr.eval("xs.map(x => x * 2)", { xs: [1, 2] })).toEqual([2, 4]);
     expect(evalr.eval("xs.filter(x => x > 1).length", { xs: [1, 2] })).toBe(1);
+  });
+});
+
+describe("SaferEval — async expressions", () => {
+  it("compiles an await expression to an async fn and resolves its value", async () => {
+    await expect(
+      evalr.eval("(await p) + 1", { p: Promise.resolve(41) }),
+    ).resolves.toBe(42);
+  });
+
+  it("classifies a rejecting await as expression-runtime", async () => {
+    // Through the evaluate() wrapper, which owns error classification.
+    const result = evaluate(
+      { expr: "await p" },
+      { p: Promise.reject(new Error("boom")) },
+    ) as Promise<unknown>;
+    await expect(result).rejects.toSatisfy(
+      (err) => EntryError.is(err) && err.reason === "expression-runtime",
+    );
+  });
+});
+
+describe("SaferEval — cache eviction", () => {
+  it("evicts the oldest entry when full and still evaluates it correctly", () => {
+    const ev = new SaferEval({ maxCacheSize: 2 });
+    expect(ev.eval("1 + 1")).toBe(2);
+    expect(ev.eval("2 + 2")).toBe(4);
+    expect(ev.eval("3 + 3")).toBe(6); // evicts "1 + 1"
+    expect(ev.eval("1 + 1")).toBe(2); // re-analyzed from scratch
+  });
+});
+
+describe("SaferEval — shadowing options", () => {
+  it("extraGlobalsToShadow hides a real ambient global", () => {
+    (globalThis as Record<string, unknown>).myHostGlobal = "leak";
+    try {
+      const ev = new SaferEval({ extraGlobalsToShadow: ["myHostGlobal"] });
+      expect(ev.eval("typeof myHostGlobal")).toBe("undefined");
+    } finally {
+      Reflect.deleteProperty(globalThis, "myHostGlobal");
+    }
+  });
+
+  it("per-call allowGlobals cannot unshadow a GLOBALS_TO_SHADOW member", () => {
+    // The third eval arg widens the allowlist gate only; the shadow params are
+    // fixed at construction, so `fetch` stays bound to undefined.
+    const ev = new SaferEval({ enforceAllowlist: true });
+    expect(ev.eval("typeof fetch", {}, ["fetch"])).toBe("undefined");
   });
 });
 

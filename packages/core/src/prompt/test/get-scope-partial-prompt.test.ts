@@ -30,7 +30,7 @@ describe("getScopePartialPrompt", () => {
 	it("renders approxElements as a hint, not a quota", () => {
 		const out = getScopePartialPrompt({ kind: "answer", approxElements: 10 });
 		expect(out).toContain(
-			"around ~10 elements (JSONL lines) — treat this as a hint about ambition, not a quota",
+			"around 10 elements (JSONL lines) — treat this as a hint about ambition, not a quota",
 		);
 	});
 

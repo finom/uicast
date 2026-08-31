@@ -4,10 +4,9 @@ import { createComponentDefinition } from "../../def/create-component-definition
 import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
 
 describe("getComponentsPartialPrompt — duplicate names", () => {
-	// The catalog registry is a flat `ComponentDefinition[]` (`defs.ts`), which
-	// lost the keyed-object registry's free name-uniqueness. This builder — the
-	// one place every def is consumed by name — re-imposes it as a fail-fast
-	// throw (relocated here when `createComponentDefinitions` was removed).
+	// A flat `ComponentDefinition[]` (the catalog registry shape) carries no
+	// name-uniqueness of its own; this builder — the one place every def is
+	// consumed by name — imposes it as a fail-fast throw.
 	it("throws on a duplicate component name", () => {
 		const A = createComponentDefinition({
 			name: "Dup",
@@ -74,7 +73,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 		.object({ x: z.number() })
 		.meta({ $id: "MouseEvent", description: "fires on click" });
 
-	it("describes a common event once and references it per component", () => {
+	it("hoists a `$id` payload once and references it per component", () => {
 		const A = createComponentDefinition({
 			name: "A",
 			description: "a",
@@ -87,10 +86,8 @@ describe("getComponentsPartialPrompt — common events", () => {
 			props: z.object({}),
 			callbacks: { onClick },
 		});
-		const out = getComponentsPartialPrompt({
-			definitions: [A, B],
-			commonEvents: [onClick],
-		});
+		// No `commonEvents` argument — the `$id` on the callback is the signal.
+		const out = getComponentsPartialPrompt({ definitions: [A, B] });
 
 		expect(out).toContain("# Common Events");
 		expect(out).toContain("- MouseEvent — fires on click");
@@ -100,34 +97,52 @@ describe("getComponentsPartialPrompt — common events", () => {
 		expect(out.split("- x: number").length - 1).toBe(1);
 	});
 
-	it("inlines a callback whose `$id` was not passed as a common event", () => {
+	it("hoists a `$id` payload even when only one component uses it", () => {
+		// Consistent with `# Shared Types`: a `$id` is a named concept, hoisted
+		// regardless of usage count.
 		const A = createComponentDefinition({
 			name: "A",
 			description: "a",
 			props: z.object({}),
 			callbacks: { onClick },
 		});
-		const out = getComponentsPartialPrompt({ definitions: [A] }); // no common events
+		const out = getComponentsPartialPrompt({ definitions: [A] });
+		expect(out).toContain("# Common Events");
+		expect(out).toContain("- MouseEvent — fires on click");
+		expect(out).toContain("onClick(evt: MouseEvent)");
+	});
+
+	it("inlines a callback whose payload has no `$id`", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({}),
+			callbacks: {
+				onDrag: z.object({ x: z.number() }).meta({ description: "fires on drag" }),
+			},
+		});
+		const out = getComponentsPartialPrompt({ definitions: [A] });
 		expect(out).not.toContain("# Common Events");
-		expect(out).toContain("    - onClick(evt) — fires on click");
+		expect(out).toContain("    - onDrag(evt) — fires on drag");
 		expect(out).toContain("      - x: number");
 	});
 
-	it("throws when a common event schema has no `$id`", () => {
-		const noId = z.object({ x: z.number() }).meta({ description: "no id" });
-		expect(() =>
-			getComponentsPartialPrompt({ definitions: [], commonEvents: [noId] }),
-		).toThrow(
-			/missing a JSON Schema/,
+	it("throws when two callbacks name the same `$id` with different payloads", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({}),
+			callbacks: { onX: z.object({ x: z.number() }).meta({ $id: "dup" }) },
+		});
+		const B = createComponentDefinition({
+			name: "B",
+			description: "b",
+			props: z.object({}),
+			callbacks: { onX: z.object({ y: z.string() }).meta({ $id: "dup" }) },
+		});
+		expect(() => getComponentsPartialPrompt({ definitions: [A, B] })).toThrow(
+			/"dup" with different payloads/,
 		);
-	});
-
-	it("throws on a duplicate common event `$id`", () => {
-		const c1 = z.object({ x: z.number() }).meta({ $id: "dup" });
-		const c2 = z.object({ y: z.string() }).meta({ $id: "dup" });
-		expect(() =>
-			getComponentsPartialPrompt({ definitions: [], commonEvents: [c1, c2] }),
-		).toThrow('Duplicate common event id: "dup"');
 	});
 });
 

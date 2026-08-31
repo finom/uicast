@@ -68,6 +68,24 @@ import { TooltipDef } from "./uicast/tooltip/def";
 import { ProgressBarDef } from "./uicast/progress-bar/def";
 import { ImageDef } from "./uicast/image/def";
 
+import { CalendarDef } from "./uicast/calendar/def";
+import { TimelineDef } from "./uicast/timeline/def";
+import { TreeViewDef } from "./uicast/tree-view/def";
+import { DescriptionListDef } from "./uicast/description-list/def";
+import { CodeBlockDef } from "./uicast/code-block/def";
+import { MarkdownViewerDef } from "./uicast/markdown-viewer/def";
+import { AvatarGroupDef } from "./uicast/avatar-group/def";
+import { StatusIndicatorDef } from "./uicast/status-indicator/def";
+import { CarouselDef } from "./uicast/carousel/def";
+import { CalloutDef } from "./uicast/callout/def";
+import { KBDDef } from "./uicast/kbd/def";
+import { HighlightDef } from "./uicast/highlight/def";
+import { RelativeTimeDef } from "./uicast/relative-time/def";
+import { TruncatedTextDef } from "./uicast/truncated-text/def";
+import { CopyButtonDef } from "./uicast/copy-button/def";
+import { QRCodeDef } from "./uicast/qr-code/def";
+import { BarcodeDef } from "./uicast/barcode/def";
+
 // Table
 import { TableDef } from "./uicast/table/def";
 import { TableHeaderDef } from "./uicast/table-header/def";
@@ -89,7 +107,20 @@ import { PieChartDef } from "./uicast/pie-chart/def";
 import { AreaChartDef } from "./uicast/area-chart/def";
 import { FunnelChartDef } from "./uicast/funnel-chart/def";
 
-// Navigation & Wayfinding (new)
+import { ScatterChartDef } from "./uicast/scatter-chart/def";
+import { RadarChartDef } from "./uicast/radar-chart/def";
+import { DonutChartDef } from "./uicast/donut-chart/def";
+import { GaugeChartDef } from "./uicast/gauge-chart/def";
+import { SparklineDef } from "./uicast/sparkline/def";
+import { HeatmapDef } from "./uicast/heatmap/def";
+import { TreemapChartDef } from "./uicast/treemap-chart/def";
+import { WaterfallChartDef } from "./uicast/waterfall-chart/def";
+import { SankeyChartDef } from "./uicast/sankey-chart/def";
+import { ComboChartDef } from "./uicast/combo-chart/def";
+import { GanttChartDef } from "./uicast/gantt-chart/def";
+import { BubbleChartDef } from "./uicast/bubble-chart/def";
+
+// Navigation & Wayfinding
 import { SidebarDef } from "./uicast/sidebar/def";
 import { NavigationMenuDef } from "./uicast/navigation-menu/def";
 import { MenubarDef } from "./uicast/menubar/def";
@@ -97,7 +128,7 @@ import { CommandMenuDef } from "./uicast/command-menu/def";
 import { LinkDef } from "./uicast/link/def";
 import { ContextMenuDef } from "./uicast/context-menu/def";
 
-// Form & Input (new)
+// Form & Input
 import { ComboboxDef } from "./uicast/combobox/def";
 import { SliderDef } from "./uicast/slider/def";
 import { RangeSliderDef } from "./uicast/range-slider/def";
@@ -116,7 +147,7 @@ import { ToggleGroupDef } from "./uicast/toggle-group/def";
 import { SegmentedControlDef } from "./uicast/segmented-control/def";
 import { FormSectionDef } from "./uicast/form-section/def";
 
-// Layout & Structure (new)
+// Layout & Structure
 import { ContainerDef } from "./uicast/container/def";
 import { AspectRatioDef } from "./uicast/aspect-ratio/def";
 import { ScrollAreaDef } from "./uicast/scroll-area/def";
@@ -127,40 +158,7 @@ import { StickyHeaderDef } from "./uicast/sticky-header/def";
 import { PageHeaderDef } from "./uicast/page-header/def";
 import { ToolbarDef } from "./uicast/toolbar/def";
 
-// Data Display (new)
-import { CalendarDef } from "./uicast/calendar/def";
-import { TimelineDef } from "./uicast/timeline/def";
-import { TreeViewDef } from "./uicast/tree-view/def";
-import { DescriptionListDef } from "./uicast/description-list/def";
-import { CodeBlockDef } from "./uicast/code-block/def";
-import { MarkdownViewerDef } from "./uicast/markdown-viewer/def";
-import { AvatarGroupDef } from "./uicast/avatar-group/def";
-import { StatusIndicatorDef } from "./uicast/status-indicator/def";
-import { CarouselDef } from "./uicast/carousel/def";
-import { CalloutDef } from "./uicast/callout/def";
-import { KBDDef } from "./uicast/kbd/def";
-import { HighlightDef } from "./uicast/highlight/def";
-import { RelativeTimeDef } from "./uicast/relative-time/def";
-import { TruncatedTextDef } from "./uicast/truncated-text/def";
-import { CopyButtonDef } from "./uicast/copy-button/def";
-import { QRCodeDef } from "./uicast/qr-code/def";
-import { BarcodeDef } from "./uicast/barcode/def";
-
-// Charts (new)
-import { ScatterChartDef } from "./uicast/scatter-chart/def";
-import { RadarChartDef } from "./uicast/radar-chart/def";
-import { DonutChartDef } from "./uicast/donut-chart/def";
-import { GaugeChartDef } from "./uicast/gauge-chart/def";
-import { SparklineDef } from "./uicast/sparkline/def";
-import { HeatmapDef } from "./uicast/heatmap/def";
-import { TreemapChartDef } from "./uicast/treemap-chart/def";
-import { WaterfallChartDef } from "./uicast/waterfall-chart/def";
-import { SankeyChartDef } from "./uicast/sankey-chart/def";
-import { ComboChartDef } from "./uicast/combo-chart/def";
-import { GanttChartDef } from "./uicast/gantt-chart/def";
-import { BubbleChartDef } from "./uicast/bubble-chart/def";
-
-// Feedback & Status (new)
+// Feedback & Status
 import { BannerDef } from "./uicast/banner/def";
 import { InlineMessageDef } from "./uicast/inline-message/def";
 import { AlertDialogDef } from "./uicast/alert-dialog/def";
@@ -168,20 +166,19 @@ import { CircularProgressDef } from "./uicast/circular-progress/def";
 import { CountdownTimerDef } from "./uicast/countdown-timer/def";
 import { NotificationBadgeDef } from "./uicast/notification-badge/def";
 
-// Specialized / Business-Specific (new)
+// Specialized / Business-Specific
 import { KanbanBoardDef } from "./uicast/kanban-board/def";
 import { SortableListDef } from "./uicast/sortable-list/def";
 import { VirtualListDef } from "./uicast/virtual-list/def";
 import { MapDef } from "./uicast/map/def";
 import { OrgChartDef } from "./uicast/org-chart/def";
 import { FlowDiagramDef } from "./uicast/flow-diagram/def";
-import { ChatBubbleDef } from "./uicast/chat-bubble/def";
+import { ChatThreadDef } from "./uicast/chat-thread/def";
 import { VideoPlayerDef } from "./uicast/video-player/def";
 import { CronBuilderDef } from "./uicast/cron-builder/def";
 import { FilterBuilderDef } from "./uicast/filter-builder/def";
 import { FormulaBarDef } from "./uicast/formula-bar/def";
 import { DiffViewerDef } from "./uicast/diff-viewer/def";
-
 export {
   CardDef,
   FlexRowDef,
@@ -327,7 +324,7 @@ export {
   MapDef,
   OrgChartDef,
   FlowDiagramDef,
-  ChatBubbleDef,
+  ChatThreadDef,
   VideoPlayerDef,
   CronBuilderDef,
   FilterBuilderDef,
@@ -399,6 +396,23 @@ export const allDefinitions = [
   TooltipDef,
   ProgressBarDef,
   ImageDef,
+  CalendarDef,
+  TimelineDef,
+  TreeViewDef,
+  DescriptionListDef,
+  CodeBlockDef,
+  MarkdownViewerDef,
+  AvatarGroupDef,
+  StatusIndicatorDef,
+  CarouselDef,
+  CalloutDef,
+  KBDDef,
+  HighlightDef,
+  RelativeTimeDef,
+  TruncatedTextDef,
+  CopyButtonDef,
+  QRCodeDef,
+  BarcodeDef,
   // Table
   TableDef,
   TableHeaderDef,
@@ -417,14 +431,26 @@ export const allDefinitions = [
   PieChartDef,
   AreaChartDef,
   FunnelChartDef,
-  // Navigation & Wayfinding (new)
+  ScatterChartDef,
+  RadarChartDef,
+  DonutChartDef,
+  GaugeChartDef,
+  SparklineDef,
+  HeatmapDef,
+  TreemapChartDef,
+  WaterfallChartDef,
+  SankeyChartDef,
+  ComboChartDef,
+  GanttChartDef,
+  BubbleChartDef,
+  // Navigation & Wayfinding
   SidebarDef,
   NavigationMenuDef,
   MenubarDef,
   CommandMenuDef,
   LinkDef,
   ContextMenuDef,
-  // Form & Input (new)
+  // Form & Input
   ComboboxDef,
   SliderDef,
   RangeSliderDef,
@@ -442,7 +468,7 @@ export const allDefinitions = [
   ToggleGroupDef,
   SegmentedControlDef,
   FormSectionDef,
-  // Layout & Structure (new)
+  // Layout & Structure
   ContainerDef,
   AspectRatioDef,
   ScrollAreaDef,
@@ -452,52 +478,21 @@ export const allDefinitions = [
   StickyHeaderDef,
   PageHeaderDef,
   ToolbarDef,
-  // Data Display (new)
-  CalendarDef,
-  TimelineDef,
-  TreeViewDef,
-  DescriptionListDef,
-  CodeBlockDef,
-  MarkdownViewerDef,
-  AvatarGroupDef,
-  StatusIndicatorDef,
-  CarouselDef,
-  CalloutDef,
-  KBDDef,
-  HighlightDef,
-  RelativeTimeDef,
-  TruncatedTextDef,
-  CopyButtonDef,
-  QRCodeDef,
-  BarcodeDef,
-  // Charts (new)
-  ScatterChartDef,
-  RadarChartDef,
-  DonutChartDef,
-  GaugeChartDef,
-  SparklineDef,
-  HeatmapDef,
-  TreemapChartDef,
-  WaterfallChartDef,
-  SankeyChartDef,
-  ComboChartDef,
-  GanttChartDef,
-  BubbleChartDef,
-  // Feedback & Status (new)
+  // Feedback & Status
   BannerDef,
   InlineMessageDef,
   AlertDialogDef,
   CircularProgressDef,
   CountdownTimerDef,
   NotificationBadgeDef,
-  // Specialized / Business-Specific (new)
+  // Specialized / Business-Specific
   KanbanBoardDef,
   SortableListDef,
   VirtualListDef,
   MapDef,
   OrgChartDef,
   FlowDiagramDef,
-  ChatBubbleDef,
+  ChatThreadDef,
   VideoPlayerDef,
   CronBuilderDef,
   FilterBuilderDef,

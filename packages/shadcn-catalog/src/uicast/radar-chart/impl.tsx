@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { RadarChartDef } from "./def";
 
 export const RadarChartImpl = createComponentImplementation({
@@ -21,15 +22,7 @@ export const RadarChartImpl = createComponentImplementation({
     height,
     generatedKey,
   }) => {
-    const defaultColors = [
-      "#8884d8",
-      "#82ca9d",
-      "#ffc658",
-      "#ff7300",
-      "#0088fe",
-      "#00c49f",
-    ];
-    const radarColors = colors ?? defaultColors;
+    const radarColors = colors ?? defaultChartColors;
 
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>

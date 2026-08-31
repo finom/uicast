@@ -20,10 +20,9 @@ export const GaugeChartImpl = createComponentImplementation({
     const cx = 100;
     const cy = 100;
 
-    // SVG arc path for the gauge background (semicircle)
+    // Semicircle, left to right
     const bgPath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
 
-    // Calculate the end point based on the angle
     const endAngle = Math.PI - (angle * Math.PI) / 180;
     const endX = cx + radius * Math.cos(endAngle);
     const endY = cy - radius * Math.sin(endAngle);

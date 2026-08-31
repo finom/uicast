@@ -9,8 +9,12 @@ interface ChangePayload<T = unknown> {
 }
 
 interface Emitter {
+  /**
+   * Subscribe; the returned function unsubscribes. The type `"*"` receives
+   * every emit regardless of path — the react binding uses it to forward a
+   * list item's writes to the list's source array.
+   */
   on<T = unknown>(type: string, handler: EventHandler<T>): () => void;
-  off<T = unknown>(type: string, handler: EventHandler<T>): void;
   emit<T = unknown>(type: string, payload: T): void;
   /**
    * Count of emits so far. A subscriber that registers its handler after
@@ -38,10 +42,6 @@ function createEmitter(): Emitter {
       return () => events.get(type)?.delete(handler);
     },
 
-    off(type, handler) {
-      events.get(type)?.delete(handler);
-    },
-
     emit(type, payload) {
       version++;
       events.get(type)?.forEach((fn) => {
@@ -59,6 +59,9 @@ function createEmitter(): Emitter {
           });
         }
       }
+      events.get("*")?.forEach((fn) => {
+        fn(payload);
+      });
     },
   };
 }
@@ -95,6 +98,14 @@ function createProxyScope<T extends object>(
           { reason: "unknown-reference" },
         );
       }
+      // A primitive parent fails the same way as a missing one — classified,
+      // not V8's raw "Cannot create property" TypeError.
+      if (typeof current[key] !== "object") {
+        throw new EntryError(
+          `Cannot set "${path}": "${keys.slice(0, i + 1).join(".")}" is not an object.`,
+          { reason: "unknown-reference" },
+        );
+      }
       current = current[key];
     }
 
@@ -108,6 +119,10 @@ function createProxyScope<T extends object>(
 
   function wrap<U>(obj: U, path: PropertyKey[] = []): U {
     if (obj === null || typeof obj !== "object") return obj;
+    // The cache is keyed by object, and the wrap path is baked in at first
+    // wrap. Invariant: an object lives at exactly one scope path — aliasing
+    // the same object under two paths (or moving it) is a host bug; writes
+    // through the alias would emit on the first path.
     if (proxyCache.has(obj as object))
       return proxyCache.get(obj as object) as U;
 

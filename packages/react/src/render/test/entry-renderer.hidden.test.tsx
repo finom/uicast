@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
+// `Activity mode="hidden"` keeps the node mounted and sets an inline
+// `display: none !important` on its host children — `style.display` is the
+// observable signal, in happy-dom as in the browser.
 describe("EntryRenderer — hidden", () => {
   it("hides the entry when hidden evaluates truthy", () => {
     const lines: ComponentEntry[] = [
@@ -16,17 +19,9 @@ describe("EntryRenderer — hidden", () => {
     const { container } = mountEntries(lines, {
       rootScope: { hideIt: true },
     });
-    // `Activity mode="hidden"` keeps the node mounted but visually hidden via
-    // the `hidden=""` attribute. Use `hidden` attr as the signal.
-    const el = container.querySelector("[data-key='root']");
+    const el = container.querySelector("[data-key='root']") as HTMLElement;
     expect(el).not.toBeNull();
-    // React's Activity renders with display:none on the wrapper. Confirm the
-    // text is not visible to a typical query.
-    const offsetHidden = (el as HTMLElement)?.offsetParent === null;
-    // In happy-dom, offsetParent may not behave like the browser. As a
-    // fallback, just confirm the Activity wrapper exists by walking up.
-    // (Behavioral contract: re-rendering with `hideIt: false` exposes the text.)
-    expect(offsetHidden || true).toBe(true);
+    expect(el.style.display).toBe("none");
   });
 
   it("flips visibility reactively when the hidden path changes", () => {
@@ -47,20 +42,21 @@ describe("EntryRenderer — hidden", () => {
       rootScope: { hidden: false },
     });
 
-    // Initially visible — the `text` prop is on the panel Box.
+    const panel = container.querySelector("[data-key='panel']") as HTMLElement;
+    expect(panel.style.display).not.toBe("none");
     expect(container.textContent).toContain("panel-text");
 
     act(() => {
       scopes.root.$set("hidden", true);
     });
-    // Note: Activity mode keeps the DOM mounted. We can't easily assert
-    // visibility in happy-dom without a layout engine, but we CAN assert the
-    // emit fired and the renderer subscribed to it (no crash, state changed).
-    expect((scopes.root as Record<string, unknown>).hidden).toBe(true);
+    // Still mounted — Activity hides, it does not unmount.
+    expect(container.querySelector("[data-key='panel']")).toBe(panel);
+    expect(panel.style.display).toBe("none");
 
     act(() => {
       scopes.root.$set("hidden", false);
     });
+    expect(panel.style.display).not.toBe("none");
     expect(container.textContent).toContain("panel-text");
   });
 });

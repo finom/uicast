@@ -1,6 +1,6 @@
 import type { ComponentEntry } from "@uicast/core";
 import { relations, sql } from "drizzle-orm";
-import { type AnySQLiteColumn, index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { index, integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const products = sqliteTable("products", {
   id: integer("id").primaryKey({ autoIncrement: true }),
@@ -65,9 +65,6 @@ export type NewOrder = typeof orders.$inferInsert;
 export const pages = sqliteTable("pages", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
-  slug: text("slug").notNull().unique(),
-  icon: text("icon"),
-  position: integer("position").notNull().default(0),
   prompt: text("prompt"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
@@ -81,32 +78,20 @@ export const componentEntries = sqliteTable(
     pageId: integer("page_id")
       .notNull()
       .references(() => pages.id, { onDelete: "cascade" }),
-    parentId: integer("parent_id").references((): AnySQLiteColumn => componentEntries.id, {
-      onDelete: "cascade",
-    }),
     data: text("data", { mode: "json" }).$type<ComponentEntry>().notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .default(sql`(unixepoch('subsec') * 1000)`),
   },
-  (t) => [
-    index("component_entries_page_created").on(t.pageId, t.createdAt),
-    index("component_entries_parent").on(t.parentId),
-  ],
+  (t) => [index("component_entries_page_created").on(t.pageId, t.createdAt)],
 );
 
 export const pagesRelations = relations(pages, ({ many }) => ({
   entries: many(componentEntries),
 }));
 
-export const componentEntriesRelations = relations(componentEntries, ({ one, many }) => ({
+export const componentEntriesRelations = relations(componentEntries, ({ one }) => ({
   page: one(pages, { fields: [componentEntries.pageId], references: [pages.id] }),
-  parent: one(componentEntries, {
-    fields: [componentEntries.parentId],
-    references: [componentEntries.id],
-    relationName: "entry_children",
-  }),
-  children: many(componentEntries, { relationName: "entry_children" }),
 }));
 
 export type Page = typeof pages.$inferSelect;

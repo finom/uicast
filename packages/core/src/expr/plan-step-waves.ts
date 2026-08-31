@@ -12,22 +12,20 @@ const overlaps = (a: string, b: string): boolean =>
   a === b || a.startsWith(`${b}.`) || b.startsWith(`${a}.`);
 
 /**
- * Partition a step list (seed or callback) into dependency waves. Steps keep
- * their order semantically — a step that reads a path an earlier step writes
- * lands in a later wave, so it evaluates after that write — while steps with
- * no such dependency share a wave and may run in parallel. `currentValue`
- * counts as a read of the step's own `set` path. A `confirm` step is a
- * barrier: it sits alone in its wave, so everything before it has settled
- * when the dialog shows and nothing after it starts until it passes.
+ * Partition a step list (seed or callback) into dependency waves: a step
+ * reading a path an earlier step writes lands in a later wave; independent
+ * steps share one and may run in parallel. `currentValue` counts as a read of
+ * the step's own `set` path. A `confirm` step is a barrier, alone in its wave.
  *
- * `isBarrier` marks additional steps as barriers. The callback executor uses
- * it for steps that call host functions: a mutation's effect is invisible to
- * path analysis (deleteProduct() writes no scope path, but the refetch after
- * it depends on it all the same), so effectful steps must never race.
+ * `isBarrier` marks more barriers — the callback runner uses it for
+ * host-function calls, whose effects path analysis can't see. `declaredWrites`
+ * adds written paths a step's `set` doesn't name — the react binding declares
+ * a row write's source-array/childScopes aliases through it.
  */
 export function planStepWaves<T extends PlannableStep>(
   steps: readonly T[],
   isBarrier?: (step: T) => boolean,
+  declaredWrites?: (step: T) => string[],
 ): T[][] {
   const waves: T[][] = [];
   let wave: T[] = [];
@@ -50,6 +48,7 @@ export function planStepWaves<T extends PlannableStep>(
     if (dependsOnWave || barrier) close();
     wave.push(step);
     if (step.set) waveWrites.push(step.set);
+    if (declaredWrites) waveWrites.push(...declaredWrites(step));
     if (barrier) close();
   }
   close();

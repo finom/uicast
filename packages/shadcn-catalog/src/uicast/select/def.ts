@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const SelectDef = createComponentDefinition({
   name: "Select",
   description:
-    "A dropdown select component for choosing one option from a list. Renders a styled select trigger that opens a dropdown popover with options. Use Select for any single-choice selection (status, category, country, etc.). The 'options' prop is an array of objects with 'label' and 'value'. For multi-select, use multiple Tag components or checkboxes instead.",
+    "A dropdown select component for choosing one option from a list. Renders a styled select trigger that opens a dropdown popover with options. Use Select for any single-choice selection (status, category, country, etc.). The 'options' prop is an array of objects with 'label' and 'value'. For multi-select, use the MultiSelect component instead.",
   props: z.object({
     value: z
       .string()

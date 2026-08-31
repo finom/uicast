@@ -7,6 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { DonutChartDef } from "./def";
 
 export const DonutChartImpl = createComponentImplementation({
@@ -19,15 +20,7 @@ export const DonutChartImpl = createComponentImplementation({
     centerLabel,
     generatedKey,
   }) => {
-    const defaultColors = [
-      "#8884d8",
-      "#82ca9d",
-      "#ffc658",
-      "#ff7300",
-      "#0088fe",
-      "#00c49f",
-      "#ff6b6b",
-    ];
+    const defaultColors = [...defaultChartColors, "#ff6b6b"];
 
     return (
       <div className="relative" data-key={generatedKey}>

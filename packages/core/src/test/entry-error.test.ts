@@ -63,12 +63,12 @@ describe("evaluate — classification at the throw site", () => {
     }
   });
 
-  it("tags a blocked property access as sandbox-violation (document)", () => {
+  it("tags a blocked property access as guardrail-violation (document)", () => {
     try {
       evaluate({ expr: "({}).constructor" }, { scopes: {} });
       expect.unreachable();
     } catch (err) {
-      expect(EntryError.is(err) && err.reason).toBe("sandbox-violation");
+      expect(EntryError.is(err) && err.reason).toBe("guardrail-violation");
     }
   });
 

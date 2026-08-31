@@ -109,6 +109,51 @@ describe("collectSharedTypes", () => {
 		]);
 	});
 
+	it("hoists a self-referential root ref, keeping the recursion expressible", () => {
+		// The shape a top-level `z.lazy` emits. Skipping it (like the plain
+		// self-ref below) would degrade the recursion to `unknown[]`.
+		const shared = collectSharedTypes();
+		const doc = {
+			$ref: "#/$defs/Node",
+			$defs: {
+				Node: {
+					type: "object",
+					properties: {
+						children: { type: "array", items: { $ref: "#/$defs/Node" } },
+					},
+				},
+			},
+		};
+		const refs = shared.add(doc);
+
+		expect(refs["#/$defs/Node"]).toBe("Node");
+		expect(shared.lines()).toEqual(["- Node: { children?: Node[] }"]);
+		expect(JSONSchemaToTs(doc, { namedRefs: refs })).toBe("Node");
+	});
+
+	it("does not dedupe textually identical defs whose refs resolve differently", () => {
+		// Both documents carry an identical-looking List def, but each List's
+		// `$ref` points at that document's own Item — a string list vs a number
+		// list. Deduping them would print a wrong type for one document.
+		const shared = collectSharedTypes();
+		const list = { type: "array", items: { $ref: "#/$defs/Item" } };
+		const refsA = shared.add({
+			$defs: { Item: { type: "string" }, List: list },
+		});
+		const refsB = shared.add({
+			$defs: { Item: { type: "number" }, List: list },
+		});
+
+		expect(refsA["#/$defs/List"]).toBe("List");
+		expect(refsB["#/$defs/List"]).toBe("List2");
+		expect(shared.lines()).toEqual([
+			"- Item: string",
+			"- List: Item[]",
+			"- Item2: number",
+			"- List2: Item2[]",
+		]);
+	});
+
 	it("leaves a document that is only a self-ref alone", () => {
 		// Hoisting here would render the whole schema as the bare word `Wrapper`
 		// and move the payload out of the site that needs it.

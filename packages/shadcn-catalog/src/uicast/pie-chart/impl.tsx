@@ -7,6 +7,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { PieChartDef } from "./def";
 
 export const PieChartImpl = createComponentImplementation({
@@ -21,12 +22,7 @@ export const PieChartImpl = createComponentImplementation({
   }) => {
     const data = rawData.map((d) => ({ ...d, value: Number(d.value) }));
     const defaultColors = [
-      "#8884d8",
-      "#82ca9d",
-      "#ffc658",
-      "#ff7300",
-      "#0088fe",
-      "#00c49f",
+      ...defaultChartColors,
       "#ffbb28",
       "#ff8042",
       "#a4de6c",

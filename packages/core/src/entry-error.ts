@@ -6,17 +6,17 @@
 export type EntryErrorReason =
   /** The expression doesn't parse. */
   | "expression-syntax"
-  /** The expression uses syntax or reaches an API the sandbox blocks. */
-  | "sandbox-violation"
+  /** The expression uses syntax or reaches an API the guardrail blocks, or a step's `set` path breaks a write rule (e.g. a numeric-key segment). */
+  | "guardrail-violation"
   /** The expression references an identifier that doesn't exist — an unregistered function, a blocked-by-omission global, or an unknown scope path target. */
   | "unknown-reference"
   /** The element's `component` name has no implementation in the registry. */
   | "unknown-component"
   /** A list's `each` did not evaluate to an array, or a non-list element was rendered as a list. */
   | "invalid-list"
-  /** The implementation's render threw, and the evaluated props FAIL the def's schema — the document sent a shape the contract forbids. */
+  /** The evaluated props fail the def's schema — the document sent a shape the contract forbids (caught before render runs). */
   | "invalid-props"
-  /** A host function rejected the arguments the document called it with (host functions throw this deliberately). */
+  /** A host function's input schema rejected the arguments the document called it with. */
   | "invalid-arguments"
   /** A host function threw or rejected while executing — server/host failure. */
   | "host-function"
@@ -33,9 +33,9 @@ export type EntryFault = "document" | "environment" | "unknown";
 
 // The single source of truth `fault` derives from — every reason maps to
 // exactly one fault; hosts pick a side by picking the reason.
-const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
+export const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
   "expression-syntax": "document",
-  "sandbox-violation": "document",
+  "guardrail-violation": "document",
   "unknown-reference": "document",
   "unknown-component": "document",
   "invalid-list": "document",
@@ -46,6 +46,25 @@ const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
   implementation: "environment",
   "expression-runtime": "unknown",
   unknown: "unknown",
+};
+
+// One-line meaning per reason; `getErrorRecoveryPrompt` appends these to its
+// failure lines so the model knows the failure class, not just the message.
+export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
+  "expression-syntax": "the expression doesn't parse",
+  "guardrail-violation":
+    "the expression or a `set` path breaks a guardrail rule — blocked syntax or API, or a numeric-key write target",
+  "unknown-reference":
+    "the expression references a name that doesn't exist — an unregistered function, a blocked global, or an unset scope path",
+  "unknown-component": "no component with this name exists",
+  "invalid-list": "`each` didn't evaluate to an array",
+  "invalid-props": "the evaluated props don't match the component's props schema",
+  "invalid-arguments": "a host function rejected the call's arguments",
+  "host-function": "a host function failed while executing",
+  "host-init": "the host init callback failed",
+  implementation: "the component implementation threw",
+  "expression-runtime": "a valid expression threw at runtime",
+  unknown: "unclassified failure",
 };
 
 export class EntryError extends Error {

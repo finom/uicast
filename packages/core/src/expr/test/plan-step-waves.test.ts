@@ -50,4 +50,49 @@ describe("planStepWaves", () => {
     ];
     expect(planStepWaves(steps)).toEqual([steps]);
   });
+
+  it("isolates an isBarrier step even with no textual overlap", () => {
+    const a = { set: "scopes.root.a", expr: "loadA()" };
+    const mut = { expr: "deleteProduct({ id: 1 })" };
+    const b = { set: "scopes.root.b", expr: "loadB()" };
+    expect(planStepWaves([a, mut, b], (s) => s === mut)).toEqual([
+      [a],
+      [mut],
+      [b],
+    ]);
+  });
+
+  it("an isBarrier step at position 0 still starts its own wave", () => {
+    const mut = { expr: "deleteProduct({ id: 1 })" };
+    const b = { set: "scopes.root.b", expr: "loadB()" };
+    expect(planStepWaves([mut, b], (s) => s === mut)).toEqual([[mut], [b]]);
+  });
+
+  // Known limitation, pinned: the first step writes through the item scope
+  // (`scopes.row.item.qty`) and the second reads the same state through
+  // `scopes.root.childScopes.row` — two spellings the textual overlap check
+  // cannot connect, so both land in ONE wave and the recompute reads the
+  // pre-write value. The react binding's `declaredWrites` connects item
+  // writes to SOURCE-ARRAY reads, not to childScopes reads — this spelling
+  // stays unordered. Any future fix must consciously flip this assertion.
+  it("misses a dependency spelled through childScopes (pinned limitation)", () => {
+    const steps = [
+      { set: "scopes.row.item.qty", expr: "evt.value" },
+      { set: "scopes.root.total", expr: "scopes.root.childScopes.row.length" },
+    ];
+    expect(planStepWaves(steps)).toEqual([steps]);
+  });
+
+  it("declaredWrites split waves like set paths do", () => {
+    const bump = { set: "scopes.row.item.qty", literal: 5 };
+    const sum = {
+      set: "scopes.root.sum",
+      expr: "scopes.root.items.reduce((s, i) => s + i.qty, 0)",
+    };
+    expect(
+      planStepWaves([bump, sum], undefined, (step) =>
+        step === bump ? ["scopes.root.items"] : [],
+      ),
+    ).toEqual([[bump], [sum]]);
+  });
 });

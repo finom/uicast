@@ -57,3 +57,27 @@ describe("childScopes reader after an async-seeded list", () => {
     expect(container.textContent).toContain("sum:5");
   });
 });
+
+describe("childScopes republish on data change", () => {
+  // Regression: the republish skip must compare row DATA, not proxy identity.
+  // A same-length replacement keeps every item proxy (stable per id), but the
+  // aggregate's only wake is the `childScopes.<as>` emit — skipping it left
+  // inline totals stale after a refetch-shaped update.
+  it("a same-ids replacement with new values wakes an inline aggregate", async () => {
+    const { container, scopes } = await mountAndSettle([
+      card(["rows", "sum"]),
+      rowsEntry,
+      sumEntry,
+    ]);
+    expect(container.textContent).toContain("sum:5");
+
+    await act(async () => {
+      scopes.root.$set("orders", [
+        { id: 1, total: 9 },
+        { id: 2, total: 3 },
+      ]);
+      await new Promise((r) => setTimeout(r, 10));
+    });
+    expect(container.textContent).toContain("sum:12");
+  });
+});

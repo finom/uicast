@@ -1,10 +1,10 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
-export const ChatBubbleDef = createComponentDefinition({
-  name: "ChatBubble",
+export const ChatThreadDef = createComponentDefinition({
+  name: "ChatThread",
   description:
-    "A chat message bubble for messaging interfaces. Renders a styled message bubble with sender info and timestamp. Use ChatBubble for chat UIs, customer support widgets, AI conversation displays, or any messaging interface.",
+    "A chat conversation thread for messaging interfaces. Renders a list of styled message bubbles with sender info and timestamps. Use ChatThread for chat UIs, customer support widgets, AI conversation displays, or any messaging interface.",
   props: z.object({
     messages: z
       .array(

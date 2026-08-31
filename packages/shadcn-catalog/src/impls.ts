@@ -68,6 +68,24 @@ import { TooltipImpl } from "./uicast/tooltip/impl";
 import { ProgressBarImpl } from "./uicast/progress-bar/impl";
 import { ImageImpl } from "./uicast/image/impl";
 
+import { CalendarImpl } from "./uicast/calendar/impl";
+import { TimelineImpl } from "./uicast/timeline/impl";
+import { TreeViewImpl } from "./uicast/tree-view/impl";
+import { DescriptionListImpl } from "./uicast/description-list/impl";
+import { CodeBlockImpl } from "./uicast/code-block/impl";
+import { MarkdownViewerImpl } from "./uicast/markdown-viewer/impl";
+import { AvatarGroupImpl } from "./uicast/avatar-group/impl";
+import { StatusIndicatorImpl } from "./uicast/status-indicator/impl";
+import { CarouselImpl } from "./uicast/carousel/impl";
+import { CalloutImpl } from "./uicast/callout/impl";
+import { KBDImpl } from "./uicast/kbd/impl";
+import { HighlightImpl } from "./uicast/highlight/impl";
+import { RelativeTimeImpl } from "./uicast/relative-time/impl";
+import { TruncatedTextImpl } from "./uicast/truncated-text/impl";
+import { CopyButtonImpl } from "./uicast/copy-button/impl";
+import { QRCodeImpl } from "./uicast/qr-code/impl";
+import { BarcodeImpl } from "./uicast/barcode/impl";
+
 // Table
 import { TableImpl } from "./uicast/table/impl";
 import { TableHeaderImpl } from "./uicast/table-header/impl";
@@ -89,7 +107,20 @@ import { PieChartImpl } from "./uicast/pie-chart/impl";
 import { AreaChartImpl } from "./uicast/area-chart/impl";
 import { FunnelChartImpl } from "./uicast/funnel-chart/impl";
 
-// Navigation & Wayfinding (new)
+import { ScatterChartImpl } from "./uicast/scatter-chart/impl";
+import { RadarChartImpl } from "./uicast/radar-chart/impl";
+import { DonutChartImpl } from "./uicast/donut-chart/impl";
+import { GaugeChartImpl } from "./uicast/gauge-chart/impl";
+import { SparklineImpl } from "./uicast/sparkline/impl";
+import { HeatmapImpl } from "./uicast/heatmap/impl";
+import { TreemapChartImpl } from "./uicast/treemap-chart/impl";
+import { WaterfallChartImpl } from "./uicast/waterfall-chart/impl";
+import { SankeyChartImpl } from "./uicast/sankey-chart/impl";
+import { ComboChartImpl } from "./uicast/combo-chart/impl";
+import { GanttChartImpl } from "./uicast/gantt-chart/impl";
+import { BubbleChartImpl } from "./uicast/bubble-chart/impl";
+
+// Navigation & Wayfinding
 import { SidebarImpl } from "./uicast/sidebar/impl";
 import { NavigationMenuImpl } from "./uicast/navigation-menu/impl";
 import { MenubarImpl } from "./uicast/menubar/impl";
@@ -97,7 +128,7 @@ import { CommandMenuImpl } from "./uicast/command-menu/impl";
 import { LinkImpl } from "./uicast/link/impl";
 import { ContextMenuImpl } from "./uicast/context-menu/impl";
 
-// Form & Input (new)
+// Form & Input
 import { ComboboxImpl } from "./uicast/combobox/impl";
 import { SliderImpl } from "./uicast/slider/impl";
 import { RangeSliderImpl } from "./uicast/range-slider/impl";
@@ -116,7 +147,7 @@ import { ToggleGroupImpl } from "./uicast/toggle-group/impl";
 import { SegmentedControlImpl } from "./uicast/segmented-control/impl";
 import { FormSectionImpl } from "./uicast/form-section/impl";
 
-// Layout & Structure (new)
+// Layout & Structure
 import { ContainerImpl } from "./uicast/container/impl";
 import { AspectRatioImpl } from "./uicast/aspect-ratio/impl";
 import { ScrollAreaImpl } from "./uicast/scroll-area/impl";
@@ -127,40 +158,7 @@ import { StickyHeaderImpl } from "./uicast/sticky-header/impl";
 import { PageHeaderImpl } from "./uicast/page-header/impl";
 import { ToolbarImpl } from "./uicast/toolbar/impl";
 
-// Data Display (new)
-import { CalendarImpl } from "./uicast/calendar/impl";
-import { TimelineImpl } from "./uicast/timeline/impl";
-import { TreeViewImpl } from "./uicast/tree-view/impl";
-import { DescriptionListImpl } from "./uicast/description-list/impl";
-import { CodeBlockImpl } from "./uicast/code-block/impl";
-import { MarkdownViewerImpl } from "./uicast/markdown-viewer/impl";
-import { AvatarGroupImpl } from "./uicast/avatar-group/impl";
-import { StatusIndicatorImpl } from "./uicast/status-indicator/impl";
-import { CarouselImpl } from "./uicast/carousel/impl";
-import { CalloutImpl } from "./uicast/callout/impl";
-import { KBDImpl } from "./uicast/kbd/impl";
-import { HighlightImpl } from "./uicast/highlight/impl";
-import { RelativeTimeImpl } from "./uicast/relative-time/impl";
-import { TruncatedTextImpl } from "./uicast/truncated-text/impl";
-import { CopyButtonImpl } from "./uicast/copy-button/impl";
-import { QRCodeImpl } from "./uicast/qr-code/impl";
-import { BarcodeImpl } from "./uicast/barcode/impl";
-
-// Charts (new)
-import { ScatterChartImpl } from "./uicast/scatter-chart/impl";
-import { RadarChartImpl } from "./uicast/radar-chart/impl";
-import { DonutChartImpl } from "./uicast/donut-chart/impl";
-import { GaugeChartImpl } from "./uicast/gauge-chart/impl";
-import { SparklineImpl } from "./uicast/sparkline/impl";
-import { HeatmapImpl } from "./uicast/heatmap/impl";
-import { TreemapChartImpl } from "./uicast/treemap-chart/impl";
-import { WaterfallChartImpl } from "./uicast/waterfall-chart/impl";
-import { SankeyChartImpl } from "./uicast/sankey-chart/impl";
-import { ComboChartImpl } from "./uicast/combo-chart/impl";
-import { GanttChartImpl } from "./uicast/gantt-chart/impl";
-import { BubbleChartImpl } from "./uicast/bubble-chart/impl";
-
-// Feedback & Status (new)
+// Feedback & Status
 import { BannerImpl } from "./uicast/banner/impl";
 import { InlineMessageImpl } from "./uicast/inline-message/impl";
 import { AlertDialogImpl } from "./uicast/alert-dialog/impl";
@@ -168,20 +166,19 @@ import { CircularProgressImpl } from "./uicast/circular-progress/impl";
 import { CountdownTimerImpl } from "./uicast/countdown-timer/impl";
 import { NotificationBadgeImpl } from "./uicast/notification-badge/impl";
 
-// Specialized / Business-Specific (new)
+// Specialized / Business-Specific
 import { KanbanBoardImpl } from "./uicast/kanban-board/impl";
 import { SortableListImpl } from "./uicast/sortable-list/impl";
 import { VirtualListImpl } from "./uicast/virtual-list/impl";
 import { MapImpl } from "./uicast/map/impl";
 import { OrgChartImpl } from "./uicast/org-chart/impl";
 import { FlowDiagramImpl } from "./uicast/flow-diagram/impl";
-import { ChatBubbleImpl } from "./uicast/chat-bubble/impl";
+import { ChatThreadImpl } from "./uicast/chat-thread/impl";
 import { VideoPlayerImpl } from "./uicast/video-player/impl";
 import { CronBuilderImpl } from "./uicast/cron-builder/impl";
 import { FilterBuilderImpl } from "./uicast/filter-builder/impl";
 import { FormulaBarImpl } from "./uicast/formula-bar/impl";
 import { DiffViewerImpl } from "./uicast/diff-viewer/impl";
-
 export {
   CardImpl,
   FlexRowImpl,
@@ -327,7 +324,7 @@ export {
   MapImpl,
   OrgChartImpl,
   FlowDiagramImpl,
-  ChatBubbleImpl,
+  ChatThreadImpl,
   VideoPlayerImpl,
   CronBuilderImpl,
   FilterBuilderImpl,
@@ -399,6 +396,23 @@ export const allImplementations = [
   TooltipImpl,
   ProgressBarImpl,
   ImageImpl,
+  CalendarImpl,
+  TimelineImpl,
+  TreeViewImpl,
+  DescriptionListImpl,
+  CodeBlockImpl,
+  MarkdownViewerImpl,
+  AvatarGroupImpl,
+  StatusIndicatorImpl,
+  CarouselImpl,
+  CalloutImpl,
+  KBDImpl,
+  HighlightImpl,
+  RelativeTimeImpl,
+  TruncatedTextImpl,
+  CopyButtonImpl,
+  QRCodeImpl,
+  BarcodeImpl,
   // Table
   TableImpl,
   TableHeaderImpl,
@@ -417,14 +431,26 @@ export const allImplementations = [
   PieChartImpl,
   AreaChartImpl,
   FunnelChartImpl,
-  // Navigation & Wayfinding (new)
+  ScatterChartImpl,
+  RadarChartImpl,
+  DonutChartImpl,
+  GaugeChartImpl,
+  SparklineImpl,
+  HeatmapImpl,
+  TreemapChartImpl,
+  WaterfallChartImpl,
+  SankeyChartImpl,
+  ComboChartImpl,
+  GanttChartImpl,
+  BubbleChartImpl,
+  // Navigation & Wayfinding
   SidebarImpl,
   NavigationMenuImpl,
   MenubarImpl,
   CommandMenuImpl,
   LinkImpl,
   ContextMenuImpl,
-  // Form & Input (new)
+  // Form & Input
   ComboboxImpl,
   SliderImpl,
   RangeSliderImpl,
@@ -442,7 +468,7 @@ export const allImplementations = [
   ToggleGroupImpl,
   SegmentedControlImpl,
   FormSectionImpl,
-  // Layout & Structure (new)
+  // Layout & Structure
   ContainerImpl,
   AspectRatioImpl,
   ScrollAreaImpl,
@@ -452,52 +478,21 @@ export const allImplementations = [
   StickyHeaderImpl,
   PageHeaderImpl,
   ToolbarImpl,
-  // Data Display (new)
-  CalendarImpl,
-  TimelineImpl,
-  TreeViewImpl,
-  DescriptionListImpl,
-  CodeBlockImpl,
-  MarkdownViewerImpl,
-  AvatarGroupImpl,
-  StatusIndicatorImpl,
-  CarouselImpl,
-  CalloutImpl,
-  KBDImpl,
-  HighlightImpl,
-  RelativeTimeImpl,
-  TruncatedTextImpl,
-  CopyButtonImpl,
-  QRCodeImpl,
-  BarcodeImpl,
-  // Charts (new)
-  ScatterChartImpl,
-  RadarChartImpl,
-  DonutChartImpl,
-  GaugeChartImpl,
-  SparklineImpl,
-  HeatmapImpl,
-  TreemapChartImpl,
-  WaterfallChartImpl,
-  SankeyChartImpl,
-  ComboChartImpl,
-  GanttChartImpl,
-  BubbleChartImpl,
-  // Feedback & Status (new)
+  // Feedback & Status
   BannerImpl,
   InlineMessageImpl,
   AlertDialogImpl,
   CircularProgressImpl,
   CountdownTimerImpl,
   NotificationBadgeImpl,
-  // Specialized / Business-Specific (new)
+  // Specialized / Business-Specific
   KanbanBoardImpl,
   SortableListImpl,
   VirtualListImpl,
   MapImpl,
   OrgChartImpl,
   FlowDiagramImpl,
-  ChatBubbleImpl,
+  ChatThreadImpl,
   VideoPlayerImpl,
   CronBuilderImpl,
   FilterBuilderImpl,

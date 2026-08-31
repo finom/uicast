@@ -2,7 +2,7 @@ import { render } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
-import type { InitFn } from "@uicast/react/types";
+import type { InitFn } from "@uicast/react";
 import { z } from "zod";
 import { defaultImplementationsList } from "../../../test/render-helpers";
 

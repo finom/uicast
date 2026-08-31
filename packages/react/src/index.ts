@@ -2,6 +2,7 @@ export type {
   ComponentImplementation,
   ConfirmComponentProps,
   ErrorComponentProps,
+  PlaceholderComponentProps,
   EntriesRendererProps,
   RendererProviderProps,
   FallbackComponents,

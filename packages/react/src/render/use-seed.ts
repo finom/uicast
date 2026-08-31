@@ -1,13 +1,9 @@
 import { useReducer, useRef } from "react";
-import {
-  EntryError,
-  evaluate,
-  parseScope,
-  planStepWaves,
-  type ComponentEntry,
-} from "@uicast/core";
+import { EntryError, type ComponentEntry } from "@uicast/core";
+import { evaluate, planStepWaves } from "@uicast/core/internal";
 import type { StandardToolV0 } from "standard-tool";
 import { readScopePath } from "../read-scope-path";
+import { parseStepTargets } from "../step-targets";
 import type { InitFn, Scopes } from "../types";
 
 // One attempt per entry object — `element` identity changes when a re-emitted
@@ -37,7 +33,7 @@ const toError = (err: unknown): Error =>
 // re-emitted key, while a failed one retries when a corrected entry replaces
 // it (writes are `default: true`, so a retry can't clobber state that was set
 // meanwhile).
-export function useSeedDefaults({
+export function useSeed({
   element,
   scopes,
   init,
@@ -56,7 +52,7 @@ export function useSeedDefaults({
   // Suspense gate, failure renders the error on the next pass.
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const attemptRef = useRef<SeedAttempt | null>(null);
-  const setDefaultsPromiseRef = useRef<Promise<void> | null>(null);
+  const pendingSeedRef = useRef<Promise<void> | null>(null);
 
   const attempt = attemptRef.current;
   const shouldSeed =
@@ -68,20 +64,11 @@ export function useSeedDefaults({
   if (shouldSeed && element) {
     const record: SeedAttempt = { element, failed: false, error: null };
     attemptRef.current = record;
-    setDefaultsPromiseRef.current = null;
+    pendingSeedRef.current = null;
 
     try {
-      // Pre-validate every set path — a bad path is a document fault worth
-      // failing on before any step runs.
       const steps = (element.seed ?? []).filter((step) => step.set);
-      const targets = new Map<(typeof steps)[number], [string, string]>();
-      for (const step of steps) {
-        try {
-          targets.set(step, parseScope(step.set));
-        } catch (err) {
-          throw EntryError.wrap(err, "unknown-reference", element.key);
-        }
-      }
+      const targets = parseStepTargets(steps, element.key);
 
       // Evaluate one wave: steps in a wave are mutually independent, so they
       // run in parallel; a step that reads an earlier step's write sits in a
@@ -114,7 +101,6 @@ export function useSeedDefaults({
         ).then(() => undefined);
       };
 
-      let hasAsync = false;
       const waves = planStepWaves(steps);
       // Walk waves synchronously while they stay sync — their writes land
       // during this render, exactly like the old all-sync path — and switch to
@@ -123,7 +109,6 @@ export function useSeedDefaults({
       for (let i = 0; i < waves.length; i++) {
         const pendingWave = runWave(waves[i]);
         if (pendingWave) {
-          hasAsync = true;
           const rest = waves.slice(i + 1);
           chain = pendingWave.then(async () => {
             for (const wave of rest) {
@@ -141,7 +126,6 @@ export function useSeedDefaults({
         try {
           const initResult = init({ scopes });
           if (initResult instanceof Promise) {
-            hasAsync = true;
             const initPromise = initResult.catch((err) => {
               throw EntryError.wrap(err, "host-init", element.key);
             });
@@ -154,36 +138,36 @@ export function useSeedDefaults({
         }
       }
 
-      if (hasAsync && chain) {
+      if (chain) {
         const batch = chain.then(() => {
           // Clear the gate and wake the component so the next pass renders
           // without Suspense and the boundary's reset token flips back to the
           // entry — clearing a latch from a fallback that threw against
           // pre-seed state. (A `$set` wake can land BEFORE this settles, so it
           // can't be relied on to observe the cleared gate.)
-          setDefaultsPromiseRef.current = null;
+          pendingSeedRef.current = null;
           forceRender();
         });
         // The Suspense gate must never reject — `use()` on a rejected promise
         // doesn't reliably reach an error boundary. Absorb the rejection into
         // the attempt record and wake the component to render the error.
-        setDefaultsPromiseRef.current = batch.catch((err) => {
+        pendingSeedRef.current = batch.catch((err) => {
           record.failed = true;
           record.error = toError(err);
-          setDefaultsPromiseRef.current = null;
+          pendingSeedRef.current = null;
           forceRender();
         });
       }
     } catch (err) {
       record.failed = true;
       record.error = toError(err);
-      setDefaultsPromiseRef.current = null;
+      pendingSeedRef.current = null;
     }
   }
 
   const current = attemptRef.current;
   return {
-    pending: setDefaultsPromiseRef.current,
+    pending: pendingSeedRef.current,
     error: current && current.element === element ? current.error : null,
   };
 }

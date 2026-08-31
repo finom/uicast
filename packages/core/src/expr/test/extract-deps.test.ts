@@ -170,6 +170,59 @@ describe("extractDeps — list entries read each too", () => {
   });
 });
 
+describe("extractDeps — hidden contributes reads", () => {
+  it("captures the hidden expression's paths", () => {
+    expect(extractDeps(element({ hidden: "scopes.root.done" }))).toEqual([
+      "scopes.root.done",
+    ]);
+  });
+
+  it("unions hidden and props reads", () => {
+    const deps = extractDeps(
+      element({
+        hidden: "scopes.root.done",
+        props: { expr: "({ value: scopes.root.count })" },
+      }),
+    );
+    expect(deps).toEqual(
+      expect.arrayContaining(["scopes.root.done", "scopes.root.count"]),
+    );
+    expect(deps).toHaveLength(2);
+  });
+});
+
+describe("extractDeps — the part parameter", () => {
+  const entry = list({
+    each: "scopes.root.rows",
+    hidden: "scopes.root.done",
+    props: { expr: "({ title: scopes.root.heading })" },
+  });
+
+  it('"each" returns only the each reads', () => {
+    expect(extractDeps(entry, "each")).toEqual(["scopes.root.rows"]);
+  });
+
+  it('"render" returns only props and hidden reads', () => {
+    const deps = extractDeps(entry, "render");
+    expect(deps).toEqual(
+      expect.arrayContaining(["scopes.root.heading", "scopes.root.done"]),
+    );
+    expect(deps).toHaveLength(2);
+  });
+
+  it('the default "all" is the union of both', () => {
+    const deps = extractDeps(entry);
+    expect(deps).toEqual(
+      expect.arrayContaining([
+        "scopes.root.rows",
+        "scopes.root.heading",
+        "scopes.root.done",
+      ]),
+    );
+    expect(deps).toHaveLength(3);
+  });
+});
+
 describe("extractDeps — caching and purity", () => {
   it("returns the same array reference for the same entry", () => {
     const c = element({ props: { expr: "scopes.root.count" } });

@@ -1,9 +1,10 @@
 import { createComponentDefinition } from "@uicast/core";
 import { createComponentImplementation } from "../impl/create-component-implementation";
 
-// Host-only synthetic wrapper that gives `init` a single mount point. `<EntriesRenderer>`
-// emits it and merges this impl in itself, so consumers never register it;
-// `hidden: true` keeps it out of the LLM's component menu.
+// Host-only synthetic wrapper that gives `init` a single mount point.
+// `<EntriesRenderer>` emits the entry; `RendererProvider` merges this impl into
+// the registry, so consumers never register it. `hidden: true` keeps it out of
+// the LLM's component menu.
 
 export const RootFragmentImpl = createComponentImplementation({
   def: createComponentDefinition({
@@ -15,5 +16,5 @@ export const RootFragmentImpl = createComponentImplementation({
   render: ({ children }) => <>{children}</>,
 });
 
-/** Stable key used by `Renderer` for its synthetic RootFragment entry. */
+/** Stable key `EntriesRenderer` uses for its synthetic RootFragment entry. */
 export const ROOT_FRAGMENT_KEY = "__root_fragment__";

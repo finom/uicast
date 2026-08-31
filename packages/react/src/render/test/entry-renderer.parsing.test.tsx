@@ -57,7 +57,22 @@ const BadPayloadImpl = createComponentImplementation({
   ),
 });
 
-const impls = [BadgeImpl, PressImpl, BadPayloadImpl];
+const NullPressImpl = createComponentImplementation({
+  def: createComponentDefinition({
+    name: "NullPress",
+    description: "A button whose callback carries no event data",
+    props: z.object({}),
+    callbacks: { onPress: z.null() },
+  }),
+  // A z.null() payload makes the handler a no-arg function — `evt` is `null`.
+  render: ({ onPress, generatedKey }) => (
+    <button type="button" data-key={generatedKey} onClick={() => onPress()}>
+      press
+    </button>
+  ),
+});
+
+const impls = [BadgeImpl, PressImpl, BadPayloadImpl, NullPressImpl];
 
 describe("EntryRenderer — schema parsing", () => {
   it("applies a schema default the entry left out", () => {
@@ -136,6 +151,37 @@ describe("EntryRenderer — schema parsing", () => {
     });
     // `times` was never passed — the schema's default reached `evt`.
     await waitFor(() => expect(container.textContent).toContain("n=1"));
+  });
+
+  it("parses a no-arg call against a z.null() payload — evt is null, not an error", async () => {
+    const onError = vi.fn();
+    const { container } = render(
+      <RendererProvider implementations={impls} onError={onError}>
+        <EntriesRenderer
+          entries={[
+            {
+              key: "p",
+              component: "NullPress",
+              callbacks: {
+                onPress: [{ set: "scopes.root.gotNull", expr: "evt === null" }],
+              },
+            },
+            {
+              key: "out",
+              component: "Badge",
+              props: { expr: "({ text: 'gotNull=' + scopes.root.gotNull })" },
+            },
+          ]}
+        />
+      </RendererProvider>,
+    );
+    await act(async () => {
+      fireEvent.click(container.querySelector("[data-key='p']") as HTMLElement);
+    });
+    // `onPress()` passes `undefined`; the engine retries the parse against
+    // `null` rather than rejecting the schema-declared "no data" call.
+    await waitFor(() => expect(container.textContent).toContain("gotNull=true"));
+    expect(onError).not.toHaveBeenCalled();
   });
 
   it("blames the implementation for a payload its own schema rejects", async () => {

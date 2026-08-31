@@ -31,7 +31,7 @@ function TreeNodeComponent({
   depth: number;
   path: string[];
   expandedMap: Record<string, boolean>;
-  toggleExpand: (key: string) => void;
+  toggleExpand: (key: string, expanded: boolean) => void;
   onSelect?: (args: { label: string; path: string[] }) => Promise<void>;
   onToggle?: (args: { label: string; expanded: boolean }) => Promise<void>;
 }) {
@@ -65,7 +65,7 @@ function TreeNodeComponent({
     <Collapsible
       open={isExpanded}
       onOpenChange={(open) => {
-        toggleExpand(key);
+        toggleExpand(key, isExpanded);
         onToggle?.({ label: node.label, expanded: open });
       }}
     >
@@ -114,8 +114,10 @@ export const TreeViewImpl = createComponentImplementation({
   render: ({ items = [], onSelect, onToggle, generatedKey }) => {
     const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
-    const toggleExpand = (key: string) => {
-      setExpandedMap((prev) => ({ ...prev, [key]: !prev[key] }));
+    // `expanded` is the effective state (map entry or the node's own prop), so
+    // the first toggle of a node the document opened works too
+    const toggleExpand = (key: string, expanded: boolean) => {
+      setExpandedMap((prev) => ({ ...prev, [key]: !expanded }));
     };
 
     return (

@@ -5,10 +5,10 @@ import {
   AvatarImage,
 } from "../../components/ui/avatar";
 import { cn } from "../../lib/utils";
-import { ChatBubbleDef } from "./def";
+import { ChatThreadDef } from "./def";
 
-export const ChatBubbleImpl = createComponentImplementation({
-  def: ChatBubbleDef,
+export const ChatThreadImpl = createComponentImplementation({
+  def: ChatThreadDef,
   render: ({ messages = [], onMessageClick, generatedKey }) => {
     return (
       <div className="space-y-4 p-4" data-key={generatedKey}>

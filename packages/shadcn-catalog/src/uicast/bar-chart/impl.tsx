@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import { defaultChartColors } from "../../lib/chart-colors";
 import { BarChartDef } from "./def";
 
 export const BarChartImpl = createComponentImplementation({
@@ -22,15 +23,7 @@ export const BarChartImpl = createComponentImplementation({
     stacked,
     generatedKey,
   }) => {
-    const defaultColors = [
-      "#8884d8",
-      "#82ca9d",
-      "#ffc658",
-      "#ff7300",
-      "#0088fe",
-      "#00c49f",
-    ];
-    const barColors = colors ?? defaultColors;
+    const barColors = colors ?? defaultChartColors;
     return (
       <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
         <RechartsBarChart data={data}>

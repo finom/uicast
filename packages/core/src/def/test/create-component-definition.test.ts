@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createComponentDefinition } from "../create-component-definition";
+import type { CombinedSpec } from "../../types";
+import { createComponentDefinition, NO_PROPS } from "../create-component-definition";
 
 // `children` is the entry field naming child elements. A def taking it as a
 // prop would put two different things behind one name, and the renderer's
@@ -49,5 +50,36 @@ describe("createComponentDefinition — the reserved `children` name", () => {
 			callbacks: undefined,
 			hidden: undefined,
 		});
+	});
+});
+
+describe("createComponentDefinition — defaulted and odd specs", () => {
+	it("defaults omitted props to NO_PROPS, which accepts anything", () => {
+		const def = createComponentDefinition({ name: "Divider", description: "A divider." });
+		expect(def.props).toBe(NO_PROPS);
+		expect(def.props["~standard"].validate({ any: 1 })).toEqual({ value: { any: 1 } });
+	});
+
+	it("tolerates a spec whose jsonSchema.input throws", () => {
+		// The reserved-name check needs the schema's property names; a spec that
+		// cannot convert fails loudly in the prompt builder instead, not here.
+		const broken: CombinedSpec = {
+			"~standard": {
+				version: 1,
+				vendor: "test",
+				validate: (value) => ({ value }),
+				jsonSchema: {
+					input: () => {
+						throw new Error("no schema");
+					},
+					output: () => {
+						throw new Error("no schema");
+					},
+				},
+			},
+		};
+		expect(() =>
+			createComponentDefinition({ name: "Odd", description: "Odd.", props: broken }),
+		).not.toThrow();
 	});
 });

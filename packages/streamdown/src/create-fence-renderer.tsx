@@ -3,10 +3,7 @@ import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react"
 import type { ComponentEntry } from "@uicast/core";
 import { EntriesRenderer } from "@uicast/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
-import { FENCE_LANGUAGE } from "./parse-fence-code";
-import { parseFenceCode } from "./parse-fence-code";
-
-export { FENCE_LANGUAGE } from "./parse-fence-code";
+import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
 
 export type FenceRendererOptions = {
   /** Show a Rendered/Source switcher above each block. Default false. */
@@ -49,27 +46,20 @@ function toggleButtonStyle(active: boolean): CSSProperties {
 }
 
 /**
- * Build a Streamdown custom renderer for ```uicast fences.
+ * Build a Streamdown custom renderer for ```uicast fences: pass it as
+ * `plugins={{ renderers: [uicastRenderer] }}` and wrap the conversation in a
+ * `<RendererProvider>` — every block renders against that provider's one
+ * shared `root` scope.
  *
- * Pass the result to Streamdown (or any wrapper that forwards its props,
- * e.g. AI Elements' Response): `plugins={{ renderers: [uicastRenderer] }}`,
- * and wrap the conversation in a `<RendererProvider>` — that provider carries
- * the implementations, functions, and the ONE shared `root` scope every block
- * renders against, so state written by one block is live in all of them.
- *
- * Call this ONCE per option set — at module scope or inside useMemo — and
- * reuse the returned object. The component's identity must stay stable
- * across streaming re-renders; a fresh component type per render would
- * remount the block, re-running seeds and wiping its state.
- * While a fence streams, each completed JSONL line becomes an entry and
- * mounts progressively; the partial last line is ignored until it completes.
+ * Call this ONCE per option set (module scope or useMemo) and reuse the
+ * object: a fresh component type per render would remount every block,
+ * re-running seeds and wiping state. Entries mount progressively as fence
+ * lines complete.
  */
 export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
   const { showSourceToggle = false } = options;
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
-    // Per-block parse cache: the engine keys on entry object identity (store
-    // wake-ups, failed-seed retry gating, error-boundary reset), so unchanged
-    // lines must yield the same objects across streaming re-parses.
+    // One cache per block keeps entry identity stable across streaming re-parses — see parseFenceCode.
     const cacheRef = useRef<Map<string, ComponentEntry> | null>(null);
     if (!cacheRef.current) cacheRef.current = new Map();
     const cache = cacheRef.current;
