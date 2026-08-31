@@ -5,3 +5,6 @@ coverage
 .DS_Store
 .next
 out
+packages/docs/public/_pagefind
+
+CLAUDE.md
