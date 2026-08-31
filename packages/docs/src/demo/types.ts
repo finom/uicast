@@ -17,8 +17,6 @@ export interface DemoConfig {
   title: string;
   /** One-line description shown on the home card. */
   tagline: string;
-  /** Landing "THE PROMPT" body text. */
-  prompt: string;
   /** The hand-authored JSONLines artifact, revealed one entry at a time. */
   lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
@@ -27,7 +25,7 @@ export interface DemoConfig {
   catalog: ComponentImplementation[];
   /** Host fallback UI for the engine (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
   fallbackComponents?: FallbackComponents;
-  /** Runs on first Play, before the count resets. Inventory → `seedIfEmpty`. */
+  /** Runs on mount, before playback starts. Inventory → `seedIfEmpty`. */
   onPlay?: () => void | Promise<void>;
   /** Runs on Replay (wipe + reseed). Inventory → `resetInventory`. */
   onReplay?: () => void | Promise<void>;

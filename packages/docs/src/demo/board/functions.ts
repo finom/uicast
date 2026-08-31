@@ -18,6 +18,7 @@ const autoLayout = standardTool({
   description:
     "Arrange the given nodes evenly around a circle; returns them with updated x/y (0..1).",
   inputSchema: z.object({ nodes: z.array(NodeSchema) }),
+  outputSchema: z.array(NodeSchema),
   async execute({ nodes }) {
     const n = nodes.length || 1;
     return nodes.map((node, i) => {

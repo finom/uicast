@@ -16,15 +16,19 @@ import type { StandardToolV0 } from "standard-tool";
 // Host-supplied placeholder: shown while an entry hasn't streamed in yet, and
 // as the Suspense fallback while a component's async `seed` loads. Defined at
 // module scope = stable reference, so it never churns the Renderer's registry
-// context. `containerClassName` fixes flex parents: react-loading-skeleton's
-// wrapper span is inline with no intrinsic width and collapses to ~0 as a flex
-// item — `block w-full` gives it a definite width, and `[&_br]:hidden` drops
-// the library's trailing <br>. Colors ride the theme `--muted` token instead of
-// the library's hardcoded light-grays, which would glare in dark mode.
+// context. When the slot fills a not-yet-streamed child the component is
+// unknown, so the shimmer is sized like a line of local text (em-based): small
+// inside table cells and badges, larger in headings — never a tall block where
+// a pill belongs. `containerClassName` fixes flex parents:
+// react-loading-skeleton's wrapper span is inline with no intrinsic width and
+// collapses to ~0 as a flex item — `block w-full` gives it a definite width,
+// and `[&_br]:hidden` drops the library's trailing <br>. Colors ride the theme
+// `--muted` token instead of the library's hardcoded light-grays, which would
+// glare in dark mode.
 const Placeholder = () => (
   <Skeleton
-    height={64}
-    borderRadius={8}
+    height="1.25em"
+    borderRadius="0.4em"
     baseColor="var(--muted)"
     highlightColor="color-mix(in oklch, var(--muted) 60%, white)"
     containerClassName="block w-full [&_br]:hidden"

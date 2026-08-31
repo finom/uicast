@@ -11,6 +11,9 @@
  */
 @source "../../../core/src/**/*.{ts,tsx}";
 @source "../../../shadcn-catalog/src/**/*.{ts,tsx}";
+/* Streamdown (the system-prompt dialog's Markdown view) styles itself with
+   Tailwind classes from inside node_modules — same story, same fix. */
+@source "../../../../node_modules/streamdown/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -156,60 +159,10 @@
   }
 }
 
-/*
- * Front-page hero illustration (HeroIllustration). Geometry is drawn in
- * currentColor at low opacity, so it reads as a muted line drawing wherever
- * it sits; the single accent rides --uicast-hero-accent and lifts one step in
- * dark mode. Classes scoped under .uicast-hero to avoid colliding with the
- * catalog utilities Tailwind emits for the docs demos.
- */
-.uicast-hero {
-  display: block;
-  width: 100%;
-  height: auto;
-  color: var(--muted-foreground);
-  --uicast-hero-accent: #6e56cf;
+/* The demo player sizes itself to the viewport minus the navbar; the docs
+   footer under it would force the page to scroll. The player's <main> carries
+   data-demo-surface, and Nextra's footer sits inside a plain wrapper div. */
+body:has(main[data-demo-surface]) div:has(> footer) {
+  display: none;
 }
-.dark .uicast-hero {
-  --uicast-hero-accent: #9d8cff;
-}
-.uicast-hero .uh-box {
-  fill: currentColor;
-  fill-opacity: 0.03;
-  stroke: currentColor;
-  stroke-opacity: 0.25;
-}
-.uicast-hero .uh-tile {
-  fill: none;
-  stroke: currentColor;
-  stroke-opacity: 0.14;
-}
-.uicast-hero .uh-f {
-  fill: currentColor;
-}
-.uicast-hero .uh-s {
-  fill: none;
-  stroke: currentColor;
-}
-.uicast-hero .uh-a {
-  fill: var(--uicast-hero-accent);
-}
-.uicast-hero .uh-as {
-  fill: none;
-  stroke: var(--uicast-hero-accent);
-}
-.uicast-hero .uh-ac {
-  fill: var(--uicast-hero-accent);
-  stroke: var(--uicast-hero-accent);
-}
-.uicast-hero .uh-lb {
-  fill: currentColor;
-  opacity: 0.45;
-  font: 600 10px ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  letter-spacing: 0.18em;
-}
-.uicast-hero .uh-hint {
-  fill: currentColor;
-  opacity: 0.3;
-  font: 500 9px ui-monospace, Menlo, monospace;
-}
+

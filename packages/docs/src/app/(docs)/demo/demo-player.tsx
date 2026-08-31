@@ -1,10 +1,12 @@
 "use client";
 import {
+  ChevronFirstIcon,
+  ChevronLastIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   PauseIcon,
   PlayIcon,
   RotateCcwIcon,
-  SkipBackIcon,
-  SkipForwardIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -18,7 +20,7 @@ import type { ComponentEntry } from "@uicast/core";
 import type { DemoConfig } from "@/demo/types";
 import { RenderCanvas } from "./render-canvas";
 import { StreamPanel } from "./stream-panel";
-import { ThemeToggle } from "./theme-toggle";
+import { SystemPromptDialog } from "./system-prompt-dialog";
 
 // Reveal pacing is proportional to each entry's serialized size: a bigger line
 // "takes longer to stream in", mirroring real token-by-token generation. At
@@ -49,16 +51,34 @@ function useIsWide() {
   return wide;
 }
 
-// "idle" = before the first Play (shows the landing); "playing" = the timer
-// auto-advances; "paused" = the user is stepping manually. End-of-stream is
-// derived (`count >= TOTAL`), not a phase.
-type Phase = "idle" | "playing" | "paused";
+// "playing" = the timer auto-advances; "paused" = the user is stepping
+// manually (also the initial state, while `onPlay` seeds the data layer —
+// playback starts as soon as it resolves). End-of-stream is derived
+// (`count >= TOTAL`), not a phase.
+type Phase = "playing" | "paused";
+
+// Header status: label + colored dot, with a ping halo while streaming.
+function StatusDot({ playing, atEnd }: { playing: boolean; atEnd: boolean }) {
+  const color = atEnd
+    ? "bg-emerald-500"
+    : playing
+      ? "bg-emerald-500"
+      : "bg-amber-500";
+  return (
+    <span className="relative flex size-2" aria-hidden="true">
+      {playing && !atEnd && (
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+      )}
+      <span className={`relative inline-flex size-2 rounded-full ${color}`} />
+    </span>
+  );
+}
 
 export function DemoPlayer({ demo }: { demo: DemoConfig }) {
   const TOTAL = demo.lines.length;
   // `count` entries are revealed (indices 0..count-1); everything else derives
-  // from it, so prev/next/pause are just `count` + `phase` edits.
-  const [phase, setPhase] = useState<Phase>("idle");
+  // from it, so the transport buttons are just `count` + `phase` edits.
+  const [phase, setPhase] = useState<Phase>("paused");
   const [count, setCount] = useState(0);
   // Bidirectional hover link between the two panels, tracking *which side* the
   // hover came from. The rendered element is outlined only when the hover
@@ -96,11 +116,20 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
     return () => clearTimeout(id);
   }, [phase, count, atEnd]);
 
-  const play = async () => {
-    await demo.onPlay?.();
-    setCount(0);
-    setPhase("playing");
-  };
+  // Click a demo card → watch it stream, no landing stop in between: seed the
+  // data layer (if any) and start playback as soon as the page mounts.
+  // `onPlay` (seedIfEmpty for inventory) is idempotent, so the StrictMode
+  // double-invoke in dev is harmless.
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      await demo.onPlay?.();
+      if (mounted) setPhase("playing");
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [demo]);
 
   const replay = async () => {
     setPhase("paused");
@@ -111,6 +140,10 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
 
   const togglePlay = () =>
     setPhase((p) => (p === "playing" ? "paused" : "playing"));
+  const toStart = () => {
+    setPhase("paused");
+    setCount(0);
+  };
   const prev = () => {
     setPhase("paused");
     setCount((c) => Math.max(0, c - 1));
@@ -119,68 +152,31 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
     setPhase("paused");
     setCount((c) => Math.min(TOTAL, c + 1));
   };
-
-  if (phase === "idle") {
-    return (
-      <main className="relative mx-auto max-w-4xl px-6 py-16">
-        <div className="absolute top-6 left-6">
-          <Link
-            href="/"
-            className="text-sm font-medium text-muted-foreground transition hover:text-foreground"
-          >
-            ← All demos
-          </Link>
-        </div>
-        <div className="absolute top-6 right-6">
-          <ThemeToggle />
-        </div>
-        <div className="space-y-3 text-center">
-          <p className="text-sm font-medium text-muted-foreground">
-            uicast · live reference
-          </p>
-          <h1 className="text-3xl font-semibold tracking-tight">{demo.title}</h1>
-          <p className="mx-auto max-w-2xl text-muted-foreground">
-            {demo.tagline}
-          </p>
-        </div>
-
-        <div className="mt-10 rounded-xl border border-border bg-card p-5 text-left shadow-sm">
-          <p className="mb-3 text-xs font-medium tracking-wide text-muted-foreground">
-            THE PROMPT
-          </p>
-          <pre className="max-h-72 overflow-auto whitespace-pre-wrap text-sm text-foreground/80">
-            {demo.prompt}
-          </pre>
-        </div>
-
-        <div className="mt-10 flex justify-center">
-          <Button
-            size="lg"
-            onClick={play}
-            className="h-auto gap-3 rounded-full px-10 py-5 text-lg font-semibold shadow-lg"
-          >
-            <PlayIcon className="size-5" />
-            Play
-          </Button>
-        </div>
-      </main>
-    );
-  }
+  const toEnd = () => {
+    setPhase("paused");
+    setCount(TOTAL);
+  };
 
   return (
-    <main className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
-        <div className="flex items-baseline gap-3">
+    // Fill the viewport minus the docs navbar the (docs) layout puts above us.
+    // data-demo-surface lets globals.css hide the docs footer on this route.
+    <main
+      data-demo-surface=""
+      className="flex h-[calc(100dvh-var(--nextra-navbar-height))] flex-col"
+    >
+      <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Link
-            href="/"
+            href="/demo"
             className="text-sm text-muted-foreground transition hover:text-foreground"
             aria-label="All demos"
           >
             ←
           </Link>
-          <span className="font-semibold">{demo.title}</span>
-          <span className="text-xs text-muted-foreground">
-            {count}/{TOTAL} entries
+          <span className="truncate font-semibold">{demo.title}</span>
+          <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <StatusDot playing={phase === "playing"} atEnd={atEnd} />
+            {count}/{TOTAL}
             {atEnd
               ? " · ready"
               : phase === "playing"
@@ -192,11 +188,20 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
           <Button
             variant="outline"
             size="icon-sm"
+            onClick={toStart}
+            disabled={count <= 0}
+            aria-label="Jump to start"
+          >
+            <ChevronFirstIcon />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
             onClick={prev}
             disabled={count <= 0}
             aria-label="Previous entry"
           >
-            <SkipBackIcon />
+            <ChevronLeftIcon />
           </Button>
           <Button
             variant="outline"
@@ -214,7 +219,16 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
             disabled={atEnd}
             aria-label="Next entry"
           >
-            <SkipForwardIcon />
+            <ChevronRightIcon />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={toEnd}
+            disabled={atEnd}
+            aria-label="Jump to end"
+          >
+            <ChevronLastIcon />
           </Button>
           <Button
             variant="outline"
@@ -226,7 +240,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
             Replay
           </Button>
           <div className="mx-1 h-5 w-px bg-border" aria-hidden="true" />
-          <ThemeToggle />
+          <SystemPromptDialog demo={demo} />
         </div>
       </header>
 

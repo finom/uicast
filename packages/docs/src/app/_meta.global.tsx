@@ -8,6 +8,11 @@ import type { MetaRecord } from "nextra";
 const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
+  // Demos live in the top navbar (`type: "page"`), not the sidebar. The index
+  // is a normal docs page; the /demo/[slug] players are tsx routes that render
+  // full-bleed on their own (Nextra wraps only MDX pages) and hide the docs
+  // footer via the data-demo-surface hook in globals.css.
+  demo: { title: "Demos", type: "page" },
   skill: "Agent skill",
   concepts: "Concepts",
   def: "Component definition",
@@ -44,9 +49,6 @@ const meta: MetaRecord = {
     type: "page",
     href: "https://standard-tool.js.org/",
   },
-  // The interactive demo renders full-bleed under its own layout; keep it out of
-  // the docs sidebar (its page files still get picked up by Nextra's page glob).
-  demo: { display: "hidden" },
 };
 
 export default meta;

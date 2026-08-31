@@ -8,8 +8,8 @@ const STEPS = [
     body: "One JSON object per line, streamed. Derived values, visibility and event handling are short JavaScript expressions, checked before they run.",
   },
   {
-    title: "Get a stateful app",
-    body: "Every line mounts as it lands, against a reactive store. Clicks fire callbacks, callbacks call your functions — a working app, not a static render.",
+    title: "Get an app, logic included",
+    body: "Every line mounts as it lands. Clicks fire callbacks, callbacks call your functions and write reactive state — everything reading it updates.",
   },
 ];
 

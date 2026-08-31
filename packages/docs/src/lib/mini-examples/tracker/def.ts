@@ -3,7 +3,7 @@ import { createComponentDefinition } from "@uicast/core";
 
 export const TrackPadDef = createComponentDefinition({
   name: "TrackPad",
-  description: "A square surface that reports the pointer position while hovered.",
+  description: "A square surface that reports the pointer position while hovered or pressed.",
   props: z.object({
     x: z.number().optional().meta({ description: "Pointer x, in px from the left edge" }),
     y: z.number().optional().meta({ description: "Pointer y, in px from the top edge" }),

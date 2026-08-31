@@ -8,18 +8,18 @@ export const TrackPadImpl = createComponentImplementation({
   render: ({ x, y, onMove, onLeave }) => (
     <Card className="w-55">
       <CardContent
-        className="relative grid h-40 cursor-crosshair place-items-center select-none"
-        onMouseMove={(e) => {
+        className="relative grid h-40 cursor-crosshair touch-none place-items-center select-none"
+        onPointerMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect();
           onMove({
             x: Math.round(e.clientX - rect.left),
             y: Math.round(e.clientY - rect.top),
           });
         }}
-        onMouseLeave={() => onLeave()}
+        onPointerLeave={() => onLeave()}
       >
         {x === undefined || y === undefined ? (
-          <span className="text-sm text-muted-foreground">Hover here</span>
+          <span className="text-sm text-muted-foreground">Hover or tap here</span>
         ) : (
           <>
             <span className="font-mono text-sm">

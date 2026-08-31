@@ -1,18 +1,10 @@
-export const studioPrompt = `Build a browser "groovebox" — a little beat studio — from bespoke instrument
-components, no backend.
+/**
+ * The request that "generated" the groovebox — a developer trying out their
+ * own bespoke instrument components, typed the way a person actually types.
+ * The component schemas reach the model through the assembled prompt.
+ */
+export const studioPrompt = `Make me a little groovebox out of my instrument components. The XY pad drives the filter — cutoff across, resonance up — with a live readout in Hz, plus three knobs for cutoff, resonance and drive. Below that, the step sequencer with 16 steps and three tracks: kick, snare, hat. Start it with a basic four-on-the-floor pattern.
 
-Components (each emits its own custom event payload):
-- XYPad — a 2-D filter pad; dragging emits { x, y }, 0..1 on each axis.
-- Knob — a rotary control; turning emits { value }.
-- StepSequencer — a tracks × steps grid; clicking a cell emits
-  { track, trackIndex, step, on }.
+Give me a randomize button and a clear button, but confirm before wiping my pattern.
 
-Wire them into one reactive "synth" scope:
-- The XY pad drives a live filter readout — cutoff in Hz from x, resonance Q
-  from y.
-- Three knobs set cutoff / resonance / drive.
-- The sequencer toggles a 3-track, 16-step pattern (kick / snare / hat).
-- A "Randomize" button calls a host function to regenerate the pattern.
-- A "Clear" button wipes the pattern behind a confirm prompt.
-- A "Last event" panel always shows the most recent component event, verbatim,
-  so you can watch each payload flow through.`;
+I'm still testing these components, so put the last event payload somewhere on screen — I want to see exactly what each control emits when I touch it.`;

@@ -23,7 +23,16 @@ const navbar = (
     }
   />
 );
-const footer = <Footer>MIT — the open JSONLines UI engine.</Footer>;
+const footer = (
+  <Footer>
+    <span>
+      MIT © {new Date().getFullYear()}{" "}
+      <a href="https://github.com/finom" target="_blank" rel="noreferrer">
+        Andrey Gubanov
+      </a>
+    </span>
+  </Footer>
+);
 
 export default async function DocsLayout({ children }: { children: ReactNode }) {
   return (

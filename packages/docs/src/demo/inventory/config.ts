@@ -1,10 +1,9 @@
 "use client";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
-import { resetInventory, seedIfEmpty } from "@/lib/seed";
+import { resetInventory, seedIfEmpty } from "./seed";
 import type { DemoConfig } from "../types";
 import { inventoryFunctions } from "./functions";
 import { inventoryLines } from "./inventory.lines";
-import { inventoryPrompt } from "./inventory.prompt";
 
 /**
  * The original demo, now expressed as a {@link DemoConfig}. Its data layer
@@ -17,7 +16,6 @@ export const inventoryDemo: DemoConfig = {
   title: "Inventory",
   tagline:
     "A CRUD dashboard streamed entry-by-entry, backed by a live in-browser database.",
-  prompt: inventoryPrompt,
   lines: inventoryLines,
   functions: inventoryFunctions,
   catalog: [...allImplementations],

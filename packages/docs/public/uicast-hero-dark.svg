@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 936 420" role="img" aria-label="Components and functions feed one prompt; the model streams entries (JSON lines) that land in the app, built only from the supplied components and functions.">
+<style>
+  svg{color:#a3a3a3;--uicast-hero-accent:#9d8cff}
+  .uh-box{fill:currentColor;fill-opacity:.03;stroke:currentColor;stroke-opacity:.25}
+  .uh-tile{fill:none;stroke:currentColor;stroke-opacity:.14}
+  .uh-f{fill:currentColor}
+  .uh-s{fill:none;stroke:currentColor}
+  .uh-a{fill:var(--uicast-hero-accent)}
+  .uh-as{fill:none;stroke:var(--uicast-hero-accent)}
+  .uh-ac{fill:var(--uicast-hero-accent);stroke:var(--uicast-hero-accent)}
+  .uh-lb{fill:currentColor;opacity:.45;font:600 17px ui-monospace,'SF Mono',Menlo,Consolas,monospace;letter-spacing:.14em}
+  .uh-hint{fill:currentColor;opacity:.3;font:500 14px ui-monospace,Menlo,monospace}
+</style>
+
+  
+
+  
+  <rect class="uh-box" x="30" y="48" width="206" height="140" rx="10"></rect>
+  <rect class="uh-tile" x="44" y="62" width="84" height="54" rx="7"></rect>
+  <rect class="uh-tile" x="138" y="62" width="84" height="54" rx="7"></rect>
+  <rect class="uh-tile" x="44" y="124" width="84" height="52" rx="7"></rect>
+  <rect class="uh-tile" x="138" y="124" width="84" height="52" rx="7"></rect>
+  <rect class="uh-a" x="62" y="84" width="48" height="15" rx="7.5"></rect>
+  <text class="uh-hint" x="120" y="78" text-anchor="end">{}</text>
+  <rect class="uh-s" stroke-opacity=".35" x="152" y="84" width="56" height="24" rx="4"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="157" y="88" width="17" height="16" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="179" y="90" width="22" height="5" rx="2.5"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="179" y="99" width="16" height="5" rx="2.5"></rect>
+  <text class="uh-hint" x="214" y="78" text-anchor="end">{}</text>
+  <path class="uh-s" stroke-opacity=".2" d="M60 168 H118"></path>
+  <rect class="uh-f" fill-opacity=".3" x="66" y="156" width="8" height="12" rx="1.5"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="80" y="148" width="8" height="20" rx="1.5"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="94" y="152" width="8" height="16" rx="1.5"></rect>
+  <rect class="uh-a" x="108" y="146" width="8" height="22" rx="1.5"></rect>
+  <text class="uh-hint" x="120" y="140" text-anchor="end">{}</text>
+  <rect class="uh-s" stroke-opacity=".35" x="152" y="146" width="56" height="22" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="152" y="146" width="56" height="7" rx="3"></rect>
+  <path class="uh-s" stroke-opacity=".25" d="M152 153 H208 M152 160 H208 M171 146 V168 M190 146 V168"></path>
+  <text class="uh-hint" x="214" y="140" text-anchor="end">{}</text>
+  <text class="uh-lb" x="133" y="212" text-anchor="middle">COMPONENTS</text>
+
+  
+  <rect class="uh-box" x="30" y="254" width="206" height="104" rx="10"></rect>
+  <text class="uh-a" x="46" y="285" font-family="ui-monospace,Menlo,monospace" font-style="italic" font-size="13" font-weight="600">ƒ</text>
+  <rect class="uh-f" fill-opacity=".28" x="64" y="276" width="60" height="8" rx="4"></rect>
+  <path class="uh-s" stroke-opacity=".4" d="M134 280 H150 M146 276.5 L150 280 L146 283.5"></path>
+  <rect class="uh-as" stroke-opacity=".8" x="158" y="273.5" width="28" height="13" rx="4"></rect>
+  <circle class="uh-a" cx="167" cy="280" r="2"></circle>
+  <text class="uh-a" x="46" y="313" font-family="ui-monospace,Menlo,monospace" font-style="italic" font-size="13" font-weight="600">ƒ</text>
+  <rect class="uh-f" fill-opacity=".28" x="64" y="304" width="46" height="8" rx="4"></rect>
+  <path class="uh-s" stroke-opacity=".4" d="M134 308 H150 M146 304.5 L150 308 L146 311.5"></path>
+  <rect class="uh-as" stroke-opacity=".8" x="158" y="301.5" width="28" height="13" rx="4"></rect>
+  <circle class="uh-a" cx="167" cy="308" r="2"></circle>
+  <text class="uh-a" x="46" y="341" font-family="ui-monospace,Menlo,monospace" font-style="italic" font-size="13" font-weight="600">ƒ</text>
+  <rect class="uh-f" fill-opacity=".28" x="64" y="332" width="54" height="8" rx="4"></rect>
+  <path class="uh-s" stroke-opacity=".4" d="M134 336 H150 M146 332.5 L150 336 L146 339.5"></path>
+  <rect class="uh-as" stroke-opacity=".8" x="158" y="329.5" width="28" height="13" rx="4"></rect>
+  <circle class="uh-a" cx="167" cy="336" r="2"></circle>
+  <text class="uh-lb" x="133" y="382" text-anchor="middle">FUNCTIONS</text>
+
+  
+  <path class="uh-s" stroke-opacity=".3" stroke-width="1.5" d="M236 118 C272 118 270 190 302 196"></path>
+  <path class="uh-s" stroke-opacity=".3" stroke-width="1.5" d="M236 306 C272 306 270 216 302 206"></path>
+  <path class="uh-f" fill-opacity=".03" stroke="currentColor" stroke-opacity=".35" d="M310 156 h36 l18 18 v66 a6 6 0 0 1 -6 6 h-48 a6 6 0 0 1 -6 -6 v-78 a6 6 0 0 1 6 -6 z"></path>
+  <path class="uh-f" fill-opacity=".08" d="M346 156 l18 18 h-18 z"></path>
+  <path class="uh-s" stroke-opacity=".35" d="M346 156 v18 h18"></path>
+  <rect class="uh-f" fill-opacity=".22" x="314" y="186" width="30" height="4" rx="2"></rect>
+  <rect class="uh-a" fill-opacity=".85" x="314" y="196" width="40" height="4" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".22" x="314" y="206" width="36" height="4" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".22" x="314" y="216" width="40" height="4" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".22" x="314" y="226" width="24" height="4" rx="2"></rect>
+  <text class="uh-lb" x="334" y="270" text-anchor="middle">PROMPT</text>
+
+  
+  <path class="uh-s" stroke-opacity=".3" stroke-width="1.5" d="M372 202 H392"></path>
+  <path class="uh-f" fill-opacity=".3" d="M400 202 l-8 -4.5 v9 z"></path>
+  <rect class="uh-box" x="408" y="132" width="124" height="138" rx="10"></rect>
+  <path class="uh-a" d="M470 142 C472.5 152 476 155.5 486 158 C476 160.5 472.5 164 470 174 C467.5 164 464 160.5 454 158 C464 155.5 467.5 152 470 142 Z"></path>
+  <circle class="uh-f" fill-opacity=".3" cx="496" cy="147" r="2"></circle>
+  <circle class="uh-f" fill-opacity=".3" cx="446" cy="170" r="2"></circle>
+  <path class="uh-s" stroke-opacity=".2" stroke-dasharray="2 4" d="M424 186 H516"></path>
+  <text class="uh-hint" x="424" y="203.5">{</text>
+  <rect class="uh-a" fill-opacity=".8" x="432" y="198" width="8" height="3.5" rx="1.75"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="444" y="198" width="30" height="3.5" rx="1.75"></rect>
+  <text class="uh-hint" x="480" y="203.5">}</text>
+  <text class="uh-hint" x="424" y="222.5">{</text>
+  <rect class="uh-a" fill-opacity=".8" x="432" y="217" width="8" height="3.5" rx="1.75"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="444" y="217" width="36" height="3.5" rx="1.75"></rect>
+  <text class="uh-hint" x="486" y="222.5">}</text>
+  <text class="uh-hint" x="424" y="241.5">{</text>
+  <rect class="uh-a" fill-opacity=".8" x="432" y="236" width="8" height="3.5" rx="1.75"></rect>
+  <rect class="uh-f" fill-opacity=".3" x="444" y="236" width="26" height="3.5" rx="1.75"></rect>
+  <text class="uh-hint" x="476" y="241.5">}</text>
+  <g opacity=".6">
+    <text class="uh-hint" x="424" y="260.5">{</text>
+    <rect class="uh-a" fill-opacity=".8" x="432" y="255" width="8" height="3.5" rx="1.75"></rect>
+    <rect class="uh-a" fill-opacity=".5" x="444" y="252" width="5" height="10" rx="1"></rect>
+  </g>
+  <text class="uh-lb" x="470" y="294" text-anchor="middle">ENTRIES</text>
+  <path class="uh-s" stroke-opacity=".3" stroke-width="1.5" d="M540 202 H560"></path>
+  <path class="uh-f" fill-opacity=".3" d="M568 202 l-8 -4.5 v9 z"></path>
+  <path class="uh-s" stroke-opacity=".25" stroke-dasharray="3 4" d="M236 118 H560"></path>
+  <path class="uh-f" fill-opacity=".3" d="M568 118 l-8 -4.5 v9 z"></path>
+  <path class="uh-s" stroke-opacity=".25" stroke-dasharray="3 4" d="M236 306 H560"></path>
+  <path class="uh-f" fill-opacity=".3" d="M568 306 l-8 -4.5 v9 z"></path>
+
+  
+  <rect class="uh-box" x="576" y="44" width="330" height="330" rx="12" stroke-width="1.5"></rect>
+  <path class="uh-s" stroke-opacity=".18" d="M576 76 H906"></path>
+  <circle class="uh-f" fill-opacity=".22" cx="596" cy="60" r="3.5"></circle>
+  <circle class="uh-f" fill-opacity=".22" cx="610" cy="60" r="3.5"></circle>
+  <circle class="uh-f" fill-opacity=".22" cx="624" cy="60" r="3.5"></circle>
+  <rect class="uh-f" fill-opacity=".06" x="671" y="53" width="140" height="14" rx="7"></rect>
+  <rect class="uh-f" fill-opacity=".4" x="596" y="92" width="90" height="10" rx="4"></rect>
+  <rect class="uh-as" stroke-opacity=".5" x="784" y="88" width="46" height="17" rx="8.5"></rect>
+  <rect class="uh-a" x="840" y="88" width="46" height="17" rx="8.5"></rect>
+  <rect class="uh-s" stroke-opacity=".18" x="596" y="122" width="139" height="102" rx="8"></rect>
+  <path class="uh-s" stroke-opacity=".15" d="M608 210 H723"></path>
+  <rect class="uh-f" fill-opacity=".28" x="618" y="188" width="10" height="22" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".28" x="639" y="176" width="10" height="34" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".28" x="660" y="184" width="10" height="26" rx="2"></rect>
+  <rect class="uh-a" x="681" y="160" width="10" height="50" rx="2"></rect>
+  <rect class="uh-f" fill-opacity=".28" x="702" y="170" width="10" height="40" rx="2"></rect>
+  <rect class="uh-s" stroke-opacity=".18" x="747" y="122" width="139" height="102" rx="8"></rect>
+  <rect class="uh-f" fill-opacity=".08" x="759" y="136" width="34" height="34" rx="5"></rect>
+  <rect class="uh-f" fill-opacity=".32" x="801" y="140" width="70" height="7" rx="3.5"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="801" y="154" width="52" height="7" rx="3.5"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="801" y="168" width="60" height="7" rx="3.5"></rect>
+  <rect class="uh-as" stroke-opacity=".7" x="801" y="192" width="40" height="15" rx="7.5"></rect>
+  <rect class="uh-s" stroke-opacity=".18" x="596" y="238" width="290" height="118" rx="8"></rect>
+  <path class="uh-s" stroke-opacity=".18" d="M596 264 H886"></path>
+  <rect class="uh-f" fill-opacity=".32" x="610" y="248" width="44" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".32" x="708" y="248" width="44" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".32" x="806" y="248" width="44" height="6" rx="3"></rect>
+  <path class="uh-s" stroke-opacity=".08" d="M696 238 V356 M794 238 V356"></path>
+  <path class="uh-s" stroke-opacity=".1" d="M596 288 H886 M596 311 H886 M596 334 H886"></path>
+  <rect class="uh-f" fill-opacity=".18" x="610" y="272" width="56" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="610" y="295" width="48" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="610" y="318" width="60" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".18" x="610" y="341" width="44" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="708" y="272" width="40" height="6" rx="3"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="708" y="318" width="40" height="6" rx="3"></rect>
+  <rect class="uh-ac" fill-opacity=".16" stroke-opacity=".5" x="806" y="270" width="30" height="11" rx="5.5"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="806" y="293" width="30" height="11" rx="5.5"></rect>
+  <rect class="uh-ac" fill-opacity=".16" stroke-opacity=".5" x="806" y="316" width="30" height="11" rx="5.5"></rect>
+  <rect class="uh-f" fill-opacity=".12" x="806" y="339" width="30" height="11" rx="5.5"></rect>
+  <text class="uh-lb" x="741" y="398" text-anchor="middle">APP</text>
+</svg>

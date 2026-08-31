@@ -1,19 +1,11 @@
 # Agent skill
 
-uicast ships an [Agent Skill](https://agentskills.io) — a folder with a
-`SKILL.md` that teaches a coding agent how to integrate uicast into an app:
-definitions and implementations, host functions, prompt assembly, mounting,
-streaming on both surfaces, and error handling. Point your agent at it and
-"add generative UI to this app" becomes a task it knows how to do.
-
-The skill lives at
-[`skills/uicast`](https://github.com/finom/uicast/tree/main/skills/uicast) in
-the repo. It is a single self-contained Markdown file — no network access
-needed while the agent follows it, and it doubles as the shortest complete
-integration guide if you read it yourself. It deliberately covers only the
-**developer side**: the entry format the model emits is delivered to the
-generation model by the [assembled prompt](/prompt) at runtime, not by the
-skill.
+uicast ships an [Agent Skill](https://agentskills.io) — one
+[`SKILL.md`](https://github.com/finom/uicast/tree/main/skills/uicast) covering
+the whole developer-side setup: definitions and implementations, host
+functions, prompt assembly, mounting, streaming on both surfaces, error
+handling. Only your side of the contract — the entry format the model emits
+comes from the [assembled prompt](/prompt) at runtime, not from the skill.
 
 ## Install
 
@@ -31,13 +23,5 @@ folder wherever your client discovers skills — each client's path is behind
 the "Setup instructions" link on the
 [client showcase](https://agentskills.io/clients).
 
-## How skills work
-
-Agent Skills is an open format supported by many agents (Claude Code, Cursor,
-Codex, Gemini CLI, OpenCode, and [more](https://agentskills.io/clients)). An agent
-loads only the skill's name and description at startup; when a task matches —
-"set up uicast", "let the LLM build the interface" — it reads the full
-instructions into context and follows them.
-
-Nothing in the skill is client-specific — and on an agent with no skill
-support at all, pasting `SKILL.md` into its context works too.
+Nothing in the skill is client-specific, and it reads fine as a plain
+integration guide — pasting it into an agent with no skill support works too.

@@ -1,16 +1,10 @@
-export const boardPrompt = `Build a browser flow board from a single bespoke component, no backend.
+/**
+ * The request that "generated" the flow board — a developer exercising their
+ * one bespoke NodeBoard component, typed the way a person actually types.
+ * The component schema reaches the model through the assembled prompt.
+ */
+export const boardPrompt = `Set up a flow board with my NodeBoard component. Five nodes — Idea, Research, Draft, Review, Ship — with idea → research → draft → ship wired up already. Leave Review floating, I'll wire it in myself: I drag nodes to move them and click two ports to connect them.
 
-Component (one component, TWO custom event shapes):
-- NodeBoard — a canvas of draggable nodes with connection wires.
-  - Dragging a node emits a spatial payload: { id, x, y } (0..1 fractions).
-  - Clicking one node's port, then another's, emits a relational payload:
-    { from, to }.
+Add an auto-arrange button that lays everything out in a circle, and a "clear links" button that asks before removing the wires. Show a small node/connection count too.
 
-Wire both into one reactive "board" scope:
-- Dragging updates that node's position in scopes.root.nodes.
-- Connecting appends a link to scopes.root.links; the wire is drawn instantly.
-- "Auto-arrange" calls a host function that lays the nodes out around a circle.
-- "Clear links" removes every connection behind a confirm prompt.
-- A readout shows the live node/link counts.
-- A "Last event" panel shows the most recent component event, verbatim — watch
-  the payload shape change between a drag and a connect.`;
+One more thing: display the last event payload on screen. Dragging and connecting emit differently shaped events and I want to eyeball both.`;

@@ -1,18 +1,10 @@
-export const colorPrompt = `Build a browser palette studio from bespoke color components, no backend.
+/**
+ * The request that "generated" the palette studio — a developer exercising
+ * their bespoke color components, typed the way a person actually types.
+ * The component schemas reach the model through the assembled prompt.
+ */
+export const colorPrompt = `Put together a palette studio from my color components: the big saturation/lightness picker with the hue strip, a preview swatch with an alpha knob next to it, and a rail of saved swatches below. Picking anywhere — field or swatch — should update everything at once: the preview, the hex, the whole hsl readout.
 
-Components (each emits its own custom event payload):
-- ColorField — a saturation × lightness square plus a hue strip; picking emits a
-  structured { hex, h, s, l } payload — several channels in one event.
-- SwatchRail — a row of saved swatches; selecting one emits { index, hex, h, s, l }.
-- ColorPreview — read-only; reflects the current color + alpha over a checkerboard.
-- Knob — the rotary control from the studio demo, reused here to set alpha.
+Add three buttons: "Suggest palette" (derive a matching set from the current color), "Add current" to save the color to the rail, and a reset that asks first.
 
-Wire them into one reactive "color" scope:
-- Picking on the field (or a swatch) updates hex + h + s + l together; the
-  preview and the CSS readout react instantly.
-- The Alpha knob sets transparency.
-- "Suggest palette" calls a host function to derive a harmonious set of swatches
-  from the current color.
-- "Add current" appends the current color to the swatches.
-- "Reset" restores the starting swatches behind a confirm prompt.
-- A "Last event" panel shows the most recent component event, verbatim.`;
+Also show the last event payload somewhere — the picker sends hex and h/s/l together in one event and I want to double-check what comes through.`;

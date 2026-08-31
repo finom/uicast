@@ -2,7 +2,6 @@
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
-import { boardPrompt } from "./board.prompt";
 import { NodeBoardRenderer } from "./components/node-board/renderer";
 import { boardFunctions } from "./functions";
 
@@ -16,7 +15,6 @@ export const boardDemo: DemoConfig = {
   title: "Flow board",
   tagline:
     "A node canvas from one bespoke component — dragging emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to }.",
-  prompt: boardPrompt,
   lines: boardLines,
   functions: boardFunctions,
   catalog: [...allImplementations, NodeBoardRenderer],

@@ -10,6 +10,7 @@ const randomizePattern = standardTool({
   name: "randomizePattern",
   description: "Return a fresh random on/off pattern grid of the given size.",
   inputSchema: z.object({ tracks: z.number(), steps: z.number() }),
+  outputSchema: z.array(z.array(z.boolean())),
   async execute({ tracks, steps }): Promise<boolean[][]> {
     return Array.from({ length: tracks }, () =>
       Array.from({ length: steps }, () => Math.random() < 0.32),

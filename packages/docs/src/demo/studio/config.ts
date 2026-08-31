@@ -6,7 +6,6 @@ import { StepSequencerRenderer } from "./components/step-sequencer/renderer";
 import { XYPadRenderer } from "./components/xy-pad/renderer";
 import { studioFunctions } from "./functions";
 import { studioLines } from "./studio.lines";
-import { studioPrompt } from "./studio.prompt";
 
 /**
  * The studio demo: catalog components for layout + chrome, plus three bespoke
@@ -18,7 +17,6 @@ export const studioDemo: DemoConfig = {
   title: "Groovebox",
   tagline:
     "A beat studio built from bespoke XY-pad, knob, and step-sequencer components — every interaction a custom event.",
-  prompt: studioPrompt,
   lines: studioLines,
   functions: studioFunctions,
   catalog: [

@@ -1,6 +1,6 @@
 import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
-import { db, type Product } from "@/lib/db";
+import { db, type Product } from "./db";
 
 /**
  * The host functions exposed to expressions via `<RendererProvider functions=…>`.
@@ -30,11 +30,15 @@ const ProductDraft = z.object({
   price: z.number(),
 });
 
+/** Full row as stored — what every read/write returns. Mirrors `Product`. */
+const ProductOutput = ProductDraft.extend({ id: z.number() });
+
 // ---- reads (used as async `seed`) -------------------------------------
 
 const listProducts = standardTool({
   name: "listProducts",
   description: "Return every product in the inventory, newest first.",
+  outputSchema: z.array(ProductOutput),
   async execute(): Promise<Product[]> {
     await simulateLatency();
     return db.products.orderBy("id").reverse().toArray();
@@ -45,6 +49,7 @@ const getCategoryBreakdown = standardTool({
   name: "getCategoryBreakdown",
   description:
     "Return total units in stock grouped by category, as { name, value } rows for charting.",
+  outputSchema: z.array(z.object({ name: z.string(), value: z.number() })),
   async execute() {
     await simulateLatency();
     const products = await db.products.toArray();
@@ -64,6 +69,7 @@ const createProduct = standardTool({
   name: "createProduct",
   description: "Add a new product to the inventory. Returns the created product.",
   inputSchema: ProductDraft,
+  outputSchema: ProductOutput,
   async execute(input): Promise<Product> {
     const id = await db.products.add(input);
     return { ...input, id };
@@ -74,6 +80,7 @@ const updateProduct = standardTool({
   name: "updateProduct",
   description: "Update an existing product by id. Returns the updated product.",
   inputSchema: ProductDraft.extend({ id: z.number() }),
+  outputSchema: ProductOutput,
   async execute(input): Promise<Product> {
     const { id, ...changes } = input;
     await db.products.update(id, changes);
@@ -85,6 +92,7 @@ const deleteProduct = standardTool({
   name: "deleteProduct",
   description: "Delete a product from the inventory by id.",
   inputSchema: z.object({ id: z.number() }),
+  outputSchema: z.object({ id: z.number() }),
   async execute({ id }) {
     await db.products.delete(id);
     return { id };

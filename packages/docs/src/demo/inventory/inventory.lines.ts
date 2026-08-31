@@ -88,18 +88,11 @@ export const inventoryLines: ComponentEntry[] = [
     props: { literal: { columns: "3", gap: "4" } },
     children: ["stat-skus", "stat-low", "stat-value"],
   },
-  // Count through a method call (`.filter(Boolean).length`), not a bare
-  // `scopes.root.products.length`. Dep extraction records a *method* chain as its
-  // parent path (`scopes.root.products`) but a plain `.length` access as the
-  // deeper path `scopes.root.products.length`. The CRUD callbacks reassign the
-  // whole array (`scopes.root.products = await listProducts()`) and subscription
-  // is path-exact, so a bare-`.length` reader would never wake. statLow/statValue
-  // are reactive for the same reason — they read via `.filter(…)` / `.reduce(…)`.
   {
     key: "stat-skus",
     component: "Stat",
     props: {
-      expr: "({ label: 'Total SKUs', value: scopes.root.products.filter(Boolean).length, helpText: 'products in catalog' })",
+      expr: "({ label: 'Total SKUs', value: scopes.root.products.length, helpText: 'products in catalog' })",
     },
   },
   {

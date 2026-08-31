@@ -13,6 +13,7 @@ const suggestPalette = standardTool({
   description:
     "Given a base hex color, return a small harmonious palette of hex strings.",
   inputSchema: z.object({ hex: z.string() }),
+  outputSchema: z.array(z.string()),
   async execute({ hex }): Promise<string[]> {
     const { h, s, l } = hexToHsl(hex);
     const clampL = (x: number) => Math.min(92, Math.max(10, x));

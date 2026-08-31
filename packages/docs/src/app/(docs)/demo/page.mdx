@@ -1,0 +1,82 @@
+---
+title: Demos
+---
+
+import { Cards } from "nextra/components";
+import { GitHubIcon } from "nextra/icons";
+import { boardPrompt } from "@/demo/board/board.prompt";
+import { colorPrompt } from "@/demo/color/color.prompt";
+import { inventoryPrompt } from "@/demo/inventory/inventory.prompt";
+import { studioPrompt } from "@/demo/studio/studio.prompt";
+
+# Demos
+
+Each demo replays a JSONLines document through the engine entry by entry —
+the same code path a streamed model response takes. The components are real
+catalog implementations, the host functions run against live data, and the
+finished app is interactive.
+
+## Inventory
+
+<Cards num={2}>
+  <Cards.Card title="Open the Inventory demo" href="/demo/inventory" arrow />
+  <Cards.Card
+    title="Source on GitHub"
+    href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/inventory"
+    icon={<GitHubIcon height="16" />}
+  />
+</Cards>
+
+A CRUD dashboard streamed entry-by-entry, backed by a live in-browser
+database. The prompt behind it:
+
+<blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{inventoryPrompt}</blockquote>
+
+## Groovebox
+
+<Cards num={2}>
+  <Cards.Card title="Open the Groovebox demo" href="/demo/studio" arrow />
+  <Cards.Card
+    title="Source on GitHub"
+    href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/studio"
+    icon={<GitHubIcon height="16" />}
+  />
+</Cards>
+
+A beat studio built from bespoke XY-pad, knob, and step-sequencer components —
+every interaction a custom event. The prompt behind it:
+
+<blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{studioPrompt}</blockquote>
+
+## Palette studio
+
+<Cards num={2}>
+  <Cards.Card title="Open the Palette studio demo" href="/demo/color" arrow />
+  <Cards.Card
+    title="Source on GitHub"
+    href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/color"
+    icon={<GitHubIcon height="16" />}
+  />
+</Cards>
+
+A color picker from bespoke field, swatch, and preview components — picking
+emits a structured `{ hex, h, s, l }` payload. The prompt behind it:
+
+<blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{colorPrompt}</blockquote>
+
+## Flow board
+
+<Cards num={2}>
+  <Cards.Card title="Open the Flow board demo" href="/demo/board" arrow />
+  <Cards.Card
+    title="Source on GitHub"
+    href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/board"
+    icon={<GitHubIcon height="16" />}
+  />
+</Cards>
+
+A node canvas from one bespoke component — dragging emits a spatial
+`{ id, x, y }`, wiring two nodes emits a relational `{ from, to }`. The prompt
+behind it:
+
+<blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{boardPrompt}</blockquote>
