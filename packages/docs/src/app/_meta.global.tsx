@@ -8,6 +8,7 @@ import type { MetaRecord } from "nextra";
 const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
+  skill: "Agent skill",
   concepts: "Concepts",
   def: "Component definition",
   react: {
@@ -24,7 +25,6 @@ const meta: MetaRecord = {
   streamdown: "Streamdown plugin",
   "error-recovery": "Error recovery",
   "nextjs-demo": "Next.js demo 🔧",
-  skill: "Agent skill",
   entry: {
     title: "Component Entry Format",
     items: {

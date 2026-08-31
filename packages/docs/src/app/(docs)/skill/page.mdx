@@ -8,46 +8,36 @@ streaming on both surfaces, and error handling. Point your agent at it and
 
 The skill lives at
 [`skills/uicast`](https://github.com/finom/uicast/tree/main/skills/uicast) in
-the repo. It is a single self-contained file — no network access needed while
-the agent follows it — and it deliberately covers only the **developer side**:
-the entry format the model emits is delivered to the generation model by the
-[assembled prompt](/prompt) at runtime, not by the skill.
+the repo. It is a single self-contained Markdown file — no network access
+needed while the agent follows it, and it doubles as the shortest complete
+integration guide if you read it yourself. It deliberately covers only the
+**developer side**: the entry format the model emits is delivered to the
+generation model by the [assembled prompt](/prompt) at runtime, not by the
+skill.
+
+## Install
+
+The [skills CLI](https://skills.sh) detects which agents you use and installs
+the skill into each one's own skills directory:
+
+```sh
+npx skills add finom/uicast
+```
+
+It supports Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Copilot, and
+most other clients. To install by hand instead, put the
+[`skills/uicast`](https://github.com/finom/uicast/tree/main/skills/uicast)
+folder wherever your client discovers skills — each client's path is behind
+the "Setup instructions" link on the
+[client showcase](https://agentskills.io/clients).
 
 ## How skills work
 
 Agent Skills is an open format supported by many agents (Claude Code, Cursor,
-Codex, Gemini CLI, OpenCode, and [more](https://agentskills.io/home)). An agent
+Codex, Gemini CLI, OpenCode, and [more](https://agentskills.io/clients)). An agent
 loads only the skill's name and description at startup; when a task matches —
 "set up uicast", "let the LLM build the interface" — it reads the full
 instructions into context and follows them.
 
-## Claude Code
-
-The repo doubles as a plugin marketplace:
-
-```sh
-/plugin marketplace add finom/uicast
-/plugin install uicast
-```
-
-Or copy the folder for one project (no plugin involved):
-
-```sh
-mkdir -p .claude/skills
-cp -R path/to/uicast/skills/uicast .claude/skills/uicast
-```
-
-Use `~/.claude/skills/` instead to make it available in every project.
-
-## Other clients
-
-Any client that supports Agent Skills reads the same folder. Copy
-`skills/uicast` into the location your client discovers skills from — most use
-a project-local or user-level `skills` directory; the exact path is in each
-client's own documentation (the [client list](https://agentskills.io/home)
-links them). Nothing in the skill is client-specific.
-
-## Without skill support
-
-The file is plain Markdown. Paste `SKILL.md` into any agent's context — or
-read it yourself; it doubles as the shortest complete integration guide.
+Nothing in the skill is client-specific — and on an agent with no skill
+support at all, pasting `SKILL.md` into its context works too.
