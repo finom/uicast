@@ -1,13 +1,11 @@
 # @uicast/expr
 
-**A JavaScript expression language for expressions a model wrote.**
+A subset of JavaScript for stateless expressions.
 
-Models write JavaScript. A policy language has to be described to them in the
-prompt first. This package lets you take the JavaScript without running it: the
-source is parsed once with
-[acorn](https://github.com/acornjs/acorn), checked against a closed allow-list
-of AST node types, and compiled to a tree of closures the package evaluates
-itself.
+Source is parsed with [acorn](https://github.com/acornjs/acorn) and checked
+against a closed allow-list of AST node types. Two back ends run what passes:
+an interpreter that checks every read and call as it happens, or `new Function`
+when the input is trusted.
 
 ```ts
 import { Evaluator } from "@uicast/expr";
@@ -21,9 +19,8 @@ ev.eval('({})["con" + "structor"]');
 // → ExpressionError: Access to "constructor" is not allowed
 ```
 
-Built for [uicast](https://github.com/finom/uicast), where every expression
-arrives from a model and is replayed in other people's browsers. Useful anywhere
-you evaluate expressions you did not write.
+Built for [uicast](https://github.com/finom/uicast), where expressions come from
+a language model. Useful anywhere you evaluate expressions you did not write.
 
 ## Install
 
