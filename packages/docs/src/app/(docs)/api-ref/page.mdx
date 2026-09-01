@@ -40,9 +40,10 @@ The [prompt-partial builders](/prompt). Each takes one options object.
 
 | Export | Emits |
 |---|---|
-| `getCommonInstructionsPartialPrompt({ maxListItems?, note? })` | The output contract — entries, keys, partial replacement — plus the expression context: the names an [expression](/expr) can see (`scopes` / `evt` / `currentValue`). The language itself is `getExpressionsPartialPrompt()` from [`@uicast/expr/prompt`](/expr) — compose both. |
+| `getCommonInstructionsPartialPrompt({ maxListItems?, note? })` | The output contract — entries, keys, partial replacement — plus the expression context: the names an [expression](/expr) can see (`scopes` / `evt` / `currentValue`). The language itself is `getExpressionsPartialPrompt()` below — compose both. |
 | `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
 | `getComponentsPartialPrompt({ definitions, note? })` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events` automatically. |
+| `getExpressionsPartialPrompt({ maxLength?, note? })` | The `# JavaScript Expressions` block — syntax, methods, globals, and the length limit. Filled from [`@uicast/expr`](#uicastexpr)'s own tables. |
 | `getFunctionsPartialPrompt({ functions, note? })` | Call signatures, from your [host functions](/functions). |
 | `getEditRequestPrompt({ request, missingKeys? })` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |
 | `getErrorRecoveryPrompt({ failures })` | A user-turn message naming the elements that failed. |
@@ -57,28 +58,18 @@ context rendered as that section's trailing `## Note`, verbatim.
 The [expression language](/expr), standalone — nothing uicast-specific in
 it.
 
-### `@uicast/expr` — index module
-
 | Export | What it does |
 |---|---|
-| `Evaluator` | The evaluator: `eval`, `compile`, `validate`, `memberReads`. `mode: "interpret" \| "native"` selects the [back end](/expr#two-modes). |
+| `Evaluator` | The evaluator: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs. `mode: "interpret" \| "native"` selects the [back end](/expr#two-modes). |
 | `ALLOWED_GLOBALS` | The global names expressions may reference. |
 | `DEFAULT_BUDGET` | The default step / time / allocation ceilings. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
-Types: `EvaluatorOptions`, `EvaluatorMode`, `BudgetOptions`, `ExpressionFacts`,
-`ExpressionErrorReason`.
+Types: `EvaluatorOptions`, `EvaluatorMode`, `EvaluatorContexts`, `BudgetOptions`,
+`ExpressionFacts`, `ExpressionErrorReason`.
 
 There is also `@uicast/expr/internal` — the naming screen shared with core.
 It carries **no semver guarantee** — don't build on it.
-
-### `@uicast/expr/prompt` — prompt module
-
-| Export | Emits |
-|---|---|
-| `getExpressionsPartialPrompt({ allowGlobals?, maxLength?, note? })` | The `# JavaScript Expressions` block — syntax, methods, globals, and the length limit. |
-
-Types: `ExpressionsPromptOptions`.
 
 ## `@uicast/react`
 

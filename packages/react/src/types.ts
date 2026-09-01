@@ -59,7 +59,8 @@ export type FallbackComponents = {
 export type RendererRegistry = {
   implementations: Record<string, ComponentImplementation>;
   fallbackComponents?: FallbackComponents;
-  // Host callables exposed as bare identifiers to every evaluate() under this provider.
+  // Host callables exposed as bare identifiers to every evaluate() under this
+  // provider. Identity matters — it selects the evaluator, and its cache.
   functions?: StandardToolV0[];
   // Which expression back end runs documents under this provider.
   evaluator?: EvaluatorMode;
@@ -98,7 +99,9 @@ export type RendererProviderProps = {
   fallbackComponents?: FallbackComponents;
   /**
    * Host functions exposed as bare identifiers in every evaluate() call
-   * (callbacks invoke them as `name(input)`). Pass a stable reference.
+   * (callbacks invoke them as `name(input)`). Pass a stable reference: the
+   * array's identity selects the evaluator, so a fresh one per render means a
+   * cold expression cache per render.
    */
   functions?: StandardToolV0[];
   /** Expression back end: `"interpret"` (default, no `unsafe-eval`) or `"native"` (trusted authors only). */

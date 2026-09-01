@@ -5,6 +5,7 @@ import { db } from "./index";
 import { users } from "./schema";
 import { insertSeedContent, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData } from "./starter-data";
+import { domainTools } from "@/tools";
 
 // Seeds the public demo account (slug "uicast"): its domain data, three
 // hand-authored pages, and two multi-turn chats. Idempotent — the user is
@@ -13,7 +14,7 @@ import { insertStarterData } from "./starter-data";
 // seed loudly.
 
 const SYSTEM_SLUG = "uicast";
-const ev = new Evaluator();
+const ev = new Evaluator({ functions: domainTools });
 
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 

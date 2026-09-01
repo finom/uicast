@@ -28,9 +28,8 @@ toolFree.set(configKey(undefined, undefined), analysisEval);
 // with it.
 const byTools = new WeakMap<readonly StandardToolV0[], Map<string, Evaluator>>();
 
-// uicast's layer on the language's own screen: a name that would shadow the
-// expression context, or collide with a global, is refused before it can
-// silently take precedence. Runs once per array identity.
+// uicast's layer on the language's own screen — a name that would shadow
+// `scopes`/`evt` or a global takes precedence silently, so refuse it here.
 const screenToolNames = (tools: readonly StandardToolV0[]): void => {
 	const seen = new Set<string>();
 	for (const { name } of tools) {
@@ -88,12 +87,10 @@ export const getScopeReads = (expr: string): readonly string[] =>
 export const getFreeIdentifiers = (expr: string): readonly string[] =>
 	analysisEval.validate(expr).freeIds;
 
-// A total map, so a reason added in @uicast/expr fails this build instead of
-// arriving as an unmapped string. Two of the evaluator's reasons have no
-// EntryError of their own: "budget-exceeded" is a document fault — the model
-// wrote work the engine will not do — so it lands on the guardrail reason the
-// prompt already explains, and "runtime" is an ordinary throw in a legal
-// expression.
+// Total, so a reason added in @uicast/expr fails this build rather than arriving
+// unmapped. The last two have no EntryError of their own: a budget refusal is
+// still the document asking for too much, and "runtime" is a legal expression
+// throwing.
 const REASON_BY_EXPRESSION_REASON: Record<ExpressionErrorReason, EntryErrorReason> = {
 	"expression-syntax": "expression-syntax",
 	"guardrail-violation": "guardrail-violation",

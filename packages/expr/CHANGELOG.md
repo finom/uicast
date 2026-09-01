@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+### Changed
+
+- **Host functions bind at construction, and the evaluator owns the boundary.** `new Evaluator({ functions })` takes `StandardToolV0[]`; there is no per-call `functions` option. Every call now validates its input against the tool's `inputSchema` before `execute` and its output against `outputSchema` after — nothing checked the call before this, so an expression could hand a tool any shape it computed. A synchronous tool with synchronous schemas still allocates no promise; async appears only where a validator or the tool actually returns one.
+- **A host function can only be called, with zero or one argument.** Knowing the tool names at analysis time makes this a static rule, which closes three divergences between the back ends at once: `f(1, 2)` used to drop the second argument under `interpret` and pass it under `native`; a bare `f` escaped as the `HostFn` box or the raw function; and `f.name` / `f.length` read through under `native` only. All three now fail validation identically in both modes.
+- **`eval(source, ...contexts)` and `compile(source) → (...contexts)`**, generic in input and output. Contexts are searched right to left — later wins — and never merged into one object. The third options argument is gone with the per-call `functions`.
+- `ExpressionError` gains `invalid-arguments` and `host-function` reasons, an optional `cause` carrying the original throw, and a cross-copy-safe `ExpressionError.is()` — this package is a peer dependency, so `instanceof` can silently fail across duplicate copies.
+
+### Removed
+
+- **The `globals` option**, and with it `allowGlobals` on the prompt builder. Nothing in the repo passed either, the React binding never exposed them, and with `globals` gone `allowGlobals` could only advertise names the evaluator would refuse.
+- **The `./prompt` entry point.** `getExpressionsPartialPrompt` and the language markdown now live in `@uicast/core/prompt`, so prompt assembly is one import.
+- `globalNames()` — it returned exactly what `ALLOWED_GLOBALS` already is. `Evaluator.clearCache()` — the cache self-bounds at `maxCacheSize`, and a host wanting a clean slate can construct a new evaluator. `ALLOWED_NODES`, `FORBIDDEN_KEYS`, `HostFn`, `Lambda`, and `Namespace` are no longer exported: grammar tables and membrane classes the evaluator builds itself.
+
+### Added
+
+- `standard-tool` as a dependency — imported for types only, so the runtime bundle still carries nothing but `acorn`.
+- `@uicast/expr/internal` also exports `DEFAULT_MAX_SOURCE_LENGTH`, `hostFunctionNameFault`, and the grammar's method tables, so core's prompt can be checked against the language it describes.
+- `Evaluator.validate()` reports `toolCalls` alongside `freeIds`, and now catches a bad host call without running anything.
+
+
 ### Removed
 
 - **A tighter main entry.** `globalNames()` is gone — it returned exactly what `ALLOWED_GLOBALS` already is. `Evaluator.clearCache()` is gone: the cache self-bounds at `maxCacheSize`, and a host that wants a clean slate can construct a new evaluator. `ALLOWED_NODES`, `FORBIDDEN_KEYS`, `HostFn`, `Lambda`, and `Namespace` are no longer exported — grammar tables and membrane classes the evaluator builds itself, with nothing a consumer can do with them.

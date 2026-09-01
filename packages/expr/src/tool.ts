@@ -3,15 +3,9 @@ import { ExpressionError } from "./errors";
 import { hostFunctionNameFault } from "./internal";
 import { HostFn } from "./membrane";
 
-// Host functions bound once, at construction. Every call is validated against
-// the tool's own schemas before `execute` sees it and after it returns, so both
-// back ends refuse the same calls — the interpreter fuses `call` into its call
-// thunk, the native back end binds it as the function parameter.
-//
-// Nothing here is `async`: an async function allocates a promise even when it
-// returns synchronously, and a synchronous tool with synchronous schemas must
-// stay synchronous end to end. Each step branches on `instanceof Promise`
-// instead and chains only when one actually appears.
+// Host functions bound once, at construction, and validated against their own
+// schemas on every call. Nothing here is `async` — that would allocate a promise
+// even on a synchronous return; each step branches on `instanceof Promise`.
 
 type Schema = NonNullable<StandardToolV0["inputSchema"]>;
 type Validation = ReturnType<Schema["~standard"]["validate"]>;

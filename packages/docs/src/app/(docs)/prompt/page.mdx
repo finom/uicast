@@ -28,7 +28,7 @@ const system = [...parts].filter(Boolean).join("\n\n");
 | `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
 | `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
 | `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/functions). |
-| `getExpressionsPartialPrompt({ allowGlobals? })` | `@uicast/expr/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/expr#two-modes) rules. |
+| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/expr#two-modes) rules. |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat-surface fence convention — see [Chat surfaces](#chat-surfaces). |
 
 Every builder also takes **`note?`** — host-specific context rendered as that
@@ -88,9 +88,9 @@ without the host adding anything. Its allow-list line is a slot in the authored
 ```
 
 `getExpressionsPartialPrompt()` fills that token from the same `ALLOWED_GLOBALS`
-table [Evaluator](/expr) checks against, so the two cannot go out of sync.
-If you construct `Evaluator` directly with extra `globals`, pass the same names
-as `allowGlobals` here — otherwise the model is never told they exist.
+table [Evaluator](/expr) checks against, so the two cannot go out of sync. A
+test holds the rest of the section to the same standard: no method it advertises
+is one the evaluator would refuse.
 
 **Functions** renders the tool array. Its signature format,
 [undeclared returns](/functions#undeclared-returns), and
@@ -108,7 +108,7 @@ the order the sections reference each other. In that order the headings are:
 | `getScopePartialPrompt()` | `@uicast/core/prompt` | `# Scope` |
 | `getComponentsPartialPrompt()` | `@uicast/core/prompt` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted) |
 | `getFunctionsPartialPrompt()` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when there is something to hoist) |
-| `getExpressionsPartialPrompt()` | `@uicast/expr/prompt` | `# JavaScript Expressions` |
+| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | `# JavaScript Expressions` |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | `# Emitting UI` |
 
 ## Chat surfaces
@@ -127,10 +127,10 @@ The chat endpoint from the demo app:
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
+  getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { tools } from "./tools";

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`getExpressionsPartialPrompt()` moves here** from `@uicast/expr/prompt`, so every partial but the Streamdown fence comes from one import. The globals and length slots still fill from `@uicast/expr`'s own constants, and a new test fails if the markdown advertises a method the grammar would refuse — the drift this file's location exists to prevent.
+
+### Changed
+
+- **Host functions are bound by `@uicast/expr` now.** The tools array selects a cached evaluator instead of being wrapped per call, so `wrapTools` and its WeakMap are gone. The evaluator validates each call's input and output against the tool's own schemas, which replaces the structural sniff for `StandardToolValidationError` — an input rejection is `invalid-arguments` (document fault) because it names a real declared schema, not because of an error's name. A host function that throws its own `EntryError` still reaches `onError` unchanged.
+- The expression-reason mapping is a total table rather than a ternary chain, so a reason added in `@uicast/expr` fails this build instead of arriving unmapped.
+
+
 ### Changed
 
 - **`getExpressionsPartialPrompt` moved to `@uicast/expr`.** The syntax, method list, and globals now live next to the grammar and membrane that enforce them — a contract in a different package from the thing it describes drifts silently, which is exactly what happened before (the old file still advertised block-bodied arrows after the grammar had removed them). What was uicast's own in that block — `scopes`, `evt`, `currentValue`, the host-function calling rule — is now the `# Expression Context` section of `INSTRUCTIONS.md`, so `getCommonInstructionsPartialPrompt()` carries it and no separate builder exists. Assemble the language partial from its new home:

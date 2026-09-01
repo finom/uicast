@@ -251,7 +251,7 @@ src/tools/
 
 ## 4. Assemble the prompt
 
-Three packages ship partials (`@uicast/core/prompt`, `@uicast/expr/prompt`,
+Two packages ship partials (`@uicast/core/prompt` and
 `@uicast/streamdown/prompt`); the app owns the assembly. Compose with
 `join("\n\n")` — partials carry no edge blank lines:
 
@@ -261,8 +261,8 @@ import {
   getScopePartialPrompt,
   getComponentsPartialPrompt,
   getFunctionsPartialPrompt,
+  getExpressionsPartialPrompt,
 } from "@uicast/core/prompt";
-import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 
 export const systemPrompt = [
   getCommonInstructionsPartialPrompt(),          // output contract + expression context
