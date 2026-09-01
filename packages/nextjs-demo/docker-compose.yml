@@ -1,0 +1,19 @@
+# Local Postgres for development — production points DATABASE_URL at Neon.
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: uicast
+      POSTGRES_USER: uicast
+      POSTGRES_PASSWORD: uicast
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uicast -d uicast"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  pgdata:

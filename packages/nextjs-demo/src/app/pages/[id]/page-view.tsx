@@ -17,7 +17,7 @@ import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, Pencil, ScrollText, Sparkles } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { Card, CardContent, CardFooter } from "@uicast/shadcn-catalog/ui/card";
@@ -34,11 +34,22 @@ import { Label } from "@uicast/shadcn-catalog/ui/label";
 import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@uicast/shadcn-catalog/ui/tabs";
 import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
+import { CostInfo } from "@/components/cost-info";
+import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
+import { setApiOwner } from "@/tools/http";
 
-type PageMeta = { id: number; title: string; prompt: string | null };
+type PageMeta = {
+  id: number;
+  title: string;
+  prompt: string | null;
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+};
 type ControlLine =
   | { type: "error"; error: string }
+  | { type: "usage"; inputTokens: number; outputTokens: number; costUsd: number | null }
   | { type: "done"; pageId: number; finishReason?: string };
 type GenerateLine = ComponentEntry | ControlLine;
 
@@ -49,10 +60,18 @@ function isEntry(line: GenerateLine): line is ComponentEntry {
 export function PageView({
   page: initialPage,
   initialEntries,
+  ownerSlug,
+  readonly,
+  model,
 }: {
   page: PageMeta;
   initialEntries: ComponentEntry[];
+  ownerSlug: string;
+  readonly: boolean;
+  model: string;
 }) {
+  // Reads inside the generated UI serve the page owner's data.
+  setApiOwner(ownerSlug);
   const [page, setPage] = useState(initialPage);
   const [name, setName] = useState(initialPage.title);
   const [editOpen, setEditOpen] = useState(false);
@@ -62,11 +81,15 @@ export function PageView({
   // seq 0 is the auto-started initial run on a freshly created page; edit runs
   // increment it. The server picks initial vs edit mode by the stored entries.
   const [submission, setSubmission] = useState<{ prompt: string; seq: number } | null>(() =>
-    initialEntries.length === 0 && initialPage.prompt
+    !readonly && initialEntries.length === 0 && initialPage.prompt
       ? { prompt: initialPage.prompt, seq: 0 }
       : null,
   );
   const [promptOpen, setPromptOpen] = useState(false);
+  // The generated tree renders client-only: seeds fetch through the browser,
+  // so the server pass can only error and fall back — skip it instead.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const queryClient = useQueryClient();
 
   // The generate endpoint's own assembly, so the viewer shows exactly what
@@ -111,6 +134,14 @@ export function PageView({
     (line): line is Extract<ControlLine, { type: "done" }> => line.type === "done",
   )?.finishReason;
   const errorLine = controls.find((line) => line.type === "error");
+  // This run's bill, on top of the totals the page row was loaded with.
+  const usageLine = controls.find(
+    (line): line is Extract<ControlLine, { type: "usage" }> => line.type === "usage",
+  );
+  const totalIn = page.inputTokens + (usageLine?.inputTokens ?? 0);
+  const totalOut = page.outputTokens + (usageLine?.outputTokens ?? 0);
+  const totalCost = page.costUsd + (usageLine?.costUsd ?? 0);
+  const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
   const streamError =
     (errorLine?.type === "error" ? errorLine.error : undefined) ??
     (queryError ? (queryError instanceof Error ? queryError.message : String(queryError)) : null);
@@ -144,6 +175,10 @@ export function PageView({
   // closure still sees the live run state.
   const recoverRef = useRef<(failure: RenderFailure) => void>(() => {});
   recoverRef.current = (failure) => {
+    if (readonly) {
+      showToast("Read-only copy — log in with OpenRouter to run recovery on your own pages.");
+      return;
+    }
     if (isFetching) return;
     setHistory((prev) => [...prev, ...runEntries]);
     setSubmission((prev) => ({
@@ -181,16 +216,31 @@ export function PageView({
             Generating…
           </span>
         )}
-        <Button
-          variant="outline"
-          size="sm"
-          className="ml-auto"
-          onClick={() => setEditOpen((open) => !open)}
-        >
-          <Pencil data-icon="inline-start" />
-          Edit
-        </Button>
+        {readonly ? (
+          <span className="ml-auto shrink-0 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
+            @{ownerSlug} · read-only
+          </span>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            className="ml-auto"
+            onClick={() => setEditOpen((open) => !open)}
+          >
+            <Pencil data-icon="inline-start" />
+            Edit
+          </Button>
+        )}
       </header>
+
+      {(totalIn > 0 || totalOut > 0) && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>
+            {fmtTokens(totalIn)} tokens in · {fmtTokens(totalOut)} out · ≈${totalCost.toFixed(2)}
+          </span>
+          <CostInfo model={model} />
+        </p>
+      )}
 
       {streamError && <p className="text-xs text-destructive">{streamError}</p>}
       {!streamError && finishReason && finishReason !== "stop" && (
@@ -282,7 +332,7 @@ export function PageView({
         </Card>
       )}
 
-      {entries.length > 0 ? (
+      {entries.length > 0 && mounted ? (
         <Tabs defaultValue="preview">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -291,11 +341,18 @@ export function PageView({
           {/* forceMount: unmounting the renderer on tab switch would re-run
               seeds and wipe the generated page's state */}
           <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
-            <div className="rounded-md border p-4">
+            <div className="overflow-x-auto rounded-md border p-4">
               {/* key: stable per page, so iterations stream into the mounted
                   renderer (seeds and state preserved) instead of remounting —
                   and the provider's shared root scope resets per page */}
               <RendererProvider
+        onError={(error) => {
+          // Callback failures (a rejected write, a tool error) have no error
+          // slot — flash the server's own message instead.
+          if (error.reason === "host-function" || error.reason === "invalid-arguments") {
+            showToast(error.message.replace(/^[^:]*: */, ""));
+          }
+        }}
                 key={page.id}
                 implementations={allImplementations}
                 functions={domainTools}
@@ -314,6 +371,7 @@ export function PageView({
           </TabsContent>
         </Tabs>
       ) : (
+        mounted &&
         !isFetching && (
           <p className="text-sm text-muted-foreground">
             This page has no generated content yet.

@@ -5,7 +5,7 @@ export const DateRangePickerDef = createComponentDefinition({
   name: "DateRangePicker",
   description:
     "A date range input for selecting a start and end date. Renders two native date inputs side by side. Use DateRangePicker for date range filters, booking periods, report date ranges, etc. Values are ISO date strings (YYYY-MM-DD).",
-  props: z.object({
+  props: z.strictObject({
     startDate: z.string().optional().meta({
       description: "The selected start date as ISO string (YYYY-MM-DD)",
     }),
@@ -23,7 +23,7 @@ export const DateRangePickerDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       startDate: z.string().meta({
         description: "The selected start date as ISO string",
       }),

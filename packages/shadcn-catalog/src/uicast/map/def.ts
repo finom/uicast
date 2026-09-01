@@ -5,7 +5,7 @@ export const MapDef = createComponentDefinition({
   name: "Map",
   description:
     "A static map display with markers. Renders an embedded map image with optional pin markers. Use Map for store locators, delivery tracking, contact pages, or any location display. Uses a static map image approach.",
-  props: z.object({
+  props: z.strictObject({
     center: z
       .object({
         lat: z.number().meta({ description: "Latitude" }),
@@ -18,7 +18,7 @@ export const MapDef = createComponentDefinition({
     }),
     markers: z
       .array(
-        z.object({
+        z.strictObject({
           lat: z.number().meta({ description: "Marker latitude" }),
           lng: z.number().meta({ description: "Marker longitude" }),
           label: z.string().optional().meta({ description: "Marker label" }),

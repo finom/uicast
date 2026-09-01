@@ -5,10 +5,10 @@ export const TreeViewDef = createComponentDefinition({
   name: "TreeView",
   description:
     "A hierarchical expandable list for file systems, org trees, or category browsing. Renders a tree structure with expandable/collapsible nodes. Use TreeView for file explorers, organization charts, category navigation, etc.",
-  props: z.object({
+  props: z.strictObject({
     items: z
       .array(
-        z.object({
+        z.strictObject({
           label: z.string().meta({ description: "Node label text" }),
           icon: z.string().optional().meta({ description: "Lucide icon name" }),
           expanded: z
@@ -17,7 +17,7 @@ export const TreeViewDef = createComponentDefinition({
             .meta({ description: "Whether the node is expanded" }),
           children: z
             .array(
-              z.object({
+              z.strictObject({
                 label: z.string().meta({ description: "Child node label" }),
                 icon: z
                   .string()

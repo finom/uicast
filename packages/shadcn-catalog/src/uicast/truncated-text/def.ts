@@ -5,7 +5,7 @@ export const TruncatedTextDef = createComponentDefinition({
   name: "TruncatedText",
   description:
     "Ellipsis text with expand/tooltip for overflow. Truncates long text with an option to expand or show full text on hover. Use TruncatedText for table cells, card descriptions, or any constrained text area.",
-  props: z.object({
+  props: z.strictObject({
     text: z.string().meta({
       description: "The full text content",
     }),
@@ -17,7 +17,7 @@ export const TruncatedTextDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onToggle: z.object({
+    onToggle: z.strictObject({
       expanded: z.boolean().meta({ description: "The new expanded state" }),
     }),
   },

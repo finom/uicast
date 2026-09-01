@@ -11,8 +11,16 @@ import { Separator } from "@uicast/shadcn-catalog/ui/separator";
 type SidebarPage = { id: number; title: string };
 type SidebarChat = { id: string; title: string };
 
-export function AppSidebar() {
+export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
   const pathname = usePathname();
+  const { data: me } = useQuery({
+    queryKey: ["me"],
+    queryFn: async (): Promise<{ slug: string } | null> => {
+      const res = await fetch("/api/auth/me");
+      return res.ok ? res.json() : null;
+    },
+  });
+  const slug = me?.slug ?? "uicast";
   const { data: pages } = useQuery({
     queryKey: ["pages"],
     queryFn: async (): Promise<SidebarPage[]> => {
@@ -29,7 +37,7 @@ export function AppSidebar() {
   });
 
   return (
-    <aside className="flex w-64 shrink-0 flex-col gap-2 border-r bg-sidebar p-2 text-sidebar-foreground">
+    <aside className={`${mobile ? "flex w-full border-0" : "hidden w-64 border-r md:flex"} h-full shrink-0 flex-col gap-2 bg-sidebar p-2 text-sidebar-foreground`}>
       <Button asChild className="w-full justify-start">
         <Link href="/pages/new">
           <Plus data-icon="inline-start" />
@@ -47,7 +55,7 @@ export function AppSidebar() {
 
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-1 pr-2">
-          <p className="px-2 text-xs font-medium text-muted-foreground">Pages</p>
+          <p className="px-2 text-xs font-medium text-muted-foreground">{me ? "Your pages" : "Demo pages"}</p>
           <nav className="flex flex-col gap-1">
             {pages === undefined ? null : pages.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
@@ -55,7 +63,7 @@ export function AppSidebar() {
               </p>
             ) : (
               pages.map((page) => {
-                const href = `/pages/${page.id}`;
+                const href = `/u/${slug}/p/${page.id}`;
                 const active = pathname === href;
                 return (
                   <Button
@@ -75,7 +83,7 @@ export function AppSidebar() {
             )}
           </nav>
 
-          <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">Chats</p>
+          <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">{me ? "Your chats" : "Demo chats"}</p>
           <nav className="flex flex-col gap-1">
             {chats === undefined ? null : chats.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
@@ -83,7 +91,7 @@ export function AppSidebar() {
               </p>
             ) : (
               chats.map((chat) => {
-                const href = `/chats/${chat.id}`;
+                const href = `/u/${slug}/c/${chat.id}`;
                 const active = pathname === href;
                 return (
                   <Button

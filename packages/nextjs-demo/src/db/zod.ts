@@ -1,12 +1,40 @@
 import { z } from "zod";
-import { ORDER_STATUSES } from "./schema";
+import { MOVEMENT_REASONS, ORDER_STATUSES } from "./schema";
 
 // Zod companions for the Drizzle tables. The domain schemas (products /
 // customers / orders) carry per-field `.meta({ description })` so they serialize
 // into JSON Schema with descriptions when fed to standard-tool / the prompt.
 
+// ---- suppliers ----
+export const supplierInsert = z.object({
+  name: z.string().meta({ description: "Supplier company name." }),
+  email: z.string().meta({ description: "Contact email for purchase orders." }),
+  category: z.string().meta({ description: "Product category this supplier covers." }),
+  leadTimeDays: z.number().int().meta({ description: "Typical delivery lead time, in days." }),
+});
+export const supplierUpdate = supplierInsert.partial();
+export const supplierOutput = supplierInsert.extend({
+  id: z.number().int().meta({ description: "Supplier id." }),
+});
+
+// ---- stock movements ----
+export const movementInsert = z.object({
+  productId: z.number().int().meta({ description: "Product the stock moves for." }),
+  qty: z
+    .number()
+    .int()
+    .meta({ description: "Quantity moved: positive receives stock, negative removes it." }),
+  reason: z.enum(MOVEMENT_REASONS).meta({ description: "Why the stock moved." }),
+  note: z.string().nullish().meta({ description: "Optional free-form note." }),
+});
+export const movementOutput = movementInsert.extend({
+  id: z.number().int().meta({ description: "Movement id." }),
+  createdAt: z.string().meta({ description: "ISO timestamp of the movement." }),
+});
+
 // ---- products ----
 export const productInsert = z.object({
+  supplierId: z.number().int().meta({ description: "Id of the supplier this product is ordered from." }),
   name: z.string().meta({ description: "Product name." }),
   sku: z.string().meta({ description: "Stock-keeping unit (SKU) code." }),
   category: z.string().meta({ description: "Product category." }),
@@ -53,3 +81,9 @@ export const pageInsert = z.object({
   prompt: z.string().nullish(),
 });
 export const pageUpdate = pageInsert.partial();
+
+// ---- id inputs, picked from the outputs so descriptions stay single-source ----
+export const productIdInput = productOutput.pick({ id: true });
+export const customerIdInput = customerOutput.pick({ id: true });
+export const orderIdInput = orderOutput.pick({ id: true });
+export const supplierIdInput = supplierOutput.pick({ id: true });

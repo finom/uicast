@@ -5,10 +5,10 @@ export const SortableListDef = createComponentDefinition({
   name: "SortableList",
   description:
     "An ordered list styled with drag-handle icons. Renders a static list of clickable items — the handles are visual only, items cannot be drag-reordered. Use SortableList to display task priorities, playlist order, preference rankings, or any ordered list.",
-  props: z.object({
+  props: z.strictObject({
     items: z
       .array(
-        z.object({
+        z.strictObject({
           id: z.string().meta({ description: "Item unique identifier" }),
           label: z.string().meta({ description: "Item display text" }),
           icon: z

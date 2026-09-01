@@ -5,10 +5,10 @@ export const BreadcrumbDef = createComponentDefinition({
   name: "Breadcrumb",
   description:
     "A breadcrumb navigation showing the current page's location within a hierarchy. Renders a horizontal trail of links separated by chevrons. Use Breadcrumb for page navigation hierarchy (Home > Products > Details) or wizard step indicators.",
-  props: z.object({
+  props: z.strictObject({
     items: z
       .array(
-        z.object({
+        z.strictObject({
           label: z.string().meta({ description: "The breadcrumb item text" }),
           active: z.boolean().optional().meta({
             description:

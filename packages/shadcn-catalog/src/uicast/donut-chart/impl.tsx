@@ -23,7 +23,7 @@ export const DonutChartImpl = createComponentImplementation({
     const defaultColors = [...defaultChartColors, "#ff6b6b"];
 
     return (
-      <div className="relative" data-key={generatedKey}>
+      <div className="relative w-full min-w-0" data-key={generatedKey}>
         <ResponsiveContainer width="100%" height={height}>
           <PieChart>
             <Pie isAnimationActive={false}

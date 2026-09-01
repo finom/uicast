@@ -1,12 +1,11 @@
-"use client";
+import { getSessionUser } from "@/lib/auth";
+import { LoginGate } from "@/components/login-gate";
+import { NewChat } from "./new-chat";
 
-import { useState } from "react";
-import { ChatView } from "@/components/chat-view";
+export const dynamic = "force-dynamic";
 
-// Ephemeral like ChatGPT: the chat row is created by the first message; until
-// then this page is just a fresh ChatView under a client-minted id. The URL
-// swaps to /chats/[id] shallowly on the first send.
-export default function NewChatPage() {
-  const [chatId] = useState(() => crypto.randomUUID());
-  return <ChatView chatId={chatId} replaceUrlOnFirstSend />;
+export default async function NewChatPage() {
+  const me = await getSessionUser();
+  if (!me) return <LoginGate what="start chats" />;
+  return <NewChat />;
 }

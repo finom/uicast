@@ -6,7 +6,7 @@ export const SearchInputDef = createComponentDefinition({
   name: "SearchInput",
   description:
     "A search input with a search icon, clear button, and optional loading state. Use SearchInput for search bars, filter inputs, or any text search functionality.",
-  props: z.object({
+  props: z.strictObject({
     value: z.any().meta({ description: "The current search value" }),
     placeholder: z.string().default("Search...").meta({
       description: "Placeholder text",
@@ -21,13 +21,13 @@ export const SearchInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({ description: "The current search value" }),
     }),
     onClear: z.null().meta({
       description: "Callback when the clear button is clicked",
     }),
-    onSubmit: z.object({
+    onSubmit: z.strictObject({
       value: z.string().meta({ description: "The search value on submit" }),
     }),
   },

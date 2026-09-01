@@ -5,7 +5,7 @@ export const StatusIndicatorDef = createComponentDefinition({
   name: "StatusIndicator",
   description:
     "A colored dot/badge for online, active, error states. Renders a small status dot with optional label. Use StatusIndicator for user online status, service health, order status, etc.",
-  props: z.object({
+  props: z.strictObject({
     status: z
       .enum([
         "online",

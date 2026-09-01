@@ -6,7 +6,7 @@ export const FlexRowDef = createComponentDefinition({
   name: "FlexRow",
   description:
     "A horizontal flex container that lays out children in a row. Use FlexRow to arrange components side by side horizontally with configurable gap, alignment, and wrapping. Common uses: button groups, inline form fields, stat cards in a row, icon + text combos.",
-  props: z.object({
+  props: z.strictObject({
     gap: z.enum(["0", "1", "2", "3", "4", "6", "8"]).default("2").meta({
       description: "Gap between children using Tailwind spacing scale (0-8)",
     }),

@@ -36,7 +36,7 @@ export const BadgeDef = createComponentDefinition({
   description:
     "A small status indicator badge for labels, counts, or tags. Use it for " +
     "status (active, pending), categories, counts, or any short label.",
-  props: z.object({
+  props: z.strictObject({
     text: z.string().optional().meta({ description: "The badge text content" }),
     variant: z
       .enum(["neutral", "info", "warning", "danger"])
@@ -83,9 +83,10 @@ An entry's [`props`](/entry/fields#props) then has to produce that shape:
   "props": { "expr": "({ text: scopes.root.order.status, variant: scopes.root.order.status === 'paid' ? 'neutral' : 'danger' })" } }
 ```
 
-Prefer `z.object` over `z.strictObject`: a prop the model invented is dropped in
-parsing, where a strict schema would fail the whole element over it. A declared
-prop of the wrong type still fails — that is the one that breaks rendering.
+Use `z.strictObject`: a prop the model invented fails the element into its
+error slot instead of being silently dropped — visible and correctable, the
+same way a wrong-typed prop already fails. The shipped catalog is strict
+throughout.
 
 **Never `children`.** That name is the entry field listing child element keys, so
 a def declaring it as a prop throws on creation. Name the prop for what it holds
@@ -101,7 +102,7 @@ available when the model writes `{ "expr": "evt.value" }`.
 createComponentDefinition({
   // …
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({ description: "The current value" }),
     }),
     onClear: z.null().meta({ description: "Clear button clicked" }),

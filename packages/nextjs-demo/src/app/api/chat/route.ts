@@ -12,14 +12,13 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
 import { db } from "@/db";
+import { requireUser } from "@/lib/api";
+import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
+import { computeCostUsd, getModelPricing } from "@/lib/pricing";
 import { domainTools } from "@/tools";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-
-// Plain string model ids resolve through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
-const CHAT_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-5";
-const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 32_000);
 
 // The message array is the AI SDK's UIMessage shape — only the fields this
 // route reads (id / role / parts, and text on text parts) are validated; the
@@ -56,19 +55,18 @@ function firstUserText(messages: UIMessage[]): string {
 // list, so mirroring it wholesale is simpler and self-healing. The delete and
 // reinsert ride one transaction so a failed insert can't leave the chat empty.
 async function persistMessages(chatId: string, messages: UIMessage[]) {
-  db.transaction((tx) => {
-    tx.delete(chatMessages).where(eq(chatMessages.chatId, chatId)).run();
+  await db.transaction(async (tx) => {
+    await tx.delete(chatMessages).where(eq(chatMessages.chatId, chatId));
     if (messages.length === 0) return;
-    tx.insert(chatMessages)
-      .values(
-        messages.map((message) => ({
-          chatId,
-          messageId: message.id,
-          role: message.role,
-          parts: message.parts,
-        })),
-      )
-      .run();
+    await tx.insert(chatMessages).values(
+      messages.map((message) => ({
+        chatId,
+        messageId: message.id,
+        role: message.role,
+        parts: message.parts,
+        metadata: (message as { metadata?: unknown }).metadata ?? null,
+      })),
+    );
   });
 }
 
@@ -77,28 +75,47 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return Response.json({ error: parsed.error.issues }, { status: 400 });
   }
+  const auth = await requireUser();
+  if ("error" in auth) return auth.error;
+  const model = modelForUser(auth.me);
+  if (!model) {
+    return Response.json(
+      { error: "No OpenRouter key on this account — log in again to grant one." },
+      { status: 403 },
+    );
+  }
   const { id } = parsed.data;
   const uiMessages = parsed.data.messages as unknown as UIMessage[];
 
   // The chat row is created lazily by the first message (the client mints the
-  // uuid), titled from that message's text.
-  const title = firstUserText(uiMessages).slice(0, 60) || "New chat";
-  await db.insert(chats).values({ id, title }).onConflictDoNothing();
+  // uuid), titled from that message's text. Continuing someone else's chat is
+  // refused — everything is readable, only the owner writes.
+  const [existing] = await db.select().from(chats).where(eq(chats.id, id));
+  if (existing && existing.userId !== auth.me.id) {
+    return Response.json({ error: "This chat belongs to another user." }, { status: 403 });
+  }
+  if (!existing) {
+    const title = firstUserText(uiMessages).slice(0, 60) || "New chat";
+    await db.insert(chats).values({ id, userId: auth.me.id, title }).onConflictDoNothing();
+  }
   await persistMessages(id, uiMessages);
 
   const system = [
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind: "answer" }),
-    getExpressionsPartialPrompt(),
     getComponentsPartialPrompt({
       definitions: allDefinitions,
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
+    getExpressionsPartialPrompt(),
     getFencePartialPrompt(),
   ].join("\n\n");
 
+  // Prefetched so the metadata callback can price the finish synchronously.
+  const pricing = await getModelPricing();
+
   const result = streamText({
-    model: CHAT_MODEL,
+    model,
     system,
     messages: await convertToModelMessages(uiMessages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
@@ -107,7 +124,19 @@ export async function POST(req: Request) {
   return result.toUIMessageStreamResponse({
     originalMessages: uiMessages,
     generateMessageId: () => crypto.randomUUID(),
-    onEnd: async ({ messages }) => {
+    // Every assistant message carries its own bill.
+    messageMetadata: ({ part }) => {
+      if (part.type !== "finish") return undefined;
+      const inputTokens = part.totalUsage.inputTokens ?? 0;
+      const outputTokens = part.totalUsage.outputTokens ?? 0;
+      return {
+        inputTokens,
+        outputTokens,
+        costUsd: computeCostUsd(pricing, inputTokens, outputTokens),
+        model: GENERATION_MODEL,
+      };
+    },
+    onFinish: async ({ messages }) => {
       await persistMessages(id, messages);
     },
   });

@@ -1,16 +1,17 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema";
 
-// Reuse one connection across dev hot-reloads instead of opening a new handle
-// (and re-locking the file) on every module re-evaluation.
-const globalForDb = globalThis as unknown as { sqlite?: Database.Database };
+// One pool across dev hot-reloads. Works against docker-compose Postgres
+// locally and a Neon pooled connection string in production.
+const globalForDb = globalThis as unknown as { pgPool?: Pool };
 
-const sqlite = globalForDb.sqlite ?? new Database(process.env.DATABASE_PATH ?? "./data/app.db");
-if (!globalForDb.sqlite) {
-  sqlite.pragma("journal_mode = WAL");
-  sqlite.pragma("foreign_keys = ON");
-  globalForDb.sqlite = sqlite;
-}
+const pool =
+  globalForDb.pgPool ??
+  new Pool({
+    connectionString: process.env.DATABASE_URL ?? "postgres://uicast:uicast@localhost:5432/uicast",
+    max: 10,
+  });
+if (!globalForDb.pgPool) globalForDb.pgPool = pool;
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(pool, { schema });

@@ -5,10 +5,10 @@ export const DonutChartDef = createComponentDefinition({
   name: "DonutChart",
   description:
     "A donut (ring) chart for proportional data display with a center area. Similar to PieChart but with a hollow center that can display summary text. Use DonutChart for budget breakdown, market share, completion percentage, etc.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
-        z.object({
+        z.strictObject({
           name: z.string().meta({ description: "Segment label" }),
           value: z.number().meta({ description: "Segment value" }),
           color: z

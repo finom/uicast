@@ -28,41 +28,43 @@ export const BubbleChartImpl = createComponentImplementation({
     ];
 
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <ScatterChart>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="x" name={xLabel ?? "X"} type="number" />
-          <YAxis dataKey="y" name={yLabel ?? "Y"} type="number" />
-          <ZAxis dataKey="z" range={[40, 400]} domain={zRange} />
-          <Tooltip
-            cursor={{ strokeDasharray: "3 3" }}
-            content={(props) => {
-              const payload = props.payload;
-              if (!payload?.length) return null;
-              const d = payload[0].payload as {
-                x: number;
-                y: number;
-                z: number;
-                name?: string;
-              };
-              return (
-                <div className="rounded-md border bg-background p-2 text-xs shadow-md">
-                  {d.name && <p className="font-medium">{d.name}</p>}
-                  <p>X: {d.x}</p>
-                  <p>Y: {d.y}</p>
-                  <p>Size: {d.z}</p>
-                </div>
-              );
-            }}
-          />
-          <Scatter
-            isAnimationActive={false}
-            data={data}
-            fill={color}
-            fillOpacity={0.6}
-          />
-        </ScatterChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="x" name={xLabel ?? "X"} type="number" />
+            <YAxis dataKey="y" name={yLabel ?? "Y"} type="number" />
+            <ZAxis dataKey="z" range={[40, 400]} domain={zRange} />
+            <Tooltip
+              cursor={{ strokeDasharray: "3 3" }}
+              content={(props) => {
+                const payload = props.payload;
+                if (!payload?.length) return null;
+                const d = payload[0].payload as {
+                  x: number;
+                  y: number;
+                  z: number;
+                  name?: string;
+                };
+                return (
+                  <div className="rounded-md border bg-background p-2 text-xs shadow-md">
+                    {d.name && <p className="font-medium">{d.name}</p>}
+                    <p>X: {d.x}</p>
+                    <p>Y: {d.y}</p>
+                    <p>Size: {d.z}</p>
+                  </div>
+                );
+              }}
+            />
+            <Scatter
+              isAnimationActive={false}
+              data={data}
+              fill={color}
+              fillOpacity={0.6}
+            />
+          </ScatterChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

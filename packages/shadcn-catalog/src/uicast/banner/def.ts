@@ -5,7 +5,7 @@ export const BannerDef = createComponentDefinition({
   name: "Banner",
   description:
     "A full-width banner notification for system-wide announcements or alerts. Renders a colored strip across the top or in-page. Use Banner for maintenance notices, feature announcements, promotions, or site-wide alerts.",
-  props: z.object({
+  props: z.strictObject({
     variant: z
       .enum(["info", "success", "warning", "error"])
       .default("info")

@@ -5,7 +5,7 @@ export const SliderDef = createComponentDefinition({
   name: "Slider",
   description:
     "A single-value slider for selecting a numeric value within a range. Use Slider for volume controls, brightness settings, price filters, or any single numeric value selection.",
-  props: z.object({
+  props: z.strictObject({
     value: z.number().default(0).meta({
       description: "The current slider value",
     }),
@@ -26,7 +26,7 @@ export const SliderDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.number().meta({ description: "The new slider value" }),
     }),
   },

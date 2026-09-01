@@ -5,7 +5,7 @@ export const RadarChartDef = createComponentDefinition({
   name: "RadarChart",
   description:
     "A radar/spider chart for multivariate data comparison. Displays data across multiple axes radiating from a center point. Use RadarChart for skill assessments, product comparisons, performance metrics, or any multi-dimensional analysis.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
         z.record(

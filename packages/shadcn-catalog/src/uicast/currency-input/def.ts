@@ -6,7 +6,7 @@ export const CurrencyInputDef = createComponentDefinition({
   name: "CurrencyInput",
   description:
     "A formatted currency entry input. Displays amounts with currency symbol and formatting. Use CurrencyInput for financial forms, pricing inputs, payment amounts, etc.",
-  props: z.object({
+  props: z.strictObject({
     value: z.number().optional().meta({
       description: "The numeric currency value",
     }),
@@ -32,7 +32,7 @@ export const CurrencyInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.number().meta({ description: "The new numeric value" }),
       formatted: z
         .string()

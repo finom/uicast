@@ -50,17 +50,19 @@ export const TreemapChartImpl = createComponentImplementation({
   def: TreemapChartDef,
   render: ({ data = [], height, generatedKey }) => {
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <Treemap
-          isAnimationActive={false}
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          content={<CustomContent />}
-        >
-          <Tooltip />
-        </Treemap>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <Treemap
+            isAnimationActive={false}
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            content={<CustomContent />}
+          >
+            <Tooltip />
+          </Treemap>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

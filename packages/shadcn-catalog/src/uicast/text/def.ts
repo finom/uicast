@@ -5,7 +5,7 @@ export const TextDef = createComponentDefinition({
   name: "Text",
   description:
     "A text display component for rendering inline or block text. Renders a span (inline) or p (block) element. Use Text for body copy, labels, descriptions, or any general-purpose text content. Pass a dynamic value through the `text` prop.",
-  props: z.object({
+  props: z.strictObject({
     text: z
       .union([z.string(), z.number()])
       .optional()

@@ -5,16 +5,16 @@ export const SidebarDef = createComponentDefinition({
   name: "Sidebar",
   description:
     "A primary app navigation shell with collapsible sections. Renders a vertical sidebar with grouped navigation items. Use Sidebar for main app navigation with sections like Dashboard, Settings, Users, etc. Each section can have a title and a list of navigation items with icons and labels.",
-  props: z.object({
+  props: z.strictObject({
     sections: z
       .array(
-        z.object({
+        z.strictObject({
           title: z.string().optional().meta({
             description: "Optional section header title",
           }),
           items: z
             .array(
-              z.object({
+              z.strictObject({
                 label: z
                   .string()
                   .meta({ description: "Navigation item label" }),

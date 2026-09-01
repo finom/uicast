@@ -25,25 +25,27 @@ export const RadarChartImpl = createComponentImplementation({
     const radarColors = colors ?? defaultChartColors;
 
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <RechartsRadarChart data={data}>
-          <PolarGrid />
-          <PolarAngleAxis dataKey={dataKey} />
-          <PolarRadiusAxis />
-          <Tooltip />
-          <Legend />
-          {valueKeys.map((key, i) => (
-            <Radar isAnimationActive={false}
-              key={key}
-              name={key}
-              dataKey={key}
-              stroke={radarColors[i % radarColors.length]}
-              fill={radarColors[i % radarColors.length]}
-              fillOpacity={0.3}
-            />
-          ))}
-        </RechartsRadarChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <RechartsRadarChart data={data}>
+            <PolarGrid />
+            <PolarAngleAxis dataKey={dataKey} />
+            <PolarRadiusAxis />
+            <Tooltip />
+            <Legend />
+            {valueKeys.map((key, i) => (
+              <Radar isAnimationActive={false}
+                key={key}
+                name={key}
+                dataKey={key}
+                stroke={radarColors[i % radarColors.length]}
+                fill={radarColors[i % radarColors.length]}
+                fillOpacity={0.3}
+              />
+            ))}
+          </RechartsRadarChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

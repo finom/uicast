@@ -5,7 +5,7 @@ export const FormSectionDef = createComponentDefinition({
   name: "FormSection",
   description:
     "A visual grouping of related form fields (fieldset). Renders a section with a title, optional description, and contained children. Use FormSection to organize complex forms into logical groups like 'Personal Information', 'Address', 'Payment Details', etc.",
-  props: z.object({
+  props: z.strictObject({
     title: z.string().meta({
       description: "Section title text",
     }),

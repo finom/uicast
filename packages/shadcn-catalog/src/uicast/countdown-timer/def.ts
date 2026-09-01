@@ -5,7 +5,7 @@ export const CountdownTimerDef = createComponentDefinition({
   name: "CountdownTimer",
   description:
     "A countdown timer display showing remaining time. Renders a formatted countdown. Use CountdownTimer for sale end times, session expiry, event countdowns, or any time-limited display.",
-  props: z.object({
+  props: z.strictObject({
     targetDate: z.string().meta({
       description: "Target date/time as ISO string to count down to",
     }),

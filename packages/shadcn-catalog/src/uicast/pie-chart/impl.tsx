@@ -30,31 +30,33 @@ export const PieChartImpl = createComponentImplementation({
     ];
     const sliceColors = colors ?? defaultColors;
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <RechartsPieChart>
-          <Pie isAnimationActive={false}
-            data={data}
-            cx="50%"
-            cy="50%"
-            innerRadius={donut ? "40%" : 0}
-            outerRadius="80%"
-            dataKey="value"
-            nameKey="name"
-            label={
-              showLabels
-                ? (((props: any) =>
-                    `${String(props.name ?? "")} ${(Number(props.percent ?? 0) * 100).toFixed(0)}%`) as never)
-                : undefined
-            }
-          >
-            {data.map((_entry, i) => (
-              <Cell key={i} fill={sliceColors[i % sliceColors.length]} />
-            ))}
-          </Pie>
-          <Tooltip />
-          <Legend />
-        </RechartsPieChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <RechartsPieChart>
+            <Pie isAnimationActive={false}
+              data={data}
+              cx="50%"
+              cy="50%"
+              innerRadius={donut ? "40%" : 0}
+              outerRadius="80%"
+              dataKey="value"
+              nameKey="name"
+              label={
+                showLabels
+                  ? (((props: any) =>
+                      `${String(props.name ?? "")} ${(Number(props.percent ?? 0) * 100).toFixed(0)}%`) as never)
+                  : undefined
+              }
+            >
+              {data.map((_entry, i) => (
+                <Cell key={i} fill={sliceColors[i % sliceColors.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </RechartsPieChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

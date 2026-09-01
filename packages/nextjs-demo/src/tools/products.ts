@@ -1,9 +1,7 @@
 import { standardTool } from "standard-tool";
 import { z } from "zod";
-import { productInsert, productOutput, productUpdate } from "@/db/zod";
+import { productIdInput, productInsert, productOutput, productUpdate } from "@/db/zod";
 import { apiFetch } from "./http";
-
-const idInput = z.object({ id: z.number().int().meta({ description: "Product id." }) });
 
 export const listProducts = standardTool({
   name: "listProducts",
@@ -15,7 +13,7 @@ export const listProducts = standardTool({
 export const getProduct = standardTool({
   name: "getProduct",
   description: "Get a single product by id.",
-  inputSchema: idInput,
+  inputSchema: productIdInput,
   outputSchema: productOutput,
   execute: ({ id }) => apiFetch(`/api/products/${id}`),
 });
@@ -25,21 +23,21 @@ export const createProduct = standardTool({
   description: "Create a product. Returns the created product.",
   inputSchema: productInsert,
   outputSchema: productOutput,
-  execute: (input) => apiFetch("/api/products", { method: "POST", body: input }),
+  execute: (input) => apiFetch("/api/products", { method: "POST", body: input, success: "Product created" }),
 });
 
 export const updateProduct = standardTool({
   name: "updateProduct",
   description: "Update a product by id. Returns the updated product.",
-  inputSchema: productUpdate.extend(idInput.shape),
+  inputSchema: productUpdate.extend(productIdInput.shape),
   outputSchema: productOutput,
-  execute: ({ id, ...patch }) => apiFetch(`/api/products/${id}`, { method: "PATCH", body: patch }),
+  execute: ({ id, ...patch }) => apiFetch(`/api/products/${id}`, { method: "PATCH", body: patch, success: "Product updated" }),
 });
 
 export const deleteProduct = standardTool({
   name: "deleteProduct",
   description: "Delete a product by id. Fails with 409 when orders still reference the product.",
-  inputSchema: idInput,
-  outputSchema: z.object({ id: z.number().int().meta({ description: "Id of the deleted product." }) }),
-  execute: ({ id }) => apiFetch(`/api/products/${id}`, { method: "DELETE" }),
+  inputSchema: productIdInput,
+  outputSchema: productIdInput,
+  execute: ({ id }) => apiFetch(`/api/products/${id}`, { method: "DELETE", success: "Product deleted" }),
 });

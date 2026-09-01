@@ -6,7 +6,7 @@ export const AvatarDef = createComponentDefinition({
   name: "Avatar",
   description:
     "A circular avatar component for displaying user profile images or initials. Shows an image if 'src' is provided, otherwise falls back to showing initials from the 'fallback' text. Use Avatar for user profiles, comment authors, team member lists, etc.",
-  props: z.object({
+  props: z.strictObject({
     src: z.string().optional().meta({
       format: "uri-reference",
       description: "URL of the avatar image",

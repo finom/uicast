@@ -14,6 +14,9 @@ export const CardImpl = createComponentImplementation({
   render: ({ title, description, children, onClick, generatedKey }) => {
     return (
       <Card
+        // min-w-0: as a grid/flex item, never let intrinsic content width
+        // (charts, tables) win over the track size.
+        className="min-w-0"
         onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={generatedKey}
       >

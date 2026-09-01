@@ -5,7 +5,7 @@ export const AreaChartDef = createComponentDefinition({
   name: "AreaChart",
   description:
     "An area chart for visualizing data trends with filled areas below the lines. Combines the trend visualization of a line chart with the volume emphasis of filled areas. Use AreaChart for revenue over time, cumulative metrics, stacked comparisons, etc. The 'data' prop is an array of objects, 'xKey' is the key for x-axis labels, and 'yKeys' are the keys for area values.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
         z.record(

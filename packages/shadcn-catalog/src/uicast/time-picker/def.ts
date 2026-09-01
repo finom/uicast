@@ -5,7 +5,7 @@ export const TimePickerDef = createComponentDefinition({
   name: "TimePicker",
   description:
     "A time input field that uses the native HTML time picker. Renders an input[type=time]. Use TimePicker for selecting a time of day (appointment time, alarm time, schedule time, etc.). The value is a time string in HH:MM format (24-hour).",
-  props: z.object({
+  props: z.strictObject({
     value: z.string().optional().meta({
       description: "The selected time as HH:MM string (24-hour format)",
     }),
@@ -20,7 +20,7 @@ export const TimePickerDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({
         description: "The newly selected time as HH:MM string",
       }),

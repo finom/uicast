@@ -5,7 +5,7 @@ export const SparklineDef = createComponentDefinition({
   name: "Sparkline",
   description:
     "A tiny inline chart for embedding within text or table cells. Renders a small line sparkline without axes or labels. Use Sparkline for dashboard metrics, table cell trends, inline data visualization, stock tickers, etc.",
-  props: z.object({
+  props: z.strictObject({
     data: z.array(z.number()).meta({
       description: "Array of numeric values to plot, e.g. [10, 23, 45, 12, 50]",
     }),

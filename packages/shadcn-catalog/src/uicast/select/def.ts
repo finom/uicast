@@ -5,7 +5,7 @@ export const SelectDef = createComponentDefinition({
   name: "Select",
   description:
     "A dropdown select component for choosing one option from a list. Renders a styled select trigger that opens a dropdown popover with options. Use Select for any single-choice selection (status, category, country, etc.). The 'options' prop is an array of objects with 'label' and 'value'. For multi-select, use the MultiSelect component instead.",
-  props: z.object({
+  props: z.strictObject({
     value: z
       .string()
       .optional()
@@ -16,7 +16,7 @@ export const SelectDef = createComponentDefinition({
       .meta({ description: "Placeholder text when no value is selected" }),
     options: z
       .array(
-        z.object({
+        z.strictObject({
           label: z
             .string()
             .meta({ description: "Display text for this option" }),
@@ -30,7 +30,7 @@ export const SelectDef = createComponentDefinition({
       .meta({ description: "Whether the select is disabled" }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({ description: "The newly selected value" }),
     }),
   },

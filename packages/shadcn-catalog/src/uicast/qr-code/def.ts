@@ -5,7 +5,7 @@ export const QRCodeDef = createComponentDefinition({
   name: "QRCode",
   description:
     "A QR code generation component. Renders a QR code from a given value. Use QRCode for sharing URLs, contact info, WiFi credentials, or any scannable data.",
-  props: z.object({
+  props: z.strictObject({
     value: z.string().meta({
       description: "The content to encode in the QR code",
     }),

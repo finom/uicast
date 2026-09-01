@@ -5,7 +5,7 @@ export const SheetDef = createComponentDefinition({
   name: "Sheet",
   description:
     "A slide-in panel from the screen edge. Similar to Drawer but using the Sheet primitive directly. Use Sheet for mobile navigation menus, filter panels, or side content that slides in from any edge.",
-  props: z.object({
+  props: z.strictObject({
     open: z.boolean().default(false).meta({
       description: "Whether the sheet is open/visible",
     }),

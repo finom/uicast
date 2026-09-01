@@ -6,7 +6,7 @@ export const DropdownMenuItemDef = createComponentDefinition({
   name: "DropdownMenuItem",
   description:
     "A single item/action inside a DropdownMenu. Must be a child of DropdownMenu. Use DropdownMenuItem for each action option in the dropdown (Edit, Delete, View, etc.).",
-  props: z.object({
+  props: z.strictObject({
     text: z
       .union([z.string(), z.number()])
       .optional()

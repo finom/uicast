@@ -5,7 +5,7 @@ export const ContainerDef = createComponentDefinition({
   name: "Container",
   description:
     "A max-width centered content wrapper. Constrains content to a readable width with automatic horizontal centering, and stacks its children vertically with a configurable gap. Use Container for page-level content sections, centered layouts, or constraining wide content.",
-  props: z.object({
+  props: z.strictObject({
     maxWidth: z
       .enum(["sm", "md", "lg", "xl", "2xl", "full"])
       .default("lg")

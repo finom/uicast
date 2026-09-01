@@ -5,10 +5,10 @@ export const HeatmapDef = createComponentDefinition({
   name: "Heatmap",
   description:
     "A heatmap for visualizing matrix data with color intensity. Renders a grid of colored cells based on values. Use Heatmap for correlation matrices, activity calendars, hour-by-day usage patterns, geographic intensity, etc.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
-        z.object({
+        z.strictObject({
           row: z.string().meta({ description: "Row label" }),
           col: z.string().meta({ description: "Column label" }),
           value: z

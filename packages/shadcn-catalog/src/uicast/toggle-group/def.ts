@@ -5,7 +5,7 @@ export const ToggleGroupDef = createComponentDefinition({
   name: "ToggleGroup",
   description:
     "A group of toggle buttons for mutually exclusive or multi-select choices. Use ToggleGroup for view switchers (grid/list), text alignment, or any set of selectable options.",
-  props: z.object({
+  props: z.strictObject({
     type: z.enum(["single", "multiple"]).default("single").meta({
       description:
         "Selection type: single (radio-like) or multiple (checkbox-like)",
@@ -16,7 +16,7 @@ export const ToggleGroupDef = createComponentDefinition({
     }),
     items: z
       .array(
-        z.object({
+        z.strictObject({
           value: z
             .string()
             .meta({ description: "Value identifier for this item" }),
@@ -36,7 +36,7 @@ export const ToggleGroupDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.any().meta({ description: "The new selected value(s)" }),
     }),
   },

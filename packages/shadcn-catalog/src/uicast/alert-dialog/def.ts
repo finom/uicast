@@ -5,7 +5,7 @@ export const AlertDialogDef = createComponentDefinition({
   name: "AlertDialog",
   description:
     "An alert dialog that requires user acknowledgment. Unlike ConfirmDialog which has confirm/cancel, AlertDialog shows a critical message with a single OK/acknowledge button. Use AlertDialog for error notifications, important warnings, or any message requiring user acknowledgment.",
-  props: z.object({
+  props: z.strictObject({
     open: z.boolean().default(false).meta({
       description: "Whether the dialog is open",
     }),

@@ -5,16 +5,16 @@ export const MenubarDef = createComponentDefinition({
   name: "Menubar",
   description:
     "A top-level app menu bar (File, Edit, View, etc.). Renders a horizontal bar with dropdown menus. Use Menubar for desktop-style application menus with grouped actions.",
-  props: z.object({
+  props: z.strictObject({
     menus: z
       .array(
-        z.object({
+        z.strictObject({
           label: z
             .string()
             .meta({ description: "Menu trigger label (e.g. File, Edit)" }),
           items: z
             .array(
-              z.object({
+              z.strictObject({
                 label: z.string().meta({ description: "Menu item label" }),
                 shortcut: z.string().optional().meta({
                   description: "Keyboard shortcut text (e.g. ⌘S)",

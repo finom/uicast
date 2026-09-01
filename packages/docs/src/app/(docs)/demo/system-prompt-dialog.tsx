@@ -42,11 +42,11 @@ export function SystemPromptDialog({ demo }: { demo: DemoConfig }) {
         [
           getCommonInstructionsPartialPrompt(),
           getScopePartialPrompt({ kind: "page" }),
-          getExpressionsPartialPrompt(),
           getComponentsPartialPrompt({
             definitions: demo.catalog.map((impl) => impl.def),
           }),
           getFunctionsPartialPrompt({ functions: demo.functions }),
+          getExpressionsPartialPrompt(),
         ].join("\n\n"),
       );
     }

@@ -50,6 +50,11 @@ const meta: MetaRecord = {
     type: "page",
     href: "https://standard-tool.js.org/",
   },
+  warehouse: {
+    title: "Live demo",
+    type: "page",
+    href: "https://warehouse.uicast.dev",
+  },
 };
 
 export default meta;

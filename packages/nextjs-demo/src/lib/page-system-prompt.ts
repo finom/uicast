@@ -15,10 +15,10 @@ export function buildPageSystemPrompt() {
   return [
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind: "page" }),
-    getExpressionsPartialPrompt(),
     getComponentsPartialPrompt({
       definitions: allDefinitions,
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
+    getExpressionsPartialPrompt(),
   ].join("\n\n");
 }

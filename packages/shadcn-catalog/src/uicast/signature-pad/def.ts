@@ -5,7 +5,7 @@ export const SignaturePadDef = createComponentDefinition({
   name: "SignaturePad",
   description:
     "A signature capture pad for approvals and contracts. Renders a canvas area for drawing signatures with a clear button. Use SignaturePad for digital signature capture, approval workflows, or contract signing.",
-  props: z.object({
+  props: z.strictObject({
     width: z.number().default(400).meta({
       description: "Canvas width in pixels",
     }),
@@ -23,7 +23,7 @@ export const SignaturePadDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onEnd: z.object({
+    onEnd: z.strictObject({
       isEmpty: z
         .boolean()
         .meta({ description: "Whether the signature pad is empty" }),

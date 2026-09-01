@@ -14,10 +14,20 @@ import {
   listProducts,
   updateProduct,
 } from "./products";
+import { createStockMovement, listStockMovements } from "./stock-movements";
+import {
+  createSupplier,
+  deleteSupplier,
+  getSupplier,
+  listSuppliers,
+  updateSupplier,
+} from "./suppliers";
 
 export * from "./customers";
 export * from "./orders";
 export * from "./products";
+export * from "./stock-movements";
+export * from "./suppliers";
 
 // The full set handed to the prompt assembler (getFunctionsPartialPrompt) so the
 // model can call these endpoints from a generated page. Page/entry endpoints are
@@ -38,4 +48,11 @@ export const domainTools: StandardToolV0[] = [
   createOrder,
   updateOrder,
   deleteOrder,
+  listSuppliers,
+  getSupplier,
+  createSupplier,
+  updateSupplier,
+  deleteSupplier,
+  listStockMovements,
+  createStockMovement,
 ];

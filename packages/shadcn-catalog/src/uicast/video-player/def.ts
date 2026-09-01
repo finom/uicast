@@ -5,7 +5,7 @@ export const VideoPlayerDef = createComponentDefinition({
   name: "VideoPlayer",
   description:
     "An HTML5 video player with controls. Renders a video element with source and configuration. Use VideoPlayer for media content, tutorials, product demos, or any video playback.",
-  props: z.object({
+  props: z.strictObject({
     src: z.string().meta({
       format: "uri-reference",
       description: "Video source URL",

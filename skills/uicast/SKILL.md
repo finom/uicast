@@ -73,7 +73,7 @@ import { z } from "zod";
 export const StatCardDef = createComponentDefinition({
   name: "StatCard", // PascalCase, unique across the catalog
   description: "One key metric with a label and an optional trend arrow.",
-  props: z.object({
+  props: z.strictObject({
     label: z.string().meta({ description: "What the number measures" }),
     value: z.string(),
     trend: z.enum(["up", "down", "flat"]).default("flat"),
@@ -89,9 +89,8 @@ Rules that matter:
 - **Descriptions are prompt text.** The component `description`, every field's
   `.meta({ description })`, every callback description reach the model verbatim.
   Vague descriptions produce vague generations — write them like API docs.
-- **Prefer `z.object` over `z.strictObject`**: a prop the model invented is
-  silently dropped in parsing, where a strict schema would fail the whole
-  element over it. A declared prop of the wrong type still fails, as it should.
+- **Use `z.strictObject`**: a prop the model invented fails the element into
+  its error slot instead of being silently dropped — visible and correctable.
 - **Defaults are applied by the engine** before the implementation sees props,
   and printed in the prompt (`trend?: ... = "flat"`), so the model knows what
   omission means. No `= "flat"` destructuring needed in `render`.
@@ -268,14 +267,15 @@ import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 export const systemPrompt = [
   getCommonInstructionsPartialPrompt(),          // output contract + expression context
   getScopePartialPrompt({ kind: "page" }),       // "page" | "widget" | "answer"
-  getExpressionsPartialPrompt(),                 // the expression language
   getComponentsPartialPrompt({ definitions }),   // the component menu
   getFunctionsPartialPrompt({ functions }),      // the callable surface
+  getExpressionsPartialPrompt(),                 // the expression language
 ].join("\n\n");
 ```
 
-- Keep this order: instructions first, scope guidance next to them, expressions
-  before the component/function listings they reference.
+- Keep this order: the core partials first (instructions, scope, components,
+  functions), the expression language after them, and — on chat surfaces — the
+  fence partial last.
 - `kind` sets ambition: a full page, one embeddable widget, or a compact
   conversational answer. `approxElements` is a soft size hint.
 - Every partial takes `note` — host-specific context rendered as that section's

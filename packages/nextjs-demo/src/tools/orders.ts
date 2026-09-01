@@ -1,9 +1,7 @@
 import { standardTool } from "standard-tool";
 import { z } from "zod";
-import { orderInsert, orderOutput, orderUpdate } from "@/db/zod";
+import { orderIdInput, orderInsert, orderOutput, orderUpdate } from "@/db/zod";
 import { apiFetch } from "./http";
-
-const idInput = z.object({ id: z.number().int().meta({ description: "Order id." }) });
 
 export const listOrders = standardTool({
   name: "listOrders",
@@ -15,7 +13,7 @@ export const listOrders = standardTool({
 export const getOrder = standardTool({
   name: "getOrder",
   description: "Get a single order by id.",
-  inputSchema: idInput,
+  inputSchema: orderIdInput,
   outputSchema: orderOutput,
   execute: ({ id }) => apiFetch(`/api/orders/${id}`),
 });
@@ -25,21 +23,21 @@ export const createOrder = standardTool({
   description: "Create an order. Returns the created order.",
   inputSchema: orderInsert,
   outputSchema: orderOutput,
-  execute: (input) => apiFetch("/api/orders", { method: "POST", body: input }),
+  execute: (input) => apiFetch("/api/orders", { method: "POST", body: input, success: "Order created" }),
 });
 
 export const updateOrder = standardTool({
   name: "updateOrder",
   description: "Update an order by id (e.g. advance its status). Returns the updated order.",
-  inputSchema: orderUpdate.extend(idInput.shape),
+  inputSchema: orderUpdate.extend(orderIdInput.shape),
   outputSchema: orderOutput,
-  execute: ({ id, ...patch }) => apiFetch(`/api/orders/${id}`, { method: "PATCH", body: patch }),
+  execute: ({ id, ...patch }) => apiFetch(`/api/orders/${id}`, { method: "PATCH", body: patch, success: "Order updated" }),
 });
 
 export const deleteOrder = standardTool({
   name: "deleteOrder",
   description: "Delete an order by id.",
-  inputSchema: idInput,
-  outputSchema: z.object({ id: z.number().int().meta({ description: "Id of the deleted order." }) }),
-  execute: ({ id }) => apiFetch(`/api/orders/${id}`, { method: "DELETE" }),
+  inputSchema: orderIdInput,
+  outputSchema: orderIdInput,
+  execute: ({ id }) => apiFetch(`/api/orders/${id}`, { method: "DELETE", success: "Order deleted" }),
 });

@@ -5,7 +5,7 @@ export const LinkDef = createComponentDefinition({
   name: "Link",
   description:
     "A styled navigable link for internal or external navigation. Renders an anchor-style text element. Use Link for text navigation, breadcrumb-like inline links, or any clickable text that navigates. The `text` prop sets the link text.",
-  props: z.object({
+  props: z.strictObject({
     text: z.union([z.string(), z.number()]).optional().meta({ description: "The link text content" }),
     href: z.string().optional().meta({
       format: "uri-reference",

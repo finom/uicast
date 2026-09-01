@@ -5,10 +5,10 @@ export const ChatThreadDef = createComponentDefinition({
   name: "ChatThread",
   description:
     "A chat conversation thread for messaging interfaces. Renders a list of styled message bubbles with sender info and timestamps. Use ChatThread for chat UIs, customer support widgets, AI conversation displays, or any messaging interface.",
-  props: z.object({
+  props: z.strictObject({
     messages: z
       .array(
-        z.object({
+        z.strictObject({
           id: z.string().meta({ description: "Message unique identifier" }),
           content: z.string().meta({ description: "Message text content" }),
           sender: z.string().meta({ description: "Sender name" }),

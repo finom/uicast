@@ -5,13 +5,13 @@ export const RadioDef = createComponentDefinition({
   name: "Radio",
   description:
     "A radio button group for selecting a single option from a list. Renders a vertical or horizontal set of radio buttons with labels. Use Radio for mutually exclusive choices like gender, plan tier, priority level, etc.",
-  props: z.object({
+  props: z.strictObject({
     value: z.string().optional().meta({
       description: "The currently selected option value",
     }),
     options: z
       .array(
-        z.object({
+        z.strictObject({
           label: z
             .string()
             .meta({ description: "Display text for this option" }),
@@ -28,7 +28,7 @@ export const RadioDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({
         description: "The newly selected radio value",
       }),

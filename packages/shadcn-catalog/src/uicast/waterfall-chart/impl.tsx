@@ -48,40 +48,42 @@ export const WaterfallChartImpl = createComponentImplementation({
     });
 
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <BarChart data={processedData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis />
-          <Tooltip
-            formatter={(val, name) => {
-              if (name === "base") return [undefined, undefined];
-              return [val, "Value"];
-            }}
-          />
-          <ReferenceLine y={0} stroke="#666" />
-          <Bar
-            isAnimationActive={false}
-            dataKey="base"
-            stackId="waterfall"
-            fill="transparent"
-          />
-          <Bar isAnimationActive={false} dataKey="value" stackId="waterfall">
-            {processedData.map((entry, i) => (
-              <Cell
-                key={i}
-                fill={
-                  entry.type === "total"
-                    ? totalColor
-                    : entry.type === "positive"
-                      ? positiveColor
-                      : negativeColor
-                }
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <BarChart data={processedData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip
+              formatter={(val, name) => {
+                if (name === "base") return [undefined, undefined];
+                return [val, "Value"];
+              }}
+            />
+            <ReferenceLine y={0} stroke="#666" />
+            <Bar
+              isAnimationActive={false}
+              dataKey="base"
+              stackId="waterfall"
+              fill="transparent"
+            />
+            <Bar isAnimationActive={false} dataKey="value" stackId="waterfall">
+              {processedData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={
+                    entry.type === "total"
+                      ? totalColor
+                      : entry.type === "positive"
+                        ? positiveColor
+                        : negativeColor
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

@@ -1,20 +1,17 @@
 import { type ModelMessage, streamText } from "ai";
 import { buildElementsByKey, streamJsonLines, type ComponentEntry } from "@uicast/core";
 import { getEditRequestPrompt } from "@uicast/core/prompt";
-import { asc, eq, inArray } from "drizzle-orm";
+import { asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
+import { requireUser } from "@/lib/api";
+import { MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
+import { computeCostUsd, getModelPricing } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
-
-// Plain string model ids resolve through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
-const GENERATION_MODEL = process.env.AI_MODEL ?? "anthropic/claude-opus-5";
-// Providers default to a small output cap (Anthropic: 4096 tokens ≈ ~40
-// entries), which truncates large pages mid-subtree. Set it explicitly.
-const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 32_000);
 
 // The page row is created via POST /api/pages before generation. A page with
 // no entries gets an initial generation; a page with entries gets an edit —
@@ -41,8 +38,21 @@ export async function POST(req: Request) {
   }
   const { pageId, prompt } = parsed.data;
 
+  const auth = await requireUser();
+  if ("error" in auth) return auth.error;
+  const model = modelForUser(auth.me);
+  if (!model) {
+    return Response.json(
+      { error: "No OpenRouter key on this account — log in again to grant one." },
+      { status: 403 },
+    );
+  }
+
   const [page] = await db.select().from(pages).where(eq(pages.id, pageId));
   if (!page) return Response.json({ error: "Page not found" }, { status: 404 });
+  if (page.userId !== auth.me.id) {
+    return Response.json({ error: "This page belongs to another user." }, { status: 403 });
+  }
 
   const rows = await db
     .select({ data: componentEntries.data })
@@ -88,7 +98,7 @@ export async function POST(req: Request) {
       try {
         let streamError: unknown = null;
         const result = streamText({
-          model: GENERATION_MODEL,
+          model,
           system,
           messages,
           maxOutputTokens: MAX_OUTPUT_TOKENS,
@@ -120,6 +130,24 @@ export async function POST(req: Request) {
         if (staleIds.length) {
           await db.delete(componentEntries).where(inArray(componentEntries.id, staleIds));
         }
+
+        // Bill the run: tokens from the provider, price from OpenRouter's own
+        // model listing (estimate — OpenRouter's invoice is authoritative).
+        try {
+          const [usage, pricing] = await Promise.all([result.usage, getModelPricing()]);
+          const inputTokens = usage.inputTokens ?? 0;
+          const outputTokens = usage.outputTokens ?? 0;
+          const costUsd = computeCostUsd(pricing, inputTokens, outputTokens);
+          await db
+            .update(pages)
+            .set({
+              inputTokens: sql`${pages.inputTokens} + ${inputTokens}`,
+              outputTokens: sql`${pages.outputTokens} + ${outputTokens}`,
+              costUsd: sql`${pages.costUsd} + ${costUsd ?? 0}`,
+            })
+            .where(eq(pages.id, page.id));
+          send({ type: "usage", inputTokens, outputTokens, costUsd });
+        } catch {}
 
         // "length" / "content-filter" here explains a stream that ends after only a few entries.
         const finishReason = await Promise.resolve(result.finishReason).catch(() => "unknown");

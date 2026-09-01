@@ -8,16 +8,18 @@ export const SankeyChartImpl = createComponentImplementation({
     const sankeyData = { nodes, links };
 
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <Sankey
-          data={sankeyData}
-          nodePadding={30}
-          nodeWidth={10}
-          linkCurvature={0.5}
-        >
-          <Tooltip />
-        </Sankey>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <Sankey
+            data={sankeyData}
+            nodePadding={30}
+            nodeWidth={10}
+            linkCurvature={0.5}
+          >
+            <Tooltip />
+          </Sankey>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

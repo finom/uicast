@@ -5,7 +5,7 @@ export const PopoverDef = createComponentDefinition({
   name: "Popover",
   description:
     "A floating popover panel that appears next to a trigger element. Controlled by the 'open' prop. Can contain any children content (forms, lists, details). Use Popover for inline editing, contextual information, mini-forms, or any content that should appear floating near a trigger. The trigger is the first child, and the popover content includes all remaining children.",
-  props: z.object({
+  props: z.strictObject({
     open: z.boolean().default(false).meta({
       description: "Whether the popover is open/visible",
     }),

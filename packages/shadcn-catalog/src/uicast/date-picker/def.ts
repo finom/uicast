@@ -5,7 +5,7 @@ export const DatePickerDef = createComponentDefinition({
   name: "DatePicker",
   description:
     "A date input field that uses the native HTML date picker. Renders an input[type=date]. Use DatePicker for selecting a single date (birthdate, due date, start date, etc.). The value is an ISO date string (YYYY-MM-DD).",
-  props: z.object({
+  props: z.strictObject({
     value: z
       .string()
       .optional()
@@ -22,7 +22,7 @@ export const DatePickerDef = createComponentDefinition({
       .meta({ description: "Whether the date picker is disabled" }),
   }),
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({
         description: "The newly selected date as ISO string (YYYY-MM-DD)",
       }),

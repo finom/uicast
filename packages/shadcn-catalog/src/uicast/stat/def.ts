@@ -5,7 +5,7 @@ export const StatDef = createComponentDefinition({
   name: "Stat",
   description:
     "A statistics display component showing a label, a large number value, and an optional trend indicator. Use Stat for KPI cards, dashboard metrics, or any numeric summary (e.g. total revenue, user count, conversion rate).",
-  props: z.object({
+  props: z.strictObject({
     label: z
       .string()
       .meta({ description: "The metric label, e.g. 'Total Revenue'" }),

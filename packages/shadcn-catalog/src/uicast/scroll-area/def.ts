@@ -5,7 +5,7 @@ export const ScrollAreaDef = createComponentDefinition({
   name: "ScrollArea",
   description:
     "A custom styled scrollable region. Renders a container with custom scrollbars that match the app theme. Use ScrollArea for sidebars, long lists, code blocks, or any content that overflows its container.",
-  props: z.object({
+  props: z.strictObject({
     height: z.string().default("300px").meta({
       description: "Maximum height before scrolling, e.g. '300px' or '50vh'",
     }),

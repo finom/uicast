@@ -5,14 +5,14 @@ export const NavigationMenuDef = createComponentDefinition({
   name: "NavigationMenu",
   description:
     "A structured multi-level navigation menu. Renders a horizontal navigation bar with dropdown sub-menus. Use NavigationMenu for top-level app navigation with grouped links (Products, Resources, Company, etc.).",
-  props: z.object({
+  props: z.strictObject({
     items: z
       .array(
-        z.object({
+        z.strictObject({
           label: z.string().meta({ description: "Top-level menu item label" }),
           children: z
             .array(
-              z.object({
+              z.strictObject({
                 label: z.string().meta({ description: "Sub-item label" }),
                 description: z.string().optional().meta({
                   description: "Optional sub-item description",

@@ -5,7 +5,7 @@ export const ResizablePanelDef = createComponentDefinition({
   name: "ResizablePanel",
   description:
     "Draggable split panes for resizable layouts. Renders two panels separated by a draggable handle. Use ResizablePanel for code editors with preview, master-detail layouts, or any side-by-side resizable content.",
-  props: z.object({
+  props: z.strictObject({
     direction: z.enum(["horizontal", "vertical"]).default("horizontal").meta({
       description:
         "Split direction: horizontal (left-right) or vertical (top-bottom)",

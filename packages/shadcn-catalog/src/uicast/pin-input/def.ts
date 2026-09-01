@@ -6,7 +6,7 @@ export const PinInputDef = createComponentDefinition({
   name: "PinInput",
   description:
     "A verification/OTP code entry with segmented digit inputs. Renders a row of individual character inputs. Use PinInput for two-factor authentication, verification codes, or OTP entry.",
-  props: z.object({
+  props: z.strictObject({
     value: z.string().default("").meta({
       description: "The current pin value",
     }),
@@ -27,10 +27,10 @@ export const PinInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({ description: "The current pin value" }),
     }),
-    onComplete: z.object({
+    onComplete: z.strictObject({
       value: z.string().meta({ description: "The complete pin value" }),
     }),
   },

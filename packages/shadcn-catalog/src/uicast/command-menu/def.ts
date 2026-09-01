@@ -5,7 +5,7 @@ export const CommandMenuDef = createComponentDefinition({
   name: "CommandMenu",
   description:
     "A ⌘K command palette for search, jump-to, and actions. Renders a dialog with a search input and grouped command items. Use CommandMenu for global search, quick navigation, and action execution.",
-  props: z.object({
+  props: z.strictObject({
     open: z.boolean().default(false).meta({
       description: "Whether the command menu is open",
     }),
@@ -14,13 +14,13 @@ export const CommandMenuDef = createComponentDefinition({
     }),
     groups: z
       .array(
-        z.object({
+        z.strictObject({
           heading: z.string().optional().meta({
             description: "Group heading label",
           }),
           items: z
             .array(
-              z.object({
+              z.strictObject({
                 label: z.string().meta({ description: "Command item label" }),
                 icon: z.string().optional().meta({
                   description: "Lucide icon name for the item",

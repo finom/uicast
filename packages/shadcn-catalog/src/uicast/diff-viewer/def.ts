@@ -5,7 +5,7 @@ export const DiffViewerDef = createComponentDefinition({
   name: "DiffViewer",
   description:
     "A side-by-side or unified text diff viewer. Highlights additions and deletions between two text versions. Use DiffViewer for code reviews, document comparisons, version diffs, or any text comparison.",
-  props: z.object({
+  props: z.strictObject({
     oldText: z.string().meta({
       description: "The original/old text content",
     }),

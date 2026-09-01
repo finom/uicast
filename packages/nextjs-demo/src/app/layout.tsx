@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Toaster } from "@/components/toaster";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <main className="flex-1 overflow-auto">{children}</main>
             </div>
           </div>
+          <Toaster />
         </Providers>
       </body>
     </html>

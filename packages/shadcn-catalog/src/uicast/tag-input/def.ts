@@ -6,7 +6,7 @@ export const TagInputDef = createComponentDefinition({
   name: "TagInput",
   description:
     "A type-to-add tags/tokens input. Renders an input field with tag chips that can be added and removed. Use TagInput for tagging content, adding skills, entering email addresses, etc.",
-  props: z.object({
+  props: z.strictObject({
     tags: z.array(z.string()).default([]).meta({
       description: "Array of current tag strings",
     }),
@@ -23,13 +23,13 @@ export const TagInputDef = createComponentDefinition({
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
-    onAdd: z.object({
+    onAdd: z.strictObject({
       tag: z.string().meta({ description: "The tag that was added" }),
       tags: z
         .array(z.string())
         .meta({ description: "The updated array of all tags" }),
     }),
-    onRemove: z.object({
+    onRemove: z.strictObject({
       tag: z.string().meta({ description: "The tag that was removed" }),
       index: z.number().meta({ description: "The index of the removed tag" }),
       tags: z

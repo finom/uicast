@@ -30,22 +30,24 @@ export const FunnelChartImpl = createComponentImplementation({
       fill: stageColors[i % stageColors.length],
     }));
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <RechartsFunnelChart>
-          <Tooltip />
-          <Funnel dataKey="value" data={dataWithFill} isAnimationActive>
-            <LabelList
-              position="right"
-              fill="#000"
-              stroke="none"
-              dataKey="name"
-            />
-            {dataWithFill.map((entry, i) => (
-              <Cell key={i} fill={entry.fill} />
-            ))}
-          </Funnel>
-        </RechartsFunnelChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <RechartsFunnelChart>
+            <Tooltip />
+            <Funnel dataKey="value" data={dataWithFill} isAnimationActive>
+              <LabelList
+                position="right"
+                fill="#000"
+                stroke="none"
+                dataKey="name"
+              />
+              {dataWithFill.map((entry, i) => (
+                <Cell key={i} fill={entry.fill} />
+              ))}
+            </Funnel>
+          </RechartsFunnelChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

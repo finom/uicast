@@ -5,7 +5,7 @@ export const PageHeaderDef = createComponentDefinition({
   name: "PageHeader",
   description:
     "A title + description + actions bar pattern for page headers. Renders a structured header with primary title, optional subtitle, and an actions slot. Use PageHeader at the top of pages for consistent page titling.",
-  props: z.object({
+  props: z.strictObject({
     title: z.string().meta({
       description: "The page title text",
     }),
@@ -14,7 +14,7 @@ export const PageHeaderDef = createComponentDefinition({
     }),
     breadcrumbs: z
       .array(
-        z.object({
+        z.strictObject({
           label: z.string().meta({ description: "Breadcrumb label" }),
         }),
       )

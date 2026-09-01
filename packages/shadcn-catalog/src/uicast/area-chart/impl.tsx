@@ -26,26 +26,28 @@ export const AreaChartImpl = createComponentImplementation({
   }) => {
     const areaColors = colors ?? defaultChartColors;
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <RechartsAreaChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xKey} />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          {yKeys.map((key, i) => (
-            <Area isAnimationActive={false}
-              key={key}
-              type={curved ? "monotone" : "linear"}
-              dataKey={key}
-              stroke={areaColors[i % areaColors.length]}
-              fill={areaColors[i % areaColors.length]}
-              fillOpacity={0.3}
-              stackId={stacked ? "stack" : undefined}
-            />
-          ))}
-        </RechartsAreaChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <RechartsAreaChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={xKey} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {yKeys.map((key, i) => (
+              <Area isAnimationActive={false}
+                key={key}
+                type={curved ? "monotone" : "linear"}
+                dataKey={key}
+                stroke={areaColors[i % areaColors.length]}
+                fill={areaColors[i % areaColors.length]}
+                fillOpacity={0.3}
+                stackId={stacked ? "stack" : undefined}
+              />
+            ))}
+          </RechartsAreaChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });

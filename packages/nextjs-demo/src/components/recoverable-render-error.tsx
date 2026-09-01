@@ -25,27 +25,28 @@ export function RecoverableRenderError({
       <AlertDescription>
         {error.message}
         {onRecover && recoverable && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2"
-            disabled={busy}
-            onClick={async () => {
-              setBusy(true);
-              try {
-                await onRecover();
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            {busy ? (
-              <LoaderCircle data-icon="inline-start" className="animate-spin" />
-            ) : (
-              <RefreshCw data-icon="inline-start" />
-            )}
-            Recover
-          </Button>
+          <div className="mt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await onRecover();
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {busy ? (
+                <LoaderCircle data-icon="inline-start" className="animate-spin" />
+              ) : (
+                <RefreshCw data-icon="inline-start" />
+              )}
+              Recover
+            </Button>
+          </div>
         )}
       </AlertDescription>
     </Alert>

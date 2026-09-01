@@ -6,7 +6,7 @@ export const FlexColDef = createComponentDefinition({
   name: "FlexCol",
   description:
     "A vertical flex container that lays out children in a column. Use FlexCol to stack components vertically with configurable gap and alignment. Common uses: form layouts, card content stacking, page sections.",
-  props: z.object({
+  props: z.strictObject({
     gap: z.enum(["0", "1", "2", "3", "4", "6", "8"]).default("2").meta({
       description: "Gap between children using Tailwind spacing scale (0-8)",
     }),

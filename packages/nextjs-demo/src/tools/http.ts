@@ -1,11 +1,28 @@
 // Tools run inside the generated UI and call the REST API over real HTTP.
 // Relative paths (base "") hit the same origin in the browser; set
 // NEXT_PUBLIC_API_BASE for server-side / cross-origin use.
+import { showToast } from "@/components/toaster";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
 
-export async function apiFetch(path: string, init?: { method?: string; body?: unknown }) {
+// Whose copy of the data GETs read — the slug of the page/chat owner being
+// viewed. Writes ignore it: they always act as the session user, so viewing
+// someone else's page is read-only by construction.
+let apiOwner: string | null = null;
+export function setApiOwner(slug: string | null) {
+  apiOwner = slug;
+}
+
+export async function apiFetch(
+  path: string,
+  init?: { method?: string; body?: unknown; success?: string },
+) {
   const method = init?.method ?? "GET";
-  const res = await fetch(`${API_BASE}${path}`, {
+  const ownered =
+    method === "GET" && apiOwner
+      ? `${path}${path.includes("?") ? "&" : "?"}u=${encodeURIComponent(apiOwner)}`
+      : path;
+  const res = await fetch(`${API_BASE}${ownered}`, {
     method,
     headers: init?.body !== undefined ? { "content-type": "application/json" } : undefined,
     body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
@@ -25,5 +42,6 @@ export async function apiFetch(path: string, init?: { method?: string; body?: un
     }
     throw new Error(`${method} ${path} → ${res.status}`);
   }
+  if (init?.success) showToast(init.success);
   return res.json();
 }

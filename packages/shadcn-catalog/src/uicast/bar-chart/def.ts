@@ -5,7 +5,7 @@ export const BarChartDef = createComponentDefinition({
   name: "BarChart",
   description:
     "A bar chart for visualizing categorical data with rectangular bars. Each bar represents a data value. Use BarChart for comparing quantities across categories (sales by month, revenue by product, etc.). The 'data' prop is an array of objects, 'xKey' is the key for x-axis labels, and 'yKeys' are the keys for bar values. Values for yKeys must be numbers. Each yKey creates a set of bars with an auto-assigned color.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
         z.record(

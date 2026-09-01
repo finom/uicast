@@ -6,7 +6,7 @@ export const ImageDef = createComponentDefinition({
   name: "Image",
   description:
     "An image component for displaying pictures, photos, or illustrations. Renders an img element with configurable sizing and rounded corners. Use Image for product photos, user-uploaded images, hero banners, thumbnails, or any visual content.",
-  props: z.object({
+  props: z.strictObject({
     src: z.string().meta({
       format: "uri-reference",
       description: "The image URL/source",

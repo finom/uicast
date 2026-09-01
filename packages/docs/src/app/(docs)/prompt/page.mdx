@@ -26,9 +26,9 @@ const system = [...parts].filter(Boolean).join("\n\n");
 | --- | --- | --- |
 | `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | The output contract — JSONL entries, keys and children, partial replacement — and the expression context: `scopes` / `evt` / `currentValue` and the host-function calling rule. |
 | `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
-| `getExpressionsPartialPrompt({ allowGlobals? })` | `@uicast/expr/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/expr#two-modes) rules. |
 | `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
 | `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/functions). |
+| `getExpressionsPartialPrompt({ allowGlobals? })` | `@uicast/expr/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/expr#two-modes) rules. |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat-surface fence convention — see [Chat surfaces](#chat-surfaces). |
 
 Every builder also takes **`note?`** — host-specific context rendered as that
@@ -106,9 +106,9 @@ the order the sections reference each other. In that order the headings are:
 | --- | --- | --- |
 | `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | `# Overview`, `# Output Format`, `# Rules`, `# Expression Context` |
 | `getScopePartialPrompt()` | `@uicast/core/prompt` | `# Scope` |
-| `getExpressionsPartialPrompt()` | `@uicast/expr/prompt` | `# JavaScript Expressions` |
 | `getComponentsPartialPrompt()` | `@uicast/core/prompt` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted) |
 | `getFunctionsPartialPrompt()` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when there is something to hoist) |
+| `getExpressionsPartialPrompt()` | `@uicast/expr/prompt` | `# JavaScript Expressions` |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | `# Emitting UI` |
 
 ## Chat surfaces

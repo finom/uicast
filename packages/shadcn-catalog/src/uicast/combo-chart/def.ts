@@ -5,7 +5,7 @@ export const ComboChartDef = createComponentDefinition({
   name: "ComboChart",
   description:
     "A combined bar + line chart for comparing different data types on the same axes. Renders bars and lines together. Use ComboChart for revenue (bars) vs growth rate (line), quantity vs price, or any mixed metric visualization.",
-  props: z.object({
+  props: z.strictObject({
     data: z
       .array(
         z.record(

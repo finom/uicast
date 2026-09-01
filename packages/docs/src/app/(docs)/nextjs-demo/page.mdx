@@ -1,9 +1,15 @@
 # Next.js demo
 
 `packages/nextjs-demo` is a small back office over three tables: products,
-customers and orders in a local SQLite database. It has some hand-written UI — a
-sidebar, a chat panel, the shell — but not one component for the screens. Every
-table, form and detail view is generated.
+customers and orders in Postgres (Neon in production, docker-compose locally).
+It has some hand-written UI — a sidebar, a chat panel, the shell — but not one
+component for the screens. Every table, form and detail view is generated.
+
+It is also multi-user and public: everything anyone builds is world-readable,
+writes are owner-only. Log in with OpenRouter (OAuth PKCE — the key is yours,
+generation bills your own credits) and you get a private copy of the demo data
+plus your own pages and chats under `/u/<your-slug>`. Logged out, you browse
+the seed account's content and everyone's recent pages, read-only.
 
 It shows the **front-end-less pattern** — **uicast**'s name for an app with no
 hand-written screens. There is a data model, an HTTP API over it, tools describing that API,
@@ -14,14 +20,17 @@ the table, the form, the filter bar, or the wiring between them.
 
 ```sh
 npm install                                   # repo root
-npm run db:migrate -w @uicast/nextjs-demo
+docker compose -f packages/nextjs-demo/docker-compose.yml up -d
+npm run db:push -w @uicast/nextjs-demo
 npm run db:seed -w @uicast/nextjs-demo
 npm run dev -w @uicast/nextjs-demo
 ```
 
-Put `AI_GATEWAY_API_KEY` in `packages/nextjs-demo/.env.local` — a plain model id
-resolves through the [Vercel AI Gateway](https://vercel.com/docs/ai-gateway).
-`AI_MODEL` and `AI_MAX_OUTPUT_TOKENS` are optional.
+Copy `packages/nextjs-demo/.env.example` to `.env.local`: `DATABASE_URL`
+(docker default works as-is; point it at a Neon pooled string in production),
+`APP_SECRET` (encrypts stored OpenRouter keys — `openssl rand -base64 32`),
+and optionally `OPENROUTER_MODEL`. There is no site-wide model key: each user
+logs in with OpenRouter and generations run on their own key.
 
 Then **Create page** for a full generated page, or **New chat** for answers that
 render as live UI:
@@ -67,8 +76,8 @@ the demo — `list` / `get` / `create` / `update` / `delete` across **products**
 
 ## The model gets the domain, not the platform
 
-The demo's database also holds `pages`, `component_entries`, `chats` and
-`messages` — the app's own tables. They have endpoints, and are deliberately
+The demo's database also holds `users`, `sessions`, `pages`,
+`component_entries`, `chats` and `chat_messages` — the app's own tables. They have endpoints, and are deliberately
 **left out** of the tool set:
 
 ```ts
@@ -84,7 +93,8 @@ export const domainTools: StandardToolV0[] = [
 A generated page can create an order. It cannot create a page, edit another
 page's entries, or read the chat history — not because a rule forbids it, but
 because those functions were never handed to it. The tool list is the
-boundary.
+boundary — and ownership is the second one: the same tools called from someone
+else's page read that owner's data and are refused writes by the server.
 
 ## A saved page is rows, not code
 
@@ -101,17 +111,19 @@ or three hundred: none.
 
 ```
 packages/nextjs-demo
-├── src/db/schema.ts     products · customers · orders   (the domain)
+├── src/db/schema.ts     products · customers · orders   (the domain, per user)
+│                        users · sessions                (OpenRouter login)
 │                        pages · component_entries       (generated UI, persisted)
-│                        chats · messages                (the chat surface)
+│                        chats · chat_messages           (the chat surface)
 ├── src/tools/           15 standard-tools over the REST API
-├── src/app/api/         the REST API itself, plus /api/generate
-└── src/app/pages/[id]   mounts a saved document
+├── src/app/api/         the REST API itself, /api/generate, /api/auth/*
+└── src/app/u/[slug]     a user's public index, pages and chats
 ```
 
-SQLite through Drizzle and `better-sqlite3` — a file at `./data/app.db`, WAL
-mode, foreign keys on. Nothing about the pattern needs SQLite; it is simply the
-smallest example that shows the *database* is the app.
+Postgres through Drizzle and `pg` — one connection string for the local
+docker-compose database and for Neon. Every domain row carries a `userId`;
+reads take the owner from the URL (`?u=<slug>`), writes take it from the
+session, and that difference is the whole read-only mechanism.
 
 Generation is streamed to the browser as described in
 [Streaming](/streaming), with the prompt assembled from `allDefinitions` and

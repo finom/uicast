@@ -5,7 +5,7 @@ export const SkeletonDef = createComponentDefinition({
   name: "Skeleton",
   description:
     "A loading placeholder that shows a pulsing animation where content will appear. Use Skeleton to indicate content is loading. Renders a rounded rectangle of configurable width and height.",
-  props: z.object({
+  props: z.strictObject({
     width: z.string().default("100%").meta({
       description: "CSS width value, e.g. '100%', '200px', '12rem'",
     }),

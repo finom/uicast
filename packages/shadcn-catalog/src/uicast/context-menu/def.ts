@@ -5,10 +5,10 @@ export const ContextMenuDef = createComponentDefinition({
   name: "ContextMenu",
   description:
     "A right-click context menu for rows, cards, or other elements. Wraps children and shows a context menu on right-click with action items. Use ContextMenu to provide contextual actions on table rows, cards, list items, etc.",
-  props: z.object({
+  props: z.strictObject({
     items: z
       .array(
-        z.object({
+        z.strictObject({
           label: z.string().meta({ description: "Menu item label" }),
           shortcut: z.string().optional().meta({
             description: "Keyboard shortcut text",

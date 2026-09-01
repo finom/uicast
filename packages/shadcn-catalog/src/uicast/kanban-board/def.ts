@@ -1,7 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
-const cardSchema = z.object({
+const cardSchema = z.strictObject({
   id: z.string().meta({ description: "Card unique identifier (unique across the whole board)" }),
   title: z.string().meta({ description: "Card title" }),
   description: z
@@ -18,7 +18,7 @@ const cardSchema = z.object({
     .meta({ description: "Tag background color" }),
 });
 
-const columnSchema = z.object({
+const columnSchema = z.strictObject({
   id: z.string().meta({ description: "Column unique identifier" }),
   title: z.string().meta({ description: "Column header title" }),
   cards: z.array(cardSchema).meta({ description: "Array of cards in this column" }),
@@ -28,7 +28,7 @@ export const KanbanBoardDef = createComponentDefinition({
   name: "KanbanBoard",
   description:
     "A Kanban-style board of columns and cards with drag-and-drop: cards can be dragged within a column and between columns, and are also clickable. Use KanbanBoard for project management, task tracking, pipeline workflows, or any column-based workflow.",
-  props: z.object({
+  props: z.strictObject({
     columns: z
       .array(columnSchema)
       .meta({ description: "Array of column definitions with their cards" }),

@@ -25,23 +25,25 @@ export const BarChartImpl = createComponentImplementation({
   }) => {
     const barColors = colors ?? defaultChartColors;
     return (
-      <ResponsiveContainer width="100%" height={height} data-key={generatedKey}>
-        <RechartsBarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey={xKey} />
-          <YAxis />
-          <Tooltip />
-          <Legend />
-          {yKeys.map((key, i) => (
-            <Bar isAnimationActive={false}
-              key={key}
-              dataKey={key}
-              fill={barColors[i % barColors.length]}
-              stackId={stacked ? "stack" : undefined}
-            />
-          ))}
-        </RechartsBarChart>
-      </ResponsiveContainer>
+      <div className="w-full min-w-0" data-key={generatedKey}>
+        <ResponsiveContainer width="100%" height={height}>
+          <RechartsBarChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey={xKey} />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            {yKeys.map((key, i) => (
+              <Bar isAnimationActive={false}
+                key={key}
+                dataKey={key}
+                fill={barColors[i % barColors.length]}
+                stackId={stacked ? "stack" : undefined}
+              />
+            ))}
+          </RechartsBarChart>
+        </ResponsiveContainer>
+      </div>
     );
   },
 });
