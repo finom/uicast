@@ -112,41 +112,54 @@ const isBound = (name: string, stack: Set<string>[]): boolean => {
 	return false;
 };
 
+/** Called for each free identifier, with the node that contains it. */
+export type FreeVisitor = (
+	name: string,
+	node: acorn.Identifier,
+	parent: acorn.AnyNode | null,
+) => void;
+
 const walkFree = (
 	node: acorn.AnyNode | null | undefined,
+	parent: acorn.AnyNode | null,
 	stack: Set<string>[],
-	out: Set<string>,
+	visit: FreeVisitor,
 ): void => {
 	if (!node || typeof node !== "object") return;
 
 	switch (node.type) {
 		case "Identifier":
-			if (!isBound(node.name, stack)) out.add(node.name);
+			if (!isBound(node.name, stack)) visit(node.name, node, parent);
 			return;
 		case "MemberExpression":
-			walkFree(node.object, stack, out);
-			if (node.computed) walkFree(node.property, stack, out);
+			walkFree(node.object, node, stack, visit);
+			if (node.computed) walkFree(node.property, node, stack, visit);
 			return;
 		case "Property":
-			if (node.computed) walkFree(node.key, stack, out);
-			walkFree(node.value, stack, out);
+			if (node.computed) walkFree(node.key, node, stack, visit);
+			walkFree(node.value, node, stack, visit);
 			return;
 		case "ArrowFunctionExpression": {
 			const scope = new Set<string>();
 			for (const p of node.params) bindPattern(p, scope);
 			const inner = [...stack, scope];
 			// Default values in the params can reference outer names.
-			for (const p of node.params) walkFree(p, inner, out);
-			walkFree(node.body as acorn.AnyNode, inner, out);
+			for (const p of node.params) walkFree(p, node, inner, visit);
+			walkFree(node.body as acorn.AnyNode, node, inner, visit);
 			return;
 		}
 	}
 
-	for (const child of childNodes(node)) walkFree(child, stack, out);
+	for (const child of childNodes(node)) walkFree(child, node, stack, visit);
+};
+
+/** Every identifier no enclosing arrow binds. Arrow parameters are the only binder. */
+export const walkFreeIdentifiers = (ast: acorn.AnyNode, visit: FreeVisitor): void => {
+	walkFree(ast, null, [new Set()], visit);
 };
 
 export const extractFreeIdentifiers = (ast: acorn.AnyNode): string[] => {
 	const out = new Set<string>();
-	walkFree(ast, [new Set()], out);
+	walkFreeIdentifiers(ast, (name) => out.add(name));
 	return [...out];
 };

@@ -28,13 +28,12 @@ type Frame = {
 	parent: Frame | null;
 };
 
-/** Per-evaluation state. `functions` and `globals` stay unmerged — one object
- * spread per evaluation cost more than most expressions. */
+/** Per-evaluation state. Contexts stay a list — one object spread per
+ * evaluation cost more than most expressions. */
 export type Runtime = {
 	budget: Budget;
-	context: Record<string, unknown>;
-	functions?: Record<string, unknown>;
-	globals?: Record<string, unknown>;
+	contexts: readonly Record<string, unknown>[];
+	tools: Record<string, HostFn>;
 };
 
 export type Thunk = (frame: Frame | null, rt: Runtime) => unknown;
@@ -64,13 +63,14 @@ const nodeCount = (node: acorn.AnyNode): number => {
 	return total;
 };
 
-/** A name no arrow binds. Precedence: host functions > context > host globals > built-ins. */
+/** A name no arrow binds. Precedence: host functions > contexts, last one first > built-ins. */
 const freeLookup = (name: string, rt: Runtime): unknown => {
-	if (rt.functions !== undefined && Object.hasOwn(rt.functions, name)) {
-		return rt.functions[name];
+	const tool = rt.tools[name];
+	if (tool !== undefined) return tool;
+	const contexts = rt.contexts;
+	for (let i = contexts.length - 1; i >= 0; i--) {
+		if (Object.hasOwn(contexts[i], name)) return contexts[i][name];
 	}
-	if (Object.hasOwn(rt.context, name)) return rt.context[name];
-	if (rt.globals !== undefined && Object.hasOwn(rt.globals, name)) return rt.globals[name];
 	if (Object.hasOwn(GLOBAL_VALUES, name)) return GLOBAL_VALUES[name];
 	throw new ExpressionError(`"${name}" is not available in expressions`, "unknown-reference");
 };

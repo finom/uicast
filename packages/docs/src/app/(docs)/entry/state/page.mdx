@@ -173,11 +173,11 @@ path defined and writes nothing — a no-op, not an error. The same `set` in a
 `callbacks` step would write `price`. This is also why a value the user changed
 survives a re-mount instead of snapping back.
 
-State can also come from the host through
-[`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group):
-it preloads `scopes.root` once before any entry evaluates, and can
-[expose extra named scopes](/react/renderer#extra-named-scopes) alongside `root`
-(read as `scopes.userCtx.name`) — a proxy the host keeps and can update later.
+State can also come from the host:
+[`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group)
+preloads `scopes.root` once, before any entry evaluates, and can
+[expose extra named scopes](/react/renderer#extra-named-scopes)
+(read as `scopes.userCtx.name`) — proxies the host keeps and can update later.
 
 Declare any extra scope to the model too —
 `getCommonInstructionsPartialPrompt({ note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro')." })`

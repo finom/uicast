@@ -2,13 +2,12 @@ import { readFileSync, writeFileSync } from "fs";
 import { resolve, dirname, basename, join } from "path";
 import { glob } from "glob";
 
-// Scoped to the two packages that ship prompt fragments: core's md/ folder and
-// expr's prompt/ folder. Keeping the scan this narrow avoids mirroring
-// human-facing docs and node_modules READMEs.
+// Scoped to the one place prompt fragments are authored: core's md/ folder.
+// Keeping the scan this narrow avoids mirroring human-facing docs and
+// node_modules READMEs.
 const root = dirname(new URL(import.meta.url).pathname);
 const srcDirs = [
   resolve(root, "../packages/core/src"),
-  resolve(root, "../packages/expr/src"),
 ];
 
 const mdFiles = [];

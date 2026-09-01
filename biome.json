@@ -3,7 +3,14 @@
   "files": {
     "includes": [
       "packages/*/src/**/*.ts",
-      "packages/*/src/**/*.tsx"
+      "packages/*/src/**/*.tsx",
+      "packages/*/test/**/*.ts",
+      "packages/*/test/**/*.tsx",
+      "packages/*/*.ts",
+      "packages/*/*.mjs",
+      "*.mjs",
+      "packages/*/scripts/**/*.mjs",
+      "!**/next-env.d.ts"
     ]
   },
   "formatter": {
@@ -17,11 +24,7 @@
     "rules": {
       "preset": "recommended",
       "suspicious": {
-        "noArrayIndexKey": "off",
-        "noExplicitAny": "off"
-      },
-      "style": {
-        "noNonNullAssertion": "off"
+        "noArrayIndexKey": "off"
       },
       "a11y": {
         "useKeyWithClickEvents": "off",
@@ -29,9 +32,6 @@
         "noStaticElementInteractions": "off",
         "useSemanticElements": "off",
         "useFocusableInteractive": "off"
-      },
-      "complexity": {
-        "noStaticOnlyClass": "off"
       }
     }
   }

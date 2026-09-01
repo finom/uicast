@@ -4,7 +4,7 @@ import "@testing-library/jest-dom/vitest";
 // ES2024's `Promise.withResolvers` — used by the confirm host. Node itself has
 // it; only the test realm needs the patch.
 if (typeof Promise.withResolvers !== "function") {
-  Promise.withResolvers = function <T>() {
+  Promise.withResolvers = <T>() => {
     let resolve!: (value: T | PromiseLike<T>) => void;
     let reject!: (reason?: unknown) => void;
     const promise = new Promise<T>((res, rej) => {

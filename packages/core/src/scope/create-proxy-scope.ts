@@ -11,14 +11,14 @@ interface ChangePayload<T = unknown> {
 
 interface Emitter {
   /** Subscribe; returns unsubscribe. Type `"*"` receives every emit. */
-  on<T = unknown>(type: string, handler: EventHandler<T>): () => void;
-  emit<T = unknown>(type: string, payload: T): void;
+  on(type: string, handler: EventHandler<ChangePayload>): () => void;
+  emit(type: string, payload: ChangePayload): void;
   /** Emit count. A subscriber attaching after render compares this to what it saw while rendering — advanced means a write landed unheard, so re-read. */
   readonly version: number;
 }
 
 function createEmitter(): Emitter {
-  const events = new Map<string, Set<EventHandler<any>>>();
+  const events = new Map<string, Set<EventHandler<ChangePayload>>>();
   let version = 0;
 
   return {
@@ -87,13 +87,13 @@ function createProxyScope<T extends object>(
       }
     }
 
-    let current: any = proxy;
+    let current = proxy as Record<string, unknown>;
 
     // A missing parent throws — inventing one would turn typos and `tags.0`
     // into silent no-ops instead of classified document faults.
     for (let i = 0; i < keys.length - 1; i++) {
-      const key = keys[i];
-      if (current[key] === undefined || current[key] === null) {
+      const next = current[keys[i]];
+      if (next === undefined || next === null) {
         throw new EntryError(
           `Cannot set "${path}": "${keys.slice(0, i + 1).join(".")}" is not set. Seed the parent path first.`,
           { reason: "unknown-reference" },
@@ -101,13 +101,13 @@ function createProxyScope<T extends object>(
       }
       // A primitive parent fails the same way as a missing one — classified,
       // not V8's raw "Cannot create property" TypeError.
-      if (typeof current[key] !== "object") {
+      if (typeof next !== "object") {
         throw new EntryError(
           `Cannot set "${path}": "${keys.slice(0, i + 1).join(".")}" is not an object.`,
           { reason: "unknown-reference" },
         );
       }
-      current = current[key];
+      current = next as Record<string, unknown>;
     }
 
     const lastKey = keys[keys.length - 1];
@@ -153,7 +153,7 @@ function createProxyScope<T extends object>(
 
         if (oldValue !== value) {
           const fullPath = path.concat(prop).join(".");
-          emitter.emit<ChangePayload>(fullPath, {
+          emitter.emit(fullPath, {
             path: fullPath,
             value,
             oldValue,

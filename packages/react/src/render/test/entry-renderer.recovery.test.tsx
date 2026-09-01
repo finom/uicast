@@ -301,7 +301,10 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       fallbackComponents: errorSlot,
     });
     await waitFor(() => {
-      expect(container.textContent).toContain("seeder failed: SEED_FAIL");
+      // The host's own message survives the evaluator's wrapper — the recovery
+      // prompt shows it to the model — and the wrapper names the tool that failed.
+      expect(container.textContent).toContain("SEED_FAIL");
+      expect(container.textContent).toContain("failNow");
     });
     expect(container.textContent).toContain("sibling-alive");
 

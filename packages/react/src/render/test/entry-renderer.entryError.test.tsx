@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { fireEvent, render, waitFor, within } from "@testing-library/react";
 import { z } from "zod";
 import {
   createComponentDefinition,
@@ -97,7 +97,7 @@ describe("EntryRenderer — EntryError classification", () => {
       },
     ];
     const { container } = mountEntries(lines, { functions, onError });
-    fireEvent.click(container.querySelector("button")!);
+    fireEvent.click(within(container).getByRole("button"));
     await waitFor(() => {
       expect(seen).toHaveLength(1);
     });

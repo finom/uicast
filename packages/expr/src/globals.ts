@@ -41,6 +41,35 @@ export const ALLOWED_GLOBALS: readonly string[] = Object.freeze(
 	Object.keys(GLOBAL_VALUES),
 );
 
+/**
+ * The real platform objects behind {@link ALLOWED_GLOBALS}. `native` binds the
+ * ones an expression actually names as parameters — typically none or one — so
+ * the compiled function's shape is constant per source.
+ */
+export const NATIVE_GLOBAL_VALUES: Readonly<Record<string, unknown>> = Object.freeze({
+	Math,
+	JSON,
+	Object,
+	Array,
+	Intl,
+	Number,
+	String,
+	Boolean,
+	Date,
+	Map,
+	Set,
+	URL,
+	parseInt,
+	parseFloat,
+	isNaN,
+	isFinite,
+	encodeURIComponent,
+	decodeURIComponent,
+	undefined: undefined,
+	NaN: Number.NaN,
+	Infinity: Number.POSITIVE_INFINITY,
+});
+
 const num = (v: unknown): number => (typeof v === "number" ? v : Number(v));
 
 /**

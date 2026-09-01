@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StandardToolV0 } from "standard-tool";
 import { Evaluator, ExpressionError } from "../index";
 
 // The standing adversarial corpus. Everything here MUST throw.
@@ -327,6 +328,50 @@ describe("what a rejection looks like", () => {
 		expect(attempt(`nope()`)).toMatchObject({ reason: "unknown-reference" });
 		expect(attempt(`1 +`)).toMatchObject({ reason: "expression-syntax" });
 		expect(attempt(`"x".repeat(1e9)`)).toMatchObject({ reason: "budget-exceeded" });
+	});
+
+	it("classifies host-function failures apart from the language's own", () => {
+		const schema = {
+			"~standard": {
+				version: 1,
+				vendor: "test",
+				validate: (v: unknown) =>
+					typeof v === "number" ? { value: v } : { issues: [{ message: "want a number" }] },
+				jsonSchema: () => ({ type: "number" }),
+			},
+		} as unknown as NonNullable<StandardToolV0["inputSchema"]>;
+		const ev = new Evaluator({
+			functions: [
+				{ name: "f", description: "", inputSchema: schema, execute: (i: unknown) => i },
+				{
+					name: "boom",
+					description: "",
+					execute: () => {
+						throw new Error("down");
+					},
+				},
+			],
+		});
+		const attemptWith = (expr: string) => {
+			try {
+				ev.eval(expr);
+			} catch (err) {
+				return err as ExpressionError;
+			}
+			return null;
+		};
+		// The document passed the wrong shape …
+		expect(attemptWith(`f("x")`)).toMatchObject({ reason: "invalid-arguments" });
+		// … versus the host's own code failing.
+		expect(attemptWith(`boom()`)).toMatchObject({ reason: "host-function" });
+	});
+
+	it("refuses a host function used as a value, before anything runs", () => {
+		const ev = new Evaluator({
+			functions: [{ name: "f", description: "", execute: () => 1 }],
+		});
+		expect(() => ev.validate(`[f]`)).toThrow(/can only be called/);
+		expect(() => ev.validate(`f(1, 2)`)).toThrow(/single argument/);
 	});
 
 	it("names the offending thing so a repair prompt can act on it", () => {

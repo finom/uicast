@@ -92,7 +92,7 @@ function TreeNodeComponent({
         <span>{node.label}</span>
       </div>
       <CollapsibleContent>
-        {node.children!.map((child, i) => (
+        {(node.children ?? []).map((child, i) => (
           <TreeNodeComponent
             key={i}
             node={child}

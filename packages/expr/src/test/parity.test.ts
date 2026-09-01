@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StandardToolV0 } from "standard-tool";
 import { Evaluator, ExpressionError } from "../index";
 import { CORPUS, SCOPES } from "./corpus";
 
@@ -173,25 +174,83 @@ describe("native's residual — known, documented, and deliberately not fixed", 
 	});
 });
 
-describe("host functions and async behave the same in both", () => {
-	const functions = {
-		getUser: async (input: unknown) => ({ id: (input as { id: number }).id, name: "Ada" }),
-		double: (input: unknown) => (input as number) * 2,
-	};
+describe("host functions behave the same in both", () => {
+	const tool = (name: string, execute: StandardToolV0["execute"]): StandardToolV0 => ({
+		name,
+		description: "",
+		execute,
+	});
+	const functions = [
+		tool("getUser", async (input) => ({ id: (input as { id: number }).id, name: "Ada" })),
+		tool("double", (input) => (input as number) * 2),
+		tool("ping", () => "pong"),
+		tool("hostCall", async () => 1),
+	];
+	const withTools = [
+		new Evaluator({ functions }),
+		new Evaluator({ mode: "native", functions }),
+	];
 
 	it("does not unwrap a promise that was never awaited", () => {
-		for (const ev of [interpret, native]) {
-			expect(ev.eval(`double(21)`, {}, { functions })).toBe(42);
-			expect(
-				ev.eval(`hostCall(1)`, {}, { functions: { hostCall: async () => 1 } }),
-			).toBeInstanceOf(Promise);
+		for (const ev of withTools) {
+			expect(ev.eval(`double(21)`)).toBe(42);
+			expect(ev.eval(`hostCall(1)`)).toBeInstanceOf(Promise);
 		}
 	});
 
 	it("lets a host function shadow a global of the same name", () => {
-		const shadowing = { Date: (() => "host") as (input: unknown) => unknown };
-		for (const ev of [interpret, native]) {
-			expect(ev.eval(`Date()`, {}, { functions: shadowing })).toBe("host");
+		const shadowing = [tool("Date", () => "host")];
+		for (const mode of ["interpret", "native"] as const) {
+			expect(new Evaluator({ mode, functions: shadowing }).eval(`Date()`)).toBe("host");
+		}
+	});
+
+	it("takes no arguments when the tool takes no input", () => {
+		for (const ev of withTools) expect(ev.eval(`ping()`)).toBe("pong");
+	});
+
+	// The two back ends used to disagree here: interpret dropped the extra
+	// argument, native passed it through.
+	it("refuses more than one argument, in both", () => {
+		for (const ev of withTools) {
+			expect(refuses(ev, `double(1, 2)`)).toBe(true);
+			expect(refuses(ev, `double(...[1])`)).toBe(true);
+		}
+	});
+
+	// And a host function used to escape as a value: the HostFn box under
+	// interpret, the raw function under native.
+	it("refuses a host function anywhere but the callee, in both", () => {
+		for (const ev of withTools) {
+			for (const expr of [
+				`double`,
+				`[double]`,
+				`({ g: double })`,
+				`({ double })`,
+				`double.name`,
+				`double.length`,
+				`[1].map(x => double)`,
+			]) {
+				expect(refuses(ev, expr), expr).toBe(true);
+			}
+		}
+	});
+
+	// Parentheses are not a node — `(double)(1)` parses to the same call.
+	it("allows a parenthesised callee", () => {
+		for (const ev of withTools) expect(ev.eval(`(double)(21)`)).toBe(42);
+	});
+
+	it("still allows a parameter that shadows a tool name", () => {
+		for (const ev of withTools) {
+			expect(ev.eval(`[1, 2].map(double => double * 2)`)).toEqual([2, 4]);
+		}
+	});
+
+	it("leaves multi-argument built-ins alone", () => {
+		for (const ev of withTools) {
+			expect(ev.eval(`parseInt("ff", 16)`)).toBe(255);
+			expect(ev.eval(`Math.max(1, 2, 3)`)).toBe(3);
 		}
 	});
 });

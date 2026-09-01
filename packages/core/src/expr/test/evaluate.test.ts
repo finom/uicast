@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { StandardToolV0 } from "standard-tool";
 import type { ValueSource } from "../../types";
 import { EntryError } from "../../entry-error";
 import { evaluate, getScopeReads } from "../evaluate";
@@ -112,40 +113,49 @@ describe("evaluate — host functions and evt", () => {
     },
   );
 
-  it("classifies a tool input-validation failure as invalid-arguments (document)", async () => {
-    // Mirrors standard-tool's StandardToolValidationError without importing it —
-    // detection is structural (name + target) because two package copies can
-    // coexist in one bundle.
-    class FakeValidationError extends Error {
-      name = "StandardToolValidationError";
-      constructor(readonly target: "input" | "output") {
-        super(`${target} validation failed`);
-      }
-    }
-    const reject = (target: "input" | "output") =>
-      evaluate(
-        { expr: "tool(1)" },
-        {},
-        {
-          functions: [
-            {
-              name: "tool",
-              description: "",
-              execute: async () => {
-                throw new FakeValidationError(target);
-              },
-            },
-          ],
-        },
-      ) as Promise<unknown>;
+  it("splits a bad call from a bad host, by whose fault it is", async () => {
+    // A schema that only accepts numbers, in Standard Schema shape.
+    const numbers = {
+      "~standard": {
+        version: 1,
+        vendor: "test",
+        validate: (value: unknown) =>
+          typeof value === "number" ? { value } : { issues: [{ message: "expected a number" }] },
+        jsonSchema: () => ({ type: "number" }),
+      },
+    } as unknown as NonNullable<StandardToolV0["inputSchema"]>;
 
-    await expect(reject("input")).rejects.toSatisfy(
-      (err) => EntryError.is(err) && err.reason === "invalid-arguments" && err.fault === "document",
+    const call = (expr: string, tool: Partial<StandardToolV0>) =>
+      evaluate({ expr }, {}, {
+        functions: [{ name: "tool", description: "", execute: (i: unknown) => i, ...tool }],
+      } as never);
+
+    // The document passed the wrong shape — it can be asked to fix that.
+    expect(() => call('tool("nope")', { inputSchema: numbers })).toThrow(
+      expect.objectContaining({ reason: "invalid-arguments", fault: "document" }),
     );
-    // An output failure is the host's own schema breaking — environment fault.
-    await expect(reject("output")).rejects.toSatisfy(
-      (err) => EntryError.is(err) && err.reason === "host-function" && err.fault === "environment",
+    // The host returned something its own schema forbids — not the document's
+    // problem, and no re-emission would help.
+    expect(() => call("tool(1)", { outputSchema: numbers, execute: () => "nope" })).toThrow(
+      expect.objectContaining({ reason: "host-function", fault: "environment" }),
     );
+  });
+
+  it("keeps an EntryError the host classified itself", () => {
+    const own = new EntryError("no seats left", { reason: "invalid-arguments" });
+    expect(() =>
+      evaluate({ expr: "tool(1)" }, {}, {
+        functions: [
+          {
+            name: "tool",
+            description: "",
+            execute: () => {
+              throw own;
+            },
+          },
+        ],
+      }),
+    ).toThrow(own);
   });
 });
 

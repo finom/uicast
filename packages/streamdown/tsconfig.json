@@ -15,7 +15,6 @@
     "incremental": true,
     "paths": {
       "@uicast/expr": ["../expr/src/index.ts"],
-      "@uicast/expr/prompt": ["../expr/src/prompt/index.ts"],
       "@uicast/expr/internal": ["../expr/src/internal.ts"],
       "@uicast/core": ["../core/src/index.ts"],
       "@uicast/core/internal": ["../core/src/internal.ts"],

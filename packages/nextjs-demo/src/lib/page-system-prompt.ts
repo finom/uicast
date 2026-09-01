@@ -2,9 +2,9 @@ import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
   getFunctionsPartialPrompt,
+  getExpressionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { domainTools } from "@/tools";
 

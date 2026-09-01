@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Removed
+
+- **A tighter main entry.** `globalNames()` is gone — it returned exactly what `ALLOWED_GLOBALS` already is. `Evaluator.clearCache()` is gone: the cache self-bounds at `maxCacheSize`, and a host that wants a clean slate can construct a new evaluator. `ALLOWED_NODES`, `FORBIDDEN_KEYS`, `HostFn`, `Lambda`, and `Namespace` are no longer exported — grammar tables and membrane classes the evaluator builds itself, with nothing a consumer can do with them.
+
+### Changed
+
+- `compile()` takes `functions` like `eval()` does: the returned closure is `(context?, functions?)`. Before, a compiled expression could not call host functions at all.
+
 ### Added
 
 - `@uicast/expr/internal`: `RESERVED_WORDS` and `isUsableName(name)` — the screen for names a host binds into the language (`functions` or context keys). It lives here so hosts and uicast's core share one rule; a test keeps it in agreement with the parser (the screen may be stricter, never looser).

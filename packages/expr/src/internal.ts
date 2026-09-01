@@ -16,3 +16,15 @@ const IDENTIFIER = /^[A-Za-z_$][A-Za-z0-9_$]*$/;
 /** Can `name` be a bare identifier in an expression? ASCII only, deliberately stricter than the grammar. */
 export const isUsableName = (name: string): boolean =>
 	IDENTIFIER.test(name) && !RESERVED_WORDS.has(name);
+
+/** Longest expression source the evaluator accepts by default, in characters. The prompt tells the model the same number. */
+export { DEFAULT_MAX_SOURCE_LENGTH } from "./parse";
+
+/** The method names the grammar allows — the union, and the per-namespace tables. A host's prompt copy is checked against these so the two cannot drift. */
+export { ALLOWED_METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "./membrane";
+
+/** Why `name` cannot be a host function name in an expression (message tail), or null when it can. The same screen the Evaluator's constructor runs. */
+export const hostFunctionNameFault = (name: string): string | null =>
+	isUsableName(name)
+		? null
+		: "is not a valid identifier — rename it (letters, digits, _ and $, not starting with a digit, not a reserved word)";

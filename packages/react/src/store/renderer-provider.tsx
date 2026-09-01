@@ -42,9 +42,10 @@ export function RendererProvider({
   // The group's root proxy — created once, lives as long as the provider.
   const rootRef = useRef<ReactiveProxy | null>(null);
   if (!rootRef.current) rootRef.current = createProxyScope({});
+  const root = rootRef.current;
   // One stable store for the group's lifetime — root captured once. `init` can
   // assign more named scopes onto this object.
-  const scopes = useMemo<Scopes>(() => ({ root: rootRef.current! }), []);
+  const scopes = useMemo<Scopes>(() => ({ root }), [root]);
 
   // Run-once latch — see RendererGroup.init.
   const initBoxRef = useRef<{ ran: boolean; result: unknown }>({

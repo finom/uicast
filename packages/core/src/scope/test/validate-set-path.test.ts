@@ -171,7 +171,7 @@ describe("findEntrySetPathFault", () => {
 
 describe("createProxyScope sink guard (H3 regression)", () => {
 	it("does not pollute Object.prototype through a __proto__ segment", () => {
-		const scope = createProxyScope<any>({ root: { user: { name: "a" } } });
+		const scope = createProxyScope({ root: { user: { name: "a" } } });
 		expect(() => scope.$set("root.__proto__.polluted", "PWNED")).toThrow(
 			/prototype chain/,
 		);
@@ -179,7 +179,7 @@ describe("createProxyScope sink guard (H3 regression)", () => {
 	});
 
 	it("rejects a prototype key as the final written segment", () => {
-		const scope = createProxyScope<any>({ root: {} });
+		const scope = createProxyScope({ root: {} });
 		expect(() => scope.$set("root.__proto__", { polluted2: 1 })).toThrow(
 			/prototype chain/,
 		);
@@ -187,7 +187,7 @@ describe("createProxyScope sink guard (H3 regression)", () => {
 	});
 
 	it("rejects constructor traversal", () => {
-		const scope = createProxyScope<any>({ root: { user: {} } });
+		const scope = createProxyScope({ root: { user: {} } });
 		expect(() =>
 			scope.$set("root.user.constructor.prototype.polluted3", "PWNED"),
 		).toThrow(/prototype chain/);
@@ -195,7 +195,7 @@ describe("createProxyScope sink guard (H3 regression)", () => {
 	});
 
 	it("classifies the rejection as a document guardrail violation", () => {
-		const scope = createProxyScope<any>({ root: {} });
+		const scope = createProxyScope({ root: {} });
 		try {
 			scope.$set("root.__proto__.x", 1);
 			expect.unreachable("should have thrown");
@@ -206,7 +206,7 @@ describe("createProxyScope sink guard (H3 regression)", () => {
 	});
 
 	it("still writes ordinary paths", () => {
-		const scope = createProxyScope<any>({ root: { user: { name: "a" } } });
+		const scope = createProxyScope({ root: { user: { name: "a" } } });
 		scope.$set("root.user.name", "b");
 		expect(scope.root.user.name).toBe("b");
 	});

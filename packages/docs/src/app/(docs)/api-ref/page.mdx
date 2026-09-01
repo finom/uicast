@@ -15,7 +15,7 @@ configuration is needed.
 
 The engine, framework-agnostic. See [Core concepts](/concepts).
 
-### `@uicast/core`
+### `@uicast/core` — index module
 
 | Export | What it does |
 |---|---|
@@ -31,11 +31,10 @@ Types: `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
 `ConfirmableValueSourceAssignment`, `ReactiveProxy`, `EntryErrorReason`,
 `EntryFault`.
 
-`@uicast/core/internal` holds the engine plumbing the React binding runs on
-(the evaluator, dependency extraction, wave planning). It carries **no semver
-guarantee** — don't build on it.
+There is also `@uicast/core/internal` — the engine plumbing the React binding
+runs on. It carries **no semver guarantee** — don't build on it.
 
-### `@uicast/core/prompt`
+### `@uicast/core/prompt` — prompt module
 
 The [prompt-partial builders](/prompt). Each takes one options object.
 
@@ -58,20 +57,28 @@ context rendered as that section's trailing `## Note`, verbatim.
 The [expression language](/expr), standalone — nothing uicast-specific in
 it.
 
+### `@uicast/expr` — index module
+
 | Export | What it does |
 |---|---|
 | `Evaluator` | The evaluator: `eval`, `compile`, `validate`, `memberReads`. `mode: "interpret" \| "native"` selects the [back end](/expr#two-modes). |
 | `ALLOWED_GLOBALS` | The global names expressions may reference. |
 | `DEFAULT_BUDGET` | The default step / time / allocation ceilings. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
-| `getExpressionsPartialPrompt({ allowGlobals?, maxLength?, note? })` | From `@uicast/expr/prompt`: the `# JavaScript Expressions` block — syntax, methods, globals, and the length limit. |
 
 Types: `EvaluatorOptions`, `EvaluatorMode`, `BudgetOptions`, `ExpressionFacts`,
-`ExpressionErrorReason`, `ExpressionsPromptOptions`.
+`ExpressionErrorReason`.
 
-`@uicast/expr/internal` holds the screen shared with core —
-`RESERVED_WORDS`, `isUsableName(name)`: whether a name can be bound into the
-language as a function or context key. Internal: no semver guarantee.
+There is also `@uicast/expr/internal` — the naming screen shared with core.
+It carries **no semver guarantee** — don't build on it.
+
+### `@uicast/expr/prompt` — prompt module
+
+| Export | Emits |
+|---|---|
+| `getExpressionsPartialPrompt({ allowGlobals?, maxLength?, note? })` | The `# JavaScript Expressions` block — syntax, methods, globals, and the length limit. |
+
+Types: `ExpressionsPromptOptions`.
 
 ## `@uicast/react`
 
@@ -107,9 +114,16 @@ A ready catalog, and a demo of what one looks like. See
 Entries inside a ` ```uicast ` fence in a Markdown reply. See
 [Streamdown plugin](/streamdown).
 
+### `@uicast/streamdown` — index module
+
 | Export | What it does |
 |---|---|
 | `createFenceRenderer(options?)` | The Streamdown renderer for `uicast` fences. Call once and reuse. |
-| `getFencePartialPrompt({ note? })` | From `@uicast/streamdown/prompt`: the fence syntax and shared-state rules. |
 
 Types: `FenceRendererOptions`.
+
+### `@uicast/streamdown/prompt` — prompt module
+
+| Export | Emits |
+|---|---|
+| `getFencePartialPrompt({ note? })` | The fence syntax and shared-state rules. |

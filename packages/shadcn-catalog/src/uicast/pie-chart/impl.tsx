@@ -43,7 +43,7 @@ export const PieChartImpl = createComponentImplementation({
               nameKey="name"
               label={
                 showLabels
-                  ? (((props: any) =>
+                  ? (((props: { name?: unknown; percent?: unknown }) =>
                       `${String(props.name ?? "")} ${(Number(props.percent ?? 0) * 100).toFixed(0)}%`) as never)
                   : undefined
               }

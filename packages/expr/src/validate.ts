@@ -1,4 +1,5 @@
 import type * as acorn from "acorn";
+import { walkFreeIdentifiers } from "./analyze";
 import { ExpressionError } from "./errors";
 import { ALLOWED_METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "./membrane";
 import {
@@ -181,4 +182,39 @@ export const validateNode = (node: acorn.AnyNode, depth = 0): void => {
 		if (node.type === "Property" && !node.computed && child === node.key) continue;
 		validateNode(child, depth + 1);
 	}
+};
+
+/**
+ * The host-function rule: a declared tool may only be CALLED, with zero or one
+ * non-spread argument. So a tool can never be produced as a value, and both
+ * back ends see the same argument list — the interpreter used to drop extras
+ * while `native` passed them all. Returns the free identifiers, so one walk
+ * serves both jobs.
+ */
+export const validateFreeIdentifiers = (
+	ast: acorn.Expression,
+	isTool: (name: string) => boolean,
+): string[] => {
+	const out = new Set<string>();
+	walkFreeIdentifiers(ast, (name, node, parent) => {
+		out.add(name);
+		if (!isTool(name)) return;
+		// `foo(double)` also gives `double` a CallExpression parent — only the
+		// identity check tells callee from argument.
+		if (parent === null || parent.type !== "CallExpression" || parent.callee !== node) {
+			throw new ExpressionError(
+				`"${name}" is a host function — it can only be called, as ${name}(...), not used as a value`,
+			);
+		}
+		const args = parent.arguments;
+		if (args.length > 1) {
+			throw new ExpressionError(
+				`"${name}" takes a single argument — call it as ${name}({ ... }), or ${name}() when it takes no input`,
+			);
+		}
+		if (args.length === 1 && args[0].type === "SpreadElement") {
+			throw new ExpressionError(`"${name}" cannot be called with a spread argument`);
+		}
+	});
+	return [...out];
 };

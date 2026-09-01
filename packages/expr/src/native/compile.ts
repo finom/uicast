@@ -1,6 +1,5 @@
 import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
-import { ALLOWED_GLOBALS } from "../globals";
 
 // Validate against the shared grammar, then run with `new Function`. The
 // residual — run-time-assembled names, uncapped allocation and time — is
@@ -50,19 +49,8 @@ export type CompiledNative = (values: readonly unknown[]) => unknown;
 export const compileNative = (
 	source: string,
 	ast: acorn.Expression,
-	freeIds: readonly string[],
 	bindingNames: readonly string[],
 ): CompiledNative => {
-	const allowed = new Set<string>([...bindingNames, ...ALLOWED_GLOBALS]);
-
-	// An unknown free identifier is refused here rather than resolving to a
-	// platform global at run time.
-	for (const id of freeIds) {
-		if (!allowed.has(id)) {
-			throw new ExpressionError(`"${id}" is not available in expressions`, "unknown-reference");
-		}
-	}
-
 	const bindings = [...new Set(bindingNames)];
 	const taken = new Set(bindings);
 

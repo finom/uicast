@@ -150,7 +150,10 @@ describe("the language", () => {
 	it("does not unwrap a promise that was never awaited", () => {
 		// The renderer relies on this: a host call in a reactive site must surface
 		// as a Promise so it can be reported, not silently resolve.
-		const value = run2(`hostCall(1)`, {}, { hostCall: async () => 1 });
+		const withTool = new Evaluator({
+			functions: [{ name: "hostCall", description: "", execute: async () => 1 }],
+		});
+		const value = withTool.eval(`hostCall(1)`);
 		expect(value).toBeInstanceOf(Promise);
 	});
 
@@ -169,12 +172,6 @@ describe("the language", () => {
 		]);
 	});
 });
-
-const run2 = (
-	expr: string,
-	context: Record<string, unknown>,
-	functions: Record<string, (input: unknown) => unknown>,
-) => ev.eval(expr, context, { functions });
 
 // ---------------------------------------------------------------------------
 // Differential: the interpreter against the JS engine.

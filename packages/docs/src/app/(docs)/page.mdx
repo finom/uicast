@@ -69,9 +69,7 @@ Need more speed? The evaluator has two modes. `interpret` (the default) is the
 interpreter above; it trusts nothing. `native` validates against the same
 grammar, then runs the expression with `new Function` — near-native speed, for
 documents from a trusted author: your own pipeline, an admin, never a stranger.
-In that mode the model is your first line
-of defence, so choose it wisely: the current Anthropic, OpenAI, and Google
-models hold this contract well.
+There [the model is your first line of defence](/expr#the-model-is-your-first-line-of-defence).
 
 The interpreter secures the language, not what you plug into it — host functions
 are capabilities you grant, and scope data is only as safe as what you put

@@ -1,6 +1,6 @@
 # JavaScript Expressions
 
-All `expr` values are JavaScript **expressions** — written in JavaScript syntax, but run by the expression evaluator, not the JavaScript engine. What follows is the whole language, not a summary of it: anything not listed here is rejected before the expression runs.
+Expression-valued fields are written in JavaScript syntax, but run by the expression evaluator, not the JavaScript engine. What follows is the whole language, not a summary of it: anything not listed here is rejected before the expression runs.
 
 Rules:
 

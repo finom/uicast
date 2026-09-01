@@ -22,27 +22,27 @@ export const SignaturePadImpl = createComponentImplementation({
 
     const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: getCtx reads a ref — stable identity, not a reactive input
     const startDraw = useCallback(
       (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (disabled) return;
         isDrawingRef.current = true;
-        const ctx = getCtx();
-        if (!ctx) return;
-        const rect = canvasRef.current!.getBoundingClientRect();
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext("2d");
+        if (!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
         ctx.beginPath();
         ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
       },
       [disabled],
     );
 
-    // biome-ignore lint/correctness/useExhaustiveDependencies: getCtx reads a ref — stable identity, not a reactive input
     const draw = useCallback(
       (e: React.MouseEvent<HTMLCanvasElement>) => {
         if (!isDrawingRef.current || disabled) return;
-        const ctx = getCtx();
-        if (!ctx) return;
-        const rect = canvasRef.current!.getBoundingClientRect();
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext("2d");
+        if (!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
         ctx.strokeStyle = penColor;
         ctx.lineWidth = 2;
         ctx.lineCap = "round";

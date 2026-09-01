@@ -228,9 +228,10 @@ describe("createEmitter — standalone", () => {
     const b = vi.fn();
     e.on("foo", a);
     e.on("foo", b);
-    e.emit("foo", { v: 1 });
-    expect(a).toHaveBeenCalledWith({ v: 1 });
-    expect(b).toHaveBeenCalledWith({ v: 1 });
+    const payload = { path: "foo", value: 1, oldValue: undefined };
+    e.emit("foo", payload);
+    expect(a).toHaveBeenCalledWith(payload);
+    expect(b).toHaveBeenCalledWith(payload);
   });
 
   it("the function returned by on() detaches the handler", () => {
@@ -238,7 +239,7 @@ describe("createEmitter — standalone", () => {
     const spy = vi.fn();
     const off = e.on("foo", spy);
     off();
-    e.emit("foo", 1);
+    e.emit("foo", { path: "foo", value: 1, oldValue: undefined });
     expect(spy).not.toHaveBeenCalled();
   });
 
@@ -246,8 +247,8 @@ describe("createEmitter — standalone", () => {
     const e = createEmitter();
     const seen: string[] = [];
     e.on("*", () => seen.push("any"));
-    e.emit("foo", 1);
-    e.emit("bar.baz", 2);
+    e.emit("foo", { path: "foo", value: 1, oldValue: undefined });
+    e.emit("bar.baz", { path: "bar.baz", value: 2, oldValue: undefined });
     expect(seen).toEqual(["any", "any"]);
   });
 });

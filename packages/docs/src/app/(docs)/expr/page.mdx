@@ -62,29 +62,27 @@ event and get the same rejection. Three rules do most of the work:
 
 ## The model is your first line of defence
 
-`native` trusts the document's author. The shared validator still rejects a lot
-— statements, declarations, assignment, regular expressions, unknown globals
-(`fetch` fails before anything runs), every forbidden name that is *written*,
-including `obj["constructor"]`, and every method call outside the allow-list.
-But it cannot see a name assembled at run time: `rows["so" + "rt"]()` reaches
-the real, mutating prototype method, and allocation is uncapped.
+`native` trusts the document's author. The shared validator still rejects what
+it can *see*: statements, assignment, regular expressions, unknown globals,
+written forbidden names (`obj["constructor"]` included), method calls outside
+the allow-list. What it cannot see is a name assembled at run time —
+`rows["so" + "rt"]()` reaches the real, mutating prototype method — and
+allocation is uncapped.
 
-So in this mode, safety rests on who writes the documents: a production model
-following [the prompt contract](/prompt), fed by your own pipeline. That is a
-reasonable bet — a good model asked to build a dashboard does not emit
-string-assembled prototype walks — and current Anthropic, OpenAI, and Google
-models hold the contract well. It is an unreasonable bet about a stranger's
-prompt, which is why `native` is opt-in and `interpret` is the default.
+So `native` is a bet on who writes the documents. For a production model
+following [the prompt contract](/prompt) in your own pipeline it is a
+reasonable bet: a good model asked for a dashboard does not emit
+string-assembled prototype walks, and current Anthropic, OpenAI, and Google
+models hold the contract well. For a stranger's prompt it is not — which is
+why `native` is opt-in and `interpret` the default.
 
-Under `interpret` none of this depends on the model behaving — the
-interpreter refuses an escape whether or not the model meant to write one. A
-good model just means you rarely see a rejection at all, and the
-[prompt](/prompt) carries a standing instruction that text arriving in data is
-data, not instructions. Treat that as raising the floor; the boundary is the
-interpreter.
+Under `interpret` nothing rests on the model behaving: the interpreter refuses
+an escape whether or not the model meant one. A good model just means you
+rarely see a rejection — and the [prompt](/prompt) already tells the model
+that text arriving in data is data, not instructions. That raises the floor;
+the boundary is the interpreter.
 
-The two modes are two threat models, not a fast and a slow version of one
-guarantee.
+Two modes, two threat models — not a fast and a slow version of one guarantee.
 
 ## Where expressions appear
 
@@ -107,10 +105,10 @@ object, `literal` is taken as-is. `hidden` and `each` are **bare strings**, not
 value sources.
 
 Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
-may call host [`functions`](/functions), since those are the two sites where an
-async result is awaited — a host call in `props`, `hidden`, or `each` is
-rejected into the element's error slot. A step with a `set` also sees
-[`currentValue`](/entry/value-sources#valuesourceassignment), whatever is at
+may call host [`functions`](/functions) — the two sites where an async result
+is awaited; a host call in `props`, `hidden`, or `each` is rejected into the
+error slot. A `set` step also sees
+[`currentValue`](/entry/value-sources#valuesourceassignment) — whatever is at
 that path now.
 
 Reading a scope path in `props`, `hidden`, or `each` subscribes the element to
@@ -241,20 +239,17 @@ same expressions:
 | `.reduce()` over 1000 rows | an inline aggregate | ~80 µs | ~0.95 µs | ~0.89 µs |
 | re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.71 ms | ~0.18 ms | ~0.07 ms |
 
-`interpret` is slower because it checks every read and call as it happens —
-that is what the guarantee costs. The compiler keeps the overhead down by
-deciding everything it can at compile time: identifiers resolve to frame
-addresses, plain member chains fuse into one closure, the budget is charged
-per invocation.
+`interpret` checks every read and call as it happens — that is what the
+guarantee costs. The compiler keeps the overhead down by deciding everything
+it can at compile time.
 
-The absolute numbers are what matter. The last row models a 1000-row table
-with five expression sites per row, all re-evaluating at once: 0.7 ms for the
-expressions, while React and the DOM spend tens of milliseconds rendering the
-same update. The prompt bounds the load from the other side: it instructs the
-model to cap a list at 100 visible items (`maxListItems` on
-`getCommonInstructionsPartialPrompt`) and page or filter past that. Heavy data
-work — a reduce over tens of thousands of rows — belongs in a host function.
-**Expressions shape display values; host functions compute.**
+The absolute numbers are what matter: the worst-case row — a 1000-row table,
+five expression sites per row, all re-evaluating at once — costs 0.7 ms, while
+React and the DOM spend tens of milliseconds on the same update. The prompt
+bounds the load from the other side: `maxListItems` on
+`getCommonInstructionsPartialPrompt` (default 100) instructs the model to cap
+visible lists and page or filter past that. Heavy data work belongs in a host
+function. **Expressions shape display values; host functions compute.**
 
 ## What it does not secure
 

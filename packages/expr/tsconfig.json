@@ -21,9 +21,6 @@
       "@uicast/expr": [
         "./src/index.ts"
       ],
-      "@uicast/expr/prompt": [
-        "./src/prompt/index.ts"
-      ]
     },
     "experimentalDecorators": true
   },

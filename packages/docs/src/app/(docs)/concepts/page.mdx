@@ -105,12 +105,12 @@ Row state that lives outside the array is reached through `childScopes` —
 
 Both edits also call `updateProduct(...)` in a second step — a
 [host function](/functions) that persists the change, so a reload keeps it.
-Save asks first: its first step carries a
+Save asks first: its
+first step carries a
 [`confirm`](/entry/value-sources#confirmablevaluesourceassignment) message, and
-declining skips that step and everything after it. The styled dialog that asks
-is the host's
-[`fallbackComponents.confirm`](/react/renderer#fallbackcomponents--the-engines-fallback-ui) — one
-component answering every `confirm` in every document.
+declining skips it and everything after. The dialog that asks is the host's
+[`fallbackComponents.confirm`](/react/renderer#fallbackcomponents--the-engines-fallback-ui) —
+one component answering every `confirm` in every document.
 
 ## Reading state subscribes to it
 

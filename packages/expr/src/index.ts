@@ -1,22 +1,22 @@
 import type * as acorn from "acorn";
+import type { StandardToolV0 } from "standard-tool";
 import { Budget, DEFAULT_BUDGET, type BudgetOptions } from "./budget";
 import { compileAst, type Runtime, type Thunk } from "./interpret/compile";
 import { compileNative, type CompiledNative } from "./native/compile";
 import { ExpressionError, type ExpressionErrorReason } from "./errors";
-import { extractFreeIdentifiers, extractMemberReads } from "./analyze";
-import { ALLOWED_GLOBALS, GLOBAL_VALUES } from "./globals";
-import { HostFn, Lambda, Namespace } from "./membrane";
+import { extractMemberReads } from "./analyze";
+import { ALLOWED_GLOBALS, NATIVE_GLOBAL_VALUES } from "./globals";
+import type { HostFn } from "./membrane";
+import { bindTools } from "./tool";
 import { DEFAULT_MAX_SOURCE_LENGTH, parseExpression } from "./parse";
-import { validateNode } from "./validate";
+import { validateFreeIdentifiers, validateNode } from "./validate";
 
 // The language machinery is shared; only the back end differs: `interpret/`
 // compiles the AST to closures this package runs itself, `native/` validates
 // and then runs the source with `new Function`.
 export { ExpressionError, type ExpressionErrorReason };
 export { ALLOWED_GLOBALS };
-export { ALLOWED_NODES, FORBIDDEN_KEYS } from "./grammar";
 export { DEFAULT_BUDGET, type BudgetOptions };
-export { HostFn, Lambda, Namespace };
 
 /**
  * Two back ends, two threat models. `"interpret"` (default): every read and
@@ -26,21 +26,31 @@ export { HostFn, Lambda, Namespace };
  */
 export type EvaluatorMode = "interpret" | "native";
 
+/** Named values an expression can read. Later contexts win over earlier ones. */
+export type EvaluatorContexts = Record<string, unknown>[];
+
 export type EvaluatorOptions = {
 	/** Which back end runs the expression. Default `"interpret"`. */
 	mode?: EvaluatorMode;
+	/**
+	 * Host functions, callable by name. Fixed for this evaluator's lifetime —
+	 * the parse cache and the host-call check both depend on that. A name must be
+	 * a usable identifier and unique; a name that shadows a built-in global makes
+	 * that global unreachable, since the name is then a host function everywhere.
+	 */
+	functions?: readonly StandardToolV0[];
 	/** Parsed-expression cache size. Default 500. */
 	maxCacheSize?: number;
 	/** Longest accepted expression source, in characters. Default 1000. */
 	maxSourceLength?: number;
 	/** CPU, time, and allocation ceilings. */
 	budget?: BudgetOptions;
-	/** Extra names, as VALUES. They pass the same membrane, so only plain data is readable. */
-	globals?: Record<string, unknown>;
 };
 
 export type ExpressionFacts = {
 	freeIds: readonly string[];
+	/** Host functions this expression calls. */
+	toolCalls: readonly string[];
 };
 
 type CacheEntry = ExpressionFacts & {
@@ -49,23 +59,26 @@ type CacheEntry = ExpressionFacts & {
 	/** Member paths per root, computed on first ask — see {@link Evaluator.memberReads}. */
 	reads?: Map<string, readonly string[]>;
 	thunk?: Thunk;
-	/** Native compilation bakes in parameter names — keyed by which freeIds the caller supplies. */
-	native?: { mask: number; key: string; run: CompiledNative };
+	/** Free ids a context must supply, in freeIds order. */
+	contextIds: readonly string[];
+	/** Native's parameter list: tools first, then context ids. Constant per source. */
+	bindings: readonly string[];
+	native?: CompiledNative;
 };
+
+const NOT_A_TOOL = () => false;
 
 /** JavaScript-shaped expression language: closed grammar, membrane on every read and call, budget. See {@link EvaluatorMode}. */
 export class Evaluator {
+	// Keyed by source alone, which is only sound because the host functions are
+	// fixed at construction — the host-call check's verdict is per (source, tools).
 	#cache = new Map<string, CacheEntry>();
 	#maxCacheSize: number;
 	#maxSourceLength: number;
 	#budgetOptions: BudgetOptions;
-	#globals: Record<string, unknown> | undefined;
 	#mode: EvaluatorMode;
-	/** Boxed host-function records, keyed by record identity. */
-	#boxedFns = new WeakMap<
-		Record<string, (input: unknown) => unknown>,
-		Record<string, HostFn>
-	>();
+	#tools: Record<string, HostFn>;
+	#hasTools: boolean;
 	// One Budget reused across SYNC evaluations — allocating one per eval cost
 	// more than a small expression. Async evaluations (and synchronous
 	// re-entrancy through a host function) take a fresh instance instead.
@@ -76,26 +89,18 @@ export class Evaluator {
 		this.#maxCacheSize = options.maxCacheSize ?? 500;
 		this.#maxSourceLength = options.maxSourceLength ?? DEFAULT_MAX_SOURCE_LENGTH;
 		this.#budgetOptions = options.budget ?? {};
-		const globals = options.globals;
-		this.#globals = globals && Object.keys(globals).length > 0 ? globals : undefined;
 		this.#mode = options.mode ?? "interpret";
+		const tools = options.functions;
+		this.#tools = bindTools(tools ?? []);
+		this.#hasTools = tools !== undefined && tools.length > 0;
 	}
 
 	/** Run a prepared expression through whichever back end this evaluator uses. */
-	#run(
-		entry: CacheEntry,
-		context: Record<string, unknown>,
-		functions?: Record<string, (input: unknown) => unknown>,
-	): unknown {
-		if (this.#mode === "native") return this.#runNative(entry, context, functions);
+	#run(entry: CacheEntry, contexts: EvaluatorContexts): unknown {
+		if (this.#mode === "native") return this.#runNative(entry, contexts);
 
 		entry.thunk ??= compileAst(entry.ast);
-		const rt: Runtime = {
-			budget: this.#takeBudget(),
-			context,
-			functions: functions ? this.#boxed(functions) : undefined,
-			globals: this.#globals,
-		};
+		const rt: Runtime = { budget: this.#takeBudget(), contexts, tools: this.#tools };
 		if (rt.budget !== this.#syncBudget) return entry.thunk(null, rt);
 		this.#syncBudgetBusy = true;
 		try {
@@ -112,61 +117,28 @@ export class Evaluator {
 		return this.#syncBudget;
 	}
 
-	#boxed(
-		functions: Record<string, (input: unknown) => unknown>,
-	): Record<string, HostFn> {
-		let boxed = this.#boxedFns.get(functions);
-		if (!boxed) {
-			boxed = {};
-			for (const [name, fn] of Object.entries(functions)) {
-				boxed[name] = new HostFn(name, fn);
-			}
-			this.#boxedFns.set(functions, boxed);
-		}
-		return boxed;
-	}
-
-	/** Native back end. Parameters = the free identifiers the caller supplies, so the per-eval shape check is a few hasOwn calls. */
-	#runNative(
-		entry: CacheEntry,
-		context: Record<string, unknown>,
-		functions?: Record<string, (input: unknown) => unknown>,
-	): unknown {
-		const globals = this.#globals;
-		const freeIds = entry.freeIds;
-		// One pass: resolve each free identifier the caller supplies, and record
-		// WHICH were supplied as a bitmask — the shape key for the compiled fn.
-		// A bitmask only addresses 31 slots; the (practically unreachable) wider
-		// case compares exact names instead of risking a positional mismatch.
-		let mask = 0;
-		const wide = freeIds.length > 31;
+	/** Native back end. Every free id is statically a tool or a context name, so the parameter list is constant per source — compiled once. */
+	#runNative(entry: CacheEntry, contexts: EvaluatorContexts): unknown {
+		const { toolCalls, contextIds } = entry;
 		const values: unknown[] = [];
-		const names: string[] | null = wide ? [] : null;
-		for (let i = 0; i < freeIds.length; i++) {
-			const id = freeIds[i];
-			if (functions !== undefined && Object.hasOwn(functions, id)) {
-				values.push(functions[id]);
-			} else if (Object.hasOwn(context, id)) {
-				values.push(context[id]);
-			} else if (globals !== undefined && Object.hasOwn(globals, id)) {
-				values.push(globals[id]);
-			} else {
+		for (let i = 0; i < toolCalls.length; i++) values.push(this.#tools[toolCalls[i]].fn);
+		outer: for (let i = 0; i < contextIds.length; i++) {
+			const id = contextIds[i];
+			for (let c = contexts.length - 1; c >= 0; c--) {
+				if (Object.hasOwn(contexts[c], id)) {
+					values.push(contexts[c][id]);
+					continue outer;
+				}
+			}
+			// hasOwn, not a truthy check — `undefined` and `NaN` are members.
+			if (Object.hasOwn(NATIVE_GLOBAL_VALUES, id)) {
+				values.push(NATIVE_GLOBAL_VALUES[id]);
 				continue;
 			}
-			if (names) names.push(id);
-			else mask |= 1 << i;
+			throw new ExpressionError(`"${id}" is not available in expressions`, "unknown-reference");
 		}
-		let native = entry.native;
-		const key = names ? names.join("\u0000") : "";
-		if (native === undefined || (names ? native.key !== key : native.mask !== mask)) {
-			const bound = names ?? freeIds.filter((_, i) => (mask & (1 << i)) !== 0);
-			native = entry.native = {
-				mask,
-				key,
-				run: compileNative(entry.source, entry.ast, entry.freeIds, bound),
-			};
-		}
-		return native.run(values);
+		entry.native ??= compileNative(entry.source, entry.ast, entry.bindings);
+		return entry.native(values);
 	}
 
 	#analyze(source: string): CacheEntry {
@@ -175,11 +147,22 @@ export class Evaluator {
 
 		const ast = parseExpression(source, this.#maxSourceLength);
 		validateNode(ast);
+		const tools = this.#tools;
+		const freeIds = validateFreeIdentifiers(
+			ast,
+			this.#hasTools ? (name) => tools[name] !== undefined : NOT_A_TOOL,
+		);
+		const toolCalls: string[] = [];
+		const contextIds: string[] = [];
+		for (const id of freeIds) (tools[id] !== undefined ? toolCalls : contextIds).push(id);
 
 		const entry: CacheEntry = {
 			source,
 			ast,
-			freeIds: Object.freeze(extractFreeIdentifiers(ast)),
+			freeIds: Object.freeze(freeIds),
+			toolCalls: Object.freeze(toolCalls),
+			contextIds: Object.freeze(contextIds),
+			bindings: Object.freeze([...toolCalls, ...contextIds]),
 		};
 
 		if (this.#cache.size >= this.#maxCacheSize) {
@@ -192,8 +175,8 @@ export class Evaluator {
 
 	/** Parse and check without running. Throws {@link ExpressionError} if invalid. */
 	validate(source: string): ExpressionFacts {
-		const { freeIds } = this.#analyze(source);
-		return { freeIds };
+		const { freeIds, toolCalls } = this.#analyze(source);
+		return { freeIds, toolCalls };
 	}
 
 	/** Every `<root>.X.Y` static path the expression reads — hosts derive subscriptions from these. uicast asks for `"scopes"`. */
@@ -208,26 +191,20 @@ export class Evaluator {
 		return paths;
 	}
 
-	/** Compile once, run many times. */
-	compile(source: string): (context?: Record<string, unknown>) => unknown {
-		const entry = this.#analyze(source);
-		return (context = {}) => this.#run(entry, context);
-	}
-
-	/** Compile and run. Name precedence: functions, context, instance globals, built-ins. */
-	eval(
+	/** Compile once, run many times. `TOut` is an assertion about the result, not a check on it. */
+	compile<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(
 		source: string,
-		context: Record<string, unknown> = {},
-		options: { functions?: Record<string, (input: unknown) => unknown> } = {},
-	): unknown {
+	): (...contexts: TIn) => TOut {
 		const entry = this.#analyze(source);
-		return this.#run(entry, context, options.functions);
+		return (...contexts: TIn) => this.#run(entry, contexts) as TOut;
 	}
 
-	clearCache(): void {
-		this.#cache.clear();
+	/** Compile and run. Names resolve to host functions first, then the contexts last-to-first, then built-in globals. `TOut` is an assertion about the result, not a check on it. */
+	eval<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(
+		source: string,
+		...contexts: TIn
+	): TOut {
+		const entry = this.#analyze(source);
+		return this.#run(entry, contexts) as TOut;
 	}
 }
-
-/** The names an expression can use with no context at all. */
-export const globalNames = (): readonly string[] => Object.keys(GLOBAL_VALUES);

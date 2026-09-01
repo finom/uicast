@@ -5,9 +5,9 @@ import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
   getFunctionsPartialPrompt,
+  getExpressionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import {
   Dialog,

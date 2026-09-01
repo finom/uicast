@@ -72,7 +72,9 @@ export function useSeed({
       // when fully synchronous, else a promise applying writes as it settles.
       const runWave = (wave: typeof steps): Promise<void> | null => {
         const evaluated = wave.map((step) => {
-          const [targetScope, targetPath] = targets.get(step)!;
+          const target = targets.get(step);
+          if (!target) throw new Error(`Seed step of "${element.key}" has no parsed target.`);
+          const [targetScope, targetPath] = target;
           const currentValue = readScopePath(scopes[targetScope], targetPath);
           const value = evaluate(
             step,

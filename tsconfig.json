@@ -16,7 +16,6 @@
     "paths": {
       "@uicast/core": ["./packages/core/src/index.ts"],
       "@uicast/expr": ["./packages/expr/src/index.ts"],
-      "@uicast/expr/prompt": ["./packages/expr/src/prompt/index.ts"],
       "@uicast/expr/internal": ["./packages/expr/src/internal.ts"],
       "@uicast/core/internal": ["./packages/core/src/internal.ts"],
       "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],

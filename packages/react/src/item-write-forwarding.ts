@@ -28,7 +28,7 @@ export function setItemForwardTargets(
 	const attached = targetsByProxy.has(proxy);
 	targetsByProxy.set(proxy, targets);
 	if (attached) return;
-	proxy.$emitter.on<{ path: string }>("*", ({ path }) => {
+	proxy.$emitter.on("*", ({ path }) => {
 		const itemWrite = isItemPath(path);
 		for (const t of targetsByProxy.get(proxy) ?? []) {
 			if (!itemWrite && !t.anyWrite) continue;

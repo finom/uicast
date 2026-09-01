@@ -237,9 +237,9 @@ export const KanbanBoardImpl = createComponentImplementation({
       const columnId = findColumnId(board, activeId);
       const overColumnId = over ? findColumnId(board, String(over.id)) : undefined;
       if (columnId && overColumnId === columnId && over && activeId !== over.id) {
-        const column = board.find((c) => c.id === columnId)!;
-        const oldIndex = column.cards.findIndex((c) => c.id === activeId);
-        const newIndex = column.cards.findIndex((c) => c.id === String(over.id));
+        const column = board.find((c) => c.id === columnId);
+        const oldIndex = column?.cards.findIndex((c) => c.id === activeId) ?? -1;
+        const newIndex = column?.cards.findIndex((c) => c.id === String(over.id)) ?? -1;
         if (oldIndex >= 0 && newIndex >= 0) {
           next = board.map((c) =>
             c.id === columnId
@@ -254,9 +254,9 @@ export const KanbanBoardImpl = createComponentImplementation({
       dragOrigin.current = null;
       const toColumnId = findColumnId(next, activeId);
       if (!origin || !toColumnId) return;
-      const toIndex = next
-        .find((c) => c.id === toColumnId)!
-        .cards.findIndex((c) => c.id === activeId);
+      const toColumn = next.find((c) => c.id === toColumnId);
+      if (!toColumn) return;
+      const toIndex = toColumn.cards.findIndex((c) => c.id === activeId);
       if (origin.columnId === toColumnId && origin.index === toIndex) return;
       onCardMove({
         cardId: activeId,

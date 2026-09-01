@@ -11,7 +11,8 @@ function collectDescendantKeys(
   const result = new Set<string>();
   const stack = [id];
   while (stack.length > 0) {
-    const current = stack.pop()!;
+    const current = stack.pop();
+    if (current === undefined) break;
     const entry = map[current];
     if (entry?.children) {
       for (const childId of entry.children) {
@@ -41,7 +42,8 @@ export function buildElementsByKey(
       const kept = new Set<string>();
       const stack = [...(line.children ?? [])];
       while (stack.length > 0) {
-        const id = stack.pop()!;
+        const id = stack.pop();
+        if (id === undefined) break;
         if (kept.has(id) || !oldDescendants.has(id)) continue;
         kept.add(id);
         const entry = map[id];
