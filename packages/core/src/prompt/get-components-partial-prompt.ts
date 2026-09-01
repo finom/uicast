@@ -3,17 +3,16 @@ import { type JSONSchema, JSONSchemaToTs } from "../prompt-utils/json-schema-to-
 import { collectSharedTypes } from "../prompt-utils/shared-types";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
 import type { ComponentDefinition } from "../types";
+import { noteSection } from "./note-section";
 
 export type ComponentsPromptOptions = {
 	/** The component defs to advertise — the catalog's `allDefinitions` (plus any app-local defs). */
 	definitions: ComponentDefinition[];
+	/** Host-specific context, appended as this section's trailing `## Note`. */
+	note?: string;
 };
 
-/**
- * An object schema's properties as an indented, described bullet list
- * (`- count?: number — The number to display`). Shared by a component's props
- * and a typed event's options. Non-object or propless schemas yield `[]`.
- */
+/** Object-schema properties as an indented bullet list (`- count?: number — ...`); non-object schemas yield `[]`. */
 const describeFields = (
 	schema: JSONSchema,
 	indent: string,
@@ -34,21 +33,12 @@ const describeFields = (
 };
 
 /**
- * Render component defs into the prompt's component section:
- * `# Available Components`, an optional `# Common Events` block,
- * `# Component Details` (name + description, `Props:`, `Event handlers:`),
- * then `# Shared Types` hugging the details that use it — the same shape as
- * `getFunctionsPartialPrompt`.
- *
- * A callback payload carrying a JSON Schema `$id` is a **common event**:
- * described once, referenced as `evt: <$id>` at every use site — the `$id` is
- * the only signal, the host declares nothing extra. `# Shared Types` does the
- * same for `$defs`, which also lets a recursive type be stated. Host-only defs
- * (`hidden: true`) are filtered out. Throws on a duplicate component `name`,
- * or on one `$id` claimed by two different payloads.
+ * Defs → `# Available Components` / `# Common Events` / `# Component Details` /
+ * `# Shared Types`. Hidden defs are skipped; duplicate names throw.
  */
 export function getComponentsPartialPrompt({
 	definitions: defs,
+	note,
 }: ComponentsPromptOptions): string {
 	const seen = new Set<string>();
 	for (const def of defs) {
@@ -156,17 +146,22 @@ export function getComponentsPartialPrompt({
 	// Asked for after `detail` is built, so every hoisted definition is in.
 	const sharedLines = shared.lines();
 
-	return (
-		"# Available Components\n\n" +
-		visible.map((def) => def.name).join(", ") +
-		(commonLines.length
-			? `\n\n# Common Events\n\n${commonLines.join("\n")}`
-			: "") +
-		"\n\n# Component Details\n\n" +
-		detail +
-		(sharedLines.length
-			? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
-			: "")
-		// No edge blank lines — assembly's `\n\n` join owns the separators.
-	).trim();
+	return [
+		(
+			"# Available Components\n\n" +
+			visible.map((def) => def.name).join(", ") +
+			(commonLines.length
+				? `\n\n# Common Events\n\n${commonLines.join("\n")}`
+				: "") +
+			"\n\n# Component Details\n\n" +
+			detail +
+			(sharedLines.length
+				? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
+				: "")
+			// No edge blank lines — assembly's `\n\n` join owns the separators.
+		).trim(),
+		noteSection(note),
+	]
+		.filter(Boolean)
+		.join("\n\n");
 }

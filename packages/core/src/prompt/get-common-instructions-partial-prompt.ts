@@ -1,18 +1,26 @@
 import INSTRUCTIONS from "./md/INSTRUCTIONS.json" with { type: "json" };
+import { noteSection } from "./note-section";
 
-/** No options yet — the type is reserved so the signature can grow without breaking callers. */
-export type CommonInstructionsPromptOptions = Record<string, never>;
+export type CommonInstructionsPromptOptions = {
+	/** Most items one list may render before slicing or paging. Default 100. */
+	maxListItems?: number;
+	/** Appended as a trailing `## Note` section, verbatim. */
+	note?: string;
+};
 
 /**
- * The LLM-facing instruction block — the contract authored in
- * `md/INSTRUCTIONS.md` and imported here as a JSON string via the md-to-json
- * pipeline (`npm run md-to-json` regenerates the `.json` sibling after edits).
- * The app composes it with the other `get*PartialPrompt` builders into its
- * system prompt — core ships the pieces; the app owns the assembly.
+ * The `md/INSTRUCTIONS.md` block (run `npm run md-to-json` after editing it):
+ * output format, rules, expression context. Compose with
+ * `getExpressionsPartialPrompt()` from `@uicast/expr`.
  */
-export function getCommonInstructionsPartialPrompt(
-	_options: CommonInstructionsPromptOptions = {},
-): string {
+export function getCommonInstructionsPartialPrompt({
+	maxListItems = 100,
+	note,
+}: CommonInstructionsPromptOptions = {}): string {
+	const instructions = INSTRUCTIONS.replaceAll(
+		"🔴MAX_LIST_ITEMS🔴",
+		String(maxListItems),
+	).trim();
 	// No edge blank lines — assembly's `\n\n` join owns the separators.
-	return INSTRUCTIONS.trim();
+	return [instructions, noteSection(note)].filter(Boolean).join("\n\n");
 }

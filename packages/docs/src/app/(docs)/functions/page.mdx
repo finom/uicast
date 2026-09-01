@@ -2,7 +2,7 @@
 
 A document is just data — on its own it reaches no API. **Host functions** are
 the bridge: functions you supply, called by name from
-[expressions](/entry/expressions) (alongside `scopes` and `evt`), sync or async.
+[expressions](/expr) (alongside `scopes` and `evt`), sync or async.
 
 Each is a [`standard-tool`](https://standard-tool.js.org/) (`StandardToolV0`): a
 `name`, a `description` the model reads to call it, and optional
@@ -287,4 +287,4 @@ the tree is one level deep.
 
 - [Renderer](/react/renderer) — the `functions` prop and the rest of the mount setup.
 - [Entry fields](/entry/fields) — `seed` and `callbacks`, where functions are called.
-- [JavaScript Expressions](/entry/expressions) — the language the calls are written in, and the purity rule.
+- [The expression evaluator](/expr) — the language the calls are written in, and the purity rule.

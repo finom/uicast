@@ -158,7 +158,7 @@ export const colorLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.swatches",
-          expr: "await suggestPalette({ hex: scopes.root.hex })",
+          expr: "suggestPalette({ hex: scopes.root.hex })",
         },
         {
           set: "scopes.root.lastEvt",
@@ -175,7 +175,7 @@ export const colorLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.swatches",
-          expr: "scopes.root.swatches.concat([scopes.root.hex])",
+          expr: "[...scopes.root.swatches, scopes.root.hex]",
         },
         {
           set: "scopes.root.lastEvt",

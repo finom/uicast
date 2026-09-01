@@ -10,7 +10,10 @@ export const OrgChartDef = createComponentDefinition({
       .object({
         name: z.string().meta({ description: "Person/role name" }),
         title: z.string().optional().meta({ description: "Job title" }),
-        avatar: z.string().optional().meta({ description: "Avatar image URL" }),
+        avatar: z
+          .string()
+          .optional()
+          .meta({ format: "uri-reference", description: "Avatar image URL" }),
         children: z
           .array(z.any())
           .optional()

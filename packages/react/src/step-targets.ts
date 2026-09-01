@@ -1,17 +1,11 @@
 import { EntryError } from "@uicast/core";
 import {
-	findNumericSetSegment,
-	numericSetPathError,
+	findSetPathFault,
 	parseScope,
+	setPathError,
 } from "@uicast/core/internal";
 
-/**
- * Pre-validate every step's `set` path (unparseable → unknown-reference,
- * numeric key → guardrail) so a bad path fails before any step runs instead
- * of stranding its wave mid-flight. Effect-only steps are skipped. The
- * callback runner and the seed hook both bind `currentValue` off the parsed
- * `[scope, path]`.
- */
+/** Pre-validate every step's `set` path so a bad one fails classified before any step runs. Effect-only steps skipped; `currentValue` binds off the parsed target. */
 export function parseStepTargets<T extends { set?: string }>(
 	steps: readonly T[],
 	elementKey: string,
@@ -19,9 +13,9 @@ export function parseStepTargets<T extends { set?: string }>(
 	const targets = new Map<T, [string, string]>();
 	for (const step of steps) {
 		if (!step.set) continue;
-		const segment = findNumericSetSegment(step.set);
-		if (segment !== null) {
-			throw numericSetPathError(step.set, segment, elementKey);
+		const fault = findSetPathFault(step.set);
+		if (fault) {
+			throw setPathError(step.set, fault, elementKey);
 		}
 		try {
 			targets.set(step, parseScope(step.set));

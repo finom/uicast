@@ -1,4 +1,5 @@
 import { EntryError } from "../entry-error";
+import { PROTOTYPE_KEYS } from "./validate-set-path";
 
 type EventHandler<T = unknown> = (payload: T) => void;
 
@@ -9,20 +10,10 @@ interface ChangePayload<T = unknown> {
 }
 
 interface Emitter {
-  /**
-   * Subscribe; the returned function unsubscribes. The type `"*"` receives
-   * every emit regardless of path — the react binding uses it to forward a
-   * list item's writes to the list's source array.
-   */
+  /** Subscribe; returns unsubscribe. Type `"*"` receives every emit. */
   on<T = unknown>(type: string, handler: EventHandler<T>): () => void;
   emit<T = unknown>(type: string, payload: T): void;
-  /**
-   * Count of emits so far. A subscriber that registers its handler after
-   * rendering (React subscribes in an effect) compares this against the value
-   * it saw while rendering: if it advanced, a write landed in between and the
-   * handler was not yet attached to hear it, so the subscriber must re-read.
-   * Without it that write is lost to that subscriber until the next one.
-   */
+  /** Emit count. A subscriber attaching after render compares this to what it saw while rendering — advanced means a write landed unheard, so re-read. */
   readonly version: number;
 }
 
@@ -83,13 +74,23 @@ function createProxyScope<T extends object>(
     options?: { default?: boolean },
   ): void {
     const keys = path.split(".");
+
+    // Sink guard: a `__proto__`/`constructor` segment resolves into the
+    // prototype chain and the write lands on `Object.prototype`. Rejected
+    // statically upstream; this catches direct `$set` callers.
+    for (const key of keys) {
+      if (PROTOTYPE_KEYS.has(key)) {
+        throw new EntryError(
+          `Cannot set "${path}": "${key}" reaches the prototype chain.`,
+          { reason: "guardrail-violation" },
+        );
+      }
+    }
+
     let current: any = proxy;
 
-    // A missing parent throws rather than being invented. Creating one silently
-    // turns two document mistakes into no-ops: a typo (`usre.name`) writes a
-    // second key nobody reads, and `tags.0` builds `{ "0": … }` instead of an
-    // array. Throwing makes both a classified document fault, which the error
-    // slot shows and recovery can feed back to the model.
+    // A missing parent throws — inventing one would turn typos and `tags.0`
+    // into silent no-ops instead of classified document faults.
     for (let i = 0; i < keys.length - 1; i++) {
       const key = keys[i];
       if (current[key] === undefined || current[key] === null) {

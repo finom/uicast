@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 // The .md prompt fragments ship through generated .json mirrors, and nothing
 // fails loudly when a mirror goes stale — this does.
 describe("prompt md mirrors", () => {
-	it.each(["INSTRUCTIONS", "EXPRESSIONS"])(
+	it.each(["INSTRUCTIONS"])(
 		"%s.json mirrors the .md source",
 		(name) => {
 			const md = readFileSync(

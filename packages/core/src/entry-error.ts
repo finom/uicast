@@ -103,11 +103,7 @@ export class EntryError extends Error {
     );
   }
 
-  /**
-   * Classify `err` as `reason`, keeping the original in `cause`. An error that
-   * is already an EntryError passes through untouched (the deepest — most
-   * precise — classification wins); a missing `elementKey` is filled in.
-   */
+  /** Classify `err` as `reason`, original in `cause`. An existing EntryError passes through; a missing `elementKey` is filled in. */
   static wrap(
     err: unknown,
     reason: EntryErrorReason,

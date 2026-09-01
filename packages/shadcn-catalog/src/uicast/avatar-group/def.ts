@@ -9,7 +9,10 @@ export const AvatarGroupDef = createComponentDefinition({
     avatars: z
       .array(
         z.object({
-          src: z.string().optional().meta({ description: "Avatar image URL" }),
+          src: z
+            .string()
+            .optional()
+            .meta({ format: "uri-reference", description: "Avatar image URL" }),
           alt: z.string().optional().meta({ description: "Alt text" }),
           fallback: z
             .string()

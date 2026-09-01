@@ -5,16 +5,17 @@ import { Callout } from "nextra/components";
 Where **uicast** is headed.
 
 <Callout type="warning">
-  uicast is an early-stage framework in beta — use it at your own risk. In
-  particular, model-written expressions are evaluated in the browser behind a
-  [guardrail, not a sandbox](/entry/expressions#safety) — read that page and
-  decide whether the trade-off fits your app. The entry format and the prompt
-  contract can also still change between releases.
+  uicast is an early-stage framework in beta — use it at your own risk.
+  Model-written expressions run in the browser through an
+  [interpreter with a closed grammar and a runtime membrane](/expr), not
+  the JavaScript engine — a real language boundary, though host functions and
+  what you inject into scope stay your responsibility. The entry format and the
+  prompt contract can also still change between releases.
 </Callout>
 
 ## Reactive `loading` placeholders
 
-A `loading` field on the entry: a bare [expression](/entry/expressions),
+A `loading` field on the entry: a bare [expression](/expr),
 evaluated like [`hidden`](/entry/fields#hidden), showing the element's
 [placeholder](/react/renderer) while truthy — a skeleton over refreshing data,
 without unmounting anything.

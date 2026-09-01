@@ -10,11 +10,7 @@ const EMPTY_OBJECT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-/**
- * The props schema of a propless component. Hand-written — core stays schema-
- * library-agnostic — and accepting anything: no shape to be wrong about, so it
- * never blames the document.
- */
+/** Props schema of a propless component — accepts anything, hand-written so core stays schema-library-agnostic. */
 export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
   "~standard": {
     version: 1,
@@ -27,11 +23,7 @@ export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
   },
 };
 
-/**
- * `children` is the entry's own field (child element keys), so a def may not
- * also declare it — one name carrying two things, with whichever the renderer
- * injects last silently winning. Name the prop for what it holds.
- */
+/** `children` is the entry's own field, so a def may not also declare it as a prop. */
 const RESERVED_PROP = "children";
 
 /** Top-level property names of a spec's JSON Schema; `[]` if it isn't an object schema. */
@@ -45,12 +37,7 @@ const propertyNames = (spec: CombinedSpec): string[] => {
   }
 };
 
-/**
- * Value-side constructor for a {@link ComponentDefinition}: infers the concrete
- * `props` / `callbacks` specs at the call site and returns the def unchanged —
- * `createComponentImplementation` reads those inferred types off it. `props`
- * may be omitted; a `children` prop or callback field is rejected.
- */
+/** Value-side constructor for a {@link ComponentDefinition}; infers the concrete `props`/`callbacks` spec types at the call site. Rejects a `children` prop or callback. */
 export const createComponentDefinition = <
   TProps extends CombinedSpec = typeof NO_PROPS,
   TCallbacks extends Record<string, CombinedSpec> = Record<string, never>,

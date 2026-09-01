@@ -4,10 +4,10 @@ import { useState } from "react";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
-  getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
+import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import {
   Dialog,

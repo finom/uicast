@@ -19,10 +19,6 @@ export {
 	type RenderFailure,
 } from "./get-error-recovery-prompt";
 export {
-	type ExpressionsPromptOptions,
-	getExpressionsPartialPrompt,
-} from "./get-expressions-partial-prompt";
-export {
 	type FunctionsPromptOptions,
 	getFunctionsPartialPrompt,
 } from "./get-functions-partial-prompt";

@@ -19,7 +19,7 @@ interface ComponentEntry {
 ```
 
 A `props` value is a [value source](/entry/value-sources), every `expr` is a
-[JavaScript expression](/entry/expressions), and the paths they read and write
+[JavaScript expression](/expr), and the paths they read and write
 live in [state & scopes](/entry/state).
 
 ## Structure
@@ -81,7 +81,7 @@ Props that fail the [definition](/def)'s schema raise `invalid-props` in the
 element's error slot before render runs.
 
 ### `hidden`
-A bare [JavaScript expression](/entry/expressions), with no `literal` form, that
+A bare [JavaScript expression](/expr), with no `literal` form, that
 hides the line while truthy. Reactive, like `props`.
 
 ```jsonl
@@ -184,7 +184,7 @@ The per-item state these create lives in
 [item scopes](/entry/state#item-scopes).
 
 ### `each`
-A bare [expression](/entry/expressions) returning the array to repeat over.
+A bare [expression](/expr) returning the array to repeat over.
 Reactive: writing a path it reads re-runs the list.
 
 ```jsonc

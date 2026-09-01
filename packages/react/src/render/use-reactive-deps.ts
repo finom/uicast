@@ -7,24 +7,18 @@ import {
 } from "@uicast/core/internal";
 import type { Scopes } from "../types";
 
-// Total emits across every scope this node can read. Subscribing happens in an
-// effect, one commit after the value was computed, so a write landing in
-// between (a sibling's effect — a list publishing `childScopes.<as>`, say)
-// fires before the handler exists. Comparing this count across that gap is how
-// the node notices it missed one; the paths themselves are not read, so it
-// stays an integer compare per render.
+// Total emits across readable scopes. Subscribing lands one commit late, so
+// comparing this count across the gap is how a node notices a write it could
+// not hear. Integer compare per render.
 function emitCount(scopes: Scopes): number {
   let total = 0;
   for (const key in scopes) total += scopes[key]?.$emitter.version ?? 0;
   return total;
 }
 
-// Subscribe the node to every reactive path its entry reads (auto-derived from
-// the expression text), re-rendering when any changes. `mode` picks the slice
-// (see DepsPart): the list container subscribes to `each` only, each item to
-// props + hidden only — subscribing both to everything would double-render
-// every row. `"skip"` lets the container pass leave the list's deps to
-// ListEntryRenderer entirely.
+// Subscribe the node to every path its entry reads. `mode` picks the slice
+// (see DepsPart) so container and items don't double-subscribe; `"skip"`
+// leaves a list's deps to ListEntryRenderer.
 export function useReactiveDeps(
   element: ComponentEntry | undefined,
   scopes: Scopes,

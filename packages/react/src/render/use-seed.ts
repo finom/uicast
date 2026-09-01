@@ -1,6 +1,6 @@
 import { useReducer, useRef } from "react";
 import { EntryError, type ComponentEntry } from "@uicast/core";
-import { evaluate, planStepWaves } from "@uicast/core/internal";
+import { evaluate, planStepWaves, type EvaluatorMode } from "@uicast/core/internal";
 import type { StandardToolV0 } from "standard-tool";
 import { readScopePath } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
@@ -26,26 +26,24 @@ type SeedResult = {
 const toError = (err: unknown): Error =>
   err instanceof Error ? err : new Error(String(err));
 
-// One-shot seeding of a node's `seed` and the host `init`, on its first real
-// render. Sync writes land immediately; if any returns a Promise, the batch is
-// parked on one Promise (returned for <Suspense>) so children wait for it.
-// Attempts are pinned per entry object: a successful seed never re-runs on a
-// re-emitted key, while a failed one retries when a corrected entry replaces
-// it (writes are `default: true`, so a retry can't clobber state that was set
-// meanwhile).
+// One-shot seed + host `init` on first real render; async batches park on one
+// Promise for <Suspense>. Attempts pin per entry object: success never
+// re-runs, a failed seed retries when a corrected entry replaces it.
 export function useSeed({
   element,
   scopes,
   init,
   functions,
-  allowGlobals,
+  evaluator,
+  maxExpressionLength,
   enabled,
 }: {
   element: ComponentEntry | undefined;
   scopes: Scopes;
   init?: InitFn;
   functions?: StandardToolV0[];
-  allowGlobals?: string[];
+  evaluator?: EvaluatorMode;
+  maxExpressionLength?: number;
   enabled: boolean;
 }): SeedResult {
   // Wakes the component when an async seed settles — success clears the
@@ -70,11 +68,8 @@ export function useSeed({
       const steps = (element.seed ?? []).filter((step) => step.set);
       const targets = parseStepTargets(steps, element.key);
 
-      // Evaluate one wave: steps in a wave are mutually independent, so they
-      // run in parallel; a step that reads an earlier step's write sits in a
-      // later wave (see planStepWaves) and evaluates after that write landed.
-      // Returns null when every step resolved synchronously (writes applied),
-      // else a promise that applies the wave's writes as it settles.
+      // Run one wave (mutually independent steps) in parallel. Returns null
+      // when fully synchronous, else a promise applying writes as it settles.
       const runWave = (wave: typeof steps): Promise<void> | null => {
         const evaluated = wave.map((step) => {
           const [targetScope, targetPath] = targets.get(step)!;
@@ -82,7 +77,7 @@ export function useSeed({
           const value = evaluate(
             step,
             { scopes, currentValue },
-            { functions, allowGlobals },
+            { functions, evaluator, maxExpressionLength },
           );
           return { targetScope, targetPath, value };
         });
@@ -140,11 +135,9 @@ export function useSeed({
 
       if (chain) {
         const batch = chain.then(() => {
-          // Clear the gate and wake the component so the next pass renders
-          // without Suspense and the boundary's reset token flips back to the
-          // entry — clearing a latch from a fallback that threw against
-          // pre-seed state. (A `$set` wake can land BEFORE this settles, so it
-          // can't be relied on to observe the cleared gate.)
+          // Clear the gate and wake the component — a `$set` wake can land
+          // BEFORE this settles, so it cannot be relied on to see the cleared
+          // gate.
           pendingSeedRef.current = null;
           forceRender();
         });

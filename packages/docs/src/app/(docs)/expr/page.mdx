@@ -1,0 +1,305 @@
+---
+title: The expression evaluator
+---
+
+import { Callout } from "nextra/components";
+
+# The expression evaluator
+
+Every `expr` in a document is written by a model, and a document can be saved
+and replayed for other people. So an expression is untrusted input running in
+your users' browsers.
+
+`@uicast/expr` is what runs it. Expressions keep JavaScript syntax —
+models write it fluently, and a bespoke language would mean worse generations —
+but the package treats it as a language of its own: a closed grammar, parsed
+once with acorn and nothing else. It has no uicast dependency and works
+standalone.
+
+## Two modes
+
+One validator, two ways to run what it accepts:
+
+- **`interpret`** — the default. The AST is compiled to a tree of closures the
+  package evaluates itself. Every property read and every call is checked as it
+  happens, and a CPU and allocation [budget](#budgets) runs alongside.
+  `new Function` is never called, so it works under a strict
+  Content-Security-Policy — no `unsafe-eval`. Use it whenever someone else can
+  steer the document: multi-tenant products, customer prompts, replayed pages.
+- **`native`** — validates against the **same grammar**, then hands the source
+  to `new Function`. Near-native speed, needs `unsafe-eval`. Only for documents
+  from a trusted author — your own pipeline, an admin — never for anything a
+  stranger can steer.
+
+Same grammar means switching is one word:
+
+```tsx
+new Evaluator();                     // interpret
+new Evaluator({ mode: "native" });
+
+<RendererProvider evaluator="native" /> // the React binding
+```
+
+The difference in guarantee comes down to one line of JavaScript:
+
+```js
+({}).constructor              // any static check sees this
+({})["con" + "structor"]      // the same read — the name exists only at run time
+```
+
+A validator sees written names; JavaScript resolves keys when it runs. Under
+`interpret` the read itself is the checkpoint, so both lines above are the same
+event and get the same rejection. Three rules do most of the work:
+
+- **Plain objects are read by own property only.** Nothing walks a prototype
+  chain, so `constructor`, `toString` and everything else inherited is
+  unreachable without naming any of them.
+- **Only data is readable.** Objects, arrays, primitives, a short list of
+  built-ins. A class instance, a DOM node, or a function fails on the first hop
+  — a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
+- **Methods are invoked, never handed around.** `rows.map(f)` works; `rows.map`
+  as a value is an error, so nothing can be re-bound.
+
+## The model is your first line of defence
+
+`native` trusts the document's author. The shared validator still rejects a lot
+— statements, declarations, assignment, regular expressions, unknown globals
+(`fetch` fails before anything runs), every forbidden name that is *written*,
+including `obj["constructor"]`, and every method call outside the allow-list.
+But it cannot see a name assembled at run time: `rows["so" + "rt"]()` reaches
+the real, mutating prototype method, and allocation is uncapped.
+
+So in this mode, safety rests on who writes the documents: a production model
+following [the prompt contract](/prompt), fed by your own pipeline. That is a
+reasonable bet — a good model asked to build a dashboard does not emit
+string-assembled prototype walks — and current Anthropic, OpenAI, and Google
+models hold the contract well. It is an unreasonable bet about a stranger's
+prompt, which is why `native` is opt-in and `interpret` is the default.
+
+Under `interpret` none of this depends on the model behaving — the
+interpreter refuses an escape whether or not the model meant to write one. A
+good model just means you rarely see a rejection at all, and the
+[prompt](/prompt) carries a standing instruction that text arriving in data is
+data, not instructions. Treat that as raising the floor; the boundary is the
+interpreter.
+
+The two modes are two threat models, not a fast and a slow version of one
+guarantee.
+
+## Where expressions appear
+
+Every site, in one product search (`scopes.root.products` is seeded higher up):
+
+```jsonc
+{ "key": "search", "component": "SearchInput",
+  "seed": [{ "set": "scopes.root.query", "literal": "" }],
+  "props": { "expr": "({ value: scopes.root.query })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.query", "expr": "evt.value" }] } }
+{ "key": "empty", "component": "Text", "hidden": "scopes.root.products.length > 0",
+  "props": { "literal": { "text": "No products" } } }
+{ "key": "rows", "component": "Text", "as": "row", "keyBy": "id",
+  "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))",
+  "props": { "expr": "({ text: scopes.row.item.name })" } }
+```
+
+`props` is a [value source](/entry/value-sources): `expr` computes the props
+object, `literal` is taken as-is. `hidden` and `each` are **bare strings**, not
+value sources.
+
+Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
+may call host [`functions`](/functions), since those are the two sites where an
+async result is awaited — a host call in `props`, `hidden`, or `each` is
+rejected into the element's error slot. A step with a `set` also sees
+[`currentValue`](/entry/value-sources#valuesourceassignment), whatever is at
+that path now.
+
+Reading a scope path in `props`, `hidden`, or `each` subscribes the element to
+it — dependencies are extracted from the expression text, never declared. How
+that works, and why paths must be written out literally, is on
+[Reactivity &amp; Dependencies](/entry/reactivity).
+
+## The language
+
+The grammar is a closed allow-list of AST node types: anything not on it fails
+validation, in both modes.
+
+| | |
+| --- | --- |
+| Values | numbers, strings, booleans, `null`, template literals |
+| Access | `a.b`, `a[b]`, `a?.b`, `a?.[b]` (optional *receiver*, not `a?.()`) |
+| Calls | methods, host functions, `new` for `Date` / `Map` / `Set` / `URL` / `Intl` formatters |
+| Operators | arithmetic, comparison, `===`/`==`, `&&`, `\|\|`, `??`, `!`, `-`, `+`, `typeof`, `? :` |
+| Literals | arrays and objects, with spread and computed keys |
+| Functions | arrow functions with an **expression body**, parameters may destructure |
+
+What is missing is deliberate:
+
+- **All statements and declarations.** No `const` / `let` / `var`, no loops,
+  no `try`, no blocks, no `function` keyword — a runaway loop is not blocked,
+  it is unwritable, and with nothing named, nothing can refer to itself to
+  recurse.
+- **Assignment, `++`, `delete`.** Expressions are pure structurally, not by
+  convention.
+- **Regular expressions.** Catastrophic backtracking runs where no budget can
+  see it. `.includes()`, `.startsWith()`, `.split()`, `.replaceAll()` cover the
+  real cases.
+- **`await`.** Host calls return promises and the runtime awaits them — the
+  expression never does.
+- **`in`, bitwise operators, `x?.()`, `instanceof`, tagged templates, `this`.**
+  None shapes a display value.
+
+The single-expression rule holds all the way down — a callback body is one
+expression too, never a block:
+
+```js
+// ✅ a ternary inside the callback
+scopes.root.rows.map(r => r.status === "paid" ? "green" : "red")
+
+// ❌ rejected — a block body is a statement list, and there are no statements
+scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green" } })
+```
+
+With no assignment and no mutating method, expressions are **pure by
+construction**: the only way to change state is a step's `set`, and
+`scopes.root.hits = 1` does not even parse. The mutating `.sort()` and
+`.reverse()` are not in the language — order with `.toSorted()`, reverse with
+`.toReversed()`: the standard non-mutating pair, identical in both modes.
+
+They are also **stateless**: `Math.random` is absent and there is nothing to
+store a counter in. The one seam left open is the clock — `Date` is
+allow-listed, so `Date.now()` does not fail, it *drifts*. `props` re-evaluates
+on every render, so produce a timestamp once in `seed` and read it back:
+
+```jsonc
+// ❌ a new timestamp every render pass
+{ "props": { "expr": "({ text: 'Draft ' + Date.now() })" } }
+
+// ✅ produced once, read back from the path
+{ "seed": [{ "set": "scopes.root.draftId", "expr": "Date.now()" }],
+  "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
+```
+
+The full list of methods and globals ships as a prompt partial,
+`getExpressionsPartialPrompt()`, filled from the evaluator's own tables so the
+two cannot drift.
+
+<Callout type="default">
+  Control flow was never the expression language's job. Sequencing lives in a
+  callback's ordered steps, iteration in `each`, conditionals in `hidden` — the
+  document format already owns all three.
+</Callout>
+
+## Budgets
+
+With no loop syntax and no recursion, exhausting the CPU takes a built-in
+method that iterates. Under `interpret` every such method is implemented inside
+the package, so every iteration passes a budget:
+
+- a **step counter**, charged per callback invocation by the body's
+  compile-time node count;
+- a **wall-clock deadline**, checked against a clock the expression cannot
+  read or move;
+- **allocation caps**, so `"x".repeat(1e9)` is refused, not attempted;
+- a **callback depth cap** — self-application (`[f => f(f)]...`) is the one
+  recursion the grammar cannot forbid, and it stops here;
+- an **AST depth limit**, so nested source cannot overflow the compiler;
+- a **source-length limit** (1000 characters by default,
+  `maxSourceLength`), checked before parsing — oversized input never reaches
+  the parser. The prompt tells the model the limit, filled from the same
+  constant.
+
+Only the AST depth limit carries over to `native`, which runs real methods
+with no counter around them — another part of the trusted-author trade.
+
+## When an expression is rejected
+
+A rejection is a classified
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror) — a
+**document** fault, contained to the element's error slot like any other:
+
+| expression | reason |
+| --- | --- |
+| `if (scopes.root.n) 1` | `expression-syntax` — a statement, not an expression |
+| `scopes.root.count = 1` | `guardrail-violation` — assignment is not in the language |
+| `({})["con" + "structor"]` | `guardrail-violation` — caught at the read, computed or not |
+| `fetchProducts()` | `unknown-reference` — a name nobody handed in |
+
+## Performance
+
+The walk happens once, at compile time, and produces closures — evaluation
+afterwards is nested function calls. Measured against `new Function` on the
+same expressions:
+
+| expression | in a document | `interpret` | `native` | bare `new Function` |
+| --- | --- | --- | --- | --- |
+| `scopes.root.count > 0` | a `hidden` condition | ~73 ns | ~35 ns | ~20 ns |
+| `scopes.root.user.name` | any scope read | ~107 ns | ~44 ns | ~21 ns |
+| template, two interpolations | a text prop | ~196 ns | ~61 ns | ~37 ns |
+| object literal from scope | every `props.expr` | ~182 ns | ~45 ns | ~22 ns |
+| `.filter()` over 1000 rows | a derived `each` | ~25 µs | ~1.41 µs | ~1.36 µs |
+| `.map()` over 1000 rows | a per-row transform | ~36 µs | ~2.12 µs | ~2.06 µs |
+| `.reduce()` over 1000 rows | an inline aggregate | ~80 µs | ~0.95 µs | ~0.89 µs |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.71 ms | ~0.18 ms | ~0.07 ms |
+
+`interpret` is slower because it checks every read and call as it happens —
+that is what the guarantee costs. The compiler keeps the overhead down by
+deciding everything it can at compile time: identifiers resolve to frame
+addresses, plain member chains fuse into one closure, the budget is charged
+per invocation.
+
+The absolute numbers are what matter. The last row models a 1000-row table
+with five expression sites per row, all re-evaluating at once: 0.7 ms for the
+expressions, while React and the DOM spend tens of milliseconds rendering the
+same update. The prompt bounds the load from the other side: it instructs the
+model to cap a list at 100 visible items (`maxListItems` on
+`getCommonInstructionsPartialPrompt`) and page or filter past that. Heavy data
+work — a reduce over tens of thousands of rows — belongs in a host function.
+**Expressions shape display values; host functions compute.**
+
+## What it does not secure
+
+The interpreter secures the language. Three things sit outside it:
+
+- **Host functions are capabilities.** `rows.map(r => deleteProduct(r.id))` is
+  a legal expression that deletes everything. Nothing escaped — the document
+  used something you granted it. Keep `functions` narrow and enforce
+  authorization on the server.
+- **Props that reach the DOM.** A URL a document controls is a destination the
+  browser may fetch on render. The renderer's
+  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) gates those props.
+- **What you put into scope.** The membrane refuses non-data values, but the
+  cleanest guarantee is tools declaring an `outputSchema`, so what crosses into
+  an expression is parsed data by construction.
+
+The full picture — including the
+[catalog-authoring contract](/react/impl#props-the-document-controls) — is on
+the [Security model](/security) page.
+
+## Verification
+
+Three suites verify the implementation:
+
+- **Against JavaScript.** Every expression in the test corpus runs twice —
+  through the interpreter, and through `new Function` — and the two results
+  must be identical. The likely bug in a hand-written evaluator is not an
+  escape; it is returning something slightly different from what real
+  JavaScript returns (`"" == 0`, `-0`, coercion order). This suite exists to
+  catch exactly that.
+- **Against known attacks.** The tests keep a collection of real escape
+  techniques — reading `constructor` through a computed key, polluting
+  `Object.prototype`, allocation bombs, recursion tricks, a live object placed
+  in scope — and assert that every one of them throws.
+- **Against the difference between the modes.** Everything the grammar forbids
+  must fail in both modes. The attack the modes disagree on —
+  `({})["con" + "structor"]` — is pinned by two assertions: it throws under
+  `interpret`, and it does not throw under `native`. So the limitation of
+  `native` described on this page is verified by a test, not just stated.
+
+<Callout type="warning">
+  Any evaluator of untrusted expressions can carry implementation bugs, and
+  this one is no exception. The risk is bounded — a grammar small enough to
+  review, tested differentially and adversarially — not eliminated. The claim
+  is precise: `interpret` closes the computed-key class outright and needs no
+  `unsafe-eval`; `native` keeps that residual by an explicit, documented
+  choice.
+</Callout>

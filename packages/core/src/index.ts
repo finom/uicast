@@ -13,6 +13,15 @@ export { createProxyScope, type ReactiveProxy } from "./scope/create-proxy-scope
 
 export { buildElementsByKey } from "./utils/build-elements-by-key";
 
+export {
+  checkUrl,
+  findUrlViolations,
+  schemaHasUrlFormat,
+  type UrlCheck,
+  type UrlPolicy,
+  type UrlViolation,
+} from "./security/url-policy";
+
 export { streamJsonLines } from "./stream/stream-json-lines";
 
 export {

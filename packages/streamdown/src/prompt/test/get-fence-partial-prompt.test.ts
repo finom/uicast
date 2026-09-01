@@ -20,6 +20,12 @@ describe("getFencePartialPrompt", () => {
 		expect(getFencePartialPrompt()).toContain("REPLACES the raw-JSONL output rule");
 	});
 
+	it("renders note as a trailing ## Note section", () => {
+		const out = getFencePartialPrompt({ note: "Replies are limited to one fence." });
+		expect(out.endsWith("## Note\n\nReplies are limited to one fence.")).toBe(true);
+		expect(getFencePartialPrompt()).not.toContain("## Note");
+	});
+
 	it("teaches that cross-reply corrections need a complete new fence", () => {
 		const out = getFencePartialPrompt();
 		expect(out).toContain("only works WITHIN one fence");

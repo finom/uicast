@@ -119,3 +119,29 @@ Collect every implementation into the array passed to
 `<RendererProvider implementations={...}>`. That is the partner to the def's
 [definitions array](/def#registration): defs drive the prompt, implementations
 drive rendering. Adding a component means updating both.
+
+## Props the document controls
+
+Every prop value comes from a document a model wrote, and the implementation
+is the last code to touch it before the DOM. The [evaluator](/expr) has
+already checked the expression; what it cannot check is what your JSX does
+with the result. Three rules keep a catalog safe:
+
+- **URLs go through declared URL props.** Never render a plain string prop
+  into `src`, `href`, or `poster`. Declare the prop as a URL in the
+  [definition](/def) (`z.url()`), and the renderer's
+  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load)
+  gates it before your `render` ever runs. An implementation that builds a
+  URL from an ordinary string prop bypasses that gate entirely.
+- **No document strings in script-capable sinks.** `dangerouslySetInnerHTML`,
+  `<style>` text, `srcDoc`, and `on*` attribute strings can carry script — and
+  a raw CSS string can exfiltrate via `url(...)`. Style *objects* with fixed
+  keys are fine (`style={{ width: props.width }}`); handing the document a
+  whole CSS or HTML string is not.
+- **Event payloads are plain fields, never the event.** Pass a picked object
+  (`onClick(pickMouseEvent(e))` — the catalog's own pattern), not the React
+  event. The membrane refuses live objects as a backstop, but the contract is
+  yours: everything entering a document's scope is plain, JSON-shaped data.
+
+The shipped catalog follows all three. If you build your own, these rules are
+what makes the [security model](/security) hold end to end.

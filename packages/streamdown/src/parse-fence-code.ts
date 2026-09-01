@@ -4,13 +4,9 @@ import { isComponentEntry, type ComponentEntry } from "@uicast/core";
 export const FENCE_LANGUAGE = "uicast";
 
 /**
- * Parse a ```uicast fence body into ComponentEntry lines. Streaming-safe:
- * unparseable lines (the incomplete last line, stray prose) are skipped.
- *
- * Pass a `cache` (one per fence block) so an unchanged line returns the same
- * object across re-parses. The engine keys on entry identity — store wake-ups,
- * failed-seed retries, boundary resets — so re-minting entries every tick
- * would re-render settled nodes and retry failed seeds on every token.
+ * Fence body → ComponentEntry lines; unparseable lines (incomplete tail,
+ * prose) are skipped. Pass a per-fence `cache` so unchanged lines keep
+ * identity — re-minting entries retries failed seeds on every token.
  */
 export function parseFenceCode(
   code: string,

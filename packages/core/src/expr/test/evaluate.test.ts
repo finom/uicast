@@ -149,7 +149,7 @@ describe("evaluate — host functions and evt", () => {
   });
 });
 
-describe("getScopeReads — thin wrapper around SaferEval.scopeReads", () => {
+describe("getScopeReads — memberReads bound to the scopes root", () => {
   it("returns paths read by an expression", () => {
     expect(getScopeReads("scopes.root.a + scopes.root.b")).toEqual(
       expect.arrayContaining(["scopes.root.a", "scopes.root.b"]),
@@ -158,5 +158,35 @@ describe("getScopeReads — thin wrapper around SaferEval.scopeReads", () => {
 
   it("returns an empty list for a literal", () => {
     expect(getScopeReads("1 + 2")).toEqual([]);
+  });
+});
+
+describe("evaluate — maxExpressionLength", () => {
+  it("rejects an oversized expression as a classified document fault", () => {
+    expect(() =>
+      evaluate({ expr: "1 + 1 + 1" }, {}, { maxExpressionLength: 5 }),
+    ).toThrow(expect.objectContaining({ message: expect.stringContaining("too long") }));
+    expect(evaluate({ expr: "1 + 1" }, {}, { maxExpressionLength: 5 })).toBe(2);
+  });
+});
+
+describe("evaluate — host function name screen", () => {
+  const tool = (name: string) => ({ name, description: "", execute: () => 1 });
+
+  it.each([
+    ["foo-bar", "not a valid identifier"],
+    ["class", "not a valid identifier"],
+    ["scopes", "is reserved"],
+    ["evt", "is reserved"],
+    ["Math", "is an expression global"],
+  ])("rejects %s at bind time (%s)", (name, message) => {
+    expect(() => evaluate({ expr: "1" }, {}, { functions: [tool(name)] })).toThrow(
+      expect.objectContaining({ message: expect.stringContaining(message) }),
+    );
+    try {
+      evaluate({ expr: "1" }, {}, { functions: [tool(name)] });
+    } catch (err) {
+      expect(EntryError.is(err) && err.reason === "host-function").toBe(true);
+    }
   });
 });

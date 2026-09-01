@@ -21,27 +21,20 @@ import { RendererRegistryProvider } from "./renderer-registry";
 type RendererGroup = {
   /** The shared scopes — one `root` proxy for every renderer in the group. */
   scopes: Scopes;
-  /**
-   * Group-level `init`, latched to run once no matter how many renderers
-   * mount. The first renderer's seed pass executes it (keeping the
-   * error classification and Suspense gating); the rest await the same result.
-   */
+  /** Group-level `init`, latched to run once; the first renderer's seed pass executes it, the rest await. */
   init?: InitFn;
 };
 
 const RendererGroupContext = createContext<RendererGroup | null>(null);
 
-/**
- * The host side of the React binding: the component registry, host functions,
- * fallback UI, and — critically — ONE shared reactive store for every
- * <EntriesRenderer> beneath it. A group of documents behaves as one app with
- * one store: the same path means the same data in every document.
- */
+/** Host side of the binding: registry, functions, fallback UI, and ONE shared store — every renderer beneath behaves as one app. */
 export function RendererProvider({
   implementations,
   fallbackComponents,
   functions,
-  allowGlobals,
+  evaluator,
+  maxExpressionLength,
+  urlPolicy,
   onError,
   init,
   children,
@@ -97,10 +90,20 @@ export function RendererProvider({
       implementations: implementationsByName,
       fallbackComponents,
       functions,
-      allowGlobals,
+      evaluator,
+      maxExpressionLength,
+      urlPolicy,
       onError,
     }),
-    [implementationsByName, fallbackComponents, functions, allowGlobals, onError],
+    [
+      implementationsByName,
+      fallbackComponents,
+      functions,
+      evaluator,
+      maxExpressionLength,
+      urlPolicy,
+      onError,
+    ],
   );
 
   return (

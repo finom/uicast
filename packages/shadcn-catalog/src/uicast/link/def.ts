@@ -8,6 +8,7 @@ export const LinkDef = createComponentDefinition({
   props: z.object({
     text: z.union([z.string(), z.number()]).optional().meta({ description: "The link text content" }),
     href: z.string().optional().meta({
+      format: "uri-reference",
       description: "The URL to navigate to (for display purposes)",
     }),
     variant: z

@@ -15,12 +15,13 @@ const meta: MetaRecord = {
   demo: { title: "Demos", type: "page" },
   skill: "Agent skill",
   concepts: "Concepts",
+  expr: "The expression evaluator",
   def: "Component definition",
   react: {
     title: "React",
     items: {
       impl: "Component implementation",
-      renderer: "Renderer",
+      renderer: "Provider & Renderer",
     },
   },
   functions: "Host functions",
@@ -36,11 +37,11 @@ const meta: MetaRecord = {
       fields: "Entry fields",
       "value-sources": "Value Sources",
       state: "State & Scopes",
-      expressions: "JavaScript Expressions",
       reactivity: "Reactivity & Dependencies",
     },
   },
-  api: "API reference",
+  security: "Security model",
+  "api-ref": "API reference",
   roadmap: "Roadmap",
   // External links live in the top bar, not the sidebar: `type: "page"` moves an
   // item out of the sidebar into the navbar, and `href` makes it a plain link.

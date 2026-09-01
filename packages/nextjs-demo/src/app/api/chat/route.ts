@@ -2,10 +2,10 @@ import { convertToModelMessages, streamText, type UIMessage } from "ai";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
-  getExpressionsPartialPrompt,
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
+import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { allDefinitions } from "@uicast/shadcn-catalog/defs";
 import { eq } from "drizzle-orm";

@@ -12,15 +12,9 @@ const overlaps = (a: string, b: string): boolean =>
   a === b || a.startsWith(`${b}.`) || b.startsWith(`${a}.`);
 
 /**
- * Partition a step list (seed or callback) into dependency waves: a step
- * reading a path an earlier step writes lands in a later wave; independent
- * steps share one and may run in parallel. `currentValue` counts as a read of
- * the step's own `set` path. A `confirm` step is a barrier, alone in its wave.
- *
- * `isBarrier` marks more barriers — the callback runner uses it for
- * host-function calls, whose effects path analysis can't see. `declaredWrites`
- * adds written paths a step's `set` doesn't name — the react binding declares
- * a row write's source-array/childScopes aliases through it.
+ * Partition steps into dependency waves: reads wait for earlier writes,
+ * independent steps share a wave, `confirm` is a barrier. `isBarrier` adds
+ * barriers (host calls); `declaredWrites` adds unnamed written paths.
  */
 export function planStepWaves<T extends PlannableStep>(
   steps: readonly T[],

@@ -2,11 +2,17 @@ import { Activity, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import {
   EntryError,
+  findUrlViolations,
+  schemaHasUrlFormat,
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
 } from "@uicast/core";
-import { evaluate } from "@uicast/core/internal";
+import {
+  evaluate,
+  specToJSONSchema,
+  type JSONSchema,
+} from "@uicast/core/internal";
 import { useConfirm } from "../providers/confirm";
 import { useRendererRegistry } from "../store/renderer-registry";
 import type {
@@ -16,12 +22,8 @@ import type {
 } from "../types";
 import { runCallbackSteps } from "./run-callback-steps";
 
-// A `null` callback payload means "no event data": the handler is a no-arg
-// function (`onClick()`), not `(evt: null)`.
-//
-// The argument is the schema's INPUT: the implementation supplies the payload
-// and the engine parses it, so a field with a `.default()` is the caller's to
-// omit and the engine's to fill — the steps then see the parsed output.
+// `null` payload = no-arg handler. The argument is the schema INPUT: the impl
+// supplies it, the engine parses, the steps see the OUTPUT (defaults filled).
 type CallbackFn<S extends CombinedSpec> = [StandardSchemaV1.InferInput<S>] extends [null]
   ? () => Promise<void>
   : (args: StandardSchemaV1.InferInput<S>) => Promise<void>;
@@ -42,14 +44,9 @@ const describeIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
     .join("; ");
 
 /**
- * Parse a value through a spec and return its OUTPUT — the shape the schema
- * promises, defaults applied. That is what `render` and a callback's `evt` are
- * typed as (`InferOutput`), so handing over the raw input would be the engine
- * breaking its own contract.
- *
- * An async validator can't answer inside a synchronous render, so its value
- * passes through unparsed rather than blocking; the same is true of a validator
- * that throws. Both are the schema library's problem, not the document's.
+ * Parse through a spec, return the OUTPUT (defaults applied) — what `render`
+ * and `evt` are typed as. An async or throwing validator passes the value
+ * through unparsed: a sync render can't await, and both are the library's fault.
  */
 const parseSpec = (
   spec: CombinedSpec,
@@ -85,6 +82,23 @@ export const createComponentImplementation = <
   ) => React.ReactElement;
   placeholder?: (props: PlaceholderComponentProps) => React.ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
+  // Computed once per component, on first render: the props JSON Schema, and
+  // whether it declares any URL at all. A component with no URL prop — almost
+  // all of them — never runs the value walk.
+  let urlSchema: JSONSchema | null | undefined;
+  let hasUrlProps = false;
+  const ensureUrlSchema = (): void => {
+    if (urlSchema !== undefined) return;
+    try {
+      urlSchema = specToJSONSchema(def.props);
+    } catch {
+      // A spec that cannot convert fails loudly in the prompt builder instead;
+      // here it just means no URL checking is possible.
+      urlSchema = null;
+    }
+    hasUrlProps = schemaHasUrlFormat(urlSchema ?? undefined);
+  };
+
   const component = ({
     entry,
     children,
@@ -95,13 +109,13 @@ export const createComponentImplementation = <
     scopes: Scopes;
   }) => {
     const confirm = useConfirm();
-    const { functions, allowGlobals, onError } = useRendererRegistry();
+    const { functions, evaluator, maxExpressionLength, urlPolicy, onError } = useRendererRegistry();
     // Evaluate the entry's props, then parse them through the def's schema:
     // the result is the schema's output — every `.default()` applied — which is
     // what `render` is typed to receive. Props that fail the schema are a
     // document fault, caught here rather than as a render crash later.
     const rawProps = entry.props
-      ? evaluate(entry.props, { scopes }, { functions, allowGlobals })
+      ? evaluate(entry.props, { scopes }, { functions, evaluator, maxExpressionLength })
       : {};
     // The contract bans host functions (and `await`) in reactive sites: they
     // re-evaluate on every state change. Without this check the Promise would
@@ -120,8 +134,21 @@ export const createComponentImplementation = <
       );
     }
     const props = parsed.value as StandardSchemaV1.InferOutput<TProps>;
+    // Def-declared URL props are checked here, after parsing — the impl never
+    // sees a URL the policy rejects.
+    ensureUrlSchema();
+    if (hasUrlProps) {
+      const violations = findUrlViolations(urlSchema ?? undefined, props, urlPolicy);
+      if (violations.length > 0) {
+        const { path, url, reason } = violations[0];
+        throw new EntryError(
+          `Prop "${path}" of ${def.name} is a URL this renderer will not load — ${reason}. Got: ${url}`,
+          { reason: "guardrail-violation", elementKey: entry.key },
+        );
+      }
+    }
     const hidden = entry.hidden
-      ? evaluate({ expr: entry.hidden }, { scopes }, { functions, allowGlobals })
+      ? evaluate({ expr: entry.hidden }, { scopes }, { functions, evaluator, maxExpressionLength })
       : false;
     if (hidden instanceof Promise) {
       throw new EntryError(
@@ -167,7 +194,8 @@ export const createComponentImplementation = <
               scopes,
               confirm,
               functions,
-              allowGlobals,
+              evaluator,
+              maxExpressionLength,
               elementKey: entry.key,
             });
           } catch (err) {

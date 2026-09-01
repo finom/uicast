@@ -6,6 +6,14 @@ export default defineConfig({
     // Sibling packages resolve as source, matching the tsconfig path aliases.
     alias: [
       {
+        find: /^@uicast\/expr\/internal$/,
+        replacement: resolve(__dirname, "../expr/src/internal.ts"),
+      },
+      {
+        find: /^@uicast\/expr$/,
+        replacement: resolve(__dirname, "../expr/src/index.ts"),
+      },
+      {
         find: /^@uicast\/core\/prompt$/,
         replacement: resolve(__dirname, "../core/src/prompt/index.ts"),
       },

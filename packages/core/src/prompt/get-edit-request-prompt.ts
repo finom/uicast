@@ -1,21 +1,11 @@
 export type EditRequestPromptOptions = {
 	/** The user's change request, e.g. "Add pagination to the orders table". */
 	request: string;
-	/**
-	 * Keys referenced as children in the replayed tree but never emitted —
-	 * typically the tail of an earlier response that was cut off. Listing them
-	 * tells the model those elements do NOT exist, so it re-emits them instead
-	 * of keeping them by reference.
-	 */
+	/** Keys referenced as children but never emitted — listed so the model re-emits them instead of keeping them by reference. */
 	missingKeys?: string[];
 };
 
-/**
- * The user-turn message for an incremental edit: the host replays the page's
- * current JSONL as an assistant turn, then sends this — the change request
- * plus the re-emit-a-key delta convention — so the model emits only the
- * elements that change. Per-turn message content, not a system-prompt partial.
- */
+/** The user-turn message for an incremental edit: the change request plus the re-emit-a-key convention. Per-turn content, not a system-prompt partial. */
 export function getEditRequestPrompt({
 	request,
 	missingKeys = [],

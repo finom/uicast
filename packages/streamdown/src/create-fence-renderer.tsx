@@ -46,15 +46,9 @@ function toggleButtonStyle(active: boolean): CSSProperties {
 }
 
 /**
- * Build a Streamdown custom renderer for ```uicast fences: pass it as
- * `plugins={{ renderers: [uicastRenderer] }}` and wrap the conversation in a
- * `<RendererProvider>` — every block renders against that provider's one
- * shared `root` scope.
- *
- * Call this ONCE per option set (module scope or useMemo) and reuse the
- * object: a fresh component type per render would remount every block,
- * re-running seeds and wiping state. Entries mount progressively as fence
- * lines complete.
+ * Streamdown renderer for ```uicast fences; wrap the chat in one
+ * <RendererProvider>. Call ONCE per option set and reuse — a fresh component
+ * type per render remounts every block and wipes state.
  */
 export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
   const { showSourceToggle = false } = options;

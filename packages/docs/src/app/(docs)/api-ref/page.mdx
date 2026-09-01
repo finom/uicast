@@ -1,11 +1,12 @@
 # API reference
 
-Four packages. Each publishes compiled ESM plus type declarations, so no bundler
+Five packages. Each publishes compiled ESM plus type declarations, so no bundler
 configuration is needed.
 
 | Package | What it is |
 | --- | --- |
-| [`@uicast/core`](#uicastcore) | The engine: entry types, the expression evaluator, reactive scopes, the prompt builders. No React. |
+| [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders. No React. |
+| [`@uicast/expr`](#uicastexpr) | The expression evaluator: closed grammar, runtime membrane, budget. No uicast imports. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
 | [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 150 ready components as def/impl pairs, over shadcn/ui. |
 | [`@uicast/streamdown`](#uicaststreamdown) | Renders `uicast` fences inside a Markdown chat reply. |
@@ -40,16 +41,37 @@ The [prompt-partial builders](/prompt). Each takes one options object.
 
 | Export | Emits |
 |---|---|
-| `getCommonInstructionsPartialPrompt()` | The output contract — entries, keys, partial replacement. |
+| `getCommonInstructionsPartialPrompt({ maxListItems?, note? })` | The output contract — entries, keys, partial replacement — plus the expression context: the names an [expression](/expr) can see (`scopes` / `evt` / `currentValue`). The language itself is `getExpressionsPartialPrompt()` from [`@uicast/expr/prompt`](/expr) — compose both. |
 | `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
-| `getExpressionsPartialPrompt({ allowGlobals?, extraScopes? })` | The [expression](/entry/expressions) rules, the safe globals, and any host scopes. |
-| `getComponentsPartialPrompt({ definitions })` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events` automatically. |
-| `getFunctionsPartialPrompt({ functions })` | Call signatures, from your [host functions](/functions). |
+| `getComponentsPartialPrompt({ definitions, note? })` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events` automatically. |
+| `getFunctionsPartialPrompt({ functions, note? })` | Call signatures, from your [host functions](/functions). |
 | `getEditRequestPrompt({ request, missingKeys? })` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |
 | `getErrorRecoveryPrompt({ failures })` | A user-turn message naming the elements that failed. |
 
 Types: one options type per builder (`ComponentsPromptOptions`,
-`ScopePromptOptions`, …), plus `RenderFailure`.
+`ScopePromptOptions`, …), plus `RenderFailure`. Every `get*PartialPrompt`
+builder — here and in the other packages — takes `note?`: host-specific
+context rendered as that section's trailing `## Note`, verbatim.
+
+## `@uicast/expr`
+
+The [expression language](/expr), standalone — nothing uicast-specific in
+it.
+
+| Export | What it does |
+|---|---|
+| `Evaluator` | The evaluator: `eval`, `compile`, `validate`, `memberReads`. `mode: "interpret" \| "native"` selects the [back end](/expr#two-modes). |
+| `ALLOWED_GLOBALS` | The global names expressions may reference. |
+| `DEFAULT_BUDGET` | The default step / time / allocation ceilings. |
+| `ExpressionError` | Every refusal and fault, with a `reason`. |
+| `getExpressionsPartialPrompt({ allowGlobals?, maxLength?, note? })` | From `@uicast/expr/prompt`: the `# JavaScript Expressions` block — syntax, methods, globals, and the length limit. |
+
+Types: `EvaluatorOptions`, `EvaluatorMode`, `BudgetOptions`, `ExpressionFacts`,
+`ExpressionErrorReason`, `ExpressionsPromptOptions`.
+
+`@uicast/expr/internal` holds the screen shared with core —
+`RESERVED_WORDS`, `isUsableName(name)`: whether a name can be bound into the
+language as a function or context key. Internal: no semver guarantee.
 
 ## `@uicast/react`
 
@@ -88,6 +110,6 @@ Entries inside a ` ```uicast ` fence in a Markdown reply. See
 | Export | What it does |
 |---|---|
 | `createFenceRenderer(options?)` | The Streamdown renderer for `uicast` fences. Call once and reuse. |
-| `getFencePartialPrompt()` | From `@uicast/streamdown/prompt`: the fence syntax and shared-state rules. |
+| `getFencePartialPrompt({ note? })` | From `@uicast/streamdown/prompt`: the fence syntax and shared-state rules. |
 
 Types: `FenceRendererOptions`.

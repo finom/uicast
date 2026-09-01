@@ -35,8 +35,9 @@ Structured generation renders safely as it streams, but the logic wiring its
 components is a closed vocabulary — a fixed set of bindings, conditions, and
 format operators, so a genuinely new computation means new host code. **uicast**
 makes that logic open-ended JavaScript instead: computed values, visibility, and
-event handling are expressions, checked against an
-[allow-list](/entry/expressions#safety) before they run.
+event handling are expressions, run by a
+[closed-grammar interpreter](/expr) — JavaScript's shape, without the
+JavaScript engine.
 
 ```js
 // scopes.root.orders === [{ total: 2 }, { total: 3 }]
@@ -54,6 +55,27 @@ document.cookie                                      // ❌ throws — so do "wi
 | Raw code generation | low | unlimited | low |
 | **uicast** | high | high | high |
 | Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
+
+## Is it safe?
+
+By default, expressions never reach `eval` or `new Function`. They run on an
+[interpreter](/expr) built for a **fraction of JavaScript**: a closed
+grammar, an allow-list of methods and globals, a check on every property read,
+and a CPU and allocation budget. The JavaScript engine never executes generated
+text, so a uicast app runs under a strict Content-Security-Policy — no
+`unsafe-eval`.
+
+Need more speed? The evaluator has two modes. `interpret` (the default) is the
+interpreter above; it trusts nothing. `native` validates against the same
+grammar, then runs the expression with `new Function` — near-native speed, for
+documents from a trusted author: your own pipeline, an admin, never a stranger.
+In that mode the model is your first line
+of defence, so choose it wisely: the current Anthropic, OpenAI, and Google
+models hold this contract well.
+
+The interpreter secures the language, not what you plug into it — host functions
+are capabilities you grant, and scope data is only as safe as what you put
+there. [The expression evaluator](/expr) covers the full threat model.
 
 ## The model works from a developer's brief
 

@@ -31,7 +31,7 @@ export const inventoryLines: ComponentEntry[] = [
       { set: "scopes.root.draftCategory", literal: "" },
       { set: "scopes.root.draftStock", literal: 0 },
       { set: "scopes.root.draftPrice", literal: 0 },
-      { set: "scopes.root.products", expr: "await listProducts()" },
+      { set: "scopes.root.products", expr: "listProducts()" },
     ],
     children: ["header", "stats-row", "chart-card", "toolbar", "table-card", "drawer"],
   },
@@ -115,7 +115,7 @@ export const inventoryLines: ComponentEntry[] = [
     key: "chart-card",
     component: "Card",
     props: { literal: { title: "Stock by category" } },
-    seed: [{ set: "scopes.root.categories", expr: "await getCategoryBreakdown()" }],
+    seed: [{ set: "scopes.root.categories", expr: "getCategoryBreakdown()" }],
     children: ["chart"],
   },
   {
@@ -213,11 +213,11 @@ export const inventoryLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._op",
-          expr: "await deleteProduct({ id: scopes.row.item.id })",
+          expr: "deleteProduct({ id: scopes.row.item.id })",
           confirm: "Delete this product? This cannot be undone.",
         },
-        { set: "scopes.root.products", expr: "await listProducts()" },
-        { set: "scopes.root.categories", expr: "await getCategoryBreakdown()" },
+        { set: "scopes.root.products", expr: "listProducts()" },
+        { set: "scopes.root.categories", expr: "getCategoryBreakdown()" },
       ],
     },
   },
@@ -314,10 +314,10 @@ export const inventoryLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._op",
-          expr: "scopes.root.draftId ? await updateProduct({ id: scopes.root.draftId, name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice }) : await createProduct({ name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice })",
+          expr: "scopes.root.draftId ? updateProduct({ id: scopes.root.draftId, name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice }) : createProduct({ name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice })",
         },
-        { set: "scopes.root.products", expr: "await listProducts()" },
-        { set: "scopes.root.categories", expr: "await getCategoryBreakdown()" },
+        { set: "scopes.root.products", expr: "listProducts()" },
+        { set: "scopes.root.categories", expr: "getCategoryBreakdown()" },
         { set: "scopes.root.draftOpen", literal: false },
       ],
     },

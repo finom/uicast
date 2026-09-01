@@ -55,6 +55,28 @@ describe("getFunctionsPartialPrompt", () => {
 		},
 	);
 
+	it("rejects a name an expression cannot call", () => {
+		const tool = standardTool({
+			name: "foo-bar",
+			description: "Not an identifier.",
+			execute: async () => undefined,
+		});
+		expect(() => getFunctionsPartialPrompt({ functions: [tool] })).toThrow(
+			'Host function name "foo-bar" is not a valid identifier',
+		);
+	});
+
+	it("rejects a name that shadows an expression global", () => {
+		const tool = standardTool({
+			name: "Math",
+			description: "Shadows a global.",
+			execute: async () => undefined,
+		});
+		expect(() => getFunctionsPartialPrompt({ functions: [tool] })).toThrow(
+			'Host function name "Math" is an expression global',
+		);
+	});
+
 	it("rejects two tools sharing a name", () => {
 		const make = (description: string) =>
 			standardTool({ name: "listRows", description, execute: async () => undefined });
@@ -128,5 +150,12 @@ describe("getFunctionsPartialPrompt", () => {
 				"  }) => unknown: Ship it.",
 			].join("\n"),
 		);
+	});
+	it("renders note as a trailing ## Note section", () => {
+		const out = getFunctionsPartialPrompt({
+			functions: [],
+			note: "Mutations must be re-fetched.",
+		});
+		expect(out.endsWith("## Note\n\nMutations must be re-fetched.")).toBe(true);
 	});
 });

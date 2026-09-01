@@ -3,8 +3,8 @@ import React, { memo, Suspense, use, useEffect, useRef, type ReactNode } from "r
 import { EntryError, isComponentListEntry } from "@uicast/core";
 import {
   evaluate,
-  findNumericSetPath,
-  numericSetPathError,
+  findEntrySetPathFault,
+  setPathError,
 } from "@uicast/core/internal";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { ErrorBoundary } from "../providers/error-boundary";
@@ -61,7 +61,7 @@ const EntryRendererInner = ({
 }: EntryRendererProps): React.ReactElement => {
   // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
-  const { implementations, fallbackComponents, functions, allowGlobals, onError } =
+  const { implementations, fallbackComponents, functions, evaluator, maxExpressionLength, onError } =
     useRendererRegistry();
 
   // A list entry reached as a child slot iterates its items; reached per-item
@@ -87,7 +87,8 @@ const EntryRendererInner = ({
     scopes,
     init,
     functions,
-    allowGlobals,
+    evaluator,
+    maxExpressionLength,
     enabled: seedEnabled,
   });
 
@@ -99,11 +100,11 @@ const EntryRendererInner = ({
     return <Fallback reason="streaming" />;
   }
 
-  // Numeric-key `set` paths are rejected off the entry's static strings at
+  // Numeric-key and prototype-key `set` paths are rejected off the entry's static strings at
   // first render, so the fault surfaces while the model is still streaming —
   // not when a customer first fires the callback (the only steps `useSeed`
   // wouldn't catch anyway).
-  const invalidSet = findNumericSetPath(element);
+  const invalidSet = findEntrySetPathFault(element);
   if (invalidSet) {
     return (
       <ErrorBoundary
@@ -113,7 +114,7 @@ const EntryRendererInner = ({
         onError={onError}
       >
         <ThrowError
-          error={numericSetPathError(invalidSet.set, invalidSet.segment, elementKey)}
+          error={setPathError(invalidSet.set, invalidSet.fault, elementKey)}
         />
       </ErrorBoundary>
     );
@@ -229,12 +230,12 @@ const ListEntryRendererInner = ({
   scopes: Scopes;
 }): React.ReactElement | null => {
   const element = useElement(elementKey);
-  const { functions, allowGlobals } = useRendererRegistry();
+  const { functions, evaluator, maxExpressionLength } = useRendererRegistry();
   useReactiveDeps(element, scopes, "each");
 
   const list = element && isComponentListEntry(element) ? element : null;
   const rawItems = list
-    ? evaluate({ expr: list.each }, { scopes }, { functions, allowGlobals })
+    ? evaluate({ expr: list.each }, { scopes }, { functions, evaluator, maxExpressionLength })
     : [];
   if (rawItems instanceof Promise) {
     // The contract bans host functions (and `await`) in reactive sites; a
@@ -255,18 +256,14 @@ const ListEntryRendererInner = ({
   const items = (rawItems as unknown[] | null | undefined) ?? [];
   const rows = useItemScopes(scopes, list, items);
 
-  // Publish the per-item proxies as `childScopes.<as>` on the containing
-  // scope. Post-commit only: a render-phase `$set` would dispatch subscribers
-  // mid-render, which React forbids. Scopes are appended parents-first and
-  // `as` names are contract-unique, so the LAST key is the innermost scope —
-  // the one this list lives in.
+  // Publish per-item proxies as `childScopes.<as>`, post-commit only (a
+  // render-phase `$set` dispatches subscribers mid-render, which React
+  // forbids). Scopes append parents-first, so the LAST key is the innermost.
   const innermostScope = scopes[Object.keys(scopes)[Object.keys(scopes).length - 1]];
   const itemScopeName = list?.as;
-  // The effect re-runs on every list commit (`rows` is fresh each render);
-  // skip republishing only when every row's `itemScopes` reference survived.
-  // useItemScopes rebuilds those exactly when item value or index changed, so
-  // a same-id refetch still republishes (the emit is the only wake childScopes
-  // readers get) while a true no-op commit stays silent.
+  // Re-runs every commit; republish only when some row's `itemScopes`
+  // reference changed — a same-id refetch republishes (the emit is childScopes
+  // readers' only wake), a true no-op commit stays silent.
   const publishedRef = useRef<{
     scope: (typeof scopes)[string];
     name: string;

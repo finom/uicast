@@ -34,14 +34,14 @@ describe("getScopePartialPrompt", () => {
 		);
 	});
 
-	it("appends the host note verbatim as the last paragraph", () => {
+	it("renders note as a trailing ## Note section", () => {
 		const out = getScopePartialPrompt({
 			kind: "widget",
 			note: "The widget renders inside a 400px sidebar.",
 		});
-		expect(out.endsWith("The widget renders inside a 400px sidebar.")).toBe(
-			true,
-		);
+		expect(
+			out.endsWith("## Note\n\nThe widget renders inside a 400px sidebar."),
+		).toBe(true);
 	});
 
 	it("has no leading or trailing blank lines (composes via join)", () => {

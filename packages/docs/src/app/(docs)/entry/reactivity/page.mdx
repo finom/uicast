@@ -2,7 +2,7 @@
 
 You never declare what an expression depends on. Every `scopes.<scope>.<path>`
 access is extracted by static analysis — the same parser that checks the
-expression for [safety](/entry/expressions#safety) — and that read set drives
+expression for [safety](/expr#two-modes) — and that read set drives
 two different mechanisms, depending on where the expression sits.
 
 ## Reactive sites: subscriptions
@@ -118,7 +118,7 @@ on every render loops like any React component.
 
 ## Where to go next
 
-- [JavaScript Expressions](/entry/expressions) — the language and the safety
+- [The expression evaluator](/expr) — the language and the safety
   model the extractor is part of.
 - [Entry fields](/entry/fields) — `seed` and `callbacks`, where ordering
   applies.

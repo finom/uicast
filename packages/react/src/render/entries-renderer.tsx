@@ -7,12 +7,7 @@ import { useRendererGroup } from "../store/renderer-provider";
 import { ROOT_FRAGMENT_KEY } from "./root-fragment-impl";
 import { EntryRenderer } from "./entry-renderer";
 
-/**
- * Renders one JSONLines entry tree against the group store provided by the
- * nearest <RendererProvider>. It owns no state of its own — every
- * EntriesRenderer under the same provider shares the same `root` scope, so
- * documents can read and write each other's state by path.
- */
+/** Renders one entry tree against the nearest provider's shared store — every renderer under one provider shares `root`. */
 export const EntriesRenderer = memo(function EntriesRenderer({
   entries,
 }: EntriesRendererProps) {
@@ -39,11 +34,9 @@ export const EntriesRenderer = memo(function EntriesRenderer({
     };
   }, [entries]);
 
-  // Roots always get a synthetic, invisible RootFragment wrapper — consistent
-  // topology, one `init` mount point per document. Its OBJECT IDENTITY must be
-  // stable while the root set is unchanged: the seed hook pins one `init`
-  // attempt per entry object, so a fresh object per render would retry a
-  // failed `init` on every stream tick. Hence keyed by content, not closure.
+  // Every root gets an invisible RootFragment wrapper — one `init` mount point.
+  // Identity must stay stable while the root set is unchanged (the seed hook
+  // pins one `init` attempt per entry object), hence keyed by content.
   // biome-ignore lint/correctness/useExhaustiveDependencies: content-keyed on rootKeysSignature by design — see above
   const syntheticRootFragment: ComponentEntry = useMemo(
     () => ({

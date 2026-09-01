@@ -18,14 +18,7 @@ export type ErrorRecoveryPromptOptions = {
 	failures: RenderFailure[];
 };
 
-/**
- * The user-turn message for error recovery: an element failed at runtime and
- * the host asks the model to re-emit it corrected. Surface-neutral — a page
- * host sends it through its edit pipeline, a chat host as a plain message.
- *
- * Not a system-prompt partial: this is per-turn message content, composed by
- * the host into `messages`, not into `system`.
- */
+/** The user-turn message asking the model to re-emit a failed element corrected. Per-turn content, not a system-prompt partial. */
 export function getErrorRecoveryPrompt({
 	failures,
 }: ErrorRecoveryPromptOptions): string {

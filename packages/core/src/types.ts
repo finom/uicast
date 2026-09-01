@@ -23,12 +23,7 @@ export type ConfirmableValueSourceAssignment = {
   set?: ScopePath;
 } & ValueSource;
 
-/**
- * One line of a uicast document. The list fields (`each`, `as`, `keyBy`) live
- * here as optionals — no plain/list union, so a heterogeneous
- * `ComponentEntry[]` holds list lines directly; `ComponentListEntry` is the
- * same shape with them required (narrow via `isComponentListEntry`).
- */
+/** One document line. List fields (`each`/`as`/`keyBy`) are optionals — no union, so `ComponentEntry[]` holds list lines; narrow via `isComponentListEntry`. */
 export interface ComponentEntry {
   key: string;
   component: string;
@@ -79,16 +74,9 @@ export type CombinedSpec<Input = unknown, Output = Input> = StandardSchemaV1<Inp
   StandardJSONSchemaV1<Input, Output>;
 
 /**
- * The partner module the LLM reads for a component: a props spec plus optional
- * callback specs (its `description` + `props` schema are serialized into the
- * prompt). Parameterized over the concrete `props` / `callbacks` specs so an
- * implementation can recover their exact types — `createComponentImplementation`
- * infers `TProps` / `TCallbacks` straight off the `def` it's handed to type its
- * `render` callback. Both params default to the widened base, so a bare
- * `ComponentDefinition` is the heterogeneous form used in collections
- * (`ComponentDefinition[]`, the `allDefinitions` registry, the prompt
- * serializer). The `createComponentDefinition` factory (in
- * `def/create-component-definition.ts`) is the value-side constructor for this.
+ * What the LLM reads for a component: a props spec plus callback specs.
+ * Parameterized so `createComponentImplementation` infers exact types off the
+ * def; the bare `ComponentDefinition` default is the widened collection form.
  */
 export type ComponentDefinition<
   TProps extends CombinedSpec = CombinedSpec,
@@ -98,12 +86,6 @@ export type ComponentDefinition<
   description: string;
   props: TProps;
   callbacks?: TCallbacks;
-  /**
-   * Host-only component. Registered in the renderer registry so entries
-   * referencing it mount correctly, but filtered out of the LLM-facing
-   * prompt list in `getComponentsPartialPrompt`. Use for internal infrastructure
-   * (e.g. RootFragment — the synthetic wrapper used by `Renderer`'s `init`
-   * prop machinery) that the LLM should never emit.
-   */
+  /** Host-only component: registered for rendering, excluded from the prompt (e.g. RootFragment). */
   hidden?: boolean;
 };

@@ -251,4 +251,16 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 		expect(out).toContain("    - label: string");
 		expect(out).not.toContain("label: string —");
 	});
+	it("renders note as a trailing ## Note section", () => {
+		const Stat = createComponentDefinition({
+			name: "Stat",
+			description: "A KPI display.",
+			props: z.object({}),
+		});
+		const out = getComponentsPartialPrompt({
+			definitions: [Stat],
+			note: "Prefer Card over raw FlexCol.",
+		});
+		expect(out.endsWith("## Note\n\nPrefer Card over raw FlexCol.")).toBe(true);
+	});
 });

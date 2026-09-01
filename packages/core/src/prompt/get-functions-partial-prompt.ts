@@ -2,25 +2,22 @@ import type { StandardToolV0 } from "standard-tool";
 import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
 import { collectSharedTypes, type SharedTypes } from "../prompt-utils/shared-types";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
+import { functionNameFault } from "../expr/function-name";
+import { noteSection } from "./note-section";
 
-/**
- * A tool's input/output schema slot — a Standard (JSON) Schema, or `undefined`
- * when the tool declares none. Derived from `StandardToolV0` by indexed access
- * rather than importing the schema type by name: standard-tool has renamed that
- * type across releases, and indexed access stays correct regardless.
- */
+/** A tool's schema slot. Indexed access — standard-tool has renamed the type across releases. */
 type ToolSchema = StandardToolV0["inputSchema"];
 
 export type FunctionsPromptOptions = {
 	/** The host functions to advertise — the same set handed to the renderer's `functions` prop. */
 	functions: StandardToolV0[];
+	/** Host-specific context, appended as this section's trailing `## Note`. */
+	note?: string;
 };
 
 /**
- * One tool schema (input or output) as a TypeScript-ish string; `undefined` →
- * `fallback`. A present schema with no JSON Schema form throws — a real
- * authoring error (e.g. `z.void()` for "nothing"), not something to swallow.
- * Definitions are hoisted into `shared` as a side effect.
+ * One tool schema as a TypeScript-ish string; `undefined` → `fallback`.
+ * A schema with no JSON Schema form throws (authoring error, e.g. `z.void()`).
  */
 function schemaToTs(
 	schema: ToolSchema,
@@ -38,31 +35,17 @@ function schemaToTs(
 	});
 }
 
-// The names an expression's context already binds. A tool is merged over that
-// context (`{ ...context, ...functions }` in `evaluate`), so a tool taking one
-// of these silently shadows it — and the resulting failure is reported against
-// the expression that read `scopes`, not against the host that renamed it.
-const RESERVED_FUNCTION_NAMES = new Set(["scopes", "evt", "currentValue"]);
-
-/**
- * Render `StandardToolV0`s into the prompt's function section:
- * `# Available Functions`, then `# Function Details` — one bullet per tool as
- * a TypeScript-style signature (`- updateRows({ sheet: string }) => unknown:
- * <description>`, the optional `title` before the description). No
- * `inputSchema` renders `name()`; no `outputSchema` renders `=> unknown` —
- * *undeclared*, not "returns nothing": the contract forbids reading fields off
- * it. Shared `$defs` hoist into a trailing `# Shared Types` block, same shape
- * as `getComponentsPartialPrompt`.
- */
+/** Tools → `# Available Functions` / `# Function Details` / `# Shared Types`. No `outputSchema` renders `=> unknown` — undeclared, not empty. */
 export function getFunctionsPartialPrompt({
 	functions,
+	note,
 }: FunctionsPromptOptions): string {
 	const seen = new Set<string>();
 	for (const { name } of functions) {
-		if (RESERVED_FUNCTION_NAMES.has(name)) {
-			throw new Error(
-				`Host function name "${name}" is reserved — it would shadow the expression context of the same name`,
-			);
+		// Same screen as `evaluate` — a name advertised here must be callable there.
+		const fault = functionNameFault(name);
+		if (fault) {
+			throw new Error(`Host function name "${name}" ${fault}`);
 		}
 		if (seen.has(name)) {
 			throw new Error(`Duplicate host function name: "${name}"`);
@@ -83,11 +66,16 @@ export function getFunctionsPartialPrompt({
 		})
 		.join("\n");
 	const sharedLines = shared.lines();
-	return (
-		`# Available Functions\n\n${names}` +
-		`\n\n# Function Details\n\n${details}` +
-		(sharedLines.length
-			? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
-			: "")
-	).trim();
+	return [
+		(
+			`# Available Functions\n\n${names}` +
+			`\n\n# Function Details\n\n${details}` +
+			(sharedLines.length
+				? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
+				: "")
+		).trim(),
+		noteSection(note),
+	]
+		.filter(Boolean)
+		.join("\n\n");
 }

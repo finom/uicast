@@ -15,7 +15,7 @@ export const ChatThreadDef = createComponentDefinition({
           avatar: z
             .string()
             .optional()
-            .meta({ description: "Sender avatar URL" }),
+            .meta({ format: "uri-reference", description: "Sender avatar URL" }),
           timestamp: z
             .string()
             .optional()

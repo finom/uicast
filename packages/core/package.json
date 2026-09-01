@@ -1,7 +1,7 @@
 {
   "name": "@uicast/core",
   "version": "0.0.1-beta.2",
-  "description": "LLM-generated UIs from a stream of JSONLines — the framework-agnostic uicast engine: entry format, guarded expressions (allow-list, not a sandbox), reactive scopes, and prompt builders.",
+  "description": "LLM-generated UIs from a stream of JSONLines \u2014 the framework-agnostic uicast engine: entry format, guarded expressions (allow-list, not a sandbox), reactive scopes, and prompt builders.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -49,7 +49,6 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "acorn": "^8.16.0",
     "standard-tool": "^0.1.0"
   },
   "devDependencies": {
@@ -59,5 +58,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "@uicast/expr": "0.0.1-beta.0"
   }
 }

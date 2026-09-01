@@ -10,7 +10,7 @@ scopes.<scopeName>.<path>     // e.g. scopes.root.searchTerm
 
 ## What a scope actually is
 
-Every scope is a `createProxyScope` object from [`@uicast/core`](/api#uicastcore):
+Every scope is a `createProxyScope` object from [`@uicast/core`](/api-ref#uicastcore):
 a native JavaScript `Proxy` over a plain object, no state library underneath.
 
 ```ts
@@ -116,7 +116,7 @@ Two rules when you read it:
 
 ## Reading and writing
 
-- **Reads** are plain property access inside an [expression](/entry/expressions):
+- **Reads** are plain property access inside an [expression](/expr):
   `scopes.root.count`, `scopes.order.item.total`.
 - **Writes happen only through `set`**, on a `seed` or `callbacks`
   [assignment](/entry/value-sources). `seed` initializes a path at mount;
@@ -180,7 +180,8 @@ it preloads `scopes.root` once before any entry evaluates, and can
 (read as `scopes.userCtx.name`) — a proxy the host keeps and can update later.
 
 Declare any extra scope to the model too —
-`getExpressionsPartialPrompt({ extraScopes: [{ name: "userCtx", description: "the signed-in user: name (string), plan ('free' | 'pro')" }] })`
-lists it next to `root`, so the prompt's "invent no other scope" rule stays
-consistent with your setup. The description is all the model ever sees of the
-scope, so spell out its shape in it.
+`getCommonInstructionsPartialPrompt({ note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro')." })`
+appends it as a `## Note` right under the prompt's `# Expression Context`
+section, so the
+"invent no other scope" rule stays consistent with your setup. The note is all
+the model ever sees of the scope, so spell out its shape in it.

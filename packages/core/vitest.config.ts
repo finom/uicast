@@ -9,6 +9,14 @@ export default defineConfig({
         replacement: resolve(__dirname, "./src/prompt/index.ts"),
       },
       {
+        find: /^@uicast\/expr\/internal$/,
+        replacement: resolve(__dirname, "../expr/src/internal.ts"),
+      },
+      {
+        find: /^@uicast\/expr$/,
+        replacement: resolve(__dirname, "../expr/src/index.ts"),
+      },
+      {
         find: /^@uicast\/core$/,
         replacement: resolve(__dirname, "./src/index.ts"),
       },

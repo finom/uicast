@@ -1,11 +1,9 @@
 import type { ReactiveProxy } from "@uicast/core";
 
 /**
- * Where a list row's writes land beyond its own scope: the list's source
- * array (fired for `item.*` writes — the data lives there), and the containing
- * scope's `childScopes.<as>` (`anyWrite: true` — fired for EVERY row write,
- * flags included). `dep` is the full `scopes.<name>.<path>` string wave
- * planning compares against.
+ * Where a row's writes land beyond its own scope: the list's source array
+ * (`item.*` writes) and the container's `childScopes.<as>` (every write).
+ * `dep` is the full path wave planning compares against.
  */
 export type ForwardTarget = {
 	scope: ReactiveProxy;
@@ -22,12 +20,7 @@ const targetsByProxy = new WeakMap<ReactiveProxy, ForwardTarget[]>();
 const isItemPath = (path: string): boolean =>
 	path === "item" || path.startsWith("item.");
 
-/**
- * Declare where writes into this row scope forward. An `item.*` write mutates
- * an object the source array holds, leaving the array's readers stale — this
- * re-emits on the array's own path (and on `childScopes.<as>`) to wake them.
- * Attaches the listener once per proxy; later calls only swap the targets.
- */
+/** Declare a row scope's write-forwarding: `item.*` writes re-emit on the source array's path so its readers wake. Listener attaches once; later calls swap targets. */
 export function setItemForwardTargets(
 	proxy: ReactiveProxy,
 	targets: ForwardTarget[],
@@ -51,11 +44,7 @@ export function setItemForwardTargets(
 	});
 }
 
-/**
- * The paths a `set` into this row scope also writes — transitive, mirroring
- * the emit cascade above. Wave planning declares these so a later step
- * reading the source array (or `childScopes`) waits for the row write.
- */
+/** Paths a row-scope `set` also writes (transitive) — declared to wave planning so later reads wait. */
 export function getItemWriteAliases(
 	proxy: ReactiveProxy,
 	itemWrite: boolean,

@@ -2,8 +2,7 @@ import type { ConfirmableValueSourceAssignment } from "@uicast/core";
 import {
 	evaluate,
 	getFreeIdentifiers,
-	planStepWaves,
-} from "@uicast/core/internal";
+	planStepWaves, type EvaluatorMode } from "@uicast/core/internal";
 import type { StandardToolV0 } from "standard-tool";
 import { getItemWriteAliases } from "../item-write-forwarding";
 import type { ConfirmFn } from "../providers/confirm";
@@ -12,11 +11,9 @@ import { parseStepTargets } from "../step-targets";
 import type { Scopes } from "../types";
 
 /**
- * Run one wired callback's steps in dependency waves (see planStepWaves):
- * reads wait for earlier writes, independent pure steps parallelize, and
- * `confirm` / host-function steps are barriers — a mutation's effect is
- * invisible to path analysis, so effectful steps never race. Throws the first
- * classified failure; resolves early on a declined `confirm`.
+ * Run a callback's steps in dependency waves; `confirm` and host calls are
+ * barriers (their effects are invisible to path analysis). Throws the first
+ * classified failure; a declined `confirm` resolves early.
  */
 export async function runCallbackSteps({
 	steps,
@@ -24,7 +21,8 @@ export async function runCallbackSteps({
 	scopes,
 	confirm,
 	functions,
-	allowGlobals,
+	evaluator,
+	maxExpressionLength,
 	elementKey,
 }: {
 	steps: ConfirmableValueSourceAssignment[];
@@ -32,7 +30,8 @@ export async function runCallbackSteps({
 	scopes: Scopes;
 	confirm: ConfirmFn;
 	functions?: StandardToolV0[];
-	allowGlobals?: string[];
+	evaluator?: EvaluatorMode;
+	maxExpressionLength?: number;
 	elementKey: string;
 }): Promise<void> {
 	const targets = parseStepTargets(steps, elementKey);
@@ -86,7 +85,7 @@ export async function runCallbackSteps({
 					evaluate(
 						step,
 						{ evt: payload, scopes, currentValue },
-						{ functions, allowGlobals },
+						{ functions, evaluator, maxExpressionLength },
 					))(),
 			};
 		});
@@ -106,11 +105,8 @@ export async function runCallbackSteps({
 			}
 		});
 		if (firstError !== null) throw firstError;
-		// One macrotask between waves, so React commits the writes above before
-		// the next wave evaluates. Load-bearing for one cross-wave read:
-		// `childScopes.<as>` republishes in the list's commit effect, so a wave
-		// that replaced a list's array must yield for a later wave to read the
-		// fresh row set through childScopes.
+		// One macrotask so React commits prior writes — `childScopes.<as>`
+		// republishes in the list's commit effect, and a later wave may read it.
 		await new Promise((resolve) => setTimeout(resolve, 0));
 	}
 }

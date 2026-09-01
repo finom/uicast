@@ -1,0 +1,52 @@
+---
+title: Security model
+---
+
+import { Callout } from "nextra/components";
+
+# Security model
+
+A uicast document is untrusted input: a model wrote it, and a saved document
+replays in other people's browsers. This page says what the framework defends,
+what stays your job, and where to report what we got wrong.
+
+## What the framework defends
+
+| Surface | Defense |
+| --- | --- |
+| Expressions | The [`interpret` evaluator](/expr): closed grammar, a membrane on every read and call, a CPU/time/allocation budget, no `new Function` — so no CSP `unsafe-eval`. Run-time-assembled property names are checked at the read, closing the class a static check cannot. |
+| State writes | `set` paths are validated: no `__proto__` / `constructor` / `prototype` segments, no numeric writes into containers — `Object.prototype` stays untouched. |
+| URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin, and raster `data:` images by default. |
+| Failures | Every rejection is a classified [`EntryError`](/error-recovery) contained to the element's error slot — one bad element does not take the page down. |
+
+## What stays your job
+
+- **Host functions are capabilities.** `rows.map(r => deleteRow(r.id))` is a
+  legal expression; nothing escaped — the document used a tool you granted.
+  Keep `functions` narrow and enforce authorization on the server.
+- **Scope data must be plain.** Inject JSON-shaped values only; a tool's
+  `outputSchema` gives you that by construction.
+- **Catalog implementations follow the
+  [authoring contract](/react/impl#props-the-document-controls)** — URLs
+  through declared props, no document strings in script-capable sinks, picked
+  event payloads.
+- **`native` mode is a choice.** It trades the run-time checks for speed and
+  is only for documents from a trusted author — see
+  [Two modes](/expr#two-modes).
+- **The prompt raises the floor, not the boundary.** It instructs the model to
+  treat data as data and to decline hostile requests; the boundary is the
+  evaluator.
+
+## Reporting
+
+Use GitHub's private vulnerability reporting on the
+[repository](https://github.com/finom/uicast) (Security → Report a
+vulnerability) — see [SECURITY.md](https://github.com/finom/uicast/blob/main/SECURITY.md)
+for scope and expectations. Evaluator escapes, membrane bypasses, prototype
+pollution, and `urlPolicy` bypasses are all in scope.
+
+<Callout type="warning">
+  Like any evaluator of untrusted input, this one can contain implementation
+  bugs. A small reviewable grammar and the [test suites](/expr#verification)
+  bound that risk; nothing eliminates it.
+</Callout>

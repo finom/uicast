@@ -26,15 +26,9 @@ function collectDescendantKeys(
 }
 
 /**
- * Build an elements-by-key map from the document's entries.
- *
- * When an entry with a duplicate key is encountered (i.e. the LLM re-emits an
- * entry to correct a mistake), the old subtree is removed before inserting
- * the replacement — except old nodes the new `children` array still
- * references (directly or through a kept child), which survive with their
- * own subtrees. This lets the LLM restructure a parent by re-emitting just
- * that entry, keeping existing children by reference, without regenerating
- * the entire tree.
+ * Entries → elements-by-key map. A duplicate key replaces the old subtree,
+ * keeping any old children the new `children` array still references — so one
+ * re-emitted entry restructures without regenerating the tree.
  */
 export function buildElementsByKey(
   lines: ComponentEntry[],

@@ -5,7 +5,7 @@ pre-built component catalog — with real client-side logic written by the model
 as guarded JavaScript expressions — an allow-listed evaluator, not a sandbox.
 
 This package is the **framework-agnostic engine**: the component entry format,
-the SaferEval expression guardrail, reactive proxy scopes, classified errors
+the Evaluator expression guardrail, reactive proxy scopes, classified errors
 (`EntryError`), the tolerant JSONLines reader, and the prompt partial builders
 that teach a model the output contract.
 

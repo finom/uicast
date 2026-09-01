@@ -2,13 +2,9 @@ import { type ComponentEntry, isComponentListEntry } from "../types";
 import { getScopeReads } from "./evaluate";
 
 /**
- * Which of the entry's expressions to scan:
- * - `"all"` — props + hidden + each (a plain element's full reactive surface).
- * - `"render"` — props + hidden only. A list ITEM subscribes with this: the
- *   list's container already re-renders every row when `each` changes, so an
- *   item subscribing to `each` too would double-render each row.
- * - `"each"` — each only. The list CONTAINER subscribes with this: a write
- *   that only moves a prop doesn't rebuild the rows.
+ * Which expressions to scan: `"all"` props+hidden+each; `"render"` props+hidden
+ * (list items — the container already re-renders rows on `each`); `"each"` only
+ * (the container).
  */
 export type DepsPart = "all" | "render" | "each";
 

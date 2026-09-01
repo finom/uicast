@@ -93,7 +93,7 @@ export const boardLines: ComponentEntry[] = [
       onConnect: [
         {
           set: "scopes.root.links",
-          expr: "scopes.root.links.concat([{ from: evt.from, to: evt.to }])",
+          expr: "[...scopes.root.links, { from: evt.from, to: evt.to }]",
         },
         {
           set: "scopes.root.lastEvt",
@@ -118,7 +118,7 @@ export const boardLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.nodes",
-          expr: "await autoLayout({ nodes: scopes.root.nodes })",
+          expr: "autoLayout({ nodes: scopes.root.nodes })",
         },
         {
           set: "scopes.root.lastEvt",

@@ -1,14 +1,11 @@
+import { noteSection } from "./note-section";
+
 export type ScopePromptOptions = {
-	/**
-	 * The kind of output the host surface expects:
-	 * - `"page"` — a complete, functional page (a page-builder surface).
-	 * - `"widget"` — one self-contained widget embedded into a host layout.
-	 * - `"answer"` — a compact answer to a question inside a conversation.
-	 */
+	/** `"page"` a complete page; `"widget"` one embedded widget; `"answer"` a compact conversational answer. */
 	kind: "page" | "widget" | "answer";
 	/** Soft size anchor, rendered as a hint ("around N elements"), not a quota. */
 	approxElements?: number;
-	/** Host-specific context, appended verbatim as the section's last paragraph. */
+	/** Host-specific context, appended as this section's trailing `## Note`. */
 	note?: string;
 };
 
@@ -29,15 +26,7 @@ const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
 - Bind real data via host functions — the answer must show actual values, not placeholders.`,
 };
 
-/**
- * The `# Scope` block — how ambitious the output should be on the host's
- * surface. The mechanical rules (INSTRUCTIONS.md) are surface-agnostic; this
- * partial is where the host says whether a request means a complete page, an
- * embeddable widget, or a compact conversational answer.
- *
- * Compose right after `getCommonInstructionsPartialPrompt()` so the scope
- * guidance sits with the output contract.
- */
+/** The `# Scope` block — how much to build. Compose right after the common instructions. */
 export function getScopePartialPrompt({
 	kind,
 	approxElements,
@@ -49,7 +38,7 @@ export function getScopePartialPrompt({
 		approxElements !== undefined
 			? `A typical response on this surface is around ${approxElements} elements (JSONL lines) — treat this as a hint about ambition, not a quota.`
 			: "",
-		note ?? "",
+		noteSection(note),
 	]
 		.filter(Boolean)
 		.join("\n\n");

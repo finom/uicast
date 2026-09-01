@@ -182,7 +182,7 @@ export const studioLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root.pattern",
-          expr: "await randomizePattern({ tracks: 3, steps: 16 })",
+          expr: "randomizePattern({ tracks: 3, steps: 16 })",
         },
         {
           set: "scopes.root.lastEvt",

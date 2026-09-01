@@ -55,8 +55,7 @@ same source of truth:
 
 - `implementations` (their `def`s) ↔ `getComponentsPartialPrompt({ definitions })`
 - `functions` ↔ `getFunctionsPartialPrompt({ functions })`
-- `allowGlobals` ↔ `getExpressionsPartialPrompt({ allowGlobals })`
-- extra scopes assigned in `init` ↔ `getExpressionsPartialPrompt({ extraScopes })`
+- extra scopes assigned in `init` ↔ `getCommonInstructionsPartialPrompt({ note })`
 
 A capability the prompt never mentions is unreachable; one the prompt promises but
 the provider lacks fails at runtime. Keep each pair in one module and import it in
@@ -253,22 +252,23 @@ src/tools/
 
 ## 4. Assemble the prompt
 
-`@uicast/core/prompt` ships partials; the app owns the assembly. Compose with
+Three packages ship partials (`@uicast/core/prompt`, `@uicast/expr/prompt`,
+`@uicast/streamdown/prompt`); the app owns the assembly. Compose with
 `join("\n\n")` — partials carry no edge blank lines:
 
 ```ts
 import {
   getCommonInstructionsPartialPrompt,
   getScopePartialPrompt,
-  getExpressionsPartialPrompt,
   getComponentsPartialPrompt,
   getFunctionsPartialPrompt,
 } from "@uicast/core/prompt";
+import { getExpressionsPartialPrompt } from "@uicast/expr/prompt";
 
 export const systemPrompt = [
-  getCommonInstructionsPartialPrompt(),          // the output contract
+  getCommonInstructionsPartialPrompt(),          // output contract + expression context
   getScopePartialPrompt({ kind: "page" }),       // "page" | "widget" | "answer"
-  getExpressionsPartialPrompt({ allowGlobals }), // + extraScopes when you add scopes
+  getExpressionsPartialPrompt(),                 // the expression language
   getComponentsPartialPrompt({ definitions }),   // the component menu
   getFunctionsPartialPrompt({ functions }),      // the callable surface
 ].join("\n\n");
@@ -277,8 +277,9 @@ export const systemPrompt = [
 - Keep this order: instructions first, scope guidance next to them, expressions
   before the component/function listings they reference.
 - `kind` sets ambition: a full page, one embeddable widget, or a compact
-  conversational answer. `approxElements` is a soft size hint, `note` appends
-  host-specific context.
+  conversational answer. `approxElements` is a soft size hint.
+- Every partial takes `note` — host-specific context rendered as that section's
+  trailing `## Note`, verbatim.
 - Chat surface: append `getFencePartialPrompt()` from `@uicast/streamdown/prompt`
   as the last section — it inverts the raw-JSONL convention into fenced blocks.
 - Regenerate nothing at request time that you can build once at module scope —
@@ -308,9 +309,9 @@ import { RendererProvider, EntriesRenderer } from "@uicast/react";
 - `fallbackComponents` slots: `placeholder` (streaming/seeding; omitted →
   **nothing**, pending slots stay empty), `confirm` (omitted →
   `window.confirm`), `error` (omitted → a bare inline-styled div).
-- `allowGlobals` widens the expression allow-list with benign host globals
-  (e.g. `"structuredClone"`). It cannot re-enable blocked capability globals
-  (`fetch`, `Function`, timers). Pass the same list to the expressions partial.
+- `evaluator` picks the expression back end: `"interpret"` (default, checks
+  every read, no CSP `unsafe-eval`) or `"native"` (validate then `new Function`,
+  faster, trusted-author documents only). Same language either way.
 - `init` runs once per provider group, before any entry evaluates; a returned
   Promise suspends the renderers until it resolves.
 
@@ -330,16 +331,13 @@ const userCtx = createProxyScope({ name: "Ada", plan: "pro" }); // module scope
 init={({ scopes }) => { scopes.userCtx = userCtx; }}
 // later, anywhere: userCtx.plan = "free" — subscribed elements re-render
 
-getExpressionsPartialPrompt({
-  extraScopes: [{
-    name: "userCtx",
-    description: "the signed-in user: name (string), plan ('free' | 'pro')",
-  }],
+getCommonInstructionsPartialPrompt({
+  note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro').",
 })
 ```
 
-The description is **all the model ever sees of the scope** — spell out the
-shape in it, field by field, or the model will guess.
+The note is **all the model ever sees of the scope** — spell out the shape in
+it, field by field, or the model will guess.
 
 ## 6. Stream (page surface)
 
@@ -490,8 +488,6 @@ document. The error messages name the fix — forward them verbatim.
 - Prompt and provider fed from different objects — the lockstep rule above.
 - `implementations` / `functions` arrays re-created per render.
 - `createFenceRenderer` called inside a component without `useMemo`.
-- `allowGlobals` passed to the provider but not the expressions partial (or
-  vice versa).
 - Extra scope declared without its shape in the description.
 - Host function without `outputSchema` whose result the UI was supposed to show.
 - Catalog styled but `catalog.css` (or your Tailwind pipeline) not imported —

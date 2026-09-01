@@ -7,13 +7,7 @@ type JSONSchemaType =
 	| "null"
 	| "integer";
 
-/**
- * JSON Schema shape this module reads — the draft-07 / 2020-12 keywords a
- * Standard-Schema `toJSONSchema()` can emit. `JSONSchemaToTs` still takes
- * `unknown` and narrows at runtime, because a schema value can also be a
- * boolean (`true`/`false`) — and, in legacy draft-07, an `items` array —
- * which this object type intentionally doesn't model.
- */
+/** The draft-07/2020-12 keywords a Standard-Schema `toJSONSchema()` emits. Callers still narrow from `unknown` — a schema value can also be a boolean. */
 export interface JSONSchema {
 	$schema?:
 		| "https://json-schema.org/draft/2020-12/schema"
@@ -55,31 +49,16 @@ export interface JSONSchema {
 }
 
 export type JSONSchemaToTsOptions = {
-	/**
-	 * Render objects one property per line, indented. The string is the prefix
-	 * every generated line starts with (the caller's continuation indent, e.g.
-	 * `"  "` inside a Markdown bullet); nesting adds two spaces per level.
-	 * Omit for the compact single-line form.
-	 */
+	/** Render objects one property per line; the string is the caller's continuation indent. Omit for the single-line form. */
 	multiline?: string;
-	/**
-	 * Pointers rendered as a NAME instead of their expansion —
-	 * `{ "#/$defs/Person": "Person" }`. The caller prints the definitions
-	 * where the reader can see them (see `collectSharedTypes`). This is what
-	 * makes a recursive schema expressible: `Node` referencing itself renders
-	 * as `Node`, where inlining bottoms out at `unknown`.
-	 */
+	/** Pointers rendered as a NAME instead of their expansion (`{ "#/$defs/Person": "Person" }`) — what makes a recursive schema expressible. */
 	namedRefs?: Record<string, string>;
 };
 
 /**
- * Convert a JSON Schema to a compact TypeScript type string for the prompt.
- *
- * Pass the whole schema document (with any `$defs` / `definitions`): local
- * `$ref`s resolve against it, and a recursive schema terminates — the cycle's
- * back-edge renders as `unknown` while everything above it stays fully typed.
- * Pass `namedRefs` to render chosen definitions as names instead, which both
- * de-duplicates a shared type and lets a recursive one be stated exactly.
+ * JSON Schema → compact TypeScript type string. Pass the whole document so
+ * `$ref`s resolve; recursion terminates (`unknown` at the back-edge) unless
+ * the ref is named via `namedRefs`.
  */
 export function JSONSchemaToTs(
 	jsonSchema: unknown,
@@ -99,23 +78,14 @@ export function JSONSchemaToTs(
 /** Multiline state: the caller's line prefix + current nesting depth. */
 type Multiline = { pad: string; depth: number } | null;
 
-/**
- * What travels through the whole recursion: the document `$ref`s resolve
- * against, the refs currently being expanded on this path (the cycle guard),
- * and the pointer→name map for hoisted definitions.
- */
+/** Recursion state: the ref-resolution root, the in-flight refs (cycle guard), the pointer→name map. */
 type Ctx = {
 	root: unknown;
 	seen: Set<string>;
 	named: Record<string, string> | null;
 };
 
-/**
- * Recursive worker. Renders the node's type, then — when the node carries a
- * `description` — appends it as a trailing ` /* … *​/` comment, so per-field
- * docs (Zod `.describe()` / `.meta({ description })`) survive into the prompt
- * at every nesting level.
- */
+/** Recursive worker; a node's `description` renders as a trailing comment at every nesting level. */
 function toTs(
 	jsonSchema: unknown,
 	ctx: Ctx,
@@ -307,12 +277,7 @@ function renderArray(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 	return "unknown[]";
 }
 
-/**
- * Resolve a local JSON Pointer ref (`#/$defs/Foo`, `#/definitions/Bar`)
- * against the document root. Returns the target sub-schema, or `undefined`
- * for a non-local ref (`https://…`, bare `#`) or a path that doesn't exist —
- * the caller renders those as `unknown`.
- */
+/** Resolve a local pointer ref against the root; `undefined` for non-local or missing (rendered as `unknown`). */
 export function resolveRef(ref: string, root: unknown): unknown {
 	if (!ref.startsWith("#/")) return undefined;
 	const segments = ref
