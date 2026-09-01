@@ -47,8 +47,18 @@ const ev = new Evaluator({
 - **`memberReads(source, root)`** — every static `root.a.b` path read, enough to
   drive subscriptions.
 
-`eval` and `compile` take an output type parameter (`ev.eval<number>("1 + 1")`),
-which asserts the result type rather than checking it.
+Both take type parameters — the result first, then a tuple describing the
+contexts:
+
+```ts
+ev.eval<number>("1 + 1");
+
+const price = ev.compile<string, [{ cents: number }]>("'$' + (cents / 100).toFixed(2)");
+price({ cents: 1999 });   // argument and result both typed
+```
+
+The result type is an assertion, not a check: nothing validates what the
+expression actually returns.
 
 ## Host functions
 

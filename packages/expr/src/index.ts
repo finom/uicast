@@ -191,7 +191,7 @@ export class Evaluator {
 		return paths;
 	}
 
-	/** Compile once, run many times. `TOut` is an assertion about the result, not a check on it. */
+	/** Compile once, run many times. `TOut` asserts the result type (nothing checks it); `TIn` types the contexts, e.g. `compile<string, [{ cents: number }]>(…)`. */
 	compile<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(
 		source: string,
 	): (...contexts: TIn) => TOut {
@@ -199,7 +199,7 @@ export class Evaluator {
 		return (...contexts: TIn) => this.#run(entry, contexts) as TOut;
 	}
 
-	/** Compile and run. Names resolve to host functions first, then the contexts last-to-first, then built-in globals. `TOut` is an assertion about the result, not a check on it. */
+	/** Compile and run. Names resolve to host functions first, then the contexts last-to-first, then built-in globals. `TOut` asserts the result type (nothing checks it); `TIn` types the contexts. */
 	eval<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(
 		source: string,
 		...contexts: TIn
