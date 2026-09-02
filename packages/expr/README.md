@@ -176,8 +176,11 @@ ev.eval("scopes.fn", { scopes: { fn } });     // → ExpressionError
 ## Two evaluators
 
 `Evaluator` trusts nothing: every read and call is checked as it happens, so a
-property name assembled at run time gets the same answer as a written one, and
-a budget bounds the work. Use it when anyone else can steer the expression.
+property name assembled at run time gets the same answer as a written one. Every
+expression stops: each step, each millisecond and each new string or array
+spends from a fixed budget, and evaluation throws when it is spent (*fuel* in
+proof assistants, *gas* in Ethereum). Use it when anyone else can steer the
+expression.
 
 [`@uicast/expr-passthrough`](https://www.npmjs.com/package/@uicast/expr-passthrough)
 ships `PassthroughEvaluator`: the same grammar and static checks, then the
@@ -186,6 +189,10 @@ assembled at run time goes unchecked — for expressions from an author you trus
 Same options minus `budget`; both implement `ExpressionEvaluator`.
 
 ## What it does not cover
+
+An expression can only use what you hand in: the contexts and the functions
+bound at construction. Nothing else is reachable (*no ambient authority*). What
+you hand in is on you:
 
 - **Host functions are capabilities.** The call is checked against the declared
   shape; whether the caller may make it is your authorization, server-side.
@@ -203,9 +210,10 @@ constants, and the language section above equal to both.
 
 Each control is pinned by a test: `attacks.test.ts` (the adversarial corpus),
 `exit-gate.test.ts`, `host-functions.test.ts`, `prototype-exposure.test.ts`,
-`corpus.test.ts` (agreement with plain JavaScript), and the parity suite in
-`@uicast/expr-passthrough` (both evaluators refuse the same grammar; the
-passthrough residual is asserted, not just described).
+`corpus.test.ts` (every test expression runs here and as plain JavaScript, and
+both must return the same value or both must throw — *differential testing*),
+and the parity suite in `@uicast/expr-passthrough` (the same list through both
+evaluators; the passthrough residual is asserted, not just described).
 
 ## Why JavaScript syntax
 

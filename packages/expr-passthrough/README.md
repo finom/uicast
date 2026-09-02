@@ -22,9 +22,9 @@ Options are `@uicast/expr`'s without `budget`: `functions`, `maxCacheSize`, `max
 - **Names.** Every identifier written in an expression becomes a parameter of the compiled function. The ones you bind (host functions, context values, the allowed globals) get values; any other name is `undefined`. Nothing resolves to a global by accident, and there is no list of globals to keep up to date.
 - **Written member names** that reach the prototype chain (`constructor`, `__proto__`, `prototype`, `bind`, `call`, `apply`, …) are refused before the source runs.
 - **The residual.** A property name assembled at run time is invisible to a static check: `"abc"["char" + "At"](0)` runs and returns `"a"`; `Object["get" + "PrototypeOf"]([])` reaches the real `Array.prototype`. The interpreter refuses both at the call. The exit gate still holds — a function or a class instance cannot leave the expression, as the result or as a host-function argument — but code inside the expression has already run by then.
-- **No budget.** `"x".repeat(1e9)` is the engine's problem, not this package's.
+- **No budget.** `"x".repeat(1e9)` is the engine's problem, not this package's, and an expression is not guaranteed to stop.
 
-The parity suite in this package runs the shared corpus through both evaluators and plain JavaScript and asserts they agree, and pins the residual above so it stays visible.
+The parity suite in this package runs every shared test expression three times: in `Evaluator`, here, and as plain JavaScript. All three must return the same value or all three must throw (*differential testing*); the residual above is pinned as the one allowed difference.
 
 ## With uicast
 
