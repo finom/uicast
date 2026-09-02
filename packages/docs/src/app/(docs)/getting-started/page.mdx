@@ -14,6 +14,8 @@ npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadc
   the definition the model reads.
 - **`@uicast/core`** — the engine and the [prompt builders](/prompt).
 - **`@uicast/react`** — the renderer.
+- **`@uicast/expr`** — the [expression evaluator](/expr). The renderer runs every
+  document on the one you create with your host functions.
 - **`standard-tool`**, **`ai`**, **`@tanstack/react-query`** — host functions,
   the model call, the streaming query.
 
@@ -139,12 +141,16 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 import { useState } from "react";
 import { tools } from "@/tools";
+
+// Once, at module scope: the host functions bind on it, and it holds the parse cache.
+const evaluator = new Evaluator({ functions: tools });
 
 const fallbackComponents = {
   confirm: ConfirmModal,
@@ -172,7 +178,7 @@ function Generated({ prompt }: { prompt: string }) {
   return (
     <RendererProvider
       implementations={allImplementations}
-      functions={tools}
+      evaluator={evaluator}
       fallbackComponents={fallbackComponents}
     >
       <EntriesRenderer entries={entries} />

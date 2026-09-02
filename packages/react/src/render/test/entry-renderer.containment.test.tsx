@@ -5,8 +5,7 @@ import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import {
   defaultImplementationsList,
-  mountEntries,
-} from "../../../test/render-helpers";
+  mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 // Blast-radius edges around subscriptions and async seeds: failures must stay
 // on the element that carries them, and transient failures must clear.
@@ -106,7 +105,7 @@ describe("EntryRenderer — containment edges", () => {
     let view!: ReturnType<typeof render>;
     await act(async () => {
       view = render(
-        <RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={initialLines} /></RendererProvider>,
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={initialLines} /></RendererProvider>,
       );
     });
     await waitFor(() => {
@@ -119,7 +118,7 @@ describe("EntryRenderer — containment edges", () => {
       initialLines.push(...more);
       await act(async () => {
         view.rerender(
-          <RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={[...initialLines]} /></RendererProvider>,
+          <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={[...initialLines]} /></RendererProvider>,
         );
       });
     };

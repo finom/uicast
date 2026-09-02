@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { Evaluator } from "../index";
+import { Evaluator, ExpressionError } from "../index";
 import { CORPUS, SCOPES } from "./corpus";
 
 const ev = new Evaluator();
 const run = (expr: string, context: Record<string, unknown> = {}) => ev.eval(expr, context);
 
-// ---------------------------------------------------------------------------
 // The grammar, one representative expression per allowed construct.
-// ---------------------------------------------------------------------------
 
 describe("the language", () => {
 	it("evaluates literals and templates", () => {
@@ -173,18 +171,11 @@ describe("the language", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
 // Differential: the interpreter against the JS engine.
-// ---------------------------------------------------------------------------
 
-/**
- * Every expression here is run twice — through the interpreter, and through
- * `new Function` — and the results must match. This is the harness that makes a
- * hand-written evaluator trustworthy: the risk in one is semantic drift, not
- * escape, and drift is exactly what a differential catches.
- */
+// Every expression runs through the interpreter and through `new Function`, and the results must match.
+// The risk in a hand-written evaluator is semantic drift, not escape, and drift is what a differential catches.
 describe("differential against new Function", () => {
-
 	const CONTEXT = { scopes: SCOPES };
 
 	const native = (expr: string): unknown => {
@@ -234,9 +225,7 @@ describe("differential against new Function", () => {
 	});
 });
 
-// ---------------------------------------------------------------------------
 // Deliberate divergences — documented, tested, and few.
-// ---------------------------------------------------------------------------
 
 describe("deliberate divergences from plain JS", () => {
 	it("`typeof` on an unknown name throws instead of answering 'undefined'", () => {
@@ -282,5 +271,21 @@ describe("evaluation plumbing", () => {
 	it("a large flatMap of singletons stays inside the budget", () => {
 		const rows = Array.from({ length: 20_000 }, (_, i) => i);
 		expect(run(`scopes.rows.flatMap(n => [n]).length`, { scopes: { rows } })).toBe(20_000);
+	});
+});
+
+describe("pinned against plain JS", () => {
+	it("a non-canonical numeric string is not an index — and a non-index string key on an array is refused", () => {
+		expect(run('[9, 8]["1"]')).toBe(8);
+		expect(() => run('[9, 8]["0" + "1"]')).toThrow(ExpressionError);
+	});
+	it("toLocaleString takes a locale", () => {
+		expect(run("[1234.5].toLocaleString('de')")).toBe([1234.5].toLocaleString("de"));
+	});
+	it("valueOf on a number", () => {
+		expect(run("(1).valueOf()")).toBe(1);
+	});
+	it("a computed key in a pattern is evaluated", () => {
+		expect(run("[{ a: 1 }].map(({ [k]: v }) => v)", { k: "a" })).toEqual([1]);
 	});
 });

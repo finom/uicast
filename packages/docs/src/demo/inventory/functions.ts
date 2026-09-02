@@ -2,15 +2,8 @@ import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
 import { db, type Product } from "./db";
 
-/**
- * The host functions exposed to expressions via `<RendererProvider functions=…>`.
- *
- * Built with `standardTool()` — "tool" is just the `standard-tool` engine's
- * word; in this app they're the render *functions* a generated UI calls. The
- * engine invokes `fn.execute(input)` (single arg, no meta), so each `execute`
- * closes over the Dexie singleton directly. Mirrors the production wiring,
- * with a browser database in place of a remote data source.
- */
+// The host functions expressions call, bound on the demo's evaluator. Built with `standardTool()`.
+// Each `execute` closes over the Dexie singleton — a browser database in place of a remote one.
 
 // IndexedDB is near-instant; a small simulated round-trip makes the async
 // `seed` (Suspense) loading state actually visible in the demo, the way a
@@ -19,9 +12,7 @@ const NETWORK_MS = 300;
 const simulateLatency = () =>
   new Promise<void>((resolve) => setTimeout(resolve, NETWORK_MS));
 
-/** Draft shape for create/update. The form always supplies all fields (root
- *  seeds them to "" / 0), and NumberInput/CurrencyInput emit numbers, so plain
- *  schemas are correct and keep the inferred input type exact. */
+// Draft shape for create/update. The form supplies every field and the number inputs emit numbers, so plain schemas keep the inferred input type exact.
 const ProductDraft = z.object({
   name: z.string(),
   sku: z.string(),
@@ -30,7 +21,7 @@ const ProductDraft = z.object({
   price: z.number(),
 });
 
-/** Full row as stored — what every read/write returns. Mirrors `Product`. */
+// Full row as stored — what every read/write returns. Mirrors `Product`.
 const ProductOutput = ProductDraft.extend({ id: z.number() });
 
 // ---- reads (used as async `seed`) -------------------------------------
@@ -99,7 +90,7 @@ const deleteProduct = standardTool({
   },
 });
 
-/** Passed verbatim to `<RendererProvider functions={inventoryFunctions}>`. */
+// Bound as `new Evaluator({ functions: inventoryFunctions })` for the demo's renderer, and rendered into its prompt.
 export const inventoryFunctions: StandardToolV0[] = [
   listProducts,
   getCategoryBreakdown,

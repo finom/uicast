@@ -1,5 +1,7 @@
 "use client";
+import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
+import { Evaluator } from "@uicast/expr";
 import {
   ConfirmModal,
   RenderError,
@@ -40,12 +42,8 @@ const DEFAULT_COMPONENTS = {
   error: RenderError,
 };
 
-/**
- * The right-hand pane: the engine rendering the revealed entries with the demo's
- * catalog + host functions (both supplied by the active `DemoConfig`). The
- * catalog's `ConfirmModal`, passed via the `fallbackComponents.confirm` slot, routes
- * every `confirm:` in a callback through the shadcn modal.
- */
+// The right-hand pane: the engine over the revealed entries, with the active DemoConfig's catalog and host functions.
+// The catalog's ConfirmModal, in the `fallbackComponents.confirm` slot, handles every `confirm:` step.
 export function RenderCanvas({
   lines,
   catalog,
@@ -61,6 +59,8 @@ export function RenderCanvas({
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
 }) {
+  // One evaluator per tool set — it holds the parse cache.
+  const evaluator = useMemo(() => new Evaluator({ functions }), [functions]);
   // Bidirectional hover-highlight: every catalog renderer stamps its root node
   // with `data-key={element.key}`, so a hovered DOM node maps back to its entry
   // key via the nearest `[data-key]` ancestor (event delegation on the wrapper).
@@ -82,7 +82,7 @@ export function RenderCanvas({
       >
         <RendererProvider
           implementations={catalog}
-          functions={functions}
+          evaluator={evaluator}
           fallbackComponents={fallbackComponents ?? DEFAULT_COMPONENTS}
         >
           <EntriesRenderer entries={lines} />

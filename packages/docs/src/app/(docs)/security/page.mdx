@@ -14,7 +14,7 @@ what stays your job, and where to report what we got wrong.
 
 | Surface | Defense |
 | --- | --- |
-| Expressions | The [`interpret` evaluator](/expr): closed grammar, a membrane on every read and call, a CPU/time/allocation budget, no `new Function` — so no CSP `unsafe-eval`. Run-time-assembled property names are checked at the read, closing the class a static check cannot. |
+| Expressions | The [evaluator](/expr): closed grammar, own-property reads and allow-listed calls through a membrane, a CPU/time/allocation budget, no `new Function` in the package — so no CSP `unsafe-eval`. A property name assembled at run time is checked at the read, closing the class a static check cannot. |
 | State writes | `set` paths are validated: no `__proto__` / `constructor` / `prototype` segments, no numeric writes into containers — `Object.prototype` stays untouched. |
 | URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin, and raster `data:` images by default. |
 | Failures | Every rejection is a classified [`EntryError`](/error-recovery) contained to the element's error slot — one bad element does not take the page down. |
@@ -30,12 +30,12 @@ what stays your job, and where to report what we got wrong.
   [authoring contract](/react/impl#props-the-document-controls)** — URLs
   through declared props, no document strings in script-capable sinks, picked
   event payloads.
-- **`native` mode is a choice.** It trades the run-time checks for speed and
-  is only for documents from a trusted author — see
-  [Two modes](/expr#two-modes).
-- **The prompt raises the floor, not the boundary.** It instructs the model to
-  treat data as data and to decline hostile requests; the boundary is the
-  evaluator.
+- **`PassthroughEvaluator` is a choice.** A separate package that trades the
+  run-time checks for speed; only for documents from a trusted author — see
+  [Two evaluators](/expr#two-evaluators).
+- **The prompt helps; the evaluator decides.** The prompt tells the model to
+  treat data as data and to refuse hostile requests. That makes bad output
+  rare. The evaluator is what stops it.
 
 ## Reporting
 

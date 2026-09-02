@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { planStepWaves } from "../plan-step-waves";
+import { Evaluator } from "@uicast/expr";
+import { planStepWaves as plan } from "../plan-step-waves";
+
+const ev = new Evaluator();
+const planStepWaves: <T extends { set?: string; expr?: string; confirm?: string }>(
+  steps: readonly T[],
+  isBarrier?: (step: T) => boolean,
+  declaredWrites?: (step: T) => string[],
+) => T[][] = (steps, isBarrier, declaredWrites) => plan(steps, ev, isBarrier, declaredWrites);
 
 describe("planStepWaves", () => {
   it("keeps independent steps in one wave", () => {

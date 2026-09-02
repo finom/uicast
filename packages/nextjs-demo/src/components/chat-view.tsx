@@ -10,6 +10,7 @@ import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
+import { Evaluator } from "@uicast/expr";
 import { type ErrorComponentProps, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { CostInfo } from "@/components/cost-info";
@@ -34,6 +35,9 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
+
+// One evaluator for the app: the host functions bind on it, and it holds the parse cache.
+const evaluator = new Evaluator({ functions: domainTools });
 import { setApiOwner } from "@/tools/http";
 
 // Module scope: the renderer's component identity must stay stable across
@@ -133,7 +137,7 @@ export function ChatView({
           }
         }}
       implementations={allImplementations}
-      functions={domainTools}
+      evaluator={evaluator}
       fallbackComponents={rendererDefaults}
     >
       <div className="flex h-full flex-col">

@@ -25,7 +25,7 @@ is everything around it, and that is what this skill covers.
 | `@uicast/streamdown` | Chat surface: renders ```uicast fences inside Markdown replies via Streamdown. Only for chat hosts. |
 
 ```bash
-npm i @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
+npm i @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
 ```
 
 The packages are beta — install under the `@beta` dist-tag. Add
@@ -288,11 +288,14 @@ export const systemPrompt = [
 ## 5. Mount
 
 ```tsx
+import { Evaluator } from "@uicast/expr";
 import { RendererProvider, EntriesRenderer } from "@uicast/react";
+
+const evaluator = new Evaluator({ functions }); // ONCE, module scope — holds the parse cache
 
 <RendererProvider
   implementations={implementations} // stable reference — module scope or useMemo
-  functions={functions}             // stable reference
+  evaluator={evaluator}
   fallbackComponents={{ confirm: ConfirmModal, error: RenderError }}
   onError={(err) => report(err)}
   init={({ scopes }) => { scopes.root.user = currentUser; }}
@@ -304,14 +307,14 @@ import { RendererProvider, EntriesRenderer } from "@uicast/react";
 - The provider owns **one shared reactive `root` scope** for every renderer
   under it — several documents (chat blocks, page sections) behave as one app
   with one store. Mount one provider per state universe, high in the tree.
-- Unstable `implementations`/`functions` arrays re-render every node — keep them
-  at module scope, or memoize.
+- An unstable `implementations` array or a new `evaluator` per render re-renders
+  every node — keep them at module scope, or memoize.
 - `fallbackComponents` slots: `placeholder` (streaming/seeding; omitted →
   **nothing**, pending slots stay empty), `confirm` (omitted →
   `window.confirm`), `error` (omitted → a bare inline-styled div).
-- `evaluator` picks the expression back end: `"interpret"` (default, checks
-  every read, no CSP `unsafe-eval`) or `"native"` (validate then `new Function`,
-  faster, trusted-author documents only). Same language either way.
+- `evaluator` (required) is the expression evaluator with the host functions
+  bound on it: `new Evaluator({ functions })` from `@uicast/expr`. It checks
+  every read and call at run time and needs no CSP `unsafe-eval`.
 - `init` runs once per provider group, before any entry evaluates; a returned
   Promise suspends the renderers until it resolves.
 
@@ -430,7 +433,7 @@ import { Streamdown } from "streamdown";
 
 const uicastRenderer = createFenceRenderer(); // ONCE, module scope
 
-<RendererProvider implementations={implementations} functions={functions}>
+<RendererProvider implementations={implementations} evaluator={evaluator}>
   {messages.map((m) => (
     <Streamdown key={m.id} plugins={{ renderers: [uicastRenderer] }}>
       {m.content}

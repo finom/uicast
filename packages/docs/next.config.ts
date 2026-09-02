@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
   // don't need this.
   transpilePackages: [
     "@uicast/expr",
+    "@uicast/expr-passthrough",
     "@uicast/core",
     "@uicast/react",
     "@uicast/shadcn-catalog",

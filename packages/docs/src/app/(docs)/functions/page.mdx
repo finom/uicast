@@ -61,10 +61,11 @@ run, and writes that already happened stay.
 
 ## Wiring into the renderer
 
-Collect your tools into an array and pass it to
-[`<RendererProvider functions={...}>`](/react/renderer):
+Collect your tools into an array, bind them on the evaluator, and pass it to
+[`<RendererProvider evaluator={...}>`](/react/renderer#evaluator--the-expression-evaluator):
 
 ```tsx
+import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import type { StandardToolV0 } from "standard-tool";
@@ -74,17 +75,18 @@ const inventoryFunctions: StandardToolV0[] = [
   createProduct,
   deleteProduct,
 ];
+const evaluator = new Evaluator({ functions: inventoryFunctions });
 
 <RendererProvider
   implementations={allImplementations}
-  functions={inventoryFunctions}
+  evaluator={evaluator}
 >
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
-Pass a **stable reference** (a module constant). The array goes into the
-provider's context, so rebuilding it each render re-renders the whole tree.
+Create the evaluator **once** (a module constant). It holds the parse cache,
+and a new instance per render re-renders the whole tree.
 
 ## How the model calls them
 

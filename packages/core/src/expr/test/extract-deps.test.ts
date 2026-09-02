@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry, ComponentListEntry } from "../../types";
-import { extractDeps } from "../extract-deps";
+import { Evaluator } from "@uicast/expr";
+import { type DepsPart, extractDeps as extract } from "../extract-deps";
+
+const ev = new Evaluator();
+const extractDeps = (entry: ComponentEntry, part?: DepsPart) => extract(entry, ev, part);
 
 const element = (
   patch: Partial<ComponentEntry>,

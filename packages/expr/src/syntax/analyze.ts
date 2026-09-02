@@ -1,25 +1,9 @@
 import type * as acorn from "acorn";
+import { childNodes, patternNames } from "./ast";
 
-// Static facts a host needs about an expression: which `<root>.X.Y`
-// member paths does it read (so subscriptions can be derived
-// rather than hand-written), and which names does it take from outside.
+// Static facts a host needs: the `<root>.X.Y` paths an expression reads, and the names it takes from outside.
 
-const isNode = (value: unknown): value is acorn.AnyNode =>
-	typeof value === "object" && value !== null && typeof (value as acorn.AnyNode).type === "string";
-
-const childNodes = function* (node: acorn.AnyNode): Generator<acorn.AnyNode> {
-	for (const key of Object.keys(node)) {
-		if (key === "type" || key === "start" || key === "end") continue;
-		const child = (node as unknown as Record<string, unknown>)[key];
-		if (Array.isArray(child)) {
-			for (const item of child) if (isNode(item)) yield item;
-		} else if (isNode(child)) {
-			yield child;
-		}
-	}
-};
-
-/** `a.b.c` → `["a","b","c"]`, or null at the first dynamic segment. */
+// `a.b.c` → `["a","b","c"]`, or null at the first dynamic segment.
 const collectChain = (node: acorn.AnyNode | null | undefined): string[] | null => {
 	const parts: string[] = [];
 	let cur: acorn.AnyNode | null | undefined = node;
@@ -40,15 +24,10 @@ const collectChain = (node: acorn.AnyNode | null | undefined): string[] | null =
 	return null;
 };
 
-const walkMemberReads = (
-	node: acorn.AnyNode | null | undefined,
-	root: string,
-	out: Set<string>,
-): void => {
+const walkMemberReads = (node: acorn.AnyNode | null | undefined, root: string, out: Set<string>): void => {
 	if (!node || typeof node !== "object") return;
 
-	// A method call depends on the chain, not the method name:
-	// `rows.filter(…)` reads `rows`, not `rows.filter`.
+	// A method call depends on the chain, not the method name: `rows.filter(…)` reads `rows`, not `rows.filter`.
 	if (node.type === "CallExpression") {
 		const callee = node.callee;
 		if (callee.type === "MemberExpression" && !callee.computed) {
@@ -82,42 +61,14 @@ export const extractMemberReads = (ast: acorn.AnyNode, root: string): string[] =
 	return [...out];
 };
 
-// Free identifiers — names taken from outside. The only binder in this language
-// is an arrow's parameter list, so the scope walk is short.
-const bindPattern = (node: acorn.AnyNode | null | undefined, scope: Set<string>): void => {
-	if (!node) return;
-	switch (node.type) {
-		case "Identifier":
-			scope.add(node.name);
-			break;
-		case "ObjectPattern":
-			for (const p of node.properties) {
-				bindPattern(p.type === "RestElement" ? p.argument : p.value, scope);
-			}
-			break;
-		case "ArrayPattern":
-			for (const el of node.elements) if (el) bindPattern(el, scope);
-			break;
-		case "AssignmentPattern":
-			bindPattern(node.left, scope);
-			break;
-		case "RestElement":
-			bindPattern(node.argument, scope);
-			break;
-	}
-};
-
+// Free identifiers — names taken from outside. An arrow's parameter list is the only binder, so the scope walk is short.
 const isBound = (name: string, stack: Set<string>[]): boolean => {
 	for (let i = stack.length - 1; i >= 0; i--) if (stack[i].has(name)) return true;
 	return false;
 };
 
-/** Called for each free identifier, with the node that contains it. */
-export type FreeVisitor = (
-	name: string,
-	node: acorn.Identifier,
-	parent: acorn.AnyNode | null,
-) => void;
+// Called for each free identifier, with the node that contains it.
+export type FreeVisitor = (name: string, node: acorn.Identifier, parent: acorn.AnyNode | null) => void;
 
 const walkFree = (
 	node: acorn.AnyNode | null | undefined,
@@ -140,10 +91,10 @@ const walkFree = (
 			walkFree(node.value, node, stack, visit);
 			return;
 		case "ArrowFunctionExpression": {
-			const scope = new Set<string>();
-			for (const p of node.params) bindPattern(p, scope);
-			const inner = [...stack, scope];
-			// Default values in the params can reference outer names.
+			const names: string[] = [];
+			for (const p of node.params) patternNames(p, names);
+			const inner = [...stack, new Set(names)];
+			// A parameter default can read outer names and earlier parameters.
 			for (const p of node.params) walkFree(p, node, inner, visit);
 			walkFree(node.body as acorn.AnyNode, node, inner, visit);
 			return;
@@ -153,13 +104,7 @@ const walkFree = (
 	for (const child of childNodes(node)) walkFree(child, node, stack, visit);
 };
 
-/** Every identifier no enclosing arrow binds. Arrow parameters are the only binder. */
+// Every identifier no enclosing arrow binds.
 export const walkFreeIdentifiers = (ast: acorn.AnyNode, visit: FreeVisitor): void => {
 	walkFree(ast, null, [new Set()], visit);
-};
-
-export const extractFreeIdentifiers = (ast: acorn.AnyNode): string[] => {
-	const out = new Set<string>();
-	walkFreeIdentifiers(ast, (name) => out.add(name));
-	return [...out];
 };

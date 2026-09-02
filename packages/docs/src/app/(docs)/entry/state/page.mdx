@@ -174,7 +174,7 @@ path defined and writes nothing — a no-op, not an error. The same `set` in a
 survives a re-mount instead of snapping back.
 
 State can also come from the host:
-[`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group)
+[`<RendererProvider evaluator={evaluator} init>`](/react/renderer#init--preload-state-for-the-group)
 preloads `scopes.root` once, before any entry evaluates, and can
 [expose extra named scopes](/react/renderer#extra-named-scopes)
 (read as `scopes.userCtx.name`) — proxies the host keeps and can update later.

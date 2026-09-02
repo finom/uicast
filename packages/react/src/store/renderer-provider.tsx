@@ -19,21 +19,19 @@ import type {
 import { RendererRegistryProvider } from "./renderer-registry";
 
 type RendererGroup = {
-  /** The shared scopes — one `root` proxy for every renderer in the group. */
+  // The shared scopes — one `root` proxy for every renderer in the group.
   scopes: Scopes;
-  /** Group-level `init`, latched to run once; the first renderer's seed pass executes it, the rest await. */
+  // Group-level `init`, latched to run once; the first renderer's seed pass executes it, the rest await.
   init?: InitFn;
 };
 
 const RendererGroupContext = createContext<RendererGroup | null>(null);
 
-/** Host side of the binding: registry, functions, fallback UI, and ONE shared store — every renderer beneath behaves as one app. */
+// Host side of the binding: registry, evaluator, fallback UI, and ONE shared store — every renderer beneath behaves as one app.
 export function RendererProvider({
   implementations,
   fallbackComponents,
-  functions,
   evaluator,
-  maxExpressionLength,
   urlPolicy,
   onError,
   init,
@@ -90,21 +88,11 @@ export function RendererProvider({
     () => ({
       implementations: implementationsByName,
       fallbackComponents,
-      functions,
       evaluator,
-      maxExpressionLength,
       urlPolicy,
       onError,
     }),
-    [
-      implementationsByName,
-      fallbackComponents,
-      functions,
-      evaluator,
-      maxExpressionLength,
-      urlPolicy,
-      onError,
-    ],
+    [implementationsByName, fallbackComponents, evaluator, urlPolicy, onError],
   );
 
   return (
@@ -116,7 +104,7 @@ export function RendererProvider({
   );
 }
 
-/** The shared group store, or a clear error outside a <RendererProvider>. */
+// The shared group store, or a clear error outside a <RendererProvider>.
 export function useRendererGroup(): RendererGroup {
   const group = useContext(RendererGroupContext);
   if (!group) {

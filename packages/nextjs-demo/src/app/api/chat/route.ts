@@ -1,4 +1,4 @@
-import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import { convertToModelMessages, createUIMessageStreamResponse, streamText, toUIMessageStream, type UIMessage } from "ai";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -121,7 +121,8 @@ export async function POST(req: Request) {
     maxOutputTokens: MAX_OUTPUT_TOKENS,
   });
 
-  return result.toUIMessageStreamResponse({
+  const stream = toUIMessageStream({
+    stream: result.stream,
     originalMessages: uiMessages,
     generateMessageId: () => crypto.randomUUID(),
     // Every assistant message carries its own bill.
@@ -140,4 +141,5 @@ export async function POST(req: Request) {
       await persistMessages(id, messages);
     },
   });
+  return createUIMessageStreamResponse({ stream });
 }

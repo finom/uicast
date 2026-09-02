@@ -1,13 +1,14 @@
 import { act, render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import type { StandardToolV0 } from "standard-tool";
+import { Evaluator, type StandardToolV0 } from "@uicast/expr";
 import {
   createComponentDefinition,
   createProxyScope,
   buildElementsByKey,
   type ComponentEntry,
   type EntryError,
+  type ExpressionEvaluator,
   type ReactiveProxy,
 } from "@uicast/core";
 import {
@@ -23,6 +24,8 @@ import {
 } from "@uicast/react/store/elements-store";
 
 // Lightweight test implementations wired the same way real catalog components are.
+
+export const testEvaluator = new Evaluator();
 
 const boxDef = createComponentDefinition({
   name: "Box",
@@ -104,18 +107,16 @@ type MountOptions = {
   rootScope?: Record<string, unknown>;
   scopes?: Record<string, Record<string, unknown>>;
   implementations?: Record<string, ComponentImplementation>;
+  evaluator?: ExpressionEvaluator;
+  // Test sugar: an interpreter over these tools.
   functions?: StandardToolV0[];
   fallbackComponents?: FallbackComponents;
   onError?: (error: EntryError) => void;
-  /** Wrap the renderer in an additional element. */
+  // Wrap the renderer in an additional element.
   wrapper?: (children: ReactNode) => ReactElement;
 };
 
-/**
- * Mount an entry tree with the standard test scaffolding (registry + root
- * scope). Returns the @testing-library/react
- * render result plus the live scopes map so tests can drive state.
- */
+// Mount an entry tree with the standard test scaffolding (registry + root scope). Returns the RTL render result plus the live scopes map.
 export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}) {
   const elements = buildElementsByKey(lines);
   const scopes: Record<string, ReactiveProxy> = {
@@ -139,7 +140,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
         value={{
           implementations: options.implementations ?? defaultImplementations,
           fallbackComponents: options.fallbackComponents,
-          functions: options.functions,
+          evaluator: options.evaluator ?? (options.functions ? new Evaluator({ functions: options.functions }) : testEvaluator),
           onError: options.onError,
         }}
       >

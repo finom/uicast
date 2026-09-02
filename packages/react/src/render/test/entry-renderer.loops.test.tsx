@@ -1,3 +1,4 @@
+import { testEvaluator } from "../../../test/render-helpers";
 import { act, render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
@@ -68,7 +69,7 @@ describe("EntriesRenderer — feedback loops", () => {
     ];
 
     const { container } = render(
-      <RendererProvider implementations={catalog}>
+      <RendererProvider evaluator={testEvaluator} implementations={catalog}>
         <EntriesRenderer entries={entries} />
       </RendererProvider>,
     );
@@ -91,7 +92,7 @@ describe("EntriesRenderer — feedback loops", () => {
     ];
 
     const { container } = render(
-      <RendererProvider implementations={catalog}>
+      <RendererProvider evaluator={testEvaluator} implementations={catalog}>
         <EntriesRenderer entries={entries} />
       </RendererProvider>,
     );
@@ -106,7 +107,7 @@ describe("EntriesRenderer — feedback loops", () => {
     ];
 
     const { container } = render(
-      <RendererProvider implementations={catalog}>
+      <RendererProvider evaluator={testEvaluator} implementations={catalog}>
         <EntriesRenderer entries={entries} />
       </RendererProvider>,
     );

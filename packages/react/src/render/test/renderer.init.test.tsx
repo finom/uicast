@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { InitFn } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
-import { defaultImplementationsList } from "../../../test/render-helpers";
+import { defaultImplementationsList, testEvaluator } from "../../../test/render-helpers";
 
 // `init` is the host-supplied side-effect callback that runs exactly once
 // on the synthetic RootFragment wrapper's mount, before any LLM-emitted root
@@ -30,7 +30,7 @@ describe("Renderer — init prop", () => {
 			(scopes.root as Record<string, unknown>).greeting = "hello";
 		};
 
-		const { container } = render(<RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
+		const { container } = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
 		expect(container.textContent).toContain("hello");
 	});
 
@@ -62,7 +62,7 @@ describe("Renderer — init prop", () => {
 		// hang seeing only the fallback.
 		let container!: HTMLElement;
 		await act(async () => {
-			const result = render(<RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
+			const result = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
 			container = result.container;
 		});
 
@@ -88,7 +88,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<RendererProvider implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>);
+		const { container } = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>);
 		expect(container.textContent).toContain("plain");
 
 		// The RootFragment wrapper renders via React.Fragment — no extra DOM
@@ -115,7 +115,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'A:' + scopes.root.seed })" },
 			},
 		];
-		const { container, rerender } = render(<RendererProvider implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={initialLines} /></RendererProvider>);
+		const { container, rerender } = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={initialLines} /></RendererProvider>);
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A:once");
 
@@ -127,7 +127,7 @@ describe("Renderer — init prop", () => {
 				props: { expr: "({ text: 'B:' + scopes.root.seed })" },
 			},
 		];
-		rerender(<RendererProvider implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={nextLines} /></RendererProvider>);
+		rerender(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={nextLines} /></RendererProvider>);
 
 		// The synthetic RootFragment reconciled by stable key — init did NOT
 		// re-fire when a new sibling root entry streamed in.
@@ -153,7 +153,7 @@ describe("Renderer — init prop", () => {
 			},
 		];
 
-		const { container } = render(<RendererProvider implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={lines} /></RendererProvider>);
+		const { container } = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initSpy}><EntriesRenderer entries={lines} /></RendererProvider>);
 
 		expect(initSpy).toHaveBeenCalledTimes(1);
 		expect(container.textContent).toContain("A=shared");
@@ -178,7 +178,7 @@ describe("Renderer — init prop", () => {
 			};
 		};
 
-		const { container } = render(<RendererProvider implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
+		const { container } = render(<RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
 		expect(container.textContent).toContain("Email");
 	});
 });

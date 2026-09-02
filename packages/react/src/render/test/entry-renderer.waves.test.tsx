@@ -1,5 +1,6 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { Evaluator } from "@uicast/expr";
 import { standardTool } from "standard-tool";
 import { z } from "zod";
 import type { ComponentEntry } from "@uicast/core";
@@ -28,6 +29,7 @@ describe("dependency waves", () => {
       },
     });
     const functions = [getWeather];
+    const evaluator = new Evaluator({ functions });
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -40,7 +42,7 @@ describe("dependency waves", () => {
       },
     ];
     const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList} functions={functions}>
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );
@@ -73,6 +75,7 @@ describe("dependency waves", () => {
       },
     });
     const functions = [loadA, loadB];
+    const evaluator = new Evaluator({ functions });
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -85,7 +88,7 @@ describe("dependency waves", () => {
       },
     ];
     const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList} functions={functions}>
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );
@@ -115,6 +118,7 @@ describe("dependency waves", () => {
       },
     });
     const functions = [slowEcho];
+    const evaluator = new Evaluator({ functions });
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["btn", "out"] },
       {
@@ -138,7 +142,7 @@ describe("dependency waves", () => {
       },
     ];
     const { container, getByText } = render(
-      <RendererProvider implementations={defaultImplementationsList} functions={functions}>
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );
@@ -175,6 +179,7 @@ describe("dependency waves", () => {
       },
     });
     const functions = [del, list];
+    const evaluator = new Evaluator({ functions });
     const lines: ComponentEntry[] = [
       {
         key: "btn",
@@ -191,7 +196,7 @@ describe("dependency waves", () => {
       },
     ];
     const { getByText } = render(
-      <RendererProvider implementations={defaultImplementationsList} functions={functions}>
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );
@@ -221,6 +226,7 @@ describe("dependency waves", () => {
       execute: after,
     });
     const functions = [boom, afterTool];
+    const evaluator = new Evaluator({ functions });
     const lines: ComponentEntry[] = [
       {
         key: "btn",
@@ -237,7 +243,7 @@ describe("dependency waves", () => {
     const { getByText } = render(
       <RendererProvider
         implementations={defaultImplementationsList}
-        functions={functions}
+        evaluator={evaluator}
         onError={onError}
       >
         <EntriesRenderer entries={lines} />

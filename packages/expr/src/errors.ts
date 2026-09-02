@@ -1,18 +1,18 @@
-/** Why an expression was rejected. Callers map these onto their own faults. */
+// Why an expression was rejected. Callers map these onto their own faults.
 export type ExpressionErrorReason =
-	/** Did not parse, or parsed as something other than one expression. */
+	// Did not parse, or parsed as something other than one expression.
 	| "expression-syntax"
-	/** Parsed, but uses a construct or a member the grammar does not allow. */
+	// Parsed, but uses a construct or a member the grammar does not allow.
 	| "guardrail-violation"
-	/** Named something that was never handed in. */
+	// Named something that was never handed in.
 	| "unknown-reference"
-	/** Ran too long, too many steps, or allocated past a cap. */
+	// Ran too long, too many steps, or allocated past a cap.
 	| "budget-exceeded"
-	/** A host function's input schema rejected the argument the expression passed. */
+	// A host function's input schema rejected the argument the expression passed.
 	| "invalid-arguments"
-	/** A host function threw, or its output schema rejected what it returned. */
+	// A host function threw, or its output schema rejected what it returned.
 	| "host-function"
-	/** Allowed expression, wrong values (property of `null`, malformed JSON) — an ordinary runtime failure, classified apart from a policy rejection. */
+	// Allowed expression, wrong values (property of `null`, malformed JSON) — an ordinary runtime failure, classified apart from a policy rejection.
 	| "runtime";
 
 export class ExpressionError extends Error {
@@ -31,7 +31,7 @@ export class ExpressionError extends Error {
 		this.reason = reason;
 	}
 
-	/** Cross-copy-safe `instanceof`. */
+	// Cross-copy-safe `instanceof`.
 	static is(err: unknown): err is ExpressionError {
 		return (
 			typeof err === "object" &&

@@ -6,19 +6,23 @@ export default defineConfig({
     alias: [
       {
         find: /^@uicast\/core\/prompt$/,
-        replacement: resolve(__dirname, "./src/prompt/index.ts"),
+        replacement: resolve(import.meta.dirname, "./src/prompt/index.ts"),
       },
       {
         find: /^@uicast\/expr\/internal$/,
-        replacement: resolve(__dirname, "../expr/src/internal.ts"),
+        replacement: resolve(import.meta.dirname, "../expr/src/internal.ts"),
       },
       {
         find: /^@uicast\/expr$/,
-        replacement: resolve(__dirname, "../expr/src/index.ts"),
+        replacement: resolve(import.meta.dirname, "../expr/src/index.ts"),
+      },
+      {
+        find: /^@uicast\/expr-passthrough$/,
+        replacement: resolve(import.meta.dirname, "../expr-passthrough/src/index.ts"),
       },
       {
         find: /^@uicast\/core$/,
-        replacement: resolve(__dirname, "./src/index.ts"),
+        replacement: resolve(import.meta.dirname, "./src/index.ts"),
       },
     ],
   },

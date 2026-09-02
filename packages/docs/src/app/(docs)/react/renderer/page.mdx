@@ -13,14 +13,16 @@ state changes.
 ## Mounting a document
 
 ```tsx
+import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 
+const evaluator = new Evaluator({ functions: hostFunctions });
 const entries = [
   { key: "hello", component: "Text", props: { literal: { text: "Hello" } } },
 ];
 
-<RendererProvider implementations={allImplementations} functions={hostFunctions}>
+<RendererProvider implementations={allImplementations} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -35,7 +37,7 @@ Every `<EntriesRenderer>` under the same provider renders against the **same
 `root` scope**:
 
 ```tsx
-<RendererProvider implementations={allImplementations} functions={hostFunctions}>
+<RendererProvider implementations={allImplementations} evaluator={evaluator}>
   <EntriesRenderer entries={ordersBlock} />
   <EntriesRenderer entries={statsBlock} />
 </RendererProvider>;
@@ -71,12 +73,11 @@ To isolate documents instead, give each its own provider.
   partner to the def [registration](/def#registration). A duplicate `name`
   throws. To replace a catalog component, filter its name out of both arrays
   rather than appending over it.
-- **`functions`** *(optional)* — a `StandardToolV0[]`; how a generated UI reaches
-  your API. See [Host functions](/functions).
+- **`evaluator`** — the expression evaluator, with your host functions bound
+  on it: `new Evaluator({ functions })` from `@uicast/expr`. See
+  [below](#evaluator--the-expression-evaluator) and [Host functions](/functions).
 - **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
   [below](#fallbackcomponents--the-engines-fallback-ui).
-- **`evaluator`** *(optional)* — which expression back end runs documents under
-  this provider; see [below](#evaluator--interpret-or-native).
 - **`init`** *(optional)* — a one-shot side effect for the whole group: preload
   the state documents read, and optionally
   [expose extra named scopes](#extra-named-scopes) beyond `root`. See
@@ -107,7 +108,7 @@ const implementations = [...allImplementations, MyCard]; // ✅ module scope
 const functions = [listRows, deleteRow]; //                 ✅ module scope
 
 // ❌ a fresh array each render — every node under it re-renders
-<RendererProvider implementations={[...allImplementations, MyCard]}>…</RendererProvider>;
+<RendererProvider evaluator={evaluator} implementations={[...allImplementations, MyCard]}>…</RendererProvider>;
 ```
 
 ### `functions` — callable from `seed` and `callbacks`
@@ -159,6 +160,7 @@ import {
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 
 <RendererProvider
+  evaluator={evaluator}
   implementations={allImplementations}
   fallbackComponents={{
     placeholder: () => <Skeleton className="h-8 w-full" />,
@@ -228,35 +230,44 @@ it:
 
 Cancel and neither step runs — a `confirm` step is a barrier.
 
-### `evaluator` — `interpret` or `native`
+### `evaluator` — the expression evaluator
 
-Which back end runs every expression under this provider. The default,
-`"interpret"`, checks each read and call at run time and needs no CSP
-`unsafe-eval` — the choice for any document you did not author yourself.
+Every expression under the provider runs on this instance. Create it once,
+outside render — it holds the parse cache — and bind the host functions on it:
 
 ```tsx
-<RendererProvider
-  implementations={allImplementations}
-  evaluator="native"
->
+import { Evaluator } from "@uicast/expr";
+
+const evaluator = new Evaluator({
+  functions: hostFunctions,    // see Host functions
+  maxSourceLength: 1000,       // the default; tell the prompt the same number
+  budget: { steps: 200_000 },  // optional ceilings
+});
+
+<RendererProvider implementations={allImplementations} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
-`"native"` validates against the same grammar and then runs the source with
-`new Function`: near-native speed, `unsafe-eval` required, and the
-[run-time-assembled key](/expr#two-modes) goes
-unchecked. Use it only for documents from a trusted author — your own
-pipeline, an admin. Both
-modes accept exactly the same language, so switching is a one-word change. See
-[Safety](/expr#two-modes).
+`Evaluator` checks each read and call at run time and needs no CSP
+`unsafe-eval` — the choice for any document you did not author yourself.
+`PassthroughEvaluator` from `@uicast/expr-passthrough` takes the same options
+minus `budget` and runs the source with `new Function`: several times faster,
+`unsafe-eval` required, and a [run-time-assembled key](/expr#two-evaluators)
+goes unchecked. Only for documents from a trusted author — your own pipeline,
+an admin. See [Two evaluators](/expr#two-evaluators).
 
-### `maxExpressionLength` — cap expression size
+The prop is typed as `ExpressionEvaluator`, the interface from `@uicast/expr`
+that both evaluators implement (`@uicast/core` re-exports it). An evaluator of
+your own — a different policy, or a different language with its own prompt —
+implements it and plugs in the same way.
 
-One expression may be at most this many characters — 1000 by default, rejected
-before parsing. Pass the same value to
-`getExpressionsPartialPrompt({ maxLength })` so the model is told the limit it
-generates under.
+### Expression length
+
+One expression may be at most `maxSourceLength` characters — 1000 by default,
+rejected before parsing. It is an option of the evaluator, not the provider.
+Pass the same value to `getExpressionsPartialPrompt({ maxLength })` so the
+model is told the limit it generates under.
 
 ### `urlPolicy` — the URLs a document may load
 
@@ -278,6 +289,7 @@ To allow more, pass an object or a predicate:
 
 ```tsx
 <RendererProvider
+  evaluator={evaluator}
   implementations={allImplementations}
   urlPolicy={{ hosts: ["cdn.example.com", "*.imgix.net"] }}
 >
@@ -310,7 +322,7 @@ const init: InitFn = async ({ scopes }) => {
   (scopes.root as Record<string, unknown>).user = await fetchUser();
 };
 
-<RendererProvider implementations={implementations} init={init}>
+<RendererProvider evaluator={evaluator} implementations={implementations} init={init}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -336,7 +348,7 @@ const init: InitFn = ({ scopes }) => {
   scopes.userCtx = userCtx;
 };
 
-<RendererProvider implementations={implementations} init={init}>
+<RendererProvider evaluator={evaluator} implementations={implementations} init={init}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -370,4 +382,4 @@ Nothing checks that the note and the object agree. Keep them in step yourself.
 
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
-- [The expression evaluator](/expr) — what runs inside an entry, and the two evaluator back ends.
+- [The expression evaluator](/expr) — what runs inside an entry, and the two evaluators.

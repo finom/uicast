@@ -4,7 +4,7 @@ import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { InitFn } from "@uicast/react";
 import { z } from "zod";
-import { defaultImplementationsList } from "../../../test/render-helpers";
+import { defaultImplementationsList, testEvaluator } from "../../../test/render-helpers";
 
 // `catalog` is a runtime prop on the <RendererProvider> — an array of
 // implementations, symmetric with `functions`. The provider builds the name→renderer
@@ -22,7 +22,7 @@ describe("Renderer — catalog prop", () => {
       },
     ];
     const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>,
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>,
     );
     expect(container.textContent).toContain("from-catalog-prop");
   });
@@ -45,8 +45,8 @@ describe("Renderer — catalog prop", () => {
 
     render(
       <>
-        <RendererProvider implementations={defaultImplementationsList} init={initA}><EntriesRenderer entries={box("rA")} /></RendererProvider>
-        <RendererProvider implementations={defaultImplementationsList} init={initB}><EntriesRenderer entries={box("rB")} /></RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initA}><EntriesRenderer entries={box("rA")} /></RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initB}><EntriesRenderer entries={box("rB")} /></RendererProvider>
       </>,
     );
 
@@ -79,7 +79,7 @@ describe("Renderer — catalog prop", () => {
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     expect(() =>
       render(
-        <RendererProvider implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider evaluator={testEvaluator} implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
       ),
     ).toThrow(/Duplicate component name "Box"/);
     errorSpy.mockRestore();

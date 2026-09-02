@@ -6,31 +6,35 @@ export default defineConfig({
     alias: [
       {
         find: /^@uicast\/expr\/internal$/,
-        replacement: resolve(__dirname, "../expr/src/internal.ts"),
+        replacement: resolve(import.meta.dirname, "../expr/src/internal.ts"),
       },
       {
         find: /^@uicast\/expr$/,
-        replacement: resolve(__dirname, "../expr/src/index.ts"),
+        replacement: resolve(import.meta.dirname, "../expr/src/index.ts"),
+      },
+      {
+        find: /^@uicast\/expr-passthrough$/,
+        replacement: resolve(import.meta.dirname, "../expr-passthrough/src/index.ts"),
       },
       {
         find: /^@uicast\/core\/prompt$/,
-        replacement: resolve(__dirname, "../core/src/prompt/index.ts"),
+        replacement: resolve(import.meta.dirname, "../core/src/prompt/index.ts"),
       },
       {
         find: /^@uicast\/core\/internal$/,
-        replacement: resolve(__dirname, "../core/src/internal.ts"),
+        replacement: resolve(import.meta.dirname, "../core/src/internal.ts"),
       },
       {
         find: /^@uicast\/core$/,
-        replacement: resolve(__dirname, "../core/src/index.ts"),
+        replacement: resolve(import.meta.dirname, "../core/src/index.ts"),
       },
       {
         find: /^@uicast\/react$/,
-        replacement: resolve(__dirname, "./src/index.ts"),
+        replacement: resolve(import.meta.dirname, "./src/index.ts"),
       },
       {
         find: /^@uicast\/react\/(.*)$/,
-        replacement: resolve(__dirname, "./src/$1"),
+        replacement: resolve(import.meta.dirname, "./src/$1"),
       },
     ],
   },

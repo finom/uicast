@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`<RendererProvider evaluator={instance}>`, required.** The provider takes the expression evaluator itself — `new Evaluator({ functions })` from `@uicast/expr`, a `PassthroughEvaluator` from `@uicast/expr-passthrough`, or your own implementation of core's `ExpressionEvaluator` interface — with the host functions bound on it. The `functions` prop, the `evaluator="native"` string and `maxExpressionLength` are gone (`maxSourceLength` is an option of the evaluator). Create the instance once, outside render: it holds the parse cache.
+- `standard-tool` is no longer a dependency, and nothing from `@uicast/expr` is imported.
+
+### Fixed
+
+- **A reachable `children` cycle no longer exhausts the heap.** `root → a → b → a` recursed without bound; each render now carries its ancestry and refuses a key that repeats, as a `guardrail-violation` naming it. A list's rows re-enter under the list's own key by design and are not a cycle.
+- **A write to a scope that does not exist is classified.** `set: "scopes.nope.x"` surfaced as a raw `TypeError` with reason `unknown`, so the repair loop was never told it was the document's mistake — usually a wrong `as` name. It is `unknown-reference` now.
+- A `props`, `hidden`, or `each` expression that evaluated to a Promise was refused, but the promise itself was dropped unsettled — an `Uncaught (in promise)` in the console. Its rejection is now swallowed at the point it is refused.
+- Compiled to ES2022.
+
 ### Added
 
 - `evaluator` on `RendererProvider` (`"interpret"` | `"native"`) selects the expression back end for documents under the provider. `"interpret"` (default) needs no CSP `unsafe-eval`; `"native"` runs the validated source with `new Function` for trusted-author documents.

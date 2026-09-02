@@ -78,7 +78,10 @@ import {
   useQuery,
 } from "@tanstack/react-query";
 import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
+
+const evaluator = new Evaluator({ functions: hostFunctions });
 
 const { data: entries = [], isFetching } = useQuery({
   queryKey: ["generate", prompt],
@@ -98,7 +101,7 @@ const { data: entries = [], isFetching } = useQuery({
 
 <RendererProvider
   implementations={allImplementations}
-  functions={hostFunctions}
+  evaluator={evaluator}
   fallbackComponents={{ placeholder: () => <Skeleton className="h-6 w-24" /> }}
 >
   <EntriesRenderer entries={entries} />

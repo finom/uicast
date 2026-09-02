@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   // tsconfig paths point at src/, not the built dist/); let Next transpile them.
   transpilePackages: [
     "@uicast/expr",
+    "@uicast/expr-passthrough",
     "@uicast/core",
     "@uicast/react",
     "@uicast/shadcn-catalog",

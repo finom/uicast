@@ -2,12 +2,12 @@ import { cleanup, fireEvent, render } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { Evaluator, type StandardToolV0 } from "@uicast/expr";
 import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import {
 	createComponentImplementation,
 	RendererProvider,
-	type RendererProviderProps,
 } from "@uicast/react";
 import { createFenceRenderer } from "../create-fence-renderer";
 import { FENCE_LANGUAGE } from "../parse-fence-code";
@@ -32,14 +32,16 @@ const boxImpl = createComponentImplementation({
 // Module const so the registry reference stays stable across rerenders.
 const implementations = [boxImpl];
 
+const defaultEvaluator = new Evaluator();
+
 const Host = ({
-	functions,
+	evaluator = defaultEvaluator,
 	children,
 }: {
-	functions?: RendererProviderProps["functions"];
+	evaluator?: Evaluator;
 	children: ReactNode;
 }) => (
-	<RendererProvider implementations={implementations} functions={functions}>
+	<RendererProvider implementations={implementations} evaluator={evaluator}>
 		{children}
 	</RendererProvider>
 );
@@ -102,7 +104,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 	it("runs a seed exactly once while the fence grows", () => {
 		const Fence = createFenceRenderer().component;
 		let calls = 0;
-		const functions: RendererProviderProps["functions"] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",
@@ -112,6 +114,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const seeded = line({
 			key: "seeded",
 			component: "Box",
@@ -120,7 +123,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 		});
 		const more = line({ key: "more", component: "Box", props: { literal: { text: "extra" } } });
 		const at = (code: string, isIncomplete: boolean) => (
-			<Host functions={functions}>
+			<Host evaluator={evaluator}>
 				<Fence code={code} isIncomplete={isIncomplete} language={FENCE_LANGUAGE} />
 			</Host>
 		);
@@ -139,7 +142,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 		const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 		const Fence = createFenceRenderer().component;
 		let calls = 0;
-		const functions: RendererProviderProps["functions"] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "boom",
 				description: "",
@@ -149,6 +152,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const bad = line({
 			key: "bad",
 			component: "Box",
@@ -157,7 +161,7 @@ describe("createFenceRenderer — FenceBlock", () => {
 		});
 		const more = line({ key: "more", component: "Box", props: { literal: { text: "extra" } } });
 		const at = (code: string) => (
-			<Host functions={functions}>
+			<Host evaluator={evaluator}>
 				<Fence code={code} isIncomplete language={FENCE_LANGUAGE} />
 			</Host>
 		);
@@ -233,7 +237,7 @@ describe("createFenceRenderer — source toggle", () => {
 	it("keeps the block mounted while source shows — the seed does not re-run", () => {
 		const Fence = createFenceRenderer({ showSourceToggle: true }).component;
 		let calls = 0;
-		const functions: RendererProviderProps["functions"] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",
@@ -243,6 +247,7 @@ describe("createFenceRenderer — source toggle", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const code = line({
 			key: "seeded",
 			component: "Box",
@@ -250,7 +255,7 @@ describe("createFenceRenderer — source toggle", () => {
 			props: { expr: "({ text: 'seeded ' + scopes.root.n })" },
 		});
 		const { container, getByText } = render(
-			<Host functions={functions}>
+			<Host evaluator={evaluator}>
 				<Fence code={code} isIncomplete={false} language={FENCE_LANGUAGE} />
 			</Host>,
 		);
@@ -274,7 +279,7 @@ describe("createFenceRenderer — client-only gate", () => {
 	it("renders no entries and runs no seeds during SSR; the client mount seeds once", () => {
 		const Fence = createFenceRenderer().component;
 		let calls = 0;
-		const functions: RendererProviderProps["functions"] = [
+		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",
@@ -284,6 +289,7 @@ describe("createFenceRenderer — client-only gate", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const code = line({
 			key: "seeded",
 			component: "Box",
@@ -291,7 +297,7 @@ describe("createFenceRenderer — client-only gate", () => {
 			props: { expr: "({ text: 'seeded ' + scopes.root.n })" },
 		});
 		const at = () => (
-			<Host functions={functions}>
+			<Host evaluator={evaluator}>
 				<Fence code={code} isIncomplete={false} language={FENCE_LANGUAGE} />
 			</Host>
 		);

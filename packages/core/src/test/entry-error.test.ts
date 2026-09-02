@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { EntryError } from "../entry-error";
-import { evaluate } from "../expr/evaluate";
+import { Evaluator } from "@uicast/expr";
+import { evaluate as evaluateWith } from "../expr/evaluate";
+import type { ValueSource } from "../types";
+
+const defaultEvaluator = new Evaluator();
+const evaluate = (expr: ValueSource, context: Record<string, unknown>, evaluator: Evaluator = defaultEvaluator) =>
+  evaluateWith(expr, context, evaluator);
 
 describe("EntryError", () => {
   it("derives fault from reason — one source of truth", () => {
@@ -65,7 +71,7 @@ describe("evaluate — classification at the throw site", () => {
 
   it("tags a blocked property access as guardrail-violation (document)", () => {
     try {
-      evaluate({ expr: "({}).constructor" }, { scopes: {} });
+      evaluate({ expr: "[].constructor" }, { scopes: {} });
       expect.unreachable();
     } catch (err) {
       expect(EntryError.is(err) && err.reason).toBe("guardrail-violation");
@@ -99,7 +105,7 @@ describe("evaluate — classification at the throw site", () => {
       evaluate(
         { expr: "boom()" },
         { scopes: {} },
-        {
+        new Evaluator({
           functions: [
             {
               name: "boom",
@@ -109,7 +115,7 @@ describe("evaluate — classification at the throw site", () => {
               },
             },
           ],
-        },
+        }),
       );
       expect.unreachable();
     } catch (err) {
@@ -122,7 +128,7 @@ describe("evaluate — classification at the throw site", () => {
     const result = evaluate(
       { expr: "boom()" },
       { scopes: {} },
-      {
+      new Evaluator({
         functions: [
           {
             name: "boom",
@@ -132,7 +138,7 @@ describe("evaluate — classification at the throw site", () => {
             },
           },
         ],
-      },
+      }),
     );
     await expect(result).rejects.toSatisfy(
       (err: unknown) => EntryError.is(err) && err.reason === "host-function",
@@ -144,7 +150,7 @@ describe("evaluate — classification at the throw site", () => {
       evaluate(
         { expr: "lookup()" },
         { scopes: {} },
-        {
+        new Evaluator({
           functions: [
             {
               name: "lookup",
@@ -156,7 +162,7 @@ describe("evaluate — classification at the throw site", () => {
               },
             },
           ],
-        },
+        }),
       );
       expect.unreachable();
     } catch (err) {

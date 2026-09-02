@@ -1,5 +1,6 @@
 import { act } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { Evaluator } from "@uicast/expr";
 import { standardTool } from "standard-tool";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
@@ -39,7 +40,7 @@ const card = (children: string[]) =>
   }) as ComponentEntry;
 
 async function mountAndSettle(lines: ComponentEntry[]) {
-  const mounted = mountEntries(lines, { functions: [listOrders] });
+  const mounted = mountEntries(lines, { evaluator: new Evaluator({ functions: [listOrders] }) });
   await act(async () => {
     await new Promise((r) => setTimeout(r, 10));
   });

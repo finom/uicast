@@ -1,55 +1,42 @@
-import type { ConfirmableValueSourceAssignment } from "@uicast/core";
-import {
-	evaluate,
-	getFreeIdentifiers,
-	planStepWaves, type EvaluatorMode } from "@uicast/core/internal";
-import type { StandardToolV0 } from "standard-tool";
+import type { ConfirmableValueSourceAssignment, ExpressionEvaluator } from "@uicast/core";
+import { evaluate, planStepWaves } from "@uicast/core/internal";
 import { getItemWriteAliases } from "../item-write-forwarding";
 import type { ConfirmFn } from "../providers/confirm";
-import { readScopePath } from "../read-scope-path";
+import { readScopePath, requireScope } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
 import type { Scopes } from "../types";
 
-/**
- * Run a callback's steps in dependency waves; `confirm` and host calls are
- * barriers (their effects are invisible to path analysis). Throws the first
- * classified failure; a declined `confirm` resolves early.
- */
+// Run a callback's steps in dependency waves; `confirm` and host calls are barriers (their effects are invisible to path analysis).
+// Throws the first classified failure; a declined `confirm` resolves early.
 export async function runCallbackSteps({
 	steps,
 	payload,
 	scopes,
 	confirm,
-	functions,
 	evaluator,
-	maxExpressionLength,
 	elementKey,
 }: {
 	steps: ConfirmableValueSourceAssignment[];
 	payload: unknown;
 	scopes: Scopes;
 	confirm: ConfirmFn;
-	functions?: StandardToolV0[];
-	evaluator?: EvaluatorMode;
-	maxExpressionLength?: number;
+	evaluator: ExpressionEvaluator;
 	elementKey: string;
 }): Promise<void> {
 	const targets = parseStepTargets(steps, elementKey);
 
-	// Exact-name match on the evaluator's own parse, not a regex over source.
-	// An invalid expression throws classified at evaluation — not the
-	// barrier's problem, so the predicate just says "no barrier".
+	// The evaluator's own parse, not a regex. An invalid expression throws classified at evaluation; here it is simply not a barrier.
 	const callsHostFunction = (expr: string | undefined): boolean => {
-		if (!expr || !functions?.length) return false;
+		if (!expr) return false;
 		try {
-			const freeIds = getFreeIdentifiers(expr);
-			return functions.some((fn) => freeIds.includes(fn.name));
+			return evaluator.validate(expr).toolCalls.length > 0;
 		} catch {
 			return false;
 		}
 	};
 	const waves = planStepWaves(
 		steps,
+		evaluator,
 		(step) => callsHostFunction("expr" in step ? step.expr : undefined),
 		// A row-scope write also changes the source array / childScopes readers,
 		// so declare those paths — a later step reading them waits for it.
@@ -82,11 +69,7 @@ export async function runCallbackSteps({
 			return {
 				target,
 				value: (async () =>
-					evaluate(
-						step,
-						{ evt: payload, scopes, currentValue },
-						{ functions, evaluator, maxExpressionLength },
-					))(),
+					evaluate(step, { evt: payload, scopes, currentValue }, evaluator))(),
 			};
 		});
 		// Let every step in the wave settle, apply the successful writes in step
@@ -98,7 +81,7 @@ export async function runCallbackSteps({
 			if (result.status === "fulfilled") {
 				const { target } = evaluated[i];
 				if (target) {
-					scopes[target[0]].$set(target[1], result.value);
+					requireScope(scopes, target[0], elementKey).$set(target[1], result.value);
 				}
 			} else if (firstError === null) {
 				firstError = result.reason;

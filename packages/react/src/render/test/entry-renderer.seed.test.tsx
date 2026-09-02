@@ -1,5 +1,6 @@
 import { act, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { Evaluator } from "@uicast/expr";
 import type { StandardToolV0 } from "standard-tool";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
@@ -85,11 +86,12 @@ describe("EntryRenderer — seed", () => {
     const functions: StandardToolV0[] = [
       { name: "loadData", description: "", execute: () => gate },
     ];
+    const evaluator = new Evaluator({ functions });
 
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
       ).container;
     });
     // Suspended on the pending seed — the value isn't shown yet.
@@ -119,13 +121,14 @@ describe("EntryRenderer — seed", () => {
     const functions: StandardToolV0[] = [
       { name: "loadData", description: "", execute: () => gate },
     ];
+    const evaluator = new Evaluator({ functions });
 
     let container!: HTMLElement;
     await act(async () => {
       container = render(
         <RendererProvider
           implementations={defaultImplementationsList}
-          functions={functions}
+          evaluator={evaluator}
           fallbackComponents={{
             placeholder: ({ reason }) => <span data-ph>{reason}</span>,
           }}
@@ -169,11 +172,12 @@ describe("EntryRenderer — seed", () => {
     const functions: StandardToolV0[] = [
       { name: "loadData", description: "", execute: () => gate },
     ];
+    const evaluator = new Evaluator({ functions });
 
     let unmount!: () => void;
     await act(async () => {
       ({ unmount } = render(
-        <RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
       ));
     });
     unmount();
@@ -205,11 +209,12 @@ describe("EntryRenderer — seed", () => {
     const functions: StandardToolV0[] = [
       { name: "loadData", description: "", execute: () => gate },
     ];
+    const evaluator = new Evaluator({ functions });
 
     let unmount!: () => void;
     await act(async () => {
       ({ unmount } = render(
-        <RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
       ));
     });
     unmount();

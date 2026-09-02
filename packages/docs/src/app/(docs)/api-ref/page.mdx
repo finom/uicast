@@ -26,7 +26,7 @@ The engine, framework-agnostic. See [Core concepts](/concepts).
 | `isComponentEntry`, `isComponentListEntry` | Runtime type guards. |
 | `EntryError` | The classified failure every fault arrives as. See [Error recovery](/error-recovery). |
 
-Types: `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
+Types: `ExpressionEvaluator` — re-exported from `@uicast/expr`. Also `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
 `CombinedSpec`, `ValueSource`, `ValueSourceAssignment`,
 `ConfirmableValueSourceAssignment`, `ReactiveProxy`, `EntryErrorReason`,
 `EntryFault`.
@@ -60,16 +60,31 @@ it.
 
 | Export | What it does |
 |---|---|
-| `Evaluator` | The evaluator: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs. `mode: "interpret" \| "native"` selects the [back end](/expr#two-modes). |
+| `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs; `budget` sets the ceilings. |
+| `ExpressionEvaluator` | The interface both evaluators implement and uicast types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator of your own, for any language. |
 | `ALLOWED_GLOBALS` | The global names expressions may reference. |
 | `DEFAULT_BUDGET` | The default step / time / allocation ceilings. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
-Types: `EvaluatorOptions`, `EvaluatorMode`, `EvaluatorContexts`, `BudgetOptions`,
-`ExpressionFacts`, `ExpressionErrorReason`.
+Types: `EvaluatorOptions`, `EvaluatorContexts`,
+`BudgetOptions`, `ExpressionFacts`, `ExpressionErrorReason`, and
+`StandardToolV0` with the `StandardSchemaV1` / `StandardJSONSchemaV1` interfaces — copied
+verbatim from `standard-tool` and the Standard Schema spec; a tool built with
+`standard-tool` satisfies it as-is.
 
-There is also `@uicast/expr/internal` — the naming screen shared with core.
-It carries **no semver guarantee** — don't build on it.
+There is also `@uicast/expr/internal`, shared with core and the passthrough
+package. It carries **no semver guarantee** — don't build on it.
+
+## `@uicast/expr-passthrough`
+
+The same language run by the engine through `new Function` — for documents
+from a trusted author; see [Two evaluators](/expr#two-evaluators).
+
+| Export | What it does |
+|---|---|
+| `PassthroughEvaluator` | `Evaluator`'s options minus `budget`, same methods; its own class, built on `@uicast/expr`'s static checks. Needs CSP `unsafe-eval`. |
+
+Types: `PassthroughEvaluatorOptions`.
 
 ## `@uicast/react`
 
@@ -77,7 +92,7 @@ The React binding. Re-exports nothing from core — import from both.
 
 | Export | What it does |
 |---|---|
-| `<RendererProvider>` | Host side: implementations, host functions, fallback UI, and the shared `root` scope. See [Renderer](/react/renderer). |
+| `<RendererProvider>` | Host side: implementations, the evaluator (with the host functions on it), fallback UI, and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
 | `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair. See [impl](/react/impl). |
 

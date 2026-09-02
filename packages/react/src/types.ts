@@ -4,11 +4,10 @@ import type {
   ComponentDefinition,
   ComponentEntry,
   EntryError,
+  ExpressionEvaluator,
   ReactiveProxy,
   UrlPolicy,
 } from "@uicast/core";
-import type { EvaluatorMode } from "@uicast/core/internal";
-import type { StandardToolV0 } from "standard-tool";
 
 // A component's React implementation: its `def` (what the LLM reads) plus the
 // mounted `render` and an optional `placeholder`.
@@ -59,13 +58,8 @@ export type FallbackComponents = {
 export type RendererRegistry = {
   implementations: Record<string, ComponentImplementation>;
   fallbackComponents?: FallbackComponents;
-  // Host callables exposed as bare identifiers to every evaluate() under this
-  // provider. Identity matters — it selects the evaluator, and its cache.
-  functions?: StandardToolV0[];
-  // Which expression back end runs documents under this provider.
-  evaluator?: EvaluatorMode;
-  /** Longest accepted expression source, in characters. Default 1000. */
-  maxExpressionLength?: number;
+  // Runs every expression under this provider; carries the host functions.
+  evaluator: ExpressionEvaluator;
   // Which URLs may reach a prop the definition declares as a URL.
   urlPolicy?: UrlPolicy;
   // Reported for every classified failure (boundary catches and callback
@@ -90,44 +84,34 @@ export type InitFn = (ctx: InitContext) => unknown | Promise<unknown>;
 
 // Everything the host wires up once, for every <EntriesRenderer> in the group.
 export type RendererProviderProps = {
-  /** Pass a stable reference — a fresh array re-renders every node. Duplicate names throw. */
+  // Pass a stable reference — a fresh array re-renders every node. Duplicate names throw.
   implementations: ComponentImplementation[];
-  /**
-   * The engine's own fallback UI — placeholder, confirm, and error slots (see
-   * `FallbackComponents`). Omitted slots use the built-in defaults.
-   */
+  // The engine's own fallback UI — placeholder, confirm, and error slots (see
+  // `FallbackComponents`). Omitted slots use the built-in defaults.
   fallbackComponents?: FallbackComponents;
-  /**
-   * Host functions exposed as bare identifiers in every evaluate() call
-   * (callbacks invoke them as `name(input)`). Pass a stable reference: the
-   * array's identity selects the evaluator, so a fresh one per render means a
-   * cold expression cache per render.
-   */
-  functions?: StandardToolV0[];
-  /** Expression back end: `"interpret"` (default, no `unsafe-eval`) or `"native"` (trusted authors only). */
-  evaluator?: EvaluatorMode;
-  /** Longest accepted expression source, in characters. Default 1000. */
-  maxExpressionLength?: number;
-  /** URLs allowed in def-declared URL props. Default: relative, same-origin, raster `data:`. Widen with `{ hosts }` or a predicate. */
+  // The evaluator every document under this provider runs on, host functions bound: `new Evaluator({ functions })`, a `PassthroughEvaluator`, or your own.
+  // Create it once, outside render: it holds the parse cache.
+  evaluator: ExpressionEvaluator;
+  // URLs allowed in def-declared URL props. Default: relative, same-origin, raster `data:`. Widen with `{ hosts }` or a predicate.
   urlPolicy?: UrlPolicy;
-  /** Called per classified failure. `fault: "document"` = model output (recoverable); `"environment"` = host code. */
+  // Called per classified failure. `fault: "document"` = model output (recoverable); `"environment"` = host code.
   onError?: (error: EntryError) => void;
-  /** One-shot per group, before the first renderer's entries evaluate. Seeds `scopes.root.*`; may attach extra named scopes (`scopes.userCtx = createProxyScope(...)`). A returned Promise suspends. */
+  // One-shot per group, before the first renderer's entries evaluate. Seeds `scopes.root.*`; may attach extra named scopes (`scopes.userCtx = createProxyScope(...)`). A returned Promise suspends.
   init?: InitFn;
 };
 
 export type EntriesRendererProps = {
-  /** The JSONLines entries to render, in tree order. */
+  // The JSONLines entries to render, in tree order.
   entries: ComponentEntry[];
 };
 
 // The render tree's structural store: each node subscribes to its own key, so
 // settled subtrees don't re-render while siblings stream in.
 export interface ElementsStore {
-  /** Current element for a key (stable reference until that key changes). */
+  // Current element for a key (stable reference until that key changes).
   get(key: string): ComponentEntry | undefined;
-  /** Subscribe to a single key. Returns an unsubscribe fn. */
+  // Subscribe to a single key. Returns an unsubscribe fn.
   subscribe(key: string, listener: () => void): () => void;
-  /** Swap in a new map, notifying only the keys whose element identity changed. */
+  // Swap in a new map, notifying only the keys whose element identity changed.
   setMap(next: Record<string, ComponentEntry>): void;
 }

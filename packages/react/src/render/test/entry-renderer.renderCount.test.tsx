@@ -5,7 +5,7 @@ import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { InitFn } from "@uicast/react";
-import { mountEntries } from "../../../test/render-helpers";
+import { mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 // ---------------------------------------------------------------------------
 // Render-once guarantee.
@@ -26,7 +26,7 @@ const boxDef = createComponentDefinition({
   props: z.object({ text: z.string().optional() }),
 });
 
-/** Fresh box renderer + a per-entry render-count map, isolated per test. */
+// Fresh box renderer + a per-entry render-count map, isolated per test.
 function countingSetup() {
   const counts: Record<string, number> = {};
   const boxRenderer = createComponentImplementation({
@@ -56,9 +56,9 @@ const REVEAL: ComponentEntry[] = [
 ];
 
 function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
-  const { rerender } = render(<RendererProvider implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>);
+  const { rerender } = render(<RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>);
   for (let i = 2; i <= REVEAL.length; i++) {
-    rerender(<RendererProvider implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>);
+    rerender(<RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>);
   }
 }
 
@@ -82,13 +82,13 @@ describe("EntryRenderer — render-once during streaming", () => {
     const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
-        <RendererProvider implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>
       </StrictMode>,
     );
     for (let i = 2; i <= REVEAL.length; i++) {
       rerender(
         <StrictMode>
-          <RendererProvider implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>
+          <RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>
         </StrictMode>,
       );
     }
@@ -134,7 +134,7 @@ describe("EntryRenderer — render-once on state change", () => {
       captured = scopes;
     };
 
-    render(<RendererProvider implementations={catalog} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
+    render(<RendererProvider evaluator={testEvaluator} implementations={catalog} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
     expect(counts.root).toBe(1);
     expect(counts.child).toBe(1);
 

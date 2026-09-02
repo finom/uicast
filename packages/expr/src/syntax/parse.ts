@@ -1,14 +1,9 @@
 import * as acorn from "acorn";
-import { ExpressionError } from "./errors";
+import { DEFAULT_MAX_SOURCE_LENGTH } from "../constants/limits";
+import { ExpressionError } from "../errors";
 
-/** Longest accepted expression source, in characters. The real corpus tops out
- * around 140; anything near this limit belongs in a host function. */
-export const DEFAULT_MAX_SOURCE_LENGTH = 1000;
-
-// One parser for both validation and evaluation — a second parser reading a
-// construct differently would be a bypass, so the class is kept nonexistent.
-
-/** The `void ( … )` wrapper forces expression context (`{…}` is an object literal) and turns a smuggled `)` into a rejected multi-statement parse. */
+// One parser for validation and evaluation — a second parser reading a construct differently would be a bypass.
+// The `void ( … )` wrapper forces expression context (`{…}` is an object literal) and turns a smuggled `)` into a rejected multi-statement parse.
 export const parseExpression = (
 	source: string,
 	maxLength: number = DEFAULT_MAX_SOURCE_LENGTH,
@@ -49,18 +44,9 @@ export const parseExpression = (
 		);
 	}
 	const statement = program.body[0];
-	if (statement.type !== "ExpressionStatement") {
-		throw new ExpressionError(
-			`Expression must be a single expression, got a ${statement.type}`,
-			"expression-syntax",
-		);
-	}
-	const unary = statement.expression;
-	if (unary.type !== "UnaryExpression" || unary.operator !== "void") {
-		throw new ExpressionError(
-			"Expression must be a single expression",
-			"expression-syntax",
-		);
+	const unary = statement.type === "ExpressionStatement" ? statement.expression : null;
+	if (unary?.type !== "UnaryExpression" || unary.operator !== "void") {
+		throw new ExpressionError("Expression must be a single expression", "expression-syntax");
 	}
 	return unary.argument;
 };

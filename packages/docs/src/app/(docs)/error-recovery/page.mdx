@@ -69,6 +69,7 @@ slot:
 
 ```tsx
 <RendererProvider
+  evaluator={evaluator}
   implementations={implementations}
   onError={(error) => {
     if (error.fault === "document") {
@@ -182,6 +183,7 @@ the button sends:
 
 ```tsx
 <RendererProvider
+  evaluator={evaluator}
   implementations={implementations}
   onError={(error) => {
     if (error.fault !== "document" || !error.elementKey) {

@@ -10,8 +10,7 @@ import type { StandardToolV0 } from "standard-tool";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import {
   defaultImplementationsList,
-  mountEntries,
-} from "../../../test/render-helpers";
+  mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 // Classification end-to-end: every failure reaching the error slot or onError
 // is an EntryError whose reason was tagged at the throw site.
@@ -116,7 +115,7 @@ describe("EntryRenderer — EntryError classification", () => {
       { key: "a", component: "Box", props: { literal: { text: "hi" } } },
     ];
     render(
-      <RendererProvider implementations={defaultImplementationsList} init={() => { throw new Error("bootstrap failed"); }} onError={onError}><EntriesRenderer entries={lines} /></RendererProvider>,
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={() => { throw new Error("bootstrap failed"); }} onError={onError}><EntriesRenderer entries={lines} /></RendererProvider>,
     );
     await waitFor(() => {
       expect(seen).toHaveLength(1);

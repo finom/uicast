@@ -210,7 +210,7 @@ import { BadgeImpl } from "./badge/impl";
 
 getComponentsPartialPrompt({ definitions: [...allDefinitions, BadgeDef] });
 
-<RendererProvider implementations={[...allImplementations, BadgeImpl]}>
+<RendererProvider evaluator={evaluator} implementations={[...allImplementations, BadgeImpl]}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```

@@ -32,7 +32,7 @@ type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {
   [K in keyof T]: CallbackFn<T[K]>;
 };
 
-/** `issues` → one readable line: `variant: Invalid option; total: Expected number`. */
+// `issues` → one readable line: `variant: Invalid option; total: Expected number`.
 const describeIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
   issues
     .map((issue) => {
@@ -43,11 +43,8 @@ const describeIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
     })
     .join("; ");
 
-/**
- * Parse through a spec, return the OUTPUT (defaults applied) — what `render`
- * and `evt` are typed as. An async or throwing validator passes the value
- * through unparsed: a sync render can't await, and both are the library's fault.
- */
+// Parse through a spec, return the OUTPUT (defaults applied) — what `render` and `evt` are typed as.
+// An async or throwing validator passes the value through unparsed: a sync render cannot await, and both are the library's fault.
 const parseSpec = (
   spec: CombinedSpec,
   value: unknown,
@@ -109,18 +106,20 @@ export const createComponentImplementation = <
     scopes: Scopes;
   }) => {
     const confirm = useConfirm();
-    const { functions, evaluator, maxExpressionLength, urlPolicy, onError } = useRendererRegistry();
+    const { evaluator, urlPolicy, onError } = useRendererRegistry();
     // Evaluate the entry's props, then parse them through the def's schema:
     // the result is the schema's output — every `.default()` applied — which is
     // what `render` is typed to receive. Props that fail the schema are a
     // document fault, caught here rather than as a render crash later.
     const rawProps = entry.props
-      ? evaluate(entry.props, { scopes }, { functions, evaluator, maxExpressionLength })
+      ? evaluate(entry.props, { scopes }, evaluator)
       : {};
     // The contract bans host functions (and `await`) in reactive sites: they
     // re-evaluate on every state change. Without this check the Promise would
     // leak into render as a truthy object — a silent wrong screen.
     if (rawProps instanceof Promise) {
+      // Refused here, so the promise is settled by nobody — swallow its rejection.
+      rawProps.catch(() => {});
       throw new EntryError(
         `"props" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
         { reason: "guardrail-violation", elementKey: entry.key },
@@ -148,9 +147,11 @@ export const createComponentImplementation = <
       }
     }
     const hidden = entry.hidden
-      ? evaluate({ expr: entry.hidden }, { scopes }, { functions, evaluator, maxExpressionLength })
+      ? evaluate({ expr: entry.hidden }, { scopes }, evaluator)
       : false;
     if (hidden instanceof Promise) {
+      // Refused here, so the promise is settled by nobody — swallow its rejection.
+      hidden.catch(() => {});
       throw new EntryError(
         `"hidden" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
         { reason: "guardrail-violation", elementKey: entry.key },
@@ -193,9 +194,7 @@ export const createComponentImplementation = <
               payload,
               scopes,
               confirm,
-              functions,
               evaluator,
-              maxExpressionLength,
               elementKey: entry.key,
             });
           } catch (err) {

@@ -16,44 +16,51 @@ but the package treats it as a language of its own: a closed grammar, parsed
 once with acorn and nothing else. It has no uicast dependency and works
 standalone.
 
-## Two modes
+## Two evaluators
 
-One validator, two ways to run what it accepts:
+One grammar, one validator, two ways to run what passes:
 
-- **`interpret`** — the default. The AST is compiled to a tree of closures the
-  package evaluates itself. Every property read and every call is checked as it
-  happens, and a CPU and allocation [budget](#budgets) runs alongside.
-  `new Function` is never called, so it works under a strict
+- **`Evaluator`** (`@uicast/expr`) — the default. The AST is compiled to a tree
+  of closures the package evaluates itself. Every property read and every call
+  is checked as it happens, under a CPU and allocation [budget](#budgets). The
+  package never hands source to the JavaScript engine, so it runs under a strict
   Content-Security-Policy — no `unsafe-eval`. Use it whenever someone else can
   steer the document: multi-tenant products, customer prompts, replayed pages.
-- **`native`** — validates against the **same grammar**, then hands the source
-  to `new Function`. Near-native speed, needs `unsafe-eval`. Only for documents
-  from a trusted author — your own pipeline, an admin — never for anything a
-  stranger can steer.
+- **`PassthroughEvaluator`** (`@uicast/expr-passthrough`) — the same static
+  checks, then the source runs through `new Function`. Several times faster,
+  needs `unsafe-eval`, and a property name assembled at run time goes unchecked.
+  Only for documents from a trusted author — your own pipeline, an admin — never
+  for anything a stranger can steer.
 
-Same grammar means switching is one word:
+Both take the same options and implement `ExpressionEvaluator`, so switching
+is the class name. uicast types against that interface, so an evaluator of
+your own can implement it too:
 
 ```tsx
-new Evaluator();                     // interpret
-new Evaluator({ mode: "native" });
+import { Evaluator } from "@uicast/expr";
+import { PassthroughEvaluator } from "@uicast/expr-passthrough";
 
-<RendererProvider evaluator="native" /> // the React binding
+const evaluator = new Evaluator({ functions });
+const evaluator = new PassthroughEvaluator({ functions });
+
+<RendererProvider evaluator={evaluator} /> // the React binding
 ```
 
 The difference in guarantee comes down to one line of JavaScript:
 
 ```js
-({}).constructor              // any static check sees this
-({})["con" + "structor"]      // the same read — the name exists only at run time
+"abc".charAt(0)            // refused by both — `charAt` is not in the language
+"abc"["char" + "At"](0)    // the same call — the name exists only at run time
 ```
 
 A validator sees written names; JavaScript resolves keys when it runs. Under
-`interpret` the read itself is the checkpoint, so both lines above are the same
-event and get the same rejection. Three rules do most of the work:
+`Evaluator` the call itself is the checkpoint, so both lines above are the same
+event and get the same rejection; under `PassthroughEvaluator` the second line
+runs and returns `"a"`. Three rules do most of the interpreter's work:
 
 - **Plain objects are read by own property only.** Nothing walks a prototype
-  chain, so `constructor`, `toString` and everything else inherited is
-  unreachable without naming any of them.
+  chain, so `constructor`, `toString` and everything else inherited is simply
+  absent — `({}).constructor` is `undefined` — without naming any of them.
 - **Only data is readable.** Objects, arrays, primitives, a short list of
   built-ins. A class instance, a DOM node, or a function fails on the first hop
   — a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
@@ -62,27 +69,24 @@ event and get the same rejection. Three rules do most of the work:
 
 ## The model is your first line of defence
 
-`native` trusts the document's author. The shared validator still rejects what
-it can *see*: statements, assignment, regular expressions, unknown globals,
-written forbidden names (`obj["constructor"]` included), method calls outside
-the allow-list. What it cannot see is a name assembled at run time —
-`rows["so" + "rt"]()` reaches the real, mutating prototype method — and
-allocation is uncapped.
+`PassthroughEvaluator` trusts whoever wrote the document. The shared validator
+still refuses what it can see: statements, assignment, regular expressions,
+unknown names, method calls outside the allow-list, and written prototype names
+(`obj.constructor`, `obj["__proto__"]`). It cannot see a name built at run time.
+`rows["so" + "rt"]()` reaches the real `sort` and changes the array. Allocation
+has no cap.
 
-So `native` is a bet on who writes the documents. For a production model
-following [the prompt contract](/prompt) in your own pipeline it is a
-reasonable bet: a good model asked for a dashboard does not emit
-string-assembled prototype walks, and current Anthropic, OpenAI, and Google
-models hold the contract well. For a stranger's prompt it is not — which is
-why `native` is opt-in and `interpret` the default.
+So you bet on the author. A production model that follows
+[the prompt contract](/prompt) in your own pipeline is a fair bet: asked for a
+dashboard, a good model does not write `obj["__pro" + "to__"]`. A stranger's
+prompt is not. That is why it is a separate package and `Evaluator` is the
+default.
 
-Under `interpret` nothing rests on the model behaving: the interpreter refuses
-an escape whether or not the model meant one. A good model just means you
-rarely see a rejection — and the [prompt](/prompt) already tells the model
-that text arriving in data is data, not instructions. That raises the floor;
-the boundary is the interpreter.
-
-Two modes, two threat models — not a fast and a slow version of one guarantee.
+`Evaluator` does not depend on the model at all. The interpreter refuses an
+escape whether the model meant it or not. With a good model you rarely see a
+rejection, and the [prompt](/prompt) already tells the model that text inside
+data is data, not instructions. That makes bad output rare. The interpreter is
+what stops it.
 
 ## Where expressions appear
 
@@ -119,7 +123,7 @@ that works, and why paths must be written out literally, is on
 ## The language
 
 The grammar is a closed allow-list of AST node types: anything not on it fails
-validation, in both modes.
+validation, in both evaluators.
 
 | | |
 | --- | --- |
@@ -161,7 +165,7 @@ With no assignment and no mutating method, expressions are **pure by
 construction**: the only way to change state is a step's `set`, and
 `scopes.root.hits = 1` does not even parse. The mutating `.sort()` and
 `.reverse()` are not in the language — order with `.toSorted()`, reverse with
-`.toReversed()`: the standard non-mutating pair, identical in both modes.
+`.toReversed()`, the standard non-mutating pair.
 
 They are also **stateless**: `Math.random` is absent and there is nothing to
 store a counter in. The one seam left open is the clock — `Date` is
@@ -190,7 +194,7 @@ two cannot drift.
 ## Budgets
 
 With no loop syntax and no recursion, exhausting the CPU takes a built-in
-method that iterates. Under `interpret` every such method is implemented inside
+method that iterates. Under `Evaluator` every such method is implemented inside
 the package, so every iteration passes a budget:
 
 - a **step counter**, charged per callback invocation by the body's
@@ -206,8 +210,9 @@ the package, so every iteration passes a budget:
   the parser. The prompt tells the model the limit, filled from the same
   constant.
 
-Only the AST depth limit carries over to `native`, which runs real methods
-with no counter around them — another part of the trusted-author trade.
+`PassthroughEvaluator` keeps only the AST depth and source-length limits; the
+engine runs real methods with no counter around them — part of the
+trusted-author trade.
 
 ## When an expression is rejected
 
@@ -219,34 +224,31 @@ A rejection is a classified
 | --- | --- |
 | `if (scopes.root.n) 1` | `expression-syntax` — a statement, not an expression |
 | `scopes.root.count = 1` | `guardrail-violation` — assignment is not in the language |
-| `({})["con" + "structor"]` | `guardrail-violation` — caught at the read, computed or not |
+| `"abc"["char" + "At"](0)` | `guardrail-violation` — checked at the call, computed or not |
 | `fetchProducts()` | `unknown-reference` — a name nobody handed in |
 
 ## Performance
 
 The walk happens once, at compile time, and produces closures — evaluation
-afterwards is nested function calls. Measured against `new Function` on the
-same expressions:
+afterwards is nested function calls. Both evaluators against bare
+`new Function`, same expressions (`npx vitest bench --run --root packages/expr-passthrough`):
 
-| expression | in a document | `interpret` | `native` | bare `new Function` |
+| expression | in a document | `Evaluator` | `PassthroughEvaluator` | bare `new Function` |
 | --- | --- | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~73 ns | ~35 ns | ~20 ns |
-| `scopes.root.user.name` | any scope read | ~107 ns | ~44 ns | ~21 ns |
-| template, two interpolations | a text prop | ~196 ns | ~61 ns | ~37 ns |
-| object literal from scope | every `props.expr` | ~182 ns | ~45 ns | ~22 ns |
-| `.filter()` over 1000 rows | a derived `each` | ~25 µs | ~1.41 µs | ~1.36 µs |
-| `.map()` over 1000 rows | a per-row transform | ~36 µs | ~2.12 µs | ~2.06 µs |
-| `.reduce()` over 1000 rows | an inline aggregate | ~80 µs | ~0.95 µs | ~0.89 µs |
-| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.71 ms | ~0.18 ms | ~0.07 ms |
+| `scopes.root.count > 0` | a `hidden` condition | ~100 ns | ~70 ns | ~23 ns |
+| `scopes.root.user.name` | any scope read | ~120 ns | ~70 ns | ~24 ns |
+| template, two interpolations | a text prop | ~230 ns | ~90 ns | ~34 ns |
+| object literal from scope | every `props.expr` | ~260 ns | ~125 ns | ~25 ns |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.9 ms | ~0.45 ms | ~0.07 ms |
 
-`interpret` checks every read and call as it happens — that is what the
-guarantee costs. The compiler keeps the overhead down by deciding everything
-it can at compile time.
+In `PassthroughEvaluator` the engine does the work. What remains is the parse
+cache, the positional binding and the exit gate both evaluators walk before a
+result leaves.
 
 The absolute numbers are what matter: the worst-case row — a 1000-row table,
-five expression sites per row, all re-evaluating at once — costs 0.7 ms, while
-React and the DOM spend tens of milliseconds on the same update. The prompt
-bounds the load from the other side: `maxListItems` on
+five expression sites per row, all re-evaluating at once — costs about a
+millisecond, while React and the DOM spend tens of milliseconds on the same
+update. The prompt bounds the load from the other side: `maxListItems` on
 `getCommonInstructionsPartialPrompt` (default 100) instructs the model to cap
 visible lists and page or filter past that. Heavy data work belongs in a host
 function. **Expressions shape display values; host functions compute.**
@@ -283,18 +285,34 @@ Three suites verify the implementation:
 - **Against known attacks.** The tests keep a collection of real escape
   techniques — reading `constructor` through a computed key, polluting
   `Object.prototype`, allocation bombs, recursion tricks, a live object placed
-  in scope — and assert that every one of them throws.
-- **Against the difference between the modes.** Everything the grammar forbids
-  must fail in both modes. The attack the modes disagree on —
-  `({})["con" + "structor"]` — is pinned by two assertions: it throws under
-  `interpret`, and it does not throw under `native`. So the limitation of
-  `native` described on this page is verified by a test, not just stated.
+  in scope — and assert that none reaches anything.
+- **Against the other evaluator.** The parity suite in `@uicast/expr-passthrough`
+  runs the corpus through both evaluators and plain JavaScript, checks that
+  everything the grammar forbids fails in both, and pins the residual:
+  `"abc"["char" + "At"](0)` throws under `Evaluator` and returns `"a"` under
+  `PassthroughEvaluator`. The limitation described on this page is verified by
+  a test, not just stated.
+
+## Reviewing the package
+
+One runtime dependency (acorn) and no `new Function` anywhere in the package —
+the engine back end is a separate package. Every rule is an allow-list held as data in `src/constants/` — grammar,
+globals, methods per receiver, caps — and the interpreter carries no deny-list:
+nothing inherited is readable, so no name has to be refused by name. A test
+holds the runtime tables equal to the constants, and the README's language
+section equal to both.
+
+Each control is pinned by a test file: `attacks.test.ts` (the adversarial
+corpus), `exit-gate.test.ts` (nothing but plain data leaves),
+`host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
+(null-prototype tables), `corpus.test.ts` (agreement with plain JavaScript),
+and the parity suite in `@uicast/expr-passthrough`.
 
 <Callout type="warning">
   Any evaluator of untrusted expressions can carry implementation bugs, and
   this one is no exception. The risk is bounded — a grammar small enough to
   review, tested differentially and adversarially — not eliminated. The claim
-  is precise: `interpret` closes the computed-key class outright and needs no
-  `unsafe-eval`; `native` keeps that residual by an explicit, documented
-  choice.
+  is precise: `Evaluator` closes the computed-key class outright and needs no
+  `unsafe-eval`; `PassthroughEvaluator` keeps that residual by an explicit,
+  documented choice.
 </Callout>

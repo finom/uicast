@@ -1,14 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import type { StandardToolV0 } from "standard-tool";
-import { Evaluator, ExpressionError } from "../index";
+import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
 
-// The host-function boundary: names screened at construction, every call
-// validated against the tool's own schemas, and — the property the whole design
-// turns on — a synchronous tool with synchronous schemas stays synchronous.
+// The host-function boundary: names screened at construction, every call checked against the tool's own schemas, and a sync tool with sync schemas stays sync.
 
 type Schema = NonNullable<StandardToolV0["inputSchema"]>;
 
-/** A Standard Schema that accepts numbers, sync or async, optionally coercing. */
+// A Standard Schema that accepts numbers, sync or async, optionally coercing.
 const numberSchema = (opts: { async?: boolean; coerce?: boolean } = {}): Schema => {
 	const check = (value: unknown) =>
 		typeof value === "number"

@@ -6,7 +6,7 @@ export default defineConfig({
     alias: [
       {
         find: /^@uicast\/expr$/,
-        replacement: resolve(__dirname, "./src/index.ts"),
+        replacement: resolve(import.meta.dirname, "./src/index.ts"),
       },
     ],
   },
@@ -17,7 +17,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/**/*.ts"],
-      exclude: ["src/**/*.test.ts", "src/**/*.bench.ts"],
+      exclude: ["src/test/**"],
     },
   },
 });

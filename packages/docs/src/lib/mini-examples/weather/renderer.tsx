@@ -1,12 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { WeatherCardImpl } from "./impl";
 import { getWeather } from "./tools";
 import weatherEntries from "./entries.json";
 
 const implementations = [WeatherCardImpl];
-const functions = [getWeather];
+const evaluator = new Evaluator({ functions: [getWeather] });
 
 export function Weather() {
   // The async seed can't resolve during SSR — mount client-side only,
@@ -15,7 +16,7 @@ export function Weather() {
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
   return (
-    <RendererProvider implementations={implementations} functions={functions}>
+    <RendererProvider implementations={implementations} evaluator={evaluator}>
       <EntriesRenderer entries={weatherEntries} />
     </RendererProvider>
   );

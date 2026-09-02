@@ -35,3 +35,5 @@ export {
   isComponentEntry,
   isComponentListEntry,
 } from "./types";
+// The interface both evaluators implement, from @uicast/expr — here so a binding needs no expr import.
+export type { ExpressionEvaluator } from "@uicast/expr";

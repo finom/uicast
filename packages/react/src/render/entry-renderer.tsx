@@ -1,5 +1,5 @@
 "use client";
-import React, { memo, Suspense, use, useEffect, useRef, type ReactNode } from "react";
+import React, { memo, Suspense, use, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { EntryError, isComponentListEntry } from "@uicast/core";
 import {
   evaluate,
@@ -47,6 +47,8 @@ type EntryRendererProps = {
   // Shown while this node's entry hasn't streamed in; the parent passes its own
   // placeholder so the slot looks unchanged.
   fallback?: PlaceholderComponent;
+  // Keys of every ancestor — a repeat means the children reference in a cycle.
+  ancestors?: ReadonlySet<string>;
   // Set when rendering an element once per list item: render it normally instead
   // of dispatching back to ListEntryRenderer (which would recurse forever).
   asListItem?: boolean;
@@ -58,11 +60,18 @@ const EntryRendererInner = ({
   init,
   fallback,
   asListItem = false,
+  ancestors,
 }: EntryRendererProps): React.ReactElement => {
+  if (ancestors?.has(elementKey)) {
+    throw new EntryError(`"${elementKey}" is its own ancestor — the children form a cycle`, {
+      reason: "guardrail-violation",
+      elementKey,
+    });
+  }
+  const lineage = useMemo(() => new Set([...(ancestors ?? []), elementKey]), [ancestors, elementKey]);
   // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
-  const { implementations, fallbackComponents, functions, evaluator, maxExpressionLength, onError } =
-    useRendererRegistry();
+  const { implementations, fallbackComponents, evaluator, onError } = useRendererRegistry();
 
   // A list entry reached as a child slot iterates its items; reached per-item
   // (`asListItem`) it renders as a normal component in the item scope.
@@ -86,9 +95,7 @@ const EntryRendererInner = ({
     element,
     scopes,
     init,
-    functions,
     evaluator,
-    maxExpressionLength,
     enabled: seedEnabled,
   });
 
@@ -137,11 +144,11 @@ const EntryRendererInner = ({
         ) : pending ? (
           <Suspense fallback={<Fallback reason="seeding" />}>
             <SuspendUntil promise={pending}>
-              <ListEntryRenderer elementKey={elementKey} scopes={scopes} />
+              <ListEntryRenderer elementKey={elementKey} scopes={scopes} ancestors={ancestors} />
             </SuspendUntil>
           </Suspense>
         ) : (
-          <ListEntryRenderer elementKey={elementKey} scopes={scopes} />
+          <ListEntryRenderer elementKey={elementKey} scopes={scopes} ancestors={ancestors} />
         )}
       </ErrorBoundary>
     );
@@ -181,6 +188,7 @@ const EntryRendererInner = ({
           elementKey={childKey}
           scopes={scopes}
           fallback={Placeholder}
+          ancestors={lineage}
         />
       ))
     : null;
@@ -225,19 +233,20 @@ export const EntryRenderer = memo(EntryRendererInner);
 const ListEntryRendererInner = ({
   elementKey,
   scopes,
+  ancestors,
 }: {
   elementKey: string;
   scopes: Scopes;
+  ancestors?: ReadonlySet<string>;
 }): React.ReactElement | null => {
   const element = useElement(elementKey);
-  const { functions, evaluator, maxExpressionLength } = useRendererRegistry();
+  const { evaluator } = useRendererRegistry();
   useReactiveDeps(element, scopes, "each");
 
   const list = element && isComponentListEntry(element) ? element : null;
-  const rawItems = list
-    ? evaluate({ expr: list.each }, { scopes }, { functions, evaluator, maxExpressionLength })
-    : [];
+  const rawItems = list ? evaluate({ expr: list.each }, { scopes }, evaluator) : [];
   if (rawItems instanceof Promise) {
+    rawItems.catch(() => {});
     // The contract bans host functions (and `await`) in reactive sites; a
     // Promise here would otherwise fail as a vague "not an array".
     throw new EntryError(
@@ -312,6 +321,7 @@ const ListEntryRendererInner = ({
           elementKey={elementKey}
           scopes={itemScopes}
           asListItem
+          ancestors={ancestors}
         />
       ))}
     </>

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The host provides the evaluator.** `evaluate(expr, context, evaluator)` takes an `ExpressionEvaluator` — the interface from `@uicast/expr` that `Evaluator` and `PassthroughEvaluator` implement, re-exported here. An evaluator of your own can implement it too, for any language. The `functions` / `evaluator: "native"` / `maxExpressionLength` options are gone; core constructs no evaluator and imports nothing from `@uicast/expr` at run time (an `ExpressionError` is recognized by its brand). Its host-function name screen now refuses only uicast's own names (`scopes`, `evt`, `currentValue`); identifier validity is the evaluator's check and the globals collision the prompt builder's. `extractDeps(entry, evaluator, part?)` and `planStepWaves(steps, evaluator, …)` take the same instance, so analysis and evaluation share one parse cache and one `maxSourceLength`; the earlier mismatch between the two caps is gone by construction. `getFreeIdentifiers` and `EvaluatorMode` are removed from `@uicast/core/internal`.
+- uicast's own host-function name screen (`scopes`, `evt`, `currentValue`, the globals) runs once per evaluator instance, on `evaluator.functions`; identifier validity is the evaluator's own check, at construction.
+- **A `set` path without the `scopes.` prefix was invisible to wave planning** — reads come back prefixed, writes were compared as written, and a reader could land in the same wave as its writer. Both sides are normalised.
+- Tool names are screened against the array's contents right before they are bound, not once per array identity — an array mutated after first use no longer binds unscreened. Identifier validity and duplicates are the evaluator's own checks now; core keeps only the `scopes` / `evt` / `currentValue` and global-collision rules.
+- The recovery prompt's description of a `guardrail-violation` names the budget, so a step, time, or allocation refusal is no longer described to the model as a syntax error.
+- Compiled to ES2022.
+
 ### Added
 
 - **`getExpressionsPartialPrompt()` moves here** from `@uicast/expr/prompt`, so every partial but the Streamdown fence comes from one import. The globals and length slots still fill from `@uicast/expr`'s own constants, and a new test fails if the markdown advertises a method the grammar would refuse — the drift this file's location exists to prevent.

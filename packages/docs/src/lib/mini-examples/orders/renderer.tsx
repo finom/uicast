@@ -14,6 +14,7 @@ import {
 } from "./impl";
 import { listProducts, updateProduct } from "./tools";
 import type { ComponentEntry } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
 
 const implementations = [
   CardImpl,
@@ -23,6 +24,7 @@ const implementations = [
   EditDialogImpl,
 ];
 const functions = [listProducts, updateProduct];
+const evaluator = new Evaluator({ functions });
 
 // Answers every `confirm` step in every document; without it the engine falls
 // back to window.confirm.
@@ -49,7 +51,7 @@ export function Products({ entries }: { entries: ComponentEntry[] }) {
   return (
     <RendererProvider
       implementations={implementations}
-      functions={functions}
+      evaluator={evaluator}
       fallbackComponents={fallbackComponents}
     >
       <EntriesRenderer entries={entries} />

@@ -2,7 +2,7 @@
 // Not part of the public API: no semver guarantee — anything here may change
 // or disappear on any release, including a patch.
 
-export { evaluate, getFreeIdentifiers, type EvaluatorMode } from "./expr/evaluate";
+export { evaluate } from "./expr/evaluate";
 export { extractDeps, type DepsPart } from "./expr/extract-deps";
 export { planStepWaves } from "./expr/plan-step-waves";
 export { parseScope } from "./scope/parse-scope";

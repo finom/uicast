@@ -9,6 +9,7 @@ import {
   setItemForwardTargets,
   type ForwardTarget,
 } from "../item-write-forwarding";
+import { useRendererRegistry } from "../store/renderer-registry";
 import type { Scopes } from "../types";
 
 type ItemId = string | number;
@@ -48,6 +49,7 @@ export function useItemScopes(
   list: ComponentListEntry | null,
   items: unknown[],
 ): ItemRow[] {
+  const { evaluator } = useRendererRegistry();
   const cache = useRef<Map<ItemId, CachedItem>>(new Map());
   const prevScopes = useRef<Scopes | null>(null);
 
@@ -65,7 +67,7 @@ export function useItemScopes(
   // derived `each` — an over-approximation that only ever wakes an extra
   // reader); ANY row write hits the containing scope's `childScopes.<as>`.
   const forwardTargets: ForwardTarget[] = [];
-  for (const dep of extractDeps(list, "each")) {
+  for (const dep of extractDeps(list, evaluator, "each")) {
     const [head, name, ...rest] = dep.split(".");
     if (head !== "scopes" || !name || rest.length === 0) continue;
     const scope = scopes[name];

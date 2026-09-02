@@ -6,6 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { type ComponentEntry, streamJsonLines } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
 import { getErrorRecoveryPrompt, type RenderFailure } from "@uicast/core/prompt";
 import {
   type ErrorComponentProps,
@@ -37,6 +38,9 @@ import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 import { CostInfo } from "@/components/cost-info";
 import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
+
+// One evaluator for the app: the host functions bind on it, and it holds the parse cache.
+const evaluator = new Evaluator({ functions: domainTools });
 import { setApiOwner } from "@/tools/http";
 
 type PageMeta = {
@@ -355,7 +359,7 @@ export function PageView({
         }}
                 key={page.id}
                 implementations={allImplementations}
-                functions={domainTools}
+                evaluator={evaluator}
                 fallbackComponents={rendererDefaults}
               >
                 <EntriesRenderer entries={entries} />

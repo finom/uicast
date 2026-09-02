@@ -1,8 +1,7 @@
 import { useReducer, useRef } from "react";
-import { EntryError, type ComponentEntry } from "@uicast/core";
-import { evaluate, planStepWaves, type EvaluatorMode } from "@uicast/core/internal";
-import type { StandardToolV0 } from "standard-tool";
-import { readScopePath } from "../read-scope-path";
+import { EntryError, type ComponentEntry, type ExpressionEvaluator } from "@uicast/core";
+import { evaluate, planStepWaves } from "@uicast/core/internal";
+import { readScopePath, requireScope } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
 import type { InitFn, Scopes } from "../types";
 
@@ -33,17 +32,13 @@ export function useSeed({
   element,
   scopes,
   init,
-  functions,
   evaluator,
-  maxExpressionLength,
   enabled,
 }: {
   element: ComponentEntry | undefined;
   scopes: Scopes;
   init?: InitFn;
-  functions?: StandardToolV0[];
-  evaluator?: EvaluatorMode;
-  maxExpressionLength?: number;
+  evaluator: ExpressionEvaluator;
   enabled: boolean;
 }): SeedResult {
   // Wakes the component when an async seed settles — success clears the
@@ -76,29 +71,25 @@ export function useSeed({
           if (!target) throw new Error(`Seed step of "${element.key}" has no parsed target.`);
           const [targetScope, targetPath] = target;
           const currentValue = readScopePath(scopes[targetScope], targetPath);
-          const value = evaluate(
-            step,
-            { scopes, currentValue },
-            { functions, evaluator, maxExpressionLength },
-          );
+          const value = evaluate(step, { scopes, currentValue }, evaluator);
           return { targetScope, targetPath, value };
         });
         if (evaluated.every((e) => !(e.value instanceof Promise))) {
           for (const e of evaluated) {
-            scopes[e.targetScope].$set(e.targetPath, e.value, { default: true });
+            requireScope(scopes, e.targetScope, element.key).$set(e.targetPath, e.value, { default: true });
           }
           return null;
         }
         return Promise.all(
           evaluated.map(async (e) => {
-            scopes[e.targetScope].$set(e.targetPath, await e.value, {
+            requireScope(scopes, e.targetScope, element.key).$set(e.targetPath, await e.value, {
               default: true,
             });
           }),
         ).then(() => undefined);
       };
 
-      const waves = planStepWaves(steps);
+      const waves = planStepWaves(steps, evaluator);
       // Walk waves synchronously while they stay sync — their writes land
       // during this render, exactly like the old all-sync path — and switch to
       // a promise chain at the first async wave.

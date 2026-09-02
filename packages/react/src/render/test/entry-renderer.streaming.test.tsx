@@ -7,6 +7,7 @@ import {
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
+import { Evaluator } from "@uicast/expr";
 import { z } from "zod";
 import {
 	defaultImplementations,
@@ -105,6 +106,7 @@ describe("EntryRenderer — streaming + seed", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const initial: ComponentEntry[] = [
 			{
 				key: "a",
@@ -123,11 +125,11 @@ describe("EntryRenderer — streaming + seed", () => {
 			},
 		];
 
-		const { rerender, container } = render(<RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>);
+		const { rerender, container } = render(<RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={initial} /></RendererProvider>);
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 
-		rerender(<RendererProvider implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
+		rerender(<RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
 
 		// A's seed still ran exactly once. The new sibling entry didn't
 		// remount A — React reconciled by stable `key`, the seed attempt record
@@ -149,6 +151,7 @@ describe("EntryRenderer — streaming + seed", () => {
 				},
 			},
 		];
+		const evaluator = new Evaluator({ functions });
 		const fallbackComponents = {
 			placeholder: () => <span data-test-placeholder>pending</span>,
 		};
@@ -173,12 +176,12 @@ describe("EntryRenderer — streaming + seed", () => {
 		];
 
 		const { rerender, container } = render(
-			<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={initial} /></RendererProvider>,
+			<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={initial} /></RendererProvider>,
 		);
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} functions={functions}><EntriesRenderer entries={next} /></RendererProvider>);
+		rerender(<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
 
 		// Parent's seed still ran exactly once. The placeholder swapped out
 		// for the real child, but the parent wasn't remounted.

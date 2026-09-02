@@ -18,6 +18,7 @@
       "@/*": ["./src/*"],
       "@uicast/expr": ["../expr/src/index.ts"],
       "@uicast/expr/internal": ["../expr/src/internal.ts"],
+      "@uicast/expr-passthrough": ["../expr-passthrough/src/index.ts"],
       "@uicast/core": ["../core/src/index.ts"],
       "@uicast/core/internal": ["../core/src/internal.ts"],
       "@uicast/core/prompt": ["../core/src/prompt/index.ts"],

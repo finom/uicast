@@ -1,3 +1,4 @@
+import { testEvaluator } from "../../../test/render-helpers";
 import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
@@ -77,7 +78,7 @@ const impls = [BadgeImpl, PressImpl, BadPayloadImpl, NullPressImpl];
 describe("EntryRenderer — schema parsing", () => {
   it("applies a schema default the entry left out", () => {
     const { container } = render(
-      <RendererProvider implementations={impls}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls}>
         <EntriesRenderer
           entries={[
             { key: "b", component: "Badge", props: { literal: { text: "Paid" } } },
@@ -94,7 +95,7 @@ describe("EntryRenderer — schema parsing", () => {
     const onError = vi.fn();
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
-      <RendererProvider implementations={impls} onError={onError}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls} onError={onError}>
         <EntriesRenderer
           entries={[
             // `text` is required and missing — render never runs.
@@ -112,7 +113,7 @@ describe("EntryRenderer — schema parsing", () => {
 
   it("drops a prop the schema does not declare instead of failing", () => {
     const { container } = render(
-      <RendererProvider implementations={impls}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls}>
         <EntriesRenderer
           entries={[
             {
@@ -129,7 +130,7 @@ describe("EntryRenderer — schema parsing", () => {
 
   it("parses `evt` before the steps run, defaults included", async () => {
     const { container, getByText } = render(
-      <RendererProvider implementations={impls}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls}>
         <EntriesRenderer
           entries={[
             {
@@ -156,7 +157,7 @@ describe("EntryRenderer — schema parsing", () => {
   it("parses a no-arg call against a z.null() payload — evt is null, not an error", async () => {
     const onError = vi.fn();
     const { container } = render(
-      <RendererProvider implementations={impls} onError={onError}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls} onError={onError}>
         <EntriesRenderer
           entries={[
             {
@@ -188,7 +189,7 @@ describe("EntryRenderer — schema parsing", () => {
     const onError = vi.fn();
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container } = render(
-      <RendererProvider implementations={impls} onError={onError}>
+      <RendererProvider evaluator={testEvaluator} implementations={impls} onError={onError}>
         <EntriesRenderer
           entries={[
             {

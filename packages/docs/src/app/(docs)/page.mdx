@@ -65,11 +65,11 @@ and a CPU and allocation budget. The JavaScript engine never executes generated
 text, so a uicast app runs under a strict Content-Security-Policy — no
 `unsafe-eval`.
 
-Need more speed? The evaluator has two modes. `interpret` (the default) is the
-interpreter above; it trusts nothing. `native` validates against the same
-grammar, then runs the expression with `new Function` — near-native speed, for
-documents from a trusted author: your own pipeline, an admin, never a stranger.
-There [the model is your first line of defence](/expr#the-model-is-your-first-line-of-defence).
+Need more speed? A second package, `@uicast/expr-passthrough`, validates against
+the same grammar and then runs the expression with `new Function` — several
+times faster, for documents from a trusted author: your own pipeline, an admin,
+never a stranger. There
+[the model is your first line of defence](/expr#the-model-is-your-first-line-of-defence).
 
 The interpreter secures the language, not what you plug into it — host functions
 are capabilities you grant, and scope data is only as safe as what you put

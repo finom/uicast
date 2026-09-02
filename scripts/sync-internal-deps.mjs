@@ -7,13 +7,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 const read = (dir) => JSON.parse(readFileSync(`./packages/${dir}/package.json`, "utf8"));
 const versions = {
   "@uicast/expr": read("expr").version,
+  "@uicast/expr-passthrough": read("expr-passthrough").version,
   "@uicast/core": read("core").version,
   "@uicast/react": read("react").version,
   "@uicast/shadcn-catalog": read("shadcn-catalog").version,
   "@uicast/streamdown": read("streamdown").version,
 };
 
-for (const dir of ["core", "react", "shadcn-catalog", "streamdown"]) {
+for (const dir of ["expr-passthrough", "core", "react", "shadcn-catalog", "streamdown"]) {
   const path = `./packages/${dir}/package.json`;
   const manifest = read(dir);
   let changed = false;

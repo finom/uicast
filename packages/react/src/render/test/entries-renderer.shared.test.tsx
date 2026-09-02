@@ -2,7 +2,7 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { createProxyScope, type ComponentEntry } from "@uicast/core";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { defaultImplementationsList } from "../../../test/render-helpers";
+import { defaultImplementationsList, testEvaluator } from "../../../test/render-helpers";
 
 // The point of <RendererProvider>: every <EntriesRenderer> under it shares ONE
 // `root` scope, so a write from one document is live in all of them.
@@ -28,7 +28,7 @@ describe("RendererProvider — shared group store", () => {
 
   it("a write in one document is live in another", async () => {
     const { container, getByText } = render(
-      <RendererProvider implementations={defaultImplementationsList}>
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}>
         <EntriesRenderer entries={seederLines} />
         <EntriesRenderer entries={readerLines} />
       </RendererProvider>,
@@ -53,7 +53,7 @@ describe("RendererProvider — shared group store", () => {
       },
     ];
     const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList}>
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}>
         <EntriesRenderer entries={seederLines} />
         <EntriesRenderer entries={reSeeder} />
       </RendererProvider>,
@@ -67,7 +67,7 @@ describe("RendererProvider — shared group store", () => {
       scopes.root.fromInit = "yes";
     });
     const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList} init={init}>
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}>
         <EntriesRenderer
           entries={[
             {
@@ -105,7 +105,7 @@ describe("RendererProvider — shared group store", () => {
     // is present before any entry evaluates — and the host can update it later.
     const userCtx = createProxyScope<{ name: string }>({ name: "Hopper" });
     const { container } = render(
-      <RendererProvider
+      <RendererProvider evaluator={testEvaluator}
         implementations={defaultImplementationsList}
         init={({ scopes }) => {
           (scopes as Record<string, unknown>).userCtx = userCtx;

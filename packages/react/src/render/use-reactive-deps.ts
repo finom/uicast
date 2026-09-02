@@ -5,6 +5,7 @@ import {
   parseScope,
   type DepsPart,
 } from "@uicast/core/internal";
+import { useRendererRegistry } from "../store/renderer-registry";
 import type { Scopes } from "../types";
 
 // Total emits across readable scopes. Subscribing lands one commit late, so
@@ -25,6 +26,7 @@ export function useReactiveDeps(
   mode: DepsPart | "skip" = "all",
 ): void {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
+  const { evaluator } = useRendererRegistry();
 
   // Written during render, on purpose: it has to be the count as of the render
   // whose output is on screen, which is the thing the effect below compares to.
@@ -35,7 +37,7 @@ export function useReactiveDeps(
     if (!element || mode === "skip") return;
     let deps: string[];
     try {
-      deps = extractDeps(element, mode);
+      deps = extractDeps(element, evaluator, mode);
     } catch {
       // An unparseable expression throws at dep extraction too, but an effect
       // throw would latch the PARENT's boundary. The same expression throws
@@ -71,5 +73,5 @@ export function useReactiveDeps(
     return () => {
       for (const unsub of unsubscribers) unsub();
     };
-  }, [element, scopes, mode]);
+  }, [element, scopes, mode, evaluator]);
 }

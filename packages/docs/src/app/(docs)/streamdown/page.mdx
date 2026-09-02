@@ -42,7 +42,7 @@ type FenceRendererOptions = {
 };
 ```
 
-Implementations, functions, and fallback UI all come from the
+Implementations, the evaluator, and fallback UI all come from the
 [`<RendererProvider>`](/react/renderer) around your conversation. The entries
 come from the fence: each completed line mounts immediately, and a partial last
 line waits for its newline.
@@ -52,13 +52,15 @@ import { Streamdown } from "streamdown";
 import { RendererProvider } from "@uicast/react";
 import { createFenceRenderer } from "@uicast/streamdown";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { Evaluator } from "@uicast/expr";
 import { tools } from "./tools";
 
+const evaluator = new Evaluator({ functions: tools });
 const fenceRenderer = createFenceRenderer();
 
 export function Chat({ replies }: { replies: string[] }) {
   return (
-    <RendererProvider implementations={allImplementations} functions={tools}>
+    <RendererProvider implementations={allImplementations} evaluator={evaluator}>
       {replies.map((markdown, i) => (
         <Streamdown key={i} plugins={{ renderers: [fenceRenderer] }}>
           {markdown}

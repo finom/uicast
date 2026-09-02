@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
-import type { StandardToolV0 } from "standard-tool";
+import { Evaluator, ExpressionError, type StandardToolV0 } from "@uicast/expr";
 import type { ValueSource } from "../../types";
 import { EntryError } from "../../entry-error";
-import { evaluate, getScopeReads } from "../evaluate";
+import { evaluate as evaluateWith, getScopeReads } from "../evaluate";
+
+const defaultEvaluator = new Evaluator();
+const evaluate = (expr: ValueSource, context: Record<string, unknown>, evaluator: Evaluator = defaultEvaluator) =>
+  evaluateWith(expr, context, evaluator);
 
 describe("evaluate — ValueSource", () => {
   it("returns the literal when literal is set", () => {
@@ -55,11 +59,11 @@ describe("evaluate — error propagation", () => {
 });
 
 describe("evaluate — host functions and evt", () => {
-  it("exposes options.functions as bare identifiers", () => {
+  it("exposes the evaluator's functions as bare identifiers", () => {
     const result = evaluate(
       { expr: "double(3)" },
       {},
-      {
+      new Evaluator({
         functions: [
           {
             name: "double",
@@ -69,7 +73,7 @@ describe("evaluate — host functions and evt", () => {
             },
           },
         ],
-      },
+      }),
     );
     expect(result).toBe(6);
   });
@@ -82,33 +86,28 @@ describe("evaluate — host functions and evt", () => {
     expect(result).toBe(11);
   });
 
-  it("lets a host function named after a shadowed global win the clash", () => {
-    // "fetch" is in GLOBALS_TO_SHADOW; the injected tool must shadow the shadow.
+  it("lets a host function take any name the language does not use", () => {
     const result = evaluate(
       { expr: "fetch(21)" },
       {},
-      {
+      new Evaluator({
         functions: [
           { name: "fetch", description: "", execute: (n: number) => n * 2 },
         ],
-      },
+      }),
     );
     expect(result).toBe(42);
   });
 
-  it.each([["get-user"], ["delete"], ["let"], ["class"], ["await"]])(
-    "rejects a host function whose name is not usable as a parameter: %s",
+  it.each([["get-user"], ["delete"], ["class"], ["await"]])(
+    "a host function whose name is not an identifier is refused by the evaluator itself: %s",
     (name) => {
       try {
-        evaluate(
-          { expr: "1" },
-          {},
-          { functions: [{ name, description: "", execute: () => 1 }] },
-        );
+        new Evaluator({ functions: [{ name, description: "", execute: () => 1 }] });
         expect.unreachable();
       } catch (err) {
-        expect(EntryError.is(err) && err.reason).toBe("host-function");
-        expect(EntryError.is(err) && err.message).toContain(name);
+        expect(ExpressionError.is(err) && err.reason).toBe("host-function");
+        expect(ExpressionError.is(err) && err.message).toContain(name);
       }
     },
   );
@@ -126,9 +125,9 @@ describe("evaluate — host functions and evt", () => {
     } as unknown as NonNullable<StandardToolV0["inputSchema"]>;
 
     const call = (expr: string, tool: Partial<StandardToolV0>) =>
-      evaluate({ expr }, {}, {
+      evaluate({ expr }, {}, new Evaluator({
         functions: [{ name: "tool", description: "", execute: (i: unknown) => i, ...tool }],
-      } as never);
+      }) as never);
 
     // The document passed the wrong shape — it can be asked to fix that.
     expect(() => call('tool("nope")', { inputSchema: numbers })).toThrow(
@@ -144,7 +143,7 @@ describe("evaluate — host functions and evt", () => {
   it("keeps an EntryError the host classified itself", () => {
     const own = new EntryError("no seats left", { reason: "invalid-arguments" });
     expect(() =>
-      evaluate({ expr: "tool(1)" }, {}, {
+      evaluate({ expr: "tool(1)" }, {}, new Evaluator({
         functions: [
           {
             name: "tool",
@@ -154,47 +153,47 @@ describe("evaluate — host functions and evt", () => {
             },
           },
         ],
-      }),
+      })),
     ).toThrow(own);
   });
 });
 
 describe("getScopeReads — memberReads bound to the scopes root", () => {
   it("returns paths read by an expression", () => {
-    expect(getScopeReads("scopes.root.a + scopes.root.b")).toEqual(
+    expect(getScopeReads("scopes.root.a + scopes.root.b", new Evaluator())).toEqual(
       expect.arrayContaining(["scopes.root.a", "scopes.root.b"]),
     );
   });
 
   it("returns an empty list for a literal", () => {
-    expect(getScopeReads("1 + 2")).toEqual([]);
+    expect(getScopeReads("1 + 2", new Evaluator())).toEqual([]);
   });
 });
 
-describe("evaluate — maxExpressionLength", () => {
+describe("evaluate — the evaluator's maxSourceLength", () => {
   it("rejects an oversized expression as a classified document fault", () => {
     expect(() =>
-      evaluate({ expr: "1 + 1 + 1" }, {}, { maxExpressionLength: 5 }),
+      evaluate({ expr: "1 + 1 + 1" }, {}, new Evaluator({ maxSourceLength: 5 })),
     ).toThrow(expect.objectContaining({ message: expect.stringContaining("too long") }));
-    expect(evaluate({ expr: "1 + 1" }, {}, { maxExpressionLength: 5 })).toBe(2);
+    expect(evaluate({ expr: "1 + 1" }, {}, new Evaluator({ maxSourceLength: 5 }))).toBe(2);
   });
 });
 
-describe("evaluate — host function name screen", () => {
+describe("evaluate — uicast's host function name screen", () => {
   const tool = (name: string) => ({ name, description: "", execute: () => 1 });
 
+  // The language refuses a bad identifier at construction; uicast's own names are refused by evaluate(), once per evaluator. A global collision is the prompt builder's check.
   it.each([
-    ["foo-bar", "not a valid identifier"],
-    ["class", "not a valid identifier"],
     ["scopes", "is reserved"],
     ["evt", "is reserved"],
-    ["Math", "is an expression global"],
-  ])("rejects %s at bind time (%s)", (name, message) => {
-    expect(() => evaluate({ expr: "1" }, {}, { functions: [tool(name)] })).toThrow(
+    ["currentValue", "is reserved"],
+  ])("rejects %s (%s)", (name, message) => {
+    const ev = new Evaluator({ functions: [tool(name)] });
+    expect(() => evaluate({ expr: "1" }, {}, ev)).toThrow(
       expect.objectContaining({ message: expect.stringContaining(message) }),
     );
     try {
-      evaluate({ expr: "1" }, {}, { functions: [tool(name)] });
+      evaluate({ expr: "1" }, {}, ev);
     } catch (err) {
       expect(EntryError.is(err) && err.reason === "host-function").toBe(true);
     }
