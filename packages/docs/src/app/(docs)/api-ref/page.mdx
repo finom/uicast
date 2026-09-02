@@ -20,7 +20,7 @@ The engine, framework-agnostic. See [Core concepts](/concepts).
 | Export | What it does |
 |---|---|
 | `createComponentDefinition(def)` | Builds a [component definition](/def). |
-| `createProxyScope(initial?)` | One reactive [scope](/entry/state): a proxied state bag that emits on write. |
+| `createProxyScope(initial?)` | One reactive [scope](/entry/state): a shallow proxy over a bag of fields that emits the field on write. |
 | `buildElementsByKey(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry/fields#partial-replacement). |
 | `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding each parseable JSON line and skipping prose and partial lines. |
 | `isComponentEntry`, `isComponentListEntry` | Runtime type guards. |

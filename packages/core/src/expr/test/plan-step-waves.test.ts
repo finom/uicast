@@ -24,16 +24,11 @@ describe("planStepWaves", () => {
     expect(planStepWaves([city, weather])).toEqual([[city], [weather]]);
   });
 
-  it("matches writes and reads on dot-boundary prefixes, both directions", () => {
+  it("a deep read waits for a write of its field; another field does not", () => {
     const parent = { set: "scopes.root.user", expr: "load()" };
     const childRead = { set: "scopes.root.x", expr: "scopes.root.user.name" };
     expect(planStepWaves([parent, childRead]).length).toBe(2);
 
-    const child = { set: "scopes.root.user.name", literal: "A" };
-    const parentRead = { set: "scopes.root.y", expr: "save(scopes.root.user)" };
-    expect(planStepWaves([child, parentRead]).length).toBe(2);
-
-    // sibling paths don't collide
     const sib = { set: "scopes.root.userName", expr: "scopes.root.other" };
     expect(planStepWaves([parent, sib]).length).toBe(1);
   });
@@ -76,23 +71,8 @@ describe("planStepWaves", () => {
     expect(planStepWaves([mut, b], (s) => s === mut)).toEqual([[mut], [b]]);
   });
 
-  // Known limitation, pinned: the first step writes through the item scope
-  // (`scopes.row.item.qty`) and the second reads the same state through
-  // `scopes.root.childScopes.row` — two spellings the textual overlap check
-  // cannot connect, so both land in ONE wave and the recompute reads the
-  // pre-write value. The react binding's `declaredWrites` connects item
-  // writes to SOURCE-ARRAY reads, not to childScopes reads — this spelling
-  // stays unordered. Any future fix must consciously flip this assertion.
-  it("misses a dependency spelled through childScopes (pinned limitation)", () => {
-    const steps = [
-      { set: "scopes.row.item.qty", expr: "evt.value" },
-      { set: "scopes.root.total", expr: "scopes.root.childScopes.row.length" },
-    ];
-    expect(planStepWaves(steps)).toEqual([steps]);
-  });
-
-  it("declaredWrites split waves like set paths do", () => {
-    const bump = { set: "scopes.row.item.qty", literal: 5 };
+  it("declaredWrites split waves like set addresses do", () => {
+    const bump = { set: "scopes.row.qty", literal: 5 };
     const sum = {
       set: "scopes.root.sum",
       expr: "scopes.root.items.reduce((s, i) => s + i.qty, 0)",

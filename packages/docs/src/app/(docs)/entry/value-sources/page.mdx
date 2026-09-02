@@ -27,9 +27,9 @@ A value, given one of two ways.
 
 ## ValueSourceAssignment
 
-A `ValueSource` plus a `set`: evaluate, then **write to the scope path** `set`
-names. A numeric key in the path is rejected — never `scopes.root.rows.0.qty`;
-edit a row through its item scope or replace the array
+A `ValueSource` plus a `set`: evaluate, then **write the field** `set` names,
+`scopes.<scope>.<field>`. Never deeper, never a number — `scopes.root.rows.0.qty`
+is rejected; edit a row through its scope or replace the array
 ([why](/entry/state#reading-and-writing)).
 
 ```jsonc
@@ -74,7 +74,7 @@ each other (see [state](/entry/state#lifecycle)). The same `set` in a
 ```jsonc
 { // …
   "callbacks": { "onClick": [
-    { "expr": "deleteUser({ id: scopes.row.item.id })",
+    { "expr": "deleteUser({ id: scopes.row.id })",
       "confirm": "Delete this user? This cannot be undone." },
     { "set": "scopes.root.users", "expr": "listUsers()" }
   ] } }

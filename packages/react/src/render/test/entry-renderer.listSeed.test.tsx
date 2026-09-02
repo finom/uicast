@@ -26,7 +26,7 @@ describe("EntryRenderer — seeds on list elements", () => {
         seed: [{ set: "scopes.root.rows", literal: ["one", "two"] }],
         each: "scopes.root.rows",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container } = mountEntries(lines);
@@ -47,7 +47,7 @@ describe("EntryRenderer — seeds on list elements", () => {
         seed: [{ set: "scopes.root.rows", expr: "fetchRows()" }],
         each: "scopes.root.rows",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     // Awaited act: Suspense resumption after the seed settles only flushes
@@ -82,7 +82,7 @@ describe("EntryRenderer — seeds on list elements", () => {
         seed: [{ set: "scopes.root.marker", expr: "countCall()" }],
         each: "scopes.root.items",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container } = mountEntries(lines, { functions });
@@ -105,7 +105,7 @@ describe("EntryRenderer — seeds on list elements", () => {
         seed: [{ set: "scopes.root.rows", expr: "document.title" }],
         each: "scopes.root.rows",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});

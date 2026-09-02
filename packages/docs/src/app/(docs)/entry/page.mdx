@@ -17,7 +17,7 @@ Each of those fields, used once:
 
 ```jsonl
 {"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"children":["task-rows","empty-note","refresh"]}
-{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.item.title })"}}
+{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
 {"key":"empty-note","component":"Text","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"text":"No tasks yet"}}}
 {"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.tasks","expr":"listTasks()"}]}}
 ```

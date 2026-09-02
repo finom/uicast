@@ -1,9 +1,6 @@
 import type { ExpressionEvaluator } from "@uicast/expr";
+import { depKey } from "../scope/parse-scope";
 import { getScopeReads } from "./evaluate";
-
-// Reads come back `scopes.`-prefixed; a `set` path may omit the prefix. Compared
-// as written, a writer and its reader could land in one wave.
-const asScopePath = (path: string): string => (path.startsWith("scopes.") ? path : `scopes.${path}`);
 
 type PlannableStep = {
   set?: string;
@@ -11,13 +8,8 @@ type PlannableStep = {
   confirm?: string;
 };
 
-// Two dotted paths collide when either is a prefix of the other on a dot
-// boundary — writing `a.b` invalidates a reader of `a.b.c` and vice versa.
-const overlaps = (a: string, b: string): boolean =>
-  a === b || a.startsWith(`${b}.`) || b.startsWith(`${a}.`);
-
 // Partition steps into waves: reads wait for earlier writes, independent steps share a wave, `confirm` is a barrier.
-// `isBarrier` adds barriers (host calls); `declaredWrites` adds unnamed written paths.
+// `isBarrier` adds barriers (host calls); `declaredWrites` adds unnamed written keys.
 export function planStepWaves<T extends PlannableStep>(
   steps: readonly T[],
   evaluator: ExpressionEvaluator,
@@ -26,26 +18,30 @@ export function planStepWaves<T extends PlannableStep>(
 ): T[][] {
   const waves: T[][] = [];
   let wave: T[] = [];
-  let waveWrites: string[] = [];
+  let waveWrites = new Set<string>();
 
   const close = () => {
     if (wave.length) waves.push(wave);
     wave = [];
-    waveWrites = [];
+    waveWrites = new Set();
   };
 
   for (const step of steps) {
-    const reads = step.expr ? [...getScopeReads(step.expr, evaluator)] : [];
-    // The dep extraction is text-based, so `currentValue` is matched the same way.
-    if (step.expr && step.set && /\bcurrentValue\b/.test(step.expr)) {
-      reads.push(asScopePath(step.set));
+    const reads: string[] = [];
+    if (step.expr) {
+      for (const r of getScopeReads(step.expr, evaluator)) {
+        const key = depKey(r);
+        if (key) reads.push(key);
+      }
+      // The dep extraction is text-based, so `currentValue` is matched the same way.
+      if (step.set && /\bcurrentValue\b/.test(step.expr)) reads.push(step.set);
     }
-    const dependsOnWave = reads.some((r) => waveWrites.some((w) => overlaps(r, w)));
+    const dependsOnWave = reads.some((r) => waveWrites.has(r));
     const barrier = !!step.confirm || !!isBarrier?.(step);
     if (dependsOnWave || barrier) close();
     wave.push(step);
-    if (step.set) waveWrites.push(asScopePath(step.set));
-    if (declaredWrites) waveWrites.push(...declaredWrites(step));
+    if (step.set) waveWrites.add(step.set);
+    if (declaredWrites) for (const w of declaredWrites(step)) waveWrites.add(w);
     if (barrier) close();
   }
   close();

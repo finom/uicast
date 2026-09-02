@@ -14,9 +14,8 @@ import {
 //
 // The React failure mode this format is meant to rule out: an effect writes
 // state it also depends on, so every render schedules the next one. Two shapes
-// could still reach it here — a parent reading `childScopes` (republished on
-// every list render, always as a fresh array, so the write always emits), and
-// an entry tree whose `children` reference each other in a cycle.
+// could still reach it here — a parent aggregating over the list it contains,
+// and an entry tree whose `children` reference each other in a cycle.
 // ---------------------------------------------------------------------------
 
 const boxDef = createComponentDefinition({
@@ -45,8 +44,7 @@ function countingSetup() {
 }
 
 describe("EntriesRenderer — feedback loops", () => {
-  // A parent whose props aggregate over `childScopes`, wrapping the very list
-  // that publishes them. The list republishes on each of its own renders.
+  // A parent whose props aggregate over the array its own list iterates.
   it("settles when a parent aggregates over the list it contains", async () => {
     const { catalog, counts } = countingSetup();
     const entries: ComponentEntry[] = [
@@ -55,7 +53,7 @@ describe("EntriesRenderer — feedback loops", () => {
         component: "Box",
         seed: [{ set: "scopes.root.rows", literal: [{ n: 1 }, { n: 2 }] }],
         props: {
-          expr: "({ text: 'sum:' + (scopes.root.childScopes?.row ?? []).reduce((a, s) => a + s.item.n, 0) })",
+          expr: "({ text: 'sum:' + scopes.root.rows.reduce((a, r) => a + r.n, 0) })",
         },
         children: ["rows"],
       },
@@ -64,7 +62,7 @@ describe("EntriesRenderer — feedback loops", () => {
         component: "Box",
         each: "scopes.root.rows",
         as: "row",
-        props: { expr: "({ text: String(scopes.row.item.n) })" },
+        props: { expr: "({ text: String(scopes.row.n) })" },
       },
     ];
 

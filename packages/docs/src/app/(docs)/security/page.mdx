@@ -15,14 +15,15 @@ what stays your job, and where to report what we got wrong.
 | Surface | Defense |
 | --- | --- |
 | Expressions | The [evaluator](/expr): closed grammar, own-property reads and allow-listed calls through a membrane, a CPU/time/allocation budget, no `new Function` in the package — so no CSP `unsafe-eval`. A property name assembled at run time is checked at the read, closing the class a static check cannot. |
-| State writes | `set` paths are validated: no `__proto__` / `constructor` / `prototype` segments, no numeric writes into containers — `Object.prototype` stays untouched. |
+| State writes | A `set` address is a scope name, a dot, a field name — never a number, never deeper; the set of valid addresses is a regular language. Prototype names and the runtime's `$id` / `$index` / `$value` are refused, so `Object.prototype` stays untouched. |
 | URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin, and raster `data:` images by default. |
 | Failures | Every rejection is a classified [`EntryError`](/error-recovery) contained to the element's error slot — one bad element does not take the page down. |
 
 ## What stays your job
 
-- **Host functions are capabilities.** `rows.map(r => deleteRow(r.id))` is a
-  legal expression; nothing escaped — the document used a tool you granted.
+- **Host functions are capabilities.** An expression can only use what you
+  gave it: the scopes and the functions you bound. `rows.map(r => deleteRow(r.id))`
+  is a legal expression; nothing escaped — the document used a tool you granted.
   Keep `functions` narrow and enforce authorization on the server.
 - **Scope data must be plain.** Inject JSON-shaped values only; a tool's
   `outputSchema` gives you that by construction.

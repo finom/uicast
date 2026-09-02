@@ -95,12 +95,12 @@ Each tool is in scope under its `name` and takes **one argument**, whatever
 means an object:
 
 ```js
-deleteProduct({ id: scopes.row.item.id })   // ✅ inputSchema: z.object({ id: … })
-deleteProduct(scopes.row.item.id)           // ❌ same tool, wrong shape
+deleteProduct({ id: scopes.row.id })   // ✅ inputSchema: z.object({ id: … })
+deleteProduct(scopes.row.id)           // ❌ same tool, wrong shape
 ```
 
 A scalar schema is fine too: with `inputSchema: z.string()` the call is
-`deleteProduct(scopes.row.item.id)`, and the prompt prints
+`deleteProduct(scopes.row.id)`, and the prompt prints
 `deleteProduct(string)`. An object gives each field a name and a description the
 model can read, which is why the catalog's tools use one.
 
@@ -153,7 +153,7 @@ re-read in the next step:
 ```jsonl
 { "key": "del", "component": "Button",
   "callbacks": { "onClick": [
-    { "confirm": "Delete this product?", "expr": "deleteProduct({ id: scopes.row.item.id })" },
+    { "confirm": "Delete this product?", "expr": "deleteProduct({ id: scopes.row.id })" },
     { "set": "scopes.root.rows", "expr": "listProducts()" }
   ] } }
 ```
@@ -231,11 +231,11 @@ result:
 //   listProducts() => { id: number; name: string }[]
 
 // ✅ delete for the effect, then refetch through the declared one
-[ { "expr": "deleteProduct({ id: scopes.row.item.id })" },
+[ { "expr": "deleteProduct({ id: scopes.row.id })" },
   { "set": "scopes.root.products", "expr": "listProducts()" } ]
 
 // ❌ store the `unknown` result and read fields off it
-{ "set": "scopes.root.result", "expr": "deleteProduct({ id: scopes.row.item.id })" }
+{ "set": "scopes.root.result", "expr": "deleteProduct({ id: scopes.row.id })" }
 // … later: scopes.root.result.remaining — nothing ever said `remaining` exists
 ```
 

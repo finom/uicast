@@ -191,7 +191,7 @@ describe("EntryRenderer — host function call in a reactive site", () => {
       component: "Box",
       each: "loadThing()",
       as: "row",
-      props: { expr: "({ text: scopes.row.item })" },
+      props: { expr: "({ text: scopes.row.$value })" },
     });
     expect(container.textContent).toContain("slot: guardrail-violation");
     expect(seen[0]?.reason).toBe("guardrail-violation");

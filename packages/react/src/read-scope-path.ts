@@ -1,16 +1,6 @@
 import { EntryError, type ReactiveProxy } from "@uicast/core";
 import type { Scopes } from "./types";
 
-// Read a dotted leaf path off a scope proxy the way an expression would;
-// missing segments read as `undefined`. Binds `currentValue`.
-export const readScopePath = (scope: unknown, leafPath: string): unknown =>
-  leafPath
-    .split(".")
-    .reduce<unknown>(
-      (acc, key) => (acc == null ? undefined : (acc as Record<string, unknown>)[key]),
-      scope,
-    );
-
 // The scope a step writes to. Naming one that does not exist — a wrong `as`, usually — is the document's mistake, so it is classified rather than a raw TypeError.
 export const requireScope = (scopes: Scopes, name: string, elementKey?: string): ReactiveProxy => {
   const scope = scopes[name];
@@ -22,3 +12,7 @@ export const requireScope = (scopes: Scopes, name: string, elementKey?: string):
   }
   return scope;
 };
+
+// `currentValue` for a step: the field as it is now, or `undefined` when the scope is missing (the write then fails classified).
+export const readField = (scopes: Scopes, scope: string, field: string): unknown =>
+  (scopes[scope] as Record<string, unknown> | undefined)?.[field];

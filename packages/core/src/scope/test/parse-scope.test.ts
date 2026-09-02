@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseScope } from "../parse-scope";
+import { depKey, parseScope } from "../parse-scope";
 
 describe("parseScope", () => {
   it("splits a top-level scoped key", () => {
@@ -22,5 +22,18 @@ describe("parseScope", () => {
     // "scopes.root" normalizes to just "root" — a whole-scope read, not a path
     // into one. useReactiveDeps deliberately catches this throw for such reads.
     expect(() => parseScope("scopes.root")).toThrow(/Invalid scope key/);
+  });
+});
+
+describe("depKey", () => {
+  it("keeps the scope and the first field", () => {
+    expect(depKey("scopes.root.user.name")).toBe("scopes.root.user");
+    expect(depKey("scopes.root.count")).toBe("scopes.root.count");
+    expect(depKey("root.count")).toBe("scopes.root.count");
+  });
+
+  it("is null for a bare scope", () => {
+    expect(depKey("scopes.root")).toBeNull();
+    expect(depKey("scopes.root.")).toBeNull();
   });
 });

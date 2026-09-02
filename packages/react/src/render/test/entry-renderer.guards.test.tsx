@@ -38,7 +38,7 @@ describe("EntryRenderer — document faults that must not crash", () => {
         component: "Box",
         each: "scopes.root.items",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container } = mountEntries(lines, { rootScope: { items: ["one", "two"] } });

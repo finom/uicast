@@ -88,15 +88,16 @@ describe("extractDeps — method-call segments are dropped", () => {
     ).toEqual(["scopes.root.items"]);
   });
 
-  it("records the full static chain for non-call property access", () => {
-    // `.length` is a property read, not a method call — the chain is
-    // recorded verbatim. Writers should set the parent path
-    // (`scopes.root.items`) when they want length-readers to wake.
+  it("truncates a deep read to its field: the field is what a write replaces", () => {
     expect(
       extractDeps(
-        element({ props: { expr: "scopes.root.items.length" } }),
+        element({ props: { expr: "scopes.root.items.length + scopes.root.user.name" } }),
       ),
-    ).toEqual(["scopes.root.items.length"]);
+    ).toEqual(["scopes.root.items", "scopes.root.user"]);
+  });
+
+  it("ignores a bare scope read", () => {
+    expect(extractDeps(element({ props: { expr: "({ all: scopes.root })" } }))).toEqual([]);
   });
 });
 
@@ -105,9 +106,7 @@ describe("extractDeps — computed access handling", () => {
     const deps = extractDeps(
       element({ props: { expr: "scopes.root.rows[0].name" } }),
     );
-    // `scopes.root.rows[0].name` — the computed `[0]` stops the static chain
-    // at `scopes.root.rows`. `.name` past the dynamic step isn't reachable.
-    expect(deps).toContain("scopes.root.rows");
+    expect(deps).toEqual(["scopes.root.rows"]);
   });
 
   it("walks computed-key sub-expressions for further scopes reads", () => {

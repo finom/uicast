@@ -1,10 +1,10 @@
 "use client";
-import React, { memo, Suspense, use, useEffect, useMemo, useRef, type ReactNode } from "react";
+import React, { memo, Suspense, use, useMemo, type ReactNode } from "react";
 import { EntryError, isComponentListEntry } from "@uicast/core";
 import {
   evaluate,
-  findEntrySetPathFault,
-  setPathError,
+  findEntrySetAddressFault,
+  setAddressError,
 } from "@uicast/core/internal";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { ErrorBoundary } from "../providers/error-boundary";
@@ -100,6 +100,26 @@ const EntryRendererInner = ({
   });
 
   const Fallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
+  const Placeholder =
+    implEntry?.placeholder ?? fallbackComponents?.placeholder ?? NullPlaceholder;
+
+  // Stable across this node's own re-renders, so the impl's props memo holds.
+  const childKeys = element?.children;
+  const children = useMemo(
+    () =>
+      childKeys?.length
+        ? childKeys.map((childKey) => (
+            <EntryRenderer
+              key={childKey}
+              elementKey={childKey}
+              scopes={scopes}
+              fallback={Placeholder}
+              ancestors={lineage}
+            />
+          ))
+        : null,
+    [childKeys, scopes, Placeholder, lineage],
+  );
 
   // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
   // wakes it when the entry arrives.
@@ -107,11 +127,10 @@ const EntryRendererInner = ({
     return <Fallback reason="streaming" />;
   }
 
-  // Numeric-key and prototype-key `set` paths are rejected off the entry's static strings at
-  // first render, so the fault surfaces while the model is still streaming —
-  // not when a customer first fires the callback (the only steps `useSeed`
-  // wouldn't catch anyway).
-  const invalidSet = findEntrySetPathFault(element);
+  // A bad `set` address is rejected off the entry's static strings at first
+  // render, so the fault surfaces while the model is still streaming — not
+  // when a customer first fires the callback.
+  const invalidSet = findEntrySetAddressFault(element);
   if (invalidSet) {
     return (
       <ErrorBoundary
@@ -121,7 +140,7 @@ const EntryRendererInner = ({
         onError={onError}
       >
         <ThrowError
-          error={setPathError(invalidSet.set, invalidSet.fault, elementKey)}
+          error={setAddressError(invalidSet.set, invalidSet.fault, elementKey)}
         />
       </ErrorBoundary>
     );
@@ -177,21 +196,6 @@ const EntryRendererInner = ({
       </ErrorBoundary>
     );
   }
-
-  const Placeholder =
-    implEntry?.placeholder ?? fallbackComponents?.placeholder ?? NullPlaceholder;
-
-  const children = element.children?.length
-    ? element.children.map((childKey) => (
-        <EntryRenderer
-          key={childKey}
-          elementKey={childKey}
-          scopes={scopes}
-          fallback={Placeholder}
-          ancestors={lineage}
-        />
-      ))
-    : null;
 
   const content = (
     <Component entry={element} scopes={scopes}>
@@ -264,43 +268,6 @@ const ListEntryRendererInner = ({
   }
   const items = (rawItems as unknown[] | null | undefined) ?? [];
   const rows = useItemScopes(scopes, list, items);
-
-  // Publish per-item proxies as `childScopes.<as>`, post-commit only (a
-  // render-phase `$set` dispatches subscribers mid-render, which React
-  // forbids). Scopes append parents-first, so the LAST key is the innermost.
-  const innermostScope = scopes[Object.keys(scopes)[Object.keys(scopes).length - 1]];
-  const itemScopeName = list?.as;
-  // Re-runs every commit; republish only when some row's `itemScopes`
-  // reference changed — a same-id refetch republishes (the emit is childScopes
-  // readers' only wake), a true no-op commit stays silent.
-  const publishedRef = useRef<{
-    scope: (typeof scopes)[string];
-    name: string;
-    rowScopes: Scopes[];
-  } | null>(null);
-  useEffect(() => {
-    if (!itemScopeName) return;
-    const rowScopes = rows.map((row) => row.itemScopes);
-    const prev = publishedRef.current;
-    if (
-      prev &&
-      prev.scope === innermostScope &&
-      prev.name === itemScopeName &&
-      prev.rowScopes.length === rowScopes.length &&
-      rowScopes.every((rowScope, i) => rowScope === prev.rowScopes[i])
-    ) {
-      return;
-    }
-    publishedRef.current = { scope: innermostScope, name: itemScopeName, rowScopes };
-    // `$set` throws on a missing parent, so establish `childScopes` before
-    // writing into it. Keeping the per-`as` path means a reader of
-    // `childScopes.<as>` is woken precisely.
-    innermostScope.$set("childScopes", {}, { default: true });
-    innermostScope.$set(
-      `childScopes.${itemScopeName}`,
-      rows.map((row) => row.itemProxy),
-    );
-  }, [innermostScope, itemScopeName, rows]);
 
   if (!element) return null;
 

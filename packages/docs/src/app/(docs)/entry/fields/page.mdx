@@ -173,8 +173,8 @@ it:
 {"key":"task-table","component":"Table","children":["task-body"]}
 {"key":"task-body","component":"TableBody","children":["task-row"]}
 {"key":"task-row","component":"TableRow","each":"scopes.root.tasks","as":"task","keyBy":"id","children":["task-num","task-title"]}
-{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.index + 1 })"}}
-{"key":"task-title","component":"TableCell","props":{"expr":"({ text: scopes.task.item.title })"}}
+{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.$index + 1 })"}}
+{"key":"task-title","component":"TableCell","props":{"expr":"({ text: scopes.task.title })"}}
 ```
 
 Three tasks give one `<tbody>` with three `<tr>`s. The list's `children` repeat
@@ -196,14 +196,16 @@ An `each` evaluating to `undefined` renders zero rows, not an error.
 
 ### `as`
 The scope name each item is exposed under, on the list entry and its whole
-subtree: `scopes.<as>.item`, `.index`, and `.id` (from [`keyBy`](#keyby)).
+subtree. `scopes.<as>` is the item itself — `scopes.<as>.title` reads its
+`title` — plus `$index` and `$id` (from [`keyBy`](#keyby)); a primitive item
+is read as `$value`. See [State &amp; Scopes](/entry/state#row-scopes).
 
 Scope names are one flat namespace, so it **must be globally unique**. Reuse it
 in a nested list and the inner one replaces the outer:
 
 ```jsonc
 { "key": "order-row", "each": "scopes.root.orders", "as": "row", "children": ["line-item"] }
-{ "key": "line-item", "each": "scopes.row.item.lines", "as": "row" }
+{ "key": "line-item", "each": "scopes.row.lines", "as": "row" }
 // ❌ inside line-item, scopes.row is the line — the order it belongs to is unreachable
 ```
 
@@ -228,7 +230,7 @@ The new entry's `children` decides what survives. Already streamed:
 
 ```jsonl
 {"key":"task-card","component":"Card","children":["task-rows","refresh"]}
-{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.item.title })"}}
+{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
 {"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}}}
 ```
 

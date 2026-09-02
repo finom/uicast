@@ -5,12 +5,19 @@
 export { evaluate } from "./expr/evaluate";
 export { extractDeps, type DepsPart } from "./expr/extract-deps";
 export { planStepWaves } from "./expr/plan-step-waves";
-export { parseScope } from "./scope/parse-scope";
+export { depKey, parseScope } from "./scope/parse-scope";
+export {
+  createRowScope,
+  getForwardTargets,
+  type ForwardTarget,
+  type RowScope,
+} from "./scope/create-proxy-scope";
 export { specToJSONSchema } from "./prompt-utils/spec-to-json-schema";
 export type { JSONSchema } from "./prompt-utils/json-schema-to-ts";
 export {
-  findSetPathFault,
-  findEntrySetPathFault,
-  setPathError,
-  type SetPathFault,
-} from "./scope/validate-set-path";
+  findEntrySetAddressFault,
+  findSetAddressFault,
+  parseSetAddress,
+  setAddressError,
+  type SetAddressFault,
+} from "./scope/parse-set-address";

@@ -41,13 +41,14 @@ for every item in the array:
 ```
 
 - **`each`** — the array to repeat over, evaluated in the *parent's* scope.
-- **`as`** — names the per-item scope. Inside, you read `scopes.product.item`
-  (the product), `scopes.product.index` (0, 1, 2 …), and `scopes.product.id`.
-- **`keyBy`** — which field that id comes from. `"id"` means `item.id`.
+- **`as`** — names the per-item scope. Inside, `scopes.product` is the
+  product: `scopes.product.name`, plus `scopes.product.$index` (0, 1, 2 …)
+  and `scopes.product.$id`.
+- **`keyBy`** — which field that `$id` comes from. `"id"` means the product's `id`.
 
 So with three products in state, one entry produces three elements:
 
-| `scopes.product.item` | `scopes.product.index` | rendered |
+| `scopes.product` | `scopes.product.$index` | rendered |
 |---|---|---|
 | `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }` | `0` | Espresso Beans · $15 × 1 |
 | `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }` | `1` | Pour-Over Kettle · $23 × 4 |
@@ -60,8 +61,8 @@ State is a flat set of named reactive containers. This document has two:
 
 - **`scopes.root`** — one per app, shared by every element. Here it holds
   `products`, put there by the [`seed`](/entry/fields#seed) on line 1.
-- **`scopes.product`** — one per row, created by the list's `as`. Line 4 reads
-  `scopes.product.item.name`.
+- **`scopes.product`** — one per row, created by the list's `as`. It is the
+  product itself: line 4 reads `scopes.product.name`.
 
 The names are flat — `scopes.product` is not part of `scopes.root` — but an
 element still reaches every scope around it. A list inside a list creates an
@@ -69,8 +70,8 @@ inner scope, and an element there reads them all:
 
 ```jsonc
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
-{ "key": "lines",  "component": "Text", "each": "scopes.order.item.lines", "as": "line",
-  "props": { "expr": "({ text: scopes.order.item.id + ' / ' + scopes.line.item.sku })" } }
+{ "key": "lines",  "component": "Text", "each": "scopes.order.lines", "as": "line",
+  "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
 
 That element reads `root`, `order` and `line` at once, which is why every `as`
@@ -88,20 +89,20 @@ array:
   "({ text: '$' + scopes.root.products.reduce((sum, p) => sum + p.price * p.qty, 0) + ' total' })" } }
 ```
 
-Type in a row's quantity input and its callback writes the row's own scope:
+Type in a row's quantity input and its callback writes the row's scope:
 
 ```jsonc
-{ "onQtyChange": [{ "set": "scopes.product.item.qty", "expr": "evt.value" }] }
+{ "onQtyChange": [{ "set": "scopes.product.qty", "expr": "evt.value" }] }
 ```
 
-The write lands in one row's scope, but it **counts as a write to the array it
-came from** — so the total, which reads `scopes.root.products`, recomputes.
-The other direction needs no special rule: the edit dialog's Save replaces the
-array with `products.map(...)`, and everything reading it — the rows included —
-re-renders.
+A row scope is a window onto the element in the array, so the write changes
+that product **inside `scopes.root.products`**, in place — and the total, which
+reads the array, recomputes. The other direction needs no special rule: the
+edit dialog's Save replaces the array with `products.map(...)`, and everything
+reading it — the rows included — re-renders.
 
-Row state that lives outside the array is reached through `childScopes` —
-[State &amp; Scopes](/entry/state#reaching-across-rows).
+Per-row state that is not data — which rows are expanded — lives at root, keyed
+by the row's `$id`: [State &amp; Scopes](/entry/state#per-row-state).
 
 Both edits also call `updateProduct(...)` in a second step — a
 [host function](/functions) that persists the change, so a reload keeps it.
@@ -149,6 +150,14 @@ they read changes, so anything random or time-based renders inconsistently:
 { "props": { "expr": "({ id: Math.random() })" } }        // ❌ different every render
 { "seed": [{ "set": "scopes.root.id", "expr": "..." }] }  // ✅ compute once, read the stored value
 ```
+
+## Nothing runs on its own
+
+A click or a keystroke runs a callback, the page updates, then it waits for
+the next event. Expressions only read state. Callbacks write it on an event,
+seeds write it once at mount, and nothing else writes. So one event does a
+bounded amount of work, then the page is quiet. The term is *synchronous
+reactive*. Turing complete only if you count the user as the clock.
 
 ## What makes a document valid
 

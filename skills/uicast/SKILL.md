@@ -464,7 +464,7 @@ slot (render-time) or through `onError` (always, including callback failures,
 which have no slot). Branch on `error.fault`:
 
 - **`document`** — the model's output is wrong: `expression-syntax`,
-  `guardrail-violation` (blocked syntax/API, numeric-key `set` path),
+  `guardrail-violation` (blocked syntax/API, a `set` that is not `scopes.<scope>.<field>`),
   `unknown-reference`, `unknown-component`, `invalid-list`, `invalid-props`,
   `invalid-arguments`. Fixable by a corrected re-emission.
 - **`environment`** — host code failed: `host-function`, `host-init`,

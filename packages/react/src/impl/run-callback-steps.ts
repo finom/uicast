@@ -1,8 +1,7 @@
-import type { ConfirmableValueSourceAssignment, ExpressionEvaluator } from "@uicast/core";
-import { evaluate, planStepWaves } from "@uicast/core/internal";
-import { getItemWriteAliases } from "../item-write-forwarding";
+import type { ConfirmableValueSourceAssignment, ExpressionEvaluator, ReactiveProxy } from "@uicast/core";
+import { evaluate, getForwardTargets, planStepWaves } from "@uicast/core/internal";
 import type { ConfirmFn } from "../providers/confirm";
-import { readScopePath, requireScope } from "../read-scope-path";
+import { readField, requireScope } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
 import type { Scopes } from "../types";
 
@@ -38,18 +37,11 @@ export async function runCallbackSteps({
 		steps,
 		evaluator,
 		(step) => callsHostFunction("expr" in step ? step.expr : undefined),
-		// A row-scope write also changes the source array / childScopes readers,
-		// so declare those paths — a later step reading them waits for it.
+		// A row write also wakes the fields its list's `each` reads, so declare
+		// them — a later step reading one waits for it.
 		(step) => {
 			const target = targets.get(step);
-			if (!target) return [];
-			const [scopeName, path] = target;
-			const scope = scopes[scopeName];
-			if (!scope) return [];
-			return getItemWriteAliases(
-				scope,
-				path === "item" || path.startsWith("item."),
-			);
+			return target ? forwardedFields(scopes, target.scope) : [];
 		},
 	);
 
@@ -60,9 +52,7 @@ export async function runCallbackSteps({
 		}
 		const evaluated = wave.map((step) => {
 			const target = targets.get(step) ?? null;
-			const currentValue = target
-				? readScopePath(scopes[target[0]], target[1])
-				: undefined;
+			const currentValue = target ? readField(scopes, target.scope, target.field) : undefined;
 			// Evaluate inside an async thunk: a synchronous throw becomes a
 			// rejection, so allSettled observes every step and nothing rejects
 			// unhandled.
@@ -81,15 +71,30 @@ export async function runCallbackSteps({
 			if (result.status === "fulfilled") {
 				const { target } = evaluated[i];
 				if (target) {
-					requireScope(scopes, target[0], elementKey).$set(target[1], result.value);
+					requireScope(scopes, target.scope, elementKey).$set(target.field, result.value);
 				}
 			} else if (firstError === null) {
 				firstError = result.reason;
 			}
 		});
 		if (firstError !== null) throw firstError;
-		// One macrotask so React commits prior writes — `childScopes.<as>`
-		// republishes in the list's commit effect, and a later wave may read it.
-		await new Promise((resolve) => setTimeout(resolve, 0));
 	}
+}
+
+// Every `scopes.<scope>.<field>` a write to `scope` also emits on, transitively (a row forwards to its list's reads, which may be a row too).
+function forwardedFields(scopes: Scopes, scope: string): string[] {
+	const out: string[] = [];
+	const visit = (proxy: ReactiveProxy | undefined) => {
+		if (!proxy) return;
+		for (const t of getForwardTargets(proxy)) {
+			const name = Object.keys(scopes).find((k) => scopes[k] === t.scope);
+			const key = `scopes.${name}.${t.field}`;
+			if (name && !out.includes(key)) {
+				out.push(key);
+				visit(t.scope);
+			}
+		}
+	};
+	visit(scopes[scope]);
+	return out;
 }

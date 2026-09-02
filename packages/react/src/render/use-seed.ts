@@ -1,7 +1,7 @@
 import { useReducer, useRef } from "react";
 import { EntryError, type ComponentEntry, type ExpressionEvaluator } from "@uicast/core";
 import { evaluate, planStepWaves } from "@uicast/core/internal";
-import { readScopePath, requireScope } from "../read-scope-path";
+import { readField, requireScope } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
 import type { InitFn, Scopes } from "../types";
 
@@ -69,20 +69,19 @@ export function useSeed({
         const evaluated = wave.map((step) => {
           const target = targets.get(step);
           if (!target) throw new Error(`Seed step of "${element.key}" has no parsed target.`);
-          const [targetScope, targetPath] = target;
-          const currentValue = readScopePath(scopes[targetScope], targetPath);
+          const currentValue = readField(scopes, target.scope, target.field);
           const value = evaluate(step, { scopes, currentValue }, evaluator);
-          return { targetScope, targetPath, value };
+          return { ...target, value };
         });
         if (evaluated.every((e) => !(e.value instanceof Promise))) {
           for (const e of evaluated) {
-            requireScope(scopes, e.targetScope, element.key).$set(e.targetPath, e.value, { default: true });
+            requireScope(scopes, e.scope, element.key).$set(e.field, e.value, { default: true });
           }
           return null;
         }
         return Promise.all(
           evaluated.map(async (e) => {
-            requireScope(scopes, e.targetScope, element.key).$set(e.targetPath, await e.value, {
+            requireScope(scopes, e.scope, element.key).$set(e.field, await e.value, {
               default: true,
             });
           }),

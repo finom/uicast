@@ -47,7 +47,7 @@ Test with **`EntryError.is(err)`**, not `instanceof`.
 | `reason` | Meaning | `fault` |
 |---|---|---|
 | `expression-syntax` | the expression doesn't parse | `document` |
-| `guardrail-violation` | the expression uses blocked syntax or APIs, or a `set` path writes by numeric key | `document` |
+| `guardrail-violation` | the expression uses blocked syntax or APIs, or a `set` is not `scopes.<scope>.<field>` | `document` |
 | `unknown-reference` | an unregistered function, global, or scope path | `document` |
 | `unknown-component` | the `component` name has no implementation | `document` |
 | `invalid-list` | `each` didn't evaluate to an array | `document` |

@@ -31,7 +31,7 @@ describe("EntryRenderer — item proxy refresh", () => {
           as: "row",
           keyBy: "id",
           each: "scopes.root.items",
-          props: { expr: "({ text: scopes.row.item.label })" },
+          props: { expr: "({ text: scopes.row.label })" },
         },
       ];
       const { container, scopes } = mountEntries(lines, {

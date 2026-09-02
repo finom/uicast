@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Row scopes are the items.** `scopes.<as>.name` reads the element's field; `scopes.<as>.$index`, `$id` and `$value` are the runtime's. `scopes.<as>.item` / `.index` / `.id` and `childScopes` are gone; per-row UI state lives at root keyed by `$id`. A row write edits the element inside the source array in place and wakes the array's readers, through nested lists and across lists sharing an array. Rows with duplicate `keyBy` values no longer share a scope.
+- **Structural props memo.** An element's evaluated props are compared structurally with the last render's, and the implementation is not called again when nothing changed. Callbacks and the children slot are stable across an element's own re-renders for the same reason.
+- `set` addresses are `scopes.<scope>.<field>` only; a deeper or numeric address, or one without the `scopes.` prefix, is rejected at mount.
+
+### Fixed
+
+- **A whole-`item` write no longer reverts.** It landed on the row proxy, then the container's next render copied the old array element back over it. A row write now goes into the array.
 - **`<RendererProvider evaluator={instance}>`, required.** The provider takes the expression evaluator itself — `new Evaluator({ functions })` from `@uicast/expr`, a `PassthroughEvaluator` from `@uicast/expr-passthrough`, or your own implementation of core's `ExpressionEvaluator` interface — with the host functions bound on it. The `functions` prop, the `evaluator="native"` string and `maxExpressionLength` are gone (`maxSourceLength` is an option of the evaluator). Create the instance once, outside render: it holds the parse cache.
 - `standard-tool` is no longer a dependency, and nothing from `@uicast/expr` is imported.
 

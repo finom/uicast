@@ -6,7 +6,7 @@
 export type EntryErrorReason =
   // The expression doesn't parse.
   | "expression-syntax"
-  // The expression uses syntax or reaches an API the guardrail blocks, or a step's `set` path breaks a write rule (e.g. a numeric-key segment).
+  // The expression uses syntax or reaches an API the guardrail blocks, or a step's `set` is not `scopes.<scope>.<field>`.
   | "guardrail-violation"
   // The expression references an identifier that doesn't exist — an unregistered function, a blocked-by-omission global, or an unknown scope path target.
   | "unknown-reference"
@@ -53,7 +53,7 @@ export const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
 export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
   "expression-syntax": "the expression doesn't parse",
   "guardrail-violation":
-    "the expression or a `set` path breaks a guardrail rule — blocked syntax or API, or exceeded the step, time, or allocation budget, or a numeric-key write target",
+    "the expression or a `set` path breaks a guardrail rule — blocked syntax or API, or exceeded the step, time, or allocation budget, or a `set` that is not `scopes.<scope>.<field>`",
   "unknown-reference":
     "the expression references a name that doesn't exist — an unregistered function, a blocked global, or an unset scope path",
   "unknown-component": "no component with this name exists",

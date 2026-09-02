@@ -48,15 +48,16 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - **Expressions must be deterministic** — the language's own rule (see **JavaScript Expressions**), and the runtime depends on it: an expression re-evaluates every time a scope path it reads changes, and may run more than once per change, so the same `scopes` (and, in callbacks, `evt`) must always yield the same output. For a random value or a timestamp, produce it once via a `"set"` in `seed`/`callbacks` and read the stored value from scope.
 - **`children` is never a prop.** It is the element field listing child element keys, nothing else. Text content goes in whatever prop the component declares for it (often `text`) — read the component's props shape.
 - **Props rendered as text must be primitives — never objects or arrays.** Any prop the component's props shape types as a string or number must evaluate to a string, number, `null`, or `undefined`. An object or array in a text position breaks the render outright — the element cannot draw a record. Read the field you want, not the record that holds it:
-  - WRONG: `"props": { "expr": "({ text: scopes.member.item })" }` — passes the whole `{ id, name, role }` record.
-  - CORRECT: `"props": { "expr": "({ text: scopes.member.item.name })" }`.
-  - Composing fields is fine as long as the result is a string: `"props": { "expr": "({ text: scopes.member.item.name + ' - ' + scopes.member.item.role })" }`. So is formatting a number: `"props": { "expr": "({ text: String(scopes.root.total) })" }`.
+  - WRONG: `"props": { "expr": "({ text: scopes.member })" }` — passes the whole `{ id, name, role }` record.
+  - CORRECT: `"props": { "expr": "({ text: scopes.member.name })" }`.
+  - Composing fields is fine as long as the result is a string: `"props": { "expr": "({ text: scopes.member.name + ' - ' + scopes.member.role })" }`. So is formatting a number: `"props": { "expr": "({ text: String(scopes.root.total) })" }`.
   - Text positions only. Props the shape types as an object or array (e.g. `rows` on a table, `options` on a select) take objects as normal — always follow the declared props shape of the component you are using.
 
 ## 3. State & Seed
 
 - State is initialized via `seed` on any element: an array of `ValueSourceAssignment` objects.
-- Each seed entry is `{ "set": "scopes.<scope>.<path>", "literal": <value> }` or `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }`.
+- Each seed entry is `{ "set": "scopes.<scope>.<field>", "literal": <value> }` or `{ "set": "scopes.<scope>.<field>", "expr": "<JavaScript expression>" }`.
+- **A `set` names one field: `"scopes.<scope>.<field>"`.** Nothing deeper, no numbers. To change part of an object or array, write the whole field: `{ "set": "scopes.root.filters", "expr": "({ ...scopes.root.filters, status: 'open' })" }`.
 - `literal` seeds are synchronous. `expr` seeds may call async functions; the element suspends (shows a loading placeholder) until all async seeds resolve.
 - Do NOT write `await`: the runtime already awaits an async result before writing it to the `set` path, in `seed` and `callbacks` alike. Write `getUsers()`, not `await getUsers()`.
 - Seeds are evaluated exactly once, when the element first mounts.
@@ -68,7 +69,6 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - **Do NOT use `seed` for a value computed from other state.** A filtered list, a sorted list, a paginated slice, a sum, a formatted string — anything that should change when its inputs change — belongs inline in a reactive site (`props.expr`, `hidden`, or `each`), where it recomputes automatically. Derived state in `seed` is a stale snapshot.
   - WRONG: `"seed": [{ "set": "scopes.root.filteredRows", "expr": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))" }]` then `"each": "scopes.root.filteredRows"`. The filter runs once at mount; typing into the search input does nothing.
   - CORRECT: Leave `filteredRows` out of state. Set `"each": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))"` directly on the list element. The runtime subscribes to both `rows` and `searchTerm`; the list updates as the user types.
-- **Seed a parent before writing into it.** A `set` path whose parent is not set is an error, not an auto-created object: `{ "set": "scopes.root.filters.status" }` fails unless `scopes.root.filters` was seeded first. Seed the object (`{ "set": "scopes.root.filters", "literal": {} }`), or write the whole object at once (`{ "set": "scopes.root.filters", "literal": { "status": "open" } }`).
 - A read of an unset path yields `undefined`; a deeper read UNDER an unset path throws. Initialize state before reading it, or guard a legitimately-late path with `??` / `?.`.
 - The root element should initialize all root-level state in its `seed` before any child references it.
 
@@ -77,55 +77,52 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - All state lives under the `scopes` namespace.
 - The root element's scope is `scopes.root`. All root-level state is `scopes.root.<key>`.
 - List items get their own scope, named by `as`. With `as: "row"`, each item's scope is `scopes.row`.
-- Inside a list item scope: `scopes.<as>.item` is the current item value (the element from the array), `scopes.<as>.index` its zero-based index, `scopes.<as>.id` its `keyBy` identity.
+- **A list item scope IS the item.** `scopes.row.name` reads the `name` field of the current element of the array; `scopes.row.$index` is its zero-based position, `scopes.row.$id` its `keyBy` identity. When the array holds strings or numbers, the value is `scopes.row.$value`. These three `$` names belong to the runtime and cannot be set.
 - Scope names must be globally unique across ALL lists in the output, whatever the nesting depth. Do not use `as: "item"` on two different lists.
-- A parent scope reaches all child item scopes via `childScopes`: `scopes.root.childScopes.row` is the array of all `row` scopes, one per list item.
-- **`childScopes` does not exist until the list has rendered — ALWAYS guard the read.** Write `(scopes.root.childScopes?.row ?? [])`, never `scopes.root.childScopes.row`. The parent evaluates before its list publishes the key, so an unguarded read throws on that first pass; the element then shows an error instead of rendering, and is NOT retried when `childScopes` appears a moment later.
-- For nested lists, index into the array before chaining: `scopes.root.childScopes.row[0].childScopes.nestedItem` (each element of `childScopes.row` is a full item scope), or aggregate with `.map` / `.reduce` over `scopes.root.childScopes.row`.
-- `childScopes` is for reaching per-row STATE (flags written into item scopes, e.g. `scopes.row.expanded`) from outside the list. Data aggregation (totals, counts) reads the source array instead — `scopes.root.orders.reduce(...)` — the data lives there and the read needs no guard.
+- **Per-row UI state lives at root, keyed by `$id`** — a row scope holds data, not flags. Read: `scopes.root.expanded[scopes.row.$id] ?? false`. Toggle: `{ "set": "scopes.root.expanded", "expr": "({ ...currentValue, [scopes.row.$id]: !currentValue[scopes.row.$id] })" }`. Expand all: `{ "set": "scopes.root.expanded", "expr": "scopes.root.rows.reduce((m, r) => ({ ...m, [r.id]: true }), {})" }`. Collapse all: `{ "set": "scopes.root.expanded", "literal": {} }`. Seed the map (`{}`) on the root element.
 
 ## 5. Reactivity
 
 - Reactivity is automatic. Any `scopes.X.Y` path read by an element's `props.expr`, `hidden`, or (on lists) `each` is subscribed — when that path is written by a `"set"` from `seed` or `callbacks`, the element re-renders and its expressions re-evaluate.
 - The runtime extracts the read set from your expression text — just write natural JavaScript.
 - Reactivity applies to `props.expr` and `hidden` (and `each` on lists) only. `seed` is one-shot at mount; `callbacks` run on event. Neither subscribes.
-- A write wakes readers of the written path AND readers of any deeper path under it: writing `"set": "scopes.root.products"` wakes a reader of `scopes.root.products` and a reader of `scopes.root.products.length`. The reverse does NOT hold: writing `"set": "scopes.root.user.name"` does NOT wake a reader of `scopes.root.user`. Replace the whole object or array when its readers must re-render.
-- **Never `set` into a container by numeric key.** `"set": "scopes.root.rows.0.name"` is rejected as a guardrail violation. Edit a list row through its item scope (below), or replace the array wholesale: `"set": "scopes.root.rows"` with the new array.
-- **Exception — item scopes:** writing `"set": "scopes.<as>.item.<field>"` also counts as a write to the list's source array, so the array's readers — inline totals, filters, the list itself — re-render. Editing one row's data through its item scope is the normal way: `{ "set": "scopes.order.item.qty", "expr": "evt.valueAsNumber" }` updates the row AND every reader of `scopes.root.orders`.
-- **A live aggregate reads the source array** — `scopes.root.orders.reduce((s, o) => s + o.qty * o.price, 0)` inline in `props` recomputes on any row edit. Aggregate from the source array, not `childScopes` — the array holds the data and the read needs no guard.
+- A write to a field wakes every reader of that field, at any depth: writing `"set": "scopes.root.products"` wakes a reader of `scopes.root.products` and a reader of `scopes.root.products.length`; writing `"set": "scopes.root.user"` wakes a reader of `scopes.root.user.name`.
+- **A row write edits the element inside the source array, in place.** `{ "set": "scopes.order.qty", "expr": "evt.valueAsNumber" }` changes that order in `scopes.root.orders`, so the array's readers — inline totals, filters, the list itself — re-render; in a nested list, the arrays above it too. Editing one row's data through its scope is the normal way.
+- **A live aggregate reads the source array** — `scopes.root.orders.reduce((s, o) => s + o.qty * o.price, 0)` inline in `props` recomputes on any row edit.
+- If `each` builds new objects (`scopes.root.rows.map(r => ({ ...r, total: r.qty * r.price }))`), its rows cannot write back to `scopes.root.rows`. Keep `each` on the data (or a `filter` / `toSorted` of it) and derive values in `props`.
 - Hence §3: derived values belong inline in reactive sites, not in `seed`. Reach for `seed`/`callbacks` writes only when a value must persist across re-renders (user input, selection, mutable form data) or comes from a host function.
 
 ## 6. Lists
 
 - A list element is any element with `each` — its presence marks the list (there is no `kind` field). A list requires `each` (the array to iterate, a bare expression) and `as` (string — the per-item scope name), and optionally `keyBy` (string key for stable identity).
-- `each` is a **bare JavaScript expression string** (like `hidden`, not a `ValueSource`). Prefer the simplest form — a plain reference to a state array, e.g. `"scopes.root.rows"` or `"scopes.row.item.subtasks"`. An inline array-returning expression also works, and is the right tool for a **derived** list: `"each": "scopes.root.rows.filter(r => r.active)"`. The underlying state array must be initialized via `seed` (on this element or an ancestor) before the list renders; `each` yields `[]` if it would otherwise be undefined.
+- `each` is a **bare JavaScript expression string** (like `hidden`, not a `ValueSource`). Prefer the simplest form — a plain reference to a state array, e.g. `"scopes.root.rows"` or `"scopes.row.subtasks"`. An inline array-returning expression also works, and is the right tool for a **derived** list: `"each": "scopes.root.rows.filter(r => r.active)"`. The underlying state array must be initialized via `seed` (on this element or an ancestor) before the list renders; `each` yields `[]` if it would otherwise be undefined.
 - **Bound what a list renders.** Never let `each` iterate an unbounded array: past a few hundred rows the browser stalls on DOM work, whatever the expressions cost. A slice cap is ALWAYS safe — `"each": "scopes.root.rows.slice(0, 🔴MAX_LIST_ITEMS🔴)"` is a no-op when the data is smaller — so cap any list whose size you do not control. Add pagination (`"each": "scopes.root.rows.slice(scopes.root.page * 50, scopes.root.page * 50 + 50)"` with callbacks writing `scopes.root.page`) or a search/filter input ONLY when the data can exceed the cap; small or fixed data needs neither. A pager must disappear when there is one page: give it `"hidden": "scopes.root.rows.length <= 50"`.
 - Always provide `keyBy` when items are objects with a unique identifier (e.g. `"keyBy": "id"`). It gives stable re-rendering on add/remove/reorder. Without `keyBy` (or when an item lacks the field), items are keyed by index.
 - The list element's `component` renders once per item — it wraps each item, not the whole list. A list with `component: "TableRow"` renders one `<tr>` per item.
-- The list element can have `props` evaluated per item with the item scope available: `"props": { "expr": "({ text: scopes.row.item.name })" }`. For a text prop read a **field** of `scopes.<as>.item`, never the item itself — `scopes.row.item` is the whole record (see §2).
+- The list element can have `props` evaluated per item with the item scope available: `"props": { "expr": "({ text: scopes.row.name })" }`. For a text prop read a **field** of `scopes.<as>`, never the scope itself — `scopes.row` is the whole record (see §2).
 - List elements can have `children`, also rendered per item. Inside children, the item scope is available.
-- **Per-item UI state**: seeds never run per item. Initialize a per-row flag from a callback instead — write a new key into the item scope (`{ "set": "scopes.row.expanded", "expr": "!currentValue" }`) and read it with a fallback (`scopes.row.expanded ?? false`).
+- **Per-item UI state**: seeds never run per item, and a row scope is the item's data. Keep per-row flags at root keyed by `$id` (§4).
 - A list element can never be the root. Always wrap a list in a container element (e.g. `TableBody` or `FlexCol`).
 
 ## 7. Callbacks
 
 - Callbacks are named event handlers on an element: `"callbacks": { "onClick": [...], "onChange": [...] }`.
 - Only declare callback names matching the component's documented event handlers.
-- Each callback is an array of `ConfirmableValueSourceAssignment` objects: `{ "set": "scopes.<scope>.<path>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<path>", "literal": <value> }`.
+- Each callback is an array of `ConfirmableValueSourceAssignment` objects: `{ "set": "scopes.<scope>.<field>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<field>", "literal": <value> }`.
 - `evt` is available in callback expressions and holds event-specific data. Check each component's event handler signature for its fields (e.g. `evt.value`, `evt.valueAsNumber` for Input's onChange).
-- `currentValue` is available in any callback (or `seed`) step with a `"set"`: the current value at that step's `set` path — the value being replaced — for read-modify-write without re-reading the path. It is `undefined` when the path was never set (so a first-time `!currentValue` toggles to `true`).
+- `currentValue` is available in any callback (or `seed`) step with a `"set"`: the current value of that step's `set` field — the value being replaced — for read-modify-write without re-reading it. It is `undefined` when the field was never set (so a first-time `!currentValue` toggles to `true`).
 - Callbacks CAN call async functions. Steps run in order: a step calling a host function always waits for the steps before it (mutations never race), and a step reading a path an earlier step sets (including via `currentValue`) waits for that write. Write chained updates naturally — save, then re-fetch — and the runtime sequences them; pure assignment steps with no dependency on each other may run together.
-- A step writing `scopes.<as>.item.<field>` counts as writing the list's source array (§5), so a later step reading the array waits for it.
+- A step writing a row field (`scopes.<as>.<field>`) counts as writing the list's source array (§5), so a later step reading the array waits for it.
 - **Confirmation prompts**: any callback action can carry an optional `"confirm"` field with a string message. A confirmation dialog is then shown before that action executes. On cancel, that action AND all remaining actions in the array are skipped. A `confirm` action is also an ordering barrier: everything before it settles first, and nothing after it starts until it is confirmed. Put `confirm` on the FIRST action in the array (typically the dangerous one, such as a delete call) so the user is prompted before anything happens. Do NOT create separate `ConfirmDialog` elements — use the `confirm` field.
-  - Example: `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
+  - Example: `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.$id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
 - Common patterns:
   - Toggle a flag: `{ "set": "scopes.root.open", "expr": "!currentValue" }`
   - Increment a counter: `{ "set": "scopes.root.count", "expr": "currentValue + 1" }`
   - Append to array: `{ "set": "scopes.root.rows", "expr": "[...currentValue, { id: scopes.root.nextId, a: 0 }]" }`
-  - Filter array: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.item.id)" }`
-  - Edit one row's field: `{ "set": "scopes.row.item.qty", "expr": "evt.valueAsNumber" }` — readers of the source array re-render too
-  - Edit a row from outside its list: `{ "set": "scopes.root.rows", "expr": "scopes.root.rows.map(r => r.id === scopes.root.selectedId ? { ...r, qty: 0 } : r)" }` — replace the array; never write by numeric index (`"set": "scopes.root.rows.0.qty"` is rejected)
-  - Call a host function for its effect (no `"set"` — see §9): `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.item.id } })" }`
+  - Filter array: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.$id)" }`
+  - Edit one row's field: `{ "set": "scopes.row.qty", "expr": "evt.valueAsNumber" }` — readers of the source array re-render too
+  - Edit a row from outside its list: `{ "set": "scopes.root.rows", "expr": "scopes.root.rows.map(r => r.id === scopes.root.selectedId ? { ...r, qty: 0 } : r)" }` — replace the array; a `set` never names an index (`"set": "scopes.root.rows.0.qty"` is rejected)
+  - Call a host function for its effect (no `"set"` — see §9): `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.$id } })" }`
 
 ## 8. Hidden (Conditional Visibility)
 
@@ -140,14 +137,14 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - Async calls are NEVER allowed in `props.expr`, `hidden`, or `each` — those are evaluated synchronously during render, and the runtime rejects an async result there as an error.
 - Host functions take a single object argument matching their documented input type. Functions with no input take no arguments.
   - Correct: `UserApi_getUsers()` (no input)
-  - Correct: `UserApi_deleteUser({ params: { id: scopes.row.item.id } })` (with input)
+  - Correct: `UserApi_deleteUser({ params: { id: scopes.row.$id } })` (with input)
   - Correct: `UserApi_createUser({ body: { fullName: "Alice", email: "a@b.com" } })` (with body)
   - Correct: `TaskApi_findTasks({ query: { search: scopes.root.searchTerm } })` (with query)
-  - WRONG: `UserApi_deleteUser(scopes.row.item.id)` — must wrap in the expected shape.
+  - WRONG: `UserApi_deleteUser(scopes.row.$id)` — must wrap in the expected shape.
 - Use `seed` with `expr` to fetch initial data on mount: `{ "set": "scopes.root.users", "expr": "UserApi_getUsers()" }`. The element suspends until the data loads.
 - Use `callbacks` for mutations in response to user actions, then re-fetch or update local state: first mutate, then refresh.
 - **A function documented as returning `unknown` has an UNDECLARED result — not an empty one.** Call it for its effect, but do NOT read fields off what it returns: no shape was published, so any field name is a guess. Use a callback step with no `"set"` at all, then read the data back from a function whose return type IS documented:
-  - CORRECT: `[{ "expr": "Api_archive({ id: scopes.row.item.id })" }, { "set": "scopes.root.rows", "expr": "Api_listRows()" }]` — act, then re-fetch through a documented return.
+  - CORRECT: `[{ "expr": "Api_archive({ id: scopes.row.$id })" }, { "set": "scopes.root.rows", "expr": "Api_listRows()" }]` — act, then re-fetch through a documented return.
   - WRONG: `{ "set": "scopes.root.found", "expr": "Api_search({ q: scopes.root.term })" }` followed by an expression reading `scopes.root.found.items[0].title` — nothing said `items` or `title` exist.
   - A step with no `"set"` is allowed in `callbacks` only; every `seed` step must write somewhere, so a function returning `unknown` has no place in `seed`.
 
@@ -173,7 +170,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 
 Every JavaScript expression — `props.expr`, `hidden`, `each`, `seed[].expr`, `callbacks[].expr` — is written in the language described under **JavaScript Expressions**. On top of that language, these names are in scope:
 
-- `scopes` - reactive state object. Page-wide state lives in the always-present **root** scope: read and write it as `scopes.root.<path>` (e.g. `scopes.root.searchTerm`), and initialize every root path in the root element's `seed` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's `as` name becomes `scopes.<as>` inside that list's rows (`scopes.<as>.item`, `scopes.<as>.index`, `scopes.<as>.id`). Invent no other top-level scope name — any other `scopes.foo` yields `undefined`, and writing to it throws.
+- `scopes` - reactive state object. Page-wide state lives in the always-present **root** scope: read it as `scopes.root.<field>` (e.g. `scopes.root.searchTerm`), and initialize every root field in the root element's `seed` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's `as` name becomes `scopes.<as>` inside that list's rows: the item's own fields, plus `scopes.<as>.$index`, `scopes.<as>.$id` and, for a primitive item, `scopes.<as>.$value`. Invent no other top-level scope name — any other `scopes.foo` yields `undefined`, and writing to it throws.
 - `evt` - event object (callbacks only)
-- `currentValue` - within a `seed` or `callback` `expr`, the current value at that assignment's `set` path (the value being replaced). Use it for read-modify-write without re-reading the path: `!currentValue` (toggle), `currentValue + 1` (increment), `[...currentValue, evt.item]` (append). It is `undefined` when the path was never set, so a first-time `!currentValue` is `true`. Bound ONLY in `set`-bearing expressions; `props`, `hidden`, and `each` have no `currentValue`.
+- `currentValue` - within a `seed` or `callback` `expr`, the current value of that assignment's `set` field (the value being replaced). Use it for read-modify-write without re-reading it: `!currentValue` (toggle), `currentValue + 1` (increment), `[...currentValue, evt.item]` (append). It is `undefined` when the field was never set, so a first-time `!currentValue` is `true`. Bound ONLY in `set`-bearing expressions; `props`, `hidden`, and `each` have no `currentValue`.
 - All host functions listed under **Available Functions** are async, but the runtime awaits a step's result before writing it to the `set` path — call them bare: `getUsers()`, never `await getUsers()`. Callable only from `seed` and `callbacks` expressions, never from `props`, `hidden`, or `each`.

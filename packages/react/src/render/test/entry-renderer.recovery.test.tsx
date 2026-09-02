@@ -106,7 +106,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
         component: "Box",
         each: "document.rows",
         as: "row",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
       {
         key: "good",
@@ -127,7 +127,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       component: "Box",
       each: "scopes.root.items",
       as: "row",
-      props: { expr: "({ text: scopes.row.item })" },
+      props: { expr: "({ text: scopes.row.$value })" },
     });
     expect(container.textContent).not.toContain("the-list failed:");
     expect(container.textContent).toContain("first-item");

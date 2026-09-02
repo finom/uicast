@@ -17,7 +17,7 @@ function emitCount(scopes: Scopes): number {
   return total;
 }
 
-// Subscribe the node to every path its entry reads. `mode` picks the slice
+// Subscribe the node to every `scopes.<scope>.<field>` its entry reads. `mode` picks the slice
 // (see DepsPart) so container and items don't double-subscribe; `"skip"`
 // leaves a list's deps to ListEntryRenderer.
 export function useReactiveDeps(
@@ -49,19 +49,10 @@ export function useReactiveDeps(
 
     const unsubscribers: (() => void)[] = [];
     for (const dep of deps) {
-      let targetScope: string;
-      let targetPath: string;
-      try {
-        [targetScope, targetPath] = parseScope(dep);
-      } catch {
-        // A bare whole-scope read (`scopes.root` with no path) is a valid
-        // expression but not a subscribable path — skip it; throwing here
-        // would latch the PARENT's boundary, same as the extractDeps case.
-        continue;
-      }
+      const [targetScope, field] = parseScope(dep);
       // An item-scoped entry can render before its proxy is in the scopes map
       // (first paint of a fresh list) — skip it; the next render catches up.
-      const unsubscribe = scopes[targetScope]?.$emitter.on(targetPath, forceRender);
+      const unsubscribe = scopes[targetScope]?.$emitter.on(field, forceRender);
       if (unsubscribe) unsubscribers.push(unsubscribe);
     }
 

@@ -1,43 +1,43 @@
 # Reactivity & Dependencies
 
-You never declare what an expression depends on. Every `scopes.<scope>.<path>`
-access is extracted by static analysis — the same parser that checks the
+You never declare what an expression depends on. Every `scopes.<scope>.<field>`
+read is extracted by static analysis — the same parser that checks the
 expression for [safety](/expr#two-evaluators) — and that read set drives
 two different mechanisms, depending on where the expression sits.
 
 ## Reactive sites: subscriptions
 
 `props.expr`, `hidden`, and `each` re-evaluate when state changes. Each read
-becomes a subscription, and a write re-renders exactly the elements reading that
-path.
+becomes a subscription to a field, and a write to that field re-renders exactly
+the elements reading it, however deep the read goes.
 
 ```jsonl
 {"key":"count","component":"Text","props":{"expr":"({ text: scopes.root.products.length + ' products' })"}}
 ```
 
-`count` subscribes to `scopes.root.products.length`. A write wakes readers of
-that path and of everything under it — never above it. So writing `products`
-wakes this reader. A write into the array by index would not — which is why the
-engine rejects the path outright:
+`count` subscribes to `scopes.root.products`. Writing `products` wakes it.
+There is no other way to change the array: a `set` names a field, never an
+index inside it:
 
 ```jsonc
 { "set": "scopes.root.products", "expr": "listProducts()" }     // ✅ replaces the array
-{ "set": "scopes.root.products.0.name", "literal": "Renamed" }  // ❌ rejected — numeric key in a set path
+{ "set": "scopes.root.products.0.name", "literal": "Renamed" }  // ❌ rejected — not an address
 ```
 
-**List items are the exception.** A write into an item scope —
-`scopes.row.item.qty` — also counts as a write to the list's source array: the
-row's data lives inside that array, so its readers are stale the moment the
-write lands. The engine re-emits on the array's path (`scopes.root.products`
-here), and inline totals, filters, and the list itself re-render. In a nested
-list the write cascades to the outermost array.
+**A row write is a write to its array.** A row scope is a window onto one
+element of the array its list iterates, so `set: "scopes.row.qty"` changes
+that element in place. The engine then emits on every field holding the
+element — `scopes.root.products` here — and inline totals, filters, and the
+list itself re-render. In a nested list the write climbs to the outermost
+array: a `line` edit wakes `scopes.order.lines`, and that wakes
+`scopes.root.orders`.
 
 One expression can produce several subscriptions. Two entries from a larger
 document, whose ancestor seeds `scopes.root.products`:
 
 ```jsonl
 {"key":"search","component":"SearchInput","seed":[{"set":"scopes.root.query","literal":""}],"props":{"expr":"({ value: scopes.root.query })"},"callbacks":{"onChange":[{"set":"scopes.root.query","expr":"evt.value"}]}}
-{"key":"rows","component":"Text","each":"scopes.root.products.filter(p => p.name.includes(scopes.root.query))","as":"row","keyBy":"id","props":{"expr":"({ text: scopes.row.item.name })"}}
+{"key":"rows","component":"Text","each":"scopes.root.products.filter(p => p.name.includes(scopes.root.query))","as":"row","keyBy":"id","props":{"expr":"({ text: scopes.row.name })"}}
 ```
 
 `rows` subscribes to `scopes.root.products` (a method call truncates the path, so
@@ -80,7 +80,7 @@ host calls in `seed` still run in parallel, as above.
 ```jsonc
 { // …
   "callbacks": { "onClick": [
-    { "expr": "deleteProduct({ id: scopes.row.item.id })", "confirm": "Delete this product?" },
+    { "expr": "deleteProduct({ id: scopes.row.id })", "confirm": "Delete this product?" },
     { "set": "scopes.root.products", "expr": "listProducts()" }
   ] } }
 ```
@@ -89,22 +89,22 @@ Two waves, never one: step one carries `confirm`, step two calls a host
 function. The refetch reads nothing the delete writes, so path analysis alone
 would have run them together.
 
-Ordering matches written paths *textually*, with the same list exception as
-above: a step writing `scopes.row.item.qty` declares the source array — and the
-list's [`childScopes`](/entry/state#reaching-across-rows) — as written, so a
-later step reading either waits for it.
+Ordering compares fields, with the same row rule as above: a step writing
+`scopes.row.qty` declares the array holding the row as written, so a later
+step reading `scopes.root.products` waits for it.
 
-## Keep paths static
+## The dependency is the field
 
-Extraction is static, so the runtime only sees paths written out literally:
+Extraction is static and stops at the field:
 
 ```jsonl
 {"key":"selected","component":"Text","props":{"expr":"({ text: scopes.root.rows[scopes.root.sel].name })"}}
 ```
 
-Two paths are extracted: `scopes.root.rows` and `scopes.root.sel`. The path the
-key *resolves* to is not, so writing `scopes.root.rows.2.name` leaves `selected`
-asleep. Write the path you mean.
+Two fields are extracted, `scopes.root.rows` and `scopes.root.sel`, and any
+write to either wakes `selected`. A computed key, a method call, or a deeper
+property never narrows the subscription, so nothing a write can do goes
+unheard.
 
 ## No dependency loops
 

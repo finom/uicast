@@ -16,7 +16,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.items",
-        props: { expr: "({ text: scopes.row.item.label })" },
+        props: { expr: "({ text: scopes.row.label })" },
       },
     ];
     const { container } = mountEntries(lines, {
@@ -39,7 +39,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.items",
-        props: { expr: "({ text: scopes.row.item.label })" },
+        props: { expr: "({ text: scopes.row.label })" },
       },
     ];
     const { container, scopes } = mountEntries(lines, {
@@ -68,7 +68,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.items",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container } = mountEntries(lines, { rootScope: { items: [] } });
@@ -91,7 +91,7 @@ describe("EntryRenderer — lists", () => {
         as: "row",
         each:
           "scopes.root.items.filter(i => i.startsWith(scopes.root.search))",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container, scopes } = mountEntries(lines, {
@@ -109,7 +109,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).not.toContain("banana");
   });
 
-  it("keyBy keeps a row's state with its item when the array is reordered", async () => {
+  it("per-row state at root, keyed by $id, travels with the item when the array is reordered", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
       {
@@ -123,19 +123,21 @@ describe("EntryRenderer — lists", () => {
       {
         key: "mark",
         component: "Button",
-        props: { expr: "({ label: 'mark-' + scopes.row.item.id })" },
-        callbacks: { onClick: [{ set: "scopes.row.flag", literal: true }] },
+        props: { expr: "({ label: 'mark-' + scopes.row.$id })" },
+        callbacks: {
+          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.row.$id]: true })" }],
+        },
       },
       {
         key: "flag",
         component: "Box",
         props: {
-          expr: "({ text: scopes.row.item.id + ':' + !!scopes.row.flag })",
+          expr: "({ text: scopes.row.$id + ':' + !!scopes.root.flags[scopes.row.$id] })",
         },
       },
     ];
     const { container, scopes, getByText } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1 }, { id: 2 }] },
+      rootScope: { items: [{ id: 1 }, { id: 2 }], flags: {} },
     });
     await act(async () => {
       fireEvent.click(getByText("mark-1"));
@@ -167,17 +169,19 @@ describe("EntryRenderer — lists", () => {
       {
         key: "mark",
         component: "Button",
-        props: { expr: "({ label: 'mark-' + scopes.row.item })" },
-        callbacks: { onClick: [{ set: "scopes.row.flag", literal: true }] },
+        props: { expr: "({ label: 'mark-' + scopes.row.$value })" },
+        callbacks: {
+          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.row.$id]: true })" }],
+        },
       },
       {
         key: "flag",
         component: "Box",
-        props: { expr: "({ text: scopes.row.item + ':' + !!scopes.row.flag })" },
+        props: { expr: "({ text: scopes.row.$value + ':' + !!scopes.root.flags[scopes.row.$id] })" },
       },
     ];
     const { container, scopes, getByText } = mountEntries(lines, {
-      rootScope: { items: ["a", "b"] },
+      rootScope: { items: ["a", "b"], flags: {} },
     });
     await act(async () => {
       fireEvent.click(getByText("mark-a"));
@@ -208,7 +212,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.n",
-        props: { expr: "({ text: scopes.row.item })" },
+        props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
     const { container, emit } = mountEntries(lines, {
@@ -232,7 +236,7 @@ describe("EntryRenderer — lists", () => {
       component: "Box",
       as: "row",
       each: "scopes.root.items",
-      props: { expr: "({ text: scopes.row.item })" },
+      props: { expr: "({ text: scopes.row.$value })" },
     });
     expect(container.textContent).not.toContain("rows failed:");
     expect(container.textContent).toContain("first-item");
@@ -240,7 +244,7 @@ describe("EntryRenderer — lists", () => {
     consoleError.mockRestore();
   });
 
-  it("a row's item write wakes readers of the source array", async () => {
+  it("a row write wakes readers of the source array", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows", "total"] },
       {
@@ -254,9 +258,9 @@ describe("EntryRenderer — lists", () => {
       {
         key: "bump",
         component: "Button",
-        props: { expr: "({ label: 'bump-' + scopes.row.item.id })" },
+        props: { expr: "({ label: 'bump-' + scopes.row.id })" },
         callbacks: {
-          onClick: [{ set: "scopes.row.item.qty", expr: "currentValue + 1" }],
+          onClick: [{ set: "scopes.row.qty", expr: "currentValue + 1" }],
         },
       },
       {
@@ -279,7 +283,7 @@ describe("EntryRenderer — lists", () => {
     });
   });
 
-  it("a step reading the source array waits for a sibling item write", async () => {
+  it("a step reading the source array waits for a sibling row write", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows", "sum"] },
       {
@@ -293,10 +297,10 @@ describe("EntryRenderer — lists", () => {
       {
         key: "set5",
         component: "Button",
-        props: { expr: "({ label: 'set5-' + scopes.row.item.id })" },
+        props: { expr: "({ label: 'set5-' + scopes.row.id })" },
         callbacks: {
           onClick: [
-            { set: "scopes.row.item.qty", literal: 5 },
+            { set: "scopes.row.qty", literal: 5 },
             {
               set: "scopes.root.sum",
               expr: "scopes.root.items.reduce((s, i) => s + i.qty, 0)",
@@ -323,7 +327,7 @@ describe("EntryRenderer — lists", () => {
     });
   });
 
-  it("a row-flag write wakes readers of childScopes", async () => {
+  it("a per-row flag at root is counted by a sibling of the list", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows", "open"] },
       {
@@ -337,21 +341,23 @@ describe("EntryRenderer — lists", () => {
       {
         key: "toggle",
         component: "Button",
-        props: { expr: "({ label: 'toggle-' + scopes.row.item.id })" },
+        props: { expr: "({ label: 'toggle-' + scopes.row.$id })" },
         callbacks: {
-          onClick: [{ set: "scopes.row.expanded", expr: "!currentValue" }],
+          onClick: [
+            { set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.row.$id]: !currentValue[scopes.row.$id] })" },
+          ],
         },
       },
       {
         key: "open",
         component: "Box",
         props: {
-          expr: "({ text: 'open:' + (scopes.root.childScopes?.row ?? []).filter(r => r.expanded).length })",
+          expr: "({ text: 'open:' + Object.values(scopes.root.expanded).filter(v => v).length })",
         },
       },
     ];
     const { container, getByText } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1 }, { id: 2 }] },
+      rootScope: { items: [{ id: 1 }, { id: 2 }], expanded: {} },
     });
     await waitFor(() => {
       expect(container.textContent).toContain("open:0");
@@ -364,7 +370,7 @@ describe("EntryRenderer — lists", () => {
     });
   });
 
-  it("a nested item write cascades to the outermost source array", async () => {
+  it("a nested row write cascades to the outermost source array", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["orders", "grand"] },
       {
@@ -379,16 +385,16 @@ describe("EntryRenderer — lists", () => {
         key: "items",
         component: "Box",
         as: "line",
-        each: "scopes.order.item.lines",
+        each: "scopes.order.lines",
         keyBy: "sku",
         children: ["bump"],
       },
       {
         key: "bump",
         component: "Button",
-        props: { expr: "({ label: 'bump-' + scopes.line.item.sku })" },
+        props: { expr: "({ label: 'bump-' + scopes.line.sku })" },
         callbacks: {
-          onClick: [{ set: "scopes.line.item.qty", expr: "currentValue + 1" }],
+          onClick: [{ set: "scopes.line.qty", expr: "currentValue + 1" }],
         },
       },
       {

@@ -101,7 +101,7 @@ Every site, in one product search (`scopes.root.products` is seeded higher up):
   "props": { "literal": { "text": "No products" } } }
 { "key": "rows", "component": "Text", "as": "row", "keyBy": "id",
   "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))",
-  "props": { "expr": "({ text: scopes.row.item.name })" } }
+  "props": { "expr": "({ text: scopes.row.name })" } }
 ```
 
 `props` is a [value source](/entry/value-sources): `expr` computes the props
@@ -193,9 +193,14 @@ two cannot drift.
 
 ## Budgets
 
+Every expression stops. Each step, each millisecond and each new string or
+array spends from a fixed budget, and evaluation throws when the budget is
+spent. Proof assistants call this *fuel*; Ethereum calls it *gas*. Stopping
+comes from the budget, not the grammar.
+
 With no loop syntax and no recursion, exhausting the CPU takes a built-in
 method that iterates. Under `Evaluator` every such method is implemented inside
-the package, so every iteration passes a budget:
+the package, so every iteration passes the budget:
 
 - a **step counter**, charged per callback invocation by the body's
   compile-time node count;
@@ -255,7 +260,10 @@ function. **Expressions shape display values; host functions compute.**
 
 ## What it does not secure
 
-The interpreter secures the language. Three things sit outside it:
+The interpreter secures the language. An expression can only use what the
+host gave it: the contexts and the functions bound at construction. Nothing
+else is reachable, `window` and `fetch` included — the object-capability term
+is *no ambient authority*. Three things sit outside it:
 
 - **Host functions are capabilities.** `rows.map(r => deleteProduct(r.id))` is
   a legal expression that deletes everything. Nothing escaped — the document
@@ -276,18 +284,18 @@ the [Security model](/security) page.
 
 Three suites verify the implementation:
 
-- **Against JavaScript.** Every expression in the test corpus runs twice —
-  through the interpreter, and through `new Function` — and the two results
-  must be identical. The likely bug in a hand-written evaluator is not an
-  escape; it is returning something slightly different from what real
-  JavaScript returns (`"" == 0`, `-0`, coercion order). This suite exists to
-  catch exactly that.
+- **Against JavaScript.** We keep a list of test expressions. Each one runs
+  in `Evaluator` and as plain JavaScript, and both must return the same value
+  or both must throw — *differential testing*. The likely bug in a
+  hand-written evaluator is not an escape; it is returning something slightly
+  different from what real JavaScript returns (`"" == 0`, `-0`, coercion
+  order). This suite exists to catch exactly that.
 - **Against known attacks.** The tests keep a collection of real escape
   techniques — reading `constructor` through a computed key, polluting
   `Object.prototype`, allocation bombs, recursion tricks, a live object placed
   in scope — and assert that none reaches anything.
 - **Against the other evaluator.** The parity suite in `@uicast/expr-passthrough`
-  runs the corpus through both evaluators and plain JavaScript, checks that
+  runs the same list a third time, through `PassthroughEvaluator`, checks that
   everything the grammar forbids fails in both, and pins the residual:
   `"abc"["char" + "At"](0)` throws under `Evaluator` and returns `"a"` under
   `PassthroughEvaluator`. The limitation described on this page is verified by

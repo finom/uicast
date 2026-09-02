@@ -191,7 +191,7 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
         as: "row",
         each: "scopes.root.gate ? scopes.root.items : scopes.root.items",
         props: {
-          expr: "({ text: scopes.row.item.label + scopes.root.suffix })",
+          expr: "({ text: scopes.row.label + scopes.root.suffix })",
         },
       },
     ];
@@ -230,5 +230,41 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
     // rebuilt item scopes, not through a second subscription of their own.
     expect(eachEvals.count).toBe(2);
     expect(counts.rows).toBe(4);
+  });
+});
+
+describe("EntryRenderer — props memo", () => {
+  // Per-row state lives at root keyed by `$id`, so one toggle wakes every row
+  // reading the map. Only the row whose props changed may reach `render`.
+  it("a root-map toggle re-renders one row, not all of them", () => {
+    const { catalog, counts } = countingSetup();
+    const items = Array.from({ length: 200 }, (_, i) => ({ id: i }));
+    const lines: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        seed: [{ set: "scopes.root.expanded", literal: {} }],
+        children: ["rows"],
+      },
+      {
+        key: "rows",
+        component: "Box",
+        as: "row",
+        each: "scopes.root.items",
+        keyBy: "id",
+        props: { expr: "({ text: scopes.root.expanded[scopes.row.$id] ? 'open' : 'closed' })" },
+      },
+    ];
+    const { scopes, container } = mountEntries(lines, {
+      rootScope: { items },
+      implementations: { Box: catalog[0] },
+    });
+    expect(counts.rows).toBe(200);
+    act(() => {
+      scopes.root.$set("expanded", { 7: true });
+    });
+    expect(container.querySelectorAll("div").length).toBe(201);
+    expect(container.textContent).toContain("open");
+    expect(counts.rows).toBe(201);
   });
 });

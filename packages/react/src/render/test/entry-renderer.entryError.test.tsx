@@ -125,7 +125,7 @@ describe("EntryRenderer — EntryError classification", () => {
     consoleError.mockRestore();
   });
 
-  it("rejects a numeric-key callback `set` path at mount as `guardrail-violation`", () => {
+  it("rejects a deep callback `set` address at mount as `guardrail-violation`", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { seen, onError } = collect();
     const lines: ComponentEntry[] = [
@@ -142,11 +142,11 @@ describe("EntryRenderer — EntryError classification", () => {
     expect(seen[0].reason).toBe("guardrail-violation");
     expect(seen[0].fault).toBe("document");
     expect(seen[0].elementKey).toBe("grid");
-    expect(container.textContent).toContain("numeric key");
+    expect(container.textContent).toContain("is not an address");
     consoleError.mockRestore();
   });
 
-  it("rejects a numeric-key seed `set` path as `guardrail-violation`", () => {
+  it("rejects a numeric seed `set` address as `guardrail-violation`", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { seen, onError } = collect();
     const lines: ComponentEntry[] = [
