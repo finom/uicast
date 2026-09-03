@@ -31,10 +31,10 @@ function countingSetup() {
   const counts: Record<string, number> = {};
   const boxRenderer = createComponentImplementation({
     def: boxDef,
-    render: ({ text, children, generatedKey }) => {
-      counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
+    render: ({ text, children}, { entry }) => {
+      counts[entry.key] = (counts[entry.key] ?? 0) + 1;
       return (
-        <div data-key={generatedKey}>
+        <div data-key={entry.key}>
           {text}
           {children}
         </div>
@@ -105,10 +105,10 @@ describe("EntryRenderer — render-once on state change", () => {
     const counts: Record<string, number> = {};
     const boxRenderer = createComponentImplementation({
       def: boxDef,
-      render: ({ text, children, generatedKey }) => {
-        counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
+      render: ({ text, children}, { entry }) => {
+        counts[entry.key] = (counts[entry.key] ?? 0) + 1;
         return (
-          <div data-key={generatedKey}>
+          <div data-key={entry.key}>
             {text}
             {children}
           </div>
@@ -164,10 +164,10 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
     const counts: Record<string, number> = {};
     const boxRenderer = createComponentImplementation({
       def: boxDef,
-      render: ({ text, children, generatedKey }) => {
-        counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
+      render: ({ text, children}, { entry }) => {
+        counts[entry.key] = (counts[entry.key] ?? 0) + 1;
         return (
-          <div data-key={generatedKey}>
+          <div data-key={entry.key}>
             {text}
             {children}
           </div>

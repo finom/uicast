@@ -67,6 +67,7 @@ function validateEntries(where: string, entries: ComponentEntry[]): void {
     };
     vs(entry.props);
     if (typeof entry.hidden === "string") exprs.push(entry.hidden);
+    if (typeof entry.loading === "string") exprs.push(entry.loading);
     if (typeof entry.each === "string") exprs.push(entry.each);
     for (const step of entry.seed ?? []) vs(step);
     for (const steps of Object.values(entry.callbacks ?? {})) for (const step of steps) vs(step);
@@ -107,7 +108,7 @@ async function main() {
   const [system] = await db.insert(users).values({ slug: SYSTEM_SLUG }).returning();
   await insertStarterData(system.id);
 
-  await insertSeedContent(system.id, (id) => id);
+  await insertSeedContent(system.id);
 
   console.log(`Seeded @${SYSTEM_SLUG}: ${SEED_PAGES.length} pages, ${SEED_CHATS.length} chats.`);
   process.exit(0);

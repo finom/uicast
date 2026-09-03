@@ -1,5 +1,5 @@
 import { EntryError } from "../entry-error";
-import type { ComponentEntry, ConfirmableValueSourceAssignment } from "../types";
+import type { ComponentEntry, CallbackValueSourceAssignment } from "../types";
 
 // A `set` address names one field: `scopes.<scope>.<field>`. Nothing deeper, no numbers.
 const ADDRESS = /^scopes\.([A-Za-z_$][\w$]*)\.([A-Za-z_$][\w$]*)$/;
@@ -63,7 +63,7 @@ export function parseSetAddress(
 export function findEntrySetAddressFault(
 	entry: Pick<ComponentEntry, "seed" | "callbacks">,
 ): { set: string; fault: SetAddressFault } | null {
-	const stepLists: (readonly ConfirmableValueSourceAssignment[])[] = [];
+	const stepLists: (readonly CallbackValueSourceAssignment[])[] = [];
 	if (entry.seed) stepLists.push(entry.seed);
 	if (entry.callbacks) stepLists.push(...Object.values(entry.callbacks));
 	for (const steps of stepLists) {

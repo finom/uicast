@@ -23,7 +23,7 @@ and a `render` function and returns the implementation you register.
 
 ## The render function
 
-`render` receives a single argument, **typed against the def**:
+`render` receives two arguments. The first is **typed against the def**:
 
 - **props** — inferred from the def's `props` schema, already **resolved**: the
   engine evaluates the entry's [`props`](/entry/fields#props) value source
@@ -33,7 +33,7 @@ and a `render` function and returns the implementation you register.
 
   ```jsonc
   { "key": "total", "component": "Text", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
-  // render receives { text: "Open: 3", generatedKey: "total" }
+  // render receives { text: "Open: 3" }
   // …and is called again with "Open: 4" the moment something writes scopes.root.open
   ```
 
@@ -45,9 +45,21 @@ and a `render` function and returns the implementation you register.
 - **`children`** — the rendered child elements, present only when the entry has a
   `children` array. It is never a prop — a def declaring one
   [throws](/def#props--the-contract-with-the-model).
-- **`generatedKey`** — the entry's `key`, yours to use or ignore. The engine
-  never reads it back. The shadcn catalog puts it on the outermost node as
-  `data-key`, which a "click an element to revise it" tool can use.
+
+The second argument is the **render context**, everything that is not a prop or
+a callback:
+
+- **`entry`** — the document line being rendered. `entry.key` is the element's
+  key, yours to use or ignore; the engine never reads it back. The shadcn
+  catalog puts it on the outermost node as `data-key`, which a "click an
+  element to revise it" tool can use.
+- **`loading`** — the entry's [`loading`](/entry/fields#loading) expression,
+  evaluated. Components that show data render busy while it is true: the
+  catalog dims the current content in place (`aria-busy`) on tables, cards,
+  stats and charts. Controls ignore it.
+- **`scopes`** — the scopes the entry's expressions read (`scopes.root`, and
+  the item scope of an enclosing list). Read-only from here; state changes go
+  through callbacks.
 
 ```tsx filename="src/uicast/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({

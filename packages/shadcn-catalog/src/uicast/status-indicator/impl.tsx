@@ -9,8 +9,7 @@ export const StatusIndicatorImpl = createComponentImplementation({
     label,
     pulse,
     size,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const colorMap: Record<string, string> = {
       online: "bg-green-500",
       offline: "bg-gray-400",
@@ -29,7 +28,7 @@ export const StatusIndicatorImpl = createComponentImplementation({
     };
 
     return (
-      <div className="inline-flex items-center gap-2" data-key={generatedKey}>
+      <div className="inline-flex items-center gap-2" data-key={entry.key}>
         <span className="relative flex">
           {pulse && (
             <span

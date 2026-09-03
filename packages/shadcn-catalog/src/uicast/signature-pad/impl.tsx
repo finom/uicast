@@ -5,6 +5,8 @@ import { Eraser } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { SignaturePadDef } from "./def";
 
+const INKS = { black: "#000000", blue: "#1d4ed8" } as const;
+
 export const SignaturePadImpl = createComponentImplementation({
   def: SignaturePadDef,
   render: ({
@@ -15,8 +17,7 @@ export const SignaturePadImpl = createComponentImplementation({
     label,
     onEnd,
     onClear,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawingRef = useRef(false);
 
@@ -43,7 +44,7 @@ export const SignaturePadImpl = createComponentImplementation({
         const ctx = canvas?.getContext("2d");
         if (!canvas || !ctx) return;
         const rect = canvas.getBoundingClientRect();
-        ctx.strokeStyle = penColor;
+        ctx.strokeStyle = INKS[penColor];
         ctx.lineWidth = 2;
         ctx.lineCap = "round";
         ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
@@ -66,7 +67,7 @@ export const SignaturePadImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-2" data-key={generatedKey}>
+      <div className="space-y-2" data-key={entry.key}>
         {label && (
           <div className="text-sm font-medium text-muted-foreground">
             {label}

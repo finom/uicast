@@ -9,7 +9,7 @@ import { AvatarGroupDef } from "./def";
 
 export const AvatarGroupImpl = createComponentImplementation({
   def: AvatarGroupDef,
-  render: ({ avatars = [], max, size, generatedKey }) => {
+  render: ({ avatars = [], max, size}, { entry }) => {
     const visible = avatars.slice(0, max);
     const overflow = avatars.length - max;
 
@@ -20,7 +20,7 @@ export const AvatarGroupImpl = createComponentImplementation({
     };
 
     return (
-      <div className="flex -space-x-2" data-key={generatedKey}>
+      <div className="flex -space-x-2" data-key={entry.key}>
         {visible.map((avatar, i) => (
           <Avatar
             key={i}

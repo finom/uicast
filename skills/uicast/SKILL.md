@@ -117,8 +117,8 @@ import { StatCardDef } from "./def";
 
 export const StatCardImpl = createComponentImplementation({
   def: StatCardDef,
-  render: ({ label, value, trend, onClick, generatedKey, children }) => (
-    <button type="button" onClick={() => onClick()} data-key={generatedKey}>
+  render: ({ label, value, trend, onClick, children }, { entry, loading }) => (
+    <button type="button" onClick={() => onClick()} data-key={entry.key} aria-busy={loading || undefined}>
       <span>{label}</span>
       <strong>{value}</strong> {trend === "up" ? "▲" : trend === "down" ? "▼" : "—"}
       {children}
@@ -139,8 +139,11 @@ The render contract:
   `onChange={(e) => onChange({ value: e.target.value })}` — the model's
   `evt.value` resolves only because the implementation passed exactly the
   declared fields.
-- `generatedKey` is the entry's unique key — use it for DOM ids so two instances
-  of the same component never collide.
+- The second argument is the render context: `entry` (the document line —
+  `entry.key` for DOM ids, so two instances never collide) and `loading` (the
+  entry's `loading` expression, evaluated). A component that shows data renders
+  busy while `loading` is true — dim the current content in place, never
+  unmount it; a control ignores it.
 - `children` are the rendered child elements; place them where they belong.
 - `placeholder` (optional) fills the component's content while a child entry
   hasn't streamed in (`reason: "streaming"` — the PARENT's placeholder fills
@@ -198,17 +201,27 @@ bundle:
 import { standardTool } from "standard-tool";
 import { z } from "zod";
 
+const product = z
+  .object({
+    id: z.number().int().meta({ description: "Product id" }),
+    name: z.string(),
+    qty: z.number().meta({ description: "Units in stock" }),
+  })
+  .meta({ id: "Product" }); // hoisted once into `# Shared Types`
+
 export const listProducts = standardTool({
   name: "listProducts",
-  description: "All products, newest first.",
-  outputSchema: z.array(
-    z.object({
-      id: z.number().int().meta({ description: "Product id" }),
-      name: z.string(),
-      qty: z.number().meta({ description: "Units in stock" }),
-    }),
-  ),
-  execute: async () => (await fetch("/api/products")).json(),
+  description: "A page of products, newest first.",
+  inputSchema: z
+    .object({
+      limit: z.number().int().min(1).max(200).default(50).meta({ description: "Rows to return" }),
+      offset: z.number().int().min(0).default(0).meta({ description: "Rows to skip" }),
+      q: z.string().optional().meta({ description: "Matches the name" }),
+    })
+    .optional(), // so `listProducts()` is a legal call
+  outputSchema: z.object({ items: z.array(product), total: z.number().int() }),
+  execute: async (input = {}) =>
+    (await fetch(`/api/products?${new URLSearchParams(input as Record<string, string>)}`)).json(),
 });
 
 export const deleteProduct = standardTool({
@@ -228,7 +241,21 @@ Rules that matter:
   Never `z.void()` for "nothing" — it has no JSON Schema form and throws.
 - Input is **one argument** matching `inputSchema` — an object schema is
   preferred (each field gets a name and description the model reads); a scalar
-  schema works too. No positional args, ever.
+  schema works too. No positional args, ever. An input whose fields are all
+  optional still needs `.optional()` on the object, or a zero-argument call
+  fails validation.
+- **Validators are prompt text too.** `.int()`, `.min()`, `.max()`, `.default()`,
+  lengths and formats print next to the description
+  (`limit?: number /* Rows to return. integer, ≥ 1, ≤ 200, default 50 */`), so
+  the model calls within them. Describe what a field is; let the schema say
+  the rest.
+- **Give a list function a window and a total.** `limit`/`offset` (or a cursor),
+  sort and filter fields in the input, `{ items, total }` out: the prompt tells
+  the model to page and filter through them instead of fetching everything and
+  reducing in expressions. Aggregates the UI needs (counts, sums, groups) are
+  their own functions.
+- **Reusable row types carry `.meta({ id: "Product" })`** — printed once under
+  `# Shared Types` and referenced by name, instead of inlined per function.
 - Optional `title` is a human label printed before the description — wording
   the model can reuse for a button or heading that triggers the call.
 - Names must be valid JS identifiers and must not be `scopes`, `evt`, or

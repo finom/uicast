@@ -16,11 +16,14 @@ export type ScopePath = string;
 // evaluated as code.
 export type ValueSource = { expr: Expression } | { literal: unknown };
 export type ValueSourceAssignment = { set: ScopePath } & ValueSource;
-// Callback steps may omit `set` — a step can run purely for its side effect
-// (a mutation call), with nothing written to scope.
-export type ConfirmableValueSourceAssignment = {
-  confirm?: string;
+// A callback step. `set` may be absent: the step runs for its effect (a
+// mutation call) and writes nothing.
+export type CallbackValueSourceAssignment = {
   set?: ScopePath;
+  // Asks before this step; declined, this step and the rest are skipped.
+  confirm?: string;
+  // This step and the rest wait `CALLBACK_DEBOUNCE_MS` of quiet; only the latest call runs.
+  debounce?: boolean;
 } & ValueSource;
 
 /** One document line. List fields (`each`/`as`/`keyBy`) are optionals — no union, so `ComponentEntry[]` holds list lines; narrow via `isComponentListEntry`. */
@@ -30,7 +33,9 @@ export interface ComponentEntry {
   props?: ValueSource;
   seed?: ValueSourceAssignment[];
   hidden?: Expression;
-  callbacks?: Record<string, ConfirmableValueSourceAssignment[]>;
+  // Truthy → the element renders as busy (data components dim, controls ignore it). Reactive like `hidden`.
+  loading?: Expression;
+  callbacks?: Record<string, CallbackValueSourceAssignment[]>;
   children?: string[];
   // List fields — see the doc above; `ComponentListEntry` requires them.
   each?: Expression;

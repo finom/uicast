@@ -13,14 +13,8 @@ export { createProxyScope, type ReactiveProxy } from "./scope/create-proxy-scope
 
 export { buildElementsByKey } from "./utils/build-elements-by-key";
 
-export {
-  checkUrl,
-  findUrlViolations,
-  schemaHasUrlFormat,
-  type UrlCheck,
-  type UrlPolicy,
-  type UrlViolation,
-} from "./security/url-policy";
+// The host declares which URLs a document may load; the binding enforces it.
+export type { UrlPolicy } from "./security/url-policy";
 
 export { streamJsonLines } from "./stream/stream-json-lines";
 
@@ -31,9 +25,8 @@ export {
   type CombinedSpec,
   type ValueSource,
   type ValueSourceAssignment,
-  type ConfirmableValueSourceAssignment,
+  type CallbackValueSourceAssignment,
   isComponentEntry,
-  isComponentListEntry,
 } from "./types";
 // The interface both evaluators implement, from @uicast/expr — here so a binding needs no expr import.
 export type { ExpressionEvaluator } from "@uicast/expr";

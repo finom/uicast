@@ -1,5 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
+import { keyNameSchema } from "../../lib/keys";
 
 export const CommandMenuDef = createComponentDefinition({
   name: "CommandMenu",
@@ -22,11 +24,11 @@ export const CommandMenuDef = createComponentDefinition({
             .array(
               z.strictObject({
                 label: z.string().meta({ description: "Command item label" }),
-                icon: z.string().optional().meta({
-                  description: "Lucide icon name for the item",
+                icon: iconNameSchema.optional().meta({
+                  description: "Optional icon for the item.",
                 }),
-                shortcut: z.string().optional().meta({
-                  description: "Keyboard shortcut text",
+                shortcut: z.array(keyNameSchema).optional().meta({
+                  description: "The shortcut's keys, in order.",
                 }),
               }),
             )
@@ -37,7 +39,7 @@ export const CommandMenuDef = createComponentDefinition({
   }),
   callbacks: {
     onSelect: z
-      .object({
+      .strictObject({
         label: z.string().meta({
           description: "The label of the selected command",
         }),
@@ -48,7 +50,7 @@ export const CommandMenuDef = createComponentDefinition({
       })
       .meta({ description: "Callback when a command is selected" }),
     onOpenChange: z
-      .object({
+      .strictObject({
         open: z.boolean().meta({
           description: "The new open state",
         }),

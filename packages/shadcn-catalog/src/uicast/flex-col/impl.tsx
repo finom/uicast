@@ -10,8 +10,7 @@ export const FlexColImpl = createComponentImplementation({
     justify,
     children,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // Static map: Tailwind only compiles class names that appear literally in
     // source — a runtime-built `gap-${gap}` never generates CSS.
     const gapMap: Record<string, string> = {
@@ -41,7 +40,7 @@ export const FlexColImpl = createComponentImplementation({
       <div
         className={`flex flex-col ${gapMap[gap]} ${alignMap[align]} ${justifyMap[justify]}`}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

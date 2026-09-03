@@ -9,7 +9,7 @@ import { AvatarDef } from "./def";
 
 export const AvatarImpl = createComponentImplementation({
   def: AvatarDef,
-  render: ({ src, fallback, size, onClick, generatedKey }) => {
+  render: ({ src, fallback, size, onClick}, { entry }) => {
     const sizeMap: Record<string, string> = {
       sm: "size-8",
       md: "size-10",
@@ -26,7 +26,7 @@ export const AvatarImpl = createComponentImplementation({
       <ShadcnAvatar
         className={`${sizeMap[size]} cursor-pointer`}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {src && <AvatarImage src={src} alt={fallback} />}
         <AvatarFallback className={textSizeMap[size]}>

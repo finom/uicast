@@ -1,6 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { keyboardEventSchema } from "../../events/keyboard";
+import { currencySchema, localeSchema } from "../../lib/locales";
 
 export const CurrencyInputDef = createComponentDefinition({
   name: "CurrencyInput",
@@ -10,12 +11,8 @@ export const CurrencyInputDef = createComponentDefinition({
     value: z.number().optional().meta({
       description: "The numeric currency value",
     }),
-    currency: z.string().default("USD").meta({
-      description: "Currency code (e.g. USD, EUR, GBP)",
-    }),
-    locale: z.string().default("en-US").meta({
-      description: "Locale for number formatting (e.g. en-US, de-DE)",
-    }),
+    currency: currencySchema.default("USD").meta({ description: "Which currency to format in." }),
+    locale: localeSchema.default("en-US").meta({ description: "Which locale's number format to use." }),
     placeholder: z.string().default("0.00").meta({
       description: "Placeholder text",
     }),

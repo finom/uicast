@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { cn } from "../../lib/utils";
+import { cn, busy } from "../../lib/utils";
 import { DescriptionListDef } from "./def";
 
 export const DescriptionListImpl = createComponentImplementation({
@@ -8,8 +8,7 @@ export const DescriptionListImpl = createComponentImplementation({
     items = [],
     layout,
     columns,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     return (
       <dl
         className={cn(
@@ -17,8 +16,10 @@ export const DescriptionListImpl = createComponentImplementation({
           columns === "1" && "grid-cols-1",
           columns === "2" && "grid-cols-1 sm:grid-cols-2",
           columns === "3" && "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
+          busy(loading),
         )}
-        data-key={generatedKey}
+        aria-busy={loading || undefined}
+        data-key={entry.key}
       >
         {items.map((item, i) => (
           <div

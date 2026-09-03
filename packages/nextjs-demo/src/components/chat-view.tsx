@@ -184,7 +184,7 @@ export function ChatView({
                           {fmt(meta.inputTokens ?? 0)} in · {fmt(meta.outputTokens ?? 0)} out
                           {typeof meta.costUsd === "number" ? ` · ≈$${meta.costUsd.toFixed(3)}` : ""}
                         </span>
-                        {meta.model ? <CostInfo model={meta.model} align="end" /> : null}
+                        {meta.model ? <CostInfo model={meta.model} /> : null}
                       </p>
                     );
                   })()}

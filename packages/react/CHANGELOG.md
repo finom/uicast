@@ -2,19 +2,25 @@
 
 All notable changes to this package will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Changed
 
 - **Row scopes are the items.** `scopes.<as>.name` reads the element's field; `scopes.<as>.$index`, `$id` and `$value` are the runtime's. `scopes.<as>.item` / `.index` / `.id` and `childScopes` are gone; per-row UI state lives at root keyed by `$id`. A row write edits the element inside the source array in place and wakes the array's readers, through nested lists and across lists sharing an array. Rows with duplicate `keyBy` values no longer share a scope.
-- **Structural props memo.** An element's evaluated props are compared structurally with the last render's, and the implementation is not called again when nothing changed. Callbacks and the children slot are stable across an element's own re-renders for the same reason.
+- **Structural props memo.** An element's evaluated props are compared structurally with the last render's, and the implementation's `render` runs as a memoized component of its own, so it is not called again when nothing it receives changed. Callbacks and the children slot are stable across an element's own re-renders for the same reason. A throw from `render` reaches the element's boundary and is classified `implementation` there.
+- **`render(props, context)`.** An implementation's `render` takes a second argument, `{ entry, loading, scopes }`: the document line, the entry's evaluated `loading`, and the scopes it reads. `generatedKey` is gone from the props; use `context.entry.key`.
+- **Debounced callback steps.** A step with `debounce: true` and the steps after it run after 300 ms of quiet, once, with the latest `evt`; a newer call of the same callback replaces the pending run, and unmounting the element cancels it. Steps before it run at once.
+- **One React component fewer per element.** The renderer evaluates an element's props and `hidden` and builds its callbacks itself, then renders the implementation's memoized `render` directly; the implementation no longer wraps it in a component of its own. About 10% fewer fibers on a large page. `ComponentImplementation` carries `Render`, `evaluate` and `callbacks` instead of `render`.
 - `set` addresses are `scopes.<scope>.<field>` only; a deeper or numeric address, or one without the `scopes.` prefix, is rejected at mount.
 
 ### Fixed
 
+- **`render` may use hooks again.** It was called inside `useMemo`, which skipped its hooks on a memo hit — React refused with "Do not call Hooks inside useMemo" and a fence or page whose implementation used `useState` could render nothing. Nineteen catalog implementations do.
+- **A list re-emitted with a new `as` name gives its rows the new scope.** The cached row scopes kept the old name, so a child reading `scopes.<newName>.x` failed with `Cannot read "x" of undefined`.
+- **A seed streamed in after its readers no longer sets state mid-render.** Its sync writes woke already-mounted subscribers during the seeding element's render (React: "Cannot update a component while rendering a different component"). While a seed or `init` runs, a wake is deferred to a microtask.
+- **A whole-scope read re-renders.** `Object.keys(scopes.root)` or a bare `scopes.row` subscribed to nothing; it now subscribes to every field of the scope.
 - **A whole-`item` write no longer reverts.** It landed on the row proxy, then the container's next render copied the old array element back over it. A row write now goes into the array.
 - **`<RendererProvider evaluator={instance}>`, required.** The provider takes the expression evaluator itself — `new Evaluator({ functions })` from `@uicast/expr`, a `PassthroughEvaluator` from `@uicast/expr-passthrough`, or your own implementation of core's `ExpressionEvaluator` interface — with the host functions bound on it. The `functions` prop, the `evaluator="native"` string and `maxExpressionLength` are gone (`maxSourceLength` is an option of the evaluator). Create the instance once, outside render: it holds the parse cache.
 - `standard-tool` is no longer a dependency, and nothing from `@uicast/expr` is imported.
@@ -28,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **`loading`.** An entry's `loading` expression evaluates like `hidden`, subscribes the element to what it reads, and reaches `render` as `context.loading`.
 - `evaluator` on `RendererProvider` (`"interpret"` | `"native"`) selects the expression back end for documents under the provider. `"interpret"` (default) needs no CSP `unsafe-eval`; `"native"` runs the validated source with `new Function` for trusted-author documents.
 - `maxExpressionLength` on `RendererProvider` (default 1000): the longest expression source accepted, rejected before parsing. Pass the same value to `getExpressionsPartialPrompt({ maxLength })` so the model knows the limit.
 - `urlPolicy` on `RendererProvider`: which URLs may reach a prop a definition declares as a URL. Defaults to relative, same-origin, and raster `data:` images; widen it with `{ hosts: ["cdn.example.com"] }` or pass a predicate. A rejected URL is a classified document fault in the element's error slot.

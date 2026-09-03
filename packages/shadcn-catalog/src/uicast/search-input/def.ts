@@ -7,7 +7,7 @@ export const SearchInputDef = createComponentDefinition({
   description:
     "A search input with a search icon, clear button, and optional loading state. Use SearchInput for search bars, filter inputs, or any text search functionality.",
   props: z.strictObject({
-    value: z.any().meta({ description: "The current search value" }),
+    value: z.string().optional().meta({ description: "The current search text." }),
     placeholder: z.string().default("Search...").meta({
       description: "Placeholder text",
     }),

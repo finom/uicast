@@ -1,19 +1,14 @@
 import { and, count, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
+import { publicColumns } from "@/db/query";
 import { products, suppliers } from "@/db/schema";
 import { supplierUpdate } from "@/db/zod";
 import { idParam, json, ownerForRead, readValid, requireUser } from "@/lib/api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
-const COLS = {
-  id: suppliers.id,
-  name: suppliers.name,
-  email: suppliers.email,
-  category: suppliers.category,
-  leadTimeDays: suppliers.leadTimeDays,
-};
+const COLS = publicColumns(suppliers);
 
 export async function GET(req: NextRequest, { params }: Ctx) {
   const read = await ownerForRead(req);

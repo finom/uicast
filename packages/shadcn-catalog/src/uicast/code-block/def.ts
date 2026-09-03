@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { languageSchema } from "../../lib/languages";
 
 export const CodeBlockDef = createComponentDefinition({
   name: "CodeBlock",
@@ -9,8 +10,8 @@ export const CodeBlockDef = createComponentDefinition({
     code: z.string().meta({
       description: "The code content to display",
     }),
-    language: z.string().default("plaintext").meta({
-      description: "The language label (e.g. javascript, python, json)",
+    language: languageSchema.default("plaintext").meta({
+      description: "The language shown in the header label.",
     }),
     showLineNumbers: z.boolean().default(false).meta({
       description: "Whether to show line numbers",

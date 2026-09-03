@@ -16,7 +16,7 @@ export const TagInputDef = createComponentDefinition({
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",
     }),
-    maxTags: z.number().optional().meta({
+    maxTags: z.number().int().min(1).optional().meta({
       description: "Maximum number of tags allowed",
     }),
   }),
@@ -31,7 +31,7 @@ export const TagInputDef = createComponentDefinition({
     }),
     onRemove: z.strictObject({
       tag: z.string().meta({ description: "The tag that was removed" }),
-      index: z.number().meta({ description: "The index of the removed tag" }),
+      index: z.number().int().nonnegative().meta({ description: "The index of the removed tag" }),
       tags: z
         .array(z.string())
         .meta({ description: "The updated array of remaining tags" }),

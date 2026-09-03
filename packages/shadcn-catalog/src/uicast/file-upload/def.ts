@@ -1,14 +1,14 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { fileKindSchema } from "../../lib/file-kinds";
 
 export const FileUploadDef = createComponentDefinition({
   name: "FileUpload",
   description:
     "A file upload input for selecting files from the user's device. Renders a styled file input area. Use FileUpload for document uploads, image uploads, CSV imports, etc. The onChange callback receives file metadata (name, size, type) but not the file content itself.",
   props: z.strictObject({
-    accept: z.string().optional().meta({
-      description:
-        "Comma-separated list of accepted file types, e.g. '.pdf,.doc' or 'image/*'",
+    accept: z.array(fileKindSchema).optional().meta({
+      description: "Which kinds of file the picker accepts. Any file when unset.",
     }),
     multiple: z.boolean().default(false).meta({
       description: "Whether multiple files can be selected at once",

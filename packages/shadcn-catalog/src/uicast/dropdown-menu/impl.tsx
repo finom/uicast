@@ -10,9 +10,9 @@ import { DropdownMenuDef } from "./def";
 
 export const DropdownMenuImpl = createComponentImplementation({
   def: DropdownMenuDef,
-  render: ({ triggerLabel, children, generatedKey }) => {
+  render: ({ triggerLabel, children}, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <ShadcnDropdownMenu>
           <DropdownMenuTrigger asChild>
             {triggerLabel ? (

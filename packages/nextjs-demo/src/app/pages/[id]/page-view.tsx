@@ -17,8 +17,8 @@ import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
-import { FileText, LoaderCircle, Pencil, ScrollText, Sparkles } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
+import { Profiler, type ProfilerOnRenderCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { Card, CardContent, CardFooter } from "@uicast/shadcn-catalog/ui/card";
@@ -38,10 +38,18 @@ import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 import { CostInfo } from "@/components/cost-info";
 import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
+import { setApiOwner } from "@/tools/http";
 
 // One evaluator for the app: the host functions bind on it, and it holds the parse cache.
 const evaluator = new Evaluator({ functions: domainTools });
-import { setApiOwner } from "@/tools/http";
+
+// `?perf` logs every React commit of the generated tree to `window.__uicastPerf`, for measuring from the console.
+type PerfCommit = { at: number; phase: string; actual: number; base: number };
+const logCommit: ProfilerOnRenderCallback = (_id, phase, actual, base, _start, commitTime) => {
+  const w = window as unknown as { __uicastPerf?: { commits: PerfCommit[] } };
+  w.__uicastPerf ??= { commits: [] };
+  w.__uicastPerf.commits.push({ at: commitTime, phase, actual, base });
+};
 
 type PageMeta = {
   id: number;
@@ -94,6 +102,7 @@ export function PageView({
   // so the server pass can only error and fall back — skip it instead.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  const perf = useMemo(() => mounted && new URLSearchParams(window.location.search).has("perf"), [mounted]);
   const queryClient = useQueryClient();
 
   // The generate endpoint's own assembly, so the viewer shows exactly what
@@ -220,21 +229,80 @@ export function PageView({
             Generating…
           </span>
         )}
-        {readonly ? (
-          <span className="ml-auto shrink-0 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
-            @{ownerSlug} · read-only
-          </span>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            className="ml-auto"
-            onClick={() => setEditOpen((open) => !open)}
-          >
-            <Pencil data-icon="inline-start" />
-            Edit
-          </Button>
-        )}
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {page.prompt && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MessageSquareText data-icon="inline-start" />
+                  Prompt
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-xl">
+                <DialogHeader>
+                  <DialogTitle>Prompt</DialogTitle>
+                  <DialogDescription>What this page was asked for.</DialogDescription>
+                </DialogHeader>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed">{page.prompt}</p>
+              </DialogContent>
+            </Dialog>
+          )}
+          <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <ScrollText data-icon="inline-start" />
+                System prompt
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="overflow-hidden sm:max-w-3xl">
+              <DialogHeader>
+                <DialogTitle>System prompt</DialogTitle>
+                <DialogDescription>
+                  What the generate endpoint sends to the model.
+                </DialogDescription>
+              </DialogHeader>
+              {/* min-w-0: a grid item's min-content width would otherwise let long
+                  code lines stretch the dialog past its max-width. */}
+              <Tabs defaultValue="markdown" className="min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <TabsList>
+                    <TabsTrigger value="markdown">Markdown</TabsTrigger>
+                    <TabsTrigger value="raw">Raw</TabsTrigger>
+                  </TabsList>
+                  {promptTokens !== null && (
+                    <p className="text-xs text-muted-foreground">
+                      ≈{promptTokens.toLocaleString("en-US")} tokens
+                    </p>
+                  )}
+                </div>
+                <TabsContent value="markdown">
+                  <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+                    <div className="wrap-break-word p-3 text-[13px] leading-relaxed [&_:not(pre)>code]:break-all [&_:not(pre)>code]:whitespace-pre-wrap [&_code]:text-xs [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:overflow-x-auto [&_pre]:text-xs">
+                      <Streamdown>{systemPrompt ?? ""}</Streamdown>
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+                <TabsContent value="raw">
+                  <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+                    <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
+                      {systemPrompt}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
+          {readonly ? (
+            <span className="rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
+              @{ownerSlug} · read-only
+            </span>
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => setEditOpen((open) => !open)}>
+              <Pencil data-icon="inline-start" />
+              Edit
+            </Button>
+          )}
+        </div>
       </header>
 
       {(totalIn > 0 || totalOut > 0) && (
@@ -279,51 +347,6 @@ export function PageView({
             </div>
           </CardContent>
           <CardFooter className="justify-end gap-2">
-            <Dialog open={promptOpen} onOpenChange={setPromptOpen}>
-              <DialogTrigger asChild>
-                <Button variant="ghost" className="mr-auto">
-                  <ScrollText data-icon="inline-start" />
-                  View system prompt
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="overflow-hidden sm:max-w-3xl">
-                <DialogHeader>
-                  <DialogTitle>System prompt</DialogTitle>
-                  <DialogDescription>
-                    What the generate endpoint sends to the model.
-                  </DialogDescription>
-                </DialogHeader>
-                {/* min-w-0: a grid item's min-content width would otherwise let long
-                    code lines stretch the dialog past its max-width. */}
-                <Tabs defaultValue="markdown" className="min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <TabsList>
-                      <TabsTrigger value="markdown">Markdown</TabsTrigger>
-                      <TabsTrigger value="raw">Raw</TabsTrigger>
-                    </TabsList>
-                    {promptTokens !== null && (
-                      <p className="text-xs text-muted-foreground">
-                        ≈{promptTokens.toLocaleString("en-US")} tokens
-                      </p>
-                    )}
-                  </div>
-                  <TabsContent value="markdown">
-                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
-                      <div className="wrap-break-word p-3 text-[13px] leading-relaxed [&_:not(pre)>code]:break-all [&_:not(pre)>code]:whitespace-pre-wrap [&_code]:text-xs [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:overflow-x-auto [&_pre]:text-xs">
-                        <Streamdown>{systemPrompt ?? ""}</Streamdown>
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                  <TabsContent value="raw">
-                    <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
-                      <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
-                        {systemPrompt}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
             <Button disabled={!editPrompt.trim() || isFetching} onClick={startEditRun}>
               {isFetching ? (
                 <LoaderCircle data-icon="inline-start" className="animate-spin" />
@@ -362,7 +385,13 @@ export function PageView({
                 evaluator={evaluator}
                 fallbackComponents={rendererDefaults}
               >
-                <EntriesRenderer entries={entries} />
+                {perf ? (
+                  <Profiler id="uicast" onRender={logCommit}>
+                    <EntriesRenderer entries={entries} />
+                  </Profiler>
+                ) : (
+                  <EntriesRenderer entries={entries} />
+                )}
               </RendererProvider>
             </div>
           </TabsContent>

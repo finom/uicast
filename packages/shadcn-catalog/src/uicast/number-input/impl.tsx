@@ -15,8 +15,7 @@ export const NumberInputImpl = createComponentImplementation({
     onChange,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <Input
         type="number"
@@ -29,7 +28,9 @@ export const NumberInputImpl = createComponentImplementation({
         onChange={(e) => onChange({ value: e.target.valueAsNumber || 0 })}
         onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
         onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
-        data-key={generatedKey}
+        // Never narrower than its digits: a table column gives a bare input no width.
+        className="min-w-20"
+        data-key={entry.key}
       />
     );
   },

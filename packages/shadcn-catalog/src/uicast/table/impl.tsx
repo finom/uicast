@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy } from "../../lib/utils";
 import { Table as ShadcnTable } from "../../components/ui/table";
 import { TableBody, TableRow, TableCell } from "../../components/ui/table";
 import { Skeleton } from "../../components/ui/skeleton";
@@ -6,8 +7,8 @@ import { TableDef } from "./def";
 
 export const TableImpl = createComponentImplementation({
   def: TableDef,
-  render: ({ children, generatedKey }) => {
-    return <ShadcnTable data-key={generatedKey}>{children}</ShadcnTable>;
+  render: ({ children}, { entry, loading }) => {
+    return <ShadcnTable className={busy(loading)} aria-busy={loading || undefined} data-key={entry.key}>{children}</ShadcnTable>;
   },
   placeholder: () => (
     <TableBody>

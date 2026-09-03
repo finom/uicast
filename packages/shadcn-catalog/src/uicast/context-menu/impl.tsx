@@ -11,11 +11,11 @@ import { ContextMenuDef } from "./def";
 
 export const ContextMenuImpl = createComponentImplementation({
   def: ContextMenuDef,
-  render: ({ items = [], children, onAction, generatedKey }) => {
+  render: ({ items = [], children, onAction}, { entry }) => {
     return (
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div data-key={generatedKey}>{children}</div>
+          <div data-key={entry.key}>{children}</div>
         </ContextMenuTrigger>
         <ContextMenuContent>
           {items.map((item, i) => (
@@ -29,9 +29,9 @@ export const ContextMenuImpl = createComponentImplementation({
                 onClick={() => onAction({ label: item.label, index: i })}
               >
                 {item.label}
-                {item.shortcut && (
-                  <ContextMenuShortcut>{item.shortcut}</ContextMenuShortcut>
-                )}
+                {item.shortcut?.length ? (
+                  <ContextMenuShortcut>{item.shortcut.join("+")}</ContextMenuShortcut>
+                ) : null}
               </ContextMenuItem>
             </span>
           ))}

@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   PieChart as RechartsPieChart,
   Pie,
@@ -18,8 +19,7 @@ export const PieChartImpl = createComponentImplementation({
     height,
     donut,
     showLabels,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const data = rawData.map((d) => ({ ...d, value: Number(d.value) }));
     const defaultColors = [
       ...defaultChartColors,
@@ -30,7 +30,7 @@ export const PieChartImpl = createComponentImplementation({
     ];
     const sliceColors = colors ?? defaultColors;
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsPieChart>
             <Pie isAnimationActive={false}

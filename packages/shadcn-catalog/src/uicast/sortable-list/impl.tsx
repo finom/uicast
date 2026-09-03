@@ -1,22 +1,13 @@
 import { createComponentImplementation } from "@uicast/react";
 import { GripVertical } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { iconNode } from "../../lib/icon-node";
 import { SortableListDef } from "./def";
 
 export const SortableListImpl = createComponentImplementation({
   def: SortableListDef,
-  render: ({ items = [], showIndex, onItemClick, generatedKey }) => {
-    const getIcon = (iconName?: string) => {
-      if (!iconName) return null;
-      const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-        iconName
-      ];
-      return Icon ? <Icon className="size-4 shrink-0" /> : null;
-    };
-
+  render: ({ items = [], showIndex, onItemClick}, { entry }) => {
     return (
-      <div className="space-y-1" data-key={generatedKey}>
+      <div className="space-y-1" data-key={entry.key}>
         {items.map((item, i) => (
           <div
             key={item.id}
@@ -29,7 +20,7 @@ export const SortableListImpl = createComponentImplementation({
                 {i + 1}
               </span>
             )}
-            {getIcon(item.icon)}
+            {iconNode(item.icon, "size-4 shrink-0")}
             <span className="text-sm">{item.label}</span>
           </div>
         ))}

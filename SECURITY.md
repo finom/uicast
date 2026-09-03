@@ -2,24 +2,16 @@
 
 ## Reporting
 
-Use GitHub's private vulnerability reporting on this repository
-(**Security → Report a vulnerability**). Do not open a public issue.
-Include the package (`@uicast/expr` or `@uicast/expr-passthrough`) and a
-minimal reproducing expression or document.
+Use GitHub's private vulnerability reporting on this repository (**Security → Report a vulnerability**). Do not open a public issue. Include the package (`@uicast/expr` or `@uicast/expr-passthrough`) and a minimal reproducing expression or document.
 
 ## Scope
 
-In scope: `@uicast/expr` evaluator escapes, membrane or budget bypasses,
-prototype pollution, `urlPolicy` bypasses, escapes from the shipped catalog.
+In scope: `@uicast/expr` evaluator escapes, membrane or budget bypasses, prototype pollution, `urlPolicy` bypasses, escapes from the shipped catalog.
 
-Out of scope: `@uicast/expr-passthrough` reaching real prototypes through
-run-time-assembled names (its documented residual), and anything a host's own
-functions permit — authorization is the host's.
+Out of scope: `@uicast/expr-passthrough` reaching real prototypes through run-time-assembled names (its documented residual), and anything a host's own functions permit — authorization is the host's.
 
 The threat model is documented on the docs site's Security model page.
 
 ## Terms
 
-Fixes ship in the latest version of each package — no backports. The software
-is provided **as is**, without warranty of any kind, per the
-[MIT license](./LICENSE).
+Fixes ship in the latest version of each package — no backports. The software is provided **as is**, without warranty of any kind, per the [MIT license](./LICENSE).

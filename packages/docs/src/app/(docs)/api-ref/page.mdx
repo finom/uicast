@@ -23,13 +23,13 @@ The engine, framework-agnostic. See [Core concepts](/concepts).
 | `createProxyScope(initial?)` | One reactive [scope](/entry/state): a shallow proxy over a bag of fields that emits the field on write. |
 | `buildElementsByKey(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry/fields#partial-replacement). |
 | `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding each parseable JSON line and skipping prose and partial lines. |
-| `isComponentEntry`, `isComponentListEntry` | Runtime type guards. |
+| `isComponentEntry(value)` | Runtime guard: is this parsed JSON an entry? |
 | `EntryError` | The classified failure every fault arrives as. See [Error recovery](/error-recovery). |
 
-Types: `ExpressionEvaluator` — re-exported from `@uicast/expr`. Also `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
-`CombinedSpec`, `ValueSource`, `ValueSourceAssignment`,
-`ConfirmableValueSourceAssignment`, `ReactiveProxy`, `EntryErrorReason`,
-`EntryFault`.
+Types: `ExpressionEvaluator` — re-exported from `@uicast/expr`. Also
+`ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`, `CombinedSpec`,
+`ValueSource`, `ValueSourceAssignment`, `CallbackValueSourceAssignment`,
+`ReactiveProxy`, `UrlPolicy`, `EntryErrorReason`, `EntryFault`.
 
 There is also `@uicast/core/internal` — the engine plumbing the React binding
 runs on. It carries **no semver guarantee** — don't build on it.
@@ -62,8 +62,6 @@ it.
 |---|---|
 | `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs; `budget` sets the ceilings. |
 | `ExpressionEvaluator` | The interface both evaluators implement and uicast types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator of your own, for any language. |
-| `ALLOWED_GLOBALS` | The global names expressions may reference. |
-| `DEFAULT_BUDGET` | The default step / time / allocation ceilings. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
 Types: `EvaluatorOptions`, `EvaluatorContexts`,
@@ -96,7 +94,7 @@ The React binding. Re-exports nothing from core — import from both.
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
 | `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair. See [impl](/react/impl). |
 
-Types: `ComponentImplementation`, `RendererProviderProps`,
+Types: `ComponentImplementation`, `RenderContext`, `RendererProviderProps`,
 `EntriesRendererProps`, `FallbackComponents`, `PlaceholderComponentProps`,
 `ConfirmComponentProps`, `ErrorComponentProps`, `InitFn`, `InitContext`, `Scopes`.
 

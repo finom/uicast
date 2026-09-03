@@ -12,15 +12,14 @@ export const NotificationBadgeImpl = createComponentImplementation({
     dot,
     showZero,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // dot only changes presentation — a zero count stays hidden unless
     // showZero asks for it.
     const shouldShow = count > 0 || showZero;
     const displayCount = count > max ? `${max}+` : String(count);
 
     return (
-      <div className="relative inline-flex" data-key={generatedKey}>
+      <div className="relative inline-flex" data-key={entry.key}>
         {children}
         {shouldShow &&
           (dot ? (

@@ -26,8 +26,7 @@ export const CountdownTimerImpl = createComponentImplementation({
     showSeconds,
     size,
     onComplete,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const target = new Date(targetDate);
     const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(target));
 
@@ -66,7 +65,7 @@ export const CountdownTimerImpl = createComponentImplementation({
     ].filter((seg) => seg.show);
 
     return (
-      <div className="inline-flex items-center gap-3" data-key={generatedKey}>
+      <div className="inline-flex items-center gap-3" data-key={entry.key}>
         {segments.map((seg, i) => (
           <div key={seg.label} className="flex items-center gap-3">
             <div className="flex flex-col items-center">

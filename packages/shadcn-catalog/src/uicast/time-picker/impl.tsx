@@ -4,7 +4,7 @@ import { TimePickerDef } from "./def";
 
 export const TimePickerImpl = createComponentImplementation({
   def: TimePickerDef,
-  render: ({ value, min, max, disabled, onChange, generatedKey }) => {
+  render: ({ value, min, max, disabled, onChange}, { entry }) => {
     return (
       <Input
         type="time"
@@ -13,7 +13,7 @@ export const TimePickerImpl = createComponentImplementation({
         max={max}
         disabled={disabled}
         onChange={(e) => onChange({ value: e.target.value })}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

@@ -12,8 +12,7 @@ export const RatingImpl = createComponentImplementation({
     size,
     disabled,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const sizeClasses = {
       sm: "h-4 w-4",
       default: "h-5 w-5",
@@ -21,7 +20,7 @@ export const RatingImpl = createComponentImplementation({
     };
 
     return (
-      <div className="flex items-center gap-1" data-key={generatedKey}>
+      <div className="flex items-center gap-1" data-key={entry.key}>
         {Array.from({ length: max }).map((_, i) => {
           const filled = i < value;
           return (

@@ -11,8 +11,7 @@ export const ToggleImpl = createComponentImplementation({
     disabled,
     children,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <Toggle
         pressed={pressed}
@@ -20,7 +19,7 @@ export const ToggleImpl = createComponentImplementation({
         variant={variant}
         size={size}
         disabled={disabled}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </Toggle>

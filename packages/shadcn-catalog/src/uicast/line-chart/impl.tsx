@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   LineChart as RechartsLineChart,
   Line,
@@ -9,7 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { defaultChartColors } from "../../lib/chart-colors";
+import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { LineChartDef } from "./def";
 
 export const LineChartImpl = createComponentImplementation({
@@ -21,11 +22,10 @@ export const LineChartImpl = createComponentImplementation({
     colors,
     height,
     curved,
-    generatedKey,
-  }) => {
-    const lineColors = colors ?? defaultChartColors;
+  }, { entry, loading }) => {
+    const lineColors = colors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors;
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsLineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />

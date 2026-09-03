@@ -5,7 +5,7 @@ import { InlineMessageDef } from "./def";
 
 export const InlineMessageImpl = createComponentImplementation({
   def: InlineMessageDef,
-  render: ({ variant, message, generatedKey }) => {
+  render: ({ variant, message}, { entry }) => {
     const iconMap = {
       info: Info,
       success: CheckCircle,
@@ -19,7 +19,7 @@ export const InlineMessageImpl = createComponentImplementation({
       <Alert
         variant={variant === "error" ? "destructive" : "default"}
         className="py-2 px-3"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <IconComp className="size-3.5" />
         <AlertDescription className="text-xs">{message}</AlertDescription>

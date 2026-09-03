@@ -11,14 +11,13 @@ export const DropdownMenuItemImpl = createComponentImplementation({
     variant,
     disabled,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ShadcnDropdownMenuItem
         variant={variant}
         disabled={disabled}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children ?? text}
       </ShadcnDropdownMenuItem>

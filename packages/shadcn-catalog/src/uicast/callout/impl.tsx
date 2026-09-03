@@ -11,7 +11,7 @@ import { CalloutDef } from "./def";
 
 export const CalloutImpl = createComponentImplementation({
   def: CalloutDef,
-  render: ({ variant, title, children, generatedKey }) => {
+  render: ({ variant, title, children}, { entry }) => {
     const iconMap = {
       info: Info,
       tip: Lightbulb,
@@ -32,7 +32,7 @@ export const CalloutImpl = createComponentImplementation({
 
     return (
       <Alert
-        data-key={generatedKey}
+        data-key={entry.key}
         variant={variant === "error" ? "destructive" : "default"}
       >
         <IconComp className={`size-4 ${variantColorMap[variant]}`} />

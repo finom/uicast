@@ -10,11 +10,12 @@ Every `expr` in a document is written by a model, and a document can be saved
 and replayed for other people. So an expression is untrusted input running in
 your users' browsers.
 
-`@uicast/expr` is what runs it. Expressions keep JavaScript syntax —
-models write it fluently, and a bespoke language would mean worse generations —
-but the package treats it as a language of its own: a closed grammar, parsed
-once with acorn and nothing else. It has no uicast dependency and works
-standalone.
+`@uicast/expr` is what runs it. The expression language is a **subset of
+JavaScript**: the syntax models already write fluently, cut down to an
+allow-list of operators, globals and methods. Anything outside the subset is
+refused before it runs. The package parses an expression once with acorn and
+interprets it itself; nothing reaches the engine's `eval`. It has no uicast
+dependency and works standalone.
 
 ## Two evaluators
 
@@ -67,12 +68,13 @@ runs and returns `"a"`. Three rules do most of the interpreter's work:
 - **Methods are invoked, never handed around.** `rows.map(f)` works; `rows.map`
   as a value is an error, so nothing can be re-bound.
 
-## The model is your first line of defence
+## With the passthrough evaluator, the model is the first line of defence
 
-`PassthroughEvaluator` trusts whoever wrote the document. The shared validator
-still refuses what it can see: statements, assignment, regular expressions,
-unknown names, method calls outside the allow-list, and written prototype names
-(`obj.constructor`, `obj["__proto__"]`). It cannot see a name built at run time.
+This section is about `PassthroughEvaluator` only. It trusts whoever wrote the
+document. The shared validator still refuses what it can see: statements,
+assignment, regular expressions, unknown names, method calls outside the
+allow-list, and written prototype names (`obj.constructor`, `obj["__proto__"]`).
+It cannot see a name built at run time.
 `rows["so" + "rt"]()` reaches the real `sort` and changes the array. Allocation
 has no cap.
 
@@ -82,8 +84,8 @@ dashboard, a good model does not write `obj["__pro" + "to__"]`. A stranger's
 prompt is not. That is why it is a separate package and `Evaluator` is the
 default.
 
-`Evaluator` does not depend on the model at all. The interpreter refuses an
-escape whether the model meant it or not. With a good model you rarely see a
+`Evaluator`, the default, does not depend on the model at all. The interpreter
+refuses an escape whether the model meant it or not. With a good model you rarely see a
 rejection, and the [prompt](/prompt) already tells the model that text inside
 data is data, not instructions. That makes bad output rare. The interpreter is
 what stops it.
@@ -240,15 +242,18 @@ afterwards is nested function calls. Both evaluators against bare
 
 | expression | in a document | `Evaluator` | `PassthroughEvaluator` | bare `new Function` |
 | --- | --- | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~100 ns | ~70 ns | ~23 ns |
-| `scopes.root.user.name` | any scope read | ~120 ns | ~70 ns | ~24 ns |
-| template, two interpolations | a text prop | ~230 ns | ~90 ns | ~34 ns |
-| object literal from scope | every `props.expr` | ~260 ns | ~125 ns | ~25 ns |
-| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.9 ms | ~0.45 ms | ~0.07 ms |
+| `scopes.root.count > 0` | a `hidden` condition | ~110 ns | ~33 ns | ~25 ns |
+| `scopes.root.user.name` | any scope read | ~140 ns | ~46 ns | ~27 ns |
+| template, two interpolations | a text prop | ~240 ns | ~58 ns | ~36 ns |
+| object literal from scope | every `props.expr` | ~270 ns | ~95 ns | ~26 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 40–110 µs | 0.8–2.2 µs | 0.8–2.2 µs |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.8 ms | ~0.28 ms | ~0.07 ms |
 
-In `PassthroughEvaluator` the engine does the work. What remains is the parse
-cache, the positional binding and the exit gate both evaluators walk before a
-result leaves.
+In `PassthroughEvaluator` the engine does the work, binding included: the
+compiled function looks its names up in the contexts itself, in one fixed-arity
+call. What remains is the name lookup and the exit gate both evaluators walk
+before a result leaves — the object-literal row is that walk. Anything that
+loops over data runs at engine speed.
 
 The absolute numbers are what matter: the worst-case row — a 1000-row table,
 five expression sites per row, all re-evaluating at once — costs about a

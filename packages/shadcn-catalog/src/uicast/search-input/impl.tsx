@@ -17,11 +17,10 @@ export const SearchInputImpl = createComponentImplementation({
     onSubmit,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const strValue = String(value ?? "");
     return (
-      <div className="relative flex items-center" data-key={generatedKey}>
+      <div className="relative flex items-center" data-key={entry.key}>
         <Search className="absolute left-3 size-4 text-muted-foreground" />
         <Input
           value={strValue}
@@ -30,7 +29,7 @@ export const SearchInputImpl = createComponentImplementation({
           onChange={(e) => onChange({ value: e.target.value })}
           onKeyDown={(e) => {
             onKeyDown(pickKeyboardEvent(e));
-            if (e.key === "Enter") onSubmit({ value: strValue });
+            if (e.key === "Enter") onSubmit({ value: e.currentTarget.value });
           }}
           onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="pl-9 pr-16"

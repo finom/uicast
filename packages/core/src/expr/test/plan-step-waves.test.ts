@@ -33,6 +33,14 @@ describe("planStepWaves", () => {
     expect(planStepWaves([parent, sib]).length).toBe(1);
   });
 
+  it("a whole-scope read waits for any write into that scope", () => {
+    const write = { set: "scopes.root.a", literal: 1 };
+    const keys = { set: "scopes.root.count", expr: "Object.keys(scopes.root).length" };
+    expect(planStepWaves([write, keys])).toEqual([[write], [keys]]);
+    const other = { set: "scopes.row.a", literal: 1 };
+    expect(planStepWaves([other, keys])).toEqual([[other, keys]]);
+  });
+
   it("treats currentValue as a read of the step's own set path", () => {
     const write = { set: "scopes.root.count", literal: 1 };
     const bump = { set: "scopes.root.count", expr: "currentValue + 1" };

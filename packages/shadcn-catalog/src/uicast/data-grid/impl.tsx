@@ -9,6 +9,7 @@ import {
 } from "../../components/ui/table";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DataGridDef } from "./def";
+import { columnWidth } from "../../lib/sizes";
 
 export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
@@ -18,12 +19,11 @@ export const DataGridImpl = createComponentImplementation({
     maxHeight,
     striped,
     onRowClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <div
         className="rounded-md border overflow-hidden"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <ScrollArea style={{ maxHeight }}>
           <Table>
@@ -32,7 +32,7 @@ export const DataGridImpl = createComponentImplementation({
                 {columns.map((col) => (
                   <TableHead
                     key={col.key}
-                    style={col.width ? { width: col.width } : undefined}
+                    style={col.width ? { width: columnWidth(col.width) } : undefined}
                   >
                     {col.header}
                   </TableHead>

@@ -15,7 +15,7 @@ Each line must be a valid JSON object with at minimum these fields:
 - `"key"`: unique string id for this element. Use **kebab-case** — lowercase words joined by hyphens (e.g. `"stats-row"`, `"line-chart"`, `"save-btn"`), never camelCase or snake_case.
 - `"component"`: one of the registered component names listed below.
 
-Optional fields: `"props"`, `"seed"`, `"hidden"`, `"callbacks"`, `"children"` (array of child element keys), and for lists: `"each"`, `"as"`, `"keyBy"`.
+Optional fields: `"props"`, `"seed"`, `"hidden"`, `"loading"`, `"callbacks"`, `"children"` (array of child element keys), and for lists: `"each"`, `"as"`, `"keyBy"`.
 
 An element is a **list** (an iterating template) if and only if it has `"each"`. There is no `"kind"` field — list-ness is structural.
 
@@ -42,7 +42,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - A `literal` value is taken **verbatim** without evaluation, and may be **any JSON value** — string, number, boolean, `null`, or an arbitrarily nested object/array (e.g. `"props": { "literal": { "rows": [{ "id": 1, "tags": ["a", "b"] }] } }`). It is NOT parsed as a JavaScript expression, so `{ "literal": "scopes.x" }` renders the literal text `scopes.x`, not the value at that path — use `{ "expr": "scopes.x" }` for that.
 - An `expr` ValueSource must evaluate to an object matching the component's props shape: `"props": { "expr": "({ value: scopes.root.count })" }`.
 - When the expression IS an object literal, wrap it in parentheses to distinguish it from a block statement: `"props": { "expr": "({ value: scopes.root.count, placeholder: \"Enter value\" })" }`.
-- **Expressions must NEVER produce side effects.** Expressions (in `props.expr`, `hidden`, `seed[].expr`, `callbacks[].expr`) are pure computations returning a value. The ONLY way to write state is the `"set"` field on `seed` and `callbacks` entries: `"set"` takes the expression's return value and writes it to the given scope path. Never assign to `scopes.*` or mutate external state inside an expression.
+- **Expressions must NEVER produce side effects.** Expressions (in `props.expr`, `hidden`, `loading`, `seed[].expr`, `callbacks[].expr`) are pure computations returning a value. The ONLY way to write state is the `"set"` field on `seed` and `callbacks` entries: `"set"` takes the expression's return value and writes it to the given scope path. Never assign to `scopes.*` or mutate external state inside an expression.
   - WRONG: `"props": { "expr": "(() => { scopes.root.sortedTasks = scopes.root.tasks.toSorted(...); return {}; })()" }` — this assigns to scope inside an expression.
   - CORRECT: Express the derived value directly in `props.expr` — the runtime auto-subscribes to every `scopes.X.Y` read, so the prop recomputes whenever any input changes: `"props": { "expr": "({ data: scopes.root.tasks.toSorted((a, b) => a[scopes.root.sortKey] - b[scopes.root.sortKey]) })" }`. No separate state slot, no manual recompute.
 - **Expressions must be deterministic** — the language's own rule (see **JavaScript Expressions**), and the runtime depends on it: an expression re-evaluates every time a scope path it reads changes, and may run more than once per change, so the same `scopes` (and, in callbacks, `evt`) must always yield the same output. For a random value or a timestamp, produce it once via a `"set"` in `seed`/`callbacks` and read the stored value from scope.
@@ -77,15 +77,15 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - All state lives under the `scopes` namespace.
 - The root element's scope is `scopes.root`. All root-level state is `scopes.root.<key>`.
 - List items get their own scope, named by `as`. With `as: "row"`, each item's scope is `scopes.row`.
-- **A list item scope IS the item.** `scopes.row.name` reads the `name` field of the current element of the array; `scopes.row.$index` is its zero-based position, `scopes.row.$id` its `keyBy` identity. When the array holds strings or numbers, the value is `scopes.row.$value`. These three `$` names belong to the runtime and cannot be set.
+- **A list item scope IS the item.** `scopes.row.name` reads the `name` field of the current element of the array; `scopes.row.$index` is its zero-based position, `scopes.row.$id` its `keyBy` value (the index when there is no `keyBy`). When the array holds strings or numbers, the value is `scopes.row.$value`. These three `$` names belong to the runtime and cannot be set. Use `$id` to key per-row UI state and `$index` for numbering; a host call takes the data field, `scopes.row.id`.
 - Scope names must be globally unique across ALL lists in the output, whatever the nesting depth. Do not use `as: "item"` on two different lists.
 - **Per-row UI state lives at root, keyed by `$id`** — a row scope holds data, not flags. Read: `scopes.root.expanded[scopes.row.$id] ?? false`. Toggle: `{ "set": "scopes.root.expanded", "expr": "({ ...currentValue, [scopes.row.$id]: !currentValue[scopes.row.$id] })" }`. Expand all: `{ "set": "scopes.root.expanded", "expr": "scopes.root.rows.reduce((m, r) => ({ ...m, [r.id]: true }), {})" }`. Collapse all: `{ "set": "scopes.root.expanded", "literal": {} }`. Seed the map (`{}`) on the root element.
 
 ## 5. Reactivity
 
-- Reactivity is automatic. Any `scopes.X.Y` path read by an element's `props.expr`, `hidden`, or (on lists) `each` is subscribed — when that path is written by a `"set"` from `seed` or `callbacks`, the element re-renders and its expressions re-evaluate.
+- Reactivity is automatic. Any `scopes.X.Y` path read by an element's `props.expr`, `hidden`, `loading`, or (on lists) `each` is subscribed — when that path is written by a `"set"` from `seed` or `callbacks`, the element re-renders and its expressions re-evaluate. Reading a whole scope (`Object.keys(scopes.root)`) subscribes to every field of it.
 - The runtime extracts the read set from your expression text — just write natural JavaScript.
-- Reactivity applies to `props.expr` and `hidden` (and `each` on lists) only. `seed` is one-shot at mount; `callbacks` run on event. Neither subscribes.
+- Reactivity applies to `props.expr`, `hidden` and `loading` (and `each` on lists) only. `seed` is one-shot at mount; `callbacks` run on event. Neither subscribes.
 - A write to a field wakes every reader of that field, at any depth: writing `"set": "scopes.root.products"` wakes a reader of `scopes.root.products` and a reader of `scopes.root.products.length`; writing `"set": "scopes.root.user"` wakes a reader of `scopes.root.user.name`.
 - **A row write edits the element inside the source array, in place.** `{ "set": "scopes.order.qty", "expr": "evt.valueAsNumber" }` changes that order in `scopes.root.orders`, so the array's readers — inline totals, filters, the list itself — re-render; in a nested list, the arrays above it too. Editing one row's data through its scope is the normal way.
 - **A live aggregate reads the source array** — `scopes.root.orders.reduce((s, o) => s + o.qty * o.price, 0)` inline in `props` recomputes on any row edit.
@@ -96,7 +96,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 
 - A list element is any element with `each` — its presence marks the list (there is no `kind` field). A list requires `each` (the array to iterate, a bare expression) and `as` (string — the per-item scope name), and optionally `keyBy` (string key for stable identity).
 - `each` is a **bare JavaScript expression string** (like `hidden`, not a `ValueSource`). Prefer the simplest form — a plain reference to a state array, e.g. `"scopes.root.rows"` or `"scopes.row.subtasks"`. An inline array-returning expression also works, and is the right tool for a **derived** list: `"each": "scopes.root.rows.filter(r => r.active)"`. The underlying state array must be initialized via `seed` (on this element or an ancestor) before the list renders; `each` yields `[]` if it would otherwise be undefined.
-- **Bound what a list renders.** Never let `each` iterate an unbounded array: past a few hundred rows the browser stalls on DOM work, whatever the expressions cost. A slice cap is ALWAYS safe — `"each": "scopes.root.rows.slice(0, 🔴MAX_LIST_ITEMS🔴)"` is a no-op when the data is smaller — so cap any list whose size you do not control. Add pagination (`"each": "scopes.root.rows.slice(scopes.root.page * 50, scopes.root.page * 50 + 50)"` with callbacks writing `scopes.root.page`) or a search/filter input ONLY when the data can exceed the cap; small or fixed data needs neither. A pager must disappear when there is one page: give it `"hidden": "scopes.root.rows.length <= 50"`.
+- **Bound what a list renders.** Never let `each` iterate an unbounded array: past a few hundred rows the browser stalls on DOM work, whatever the expressions cost. A slice cap is ALWAYS safe — `"each": "scopes.root.rows.slice(0, 🔴MAX_LIST_ITEMS🔴)"` is a no-op when the data is smaller — so cap any list whose size you do not control. When the data can exceed the cap, page it: through the function's own window when it has one (§9), else by slicing the seeded array (`"each": "scopes.root.rows.slice((scopes.root.page - 1) * 50, scopes.root.page * 50)"`) with callbacks writing `scopes.root.page`. Add a search or filter input only for data that can exceed the cap; small or fixed data needs neither. A pager must disappear when there is one page: give it `"hidden": "scopes.root.rows.length <= 50"`.
 - Always provide `keyBy` when items are objects with a unique identifier (e.g. `"keyBy": "id"`). It gives stable re-rendering on add/remove/reorder. Without `keyBy` (or when an item lacks the field), items are keyed by index.
 - The list element's `component` renders once per item — it wraps each item, not the whole list. A list with `component: "TableRow"` renders one `<tr>` per item.
 - The list element can have `props` evaluated per item with the item scope available: `"props": { "expr": "({ text: scopes.row.name })" }`. For a text prop read a **field** of `scopes.<as>`, never the scope itself — `scopes.row` is the whole record (see §2).
@@ -108,43 +108,49 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 
 - Callbacks are named event handlers on an element: `"callbacks": { "onClick": [...], "onChange": [...] }`.
 - Only declare callback names matching the component's documented event handlers.
-- Each callback is an array of `ConfirmableValueSourceAssignment` objects: `{ "set": "scopes.<scope>.<field>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<field>", "literal": <value> }`.
+- Each callback is an array of `CallbackValueSourceAssignment` objects: `{ "set": "scopes.<scope>.<field>", "expr": "<JavaScript expression>" }` or `{ "set": "scopes.<scope>.<field>", "literal": <value> }`.
 - `evt` is available in callback expressions and holds event-specific data. Check each component's event handler signature for its fields (e.g. `evt.value`, `evt.valueAsNumber` for Input's onChange).
 - `currentValue` is available in any callback (or `seed`) step with a `"set"`: the current value of that step's `set` field — the value being replaced — for read-modify-write without re-reading it. It is `undefined` when the field was never set (so a first-time `!currentValue` toggles to `true`).
 - Callbacks CAN call async functions. Steps run in order: a step calling a host function always waits for the steps before it (mutations never race), and a step reading a path an earlier step sets (including via `currentValue`) waits for that write. Write chained updates naturally — save, then re-fetch — and the runtime sequences them; pure assignment steps with no dependency on each other may run together.
 - A step writing a row field (`scopes.<as>.<field>`) counts as writing the list's source array (§5), so a later step reading the array waits for it.
 - **Confirmation prompts**: any callback action can carry an optional `"confirm"` field with a string message. A confirmation dialog is then shown before that action executes. On cancel, that action AND all remaining actions in the array are skipped. A `confirm` action is also an ordering barrier: everything before it settles first, and nothing after it starts until it is confirmed. Put `confirm` on the FIRST action in the array (typically the dangerous one, such as a delete call) so the user is prompted before anything happens. Do NOT create separate `ConfirmDialog` elements — use the `confirm` field.
-  - Example: `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.$id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
+  - Example: `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.id } })", "confirm": "Are you sure you want to delete this user? This action cannot be undone." }`
+- **Debounce**: a step may carry `"debounce": true`. That step and every step after it run only after 300 ms without another call of the same callback, with the latest `evt`; the steps before it run at once. For text input, write the value at once and fetch debounced: `"onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }, { "set": "scopes.root.rows", "expr": "Api_search({ q: scopes.root.q })", "debounce": true }]`. Never call a host function on every keystroke without it.
 - Common patterns:
   - Toggle a flag: `{ "set": "scopes.root.open", "expr": "!currentValue" }`
   - Increment a counter: `{ "set": "scopes.root.count", "expr": "currentValue + 1" }`
   - Append to array: `{ "set": "scopes.root.rows", "expr": "[...currentValue, { id: scopes.root.nextId, a: 0 }]" }`
-  - Filter array: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.$id)" }`
+  - Filter array: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.id)" }`
   - Edit one row's field: `{ "set": "scopes.row.qty", "expr": "evt.valueAsNumber" }` — readers of the source array re-render too
   - Edit a row from outside its list: `{ "set": "scopes.root.rows", "expr": "scopes.root.rows.map(r => r.id === scopes.root.selectedId ? { ...r, qty: 0 } : r)" }` — replace the array; a `set` never names an index (`"set": "scopes.root.rows.0.qty"` is rejected)
-  - Call a host function for its effect (no `"set"` — see §9): `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.$id } })" }`
+  - Call a host function for its effect (no `"set"` — see §9): `{ "expr": "UserApi_deleteUser({ params: { id: scopes.row.id } })" }`
 
-## 8. Hidden (Conditional Visibility)
+## 8. Hidden and loading
 
 - Any element can have `hidden`: a **bare JavaScript expression string** — NOT a `ValueSource` (no `{ "expr": ... }` / `{ "literal": ... }` wrapper, no `literal` form). A constant `hidden` is meaningless: constant-true means "always hide" (omit the element instead), constant-false is the same as no `hidden` at all. This mirrors `each`, also a bare expression string.
 - `{ "hidden": "scopes.root.activeTab !== 'settings'" }` hides the element while the expression is truthy.
 - Hidden elements are not rendered but keep their state. When unhidden, they reappear with that state intact.
 - **A hidden element's expressions still evaluate** — `hidden` controls visibility, not evaluation. Guard the props expression itself (`scopes.root.data?.name`), not just the element.
+- `loading`: a bare expression like `hidden`. While truthy the element renders as busy: a table, card, stat or chart dims its current content and stays in place; controls ignore it. It is for refreshes, not first loads — a `seed` fetch shows the placeholder by itself.
+- Drive `loading` from the callback that fetches: a flag before the call, the call, the flag after. The host call is a barrier, so the flag clears once the data has landed. Seed the flag at root like any state (`busy: false`).
+  - Example: `{ "loading": "scopes.root.busy" }` on the table, and `"onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }, { "set": "scopes.root.busy", "literal": true, "debounce": true }, { "set": "scopes.root.rows", "expr": "Api_search({ q: scopes.root.q })" }, { "set": "scopes.root.busy", "literal": false }]`
 
 ## 9. Async functions
 
 - Host functions (e.g. `UserApi_getUsers()`) are available in `seed` and `callbacks` expressions ONLY.
-- Async calls are NEVER allowed in `props.expr`, `hidden`, or `each` — those are evaluated synchronously during render, and the runtime rejects an async result there as an error.
+- Async calls are NEVER allowed in `props.expr`, `hidden`, `loading`, or `each` — those are evaluated synchronously during render, and the runtime rejects an async result there as an error.
 - Host functions take a single object argument matching their documented input type. Functions with no input take no arguments.
   - Correct: `UserApi_getUsers()` (no input)
-  - Correct: `UserApi_deleteUser({ params: { id: scopes.row.$id } })` (with input)
+  - Correct: `UserApi_deleteUser({ params: { id: scopes.row.id } })` (with input)
   - Correct: `UserApi_createUser({ body: { fullName: "Alice", email: "a@b.com" } })` (with body)
   - Correct: `TaskApi_findTasks({ query: { search: scopes.root.searchTerm } })` (with query)
-  - WRONG: `UserApi_deleteUser(scopes.row.$id)` — must wrap in the expected shape.
+  - WRONG: `UserApi_deleteUser(scopes.row.id)` — must wrap in the expected shape.
+- **When a function offers a window, sort or filters, use them.** If its input takes a limit, offset, page, cursor, sort or filter fields, ask for the slice you render and refetch from the callback that changes the page or a filter; never filter or sort a fetched slice in an expression unless the window holds every matching row (`total <= limit`) — a partial window filtered locally gives wrong counts. If a function returns totals or aggregates, read them instead of reducing over rows.
 - Use `seed` with `expr` to fetch initial data on mount: `{ "set": "scopes.root.users", "expr": "UserApi_getUsers()" }`. The element suspends until the data loads.
 - Use `callbacks` for mutations in response to user actions, then re-fetch or update local state: first mutate, then refresh.
+- A callback step's target keeps its old value until the call resolves. To show that a refresh is running, put `loading` (§8) on the element that shows the data, driven by a flag written before and after the call.
 - **A function documented as returning `unknown` has an UNDECLARED result — not an empty one.** Call it for its effect, but do NOT read fields off what it returns: no shape was published, so any field name is a guess. Use a callback step with no `"set"` at all, then read the data back from a function whose return type IS documented:
-  - CORRECT: `[{ "expr": "Api_archive({ id: scopes.row.$id })" }, { "set": "scopes.root.rows", "expr": "Api_listRows()" }]` — act, then re-fetch through a documented return.
+  - CORRECT: `[{ "expr": "Api_archive({ id: scopes.row.id })" }, { "set": "scopes.root.rows", "expr": "Api_listRows()" }]` — act, then re-fetch through a documented return.
   - WRONG: `{ "set": "scopes.root.found", "expr": "Api_search({ q: scopes.root.term })" }` followed by an expression reading `scopes.root.found.items[0].title` — nothing said `items` or `title` exist.
   - A step with no `"set"` is allowed in `callbacks` only; every `seed` step must write somewhere, so a function returning `unknown` has no place in `seed`.
 
@@ -168,7 +174,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 
 # Expression Context
 
-Every JavaScript expression — `props.expr`, `hidden`, `each`, `seed[].expr`, `callbacks[].expr` — is written in the language described under **JavaScript Expressions**. On top of that language, these names are in scope:
+Every JavaScript expression — `props.expr`, `hidden`, `loading`, `each`, `seed[].expr`, `callbacks[].expr` — is written in the language described under **JavaScript Expressions**. On top of that language, these names are in scope:
 
 - `scopes` - reactive state object. Page-wide state lives in the always-present **root** scope: read it as `scopes.root.<field>` (e.g. `scopes.root.searchTerm`), and initialize every root field in the root element's `seed` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's `as` name becomes `scopes.<as>` inside that list's rows: the item's own fields, plus `scopes.<as>.$index`, `scopes.<as>.$id` and, for a primitive item, `scopes.<as>.$value`. Invent no other top-level scope name — any other `scopes.foo` yields `undefined`, and writing to it throws.
 - `evt` - event object (callbacks only)

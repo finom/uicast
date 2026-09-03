@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const BarChartDef = createComponentDefinition({
   name: "BarChart",
@@ -24,12 +25,9 @@ export const BarChartDef = createComponentDefinition({
       description:
         "Array of keys in data objects for bar values, e.g. ['sales', 'profit']",
     }),
-    colors: z.array(z.string()).optional().meta({
-      description:
-        "Optional array of hex color strings for each bar series, e.g. ['#8884d8', '#82ca9d']",
-    }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
     stacked: z.boolean().default(false).meta({

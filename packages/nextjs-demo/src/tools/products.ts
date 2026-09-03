@@ -1,13 +1,13 @@
 import { standardTool } from "standard-tool";
-import { z } from "zod";
-import { productIdInput, productInsert, productOutput, productUpdate } from "@/db/zod";
-import { apiFetch } from "./http";
+import { pageOf, productIdInput, productInsert, productListInput, productOutput, productUpdate } from "@/db/zod";
+import { apiFetch, query } from "./http";
 
 export const listProducts = standardTool({
   name: "listProducts",
-  description: "List all products.",
-  outputSchema: z.array(productOutput),
-  execute: () => apiFetch("/api/products"),
+  description: "A page of products, by name by default.",
+  inputSchema: productListInput.optional(),
+  outputSchema: pageOf(productOutput),
+  execute: (input) => apiFetch(`/api/products${query(input ?? {})}`),
 });
 
 export const getProduct = standardTool({

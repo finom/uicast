@@ -12,9 +12,9 @@ import { NavigationMenuDef } from "./def";
 
 export const NavigationMenuImpl = createComponentImplementation({
   def: NavigationMenuDef,
-  render: ({ items = [], onNavigate, generatedKey }) => {
+  render: ({ items = [], onNavigate}, { entry }) => {
     return (
-      <NavigationMenu data-key={generatedKey}>
+      <NavigationMenu data-key={entry.key}>
         <NavigationMenuList>
           {items.map((item, i) =>
             item.children && item.children.length > 0 ? (

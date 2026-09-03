@@ -12,15 +12,14 @@ export const ButtonImpl = createComponentImplementation({
     size,
     disabled,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ShadcnButton
         variant={variant}
         size={size}
         disabled={disabled}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children ?? text}
       </ShadcnButton>

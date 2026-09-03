@@ -44,6 +44,9 @@ document, whose ancestor seeds `scopes.root.products`:
 the dependency is the array, not the call) and to `scopes.root.query`. Neither
 entry mentions the other. Typing writes `query`, and the list re-filters.
 
+A read of a whole scope, `Object.keys(scopes.root)`, names no field, so it
+subscribes to every field of that scope.
+
 ## Effectful sites: ordering
 
 `seed` and `callbacks` run once per trigger, so their read sets drive

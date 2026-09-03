@@ -6,16 +6,19 @@ export const CircularProgressDef = createComponentDefinition({
   description:
     "A circular/ring progress indicator with percentage. Renders a circular progress ring. Use CircularProgress for loading states with known percentage, skill levels, completion rates, or upload progress.",
   props: z.strictObject({
-    value: z.number().default(0).meta({
+    value: z.number().min(0).max(100).default(0).meta({
       description: "Progress value (0-100)",
     }),
-    size: z.number().default(80).meta({
+    size: z.number().int().positive().default(80).meta({
       description: "Circle diameter in pixels",
     }),
-    strokeWidth: z.number().default(8).meta({
+    strokeWidth: z.number().int().positive().default(8).meta({
       description: "Width of the progress ring",
     }),
-    color: z.string().default("var(--color-primary)").meta({
+    color: z
+      .enum(["default", "success", "warning", "error"])
+      .default("default")
+      .meta({
       description: "Progress ring color",
     }),
     showValue: z.boolean().default(true).meta({

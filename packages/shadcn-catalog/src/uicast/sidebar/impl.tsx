@@ -2,8 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import { SidebarDef } from "./def";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { iconNode } from "../../lib/icon-node";
 import { Button } from "../../components/ui/button";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Badge } from "../../components/ui/badge";
@@ -22,24 +21,15 @@ export const SidebarImpl = createComponentImplementation({
     width,
     onNavigate,
     onToggleCollapse,
-    generatedKey,
-  }) => {
-    const getIcon = (iconName?: string) => {
-      if (!iconName) return null;
-      const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-        iconName
-      ];
-      return Icon ? <Icon className="size-4" /> : null;
-    };
-
+  }, { entry }) => {
     return (
       <TooltipProvider delayDuration={0}>
         <div
           className={cn(
             "flex h-full flex-col border-r bg-background transition-all duration-200",
           )}
-          style={{ width: collapsed ? "64px" : width }}
-          data-key={generatedKey}
+          style={{ width: collapsed ? 64 : width }}
+          data-key={entry.key}
         >
           <div className="flex items-center justify-end p-2">
             <Button
@@ -80,7 +70,7 @@ export const SidebarImpl = createComponentImplementation({
                         })
                       }
                     >
-                      {getIcon(item.icon)}
+                      {iconNode(item.icon, "size-4")}
                       {!collapsed && (
                         <span className="flex-1 text-left">{item.label}</span>
                       )}

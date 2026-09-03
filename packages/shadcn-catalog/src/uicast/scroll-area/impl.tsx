@@ -9,10 +9,9 @@ export const ScrollAreaImpl = createComponentImplementation({
     width,
     orientation,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <ScrollArea style={{ height, width }} data-key={generatedKey}>
+      <ScrollArea style={{ height, width }} data-key={entry.key}>
         {children}
         {(orientation === "horizontal" || orientation === "both") && (
           <ScrollBar orientation="horizontal" />

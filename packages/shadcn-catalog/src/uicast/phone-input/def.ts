@@ -1,6 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { keyboardEventSchema } from "../../events/keyboard";
+import { callingCodeSchema } from "../../lib/country-codes";
 
 export const PhoneInputDef = createComponentDefinition({
   name: "PhoneInput",
@@ -10,9 +11,7 @@ export const PhoneInputDef = createComponentDefinition({
     value: z.string().optional().meta({
       description: "The full phone number value (e.g. +1 555-1234)",
     }),
-    countryCode: z.string().default("+1").meta({
-      description: "The country calling code (e.g. +1, +44, +91)",
-    }),
+    countryCode: callingCodeSchema.default("+1").meta({ description: "The selected calling code." }),
     placeholder: z.string().default("Phone number").meta({
       description: "Placeholder text for the number input",
     }),
@@ -20,12 +19,7 @@ export const PhoneInputDef = createComponentDefinition({
       description: "Whether the input is disabled",
     }),
     countryCodes: z
-      .array(
-        z.strictObject({
-          code: z.string().meta({ description: "Country code, e.g. +1" }),
-          country: z.string().meta({ description: "Country name, e.g. US" }),
-        }),
-      )
+      .array(callingCodeSchema)
       .optional()
       .meta({
         description:

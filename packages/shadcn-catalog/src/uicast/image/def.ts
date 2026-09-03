@@ -1,6 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { mouseEventSchema } from "../../events/mouse";
+import { heightSchema, widthSchema } from "../../lib/sizes";
 
 export const ImageDef = createComponentDefinition({
   name: "Image",
@@ -14,12 +15,8 @@ export const ImageDef = createComponentDefinition({
     alt: z.string().default("").meta({
       description: "Alt text for accessibility and fallback display",
     }),
-    width: z.string().optional().meta({
-      description: "CSS width, e.g. '100%', '200px', '16rem'",
-    }),
-    height: z.string().optional().meta({
-      description: "CSS height, e.g. 'auto', '200px', '16rem'",
-    }),
+    width: widthSchema.optional().meta({ description: "Rendered width." }),
+    height: heightSchema.optional().meta({ description: "Rendered height." }),
     rounded: z
       .enum(["none", "sm", "md", "lg", "full"])
       .default("md")

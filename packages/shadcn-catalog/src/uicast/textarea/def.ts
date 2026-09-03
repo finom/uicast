@@ -7,7 +7,7 @@ export const TextareaDef = createComponentDefinition({
   description:
     "A multi-line text input field for longer text content such as comments, descriptions, or messages. Renders a styled textarea element. Use Textarea for multi-line form fields. For labels and descriptions, wrap with Field, FieldLabel, and FieldDescription components. For single-line input, use Input instead.",
   props: z.strictObject({
-    value: z.any().meta({ description: "The current textarea value" }),
+    value: z.string().optional().meta({ description: "The current textarea value." }),
     placeholder: z.string().optional().meta({
       description: "Placeholder text shown when the textarea is empty",
     }),
@@ -16,7 +16,7 @@ export const TextareaDef = createComponentDefinition({
       .default(false)
       .meta({ description: "Whether the textarea is disabled" }),
     rows: z
-      .number()
+      .number().int().min(1)
       .default(3)
       .meta({ description: "The number of visible text lines" }),
   }),

@@ -14,8 +14,7 @@ export const CodeBlockImpl = createComponentImplementation({
     showLineNumbers,
     showCopyButton,
     onCopy,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [copied, setCopied] = useState(false);
     const lines = code.split("\n");
 
@@ -27,7 +26,7 @@ export const CodeBlockImpl = createComponentImplementation({
     };
 
     return (
-      <Card className="group relative bg-muted" data-key={generatedKey}>
+      <Card className="group relative bg-muted" data-key={entry.key}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b px-4 py-2">
           <span className="text-xs font-medium text-muted-foreground">
             {language}

@@ -8,32 +8,33 @@ import {
 } from "lucide-react";
 import { PaginationDef } from "./def";
 
+// Up to five page numbers around the current one.
+function visiblePages(current: number, total: number): number[] {
+  const start = Math.max(1, Math.min(current - 2, total - 4));
+  return Array.from({ length: Math.min(5, total) }, (_, i) => start + i);
+}
+
 export const PaginationImpl = createComponentImplementation({
   def: PaginationDef,
   render: ({
     currentPage,
     totalPages,
+    hasNext,
     showFirstLast,
     onPageChange,
-    generatedKey,
-  }) => {
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-    if (endPage - startPage + 1 < maxVisiblePages) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    const pages: number[] = [];
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
+  }, { entry }) => {
+    // Without a page count, the pages behind the current one are still known.
+    const pages = visiblePages(currentPage, totalPages ?? currentPage);
+    const atEnd = totalPages === undefined ? !hasNext : currentPage >= totalPages;
+    const last = pages[pages.length - 1] ?? currentPage;
+    const moreAfter = totalPages === undefined ? hasNext : last < totalPages;
+    const ellipsis = <span className="px-1 text-muted-foreground">…</span>;
 
     return (
       <nav
         className="flex items-center gap-1"
         aria-label="Pagination"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {showFirstLast && (
           <Button
@@ -53,6 +54,7 @@ export const PaginationImpl = createComponentImplementation({
         >
           <ChevronLeft className="size-4" />
         </Button>
+        {pages[0] > 1 && ellipsis}
         {pages.map((page) => (
           <Button
             key={page}
@@ -63,19 +65,20 @@ export const PaginationImpl = createComponentImplementation({
             {page}
           </Button>
         ))}
+        {moreAfter && ellipsis}
         <Button
           variant="outline"
           size="icon"
-          disabled={currentPage >= totalPages}
+          disabled={atEnd}
           onClick={() => onPageChange({ page: currentPage + 1 })}
         >
           <ChevronRight className="size-4" />
         </Button>
-        {showFirstLast && (
+        {showFirstLast && totalPages !== undefined && (
           <Button
             variant="outline"
             size="icon"
-            disabled={currentPage >= totalPages}
+            disabled={atEnd}
             onClick={() => onPageChange({ page: totalPages })}
           >
             <ChevronsRight className="size-4" />

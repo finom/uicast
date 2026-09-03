@@ -36,6 +36,17 @@ function schemaToTs(
 }
 
 /** Tools → `# Available Functions` / `# Function Details` / `# Shared Types`. No `outputSchema` renders `=> unknown` — undeclared, not empty. */
+// `(A & B)` reads as a call argument already; `name((A & B))` would not.
+function unwrapParens(ts: string): string {
+	if (!ts.startsWith("(") || !ts.endsWith(")")) return ts;
+	let depth = 0;
+	for (let i = 0; i < ts.length - 1; i++) {
+		if (ts[i] === "(") depth++;
+		else if (ts[i] === ")" && --depth === 0) return ts;
+	}
+	return ts.slice(1, -1);
+}
+
 export function getFunctionsPartialPrompt({
 	functions,
 	note,
@@ -59,7 +70,7 @@ export function getFunctionsPartialPrompt({
 	// block below asks for its lines.
 	const details = functions
 		.map(({ name, title, description, inputSchema, outputSchema }) => {
-			const paramsTs = schemaToTs(inputSchema, "", shared);
+			const paramsTs = unwrapParens(schemaToTs(inputSchema, "", shared));
 			const outputTs = schemaToTs(outputSchema, "unknown", shared);
 			const label = title ? `${title} — ` : "";
 			return `- ${name}(${paramsTs}) => ${outputTs}: ${label}${description}`;

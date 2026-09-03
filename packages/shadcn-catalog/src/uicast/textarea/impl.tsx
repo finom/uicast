@@ -15,8 +15,7 @@ export const TextareaImpl = createComponentImplementation({
     onBlur,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ShadcnTextarea
         value={value as string | undefined}
@@ -36,7 +35,7 @@ export const TextareaImpl = createComponentImplementation({
         }
         onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
         onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

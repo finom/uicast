@@ -5,7 +5,7 @@ describe("JSONSchemaToTs — primitives", () => {
 	it("renders primitive types", () => {
 		expect(JSONSchemaToTs({ type: "string" })).toBe("string");
 		expect(JSONSchemaToTs({ type: "number" })).toBe("number");
-		expect(JSONSchemaToTs({ type: "integer" })).toBe("number");
+		expect(JSONSchemaToTs({ type: "integer" })).toBe("number /* integer */");
 		expect(JSONSchemaToTs({ type: "boolean" })).toBe("boolean");
 		expect(JSONSchemaToTs({ type: "null" })).toBe("null");
 	});
@@ -191,7 +191,10 @@ describe("JSONSchemaToTs — type unions & nesting", () => {
 		).toBe("{ [key: string]: number }");
 	});
 
-	it("ignores refinement keywords that don't change the TS type", () => {
+});
+
+describe("JSONSchemaToTs — constraints", () => {
+	it("renders what the type alone does not say, format over its generated pattern", () => {
 		expect(
 			JSONSchemaToTs({
 				type: "string",
@@ -200,7 +203,53 @@ describe("JSONSchemaToTs — type unions & nesting", () => {
 				minLength: 3,
 				maxLength: 9,
 			}),
-		).toBe("string");
+		).toBe("string /* length ≥ 3, length ≤ 9, format email */");
+		expect(JSONSchemaToTs({ type: "string", pattern: "^SKU-" })).toBe(
+			"string /* pattern ^SKU- */",
+		);
+	});
+
+	it("renders bounds and the default after the description", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "integer",
+				minimum: 1,
+				maximum: 200,
+				default: 50,
+				description: "Rows to return.",
+			}),
+		).toBe("number /* Rows to return. integer, ≥ 1, ≤ 200, default 50 */");
+		expect(
+			JSONSchemaToTs({ type: "number", exclusiveMinimum: 0, multipleOf: 5 }),
+		).toBe("number /* > 0, multiple of 5 */");
+		expect(
+			JSONSchemaToTs({
+				type: "array",
+				items: { type: "string" },
+				minItems: 1,
+				maxItems: 5,
+				uniqueItems: true,
+			}),
+		).toBe("string[] /* items ≥ 1, items ≤ 5, unique items */");
+	});
+
+	it("drops the safe-integer bounds a bare `.int()` stamps", () => {
+		expect(
+			JSONSchemaToTs({
+				type: "integer",
+				minimum: -Number.MAX_SAFE_INTEGER,
+				maximum: Number.MAX_SAFE_INTEGER,
+			}),
+		).toBe("number /* integer */");
+		expect(
+			JSONSchemaToTs({ type: "integer", minimum: 0, maximum: Number.MAX_SAFE_INTEGER }),
+		).toBe("number /* integer, ≥ 0 */");
+	});
+
+	it("annotates a type union once, on the wrapper", () => {
+		expect(JSONSchemaToTs({ type: ["integer", "null"], minimum: 1 })).toBe(
+			"(number | null) /* integer, ≥ 1 */",
+		);
 	});
 });
 
@@ -302,7 +351,7 @@ describe("JSONSchemaToTs — descriptions", () => {
 				},
 				required: ["qty"],
 			}),
-		).toBe("{ qty: number /* Quantity ordered. */; note?: string }");
+		).toBe("{ qty: number /* Quantity ordered. integer */; note?: string }");
 	});
 
 	it("annotates nested objects on both the field and its members", () => {

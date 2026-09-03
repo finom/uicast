@@ -2,25 +2,34 @@
 
 All notable changes to this package will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
 ### Changed
 
+- **Breaking: the public entry is only what a host writes against.** `checkUrl`, `findUrlViolations`, `schemaHasUrlFormat`, `UrlCheck`, `UrlViolation`, `isComponentListEntry` and `CALLBACK_DEBOUNCE_MS` moved to `@uicast/core/internal`. `UrlPolicy` stays public — a host declares it. The index is the document format, the definition factory, the scope and stream helpers, and `EntryError`.
 - **A scope is one shallow proxy; a `set` names one field.** `createProxyScope` no longer wraps nested objects: everything under a field is plain data, a write replaces the field and emits it, and `$set(field, value)` takes a field, not a path. Subscriptions are per field — a write to `scopes.root.user` wakes a reader of `scopes.root.user.name` — so `extractDeps` returns `scopes.<scope>.<field>` keys and `planStepWaves` compares them. The `set` address grammar is `scopes.<scope>.<field>`, checked by `parseSetAddress` / `findEntrySetAddressFault` (replacing `validate-set-path`); anything deeper, a number, a missing `scopes.` prefix, a prototype name or one of the runtime's row fields is a `guardrail-violation` at mount.
 - **Row scopes are windows onto array elements.** `createRowScope` (internal) reads the element's own fields plus `$index`, `$id` and, for a primitive element, `$value`; a write changes the element in place and emits on every scope field that holds it, found by identity, so nested lists and two lists over one array stay consistent. A row whose element is in no scope field (`each` built new objects, or the row was removed) refuses the write as `unknown-reference`. `childScopes` is gone.
+- The prompt's host-call examples pass the data field (`scopes.row.id`). `$id` keys per-row UI maps; it is the `keyBy` value, or the index without `keyBy`.
+- **A whole-scope read subscribes to every field of it.** `extractDeps` returns `scopes.<scope>.*` for `Object.keys(scopes.root)` or a bare `scopes.row`, where it returned nothing, and `planStepWaves` makes such a read wait for any write into that scope.
+- A row held in an object of arrays (`scopes.root.byCustomer[id]`) can be written: a scope field holds an element one level down through an object's array values too.
+- **The prompt prints a schema's constraints.** `integer`, bounds, `multipleOf`, lengths, `format` (or `pattern` without one), item counts, `uniqueItems` and `default` follow the description in the field's comment (`limit?: number /* Rows to return. integer, ≥ 1, ≤ 200, default 50 */`), so a model calls a function within its validators instead of learning them from validation errors. The `±MAX_SAFE_INTEGER` bounds a bare `.int()` stamps are not printed. A component prop still prints its own default as ` = value` after the type.
+- The prompt tells the model to use a function's window, sort and filters when it offers them and to read returned aggregates instead of reducing over rows (§9); §6 pages through the function's own window before slicing a seeded array. A fetched window may be filtered or sorted locally only when it holds every matching row. A callback step's target keeps its old value until a call resolves; the prompt shows the placeholder-then-call pattern for loading states.
 
+- **`ConfirmableValueSourceAssignment` is `CallbackValueSourceAssignment`.** Same shape, plus `debounce`.
 - **The host provides the evaluator.** `evaluate(expr, context, evaluator)` takes an `ExpressionEvaluator` — the interface from `@uicast/expr` that `Evaluator` and `PassthroughEvaluator` implement, re-exported here. An evaluator of your own can implement it too, for any language. The `functions` / `evaluator: "native"` / `maxExpressionLength` options are gone; core constructs no evaluator and imports nothing from `@uicast/expr` at run time (an `ExpressionError` is recognized by its brand). Its host-function name screen now refuses only uicast's own names (`scopes`, `evt`, `currentValue`); identifier validity is the evaluator's check and the globals collision the prompt builder's. `extractDeps(entry, evaluator, part?)` and `planStepWaves(steps, evaluator, …)` take the same instance, so analysis and evaluation share one parse cache and one `maxSourceLength`; the earlier mismatch between the two caps is gone by construction. `getFreeIdentifiers` and `EvaluatorMode` are removed from `@uicast/core/internal`.
 - uicast's own host-function name screen (`scopes`, `evt`, `currentValue`, the globals) runs once per evaluator instance, on `evaluator.functions`; identifier validity is the evaluator's own check, at construction.
 - **A `set` path without the `scopes.` prefix was invisible to wave planning** — reads come back prefixed, writes were compared as written, and a reader could land in the same wave as its writer. Both sides are normalised.
 - Tool names are screened against the array's contents right before they are bound, not once per array identity — an array mutated after first use no longer binds unscreened. Identifier validity and duplicates are the evaluator's own checks now; core keeps only the `scopes` / `evt` / `currentValue` and global-collision rules.
 - The recovery prompt's description of a `guardrail-violation` names the budget, so a step, time, or allocation refusal is no longer described to the model as a syntax error.
+- A function's call signature no longer wraps an intersection or union input in a second pair of parentheses: `listOrders(Window & { … })`, not `listOrders((Window & { … }))`.
 - Compiled to ES2022.
 
 ### Added
 
+- **`loading` on an entry.** A bare expression like `hidden`: while truthy the element renders as busy. Reactive (`extractDeps` subscribes to it), passed to the implementation by the React binding. The prompt teaches the flag-around-the-fetch pattern (§8).
+- **`debounce` on a callback step.** `{ "debounce": true }` makes that step and every step after it wait 300 ms of quiet, running once with the latest `evt`; the steps before it run at once. The prompt teaches it for search-as-you-type (§7).
 - **`getExpressionsPartialPrompt()` moves here** from `@uicast/expr/prompt`, so every partial but the Streamdown fence comes from one import. The globals and length slots still fill from `@uicast/expr`'s own constants, and a new test fails if the markdown advertises a method the grammar would refuse — the drift this file's location exists to prevent.
 
 ### Changed

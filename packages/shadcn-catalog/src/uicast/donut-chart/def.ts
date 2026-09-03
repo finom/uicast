@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const DonutChartDef = createComponentDefinition({
   name: "DonutChart",
@@ -11,22 +12,21 @@ export const DonutChartDef = createComponentDefinition({
         z.strictObject({
           name: z.string().meta({ description: "Segment label" }),
           value: z.number().meta({ description: "Segment value" }),
-          color: z
-            .string()
+          color: chartColorSchema
             .optional()
-            .meta({ description: "Optional segment color" }),
+            .meta({ description: "Optional segment color." }),
         }),
       )
       .meta({ description: "Array of data segments" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
     innerRadius: z
-      .number()
+      .number().int().nonnegative()
       .default(60)
       .meta({ description: "Inner radius for donut hole" }),
-    outerRadius: z.number().default(100).meta({ description: "Outer radius" }),
+    outerRadius: z.number().int().positive().default(100).meta({ description: "Outer radius" }),
     centerLabel: z.string().optional().meta({
       description: "Optional text to display in the center of the donut",
     }),

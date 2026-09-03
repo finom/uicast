@@ -1,15 +1,15 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { mouseEventSchema } from "../../events/mouse";
+import { iconNameSchema } from "../../lib/icons";
 
 export const IconButtonDef = createComponentDefinition({
   name: "IconButton",
   description:
     "A square icon-only button. Renders a button containing a single Lucide icon. Use IconButton for toolbar actions, close buttons, toggle buttons, or any action where an icon alone is sufficient. For a button with text, use Button instead.",
   props: z.strictObject({
-    icon: z.string().meta({
-      description:
-        "The Lucide icon name in PascalCase, e.g. 'X', 'Plus', 'Trash2', 'Edit', 'Search'",
+    icon: iconNameSchema.meta({
+      description: "Which icon to render.",
     }),
     variant: z
       .enum(["default", "destructive", "outline", "secondary", "ghost"])

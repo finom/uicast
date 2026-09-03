@@ -1,5 +1,11 @@
 # @uicast/expr-passthrough
 
+## [Unreleased]
+
+### Changed
+
+- **Binding moved into the compiled function.** The engine-compiled function looks its names up in the contexts itself, in one fixed-arity call, instead of the evaluator building an argument array and spreading it per evaluation. Short expressions run about twice as fast; `filter`/`map`/`reduce` over data now match bare `new Function`.
+
 ## 0.0.1-beta.0
 
 Initial release: the `new Function` back end, moved out of `@uicast/expr` (its `mode: "native"`) into its own package, so the default package never contains `new Function`.

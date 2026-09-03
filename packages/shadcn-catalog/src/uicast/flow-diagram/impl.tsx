@@ -10,8 +10,7 @@ export const FlowDiagramImpl = createComponentImplementation({
     edges = [],
     direction,
     onNodeClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const _nodeMap = new Map(nodes.map((n) => [n.id, n]));
     const isVertical = direction === "vertical";
 
@@ -30,7 +29,7 @@ export const FlowDiagramImpl = createComponentImplementation({
           "flex items-center gap-2",
           isVertical ? "flex-col" : "flex-row flex-wrap",
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {nodes.map((node, i) => {
           const edge = edges.find((e) => e.from === node.id);

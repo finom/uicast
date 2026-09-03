@@ -21,12 +21,12 @@ export const FormulaBarDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z
-      .object({
+      .strictObject({
         value: z.string().meta({ description: "The new formula value" }),
       })
       .meta({ description: "Callback when formula changes" }),
     onSubmit: z
-      .object({
+      .strictObject({
         value: z.string().meta({ description: "The submitted formula" }),
       })
       .meta({

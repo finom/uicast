@@ -1,7 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { iconNode } from "../../lib/icon-node";
 import { ToggleGroupDef } from "./def";
 
 export const ToggleGroupImpl = createComponentImplementation({
@@ -14,36 +13,31 @@ export const ToggleGroupImpl = createComponentImplementation({
     size,
     disabled,
     onChange,
-    generatedKey,
-  }) => {
-    const getIcon = (iconName?: string) => {
-      if (!iconName) return null;
-      const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-        iconName
-      ];
-      return Icon ? <Icon className="size-4" /> : null;
+  }, { entry }) => {
+    // Radix pairs `type` with the value's shape, so the two cases are separate elements.
+    const shared = {
+      onValueChange: (newValue: string | string[]) => onChange({ value: newValue }),
+      variant,
+      size,
+      disabled,
+      "data-key": entry.key,
     };
+    const children = items.map((item) => (
+      <ToggleGroupItem key={item.value} value={item.value}>
+        {iconNode(item.icon, "size-4")}
+        {item.label && (
+          <span className={item.icon ? "ml-1" : ""}>{item.label}</span>
+        )}
+      </ToggleGroupItem>
+    ));
 
-    return (
-      <ToggleGroup
-        type={type}
-        value={value}
-        onValueChange={(newValue: string | string[]) =>
-          onChange({ value: newValue })
-        }
-        variant={variant}
-        size={size}
-        disabled={disabled}
-        data-key={generatedKey}
-      >
-        {items.map((item) => (
-          <ToggleGroupItem key={item.value} value={item.value}>
-            {getIcon(item.icon)}
-            {item.label && (
-              <span className={item.icon ? "ml-1" : ""}>{item.label}</span>
-            )}
-          </ToggleGroupItem>
-        ))}
+    return type === "multiple" ? (
+      <ToggleGroup {...shared} type="multiple" value={Array.isArray(value) ? value : []}>
+        {children}
+      </ToggleGroup>
+    ) : (
+      <ToggleGroup {...shared} type="single" value={typeof value === "string" ? value : ""}>
+        {children}
       </ToggleGroup>
     );
   },

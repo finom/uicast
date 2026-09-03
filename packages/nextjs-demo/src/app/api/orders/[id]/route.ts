@@ -1,18 +1,21 @@
 import { and, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
+import { publicColumns } from "@/db/query";
 import { orders } from "@/db/schema";
 import { orderUpdate } from "@/db/zod";
 import { idParam, json, ownerForRead, readValid, requireUser } from "@/lib/api";
 
 type Ctx = { params: Promise<{ id: string }> };
 
+const COLS = publicColumns(orders);
+
 export async function GET(req: NextRequest, { params }: Ctx) {
   const read = await ownerForRead(req);
   if ("error" in read) return read.error;
   const id = await idParam(params);
   const [row] = await db
-    .select({ id: orders.id, customerId: orders.customerId, productId: orders.productId, productName: orders.productName, qty: orders.qty, unitPrice: orders.unitPrice, total: orders.total, status: orders.status, createdAt: orders.createdAt })
+    .select(COLS)
     .from(orders)
     .where(and(eq(orders.id, id), eq(orders.userId, read.owner.id)));
   return row ? json(row) : json({ error: "Not found" }, 404);
@@ -30,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     .update(orders)
     .set(body.data)
     .where(and(eq(orders.id, id), eq(orders.userId, auth.me.id)))
-    .returning({ id: orders.id, customerId: orders.customerId, productId: orders.productId, productName: orders.productName, qty: orders.qty, unitPrice: orders.unitPrice, total: orders.total, status: orders.status, createdAt: orders.createdAt });
+    .returning(COLS);
   return row ? json(row) : json({ error: "Not found" }, 404);
 }
 

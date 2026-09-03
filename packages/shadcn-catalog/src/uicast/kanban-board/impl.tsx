@@ -30,16 +30,9 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { cn } from "../../lib/utils";
-import { KanbanBoardDef } from "./def";
+import { type KanbanCard, type KanbanColumn, KanbanBoardDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
-type KanbanCard = {
-  id: string;
-  title: string;
-  description?: string;
-  tag?: string;
-  tagColor?: string;
-};
-type KanbanColumn = { id: string; title: string; cards: KanbanCard[] };
 
 // The column an item id belongs to — the id may be a card's or a column's own
 // (dropping onto an empty column targets the column itself).
@@ -75,9 +68,9 @@ const CardView = ({
             style={
               card.tagColor
                 ? {
-                    backgroundColor: card.tagColor,
+                    backgroundColor: CHART_COLORS[card.tagColor],
                     color: "#fff",
-                    borderColor: card.tagColor,
+                    borderColor: CHART_COLORS[card.tagColor],
                   }
                 : undefined
             }
@@ -160,7 +153,7 @@ const BoardColumn = ({
 
 export const KanbanBoardImpl = createComponentImplementation({
   def: KanbanBoardDef,
-  render: ({ columns = [], onCardClick, onCardMove, generatedKey }) => {
+  render: ({ columns = [], onCardClick, onCardMove}, { entry }) => {
     // Optimistic local mirror of the `columns` prop. Props re-evaluate with a
     // fresh identity every render, so the mirror resyncs by CONTENT — when the
     // document writes `evt.columns` back (the documented binding), the incoming
@@ -268,7 +261,7 @@ export const KanbanBoardImpl = createComponentImplementation({
     };
 
     return (
-      <ScrollArea className="pb-4" data-key={generatedKey}>
+      <ScrollArea className="pb-4" data-key={entry.key}>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCorners}

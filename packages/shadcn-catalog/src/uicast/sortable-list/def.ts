@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
 
 export const SortableListDef = createComponentDefinition({
   name: "SortableList",
@@ -11,10 +12,8 @@ export const SortableListDef = createComponentDefinition({
         z.strictObject({
           id: z.string().meta({ description: "Item unique identifier" }),
           label: z.string().meta({ description: "Item display text" }),
-          icon: z
-            .string()
-            .optional()
-            .meta({ description: "Optional Lucide icon name" }),
+          icon: iconNameSchema.optional()
+            .meta({ description: "Optional icon for the item." }),
         }),
       )
       .meta({ description: "Array of list items in order" }),
@@ -24,9 +23,9 @@ export const SortableListDef = createComponentDefinition({
   }),
   callbacks: {
     onItemClick: z
-      .object({
+      .strictObject({
         id: z.string().meta({ description: "Clicked item ID" }),
-        index: z.number().meta({ description: "Item index" }),
+        index: z.number().int().nonnegative().meta({ description: "Item index" }),
       })
       .meta({ description: "Callback when an item is clicked" }),
   },

@@ -13,8 +13,7 @@ export const FormulaBarImpl = createComponentImplementation({
     disabled,
     onChange,
     onSubmit,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // Local mirror of the `value` prop — a document change to the prop
     // resyncs it; local edits win in between.
     const [value, setValue] = useState(initialValue);
@@ -27,7 +26,7 @@ export const FormulaBarImpl = createComponentImplementation({
     return (
       <div
         className="flex items-center gap-0 border rounded-md"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {cellReference && (
           <div className="flex items-center justify-center border-r px-3 py-1.5 bg-muted min-w-15">

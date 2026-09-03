@@ -1,5 +1,5 @@
 import type * as acorn from "acorn";
-import { type BudgetOptions, DEFAULT_BUDGET, DEFAULT_MAX_SOURCE_LENGTH } from "./constants/limits";
+import { type BudgetOptions, DEFAULT_MAX_SOURCE_LENGTH } from "./constants/limits";
 import type { StandardToolV0 } from "./host/standard-tool";
 import { bindTools } from "./host/tool";
 import { compileAst, type Runtime, type Thunk } from "./interpret/compile";
@@ -10,8 +10,7 @@ import { extractMemberReads } from "./syntax/analyze";
 import { parseExpression } from "./syntax/parse";
 import { validateFreeIdentifiers, validateNode } from "./syntax/validate";
 
-export { ALLOWED_GLOBALS } from "./constants/globals";
-export { type BudgetOptions, DEFAULT_BUDGET };
+export type { BudgetOptions };
 export { ExpressionError, type ExpressionErrorReason } from "./errors";
 export type { StandardJSONSchemaV1, StandardSchemaV1, StandardToolV0, StandardTypedV1 } from "./host/standard-tool";
 

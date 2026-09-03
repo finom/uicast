@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   ScatterChart as RechartsScatterChart,
   Scatter,
@@ -9,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ScatterChartDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 export const ScatterChartImpl = createComponentImplementation({
   def: ScatterChartDef,
@@ -19,17 +21,16 @@ export const ScatterChartImpl = createComponentImplementation({
     nameKey,
     color,
     height,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsScatterChart>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xKey} type="number" name={xKey} />
             <YAxis dataKey={yKey} type="number" name={yKey} />
             <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-            <Scatter isAnimationActive={false} name={nameKey ?? "Data"} data={data} fill={color} />
+            <Scatter isAnimationActive={false} name={nameKey ?? "Data"} data={data} fill={CHART_COLORS[color]} />
           </RechartsScatterChart>
         </ResponsiveContainer>
       </div>

@@ -10,8 +10,7 @@ export const ProgressBarImpl = createComponentImplementation({
     showLabel,
     color,
     size,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const percentage = Math.min(100, Math.max(0, (value / max) * 100));
     const colorMap: Record<string, string> = {
       default: "[&>[data-slot=progress-indicator]]:bg-primary",
@@ -25,7 +24,7 @@ export const ProgressBarImpl = createComponentImplementation({
       lg: "h-3",
     };
     return (
-      <div className="w-full" data-key={generatedKey}>
+      <div className="w-full" data-key={entry.key}>
         {showLabel && (
           <div className="flex justify-between mb-1">
             <span className="text-sm text-muted-foreground">

@@ -1,6 +1,7 @@
 import type * as acorn from "acorn";
-import { ExpressionError } from "@uicast/expr";
-import { childNodes, writtenName } from "@uicast/expr/internal";
+import { type EvaluatorContexts, ExpressionError } from "@uicast/expr";
+import { childNodes, type HostFunction, writtenName } from "@uicast/expr/internal";
+import { PLATFORM_GLOBALS } from "./platform-globals";
 
 // Every identifier in the source becomes a parameter, so nothing resolves to a global by accident: bound names get values, the rest are `undefined`.
 // Written prototype names are refused up front — nothing checks a read at run time here.
@@ -42,17 +43,45 @@ const refusePrototypeNames = (node: acorn.AnyNode): void => {
 	for (const child of childNodes(node)) refusePrototypeNames(child);
 };
 
-export type Compiled = (...values: unknown[]) => unknown;
+// The contexts, last one first, then the platform globals.
+const lookup = (name: string, contexts: EvaluatorContexts): unknown => {
+	for (let i = contexts.length - 1; i >= 0; i--) {
+		if (Object.hasOwn(contexts[i], name)) return contexts[i][name];
+	}
+	if (Object.hasOwn(PLATFORM_GLOBALS, name)) return PLATFORM_GLOBALS[name];
+	throw new ExpressionError(`"${name}" is not available in expressions`, "unknown-reference");
+};
 
-// `bindings` are the names the caller supplies, positionally. Every other name is a parameter too, never passed, so it reads as `undefined`.
-export const compile = (source: string, ast: acorn.Expression, bindings: readonly string[]): Compiled => {
+export type Compiled = (contexts: EvaluatorContexts) => unknown;
+
+// One engine-compiled function per source. `inner` takes every identifier the source writes as a parameter; the wrapper fills the bound ones — the host functions, then each context id looked up in the contexts — in one fixed-arity call, so nothing is allocated per evaluation.
+export const compile = (
+	source: string,
+	ast: acorn.Expression,
+	toolCalls: readonly string[],
+	contextIds: readonly string[],
+	tools: Record<string, HostFunction>,
+): Compiled => {
 	refusePrototypeNames(ast);
 	const names = new Set<string>();
 	identifierNames(ast, names);
+	const bound = [...toolCalls, ...contextIds];
 	// A keyword or `eval` cannot be a parameter — and cannot be a reference in strict code either, so skipping it loses nothing.
-	const dead = [...names].filter((name) => !bindings.includes(name) && canBind(name));
+	const dead = [...names].filter((name) => !bound.includes(name) && canBind(name));
+	const args = [
+		...toolCalls.map((_, i) => `tools[${i}]`),
+		...contextIds.map((name) => `lookup(${JSON.stringify(name)}, contexts)`),
+	];
 	try {
-		return new Function(...bindings, ...dead, `"use strict"; return (${source}\n);`) as Compiled;
+		const factory = new Function(
+			"tools",
+			"lookup",
+			`"use strict";
+const inner = function (${[...bound, ...dead].join(", ")}) { return (${source}
+); };
+return function (contexts) { return inner(${args.join(", ")}); };`,
+		);
+		return factory(toolCalls.map((name) => tools[name]), lookup) as Compiled;
 	} catch (err) {
 		throw new ExpressionError(
 			`Failed to compile expression: ${err instanceof Error ? err.message : String(err)}. Expression: ${source}`,

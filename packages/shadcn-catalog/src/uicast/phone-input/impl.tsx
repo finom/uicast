@@ -9,19 +9,7 @@ import {
 } from "../../components/ui/select";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { PhoneInputDef } from "./def";
-
-const defaultCountryCodes = [
-  { code: "+1", country: "US" },
-  { code: "+44", country: "UK" },
-  { code: "+49", country: "DE" },
-  { code: "+33", country: "FR" },
-  { code: "+81", country: "JP" },
-  { code: "+86", country: "CN" },
-  { code: "+91", country: "IN" },
-  { code: "+61", country: "AU" },
-  { code: "+55", country: "BR" },
-  { code: "+7", country: "RU" },
-];
+import { type CallingCode, CALLING_CODES } from "../../lib/country-codes";
 
 export const PhoneInputImpl = createComponentImplementation({
   def: PhoneInputDef,
@@ -34,13 +22,15 @@ export const PhoneInputImpl = createComponentImplementation({
     onChange,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
-    const codes = countryCodes ?? defaultCountryCodes;
+  }, { entry }) => {
+    const codes = (countryCodes ?? (Object.keys(CALLING_CODES) as CallingCode[])).map((code) => ({
+      code,
+      country: CALLING_CODES[code],
+    }));
     const phoneValue = value ?? "";
 
     return (
-      <div className="flex gap-2" data-key={generatedKey}>
+      <div className="flex gap-2" data-key={entry.key}>
         <Select
           value={countryCode}
           onValueChange={(code) =>

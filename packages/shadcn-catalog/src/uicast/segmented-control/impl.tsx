@@ -10,8 +10,7 @@ export const SegmentedControlImpl = createComponentImplementation({
     disabled,
     size,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ToggleGroup
         type="single"
@@ -21,7 +20,7 @@ export const SegmentedControlImpl = createComponentImplementation({
         }}
         size={size}
         disabled={disabled}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {options.map((opt) => (
           <ToggleGroupItem key={opt.value} value={opt.value}>

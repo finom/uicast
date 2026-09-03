@@ -10,8 +10,7 @@ export const StackImpl = createComponentImplementation({
     align,
     children,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const dirClass = direction === "horizontal" ? "flex-row" : "flex-col";
     // Static map: Tailwind only compiles class names that appear literally in
     // source — a runtime-built `gap-${gap}` never generates CSS.
@@ -34,7 +33,7 @@ export const StackImpl = createComponentImplementation({
       <div
         className={`flex ${dirClass} ${gapMap[gap]} ${alignMap[align]}`}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

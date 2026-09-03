@@ -22,6 +22,14 @@ const list = (patch: Partial<ComponentListEntry>): ComponentListEntry => ({
   ...patch,
 });
 
+describe("extractDeps — reads from loading", () => {
+  it("subscribes to the loading expression like hidden", () => {
+    expect(extractDeps(element({ loading: "scopes.root.busy" }))).toEqual(["scopes.root.busy"]);
+    expect(extractDeps(element({ loading: "scopes.root.busy" }), "render")).toEqual(["scopes.root.busy"]);
+    expect(extractDeps(list({ loading: "scopes.root.busy" }), "each")).toEqual(["scopes.root.rows"]);
+  });
+});
+
 describe("extractDeps — reads from props.expr", () => {
   it("captures a simple scopes path", () => {
     expect(
@@ -96,8 +104,9 @@ describe("extractDeps — method-call segments are dropped", () => {
     ).toEqual(["scopes.root.items", "scopes.root.user"]);
   });
 
-  it("ignores a bare scope read", () => {
-    expect(extractDeps(element({ props: { expr: "({ all: scopes.root })" } }))).toEqual([]);
+  it("a bare scope read subscribes to every field of it", () => {
+    expect(extractDeps(element({ props: { expr: "({ all: scopes.root })" } }))).toEqual(["scopes.root.*"]);
+    expect(extractDeps(element({ props: { expr: "Object.keys(scopes.root).length" } }))).toEqual(["scopes.root.*"]);
   });
 });
 

@@ -9,13 +9,19 @@ export const QRCodeDef = createComponentDefinition({
     value: z.string().meta({
       description: "The content to encode in the QR code",
     }),
-    size: z.number().default(200).meta({
+    size: z.number().int().positive().default(200).meta({
       description: "QR code size in pixels",
     }),
-    bgColor: z.string().default("#ffffff").meta({
+    bgColor: z
+      .enum(["white", "black"])
+      .default("white")
+      .meta({
       description: "Background color",
     }),
-    fgColor: z.string().default("#000000").meta({
+    fgColor: z
+      .enum(["black", "white"])
+      .default("black")
+      .meta({
       description: "Foreground (dot) color",
     }),
   }),

@@ -13,13 +13,13 @@ const wavePlain = WAVE_EXPRS.map(
 describe("full wave — 5 expressions × 1000 rows", () => {
 	bench("interpret", () => {
 		for (const item of rows) {
-			const ctx = { scopes: { row: { item } } };
+			const ctx = { scopes: { row: item } };
 			for (const f of waveInterpret) f(ctx);
 		}
 	});
 	bench("new Function", () => {
 		for (const item of rows) {
-			const ctx = { scopes: { row: { item } } };
+			const ctx = { scopes: { row: item } };
 			for (const f of wavePlain) f(ctx.scopes);
 		}
 	});

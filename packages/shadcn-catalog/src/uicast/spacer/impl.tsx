@@ -3,7 +3,7 @@ import { SpacerDef } from "./def";
 
 export const SpacerImpl = createComponentImplementation({
   def: SpacerDef,
-  render: ({ size, direction, generatedKey }) => {
+  render: ({ size, direction}, { entry }) => {
     const sizeMap: Record<string, string> = {
       "1": "0.25rem",
       "2": "0.5rem",
@@ -18,6 +18,6 @@ export const SpacerImpl = createComponentImplementation({
       direction === "vertical"
         ? { height: sizeMap[size] }
         : { width: sizeMap[size], display: "inline-block" };
-    return <div style={style} data-key={generatedKey} />;
+    return <div style={style} data-key={entry.key} />;
   },
 });

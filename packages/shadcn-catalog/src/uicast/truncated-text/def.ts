@@ -9,7 +9,7 @@ export const TruncatedTextDef = createComponentDefinition({
     text: z.string().meta({
       description: "The full text content",
     }),
-    maxLines: z.number().default(2).meta({
+    maxLines: z.number().int().min(1).default(2).meta({
       description: "Maximum number of lines before truncation",
     }),
     expandable: z.boolean().default(true).meta({

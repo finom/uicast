@@ -19,11 +19,11 @@ function formatLocalDate(date: Date): string {
 
 export const CalendarImpl = createComponentImplementation({
   def: CalendarDef,
-  render: ({ selected, disabled, onSelect, generatedKey }) => {
+  render: ({ selected, disabled, onSelect}, { entry }) => {
     const selectedDate = selected ? parseLocalDate(selected) : undefined;
 
     return (
-      <div data-key={generatedKey}>
+      <div data-key={entry.key}>
         <ShadcnCalendar
           mode="single"
           selected={selectedDate}

@@ -7,7 +7,10 @@ export const InputDef = createComponentDefinition({
   description:
     "A text input field for single-line text, email, password, or number entry. Renders a styled input element. Use Input for form fields. For labels and descriptions, wrap with Field, FieldLabel, and FieldDescription components. For a dedicated numeric stepper, see NumberInput.",
   props: z.strictObject({
-    value: z.any().meta({ description: "The current input value" }),
+    value: z
+      .union([z.string(), z.number()])
+      .optional()
+      .meta({ description: "The current input value." }),
     type: z
       .enum(["text", "email", "password", "number", "tel", "url", "search"])
       .default("text")

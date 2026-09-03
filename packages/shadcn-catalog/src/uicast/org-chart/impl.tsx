@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   Avatar,
   AvatarFallback,
@@ -64,9 +65,9 @@ function OrgNodeComponent({
 
 export const OrgChartImpl = createComponentImplementation({
   def: OrgChartDef,
-  render: ({ root, onNodeClick, generatedKey }) => {
+  render: ({ root, onNodeClick}, { entry, loading }) => {
     return (
-      <ScrollArea className="py-4" data-key={generatedKey}>
+      <ScrollArea className={cn("py-4", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <div className="flex justify-center">
           <OrgNodeComponent node={root as OrgNode} onNodeClick={onNodeClick} />
         </div>

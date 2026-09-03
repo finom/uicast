@@ -10,10 +10,10 @@ export const ResizablePanelDef = createComponentDefinition({
       description:
         "Split direction: horizontal (left-right) or vertical (top-bottom)",
     }),
-    defaultSize: z.number().default(50).meta({
+    defaultSize: z.number().min(0).max(100).default(50).meta({
       description: "Default size of the first panel as a percentage (0-100)",
     }),
-    minSize: z.number().default(20).meta({
+    minSize: z.number().min(0).max(100).default(20).meta({
       description: "Minimum size of panels as a percentage",
     }),
   }),

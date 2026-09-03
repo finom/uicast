@@ -7,36 +7,36 @@ export const MapDef = createComponentDefinition({
     "A static map display with markers. Renders an embedded map image with optional pin markers. Use Map for store locators, delivery tracking, contact pages, or any location display. Uses a static map image approach.",
   props: z.strictObject({
     center: z
-      .object({
-        lat: z.number().meta({ description: "Latitude" }),
-        lng: z.number().meta({ description: "Longitude" }),
+      .strictObject({
+        lat: z.number().min(-90).max(90).meta({ description: "Latitude" }),
+        lng: z.number().min(-180).max(180).meta({ description: "Longitude" }),
       })
       .meta({ description: "Map center coordinates" }),
-    zoom: z.number().default(13).meta({
+    zoom: z.number().int().min(1).max(20).default(13).meta({
       description:
         "Zoom level (1-20). Only scales overlay marker placement — the embedded map always shows a fixed area around the center",
     }),
     markers: z
       .array(
         z.strictObject({
-          lat: z.number().meta({ description: "Marker latitude" }),
-          lng: z.number().meta({ description: "Marker longitude" }),
+          lat: z.number().min(-90).max(90).meta({ description: "Marker latitude" }),
+          lng: z.number().min(-180).max(180).meta({ description: "Marker longitude" }),
           label: z.string().optional().meta({ description: "Marker label" }),
         }),
       )
       .optional()
       .meta({ description: "Array of map markers" }),
-    width: z.number().default(600).meta({ description: "Map width in pixels" }),
+    width: z.number().int().positive().default(600).meta({ description: "Map width in pixels" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(400)
       .meta({ description: "Map height in pixels" }),
   }),
   callbacks: {
     onMarkerClick: z
-      .object({
-        lat: z.number().meta({ description: "Marker latitude" }),
-        lng: z.number().meta({ description: "Marker longitude" }),
+      .strictObject({
+        lat: z.number().min(-90).max(90).meta({ description: "Marker latitude" }),
+        lng: z.number().min(-180).max(180).meta({ description: "Marker longitude" }),
         label: z.string().optional().meta({ description: "Marker label" }),
       })
       .meta({ description: "Callback when a marker is clicked" }),

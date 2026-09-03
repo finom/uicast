@@ -10,12 +10,12 @@ import { CollapsibleDef } from "./def";
 
 export const CollapsibleImpl = createComponentImplementation({
   def: CollapsibleDef,
-  render: ({ open, title, children, onOpenChange, generatedKey }) => {
+  render: ({ open, title, children, onOpenChange}, { entry }) => {
     return (
       <Collapsible
         open={open}
         onOpenChange={(isOpen) => onOpenChange({ open: isOpen })}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <div className="flex items-center justify-between space-x-4">
           <h4 className="text-sm font-semibold">{title}</h4>

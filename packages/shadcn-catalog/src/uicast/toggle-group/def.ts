@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
 
 export const ToggleGroupDef = createComponentDefinition({
   name: "ToggleGroup",
@@ -10,10 +11,10 @@ export const ToggleGroupDef = createComponentDefinition({
       description:
         "Selection type: single (radio-like) or multiple (checkbox-like)",
     }),
-    value: z.any().meta({
-      description:
-        "The current selected value (string for single, array of strings for multiple)",
-    }),
+    value: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .meta({ description: "Selected value: a string when type is 'single', an array when 'multiple'." }),
     items: z
       .array(
         z.strictObject({
@@ -21,7 +22,7 @@ export const ToggleGroupDef = createComponentDefinition({
             .string()
             .meta({ description: "Value identifier for this item" }),
           label: z.string().meta({ description: "Display label" }),
-          icon: z.string().optional().meta({ description: "Lucide icon name" }),
+          icon: iconNameSchema.optional().meta({ description: "Optional icon for this item." }),
         }),
       )
       .meta({ description: "Array of toggle items" }),
@@ -37,7 +38,9 @@ export const ToggleGroupDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z.strictObject({
-      value: z.any().meta({ description: "The new selected value(s)" }),
+      value: z
+        .union([z.string(), z.array(z.string())])
+        .meta({ description: "The new selection." }),
     }),
   },
 });

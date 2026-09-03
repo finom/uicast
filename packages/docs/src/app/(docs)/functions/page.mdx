@@ -104,6 +104,11 @@ A scalar schema is fine too: with `inputSchema: z.string()` the call is
 `deleteProduct(string)`. An object gives each field a name and a description the
 model can read, which is why the catalog's tools use one.
 
+A function whose fields are all optional is still called with an object, or
+with nothing: `listProducts()` passes `undefined`, which a bare `z.object`
+rejects. Declare the input as `schema.optional()` when the zero-argument form
+should be valid; the prompt prints it the same way.
+
 Functions are merged into the expression context **last**, so a tool named
 `scopes`, `evt`, or `currentValue` would shadow the engine's own bindings. Those
 three are refused at prompt assembly, as are duplicate names:
@@ -162,6 +167,38 @@ Step one has no `set` — it runs for its effect alone. A host-function step is 
 barrier, so the re-fetch waits for the delete, and `confirm` gates both. Step
 ordering in full: [Reactivity](/entry/reactivity#effectful-sites-ordering).
 
+### Windows and aggregates
+
+A function that can return a lot should take a window, and the schema is where
+the model learns it:
+
+```ts
+standardTool({
+  name: "listProducts",
+  description: "A page of products, by name by default.",
+  inputSchema: z.object({
+    limit: z.number().int().min(1).max(200).default(50).meta({ description: "Rows to return." }),
+    offset: z.number().int().min(0).default(0).meta({ description: "Rows to skip." }),
+    q: z.string().optional().meta({ description: "Matches the name, case-insensitive." }),
+  }).optional(),
+  outputSchema: z.object({
+    items: z.array(product),
+    total: z.number().int().meta({ description: "Rows matching the filters, all pages." }),
+  }),
+  execute: (input) => fetchProducts(input ?? {}),
+});
+```
+
+The prompt renders the bounds and defaults next to each field, and its rules
+tell the model to ask for the slice it renders, to refetch from the callback
+that changes the page or a filter, and never to filter or sort a fetched slice
+in an expression. Return the count with the rows: a pager needs
+`Math.ceil(total / limit)`, and a reduce over one page cannot produce it. A
+function that returns rows alone still pages, with `Pagination`'s `hasNext`
+(`rows.length === limit`) in place of `totalPages`. Other totals belong in a
+function of their own: `getSalesSummary({ days })` returning a count and a sum
+is read as data.
+
 ## Advertising to the model
 
 The model can only call a function it was told about.
@@ -198,20 +235,22 @@ listProducts, deleteProduct
 # Function Details
 
 - listProducts() => {
-    id: number;
+    id: number /* integer */;
     name: string;
   }[]: Return every product, newest first.
 - deleteProduct({
-    id: number /* Product id. */;
+    id: number /* Product id. integer */;
   }) => unknown: Delete a product by id.
 ```
 
 One bullet per tool: `name(params) => output: title — description`. A tool
 without a `title` prints `name(params) => output: description`. An object type
 is printed over several lines, one field per line, and a field's
-`.meta({ description })` becomes a comment next to it. A tool with no
-`inputSchema` prints empty parens; one with no `outputSchema` prints
-`=> unknown`.
+`.meta({ description })` becomes a comment next to it, followed by what the
+type alone does not say: `integer`, bounds (`≥ 1, ≤ 200`), lengths, a
+`format`, a `default`. The model sees `limit?: number /* integer, ≥ 1, ≤ 200,
+default 50 */` and calls within it. A tool with no `inputSchema` prints empty
+parens; one with no `outputSchema` prints `=> unknown`.
 
 Never declare a schema for "nothing" — `z.void()` has no JSON Schema form and
 throws.

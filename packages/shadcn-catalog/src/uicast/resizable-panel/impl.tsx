@@ -14,8 +14,7 @@ export const ResizablePanelImpl = createComponentImplementation({
     defaultSize,
     minSize,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const childArray = Children.toArray(children);
     const firstChild = childArray[0] ?? null;
     const secondChild = childArray.slice(1);
@@ -24,7 +23,7 @@ export const ResizablePanelImpl = createComponentImplementation({
       <ResizablePanelGroup
         orientation={direction}
         className="min-h-50 rounded-lg border"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <ResizablePanel defaultSize={defaultSize} minSize={minSize}>
           <div className="h-full overflow-auto">{firstChild}</div>

@@ -7,7 +7,7 @@ export const AspectRatioDef = createComponentDefinition({
     "A fixed aspect ratio box for images, video, or embeds. Maintains a consistent aspect ratio regardless of content. Use AspectRatio for responsive images, video embeds, maps, or any content that needs a fixed proportional size.",
   props: z.strictObject({
     ratio: z
-      .number()
+      .number().positive()
       .default(16 / 9)
       .meta({
         description:

@@ -11,15 +11,14 @@ export const MapImpl = createComponentImplementation({
     width,
     height,
     onMarkerClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const tileUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${center.lng - 0.05},${center.lat - 0.03},${center.lng + 0.05},${center.lat + 0.03}&layer=mapnik`;
 
     return (
       <div
         className="relative overflow-hidden rounded-lg border"
         style={{ width, height }}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <iframe
           src={tileUrl}

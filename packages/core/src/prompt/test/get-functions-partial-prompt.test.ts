@@ -15,6 +15,19 @@ describe("getFunctionsPartialPrompt", () => {
 		);
 	});
 
+	it("prints an intersection input without a second pair of parentheses", () => {
+		const window = z.object({ limit: z.number().int().optional() }).meta({ id: "Window" });
+		const search = standardTool({
+			name: "search",
+			description: "Search.",
+			inputSchema: window.and(z.object({ q: z.string().optional() })),
+			execute: async () => undefined,
+		});
+		const prompt = getFunctionsPartialPrompt({ functions: [search] });
+		expect(prompt).toContain("- search(Window & {");
+		expect(prompt).not.toContain("((");
+	});
+
 	it("renders object schemas multiline with per-field descriptions", () => {
 		const updateOrder = standardTool({
 			name: "updateOrder",
@@ -32,10 +45,10 @@ describe("getFunctionsPartialPrompt", () => {
 		expect(prompt).toContain(
 			[
 				"- updateOrder({",
-				"    id: number /* Order id. */;",
-				"    qty?: number /* Quantity ordered. */;",
+				"    id: number /* Order id. integer */;",
+				"    qty?: number /* Quantity ordered. integer */;",
 				"  }) => {",
-				"    id: number /* Order id. */;",
+				"    id: number /* Order id. integer */;",
 				"  }: Update an order.",
 			].join("\n"),
 		);

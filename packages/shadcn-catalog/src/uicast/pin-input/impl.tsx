@@ -17,8 +17,7 @@ export const PinInputImpl = createComponentImplementation({
     onComplete,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const chars = value.split("").slice(0, length);
 
@@ -45,7 +44,7 @@ export const PinInputImpl = createComponentImplementation({
     };
 
     return (
-      <div className="flex gap-2" data-key={generatedKey}>
+      <div className="flex gap-2" data-key={entry.key}>
         {Array.from({ length }).map((_, i) => (
           <Input
             key={i}

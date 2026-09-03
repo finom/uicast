@@ -23,8 +23,8 @@ export const PageHeaderDef = createComponentDefinition({
   }),
   callbacks: {
     onBreadcrumbClick: z
-      .object({
-        index: z.number().meta({ description: "The clicked breadcrumb index" }),
+      .strictObject({
+        index: z.number().int().nonnegative().meta({ description: "The clicked breadcrumb index" }),
         label: z.string().meta({ description: "The clicked breadcrumb label" }),
       })
       .meta({ description: "Callback when a breadcrumb is clicked" }),

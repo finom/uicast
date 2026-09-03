@@ -7,7 +7,7 @@ import { ColorFieldDef } from "./def";
 /** Two drag surfaces: the SL square (x = saturation, y = lightness, top = light) and a hue strip. */
 export const ColorFieldRenderer = createComponentImplementation({
   def: ColorFieldDef,
-  render: ({ h = 220, s = 80, l = 55, onPick, generatedKey }) => {
+  render: ({ h = 220, s = 80, l = 55, onPick}, { entry }) => {
     const sqRef = useRef<HTMLDivElement>(null);
     const sqDrag = useRef(false);
     const hueRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ export const ColorFieldRenderer = createComponentImplementation({
     };
 
     return (
-      <div data-key={generatedKey} className="flex select-none flex-col gap-3">
+      <div data-key={entry.key} className="flex select-none flex-col gap-3">
         <div
           ref={sqRef}
           className="relative aspect-4/3 w-full cursor-crosshair overflow-hidden rounded-lg border border-border"

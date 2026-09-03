@@ -1,12 +1,12 @@
 import { createComponentImplementation } from "@uicast/react";
 import { HighlightDef } from "./def";
 
-const colorMap: Record<string, string> = {
+const BACKGROUNDS = {
   yellow: "bg-yellow-200 dark:bg-yellow-800/50",
   green: "bg-green-200 dark:bg-green-800/50",
   blue: "bg-blue-200 dark:bg-blue-800/50",
   red: "bg-red-200 dark:bg-red-800/50",
-};
+} as const;
 
 export const HighlightImpl = createComponentImplementation({
   def: HighlightDef,
@@ -15,10 +15,9 @@ export const HighlightImpl = createComponentImplementation({
     highlight,
     color,
     caseSensitive,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     if (!highlight) {
-      return <span data-key={generatedKey}>{text}</span>;
+      return <span data-key={entry.key}>{text}</span>;
     }
 
     const flags = caseSensitive ? "g" : "gi";
@@ -26,13 +25,10 @@ export const HighlightImpl = createComponentImplementation({
     const regex = new RegExp(`(${escapedHighlight})`, flags);
     const parts = text.split(regex);
 
-    // A named color resolves through the map; anything else is treated as a
-    // raw CSS color via inline style (a runtime-built Tailwind class like
-    // `bg-${color}-200` is never compiled, so it can't work).
-    const bgClass = colorMap[color];
+    const bgClass = BACKGROUNDS[color];
 
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         {parts.map((part, i) => {
           const isMatch = caseSensitive
             ? part === highlight
@@ -40,8 +36,7 @@ export const HighlightImpl = createComponentImplementation({
           return isMatch ? (
             <mark
               key={i}
-              className={`${bgClass ?? ""} px-0.5 rounded-sm`}
-              style={bgClass ? undefined : { backgroundColor: color }}
+              className={`${bgClass} px-0.5 rounded-sm`}
             >
               {part}
             </mark>

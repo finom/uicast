@@ -1,6 +1,6 @@
 "use client";
 import React, { Component, type ReactNode } from "react";
-import { EntryError } from "@uicast/core";
+import { EntryError, type EntryErrorReason } from "@uicast/core";
 import type { ErrorComponentProps } from "../types";
 
 // Default for the `error` slot: a bare inline-styled div, no host CSS needed.
@@ -26,11 +26,13 @@ interface ErrorBoundaryProps {
   resetToken?: unknown;
   // Reported once per caught error, after classification.
   onError?: (error: EntryError) => void;
+  // What an unclassified throw from the children counts as. Default "unknown".
+  reason?: EntryErrorReason;
   children: ReactNode;
 }
 
 interface ErrorBoundaryState {
-  error: EntryError | null;
+  caught: unknown;
   resetToken?: unknown;
 }
 
@@ -38,13 +40,22 @@ export class ErrorBoundary extends Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  state: ErrorBoundaryState = { error: null, resetToken: this.props.resetToken };
+  state: ErrorBoundaryState = { caught: null, resetToken: this.props.resetToken };
+  private classified: { caught: unknown; error: EntryError } | null = null;
 
   static getDerivedStateFromError(error: unknown): Partial<ErrorBoundaryState> {
-    // Instrumented paths (evaluator, host functions, seeds, impls) throw
-    // already-classified EntryErrors, which wrap() passes through; anything
-    // else escaped uninstrumented code — the defensive "unknown".
-    return { error: EntryError.wrap(error, "unknown") };
+    return { caught: error };
+  }
+
+  // Instrumented paths (evaluator, host functions, seeds) throw classified
+  // EntryErrors, which wrap() passes through; anything else escaped
+  // uninstrumented code and gets the caller's `reason`.
+  private classify(caught: unknown): EntryError {
+    const hit = this.classified;
+    if (hit && hit.caught === caught) return hit.error;
+    const error = EntryError.wrap(caught, this.props.reason ?? "unknown");
+    this.classified = { caught, error };
+    return error;
   }
 
   static getDerivedStateFromProps(
@@ -52,16 +63,14 @@ export class ErrorBoundary extends Component<
     state: ErrorBoundaryState,
   ): Partial<ErrorBoundaryState> | null {
     if (state.resetToken !== props.resetToken) {
-      return { error: null, resetToken: props.resetToken };
+      return { caught: null, resetToken: props.resetToken };
     }
     return null;
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // State from getDerivedStateFromError is applied by now — this is the
-    // same object the error slot renders and the one reported to the host.
-    const entryError =
-      this.state.error ?? EntryError.wrap(error, "unknown");
+    // The same object the error slot renders.
+    const entryError = this.classify(this.state.caught ?? error);
     if (!entryError.elementKey && this.props.elementKey) {
       entryError.elementKey = this.props.elementKey;
     }
@@ -74,8 +83,8 @@ export class ErrorBoundary extends Component<
   }
 
   render() {
-    const { error } = this.state;
-    if (!error) return this.props.children;
+    if (this.state.caught === null) return this.props.children;
+    const error = this.classify(this.state.caught);
 
     const { errorComponent: ErrorComponent, fallback, elementKey } = this.props;
     if (ErrorComponent) {

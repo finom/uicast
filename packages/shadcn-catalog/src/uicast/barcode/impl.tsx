@@ -5,7 +5,7 @@ import { BarcodeDef } from "./def";
 // Simple barcode renderer using a CSS bars pattern; swap in `JsBarcode` for real use.
 export const BarcodeImpl = createComponentImplementation({
   def: BarcodeDef,
-  render: ({ value, height, showText, generatedKey }) => {
+  render: ({ value, height, showText}, { entry }) => {
     const bars: boolean[] = [];
     for (let i = 0; i < value.length; i++) {
       const charCode = value.charCodeAt(i);
@@ -18,7 +18,7 @@ export const BarcodeImpl = createComponentImplementation({
     return (
       <Card
         className="inline-flex flex-col items-center gap-1 bg-white p-4"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <CardContent className="p-0 flex flex-col items-center gap-1">
           <div className="flex" style={{ height }}>

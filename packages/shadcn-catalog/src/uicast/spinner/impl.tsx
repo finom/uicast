@@ -4,7 +4,7 @@ import { SpinnerDef } from "./def";
 
 export const SpinnerImpl = createComponentImplementation({
   def: SpinnerDef,
-  render: ({ size, label, generatedKey }) => {
+  render: ({ size, label}, { entry }) => {
     const sizeMap: Record<string, string> = {
       sm: "size-4",
       md: "size-6",
@@ -14,7 +14,7 @@ export const SpinnerImpl = createComponentImplementation({
     return (
       <div
         className="flex flex-col items-center justify-center gap-2"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <Loader2
           className={`${sizeMap[size]} animate-spin text-muted-foreground`}

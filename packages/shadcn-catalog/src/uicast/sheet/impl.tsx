@@ -17,10 +17,9 @@ export const SheetImpl = createComponentImplementation({
     side,
     children,
     onOpenChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <ShadcnSheet
           open={open}
           onOpenChange={(v) => onOpenChange({ open: v })}

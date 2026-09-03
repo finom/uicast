@@ -3,8 +3,7 @@ import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
 import { X, Info, CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ICONS } from "../../lib/icons";
 import { BannerDef } from "./def";
 
 export const BannerImpl = createComponentImplementation({
@@ -15,11 +14,10 @@ export const BannerImpl = createComponentImplementation({
     icon,
     onDismiss,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [visible, setVisible] = useState(true);
 
-    if (!visible) return <span data-key={generatedKey} className="hidden" />;
+    if (!visible) return <span data-key={entry.key} className="hidden" />;
 
     const variantConfig = {
       info: {
@@ -49,10 +47,7 @@ export const BannerImpl = createComponentImplementation({
     };
 
     const config = variantConfig[variant];
-    const CustomIcon = icon
-      ? (LucideIcons as unknown as Record<string, LucideIcon>)[icon]
-      : null;
-    const IconComp = CustomIcon ?? config.defaultIcon;
+    const IconComp = icon ? ICONS[icon] : config.defaultIcon;
 
     return (
       <div
@@ -61,7 +56,7 @@ export const BannerImpl = createComponentImplementation({
           config.bg,
           config.border,
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <IconComp className={cn("size-5 shrink-0", config.text)} />
         <div className={cn("flex-1 text-sm", config.text)}>{children}</div>

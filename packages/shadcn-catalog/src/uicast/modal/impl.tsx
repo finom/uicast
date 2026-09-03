@@ -16,10 +16,9 @@ export const ModalImpl = createComponentImplementation({
     description,
     children,
     onOpenChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <Dialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <DialogContent>
             {(title || description) && (

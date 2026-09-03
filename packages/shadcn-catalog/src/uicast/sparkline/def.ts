@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const SparklineDef = createComponentDefinition({
   name: "Sparkline",
@@ -10,14 +11,14 @@ export const SparklineDef = createComponentDefinition({
       description: "Array of numeric values to plot, e.g. [10, 23, 45, 12, 50]",
     }),
     width: z
-      .number()
+      .number().int().positive()
       .default(100)
       .meta({ description: "Sparkline width in pixels" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(30)
       .meta({ description: "Sparkline height in pixels" }),
-    color: z.string().default("#8884d8").meta({ description: "Line color" }),
+    color: chartColorSchema.default("violet").meta({ description: "Line color." }),
     filled: z
       .boolean()
       .default(false)

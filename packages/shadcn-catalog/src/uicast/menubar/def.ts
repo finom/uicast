@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { keyNameSchema } from "../../lib/keys";
 
 export const MenubarDef = createComponentDefinition({
   name: "Menubar",
@@ -16,8 +17,8 @@ export const MenubarDef = createComponentDefinition({
             .array(
               z.strictObject({
                 label: z.string().meta({ description: "Menu item label" }),
-                shortcut: z.string().optional().meta({
-                  description: "Keyboard shortcut text (e.g. ⌘S)",
+                shortcut: z.array(keyNameSchema).optional().meta({
+                  description: "The shortcut's keys, in order.",
                 }),
                 disabled: z.boolean().optional().meta({
                   description: "Whether the item is disabled",
@@ -34,7 +35,7 @@ export const MenubarDef = createComponentDefinition({
   }),
   callbacks: {
     onAction: z
-      .object({
+      .strictObject({
         menuLabel: z.string().meta({
           description: "The label of the parent menu",
         }),

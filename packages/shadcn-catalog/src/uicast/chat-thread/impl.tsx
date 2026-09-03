@@ -9,9 +9,9 @@ import { ChatThreadDef } from "./def";
 
 export const ChatThreadImpl = createComponentImplementation({
   def: ChatThreadDef,
-  render: ({ messages = [], onMessageClick, generatedKey }) => {
+  render: ({ messages = [], onMessageClick}, { entry }) => {
     return (
-      <div className="space-y-4 p-4" data-key={generatedKey}>
+      <div className="space-y-4 p-4" data-key={entry.key}>
         {messages.map((msg) => (
           <div
             key={msg.id}

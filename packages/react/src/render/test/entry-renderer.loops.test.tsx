@@ -28,12 +28,12 @@ function countingSetup() {
   const counts: Record<string, number> = {};
   const impl = createComponentImplementation({
     def: boxDef,
-    render: ({ text, children, generatedKey }) => {
-      counts[generatedKey] = (counts[generatedKey] ?? 0) + 1;
-      if (counts[generatedKey] > 50)
-        throw new Error(`runaway render loop on "${generatedKey}"`);
+    render: ({ text, children}, { entry }) => {
+      counts[entry.key] = (counts[entry.key] ?? 0) + 1;
+      if (counts[entry.key] > 50)
+        throw new Error(`runaway render loop on "${entry.key}"`);
       return (
-        <div data-key={generatedKey}>
+        <div data-key={entry.key}>
           {text}
           {children}
         </div>

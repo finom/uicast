@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const ScatterChartDef = createComponentDefinition({
   name: "ScatterChart",
@@ -19,13 +20,12 @@ export const ScatterChartDef = createComponentDefinition({
       }),
     xKey: z.string().meta({ description: "The key for x-axis values" }),
     yKey: z.string().meta({ description: "The key for y-axis values" }),
-    nameKey: z
-      .string()
-      .optional()
-      .meta({ description: "Optional key for point labels" }),
-    color: z.string().default("#8884d8").meta({ description: "Dot color" }),
+    nameKey: chartColorSchema
+            .optional()
+            .meta({ description: "Optional key for point labels." }),
+    color: chartColorSchema.default("violet").meta({ description: "Dot color." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
   }),

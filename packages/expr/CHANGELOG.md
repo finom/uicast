@@ -4,6 +4,8 @@
 
 ### Changed
 
+- **Breaking: `ALLOWED_GLOBALS` and `DEFAULT_BUDGET` moved to `@uicast/expr/internal`.** They are the language's own tables, read by core's prompt builder and the passthrough package, not something a host calls. The index is `Evaluator`, `ExpressionEvaluator`, `ExpressionError` and the option and tool types.
+- **Exit gate checks arrays and plain objects first.** The same refusals, fewer `instanceof` tests on the common case; a result object leaves both evaluators faster.
 - **Charging moved into the membrane.** One step per method or global call and the result's size, charged after the call; a method charges only its own proportional work and output that can outgrow its input. A function result is refused at the call. One `Budget` per evaluation, none shared.
 - **`ExpressionEvaluator`, the interface.** `Evaluator` implements it, so does `PassthroughEvaluator`, and uicast types against it. Implement it to plug in an evaluator of your own.
 - **The `new Function` back end is its own package.** `mode: "native"` is gone; `@uicast/expr-passthrough` ships `PassthroughEvaluator` with the same options, minus `budget`. This package now contains no `new Function` at all — a dependency scan of the shipped code finds none. The static half of the language — parser, validator, analysis, host-function binding, the exit gate — is exported from `@uicast/expr/internal` so the passthrough package checks exactly the same grammar; uicast types against its own `ExpressionEvaluator` interface in `@uicast/core`, which both satisfy.
@@ -52,92 +54,42 @@
 
 ## 0.0.1-beta.0
 
-Initial release. Extracted from `@uicast/core`'s expression evaluator and
-rebuilt as a boundary rather than a guardrail.
+Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuilt as a boundary rather than a guardrail.
 
-- **No `new Function`.** Expressions are parsed once with acorn and compiled to a
-  tree of closures. Nothing hands source to the JavaScript engine, so uicast runs
-  under a strict Content-Security-Policy with no `unsafe-eval`.
-- **Closed AST allow-list.** The grammar is a fixed set of node types. There are
-  no statements, so no loops and no `try`/`catch`; no declarations and no
-  `function` keyword, so nothing can be named; no assignment, so an expression is
-  pure structurally rather than by convention. The operator set is trimmed to
-  what a display value needs — no `in`, no bitwise operators — and an optional
-  *call* (`x?.()`) is rejected in favour of an optional *receiver* (`x?.y()`).
-- **Runtime membrane.** Every property read and every call resolves through one
-  chokepoint that sees the resolved key, closing the computed-key escape class
-  (`obj["con"+"structor"]`). Plain objects are read by own property only, and
-  only plain data is readable — a class instance, DOM node, or function is
-  refused at the boundary.
-- **CPU and allocation budget.** Step counter, wall-clock deadline, string and
-  array caps, and an AST depth limit.
-- No regular expressions: ReDoS runs inside the regex engine where no counter
-  can reach it.
+- **No `new Function`.** Expressions are parsed once with acorn and compiled to a tree of closures. Nothing hands source to the JavaScript engine, so uicast runs under a strict Content-Security-Policy with no `unsafe-eval`.
+- **Closed AST allow-list.** The grammar is a fixed set of node types. There are no statements, so no loops and no `try`/`catch`; no declarations and no `function` keyword, so nothing can be named; no assignment, so an expression is pure structurally rather than by convention. The operator set is trimmed to what a display value needs — no `in`, no bitwise operators — and an optional *call* (`x?.()`) is rejected in favour of an optional *receiver* (`x?.y()`).
+- **Runtime membrane.** Every property read and every call resolves through one chokepoint that sees the resolved key, closing the computed-key escape class (`obj["con"+"structor"]`). Plain objects are read by own property only, and only plain data is readable — a class instance, DOM node, or function is refused at the boundary.
+- **CPU and allocation budget.** Step counter, wall-clock deadline, string and array caps, and an AST depth limit.
+- No regular expressions: ReDoS runs inside the regex engine where no counter can reach it.
 
 ### Prompt
 
-`getExpressionsPartialPrompt({ allowGlobals?, note? })` (exported from
-`@uicast/expr/prompt`) returns the
-`# JavaScript Expressions` block: the syntax, the method allow-list, and the
-globals. It lives here because it is a description of `grammar.ts`,
-`membrane.ts`, and `globals.ts`, and the globals slot is filled from
-`ALLOWED_GLOBALS` itself, so that half cannot drift from what the evaluator
-accepts. `note` appends host-specific context as a trailing `## Note`. Hosts
-embedding the evaluator describe their own context variables separately.
+`getExpressionsPartialPrompt({ allowGlobals?, note? })` (exported from `@uicast/expr/prompt`) returns the `# JavaScript Expressions` block: the syntax, the method allow-list, and the globals. It lives here because it is a description of `grammar.ts`, `membrane.ts`, and `globals.ts`, and the globals slot is filled from `ALLOWED_GLOBALS` itself, so that half cannot drift from what the evaluator accepts. `note` appends host-specific context as a trailing `## Note`. Hosts embedding the evaluator describe their own context variables separately.
 
 ### Back ends
 
-Two, selected with `mode` — different threat models, not two strengths of one
-guarantee.
+Two, selected with `mode` — different threat models, not two strengths of one guarantee.
 
-- `interpret` (default) compiles the AST to a closure tree this package runs
-  itself, checking every read and call as it happens. Nothing is trusted. No
-  `new Function`, so no CSP `unsafe-eval`.
-- `native` validates against the same grammar and then runs the expression with
-  `new Function`. For documents the host generated itself, where the model is
-  the first line of defence and `unsafe-eval` is acceptable. Within a few
-  percent of raw `new Function` once a callback is involved.
+- `interpret` (default) compiles the AST to a closure tree this package runs itself, checking every read and call as it happens. Nothing is trusted. No `new Function`, so no CSP `unsafe-eval`.
+- `native` validates against the same grammar and then runs the expression with `new Function`. For documents the host generated itself, where the model is the first line of defence and `unsafe-eval` is acceptable. Within a few percent of raw `new Function` once a callback is involved.
 
-`native` still enforces everything the shared validator can decide without
-running anything: no statements, declarations, assignment, regular expressions,
-tagged templates, `eval`, or immediately-invoked functions; no prototype-reaching
-property name that is *written down*, including `obj["constructor"]`; and no free
-identifier the host did not hand in. Its residual is the case a static pass
-cannot decide — a property name assembled at run time, `obj["con"+"structor"]` —
-plus uncapped allocation and the real prototype methods.
+`native` still enforces everything the shared validator can decide without running anything: no statements, declarations, assignment, regular expressions, tagged templates, `eval`, or immediately-invoked functions; no prototype-reaching property name that is *written down*, including `obj["constructor"]`; and no free identifier the host did not hand in. Its residual is the case a static pass cannot decide — a property name assembled at run time, `obj["con"+"structor"]` — plus uncapped allocation and the real prototype methods.
 
-A parity suite runs one shared corpus through both back ends and plain
-JavaScript and requires all three to agree, requires both to refuse everything
-the grammar forbids, and asserts the residual explicitly in both directions so
-the difference between the modes stays visible in CI.
+A parity suite runs one shared corpus through both back ends and plain JavaScript and requires all three to agree, requires both to refuse everything the grammar forbids, and asserts the residual explicitly in both directions so the difference between the modes stays visible in CI.
 
 ### Layout
 
-`src/` holds the shared language machinery — parse, validate, grammar, membrane,
-budget, globals, analyze. The back ends sit beside it: `src/interpret/` compiles
-the AST to a closure tree (the default, and the reason there is no `unsafe-eval`
-requirement), and `src/native/` validates and then runs the source with `new Function`.
-`index.ts` wires whichever one is selected, so the two differ in mechanism and
-never in policy.
+`src/` holds the shared language machinery — parse, validate, grammar, membrane, budget, globals, analyze. The back ends sit beside it: `src/interpret/` compiles the AST to a closure tree (the default, and the reason there is no `unsafe-eval` requirement), and `src/native/` validates and then runs the source with `new Function`. `index.ts` wires whichever one is selected, so the two differ in mechanism and never in policy.
 
 ### Performance
 
-Everything that can be settled while compiling is, so evaluation is closures
-calling closures:
+Everything that can be settled while compiling is, so evaluation is closures calling closures:
 
-- Identifiers resolve to a `(depth, slot)` frame address at compile time — the
-  run-time frame is a values array, never searched by name.
+- Identifiers resolve to a `(depth, slot)` frame address at compile time — the run-time frame is a values array, never searched by name.
 - A plain member chain `a.b.c` fuses into one closure walking a key array.
-- Operator implementations are resolved once; a subtree that cannot produce a
-  Promise gets a direct closure, not one that checks.
-- Callback arguments are positional into a slots array — no per-element argument
-  array, no per-call `Map`.
-- The budget is charged statically: one tick per callback invocation, costed by
-  the arrow's node count, instead of one per node.
-- Sync evaluations reuse one `Budget`, host-function wrappers and native
-  parameter shapes are cached, so the steady-state per-eval allocation is close
-  to zero.
+- Operator implementations are resolved once; a subtree that cannot produce a Promise gets a direct closure, not one that checks.
+- Callback arguments are positional into a slots array — no per-element argument array, no per-call `Map`.
+- The budget is charged statically: one tick per callback invocation, costed by the arrow's node count, instead of one per node.
+- Sync evaluations reuse one `Budget`, host-function wrappers and native parameter shapes are cached, so the steady-state per-eval allocation is close to zero.
 
-Measured, interpret / native / bare `new Function`:
-`scopes.root.count > 0` ~72 / ~60 / ~20 ns; a 1000-row `.filter()`
-~25 µs / ~1.44 µs / ~1.36 µs; a 1000-row `.reduce()` ~80 µs / ~1.04 µs / ~0.96 µs.
+Measured, interpret / native / bare `new Function`: `scopes.root.count > 0` ~72 / ~60 / ~20 ns; a 1000-row `.filter()` ~25 µs / ~1.44 µs / ~1.36 µs; a 1000-row `.reduce()` ~80 µs / ~1.04 µs / ~0.96 µs.

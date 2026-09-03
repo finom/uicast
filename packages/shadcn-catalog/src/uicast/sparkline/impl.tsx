@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   LineChart,
   Line,
@@ -7,6 +8,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { SparklineDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
@@ -16,15 +18,14 @@ export const SparklineImpl = createComponentImplementation({
     height,
     color,
     filled,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const chartData = data.map((value, i) => ({ i, value }));
 
     return (
       <div
-        className="inline-flex items-center"
+        className={cn("inline-flex items-center", busy(loading))}
         style={{ width, height }}
-        data-key={generatedKey}
+        aria-busy={loading || undefined} data-key={entry.key}
       >
         <ResponsiveContainer width="100%" height="100%">
           {filled ? (
@@ -32,8 +33,8 @@ export const SparklineImpl = createComponentImplementation({
               <Area
                 type="monotone"
                 dataKey="value"
-                stroke={color}
-                fill={color}
+                stroke={CHART_COLORS[color]}
+                fill={CHART_COLORS[color]}
                 fillOpacity={0.2}
                 strokeWidth={1.5}
                 dot={false}
@@ -45,7 +46,7 @@ export const SparklineImpl = createComponentImplementation({
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke={color}
+                stroke={CHART_COLORS[color]}
                 strokeWidth={1.5}
                 dot={false}
                 isAnimationActive={false}

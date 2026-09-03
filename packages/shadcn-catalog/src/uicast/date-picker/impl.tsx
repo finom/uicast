@@ -4,7 +4,7 @@ import { DatePickerDef } from "./def";
 
 export const DatePickerImpl = createComponentImplementation({
   def: DatePickerDef,
-  render: ({ value, min, max, disabled, onChange, generatedKey }) => {
+  render: ({ value, min, max, disabled, onChange}, { entry }) => {
     return (
       <Input
         type="date"
@@ -13,7 +13,7 @@ export const DatePickerImpl = createComponentImplementation({
         max={max}
         disabled={disabled}
         onChange={(e) => onChange({ value: e.target.value })}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

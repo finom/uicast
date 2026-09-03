@@ -90,7 +90,9 @@ component. It:
    `currentValue`, then writes the result to the step's `set` path;
 4. asks first if a step carries a `confirm`; on cancel, that step **and every one
    after it** are skipped;
-5. yields for a tick between waves, so a write lands before a dependent
+5. from a step carrying `debounce`, waits for 300 ms of quiet and runs the rest
+   once, for the latest call;
+6. yields for a tick between waves, so a write lands before a dependent
    expression reads it.
 
 Every callback the def declares is callable, whether or not the entry wired it.
@@ -114,7 +116,7 @@ write, so the path is named once:
 `scopes.root.tags` was seeded to `[]`, so each event appends to what is already
 there.
 
-**Confirm before damage** — [`confirm`](/entry/value-sources#confirmablevaluesourceassignment)
+**Confirm before damage** — [`confirm`](/entry/value-sources#callbackvaluesourceassignment)
 is a sibling key on the step:
 
 ```jsonc
@@ -125,3 +127,31 @@ is a sibling key on the step:
 ```
 
 Gating the first step is enough — decline, and the refetch never runs either.
+
+**Search as you type** — [`debounce`](/entry/value-sources#callbackvaluesourceassignment) on the
+fetch, not on the write:
+
+```jsonc
+{ "callbacks": { "onChange": [
+  { "set": "scopes.root.q", "expr": "evt.value" },
+  { "set": "scopes.root.tasks", "expr": "searchTasks({ q: scopes.root.q })", "debounce": true }
+] } }
+```
+
+The field updates on every keystroke; the request goes out once, 300 ms after
+the last one.
+
+**Busy while refreshing** — a flag around the fetch drives the table's
+[`loading`](/entry/fields#loading):
+
+```jsonc
+{ "key": "rows", "component": "Table", "loading": "scopes.root.busy", "children": ["head", "body"] }
+{ "callbacks": { "onPageChange": [
+  { "set": "scopes.root.page", "expr": "evt.page" },
+  { "set": "scopes.root.busy", "literal": true },
+  { "set": "scopes.root.tasks", "expr": "listTasks({ page: scopes.root.page })" },
+  { "set": "scopes.root.busy", "literal": false }
+] } }
+```
+
+The host call is a barrier, so the last step runs after the rows landed.

@@ -26,8 +26,7 @@ export const CurrencyInputImpl = createComponentImplementation({
     onChange,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const symbol = currencySymbols[currency] ?? currency;
     const displayValue = value != null ? String(value) : "";
 
@@ -43,7 +42,7 @@ export const CurrencyInputImpl = createComponentImplementation({
     };
 
     return (
-      <div className="relative" data-key={generatedKey}>
+      <div className="relative" data-key={entry.key}>
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
           {symbol}
         </span>

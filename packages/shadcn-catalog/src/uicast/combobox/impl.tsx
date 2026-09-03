@@ -28,8 +28,7 @@ export const ComboboxImpl = createComponentImplementation({
     disabled,
     emptyMessage,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [open, setOpen] = useState(false);
     const selectedOption = options.find((o) => o.value === value);
 
@@ -42,7 +41,7 @@ export const ComboboxImpl = createComponentImplementation({
             aria-expanded={open}
             className="w-full justify-between"
             disabled={disabled}
-            data-key={generatedKey}
+            data-key={entry.key}
           >
             {selectedOption ? selectedOption.label : placeholder}
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />

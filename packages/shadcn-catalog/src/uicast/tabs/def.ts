@@ -12,7 +12,7 @@ export const TabsDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z
-      .object({
+      .strictObject({
         value: z.string().meta({ description: "The newly selected tab value" }),
       })
       .meta({ description: "Callback when the active tab changes" }),

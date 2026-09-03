@@ -15,6 +15,7 @@ import {
   updateProduct,
 } from "./products";
 import { createStockMovement, listStockMovements } from "./stock-movements";
+import { getSalesSummary, getStockSummary } from "./summaries";
 import {
   createSupplier,
   deleteSupplier,
@@ -27,6 +28,7 @@ export * from "./customers";
 export * from "./orders";
 export * from "./products";
 export * from "./stock-movements";
+export * from "./summaries";
 export * from "./suppliers";
 
 // The full set handed to the prompt assembler (getFunctionsPartialPrompt) so the
@@ -55,4 +57,6 @@ export const domainTools: StandardToolV0[] = [
   deleteSupplier,
   listStockMovements,
   createStockMovement,
+  getSalesSummary,
+  getStockSummary,
 ];

@@ -1,5 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import { GaugeChartDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 export const GaugeChartImpl = createComponentImplementation({
   def: GaugeChartDef,
@@ -10,8 +12,7 @@ export const GaugeChartImpl = createComponentImplementation({
     label,
     color,
     height,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const range = max - min;
     const percentage = Math.min(Math.max((value - min) / range, 0), 1);
     const angle = percentage * 180;
@@ -30,7 +31,7 @@ export const GaugeChartImpl = createComponentImplementation({
     const valuePath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 ${largeArc} 1 ${endX} ${endY}`;
 
     return (
-      <div className="flex flex-col items-center" data-key={generatedKey}>
+      <div className={cn("flex flex-col items-center", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <svg width="200" height={height} viewBox="0 0 200 120" aria-hidden="true">
           {/* Background arc */}
           <path
@@ -44,7 +45,7 @@ export const GaugeChartImpl = createComponentImplementation({
           <path
             d={valuePath}
             fill="none"
-            stroke={color}
+            stroke={CHART_COLORS[color]}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />

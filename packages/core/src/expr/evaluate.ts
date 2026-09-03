@@ -1,6 +1,6 @@
 import type { ValueSource } from "../types";
 import { EntryError, type EntryErrorReason } from "../entry-error";
-import { CONTEXT_NAMES } from "./context-names";
+import { CONTEXT_NAMES } from "../constants";
 import type { ExpressionErrorReason, ExpressionEvaluator } from "@uicast/expr";
 
 // One seam for every expression a document evaluates: the host's evaluator runs it, and every failure comes back as a classified EntryError.

@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { ImageDef } from "./def";
+import { height as toHeight, width as toWidth } from "../../lib/sizes";
 
 export const ImageImpl = createComponentImplementation({
   def: ImageDef,
@@ -12,8 +13,7 @@ export const ImageImpl = createComponentImplementation({
     rounded,
     objectFit,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const radiusMap: Record<string, string> = {
       none: "rounded-none",
       sm: "rounded-sm",
@@ -32,9 +32,9 @@ export const ImageImpl = createComponentImplementation({
         src={src}
         alt={alt}
         className={`${radiusMap[rounded]} ${fitMap[objectFit]}`}
-        style={{ width: width ?? "100%", height: height ?? "auto" }}
+        style={{ width: toWidth(width ?? "full"), height: toHeight(height ?? "auto") }}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

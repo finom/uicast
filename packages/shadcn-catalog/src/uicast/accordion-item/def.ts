@@ -15,7 +15,7 @@ export const AccordionItemDef = createComponentDefinition({
   }),
   callbacks: {
     onToggle: z
-      .object({
+      .strictObject({
         open: z.boolean().meta({
           description: "The new open state after toggling",
         }),

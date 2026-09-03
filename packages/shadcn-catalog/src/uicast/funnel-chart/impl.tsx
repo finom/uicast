@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   FunnelChart as RechartsFunnelChart,
   Funnel,
@@ -11,7 +12,7 @@ import { FunnelChartDef } from "./def";
 
 export const FunnelChartImpl = createComponentImplementation({
   def: FunnelChartDef,
-  render: ({ data = [], colors, height, generatedKey }) => {
+  render: ({ data = [], colors, height}, { entry, loading }) => {
     const defaultColors = [
       "#8884d8",
       "#83a6ed",
@@ -30,7 +31,7 @@ export const FunnelChartImpl = createComponentImplementation({
       fill: stageColors[i % stageColors.length],
     }));
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsFunnelChart>
             <Tooltip />

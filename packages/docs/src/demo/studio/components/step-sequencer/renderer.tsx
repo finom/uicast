@@ -10,10 +10,9 @@ export const StepSequencerRenderer = createComponentImplementation({
     pattern = [],
     playhead = -1,
     onToggle,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <div data-key={generatedKey} className="flex select-none flex-col gap-1.5">
+      <div data-key={entry.key} className="flex select-none flex-col gap-1.5">
         {tracks.map((track, ti) => (
           <div key={track.id} className="flex items-center gap-2">
             <span className="w-12 shrink-0 text-right text-xs font-medium text-muted-foreground">

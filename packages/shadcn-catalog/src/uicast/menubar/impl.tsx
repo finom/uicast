@@ -12,9 +12,9 @@ import { MenubarDef } from "./def";
 
 export const MenubarImpl = createComponentImplementation({
   def: MenubarDef,
-  render: ({ menus = [], onAction, generatedKey }) => {
+  render: ({ menus = [], onAction}, { entry }) => {
     return (
-      <Menubar data-key={generatedKey}>
+      <Menubar data-key={entry.key}>
         {menus.map((menu, mi) => (
           <MenubarMenu key={mi}>
             <MenubarTrigger>{menu.label}</MenubarTrigger>
@@ -32,9 +32,9 @@ export const MenubarImpl = createComponentImplementation({
                     }
                   >
                     {item.label}
-                    {item.shortcut && (
-                      <MenubarShortcut>{item.shortcut}</MenubarShortcut>
-                    )}
+                    {item.shortcut?.length ? (
+                      <MenubarShortcut>{item.shortcut.join("+")}</MenubarShortcut>
+                    ) : null}
                   </MenubarItem>
                 </span>
               ))}

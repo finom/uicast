@@ -24,8 +24,11 @@ export interface JSONSchema {
 	maximum?: number;
 	exclusiveMinimum?: number;
 	exclusiveMaximum?: number;
+	multipleOf?: number;
 	minItems?: number;
 	maxItems?: number;
+	uniqueItems?: boolean;
+	default?: unknown;
 	$id?: string;
 	title?: string;
 	description?: string;
@@ -85,30 +88,58 @@ type Ctx = {
 	named: Record<string, string> | null;
 };
 
-/** Recursive worker; a node's `description` renders as a trailing comment at every nesting level. */
+/** Recursive worker; a node's description and constraints render as a trailing comment at every nesting level. */
 function toTs(
 	jsonSchema: unknown,
 	ctx: Ctx,
 	ml: Multiline = null,
 ): string {
 	const base = toTsBase(jsonSchema, ctx, ml);
-	if (
-		jsonSchema !== null &&
-		typeof jsonSchema === "object" &&
-		typeof (jsonSchema as JSONSchema).description === "string"
-	) {
-		// One line, and never a premature close: `*/` inside a description
-		// would truncate the comment (and the type after it).
-		const description = (jsonSchema as JSONSchema).description
-			?.replace(/\s+/g, " ")
-			.replace(/\*\//g, "*")
-			.trim();
-		if (description) return `${base} /* ${description} */`;
-	}
-	return base;
+	const note = annotation(jsonSchema);
+	return note ? `${base} /* ${note} */` : base;
 }
 
-/** Type rendering without the description pass (see `Ctx` for what travels). */
+/** The comment text: the description, then the constraints. One line; a comment close inside it would truncate the type after it, so it is neutered. */
+function annotation(jsonSchema: unknown): string {
+	if (jsonSchema === null || typeof jsonSchema !== "object") return "";
+	const schema = jsonSchema as JSONSchema;
+	const description =
+		typeof schema.description === "string"
+			? schema.description.replace(/\s+/g, " ").trim()
+			: "";
+	return [description, constraints(schema).join(", ")]
+		.filter(Boolean)
+		.join(" ")
+		.replace(/\*\//g, "*");
+}
+
+/** What the type alone does not say — TS has no integer, no bound, no format. A `.int()` stamps ±MAX_SAFE_INTEGER, which is no constraint. */
+function constraints(schema: JSONSchema): string[] {
+	const out: string[] = [];
+	const types = Array.isArray(schema.type) ? schema.type : [schema.type];
+	if (types.includes("integer")) out.push("integer");
+	if (schema.minimum !== undefined && schema.minimum !== -Number.MAX_SAFE_INTEGER) {
+		out.push(`≥ ${schema.minimum}`);
+	}
+	if (schema.maximum !== undefined && schema.maximum !== Number.MAX_SAFE_INTEGER) {
+		out.push(`≤ ${schema.maximum}`);
+	}
+	if (schema.exclusiveMinimum !== undefined) out.push(`> ${schema.exclusiveMinimum}`);
+	if (schema.exclusiveMaximum !== undefined) out.push(`< ${schema.exclusiveMaximum}`);
+	if (schema.multipleOf !== undefined) out.push(`multiple of ${schema.multipleOf}`);
+	if (schema.minLength !== undefined) out.push(`length ≥ ${schema.minLength}`);
+	if (schema.maxLength !== undefined) out.push(`length ≤ ${schema.maxLength}`);
+	// A format comes with a generated pattern; the name says it better.
+	if (schema.format) out.push(`format ${schema.format}`);
+	else if (schema.pattern) out.push(`pattern ${schema.pattern}`);
+	if (schema.minItems !== undefined) out.push(`items ≥ ${schema.minItems}`);
+	if (schema.maxItems !== undefined) out.push(`items ≤ ${schema.maxItems}`);
+	if (schema.uniqueItems) out.push("unique items");
+	if (schema.default !== undefined) out.push(`default ${JSON.stringify(schema.default)}`);
+	return out;
+}
+
+/** Type rendering without the annotation pass (see `Ctx` for what travels). */
 function toTsBase(
 	jsonSchema: unknown,
 	ctx: Ctx,
@@ -130,14 +161,13 @@ function toTsBase(
 		const target = resolveRef(schema.$ref, ctx.root);
 		if (target === undefined) return "unknown";
 		ctx.seen.add(schema.$ref);
-		// When the referencing node has its own description, it wins (it names
+		// When the referencing node has its own annotation, it wins (it names
 		// the field's role at THIS use site) — render the target without its
 		// root annotation so the field isn't double-commented. The target's
 		// nested fields keep their own annotations either way.
-		const resolved =
-			typeof schema.description === "string"
-				? toTsBase(target, ctx, ml)
-				: toTs(target, ctx, ml);
+		const resolved = annotation(schema)
+			? toTsBase(target, ctx, ml)
+			: toTs(target, ctx, ml);
 		ctx.seen.delete(schema.$ref);
 		return resolved;
 	}
@@ -163,11 +193,9 @@ function toTsBase(
 	if (schema.not) return "unknown";
 
 	if (Array.isArray(schema.type)) {
-		// Drop the description on the per-type variants — the wrapper already
-		// annotates the union as a whole; keeping it would stamp every member.
-		const types = schema.type.map((t) =>
-			toTs({ ...schema, type: t, description: undefined }, ctx, ml),
-		);
+		// The per-type variants render bare — the wrapper annotates the union
+		// as a whole; annotating each would stamp every member.
+		const types = schema.type.map((t) => toTsBase({ ...schema, type: t }, ctx, ml));
 		return types.length ? `(${types.join(" | ")})` : "unknown";
 	}
 

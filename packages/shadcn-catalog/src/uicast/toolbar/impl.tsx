@@ -8,8 +8,7 @@ export const ToolbarImpl = createComponentImplementation({
     variant,
     size,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <div
         className={cn(
@@ -20,7 +19,7 @@ export const ToolbarImpl = createComponentImplementation({
           size === "lg" && "p-3",
         )}
         role="toolbar"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

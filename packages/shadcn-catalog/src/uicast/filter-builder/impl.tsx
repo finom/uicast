@@ -10,15 +10,9 @@ import {
   SelectValue,
 } from "../../components/ui/select";
 import { Plus, X } from "lucide-react";
-import { FilterBuilderDef } from "./def";
+import { type Filter, FilterBuilderDef } from "./def";
 
-interface FilterRow {
-  field: string;
-  operator: string;
-  value: string;
-}
-
-const operatorsByType: Record<string, { value: string; label: string }[]> = {
+const operatorsByType: Record<string, { value: Filter["operator"]; label: string }[]> = {
   text: [
     { value: "equals", label: "Equals" },
     { value: "contains", label: "Contains" },
@@ -49,9 +43,8 @@ export const FilterBuilderImpl = createComponentImplementation({
     fields = [],
     filters: initialFilters,
     onApply,
-    generatedKey,
-  }) => {
-    const seedFilters = (): FilterRow[] =>
+  }, { entry }) => {
+    const seedFilters = (): Filter[] =>
       initialFilters ?? [
         { field: fields[0]?.name ?? "", operator: "equals", value: "" },
       ];
@@ -59,7 +52,7 @@ export const FilterBuilderImpl = createComponentImplementation({
     // identity every render, so the mirror resyncs by content — local edits
     // win in between.
     const propsKey = JSON.stringify(initialFilters);
-    const [filters, setFilters] = useState<FilterRow[]>(seedFilters);
+    const [filters, setFilters] = useState<Filter[]>(seedFilters);
     const lastPropsKey = useRef(propsKey);
     if (lastPropsKey.current !== propsKey) {
       lastPropsKey.current = propsKey;
@@ -79,7 +72,7 @@ export const FilterBuilderImpl = createComponentImplementation({
 
     const updateFilter = (
       index: number,
-      key: keyof FilterRow,
+      key: keyof Filter,
       value: string,
     ) => {
       const updated = [...filters];
@@ -92,7 +85,7 @@ export const FilterBuilderImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-3" data-key={generatedKey}>
+      <div className="space-y-3" data-key={entry.key}>
         {filters.map((filter, i) => {
           const fieldType = getFieldType(filter.field);
           const operators = operatorsByType[fieldType] ?? operatorsByType.text;

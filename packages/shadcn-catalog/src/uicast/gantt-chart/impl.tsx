@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { cn } from "../../lib/utils";
+import { cn, busy } from "../../lib/utils";
 import { defaultChartColors } from "../../lib/chart-colors";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { GanttChartDef } from "./def";
@@ -9,12 +9,11 @@ export const GanttChartImpl = createComponentImplementation({
   render: ({
     tasks = [],
     totalUnits,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const unitHeaders = Array.from({ length: totalUnits }, (_, i) => i + 1);
 
     return (
-      <ScrollArea className="rounded-md border" data-key={generatedKey}>
+      <ScrollArea className={cn("rounded-md border", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b">

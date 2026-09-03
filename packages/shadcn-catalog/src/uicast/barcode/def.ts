@@ -9,7 +9,7 @@ export const BarcodeDef = createComponentDefinition({
     value: z.string().meta({
       description: "The value the bar pattern is derived from",
     }),
-    height: z.number().default(100).meta({
+    height: z.number().int().positive().default(100).meta({
       description: "Barcode height in pixels",
     }),
     showText: z.boolean().default(true).meta({

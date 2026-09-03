@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import { pickMouseEvent } from "../../events/mouse";
 import {
   Card,
@@ -11,14 +12,15 @@ import { CardDef } from "./def";
 
 export const CardImpl = createComponentImplementation({
   def: CardDef,
-  render: ({ title, description, children, onClick, generatedKey }) => {
+  render: ({ title, description, children, onClick}, { entry, loading }) => {
     return (
       <Card
         // min-w-0: as a grid/flex item, never let intrinsic content width
-        // (charts, tables) win over the track size.
-        className="min-w-0"
+        // (charts, tables) win over the track size. Off-screen cards skip layout and paint.
+        className={cn("min-w-0 [content-visibility:auto] [contain-intrinsic-size:auto_16rem]", busy(loading))}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        aria-busy={loading || undefined}
+        data-key={entry.key}
       >
         {(title || description) && (
           <CardHeader>

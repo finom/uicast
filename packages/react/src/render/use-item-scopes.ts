@@ -23,7 +23,7 @@ function getItemId(keyBy: string | undefined, item: unknown, index: number, seen
 
 type CachedRow = {
   row: RowScope;
-  // The row's scopes object; null forces a rebuild (parent scopes changed).
+  // The row's scopes object; null forces a rebuild (parent scopes or the `as` name changed).
   scopes: Scopes | null;
   item: unknown;
   index: number;
@@ -39,12 +39,14 @@ export function useItemScopes(
 ): ItemRow[] {
   const cache = useRef<Map<ItemId, CachedRow>>(new Map());
   const prevScopes = useRef<Scopes | null>(null);
+  const prevAs = useRef<string | null>(null);
 
   if (!list) return [];
 
-  if (prevScopes.current !== scopes) {
+  if (prevScopes.current !== scopes || prevAs.current !== list.as) {
     for (const cached of cache.current.values()) cached.scopes = null;
     prevScopes.current = scopes;
+    prevAs.current = list.as;
   }
 
   const seen = new Set<ItemId>();

@@ -21,8 +21,6 @@ export const TagDef = createComponentDefinition({
   }),
   callbacks: {
     onClick: mouseEventSchema,
-    onRemove: z
-      .object({})
-      .meta({ description: "Callback when the remove button is clicked" }),
+    onRemove: z.null().meta({ description: "Callback when the remove button is clicked" }),
   },
 });

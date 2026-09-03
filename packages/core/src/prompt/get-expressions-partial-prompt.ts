@@ -1,4 +1,4 @@
-import { ALLOWED_GLOBALS } from "@uicast/expr";
+import { ALLOWED_GLOBALS } from "@uicast/expr/internal";
 import { DEFAULT_MAX_SOURCE_LENGTH } from "@uicast/expr/internal";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 import { noteSection } from "./note-section";

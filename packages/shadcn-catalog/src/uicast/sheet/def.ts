@@ -21,7 +21,7 @@ export const SheetDef = createComponentDefinition({
   }),
   callbacks: {
     onOpenChange: z
-      .object({
+      .strictObject({
         open: z.boolean().meta({
           description: "The new open state",
         }),

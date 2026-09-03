@@ -11,10 +11,9 @@ export const DateRangePickerImpl = createComponentImplementation({
     max,
     disabled,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <div className="flex items-center gap-2" data-key={generatedKey}>
+      <div className="flex items-center gap-2" data-key={entry.key}>
         <Input
           type="date"
           value={startDate ?? ""}

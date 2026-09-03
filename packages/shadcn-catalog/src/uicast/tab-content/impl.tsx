@@ -4,9 +4,9 @@ import { TabContentDef } from "./def";
 
 export const TabContentImpl = createComponentImplementation({
   def: TabContentDef,
-  render: ({ value, children, generatedKey }) => {
+  render: ({ value, children}, { entry }) => {
     return (
-      <TabsContent value={value} data-key={generatedKey}>
+      <TabsContent value={value} data-key={entry.key}>
         {children}
       </TabsContent>
     );

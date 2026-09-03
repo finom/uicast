@@ -9,13 +9,12 @@ export const SwitchImpl = createComponentImplementation({
     disabled,
     label,
     onChange,
-    generatedKey,
-  }) => {
-    // generatedKey is unique per element, so ids stay unique when several
+  }, { entry }) => {
+    // entry.key is unique per element, so ids stay unique when several
     // switches (even with the same label) render in one document.
-    const id = `switch-${generatedKey}`;
+    const id = `switch-${entry.key}`;
     return (
-      <div className="flex items-center gap-2" data-key={generatedKey}>
+      <div className="flex items-center gap-2" data-key={entry.key}>
         <ShadcnSwitch
           id={id}
           checked={checked}

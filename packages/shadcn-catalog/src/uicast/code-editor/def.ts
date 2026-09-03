@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { languageSchema } from "../../lib/languages";
 
 export const CodeEditorDef = createComponentDefinition({
   name: "CodeEditor",
@@ -9,9 +10,8 @@ export const CodeEditorDef = createComponentDefinition({
     value: z.string().default("").meta({
       description: "The code content",
     }),
-    language: z.string().default("javascript").meta({
-      description:
-        "The programming language of the content (e.g. javascript, python, json) — metadata only, content is not highlighted",
+    language: languageSchema.default("javascript").meta({
+      description: "The language label. Metadata only — the content is not highlighted.",
     }),
     placeholder: z.string().default("Enter code...").meta({
       description: "Placeholder text",
@@ -19,8 +19,8 @@ export const CodeEditorDef = createComponentDefinition({
     disabled: z.boolean().default(false).meta({
       description: "Whether the editor is disabled",
     }),
-    minHeight: z.string().default("200px").meta({
-      description: "Minimum height of the editor",
+    minHeight: z.number().int().positive().default(200).meta({
+      description: "Minimum height in pixels.",
     }),
     showLineNumbers: z.boolean().default(true).meta({
       description: "Whether to show line numbers",

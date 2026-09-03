@@ -5,19 +5,19 @@ import { KnobDef } from "./def";
 
 /**
  * Drag vertically to turn. The indicator line sweeps -135°..+135° across the
- * value range. `data-key={generatedKey}` on the root keeps the demo's
+ * value range. `data-key={entry.key}` on the root keeps the demo's
  * hover-highlight working (line ⇄ element) — the universal catalog convention.
  */
 export const KnobRenderer = createComponentImplementation({
   def: KnobDef,
-  render: ({ value = 50, min = 0, max = 100, label, onTurn, generatedKey }) => {
+  render: ({ value = 50, min = 0, max = 100, label, onTurn }, { entry }) => {
     const drag = useRef<{ startY: number; startVal: number } | null>(null);
     const range = max - min || 1;
     const angle = -135 + ((value - min) / range) * 270;
 
     return (
       <div
-        data-key={generatedKey}
+        data-key={entry.key}
         className="flex select-none flex-col items-center gap-1.5"
       >
         <div

@@ -10,7 +10,7 @@ export const PinInputDef = createComponentDefinition({
     value: z.string().default("").meta({
       description: "The current pin value",
     }),
-    length: z.number().default(6).meta({
+    length: z.number().int().min(1).default(6).meta({
       description: "Number of digits/characters in the pin",
     }),
     mask: z.boolean().default(false).meta({

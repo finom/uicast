@@ -3,7 +3,7 @@ import { type ComponentEntry, isComponentListEntry } from "../types";
 import { depKey } from "../scope/parse-scope";
 import { getScopeReads } from "./evaluate";
 
-// "all": props + hidden + each. "render": props + hidden, for list items (the container re-renders rows on `each`).
+// "all": props + hidden + loading + each. "render": props + hidden + loading, for list items (the container re-renders rows on `each`).
 // "each": the container only.
 export type DepsPart = "all" | "render" | "each";
 
@@ -34,6 +34,7 @@ export function extractDeps(
   if (part !== "each") {
     if (entry.props && "expr" in entry.props && entry.props.expr) add(entry.props.expr);
     if (entry.hidden) add(entry.hidden);
+    if (entry.loading) add(entry.loading);
   }
 
   // `each` reads both the list and anything its filter touches (e.g. a search term).

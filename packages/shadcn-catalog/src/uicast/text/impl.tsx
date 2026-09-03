@@ -8,8 +8,7 @@ export const TextImpl = createComponentImplementation({
     children,
     variant,
     as: Tag = "span",
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const styles: Record<string, string> = {
       body: "text-base",
       muted: "text-sm text-muted-foreground",
@@ -18,7 +17,7 @@ export const TextImpl = createComponentImplementation({
       large: "text-lg font-semibold",
     };
     return (
-      <Tag className={styles[variant]} data-key={generatedKey}>
+      <Tag className={styles[variant]} data-key={entry.key}>
         {children ?? text}
       </Tag>
     );

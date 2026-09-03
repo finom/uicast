@@ -17,10 +17,9 @@ export const DrawerImpl = createComponentImplementation({
     side,
     children,
     onOpenChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <Sheet open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <SheetContent side={side}>
             {(title || description) && (

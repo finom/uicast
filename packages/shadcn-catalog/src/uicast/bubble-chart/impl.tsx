@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   ScatterChart,
   Scatter,
@@ -10,6 +11,7 @@ import {
   ZAxis,
 } from "recharts";
 import { BubbleChartDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 export const BubbleChartImpl = createComponentImplementation({
   def: BubbleChartDef,
@@ -19,8 +21,7 @@ export const BubbleChartImpl = createComponentImplementation({
     yLabel,
     color,
     height,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const zValues = data.map((d) => d.z);
     const zRange: [number, number] = [
       Math.min(...zValues) || 0,
@@ -28,7 +29,7 @@ export const BubbleChartImpl = createComponentImplementation({
     ];
 
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" />
@@ -59,7 +60,7 @@ export const BubbleChartImpl = createComponentImplementation({
             <Scatter
               isAnimationActive={false}
               data={data}
-              fill={color}
+              fill={CHART_COLORS[color]}
               fillOpacity={0.6}
             />
           </ScatterChart>

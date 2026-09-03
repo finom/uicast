@@ -7,10 +7,10 @@ const CHECKER =
 
 export const ColorPreviewRenderer = createComponentImplementation({
   def: ColorPreviewDef,
-  render: ({ hex = "#000000", alpha = 100, label, generatedKey }) => {
+  render: ({ hex = "#000000", alpha = 100, label}, { entry }) => {
     return (
       <div
-        data-key={generatedKey}
+        data-key={entry.key}
         className="relative h-28 w-full overflow-hidden rounded-lg border border-border"
         style={{
           backgroundImage: CHECKER,

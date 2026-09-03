@@ -12,8 +12,7 @@ export const StepperImpl = createComponentImplementation({
     currentStep,
     orientation,
     onStepClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const isHorizontal = orientation === "horizontal";
     return (
       <div
@@ -21,7 +20,7 @@ export const StepperImpl = createComponentImplementation({
           "flex gap-0",
           isHorizontal ? "flex-row items-start" : "flex-col",
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {steps.map((step, i) => {
           const isCompleted = i < currentStep;

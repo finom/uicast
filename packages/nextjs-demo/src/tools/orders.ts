@@ -1,13 +1,13 @@
 import { standardTool } from "standard-tool";
-import { z } from "zod";
-import { orderIdInput, orderInsert, orderOutput, orderUpdate } from "@/db/zod";
-import { apiFetch } from "./http";
+import { orderIdInput, orderInsert, orderListInput, orderListRow, orderOutput, orderUpdate, pageOf } from "@/db/zod";
+import { apiFetch, query } from "./http";
 
 export const listOrders = standardTool({
   name: "listOrders",
-  description: "List all orders.",
-  outputSchema: z.array(orderOutput),
-  execute: () => apiFetch("/api/orders"),
+  description: "A page of orders, newest first by default.",
+  inputSchema: orderListInput.optional(),
+  outputSchema: pageOf(orderListRow),
+  execute: (input) => apiFetch(`/api/orders${query(input ?? {})}`),
 });
 
 export const getOrder = standardTool({

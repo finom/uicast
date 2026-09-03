@@ -23,13 +23,12 @@ export const FormSectionImpl = createComponentImplementation({
     collapsible,
     defaultCollapsed,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [open, setOpen] = useState(!defaultCollapsed);
 
     if (!collapsible) {
       return (
-        <Card data-key={generatedKey}>
+        <Card data-key={entry.key}>
           <CardHeader>
             <CardTitle>{title}</CardTitle>
             {description && <CardDescription>{description}</CardDescription>}
@@ -40,7 +39,7 @@ export const FormSectionImpl = createComponentImplementation({
     }
 
     return (
-      <Card data-key={generatedKey}>
+      <Card data-key={entry.key}>
         <Collapsible open={open} onOpenChange={setOpen}>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer select-none">

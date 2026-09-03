@@ -18,18 +18,18 @@ export const VirtualListDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of list items" }),
-    height: z.number().default(400).meta({
+    height: z.number().int().positive().default(400).meta({
       description: "Container height in pixels",
     }),
-    itemHeight: z.number().default(48).meta({
+    itemHeight: z.number().int().positive().default(48).meta({
       description: "Height of each item in pixels",
     }),
   }),
   callbacks: {
     onItemClick: z
-      .object({
+      .strictObject({
         id: z.string().meta({ description: "Clicked item ID" }),
-        index: z.number().meta({ description: "Item index" }),
+        index: z.number().int().nonnegative().meta({ description: "Item index" }),
       })
       .meta({ description: "Callback when an item is clicked" }),
   },

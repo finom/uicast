@@ -7,16 +7,8 @@ import {
 } from "../../components/ui/collapsible";
 import { Button } from "../../components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
-import { TreeViewDef } from "./def";
-
-interface TreeNode {
-  label: string;
-  icon?: string;
-  expanded?: boolean;
-  children?: TreeNode[];
-}
+import { iconNode } from "../../lib/icon-node";
+import { type TreeNode, TreeViewDef } from "./def";
 
 function TreeNodeComponent({
   node,
@@ -39,14 +31,6 @@ function TreeNodeComponent({
   const isExpanded = expandedMap[key] ?? node.expanded ?? false;
   const hasChildren = node.children && node.children.length > 0;
 
-  const getIcon = (iconName?: string) => {
-    if (!iconName) return null;
-    const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-      iconName
-    ];
-    return Icon ? <Icon className="size-4 shrink-0" /> : null;
-  };
-
   if (!hasChildren) {
     return (
       <div
@@ -55,7 +39,7 @@ function TreeNodeComponent({
         onClick={() => onSelect?.({ label: node.label, path })}
       >
         <span className="w-5" />
-        {getIcon(node.icon)}
+        {iconNode(node.icon, "size-4 shrink-0")}
         <span>{node.label}</span>
       </div>
     );
@@ -88,7 +72,7 @@ function TreeNodeComponent({
             )}
           </Button>
         </CollapsibleTrigger>
-        {getIcon(node.icon)}
+        {iconNode(node.icon, "size-4 shrink-0")}
         <span>{node.label}</span>
       </div>
       <CollapsibleContent>
@@ -111,7 +95,7 @@ function TreeNodeComponent({
 
 export const TreeViewImpl = createComponentImplementation({
   def: TreeViewDef,
-  render: ({ items = [], onSelect, onToggle, generatedKey }) => {
+  render: ({ items = [], onSelect, onToggle}, { entry }) => {
     const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
 
     // `expanded` is the effective state (map entry or the node's own prop), so
@@ -121,7 +105,7 @@ export const TreeViewImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-0.5" data-key={generatedKey}>
+      <div className="space-y-0.5" data-key={entry.key}>
         {items.map((item, i) => (
           <TreeNodeComponent
             key={i}

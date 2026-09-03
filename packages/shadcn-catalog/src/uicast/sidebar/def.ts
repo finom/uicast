@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
 
 export const SidebarDef = createComponentDefinition({
   name: "Sidebar",
@@ -18,8 +19,8 @@ export const SidebarDef = createComponentDefinition({
                 label: z
                   .string()
                   .meta({ description: "Navigation item label" }),
-                icon: z.string().optional().meta({
-                  description: "Lucide icon name for the item",
+                icon: iconNameSchema.optional().meta({
+                  description: "Optional icon for the item.",
                 }),
                 active: z.boolean().optional().meta({
                   description: "Whether this item is currently active",
@@ -36,17 +37,17 @@ export const SidebarDef = createComponentDefinition({
     collapsed: z.boolean().default(false).meta({
       description: "Whether the sidebar is collapsed to icon-only mode",
     }),
-    width: z.string().default("256px").meta({
-      description: "Sidebar width when expanded, e.g. '256px'",
+    width: z.number().int().positive().default(256).meta({
+      description: "Width in pixels when expanded.",
     }),
   }),
   callbacks: {
     onNavigate: z
-      .object({
-        sectionIndex: z.number().meta({
+      .strictObject({
+        sectionIndex: z.number().int().nonnegative().meta({
           description: "The zero-based index of the section",
         }),
-        itemIndex: z.number().meta({
+        itemIndex: z.number().int().nonnegative().meta({
           description: "The zero-based index of the item within the section",
         }),
         label: z.string().meta({
@@ -55,7 +56,7 @@ export const SidebarDef = createComponentDefinition({
       })
       .meta({ description: "Callback when a navigation item is clicked" }),
     onToggleCollapse: z
-      .object({
+      .strictObject({
         collapsed: z.boolean().meta({
           description: "The new collapsed state",
         }),

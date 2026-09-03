@@ -47,15 +47,14 @@ export const DiffViewerImpl = createComponentImplementation({
     oldTitle,
     newTitle,
     mode,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const diff = computeLineDiff(oldText, newText);
 
     if (mode === "unified") {
       return (
         <ScrollArea
           className="rounded-md border font-mono text-sm"
-          data-key={generatedKey}
+          data-key={entry.key}
         >
           <div className="border-b px-4 py-2 bg-muted text-xs font-medium">
             {oldTitle} → {newTitle}
@@ -91,7 +90,7 @@ export const DiffViewerImpl = createComponentImplementation({
     const newDiffs = diff.filter((d) => d.type !== "removed");
 
     return (
-      <ScrollArea className="rounded-md border" data-key={generatedKey}>
+      <ScrollArea className="rounded-md border" data-key={entry.key}>
         <div className="grid grid-cols-2 gap-0">
           <div className="border-r">
             <div className="border-b px-4 py-2 bg-muted text-xs font-medium">

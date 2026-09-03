@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const AreaChartDef = createComponentDefinition({
   name: "AreaChart",
@@ -23,11 +24,8 @@ export const AreaChartDef = createComponentDefinition({
     yKeys: z.array(z.string()).meta({
       description: "Array of keys for area values, e.g. ['revenue', 'cost']",
     }),
-    colors: z.array(z.string()).optional().meta({
-      description:
-        "Optional hex color strings for each area, e.g. ['#8884d8', '#82ca9d']",
-    }),
-    height: z.number().default(300).meta({
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
+    height: z.number().int().positive().default(300).meta({
       description: "Chart height in pixels",
     }),
     stacked: z.boolean().default(false).meta({

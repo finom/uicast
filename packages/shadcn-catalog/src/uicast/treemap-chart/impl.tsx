@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { defaultChartColors } from "../../lib/chart-colors";
 import { TreemapChartDef } from "./def";
@@ -48,9 +49,9 @@ const CustomContent = (props: Record<string, unknown>) => {
 
 export const TreemapChartImpl = createComponentImplementation({
   def: TreemapChartDef,
-  render: ({ data = [], height, generatedKey }) => {
+  render: ({ data = [], height}, { entry, loading }) => {
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <Treemap
             isAnimationActive={false}

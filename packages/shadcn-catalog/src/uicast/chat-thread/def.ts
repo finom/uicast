@@ -30,7 +30,7 @@ export const ChatThreadDef = createComponentDefinition({
   }),
   callbacks: {
     onMessageClick: z
-      .object({
+      .strictObject({
         id: z.string().meta({ description: "Clicked message ID" }),
       })
       .meta({ description: "Callback when a message is clicked" }),

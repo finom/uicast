@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { ALLOWED_GLOBALS } from "@uicast/expr";
+import { ALLOWED_GLOBALS } from "@uicast/expr/internal";
 import { ALLOWED_METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "@uicast/expr/internal";
 import { getExpressionsPartialPrompt } from "../get-expressions-partial-prompt";
 

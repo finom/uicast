@@ -45,3 +45,10 @@ export async function apiFetch(
   if (init?.success) showToast(init.success);
   return res.json();
 }
+
+// `?a=1&b=x` from an input object; absent values are not sent, an empty object yields "".
+export function query(params: Record<string, unknown>) {
+  const entries = Object.entries(params).flatMap(([k, v]) => (v === undefined ? [] : [[k, String(v)]]));
+  const qs = new URLSearchParams(entries).toString();
+  return qs ? `?${qs}` : "";
+}

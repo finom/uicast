@@ -13,14 +13,13 @@ export const TagImpl = createComponentImplementation({
     removable,
     onClick,
     onRemove,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <Badge
         variant={variant}
         className="gap-1 cursor-pointer"
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children ?? text}
         {removable && (
@@ -29,7 +28,7 @@ export const TagImpl = createComponentImplementation({
             className="ml-0.5 rounded-full outline-none hover:bg-foreground/20 p-0.5"
             onClick={(e) => {
               e.stopPropagation();
-              onRemove({});
+              onRemove();
             }}
           >
             <X className="size-3" />

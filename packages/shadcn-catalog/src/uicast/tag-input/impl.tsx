@@ -17,8 +17,7 @@ export const TagInputImpl = createComponentImplementation({
     onRemove,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [inputValue, setInputValue] = useState("");
 
     const handleAdd = () => {
@@ -35,7 +34,7 @@ export const TagInputImpl = createComponentImplementation({
     return (
       <div
         className="flex flex-wrap items-center gap-2 rounded-md border border-input bg-background p-2"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {tags.map((tag, i) => (
           <Badge key={i} variant="secondary" className="gap-1">

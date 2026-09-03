@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   BarChart,
   Bar,
@@ -11,6 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { WaterfallChartDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 export const WaterfallChartImpl = createComponentImplementation({
   def: WaterfallChartDef,
@@ -20,8 +22,7 @@ export const WaterfallChartImpl = createComponentImplementation({
     positiveColor,
     negativeColor,
     totalColor,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     let running = 0;
     const processedData = data.map((item) => {
       if (item.isTotal) {
@@ -48,7 +49,7 @@ export const WaterfallChartImpl = createComponentImplementation({
     });
 
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <BarChart data={processedData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -73,10 +74,10 @@ export const WaterfallChartImpl = createComponentImplementation({
                   key={i}
                   fill={
                     entry.type === "total"
-                      ? totalColor
+                      ? CHART_COLORS[totalColor]
                       : entry.type === "positive"
-                        ? positiveColor
-                        : negativeColor
+                        ? CHART_COLORS[positiveColor]
+                        : CHART_COLORS[negativeColor]
                   }
                 />
               ))}

@@ -17,7 +17,6 @@ import {
 	validateNode,
 } from "@uicast/expr/internal";
 import { canBind, compile, type Compiled } from "./compile";
-import { PLATFORM_GLOBALS } from "./platform-globals";
 
 export type PassthroughEvaluatorOptions = {
 	// Host functions, callable by name. Fixed for the evaluator's lifetime — the parse cache depends on it. A name that shadows a built-in global replaces it.
@@ -36,15 +35,6 @@ type Entry = ExpressionFacts & {
 	contextIds: readonly string[];
 	reads?: Map<string, readonly string[]>;
 	compiled?: Compiled;
-};
-
-// The contexts, last one first, then the platform globals.
-const lookup = (name: string, contexts: EvaluatorContexts): unknown => {
-	for (let i = contexts.length - 1; i >= 0; i--) {
-		if (Object.hasOwn(contexts[i], name)) return contexts[i][name];
-	}
-	if (Object.hasOwn(PLATFORM_GLOBALS, name)) return PLATFORM_GLOBALS[name];
-	throw new ExpressionError(`"${name}" is not available in expressions`, "unknown-reference");
 };
 
 // The same language, checked by @uicast/expr's static passes, then handed to the engine through `new Function`. No membrane, no budget, needs `unsafe-eval` — for expressions from an author you trust. Same methods as `Evaluator`.
@@ -127,13 +117,10 @@ export class PassthroughEvaluator implements ExpressionEvaluator {
 	}
 
 	#run(entry: Entry, contexts: EvaluatorContexts): unknown {
-		// Positional: the tools, then the context ids — the order compile() binds.
-		entry.compiled ??= compile(entry.source, entry.ast, [...entry.toolCalls, ...entry.contextIds]);
-		const values: unknown[] = entry.toolCalls.map((name) => this.#tools[name]);
-		for (const name of entry.contextIds) values.push(lookup(name, contexts));
+		entry.compiled ??= compile(entry.source, entry.ast, entry.toolCalls, entry.contextIds, this.#tools);
 		let value: unknown;
 		try {
-			value = entry.compiled(...values);
+			value = entry.compiled(contexts);
 		} catch (err) {
 			if (ExpressionError.is(err)) throw err;
 			throw new ExpressionError(err instanceof Error ? err.message : String(err), "runtime", err);

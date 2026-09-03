@@ -1,4 +1,4 @@
-import { dashTail, stripRootDescription } from "./describe";
+import { dashTail, stripRootAnnotations } from "./describe";
 import {
 	type JSONSchema,
 	JSONSchemaToTs,
@@ -146,7 +146,7 @@ export function collectSharedTypes(): SharedTypes {
 			// Rendered from the NODE, not through its `$ref` — so the definition's
 			// own self-references resolve to its name instead of expanding.
 			const description = (entry.node as JSONSchema | null)?.description;
-			const body = JSONSchemaToTs(stripRootDescription(entry.node), {
+			const body = JSONSchemaToTs(stripRootAnnotations(entry.node), {
 				namedRefs: entry.refs,
 			});
 			return `- ${entry.name}: ${body}${dashTail(description)}`;

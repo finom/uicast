@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton as ShadcnSkeleton } from "../../components/ui/skeleton";
 import { SkeletonDef } from "./def";
+import { height as toHeight, width as toWidth } from "../../lib/sizes";
 
 export const SkeletonImpl = createComponentImplementation({
   def: SkeletonDef,
@@ -8,8 +9,7 @@ export const SkeletonImpl = createComponentImplementation({
     width,
     height,
     rounded,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const radiusMap: Record<string, string> = {
       sm: "rounded-sm",
       md: "rounded-md",
@@ -19,8 +19,8 @@ export const SkeletonImpl = createComponentImplementation({
     return (
       <ShadcnSkeleton
         className={radiusMap[rounded]}
-        style={{ width, height }}
-        data-key={generatedKey}
+        style={{ width: toWidth(width), height: toHeight(height) }}
+        data-key={entry.key}
       />
     );
   },

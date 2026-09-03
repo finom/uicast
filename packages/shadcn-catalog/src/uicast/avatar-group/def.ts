@@ -21,7 +21,7 @@ export const AvatarGroupDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of avatar data" }),
-    max: z.number().default(5).meta({
+    max: z.number().int().min(1).default(5).meta({
       description: "Maximum number of avatars to show before +N overflow",
     }),
     size: z.enum(["sm", "default", "lg"]).default("default").meta({

@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
 
 export const TimelineDef = createComponentDefinition({
   name: "Timeline",
@@ -17,10 +18,8 @@ export const TimelineDef = createComponentDefinition({
           time: z.string().optional().meta({
             description: "Timestamp text (e.g. '2 hours ago', 'Jan 15')",
           }),
-          icon: z
-            .string()
-            .optional()
-            .meta({ description: "Lucide icon name for the event" }),
+          icon: iconNameSchema.optional()
+            .meta({ description: "Optional icon for the event." }),
           variant: z
             .enum(["default", "success", "warning", "destructive"])
             .optional()
@@ -33,9 +32,9 @@ export const TimelineDef = createComponentDefinition({
   }),
   callbacks: {
     onItemClick: z
-      .object({
+      .strictObject({
         index: z
-          .number()
+          .number().int().nonnegative()
           .meta({ description: "The index of the clicked item" }),
         title: z
           .string()

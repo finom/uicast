@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { ALLOWED_GLOBALS, Evaluator, ExpressionError } from "@uicast/expr";
-import { parseExpression } from "@uicast/expr/internal";
+import { Evaluator, ExpressionError } from "@uicast/expr";
+import { ALLOWED_GLOBALS, parseExpression } from "@uicast/expr/internal";
 import { compile } from "../compile";
 import { PassthroughEvaluator } from "../index";
 import { PLATFORM_GLOBALS } from "../platform-globals";
@@ -30,7 +30,7 @@ describe("binding", () => {
 
 	it("every identifier is a parameter, so a name the walker missed is undefined, not a global", () => {
 		// compile() with no bindings at all: nothing the source names resolves to anything
-		const run = (source: string) => compile(source, parseExpression(source), [])();
+		const run = (source: string) => compile(source, parseExpression(source), [], [], {})([]);
 		expect(run("typeof fetch")).toBe("undefined");
 		expect(run("typeof globalThis")).toBe("undefined");
 		expect(run("typeof Function")).toBe("undefined");

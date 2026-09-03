@@ -111,11 +111,12 @@ type RowScope = {
   detach(): void;
 };
 
-// Whether `value` is the element or holds it one level down: an array, an array of arrays, an object's values.
+// Whether `value` is the element or holds it one level down: an array, an array of arrays, an object's values, an object of arrays.
 const holds = (value: unknown, element: unknown): boolean => {
   if (value === element) return true;
-  if (Array.isArray(value)) return value.includes(element) || value.some((v) => Array.isArray(v) && v.includes(element));
-  return isObject(element) && isObject(value) && Object.values(value).includes(element);
+  const inArray = (v: unknown) => Array.isArray(v) && v.includes(element);
+  if (Array.isArray(value)) return value.includes(element) || value.some(inArray);
+  return isObject(element) && isObject(value) && Object.values(value).some((v) => v === element || inArray(v));
 };
 
 const forwardTargetsByProxy = new WeakMap<ReactiveProxy, () => ForwardTarget[]>();

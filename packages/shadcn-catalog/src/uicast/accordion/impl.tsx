@@ -29,8 +29,7 @@ export const AccordionImpl = createComponentImplementation({
     type,
     collapsible,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // key of the open item under type="single"; "" means all closed
     const [openKey, setOpenKey] = useState("");
 
@@ -41,7 +40,7 @@ export const AccordionImpl = createComponentImplementation({
         <Accordion
           type={type}
           collapsible={type === "single" ? collapsible : undefined}
-          data-key={generatedKey}
+          data-key={entry.key}
         >
           {children}
         </Accordion>

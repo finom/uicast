@@ -1,8 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { Button } from "../../components/ui/button";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ICONS } from "../../lib/icons";
 import { IconButtonDef } from "./def";
 
 export const IconButtonImpl = createComponentImplementation({
@@ -14,11 +13,8 @@ export const IconButtonImpl = createComponentImplementation({
     disabled,
     tooltip,
     onClick,
-    generatedKey,
-  }) => {
-    const IconComponent = (
-      LucideIcons as unknown as Record<string, LucideIcon>
-    )[icon];
+  }, { entry }) => {
+    const IconComponent = ICONS[icon];
     return (
       <Button
         variant={variant}
@@ -26,16 +22,12 @@ export const IconButtonImpl = createComponentImplementation({
         disabled={disabled}
         title={tooltip}
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
         className={
           size === "sm" ? "size-8" : size === "lg" ? "size-10" : "size-9"
         }
       >
-        {IconComponent ? (
-          <IconComponent className="size-4" />
-        ) : (
-          <span className="text-xs">[{icon}]</span>
-        )}
+        <IconComponent className="size-4" />
       </Button>
     );
   },

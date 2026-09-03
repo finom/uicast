@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const LineChartDef = createComponentDefinition({
   name: "LineChart",
@@ -23,12 +24,9 @@ export const LineChartDef = createComponentDefinition({
     yKeys: z.array(z.string()).meta({
       description: "Array of keys for line values, e.g. ['revenue', 'cost']",
     }),
-    colors: z.array(z.string()).optional().meta({
-      description:
-        "Optional hex color strings for each line, e.g. ['#8884d8', '#82ca9d']",
-    }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
     curved: z.boolean().default(true).meta({

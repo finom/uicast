@@ -12,7 +12,7 @@ import type { ComponentEntry } from "@uicast/core";
  *   stats (derived inline), the chart's category data, and the table list all
  *   read whole-array paths that the CRUD callbacks re-write wholesale — which
  *   is what makes the UI stay in sync after add/edit/delete.
- * - List items are read as `scopes.row.item.*`.
+ * - List items are read as `scopes.row.*`.
  * - `seed` whose expr returns a Promise suspends that element (Suspense),
  *   showing a placeholder until the data resolves — the async-seed showcase.
  */
@@ -24,6 +24,7 @@ export const inventoryLines: ComponentEntry[] = [
     props: { literal: { gap: "6" } },
     seed: [
       { set: "scopes.root.q", literal: "" },
+      { set: "scopes.root.busy", literal: false },
       { set: "scopes.root.draftOpen", literal: false },
       { set: "scopes.root.draftId", literal: null },
       { set: "scopes.root.draftName", literal: "" },
@@ -121,6 +122,7 @@ export const inventoryLines: ComponentEntry[] = [
   {
     key: "chart",
     component: "BarChart",
+    loading: "scopes.root.busy",
     props: {
       expr: "({ data: scopes.root.categories, xKey: 'name', yKeys: ['value'], height: 280 })",
     },
@@ -152,7 +154,7 @@ export const inventoryLines: ComponentEntry[] = [
     props: { literal: { title: "Products" } },
     children: ["table", "empty"],
   },
-  { key: "table", component: "Table", children: ["thead", "tbody"] },
+  { key: "table", component: "Table", loading: "scopes.root.busy", children: ["thead", "tbody"] },
   { key: "thead", component: "TableHeader", children: ["head-row"] },
   {
     key: "head-row",
@@ -167,7 +169,7 @@ export const inventoryLines: ComponentEntry[] = [
   { key: "h-actions", component: "TableHead", props: { literal: { text: "" } } },
   { key: "tbody", component: "TableBody", children: ["row-list"] },
 
-  // The list: one TableRow per (filtered) product. Item scope is `scopes.row`.
+  // The list: one TableRow per (filtered) product. Row scope is `scopes.row`.
   {
     key: "row-list",
     component: "TableRow",
@@ -176,18 +178,18 @@ export const inventoryLines: ComponentEntry[] = [
     keyBy: "id",
     children: ["c-name", "c-sku", "c-cat", "c-stock", "c-price", "c-actions"],
   },
-  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.row.item.name })" } },
-  { key: "c-sku", component: "TableCell", props: { expr: "({ text: scopes.row.item.sku })" } },
-  { key: "c-cat", component: "TableCell", props: { expr: "({ text: scopes.row.item.category })" } },
+  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.row.name })" } },
+  { key: "c-sku", component: "TableCell", props: { expr: "({ text: scopes.row.sku })" } },
+  { key: "c-cat", component: "TableCell", props: { expr: "({ text: scopes.row.category })" } },
   { key: "c-stock", component: "TableCell", children: ["stock-badge"] },
   {
     key: "stock-badge",
     component: "Badge",
     props: {
-      expr: "({ text: '' + scopes.row.item.stock, variant: scopes.row.item.stock <= 0 ? 'destructive' : (scopes.row.item.stock <= 20 ? 'outline' : 'secondary') })",
+      expr: "({ text: '' + scopes.row.stock, variant: scopes.row.stock <= 0 ? 'destructive' : (scopes.row.stock <= 20 ? 'outline' : 'secondary') })",
     },
   },
-  { key: "c-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.row.item.price })" } },
+  { key: "c-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.row.price })" } },
   { key: "c-actions", component: "TableCell", children: ["edit-btn", "del-btn"] },
   {
     key: "edit-btn",
@@ -195,12 +197,12 @@ export const inventoryLines: ComponentEntry[] = [
     props: { literal: { icon: "Pencil", tooltip: "Edit", size: "sm" } },
     callbacks: {
       onClick: [
-        { set: "scopes.root.draftId", expr: "scopes.row.item.id" },
-        { set: "scopes.root.draftName", expr: "scopes.row.item.name" },
-        { set: "scopes.root.draftSku", expr: "scopes.row.item.sku" },
-        { set: "scopes.root.draftCategory", expr: "scopes.row.item.category" },
-        { set: "scopes.root.draftStock", expr: "scopes.row.item.stock" },
-        { set: "scopes.root.draftPrice", expr: "scopes.row.item.price" },
+        { set: "scopes.root.draftId", expr: "scopes.row.id" },
+        { set: "scopes.root.draftName", expr: "scopes.row.name" },
+        { set: "scopes.root.draftSku", expr: "scopes.row.sku" },
+        { set: "scopes.root.draftCategory", expr: "scopes.row.category" },
+        { set: "scopes.root.draftStock", expr: "scopes.row.stock" },
+        { set: "scopes.root.draftPrice", expr: "scopes.row.price" },
         { set: "scopes.root.draftOpen", literal: true },
       ],
     },
@@ -213,11 +215,13 @@ export const inventoryLines: ComponentEntry[] = [
       onClick: [
         {
           set: "scopes.root._op",
-          expr: "deleteProduct({ id: scopes.row.item.id })",
+          expr: "deleteProduct({ id: scopes.row.id })",
           confirm: "Delete this product? This cannot be undone.",
         },
+        { set: "scopes.root.busy", literal: true },
         { set: "scopes.root.products", expr: "listProducts()" },
         { set: "scopes.root.categories", expr: "getCategoryBreakdown()" },
+        { set: "scopes.root.busy", literal: false },
       ],
     },
   },
@@ -316,8 +320,10 @@ export const inventoryLines: ComponentEntry[] = [
           set: "scopes.root._op",
           expr: "scopes.root.draftId ? updateProduct({ id: scopes.root.draftId, name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice }) : createProduct({ name: scopes.root.draftName, sku: scopes.root.draftSku, category: scopes.root.draftCategory, stock: scopes.root.draftStock, price: scopes.root.draftPrice })",
         },
+        { set: "scopes.root.busy", literal: true },
         { set: "scopes.root.products", expr: "listProducts()" },
         { set: "scopes.root.categories", expr: "getCategoryBreakdown()" },
+        { set: "scopes.root.busy", literal: false },
         { set: "scopes.root.draftOpen", literal: false },
       ],
     },

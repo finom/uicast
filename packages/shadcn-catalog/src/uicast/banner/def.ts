@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { iconNameSchema } from "../../lib/icons";
 
 export const BannerDef = createComponentDefinition({
   name: "Banner",
@@ -15,8 +16,8 @@ export const BannerDef = createComponentDefinition({
     dismissible: z.boolean().default(true).meta({
       description: "Whether the user can dismiss the banner",
     }),
-    icon: z.string().optional().meta({
-      description: "Optional Lucide icon name",
+    icon: iconNameSchema.optional().meta({
+      description: "Optional icon shown before the message.",
     }),
   }),
   callbacks: {

@@ -16,8 +16,7 @@ export const LinkImpl = createComponentImplementation({
     external,
     disabled,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <Button
         variant="link"
@@ -33,7 +32,7 @@ export const LinkImpl = createComponentImplementation({
         )}
         disabled={disabled}
         onClick={() => onClick({ href })}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children ?? text}
         {external && <ExternalLink className="size-3" />}

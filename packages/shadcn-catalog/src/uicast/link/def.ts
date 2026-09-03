@@ -33,7 +33,7 @@ export const LinkDef = createComponentDefinition({
   }),
   callbacks: {
     onClick: z
-      .object({
+      .strictObject({
         href: z.string().optional().meta({
           description: "The href value of the clicked link",
         }),

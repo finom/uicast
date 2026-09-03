@@ -13,12 +13,11 @@ export const VideoPlayerImpl = createComponentImplementation({
     onPlay,
     onPause,
     onEnded,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <div
         className="rounded-lg overflow-hidden border"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <video
           src={src}

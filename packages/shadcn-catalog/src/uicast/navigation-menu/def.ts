@@ -30,7 +30,7 @@ export const NavigationMenuDef = createComponentDefinition({
   }),
   callbacks: {
     onNavigate: z
-      .object({
+      .strictObject({
         label: z.string().meta({
           description: "The label of the clicked item",
         }),

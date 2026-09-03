@@ -37,8 +37,7 @@ export const CronBuilderImpl = createComponentImplementation({
     value,
     showPreview,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // Local mirror of the `value` prop — a document change to the prop
     // resyncs the five parts; local edits win in between.
     const parts = value.split(" ");
@@ -94,7 +93,7 @@ export const CronBuilderImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-4" data-key={generatedKey}>
+      <div className="space-y-4" data-key={entry.key}>
         <div className="grid grid-cols-5 gap-3">
           {[
             {

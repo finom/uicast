@@ -15,9 +15,8 @@ export const ToastImpl = createComponentImplementation({
     variant,
     position,
     onClose,
-    generatedKey,
-  }) => {
-    if (!open) return <span data-key={generatedKey} />;
+  }, { entry }) => {
+    if (!open) return <span data-key={entry.key} />;
 
     const positionMap: Record<string, string> = {
       "top-right": "top-4 right-4",
@@ -39,7 +38,7 @@ export const ToastImpl = createComponentImplementation({
           "fixed z-50 max-w-sm shadow-lg animate-in slide-in-from-bottom-2 p-0",
           positionMap[position],
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <Alert variant={variant === "error" ? "destructive" : "default"}>
           {iconMap[variant]}

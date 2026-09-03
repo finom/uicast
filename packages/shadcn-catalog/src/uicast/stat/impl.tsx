@@ -1,10 +1,11 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { StatDef } from "./def";
 
 export const StatImpl = createComponentImplementation({
   def: StatDef,
-  render: ({ label, value, trend, trendValue, helpText, generatedKey }) => {
+  render: ({ label, value, trend, trendValue, helpText}, { entry, loading }) => {
     const trendIcon =
       trend === "up" ? (
         <TrendingUp className="size-4 text-green-600" />
@@ -22,7 +23,7 @@ export const StatImpl = createComponentImplementation({
           : "text-muted-foreground";
 
     return (
-      <div className="flex flex-col gap-1" data-key={generatedKey}>
+      <div className={cn("flex flex-col gap-1", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <span className="text-sm font-medium text-muted-foreground">
           {label}
         </span>

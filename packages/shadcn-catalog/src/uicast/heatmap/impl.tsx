@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { HeatmapDef } from "./def";
+import { CHART_COLORS } from "../../lib/chart-colors";
 
 function hexToRgb(hex: string) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -31,8 +32,7 @@ export const HeatmapImpl = createComponentImplementation({
     minColor,
     maxColor,
     showValues,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const values = data.map((d) => d.value);
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
@@ -42,7 +42,7 @@ export const HeatmapImpl = createComponentImplementation({
     for (const d of data) valueMap.set(`${d.row}|${d.col}`, d.value);
 
     return (
-      <ScrollArea data-key={generatedKey}>
+      <ScrollArea data-key={entry.key}>
         <table className="border-collapse">
           <thead>
             <tr>
@@ -66,7 +66,7 @@ export const HeatmapImpl = createComponentImplementation({
                 {cols.map((col) => {
                   const val = valueMap.get(`${row}|${col}`) ?? 0;
                   const t = (val - minVal) / range;
-                  const bg = interpolateColor(minColor, maxColor, t);
+                  const bg = interpolateColor(CHART_COLORS[minColor], CHART_COLORS[maxColor], t);
                   return (
                     <td
                       key={col}

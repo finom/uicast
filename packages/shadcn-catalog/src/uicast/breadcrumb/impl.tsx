@@ -12,9 +12,9 @@ import { BreadcrumbDef } from "./def";
 
 export const BreadcrumbImpl = createComponentImplementation({
   def: BreadcrumbDef,
-  render: ({ items = [], onNavigate, generatedKey }) => {
+  render: ({ items = [], onNavigate}, { entry }) => {
     return (
-      <Breadcrumb data-key={generatedKey}>
+      <Breadcrumb data-key={entry.key}>
         <BreadcrumbList>
           {items.map((item, i) => {
             const isLast = i === items.length - 1;

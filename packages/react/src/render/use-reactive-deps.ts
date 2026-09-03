@@ -7,6 +7,7 @@ import {
 } from "@uicast/core/internal";
 import { useRendererRegistry } from "../store/renderer-registry";
 import type { Scopes } from "../types";
+import { inSeedRender } from "./use-seed";
 
 // Total emits across readable scopes. Subscribing lands one commit late, so
 // comparing this count across the gap is how a node notices a write it could
@@ -17,7 +18,7 @@ function emitCount(scopes: Scopes): number {
   return total;
 }
 
-// Subscribe the node to every `scopes.<scope>.<field>` its entry reads. `mode` picks the slice
+// Subscribe the node to every `scopes.<scope>.<field>` its entry reads (`*` for a whole scope). `mode` picks the slice
 // (see DepsPart) so container and items don't double-subscribe; `"skip"`
 // leaves a list's deps to ListEntryRenderer.
 export function useReactiveDeps(
@@ -47,12 +48,14 @@ export function useReactiveDeps(
     }
     if (deps.length === 0) return;
 
+    // A write from another element's seed lands mid-render; wake after it.
+    const wake = () => (inSeedRender() ? queueMicrotask(forceRender) : forceRender());
     const unsubscribers: (() => void)[] = [];
     for (const dep of deps) {
       const [targetScope, field] = parseScope(dep);
       // An item-scoped entry can render before its proxy is in the scopes map
       // (first paint of a fresh list) — skip it; the next render catches up.
-      const unsubscribe = scopes[targetScope]?.$emitter.on(field, forceRender);
+      const unsubscribe = scopes[targetScope]?.$emitter.on(field, wake);
       if (unsubscribe) unsubscribers.push(unsubscribe);
     }
 

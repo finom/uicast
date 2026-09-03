@@ -1,5 +1,9 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { columnWidthSchema } from "../../lib/sizes";
+
+// One row: the host's own fields, with values a cell can render.
+const rowSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]).nullable());
 
 export const DataGridDef = createComponentDefinition({
   name: "DataGrid",
@@ -15,23 +19,13 @@ export const DataGridDef = createComponentDefinition({
           header: z.string().meta({
             description: "The column header display text",
           }),
-          width: z.string().optional().meta({
-            description: "Optional CSS width, e.g. '200px' or '20%'",
-          }),
+          width: columnWidthSchema.optional().meta({ description: "Optional column width." }),
         }),
       )
       .meta({ description: "Array of column definitions" }),
-    rows: z
-      .array(
-        z.record(
-          z.string(),
-          z.union([z.string(), z.number(), z.boolean()]).nullable(),
-        ),
-      )
-      .meta({ description: "Array of row data objects" }),
-    maxHeight: z.string().default("400px").meta({
-      description:
-        "Maximum height of the scrollable area, e.g. '400px' or '60vh'",
+    rows: z.array(rowSchema).meta({ description: "Array of row data objects" }),
+    maxHeight: z.number().int().positive().default(400).meta({
+      description: "Height in pixels before the rows scroll.",
     }),
     striped: z.boolean().default(true).meta({
       description: "Whether to use alternating row background colors",
@@ -39,13 +33,11 @@ export const DataGridDef = createComponentDefinition({
   }),
   callbacks: {
     onRowClick: z
-      .object({
-        rowIndex: z.number().meta({
+      .strictObject({
+        rowIndex: z.number().int().nonnegative().meta({
           description: "The zero-based index of the clicked row",
         }),
-        row: z.record(z.string(), z.any()).meta({
-          description: "The full row data object",
-        }),
+        row: rowSchema.meta({ description: "The full row object, as given in `rows`." }),
       })
       .meta({ description: "Callback when a row is clicked" }),
   },

@@ -11,12 +11,11 @@ export const TruncatedTextImpl = createComponentImplementation({
     maxLines,
     expandable,
     onToggle,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (
-      <div data-key={generatedKey}>
+      <div data-key={entry.key}>
         <p
           className={cn("text-sm", !expanded && "overflow-hidden")}
           style={

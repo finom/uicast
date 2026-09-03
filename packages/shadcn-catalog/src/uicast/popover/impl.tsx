@@ -15,10 +15,9 @@ export const PopoverImpl = createComponentImplementation({
     side,
     children,
     onOpenChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <Popover open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm">

@@ -10,13 +10,12 @@ export const EmptyStateImpl = createComponentImplementation({
     description,
     children,
     onClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <div
         className="flex flex-col items-center justify-center py-12 text-center"
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <InboxIcon className="size-12 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold">{title}</h3>

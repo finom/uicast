@@ -12,8 +12,7 @@ export const XYPadRenderer = createComponentImplementation({
     xLabel,
     yLabel,
     onMove,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const padRef = useRef<HTMLDivElement>(null);
     const dragging = useRef(false);
 
@@ -27,7 +26,7 @@ export const XYPadRenderer = createComponentImplementation({
     };
 
     return (
-      <div data-key={generatedKey} className="flex select-none flex-col gap-2">
+      <div data-key={entry.key} className="flex select-none flex-col gap-2">
         <div
           ref={padRef}
           className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-linear-to-br from-muted/30 to-muted"

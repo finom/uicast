@@ -1,13 +1,13 @@
 import { standardTool } from "standard-tool";
-import { z } from "zod";
-import { customerIdInput, customerInsert, customerOutput, customerUpdate } from "@/db/zod";
-import { apiFetch } from "./http";
+import { customerIdInput, customerInsert, customerListInput, customerListRow, customerOutput, customerUpdate, pageOf } from "@/db/zod";
+import { apiFetch, query } from "./http";
 
 export const listCustomers = standardTool({
   name: "listCustomers",
-  description: "List all customers.",
-  outputSchema: z.array(customerOutput),
-  execute: () => apiFetch("/api/customers"),
+  description: "A page of customers with their order count and lifetime value, by name by default.",
+  inputSchema: customerListInput.optional(),
+  outputSchema: pageOf(customerListRow),
+  execute: (input) => apiFetch(`/api/customers${query(input ?? {})}`),
 });
 
 export const getCustomer = standardTool({

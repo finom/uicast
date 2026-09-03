@@ -41,7 +41,7 @@ export const FlowDiagramDef = createComponentDefinition({
   }),
   callbacks: {
     onNodeClick: z
-      .object({
+      .strictObject({
         id: z.string().meta({ description: "Clicked node ID" }),
         label: z.string().meta({ description: "Node label" }),
       })

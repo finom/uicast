@@ -1,6 +1,14 @@
 import { createComponentImplementation } from "@uicast/react";
 import { CircularProgressDef } from "./def";
 
+// Written-out CSS variables: an SVG stroke cannot take a Tailwind class.
+const STROKES = {
+	default: "var(--color-primary)",
+	success: "var(--color-chart-2, #22c55e)",
+	warning: "var(--color-chart-4, #f59e0b)",
+	error: "var(--color-destructive)",
+} as const;
+
 export const CircularProgressImpl = createComponentImplementation({
   def: CircularProgressDef,
   render: ({
@@ -10,8 +18,7 @@ export const CircularProgressImpl = createComponentImplementation({
     color,
     showValue,
     label,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const radius = (size - strokeWidth) / 2;
     const circumference = 2 * Math.PI * radius;
     const progress = Math.min(Math.max(value, 0), 100);
@@ -20,7 +27,7 @@ export const CircularProgressImpl = createComponentImplementation({
     return (
       <div
         className="inline-flex flex-col items-center gap-1"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <div className="relative" style={{ width: size, height: size }}>
           <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
@@ -39,7 +46,7 @@ export const CircularProgressImpl = createComponentImplementation({
               cy={size / 2}
               r={radius}
               fill="none"
-              stroke={color}
+              stroke={STROKES[color]}
               strokeWidth={strokeWidth}
               strokeDasharray={circumference}
               strokeDashoffset={offset}

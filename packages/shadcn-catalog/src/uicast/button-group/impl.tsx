@@ -3,7 +3,7 @@ import { ButtonGroupDef } from "./def";
 
 export const ButtonGroupImpl = createComponentImplementation({
   def: ButtonGroupDef,
-  render: ({ attached, children, generatedKey }) => {
+  render: ({ attached, children}, { entry }) => {
     return (
       <div
         className={
@@ -12,7 +12,7 @@ export const ButtonGroupImpl = createComponentImplementation({
             : "inline-flex gap-2"
         }
         role="group"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

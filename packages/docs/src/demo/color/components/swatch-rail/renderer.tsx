@@ -5,9 +5,9 @@ import { SwatchRailDef } from "./def";
 
 export const SwatchRailRenderer = createComponentImplementation({
   def: SwatchRailDef,
-  render: ({ swatches = [], selected, onSelect, generatedKey }) => {
+  render: ({ swatches = [], selected, onSelect}, { entry }) => {
     return (
-      <div data-key={generatedKey} className="flex flex-wrap gap-2">
+      <div data-key={entry.key} className="flex flex-wrap gap-2">
         {swatches.map((hex, i) => {
           const isSel = selected?.toLowerCase() === hex.toLowerCase();
           return (

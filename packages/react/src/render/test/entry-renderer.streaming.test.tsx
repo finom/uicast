@@ -46,8 +46,8 @@ describe("EntryRenderer — streaming / placeholders", () => {
 				description: "A box with its own placeholder",
 				props: z.object({}),
 			}),
-			render: ({ children, generatedKey }) => (
-				<div data-key={generatedKey}>{children}</div>
+			render: ({ children}, { entry }) => (
+				<div data-key={entry.key}>{children}</div>
 			),
 			placeholder: () => <span data-box-ph />,
 		});

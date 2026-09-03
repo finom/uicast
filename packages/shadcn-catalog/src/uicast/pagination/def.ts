@@ -4,22 +4,27 @@ import { createComponentDefinition } from "@uicast/core";
 export const PaginationDef = createComponentDefinition({
   name: "Pagination",
   description:
-    "A pagination control for navigating through pages of data. Shows Previous/Next buttons, page numbers, and optionally first/last page buttons. Use Pagination below tables or lists to navigate through paginated data.",
+    "A pagination control below a paged table or list. With `totalPages` it shows Previous/Next, page numbers and optionally first/last; without it, Previous/Next only, and `hasNext` says whether Next is enabled.",
   props: z.strictObject({
-    currentPage: z
+    currentPage: z.number().int().min(1).meta({ description: "The current page, 1-based" }),
+    totalPages: z
       .number()
-      .meta({ description: "The current active page number (1-based)" }),
-    totalPages: z.number().meta({ description: "The total number of pages" }),
+      .int()
+      .min(1)
+      .optional()
+      .meta({ description: "The page count, when known" }),
+    hasNext: z
+      .boolean()
+      .default(true)
+      .meta({ description: "Whether a next page exists when `totalPages` is unknown, e.g. `rows.length === limit`" }),
     showFirstLast: z
       .boolean()
       .default(true)
-      .meta({ description: "Whether to show first/last page buttons" }),
+      .meta({ description: "Whether to show first/last page buttons; needs `totalPages`" }),
   }),
   callbacks: {
     onPageChange: z.strictObject({
-      page: z
-        .number()
-        .meta({ description: "The newly selected page number (1-based)" }),
+      page: z.number().int().min(1).meta({ description: "The newly selected page, 1-based" }),
     }),
   },
 });

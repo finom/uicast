@@ -12,8 +12,10 @@ export const parseScope = (key: string) => {
   ] as [string, string];
 };
 
-// The dependency a read path subscribes to: its scope and first field, `scopes.root.user.name` → `scopes.root.user`. `null` for a bare scope.
+// The dependency a read path subscribes to: its scope and first field, `scopes.root.user.name` → `scopes.root.user`.
+// A bare scope (`Object.keys(scopes.root)`) reads every field: `scopes.root.*`.
 export const depKey = (path: string): string | null => {
   const parts = (path.startsWith("scopes.") ? path.slice(7) : path).split(".");
-  return parts.length >= 2 && parts[0] && parts[1] ? `scopes.${parts[0]}.${parts[1]}` : null;
+  if (!parts[0]) return null;
+  return parts.length >= 2 && parts[1] ? `scopes.${parts[0]}.${parts[1]}` : `scopes.${parts[0]}.*`;
 };

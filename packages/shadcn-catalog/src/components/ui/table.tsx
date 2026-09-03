@@ -8,7 +8,8 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      // Off-screen tables skip layout and paint; the intrinsic size keeps the scroll height until the first render.
+      className="relative w-full overflow-x-auto [content-visibility:auto] [contain-intrinsic-size:auto_24rem]"
     >
       <table
         data-slot="table"

@@ -1,12 +1,12 @@
-import type { ConfirmableValueSourceAssignment, ExpressionEvaluator, ReactiveProxy } from "@uicast/core";
-import { evaluate, getForwardTargets, planStepWaves } from "@uicast/core/internal";
-import type { ConfirmFn } from "../providers/confirm";
+import type { CallbackValueSourceAssignment, ExpressionEvaluator, ReactiveProxy } from "@uicast/core";
+import { CALLBACK_DEBOUNCE_MS, evaluate, getForwardTargets, planStepWaves } from "@uicast/core/internal";
 import { readField, requireScope } from "../read-scope-path";
 import { parseStepTargets } from "../step-targets";
-import type { Scopes } from "../types";
+import type { ConfirmFn, Debouncers, Scopes } from "../types";
 
 // Run a callback's steps in dependency waves; `confirm` and host calls are barriers (their effects are invisible to path analysis).
-// Throws the first classified failure; a declined `confirm` resolves early.
+// Throws the first classified failure; a declined `confirm` resolves early. The steps from the first `debounce` on run
+// after `CALLBACK_DEBOUNCE_MS` of quiet; a newer call of the same callback replaces a pending run.
 export async function runCallbackSteps({
 	steps,
 	payload,
@@ -14,15 +14,61 @@ export async function runCallbackSteps({
 	confirm,
 	evaluator,
 	elementKey,
+	callbackName,
+	debouncers,
 }: {
-	steps: ConfirmableValueSourceAssignment[];
+	steps: CallbackValueSourceAssignment[];
 	payload: unknown;
 	scopes: Scopes;
 	confirm: ConfirmFn;
 	evaluator: ExpressionEvaluator;
 	elementKey: string;
+	callbackName: string;
+	debouncers: Debouncers;
 }): Promise<void> {
 	const targets = parseStepTargets(steps, elementKey);
+	const debounceAt = steps.findIndex((step) => step.debounce);
+	const now = debounceAt === -1 ? steps : steps.slice(0, debounceAt);
+	const later = debounceAt === -1 ? [] : steps.slice(debounceAt);
+
+	await runWaves(now, { targets, payload, scopes, confirm, evaluator, elementKey });
+	if (later.length === 0) return;
+
+	debouncers.get(callbackName)?.cancel();
+	await new Promise<void>((resolve, reject) => {
+		const timer = setTimeout(() => {
+			debouncers.delete(callbackName);
+			runWaves(later, { targets, payload, scopes, confirm, evaluator, elementKey }).then(resolve, reject);
+		}, CALLBACK_DEBOUNCE_MS);
+		// A replaced or unmounted run resolves as done: nothing ran, nothing failed.
+		debouncers.set(callbackName, {
+			cancel: () => {
+				clearTimeout(timer);
+				debouncers.delete(callbackName);
+				resolve();
+			},
+		});
+	});
+}
+
+async function runWaves(
+	steps: CallbackValueSourceAssignment[],
+	{
+		targets,
+		payload,
+		scopes,
+		confirm,
+		evaluator,
+		elementKey,
+	}: {
+		targets: Map<CallbackValueSourceAssignment, { scope: string; field: string }>;
+		payload: unknown;
+		scopes: Scopes;
+		confirm: ConfirmFn;
+		evaluator: ExpressionEvaluator;
+		elementKey: string;
+	},
+): Promise<void> {
 
 	// The evaluator's own parse, not a regex. An invalid expression throws classified at evaluation; here it is simply not a barrier.
 	const callsHostFunction = (expr: string | undefined): boolean => {

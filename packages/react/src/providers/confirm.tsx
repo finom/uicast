@@ -8,12 +8,13 @@ import {
   useRef,
   useState,
 } from "react";
+import type { ConfirmFn } from "../types";
 import type { ConfirmComponentProps } from "../types";
 
 // A callback step carrying `confirm:` awaits this before running. It resolves
 // through the host modal when one is supplied via `fallbackComponents.confirm`, else
 // `window.confirm` — so the engine has no UI dependency.
-export type ConfirmFn = (message: string) => Promise<boolean>;
+export type { ConfirmFn };
 
 const windowConfirm: ConfirmFn = (message) =>
   Promise.resolve(

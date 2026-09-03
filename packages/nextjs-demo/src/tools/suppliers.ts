@@ -1,13 +1,13 @@
 import { standardTool } from "standard-tool";
-import { z } from "zod";
-import { supplierIdInput, supplierInsert, supplierOutput, supplierUpdate } from "@/db/zod";
-import { apiFetch } from "./http";
+import { pageOf, supplierIdInput, supplierInsert, supplierListInput, supplierOutput, supplierUpdate } from "@/db/zod";
+import { apiFetch, query } from "./http";
 
 export const listSuppliers = standardTool({
   name: "listSuppliers",
-  description: "List all suppliers.",
-  outputSchema: z.array(supplierOutput),
-  execute: () => apiFetch("/api/suppliers"),
+  description: "A page of suppliers, by name by default.",
+  inputSchema: supplierListInput.optional(),
+  outputSchema: pageOf(supplierOutput),
+  execute: (input) => apiFetch(`/api/suppliers${query(input ?? {})}`),
 });
 
 export const getSupplier = standardTool({

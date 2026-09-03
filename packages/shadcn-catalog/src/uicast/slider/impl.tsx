@@ -12,10 +12,10 @@ export const SliderImpl = createComponentImplementation({
     disabled,
     showValue,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <div className="flex items-center gap-4" data-key={generatedKey}>
+      // min-w: a flex row gives the track no width of its own.
+      <div className="flex min-w-48 items-center gap-4" data-key={entry.key}>
         <Slider
           value={[value]}
           min={min}

@@ -6,10 +6,10 @@ export const RatingDef = createComponentDefinition({
   description:
     "A star/icon-based rating input. Renders clickable star icons for rating. Use Rating for product reviews, feedback forms, satisfaction surveys, or any star rating.",
   props: z.strictObject({
-    value: z.number().default(0).meta({
+    value: z.number().nonnegative().default(0).meta({
       description: "The current rating value",
     }),
-    max: z.number().default(5).meta({
+    max: z.number().int().min(1).default(5).meta({
       description: "Maximum number of stars",
     }),
     size: z.enum(["sm", "default", "lg"]).default("default").meta({
@@ -21,7 +21,7 @@ export const RatingDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z.strictObject({
-      value: z.number().meta({ description: "The new rating value" }),
+      value: z.number().nonnegative().meta({ description: "The new rating value" }),
     }),
   },
 });

@@ -11,8 +11,7 @@ export const CodeEditorImpl = createComponentImplementation({
     minHeight,
     showLineNumbers,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const lines = value.split("\n");
     const lineCount = Math.max(lines.length, 1);
 
@@ -22,7 +21,7 @@ export const CodeEditorImpl = createComponentImplementation({
           "flex rounded-md border border-input bg-background font-mono text-sm",
           disabled && "opacity-50",
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {showLineNumbers && (
           <div

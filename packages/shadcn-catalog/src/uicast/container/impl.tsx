@@ -9,8 +9,7 @@ export const ContainerImpl = createComponentImplementation({
     padding,
     gap,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     // Static map: Tailwind only compiles class names that appear literally in
     // source — a runtime-built `gap-${gap}` never generates CSS.
     const gapMap: Record<string, string> = {
@@ -38,7 +37,7 @@ export const ContainerImpl = createComponentImplementation({
           padding === "default" && "px-4",
           padding === "lg" && "px-8",
         )}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

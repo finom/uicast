@@ -9,8 +9,7 @@ export const StickyHeaderImpl = createComponentImplementation({
     bordered,
     blurred,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <div
         className={cn(
@@ -20,7 +19,7 @@ export const StickyHeaderImpl = createComponentImplementation({
             "backdrop-blur-sm supports-backdrop-filter:bg-background/60",
         )}
         style={{ zIndex }}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </div>

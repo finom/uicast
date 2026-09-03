@@ -2,7 +2,8 @@
   {
     "key": "card",
     "component": "Card",
-    "seed": [{ "set": "scopes.root.products", "expr": "listProducts()" }],
+    "loading": "scopes.root.busy",
+    "seed": [{ "set": "scopes.root.busy", "literal": false }, { "set": "scopes.root.products", "expr": "listProducts()" }],
     "children": ["title", "refresh", "rows", "total", "editor"]
   },
   {
@@ -15,7 +16,11 @@
     "component": "Button",
     "props": { "literal": { "label": "Refresh" } },
     "callbacks": {
-      "onClick": [{ "set": "scopes.root.products", "expr": "listProducts()" }]
+      "onClick": [
+        { "set": "scopes.root.busy", "literal": true },
+        { "set": "scopes.root.products", "expr": "listProducts()" },
+        { "set": "scopes.root.busy", "literal": false }
+      ]
     }
   },
   {
@@ -25,16 +30,16 @@
     "as": "product",
     "keyBy": "id",
     "props": {
-      "expr": "({ name: scopes.product.item.name, price: scopes.product.item.price, qty: scopes.product.item.qty })"
+      "expr": "({ name: scopes.product.name, price: scopes.product.price, qty: scopes.product.qty })"
     },
     "callbacks": {
       "onQtyChange": [
-        { "set": "scopes.product.item.qty", "expr": "evt.value" },
+        { "set": "scopes.product.qty", "expr": "evt.value" },
         { "expr": "updateProduct({ id: scopes.product.id, qty: evt.value })" }
       ],
       "onEdit": [
-        { "set": "scopes.root.draftName", "expr": "scopes.product.item.name" },
-        { "set": "scopes.root.draftPrice", "expr": "scopes.product.item.price" },
+        { "set": "scopes.root.draftName", "expr": "scopes.product.name" },
+        { "set": "scopes.root.draftPrice", "expr": "scopes.product.price" },
         { "set": "scopes.root.editingId", "expr": "scopes.product.id" }
       ]
     }

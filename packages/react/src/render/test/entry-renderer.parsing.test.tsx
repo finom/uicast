@@ -23,8 +23,8 @@ const BadgeImpl = createComponentImplementation({
     }),
   }),
   // No `variant = "default"` here: the engine applies the schema's default.
-  render: ({ text, variant, generatedKey }) => (
-    <span data-key={generatedKey} data-variant={variant}>
+  render: ({ text, variant}, { entry }) => (
+    <span data-key={entry.key} data-variant={variant}>
       {text}
     </span>
   ),
@@ -37,8 +37,8 @@ const PressImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.object({ id: z.string(), times: z.number().default(1) }) },
   }),
-  render: ({ onPress, generatedKey }) => (
-    <button type="button" data-key={generatedKey} onClick={() => onPress({ id: "a" })}>
+  render: ({ onPress}, { entry }) => (
+    <button type="button" data-key={entry.key} onClick={() => onPress({ id: "a" })}>
       press
     </button>
   ),
@@ -51,8 +51,8 @@ const BadPayloadImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.object({ id: z.string() }) },
   }),
-  render: ({ onPress, generatedKey }) => (
-    <button type="button" data-key={generatedKey} onClick={() => onPress({} as never)}>
+  render: ({ onPress}, { entry }) => (
+    <button type="button" data-key={entry.key} onClick={() => onPress({} as never)}>
       press
     </button>
   ),
@@ -66,8 +66,8 @@ const NullPressImpl = createComponentImplementation({
     callbacks: { onPress: z.null() },
   }),
   // A z.null() payload makes the handler a no-arg function — `evt` is `null`.
-  render: ({ onPress, generatedKey }) => (
-    <button type="button" data-key={generatedKey} onClick={() => onPress()}>
+  render: ({ onPress}, { entry }) => (
+    <button type="button" data-key={entry.key} onClick={() => onPress()}>
       press
     </button>
   ),

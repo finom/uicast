@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { keyNameSchema } from "../../lib/keys";
 
 export const ContextMenuDef = createComponentDefinition({
   name: "ContextMenu",
@@ -10,8 +11,8 @@ export const ContextMenuDef = createComponentDefinition({
       .array(
         z.strictObject({
           label: z.string().meta({ description: "Menu item label" }),
-          shortcut: z.string().optional().meta({
-            description: "Keyboard shortcut text",
+          shortcut: z.array(keyNameSchema).optional().meta({
+            description: "The shortcut's keys, in order.",
           }),
           disabled: z.boolean().optional().meta({
             description: "Whether the item is disabled",
@@ -28,11 +29,11 @@ export const ContextMenuDef = createComponentDefinition({
   }),
   callbacks: {
     onAction: z
-      .object({
+      .strictObject({
         label: z.string().meta({
           description: "The label of the clicked menu item",
         }),
-        index: z.number().meta({
+        index: z.number().int().nonnegative().meta({
           description: "The zero-based index of the clicked menu item",
         }),
       })

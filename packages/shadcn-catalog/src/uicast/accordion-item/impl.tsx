@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useContext, useEffect, useId, useState } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import {
   Accordion as ShadcnAccordion,
@@ -11,13 +11,15 @@ import { AccordionItemDef } from "./def";
 
 export const AccordionItemImpl = createComponentImplementation({
   def: AccordionItemDef,
-  render: ({ title, open, children, onToggle, generatedKey }) => {
+  render: ({ title, open, children, onToggle}, { entry }) => {
     const ctx = useContext(AccordionContext);
     // non-null under a type="single" Accordion, where siblings share one open
     // slot; standalone and type="multiple" items keep their own state
     const single = ctx?.type === "single" ? ctx : null;
+    // Per instance, not `entry.key`: list items share one entry key.
+    const id = useId();
     const [localOpen, setLocalOpen] = useState(open);
-    const isOpen = single ? single.openKey === generatedKey : localOpen;
+    const isOpen = single ? single.openKey === id : localOpen;
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: re-sync only when the document-driven open changes; single is read from the syncing render on purpose
     useEffect(() => {
@@ -25,8 +27,8 @@ export const AccordionItemImpl = createComponentImplementation({
         // Functional close: when the document opens one item and closes
         // another in the same commit, the closing effect must not clobber the
         // opener's write with a stale openKey.
-        if (open) single.setOpenKey(generatedKey);
-        else single.setOpenKey((key) => (key === generatedKey ? "" : key));
+        if (open) single.setOpenKey(id);
+        else single.setOpenKey((key) => (key === id ? "" : key));
       } else {
         setLocalOpen(open);
       }
@@ -36,7 +38,7 @@ export const AccordionItemImpl = createComponentImplementation({
     // firing — tell the document, or its mirrored open state goes stale.
     // biome-ignore lint/correctness/useExhaustiveDependencies: fire only when the slot owner changes
     useEffect(() => {
-      if (single && open && single.openKey !== "" && single.openKey !== generatedKey) {
+      if (single && open && single.openKey !== "" && single.openKey !== id) {
         onToggle({ open: false });
       }
     }, [single?.openKey]);
@@ -45,16 +47,16 @@ export const AccordionItemImpl = createComponentImplementation({
       <ShadcnAccordion
         type="single"
         collapsible={single ? single.collapsible : true}
-        value={isOpen ? generatedKey : ""}
+        value={isOpen ? id : ""}
         onValueChange={(val) => {
-          const newOpen = val === generatedKey;
-          if (single) single.setOpenKey(newOpen ? generatedKey : "");
+          const newOpen = val === id;
+          if (single) single.setOpenKey(newOpen ? id : "");
           else setLocalOpen(newOpen);
           onToggle({ open: newOpen });
         }}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
-        <ShadcnAccordionItem value={generatedKey}>
+        <ShadcnAccordionItem value={id}>
           <AccordionTrigger>{title}</AccordionTrigger>
           <AccordionContent>{children}</AccordionContent>
         </ShadcnAccordionItem>

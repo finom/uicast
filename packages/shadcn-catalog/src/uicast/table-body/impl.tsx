@@ -9,9 +9,9 @@ import { TableBodyDef } from "./def";
 
 export const TableBodyImpl = createComponentImplementation({
   def: TableBodyDef,
-  render: ({ children, generatedKey }) => {
+  render: ({ children}, { entry }) => {
     return (
-      <ShadcnTableBody data-key={generatedKey}>{children}</ShadcnTableBody>
+      <ShadcnTableBody data-key={entry.key}>{children}</ShadcnTableBody>
     );
   },
   placeholder: () => (

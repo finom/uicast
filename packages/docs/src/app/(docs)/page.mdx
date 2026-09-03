@@ -68,8 +68,8 @@ text, so a uicast app runs under a strict Content-Security-Policy — no
 Need more speed? A second package, `@uicast/expr-passthrough`, validates against
 the same grammar and then runs the expression with `new Function` — several
 times faster, for documents from a trusted author: your own pipeline, an admin,
-never a stranger. There
-[the model is your first line of defence](/expr#the-model-is-your-first-line-of-defence).
+never a stranger. With that package, and only with it,
+[the model is the first line of defence](/expr#with-the-passthrough-evaluator-the-model-is-the-first-line-of-defence).
 
 The interpreter secures the language, not what you plug into it — host functions
 are capabilities you grant, and scope data is only as safe as what you put

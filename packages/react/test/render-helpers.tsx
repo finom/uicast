@@ -38,8 +38,8 @@ const boxDef = createComponentDefinition({
 
 export const boxRenderer = createComponentImplementation({
   def: boxDef,
-  render: ({ text, className, children, generatedKey }) => (
-    <div data-key={generatedKey} className={className}>
+  render: ({ text, className, children}, { entry }) => (
+    <div data-key={entry.key} className={className}>
       {text}
       {children}
     </div>
@@ -55,10 +55,10 @@ const buttonDef = createComponentDefinition({
 
 export const buttonRenderer = createComponentImplementation({
   def: buttonDef,
-  render: ({ label, onClick, generatedKey }) => (
+  render: ({ label, onClick}, { entry }) => (
     <button
       type="button"
-      data-key={generatedKey}
+      data-key={entry.key}
       onClick={() => onClick({})}
     >
       {label ?? "click"}

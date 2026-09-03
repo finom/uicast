@@ -7,8 +7,7 @@ export const ListImpl = createComponentImplementation({
     ordered,
     styleType,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const styleMap: Record<string, string> = {
       disc: "list-disc",
       decimal: "list-decimal",
@@ -18,7 +17,7 @@ export const ListImpl = createComponentImplementation({
     return (
       <Tag
         className={`${styleMap[styleType]} pl-5 space-y-1 text-sm *:list-item`}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </Tag>

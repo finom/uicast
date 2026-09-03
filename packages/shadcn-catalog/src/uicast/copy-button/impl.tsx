@@ -12,8 +12,7 @@ export const CopyButtonImpl = createComponentImplementation({
     variant,
     size,
     onCopy,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async () => {
@@ -28,7 +27,7 @@ export const CopyButtonImpl = createComponentImplementation({
         variant={variant}
         size={size}
         onClick={handleCopy}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {copied ? (
           <>

@@ -17,10 +17,9 @@ export const PageHeaderImpl = createComponentImplementation({
     breadcrumbs,
     children,
     onBreadcrumbClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <div className="space-y-2 pb-4" data-key={generatedKey}>
+      <div className="space-y-2 pb-4" data-key={entry.key}>
         {breadcrumbs && breadcrumbs.length > 0 && (
           <Breadcrumb>
             <BreadcrumbList>

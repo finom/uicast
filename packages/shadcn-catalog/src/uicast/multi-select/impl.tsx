@@ -16,8 +16,7 @@ export const MultiSelectImpl = createComponentImplementation({
     placeholder,
     disabled,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [open, setOpen] = useState(false);
     const selectedLabels = options.filter((o) => value.includes(o.value));
 
@@ -29,7 +28,7 @@ export const MultiSelectImpl = createComponentImplementation({
     };
 
     return (
-      <div className="relative" data-key={generatedKey}>
+      <div className="relative" data-key={entry.key}>
         <Button
           variant="outline"
           disabled={disabled}

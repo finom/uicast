@@ -53,8 +53,7 @@ export const MaskedInputImpl = createComponentImplementation({
     onChange,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <Input
         value={value ?? ""}
@@ -67,7 +66,7 @@ export const MaskedInputImpl = createComponentImplementation({
         }}
         onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
         onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

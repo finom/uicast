@@ -1,29 +1,38 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, sql } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
+import { contains, publicColumns } from "@/db/query";
 import { products, stockMovements } from "@/db/schema";
-import { movementInsert } from "@/db/zod";
-import { json, ownerForRead, readValid, requireUser } from "@/lib/api";
+import { movementInsert, movementListInput } from "@/db/zod";
+import { json, ownerForRead, readQuery, readValid, requireUser } from "@/lib/api";
 
-const COLS = {
-  id: stockMovements.id,
-  productId: stockMovements.productId,
-  qty: stockMovements.qty,
-  reason: stockMovements.reason,
-  note: stockMovements.note,
-  createdAt: stockMovements.createdAt,
-};
+const COLS = publicColumns(stockMovements);
 
 export async function GET(req: NextRequest) {
   const read = await ownerForRead(req);
   if ("error" in read) return read.error;
-  return json(
-    await db
-      .select(COLS)
-      .from(stockMovements)
-      .where(eq(stockMovements.userId, read.owner.id))
-      .orderBy(desc(stockMovements.createdAt), desc(stockMovements.id)),
+  const input = readQuery(req, movementListInput);
+  if ("error" in input) return input.error;
+  const { limit, offset, sort, order, q, productId, reason } = input.data;
+  const dir = order === "asc" ? asc : desc;
+  const where = and(
+    eq(stockMovements.userId, read.owner.id),
+    q ? contains(products.name, q) : undefined,
+    productId !== undefined ? eq(stockMovements.productId, productId) : undefined,
+    reason ? eq(stockMovements.reason, reason) : undefined,
   );
+  const [items, [{ total }]] = await Promise.all([
+    db
+      .select({ ...COLS, productName: products.name })
+      .from(stockMovements)
+      .innerJoin(products, eq(products.id, stockMovements.productId))
+      .where(where)
+      .orderBy((row) => [dir(row[sort]), dir(row.id)])
+      .limit(limit)
+      .offset(offset),
+    db.select({ total: count() }).from(stockMovements).innerJoin(products, eq(products.id, stockMovements.productId)).where(where),
+  ]);
+  return json({ items, total, limit, offset });
 }
 
 // A movement adjusts the product's stock in the same transaction, so the

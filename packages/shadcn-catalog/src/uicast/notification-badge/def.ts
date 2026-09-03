@@ -6,11 +6,11 @@ export const NotificationBadgeDef = createComponentDefinition({
   description:
     "A notification count badge that overlays on content. Renders a small colored dot or count badge. Use NotificationBadge wrapping icons, buttons, or avatars to show unread counts, alerts, or attention indicators.",
   props: z.strictObject({
-    count: z.number().default(0).meta({
+    count: z.number().int().nonnegative().default(0).meta({
       description:
         "Notification count. 0 hides the badge (or shows dot if showZero is true)",
     }),
-    max: z.number().default(99).meta({
+    max: z.number().int().min(1).default(99).meta({
       description: "Maximum displayed count (shows max+ for larger values)",
     }),
     variant: z

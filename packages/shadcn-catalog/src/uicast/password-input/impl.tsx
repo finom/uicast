@@ -17,12 +17,11 @@ export const PasswordInputImpl = createComponentImplementation({
     onBlur,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-      <div className="relative" data-key={generatedKey}>
+      <div className="relative" data-key={entry.key}>
         <Input
           type={showPassword ? "text" : "password"}
           value={value as string | undefined}

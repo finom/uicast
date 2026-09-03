@@ -16,10 +16,10 @@ const iconMap: Record<string, React.ReactNode> = {
 
 export const AlertImpl = createComponentImplementation({
   def: AlertDef,
-  render: ({ title, description, status, generatedKey }) => {
+  render: ({ title, description, status}, { entry }) => {
     const variant = status === "error" ? "destructive" : "default";
     return (
-      <ShadcnAlert variant={variant} data-key={generatedKey}>
+      <ShadcnAlert variant={variant} data-key={entry.key}>
         {iconMap[status]}
         <AlertTitle>{title}</AlertTitle>
         {description && <AlertDescription>{description}</AlertDescription>}

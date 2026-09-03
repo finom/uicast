@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const RadarChartDef = createComponentDefinition({
   name: "RadarChart",
@@ -24,11 +25,9 @@ export const RadarChartDef = createComponentDefinition({
       description:
         "Array of keys for values to plot, e.g. ['score', 'average']",
     }),
-    colors: z.array(z.string()).optional().meta({
-      description: "Optional colors for each value series",
-    }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
   }),

@@ -7,8 +7,8 @@ import { MarkdownViewerDef } from "./def";
 // user-supplied content can't inject markup.
 export const MarkdownViewerImpl = createComponentImplementation({
   def: MarkdownViewerDef,
-  render: ({ content, generatedKey }) => (
-    <div data-key={generatedKey}>
+  render: ({ content}, { entry }) => (
+    <div data-key={entry.key}>
       <Streamdown>{content}</Streamdown>
     </div>
   ),

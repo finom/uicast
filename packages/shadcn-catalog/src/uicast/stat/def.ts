@@ -9,9 +9,8 @@ export const StatDef = createComponentDefinition({
     label: z
       .string()
       .meta({ description: "The metric label, e.g. 'Total Revenue'" }),
-    value: z.any().meta({
-      description:
-        "The primary display value, e.g. '$12,345' or 42 or '98%'. Rendered as a large number.",
+    value: z.union([z.string(), z.number()]).meta({
+      description: "The primary display value, already formatted. Rendered large.",
     }),
     trend: z.enum(["up", "down", "neutral"]).optional().meta({
       description:

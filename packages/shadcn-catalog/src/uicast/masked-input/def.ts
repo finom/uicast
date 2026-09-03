@@ -10,7 +10,11 @@ export const MaskedInputDef = createComponentDefinition({
     value: z.string().optional().meta({
       description: "The current input value",
     }),
-    mask: z.string().default("###-##-####").meta({
+    mask: z
+      .string()
+      .regex(/^[#A*\s\-/().+]+$/)
+      .default("###-##-####")
+      .meta({
       description:
         "The mask pattern where # represents a digit, A represents a letter, and * represents any character. Other characters are literal separators.",
     }),

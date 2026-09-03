@@ -13,8 +13,8 @@ import {
 // card/impl.tsx
 export const CardImpl = createComponentImplementation({
   def: CardDef,
-  render: ({ children }) => (
-    <Card className="w-72">
+  render: ({ children }, { loading }) => (
+    <Card className={loading ? "w-72 animate-pulse opacity-60" : "w-72"} aria-busy={loading || undefined}>
       <CardContent className="grid gap-2">{children}</CardContent>
     </Card>
   ),

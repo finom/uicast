@@ -23,10 +23,10 @@ export const cases: [string, string][] = [
 
 // One reactive wave over a realistic table: 1000 rows, five expression sites per row (props, hidden, text).
 export const WAVE_EXPRS = [
-	"({ text: scopes.row.item.name })",
-	"({ text: scopes.row.item.id + 1 })",
-	"scopes.row.item.stock > 0",
+	"({ text: scopes.row.name })",
+	"({ text: scopes.row.id + 1 })",
+	"scopes.row.stock > 0",
 	// biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
-	"`${scopes.row.item.name}: ${scopes.row.item.price.toFixed(2)}`",
-	"({ value: scopes.row.item.price })",
+	"`${scopes.row.name}: ${scopes.row.price.toFixed(2)}`",
+	"({ value: scopes.row.price })",
 ];

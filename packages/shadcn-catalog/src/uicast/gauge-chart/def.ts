@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const GaugeChartDef = createComponentDefinition({
   name: "GaugeChart",
@@ -13,12 +14,11 @@ export const GaugeChartDef = createComponentDefinition({
       .string()
       .optional()
       .meta({ description: "Label text beneath the value" }),
-    color: z
-      .string()
-      .default("#8884d8")
-      .meta({ description: "Gauge fill color" }),
+    color: chartColorSchema
+      .default("violet")
+      .meta({ description: "Gauge fill colour." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(200)
       .meta({ description: "Chart height in pixels" }),
   }),

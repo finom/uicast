@@ -16,14 +16,14 @@ export const SankeyChartDef = createComponentDefinition({
     links: z
       .array(
         z.strictObject({
-          source: z.number().meta({ description: "Source node index" }),
-          target: z.number().meta({ description: "Target node index" }),
+          source: z.number().int().nonnegative().meta({ description: "Source node index" }),
+          target: z.number().int().nonnegative().meta({ description: "Target node index" }),
           value: z.number().meta({ description: "Flow value/weight" }),
         }),
       )
       .meta({ description: "Array of links between nodes" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(400)
       .meta({ description: "Chart height in pixels" }),
   }),

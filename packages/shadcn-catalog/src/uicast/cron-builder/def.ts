@@ -6,7 +6,11 @@ export const CronBuilderDef = createComponentDefinition({
   description:
     "A visual cron expression builder. Provides dropdowns to construct cron expressions without memorizing syntax. Use CronBuilder for scheduling tasks, setting up recurring events, or configuring automated jobs.",
   props: z.strictObject({
-    value: z.string().default("* * * * *").meta({
+    value: z
+      .string()
+      .regex(/^\S+ \S+ \S+ \S+ \S+$/)
+      .default("* * * * *")
+      .meta({
       description:
         "Current cron expression (5-part: minute hour day month weekday)",
     }),
@@ -16,7 +20,7 @@ export const CronBuilderDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z
-      .object({
+      .strictObject({
         value: z.string().meta({ description: "The new cron expression" }),
       })
       .meta({ description: "Callback when cron expression changes" }),

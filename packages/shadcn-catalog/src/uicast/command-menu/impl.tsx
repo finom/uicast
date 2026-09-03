@@ -9,8 +9,7 @@ import {
   CommandItem,
   CommandShortcut,
 } from "../../components/ui/command";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { iconNode } from "../../lib/icon-node";
 import { CommandMenuDef } from "./def";
 
 export const CommandMenuImpl = createComponentImplementation({
@@ -21,18 +20,9 @@ export const CommandMenuImpl = createComponentImplementation({
     groups = [],
     onSelect,
     onOpenChange,
-    generatedKey,
-  }) => {
-    const getIcon = (iconName?: string) => {
-      if (!iconName) return null;
-      const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-        iconName
-      ];
-      return Icon ? <Icon className="mr-2 size-4 shrink-0" /> : null;
-    };
-
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <CommandDialog
           open={open}
           onOpenChange={(v: boolean) => onOpenChange({ open: v })}
@@ -53,11 +43,11 @@ export const CommandMenuImpl = createComponentImplementation({
                         });
                       }}
                     >
-                      {getIcon(item.icon)}
+                      {iconNode(item.icon, "mr-2 size-4 shrink-0")}
                       <span>{item.label}</span>
-                      {item.shortcut && (
-                        <CommandShortcut>{item.shortcut}</CommandShortcut>
-                      )}
+                      {item.shortcut?.length ? (
+                        <CommandShortcut>{item.shortcut.join("+")}</CommandShortcut>
+                      ) : null}
                     </CommandItem>
                   ))}
                 </CommandGroup>

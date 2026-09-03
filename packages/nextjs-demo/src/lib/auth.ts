@@ -3,7 +3,6 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
 import { sessions, users, type User } from "@/db/schema";
-import { insertSeedContent } from "@/db/seed-content";
 import { insertStarterData } from "@/db/starter-data";
 
 // Identity is our own session cookie: OpenRouter's PKCE flow returns a key but
@@ -42,9 +41,8 @@ async function uniqueSlug(): Promise<string> {
 
 export async function createUser(): Promise<User> {
   const [user] = await db.insert(users).values({ slug: await uniqueSlug() }).returning();
+  // Domain data only: no pages, no chats. The user builds their own.
   await insertStarterData(user.id);
-  // New accounts start from the demo content, as their own editable copy.
-  await insertSeedContent(user.id, () => crypto.randomUUID());
   return user;
 }
 

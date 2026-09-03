@@ -74,7 +74,8 @@ function AccordionContent({
     >
       <div
         className={cn(
-          "pt-0 pb-2.5 [&_a]:hover:text-foreground h-(--radix-accordion-content-height) [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
+          // No fixed height on the wrapper: content that loads after opening must grow it.
+          "pt-0 pb-2.5 [&_a]:hover:text-foreground [&_a]:underline [&_a]:underline-offset-3 [&_p:not(:last-child)]:mb-4",
           className,
         )}
       >

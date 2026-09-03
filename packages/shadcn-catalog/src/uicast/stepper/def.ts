@@ -16,7 +16,7 @@ export const StepperDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of step definitions" }),
-    currentStep: z.number().default(0).meta({
+    currentStep: z.number().int().nonnegative().default(0).meta({
       description: "The zero-based index of the current active step",
     }),
     orientation: z
@@ -26,8 +26,8 @@ export const StepperDef = createComponentDefinition({
   }),
   callbacks: {
     onStepClick: z
-      .object({
-        step: z.number().meta({
+      .strictObject({
+        step: z.number().int().nonnegative().meta({
           description: "The zero-based index of the clicked step",
         }),
       })

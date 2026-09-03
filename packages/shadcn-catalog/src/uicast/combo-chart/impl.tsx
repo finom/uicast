@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   ComposedChart,
   Bar,
@@ -23,13 +24,12 @@ export const ComboChartImpl = createComponentImplementation({
     barColors,
     lineColors,
     height,
-    generatedKey,
-  }) => {
+  }, { entry, loading }) => {
     const bColors = barColors ?? defaultChartColors.slice(0, 3);
     const lColors = lineColors ?? defaultChartColors.slice(3);
 
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <ComposedChart data={data}>
             <CartesianGrid strokeDasharray="3 3" />

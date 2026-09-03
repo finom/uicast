@@ -108,7 +108,7 @@ Both edits also call `updateProduct(...)` in a second step — a
 [host function](/functions) that persists the change, so a reload keeps it.
 Save asks first: its
 first step carries a
-[`confirm`](/entry/value-sources#confirmablevaluesourceassignment) message, and
+[`confirm`](/entry/value-sources#callbackvaluesourceassignment) message, and
 declining skips it and everything after. The dialog that asks is the host's
 [`fallbackComponents.confirm`](/react/renderer#fallbackcomponents--the-engines-fallback-ui) —
 one component answering every `confirm` in every document.
@@ -117,7 +117,7 @@ one component answering every `confirm` in every document.
 
 The `rows` list reads `scopes.root.products` in its `each`. Nobody declared
 that dependency — the engine reads it out of the expression and subscribes the
-element to that path:
+element to that field:
 
 ```jsonc
 { "key": "rows", "each": "scopes.root.products", "as": "product", "keyBy": "id" }
@@ -125,14 +125,14 @@ element to that path:
 ```
 
 Click **Refresh**, the callback writes `scopes.root.products`. A write wakes
-readers of that path and of any path under it, so the rows rebuild and the
-`N products` count updates with them. The callback never names the elements it
+every reader of that field, so the rows rebuild and the `N products` count
+updates with them. The callback never names the elements it
 wakes — the wiring is automatic. See [Reactivity](/entry/reactivity).
 
 ## Expressions compute; `set` changes
 
 `props.expr`, `hidden`, `each`, and the `expr` of any `seed` or `callbacks` step
-hold **one JavaScript expression**, evaluated against the scopes. Two rules.
+hold **one expression** in a [subset of JavaScript](/expr), evaluated against the scopes. Two rules.
 
 **An expression only computes.** The only way to write state is a step's `set`
 field:
@@ -220,7 +220,7 @@ separately, and an entry sets them as separate fields.
 | **entry** | One line of that stream: the JSON describing a single node. You author entries; the node that mounts from one is its **element**. See [Component Entry Format](/entry). |
 | **list** | An entry that repeats, marked by [`each`](/entry/fields) (the collection) with `as` naming the per-item scope. Each repetition is an **item**, read as `scopes.<as>.item`, `.index`, `.id`. |
 | **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
-| **expression** | A single JavaScript expression evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar compiled to a closure tree, every read checked at run time, no `new Function`. |
+| **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar compiled to a closure tree, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
 | **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react/impl). |
 | **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/functions). |

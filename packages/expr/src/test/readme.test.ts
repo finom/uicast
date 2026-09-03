@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { ALLOWED_GLOBALS, Evaluator, ExpressionError, type StandardToolV0 } from "../index";
+import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
+import { ALLOWED_GLOBALS } from "../constants/globals";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 
 // Every runnable example in README.md, run — and its language section checked against the tables. A README that lies is worse than one that is short.

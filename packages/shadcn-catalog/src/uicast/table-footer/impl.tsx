@@ -9,9 +9,9 @@ import { TableFooterDef } from "./def";
 
 export const TableFooterImpl = createComponentImplementation({
   def: TableFooterDef,
-  render: ({ children, generatedKey }) => {
+  render: ({ children}, { entry }) => {
     return (
-      <ShadcnTableFooter data-key={generatedKey}>{children}</ShadcnTableFooter>
+      <ShadcnTableFooter data-key={entry.key}>{children}</ShadcnTableFooter>
     );
   },
   placeholder: () => (

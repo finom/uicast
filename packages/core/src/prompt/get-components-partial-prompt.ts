@@ -1,4 +1,4 @@
-import { dashTail, stripRootDescription } from "../prompt-utils/describe";
+import { dashTail, stripRootAnnotations } from "../prompt-utils/describe";
 import { type JSONSchema, JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
 import { collectSharedTypes } from "../prompt-utils/shared-types";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
@@ -28,7 +28,7 @@ const describeFields = (
 			field !== null && typeof field === "object" && "default" in field
 				? ` = ${JSON.stringify((field as { default?: unknown }).default)}`
 				: "";
-		return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootDescription(field), { namedRefs })}${fallback}${dashTail(field.description)}`;
+		return `${indent}- ${name}${optional}: ${JSONSchemaToTs(stripRootAnnotations(field), { namedRefs })}${fallback}${dashTail(field.description)}`;
 	});
 };
 
@@ -91,7 +91,7 @@ export function getComponentsPartialPrompt({
 		if (fieldLines.length) {
 			commonLines.push(`- ${id}${tail}`, ...fieldLines);
 		} else {
-			const ts = JSONSchemaToTs(stripRootDescription(jsonSchema), { namedRefs: refs });
+			const ts = JSONSchemaToTs(stripRootAnnotations(jsonSchema), { namedRefs: refs });
 			commonLines.push(`- ${id}: ${ts}${tail}`);
 		}
 	}
@@ -133,7 +133,7 @@ export function getComponentsPartialPrompt({
 						return [`    - ${cbName}(evt)${tail}`, ...optionLines];
 					}
 					return [
-						`    - ${cbName}(evt: ${JSONSchemaToTs(stripRootDescription(cbJSONSchema), { namedRefs: cbRefs })})${tail}`,
+						`    - ${cbName}(evt: ${JSONSchemaToTs(stripRootAnnotations(cbJSONSchema), { namedRefs: cbRefs })})${tail}`,
 					];
 				},
 			);

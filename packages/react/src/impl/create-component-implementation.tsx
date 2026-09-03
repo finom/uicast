@@ -1,9 +1,7 @@
-import { Activity, type ReactNode, useMemo, useRef } from "react";
+import { memo, type ReactNode } from "react";
 import type { StandardSchemaV1 } from "@standard-schema/spec";
 import {
   EntryError,
-  findUrlViolations,
-  schemaHasUrlFormat,
   type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
@@ -11,19 +9,21 @@ import {
   type UrlPolicy,
 } from "@uicast/core";
 import {
+  findUrlViolations,
+  schemaHasUrlFormat,
   evaluate,
   specToJSONSchema,
   type JSONSchema,
 } from "@uicast/core/internal";
-import { type ConfirmFn, useConfirm } from "../providers/confirm";
-import { useRendererRegistry } from "../store/renderer-registry";
 import type {
   ComponentImplementation,
+  ConfirmFn,
+  Debouncers,
   PlaceholderComponentProps,
+  RenderContext,
   Scopes,
 } from "../types";
 import { runCallbackSteps } from "./run-callback-steps";
-import { structurallyEqual } from "./structural-equal";
 
 // `null` payload = no-arg handler. The argument is the schema INPUT: the impl
 // supplies it, the engine parses, the steps see the OUTPUT (defaults filled).
@@ -74,14 +74,17 @@ export const createComponentImplementation = <
 }: {
   def: ComponentDefinition<TProps, TCallbacks>;
   render: (
-    props: {
-      children?: ReactNode;
-      generatedKey: string;
-    } & StandardSchemaV1.InferOutput<TProps> &
+    props: { children?: ReactNode } & StandardSchemaV1.InferOutput<TProps> &
       CallbacksToFunctions<TCallbacks>,
+    context: RenderContext,
   ) => React.ReactElement;
   placeholder?: (props: PlaceholderComponentProps) => React.ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
+  // `render` may call hooks, so it runs inside a component of its own; memo skips it when nothing it receives changed.
+  const Render = memo(({ __context, ...props }: Record<string, unknown> & { __context: RenderContext }) =>
+    render(props as Parameters<typeof render>[0], __context),
+  );
+
   // Computed once per component, on first render: the props JSON Schema, and
   // whether it declares any URL at all. A component with no URL prop — almost
   // all of them — never runs the value walk.
@@ -119,7 +122,7 @@ export const createComponentImplementation = <
       // Refused here, so the promise is settled by nobody — swallow its rejection.
       rawProps.catch(() => {});
       throw new EntryError(
-        `"props" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
+        `"props" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/loading/each; move the call to seed or a callback step`,
         { reason: "guardrail-violation", elementKey: entry.key },
       );
     }
@@ -147,19 +150,24 @@ export const createComponentImplementation = <
     return props;
   };
 
-  const evaluateHidden = (entry: ComponentEntry, scopes: Scopes, evaluator: ExpressionEvaluator): unknown => {
-    const hidden = entry.hidden
-      ? evaluate({ expr: entry.hidden }, { scopes }, evaluator)
-      : false;
-    if (hidden instanceof Promise) {
+  // `hidden` and `loading`: bare expressions, false when absent.
+  const evaluateFlag = (
+    entry: ComponentEntry,
+    flag: "hidden" | "loading",
+    scopes: Scopes,
+    evaluator: ExpressionEvaluator,
+  ): unknown => {
+    const expr = entry[flag];
+    const value = expr ? evaluate({ expr }, { scopes }, evaluator) : false;
+    if (value instanceof Promise) {
       // Refused here, so the promise is settled by nobody — swallow its rejection.
-      hidden.catch(() => {});
+      value.catch(() => {});
       throw new EntryError(
-        `"hidden" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/each; move the call to seed or a callback step`,
+        `"${flag}" of ${entry.key} evaluated to a Promise — host functions and await are not allowed in props/hidden/loading/each; move the call to seed or a callback step`,
         { reason: "guardrail-violation", elementKey: entry.key },
       );
     }
-    return hidden;
+    return value;
   };
 
   const buildCallbacks = (
@@ -168,6 +176,7 @@ export const createComponentImplementation = <
     confirm: ConfirmFn,
     evaluator: ExpressionEvaluator,
     onError: ((error: EntryError) => void) | undefined,
+    debouncers: Debouncers,
   ): CallbacksToFunctions<TCallbacks> => {
     const entryCallbacks = entry.callbacks ? entry.callbacks : {};
     // Every callback the DEF declares is callable, wired or not — the def is
@@ -208,6 +217,8 @@ export const createComponentImplementation = <
               confirm,
               evaluator,
               elementKey: entry.key,
+              callbackName: key,
+              debouncers,
             });
           } catch (err) {
             // A callback failure must not vanish as an unhandled rejection.
@@ -226,68 +237,15 @@ export const createComponentImplementation = <
     return callbacks;
   };
 
-  const component = ({
-    entry,
-    children,
-    scopes,
-  }: {
-    entry: ComponentEntry;
-    children: ReactNode;
-    scopes: Scopes;
-  }) => {
-    const confirm = useConfirm();
-    const { evaluator, urlPolicy, onError } = useRendererRegistry();
-
-    // A fault is thrown after the hooks below, so the hook order never changes.
-    let props: StandardSchemaV1.InferOutput<TProps> | null = null;
-    let hidden: unknown = false;
-    let fault: unknown = null;
-    try {
-      props = evaluateProps(entry, scopes, evaluator, urlPolicy);
-      hidden = evaluateHidden(entry, scopes, evaluator);
-    } catch (err) {
-      fault = err;
-    }
-
-    // Same data → same object, so a state change that left this element's
-    // props untouched does not reach `render`.
-    const prevProps = useRef(props);
-    if (structurallyEqual(prevProps.current, props)) props = prevProps.current;
-    else prevProps.current = props;
-
-    const callbacks = useMemo(
-      () => buildCallbacks(entry, scopes, confirm, evaluator, onError),
-      [entry, scopes, confirm, evaluator, onError],
-    );
-
-    const hasReactChildren = Array.isArray(children)
-      ? children.length > 0
-      : Boolean(children);
-    const result = useMemo(() => {
-      if (props === null) return null;
-      try {
-        return render({
-          ...(props as object),
-          ...(hasReactChildren ? { children } : {}),
-          ...callbacks,
-          generatedKey: entry.key,
-        });
-      } catch (err) {
-        if (EntryError.is(err)) throw err;
-        // Props already passed the def's schema above, so a render that throws
-        // here broke on input its own contract accepts — an implementation bug.
-        throw EntryError.wrap(err, "implementation", entry.key);
-      }
-    }, [props, children, hasReactChildren, callbacks, entry.key]);
-
-    if (fault !== null || result === null) throw fault;
-
-    if (entry.hidden) {
-      return <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity>;
-    }
-
-    return result;
+  return {
+    def,
+    Render,
+    placeholder: placeholder ?? null,
+    evaluate: (entry, scopes, evaluator, urlPolicy) => ({
+      props: evaluateProps(entry, scopes, evaluator, urlPolicy),
+      hidden: evaluateFlag(entry, "hidden", scopes, evaluator),
+      loading: evaluateFlag(entry, "loading", scopes, evaluator),
+    }),
+    callbacks: buildCallbacks,
   };
-
-  return { def, render: component, placeholder: placeholder ?? null };
 };

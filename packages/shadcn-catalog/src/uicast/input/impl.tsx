@@ -15,8 +15,7 @@ export const InputImpl = createComponentImplementation({
     onBlur,
     onKeyDown,
     onKeyUp,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ShadcnInput
         type={type}
@@ -38,7 +37,7 @@ export const InputImpl = createComponentImplementation({
         }
         onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
         onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       />
     );
   },

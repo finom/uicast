@@ -241,6 +241,18 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 		expect(out).toContain("    - open?: boolean = false — Starts open");
 	});
 
+	it("prints a prop's constraints in the comment, its default after the type", () => {
+		const A = createComponentDefinition({
+			name: "A",
+			description: "a",
+			props: z.object({
+				count: z.number().int().min(1).max(10).default(5).meta({ description: "How many" }),
+			}),
+		});
+		const out = getComponentsPartialPrompt({ definitions: [A] });
+		expect(out).toContain("    - count?: number /* integer, ≥ 1, ≤ 10 */ = 5 — How many");
+	});
+
 	it("leaves a description-less prop as a bare type", () => {
 		const A = createComponentDefinition({
 			name: "A",

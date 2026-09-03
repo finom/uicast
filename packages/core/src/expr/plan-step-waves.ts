@@ -36,7 +36,10 @@ export function planStepWaves<T extends PlannableStep>(
       // The dep extraction is text-based, so `currentValue` is matched the same way.
       if (step.set && /\bcurrentValue\b/.test(step.expr)) reads.push(step.set);
     }
-    const dependsOnWave = reads.some((r) => waveWrites.has(r));
+    // A whole-scope read (`scopes.root.*`) waits for any write into that scope.
+    const dependsOnWave = reads.some((r) =>
+      r.endsWith(".*") ? [...waveWrites].some((w) => w.startsWith(r.slice(0, -1))) : waveWrites.has(r),
+    );
     const barrier = !!step.confirm || !!isBarrier?.(step);
     if (dependsOnWave || barrier) close();
     wave.push(step);

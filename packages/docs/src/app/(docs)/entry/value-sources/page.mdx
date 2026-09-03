@@ -4,9 +4,9 @@ A **value source** is how an entry expresses one value: static, or computed from
 a JavaScript expression. Three forms:
 
 ```ts
-ValueSource                      = { expr } | { literal }             // props
-ValueSourceAssignment            = ValueSource & { set }              // seed steps
-ConfirmableValueSourceAssignment = ValueSource & { set?, confirm? }   // callback steps
+ValueSource                  = { expr } | { literal }                       // props
+ValueSourceAssignment        = ValueSource & { set }                        // seed steps
+CallbackValueSourceAssignment = ValueSource & { set?, confirm?, debounce? }  // callback steps
 ```
 
 A callback step may **drop `set`** and run purely for its effect; a `seed` step
@@ -67,7 +67,7 @@ child's write is a silent no-op — two entries seeding one path never clobber
 each other (see [state](/entry/state#lifecycle)). The same `set` in a
 `callbacks` step would write `all`.
 
-## ConfirmableValueSourceAssignment
+## CallbackValueSourceAssignment
 
 `confirm` gates the step behind a confirmation message.
 
@@ -84,3 +84,19 @@ No `set` on the first step, so the delete's return value is discarded. Decline
 the prompt and neither step runs. A confirmed step is also an
 [ordering barrier](/entry/reactivity): everything before it settles first, and
 nothing after it starts until it passes.
+
+`debounce` delays the step, and every step after it, until the callback has
+been quiet for 300 ms. A newer call replaces the pending run, so only the last
+one fires, with its own `evt`. The steps before it run at once.
+
+```jsonc
+{ // …
+  "callbacks": { "onChange": [
+    { "set": "scopes.root.q", "expr": "evt.value" },
+    { "set": "scopes.root.rows", "expr": "searchRows({ q: scopes.root.q })",
+      "debounce": true }
+  ] } }
+```
+
+The input stays live: `q` is written on every keystroke, the search runs once
+typing pauses. Unmounting the element cancels a pending run.

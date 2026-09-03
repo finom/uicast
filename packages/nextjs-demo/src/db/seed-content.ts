@@ -1,10 +1,9 @@
 import type { ComponentEntry } from "@uicast/core";
 import { db } from "./index";
 import { chatMessages, chats, componentEntries, pages } from "./schema";
+import { opsConsoleEntries } from "./seed-ops-console";
 
-// The default content every account starts from: the demo user's pages and
-// chats, copied verbatim into each new user's workspace at signup so they can
-// continue from a working example instead of a blank page.
+// The demo user's pages and chats. New accounts start empty.
 
 export type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number };
 export const SEED_MODEL = "anthropic/claude-opus-5";
@@ -12,6 +11,9 @@ export const SEED_MODEL = "anthropic/claude-opus-5";
 // ---------------------------------------------------------------------------
 // Page 1 — Inventory & restock
 // ---------------------------------------------------------------------------
+const PRODUCT_PAGE =
+  "listProducts({ limit: 25, offset: (scopes.root.page - 1) * 25, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, category: scopes.root.cat === 'all' ? undefined : scopes.root.cat, stockAtMost: scopes.root.lowOnly ? 20 : undefined })";
+
 const inventoryEntries: ComponentEntry[] = [
   {
     key: "root",
@@ -20,14 +22,26 @@ const inventoryEntries: ComponentEntry[] = [
     seed: [
       { set: "scopes.root.q", literal: "" },
       { set: "scopes.root.cat", literal: "all" },
+      { set: "scopes.root.sortKey", literal: "name" },
+      { set: "scopes.root.sortDesc", literal: false },
+      { set: "scopes.root.lowOnly", literal: false },
+      { set: "scopes.root.page", literal: 1 },
+      { set: "scopes.root.busy", literal: false },
+      { set: "scopes.root.openId", literal: null },
+      { set: "scopes.root.moves", literal: { items: [], total: 0 } },
       { set: "scopes.root.rcvOpen", literal: false },
       { set: "scopes.root.rcvProductId", literal: "" },
       { set: "scopes.root.rcvQty", literal: 10 },
       { set: "scopes.root.rcvNote", literal: "" },
-      { set: "scopes.root.products", expr: "listProducts()" },
+      { set: "scopes.root.summary", expr: "getStockSummary()" },
+      { set: "scopes.root.restock", expr: "listProducts({ stockAtMost: 49, limit: 200 })" },
       { set: "scopes.root.suppliers", expr: "listSuppliers()" },
+      { set: "scopes.root.catalog", expr: "listProducts({ limit: 200 })" },
+      { set: "scopes.root.busy", literal: true },
+      { set: "scopes.root.products", expr: PRODUCT_PAGE },
+      { set: "scopes.root.busy", literal: false },
     ],
-    children: ["header", "stats", "charts", "toolbar", "table-card", "rcv-drawer"],
+    children: ["header", "stats", "charts", "toolbar", "table-card", "pager", "rcv-drawer"],
   },
   {
     key: "header",
@@ -49,30 +63,22 @@ const inventoryEntries: ComponentEntry[] = [
     callbacks: { onClick: [{ set: "scopes.root.rcvOpen", literal: true }] },
   },
   { key: "stats", component: "Grid", props: { literal: { columns: "4", gap: "4" } }, children: ["s-count", "s-low", "s-value", "s-restock"] },
-  {
-    key: "s-count",
-    component: "Stat",
-    props: { expr: "({ label: 'Products', value: scopes.root.products.length, helpText: 'in catalog' })" },
-  },
+  { key: "s-count", component: "Stat", props: { expr: "({ label: 'Products', value: scopes.root.summary.products, helpText: 'in catalog' })" } },
   {
     key: "s-low",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Low stock', value: scopes.root.products.filter(p => p.stock <= 20).length, trend: scopes.root.products.filter(p => p.stock <= 20).length > 0 ? 'down' : 'neutral', helpText: '20 units or fewer' })",
-    },
+    props: { expr: "({ label: 'Low stock', value: scopes.root.summary.lowStock, trend: scopes.root.summary.lowStock > 0 ? 'down' : 'neutral', helpText: '20 units or fewer' })" },
   },
   {
     key: "s-value",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Stock value', value: '$' + Math.round(scopes.root.products.reduce((s, p) => s + p.price * p.stock, 0)).toLocaleString(), helpText: 'at list price' })",
-    },
+    props: { expr: "({ label: 'Stock value', value: '$' + Math.round(scopes.root.summary.value).toLocaleString(), helpText: 'at list price' })" },
   },
   {
     key: "s-restock",
     component: "Stat",
     props: {
-      expr: "({ label: 'Restock to 50', value: '$' + Math.round(scopes.root.products.filter(p => p.stock < 50).reduce((s, p) => s + (50 - p.stock) * p.price, 0)).toLocaleString(), helpText: 'to bring every item to 50 units' })",
+      expr: "({ label: 'Restock to 50', value: '$' + Math.round(scopes.root.restock.items.reduce((s, p) => s + (50 - p.stock) * p.price, 0)).toLocaleString(), helpText: 'to bring every item to 50 units' })",
     },
   },
   { key: "charts", component: "Grid", props: { literal: { columns: "2", gap: "4" } }, children: ["chart-stock", "chart-share"] },
@@ -80,58 +86,80 @@ const inventoryEntries: ComponentEntry[] = [
   {
     key: "bar",
     component: "BarChart",
-    props: {
-      expr: "({ data: Object.entries(scopes.root.products.reduce((acc, p) => ({ ...acc, [p.category]: (acc[p.category] ?? 0) + p.stock }), {})).map(([name, value]) => ({ name, value })), xKey: 'name', yKeys: ['value'], height: 240 })",
-    },
+    props: { expr: "({ data: scopes.root.summary.byCategory.map(c => ({ name: c.category, value: c.units })), xKey: 'name', yKeys: ['value'], height: 240 })" },
   },
   { key: "chart-share", component: "Card", props: { literal: { title: "Value share by category" } }, children: ["donut"] },
   {
     key: "donut",
     component: "DonutChart",
     props: {
-      expr: "({ data: Object.entries(scopes.root.products.reduce((acc, p) => ({ ...acc, [p.category]: (acc[p.category] ?? 0) + p.price * p.stock }), {})).map(([name, value]) => ({ name, value: Math.round(value) })), height: 240, centerLabel: '$' + Math.round(scopes.root.products.reduce((s, p) => s + p.price * p.stock, 0) / 1000) + 'k' })",
+      expr: "({ data: scopes.root.summary.byCategory.map(c => ({ name: c.category, value: Math.round(c.value) })), height: 240, centerLabel: '$' + Math.round(scopes.root.summary.value / 1000) + 'k' })",
     },
   },
-  { key: "toolbar", component: "FlexRow", props: { literal: { gap: "2" } }, children: ["search", "cat-filter"] },
+  { key: "toolbar", component: "FlexRow", props: { literal: { gap: "2", align: "center", wrap: true } }, children: ["search", "cat-filter", "sort-key", "sort-dir", "low-switch"] },
   {
     key: "search",
     component: "SearchInput",
     props: { expr: "({ value: scopes.root.q, placeholder: 'Search products or SKU…' })" },
-    callbacks: { onChange: [{ set: "scopes.root.q", expr: "evt.value" }] },
+    callbacks: {
+      onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { set: "scopes.root.page", literal: 1, debounce: true }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }],
+      onSubmit: [{ set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }],
+      onClear: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }],
+    },
   },
   {
     key: "cat-filter",
     component: "Select",
     props: {
-      expr: "({ value: scopes.root.cat, options: [{ label: 'All categories', value: 'all' }, { label: 'Lighting', value: 'Lighting' }, { label: 'Furniture', value: 'Furniture' }, { label: 'Electronics', value: 'Electronics' }, { label: 'Accessories', value: 'Accessories' }] })",
+      expr: "({ value: scopes.root.cat, options: [{ label: 'All categories', value: 'all' }, ...scopes.root.summary.byCategory.map(c => ({ label: c.category, value: c.category }))] })",
     },
-    callbacks: { onChange: [{ set: "scopes.root.cat", expr: "evt.value" }] },
+    callbacks: { onChange: [{ set: "scopes.root.cat", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "sort-key",
+    component: "Select",
+    props: { expr: "({ value: scopes.root.sortKey, options: [{ label: 'Sort by name', value: 'name' }, { label: 'Sort by stock', value: 'stock' }, { label: 'Sort by price', value: 'price' }] })" },
+    callbacks: { onChange: [{ set: "scopes.root.sortKey", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "sort-dir",
+    component: "Button",
+    props: { expr: "({ text: scopes.root.sortDesc ? 'Descending' : 'Ascending', variant: 'outline', size: 'sm' })" },
+    callbacks: { onClick: [{ set: "scopes.root.sortDesc", expr: "!currentValue" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "low-switch",
+    component: "Switch",
+    props: { expr: "({ checked: scopes.root.lowOnly, label: 'Low stock only' })" },
+    callbacks: { onChange: [{ set: "scopes.root.lowOnly", expr: "evt.checked" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }] },
   },
   { key: "table-card", component: "Card", props: { literal: { title: "Products" } }, children: ["table"] },
-  { key: "table", component: "Table", children: ["thead", "tbody"] },
+  { key: "table", component: "Table", loading: "scopes.root.busy", children: ["thead", "tbody"] },
   { key: "thead", component: "TableHeader", children: ["hrow"] },
-  { key: "hrow", component: "TableRow", children: ["h-name", "h-sku", "h-sup", "h-stock", "h-price"] },
+  { key: "hrow", component: "TableRow", children: ["h-name", "h-sku", "h-sup", "h-stock", "h-price", "h-adjust", "h-details"] },
   { key: "h-name", component: "TableHead", props: { literal: { text: "Product" } } },
   { key: "h-sku", component: "TableHead", props: { literal: { text: "SKU" } } },
   { key: "h-sup", component: "TableHead", props: { literal: { text: "Supplier (lead time)" } } },
   { key: "h-stock", component: "TableHead", props: { literal: { text: "Stock" } } },
   { key: "h-price", component: "TableHead", props: { literal: { text: "Price" } } },
+  { key: "h-adjust", component: "TableHead", props: { literal: { text: "Adjust" } } },
+  { key: "h-details", component: "TableHead", props: { literal: { text: "Ledger" } } },
   { key: "tbody", component: "TableBody", children: ["row"] },
   {
     key: "row",
     component: "TableRow",
-    each: "scopes.root.products.filter(p => (scopes.root.cat === 'all' || p.category === scopes.root.cat) && (p.name.toLowerCase().includes(scopes.root.q.toLowerCase()) || p.sku.toLowerCase().includes(scopes.root.q.toLowerCase()))).slice(0, 100)",
+    each: "scopes.root.products.items",
     as: "prod",
     keyBy: "id",
-    children: ["c-name", "c-sku", "c-sup", "c-stock", "c-price"],
+    children: ["c-name", "c-sku", "c-sup", "c-stock", "c-price", "c-adjust", "c-details"],
   },
-  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.prod.item.name })" } },
-  { key: "c-sku", component: "TableCell", props: { expr: "({ text: scopes.prod.item.sku })" } },
+  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.prod.name })" } },
+  { key: "c-sku", component: "TableCell", props: { expr: "({ text: scopes.prod.sku })" } },
   {
     key: "c-sup",
     component: "TableCell",
     props: {
-      expr: "({ text: (scopes.root.suppliers.find(s => s.id === scopes.prod.item.supplierId)?.name ?? '—') + ' (' + (scopes.root.suppliers.find(s => s.id === scopes.prod.item.supplierId)?.leadTimeDays ?? '?') + 'd)' })",
+      expr: "({ text: (scopes.root.suppliers.items.find(s => s.id === scopes.prod.supplierId)?.name ?? '—') + ' (' + (scopes.root.suppliers.items.find(s => s.id === scopes.prod.supplierId)?.leadTimeDays ?? '?') + 'd)' })",
     },
   },
   { key: "c-stock", component: "TableCell", children: ["stock-badge"] },
@@ -139,10 +167,74 @@ const inventoryEntries: ComponentEntry[] = [
     key: "stock-badge",
     component: "Badge",
     props: {
-      expr: "({ text: scopes.prod.item.stock, variant: scopes.prod.item.stock <= 10 ? 'destructive' : scopes.prod.item.stock <= 20 ? 'outline' : 'secondary' })",
+      expr: "({ text: scopes.prod.stock, variant: scopes.prod.stock <= 10 ? 'destructive' : scopes.prod.stock <= 20 ? 'outline' : 'secondary' })",
     },
   },
-  { key: "c-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.prod.item.price.toFixed(2) })" } },
+  { key: "c-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.prod.price.toFixed(2) })" } },
+  // One unit in or out: the ledger records it, the row's stock changes in place, the totals re-read.
+  { key: "c-adjust", component: "TableCell", children: ["adjust-row"] },
+  { key: "adjust-row", component: "FlexRow", props: { literal: { gap: "1", align: "center" } }, children: ["adjust-minus", "adjust-plus"] },
+  {
+    key: "adjust-minus",
+    component: "IconButton",
+    props: { literal: { icon: "Minus", size: "sm", tooltip: "Remove one unit" } },
+    callbacks: {
+      onClick: [
+        { expr: "createStockMovement({ productId: scopes.prod.id, qty: -1, reason: 'adjustment', note: 'Count correction' })" },
+        { set: "scopes.prod.stock", expr: "currentValue - 1" },
+        { set: "scopes.root.summary", expr: "getStockSummary()" },
+      ],
+    },
+  },
+  {
+    key: "adjust-plus",
+    component: "IconButton",
+    props: { literal: { icon: "Plus", size: "sm", tooltip: "Receive one unit" } },
+    callbacks: {
+      onClick: [
+        { expr: "createStockMovement({ productId: scopes.prod.id, qty: 1, reason: 'received', note: 'Single unit' })" },
+        { set: "scopes.prod.stock", expr: "currentValue + 1" },
+        { set: "scopes.root.summary", expr: "getStockSummary()" },
+      ],
+    },
+  },
+  // The ledger peek loads on open, one row at a time.
+  { key: "c-details", component: "TableCell", children: ["details-toggle", "details"] },
+  {
+    key: "details-toggle",
+    component: "IconButton",
+    props: { expr: "({ icon: scopes.root.openId === scopes.prod.$id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
+    callbacks: {
+      onClick: [
+        { set: "scopes.root.openId", expr: "currentValue === scopes.prod.$id ? null : scopes.prod.$id" },
+        { set: "scopes.root.moves", expr: "listStockMovements({ productId: scopes.prod.id, limit: 5 })" },
+      ],
+    },
+  },
+  {
+    key: "details",
+    component: "FlexCol",
+    props: { literal: { gap: "0" } },
+    hidden: "scopes.root.openId !== scopes.prod.$id",
+    children: ["pmov"],
+  },
+  {
+    key: "pmov",
+    component: "Text",
+    each: "scopes.root.moves.items",
+    as: "pmov",
+    keyBy: "id",
+    props: {
+      expr: "({ text: scopes.pmov.createdAt.slice(0, 10) + ' · ' + (scopes.pmov.qty > 0 ? '+' : '') + scopes.pmov.qty + ' ' + scopes.pmov.reason, variant: 'small', as: 'div' })",
+    },
+  },
+  {
+    key: "pager",
+    component: "Pagination",
+    props: { expr: "({ currentPage: scopes.root.page, totalPages: Math.max(1, Math.ceil(scopes.root.products.total / 25)) })" },
+    hidden: "scopes.root.products.total <= 25",
+    callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
   // Receiving drawer: records a stock movement, which adjusts stock atomically.
   {
     key: "rcv-drawer",
@@ -158,7 +250,7 @@ const inventoryEntries: ComponentEntry[] = [
     key: "i-prod",
     component: "Select",
     props: {
-      expr: "({ value: scopes.root.rcvProductId, placeholder: 'Pick a product', options: scopes.root.products.map(p => ({ label: p.name + ' (' + p.stock + ' in stock)', value: String(p.id) })) })",
+      expr: "({ value: scopes.root.rcvProductId, placeholder: 'Pick a product', options: scopes.root.catalog.items.map(p => ({ label: p.name + ' (' + p.stock + ' in stock)', value: String(p.id) })) })",
     },
     callbacks: { onChange: [{ set: "scopes.root.rcvProductId", expr: "evt.value" }] },
   },
@@ -192,7 +284,10 @@ const inventoryEntries: ComponentEntry[] = [
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: Number(scopes.root.rcvProductId), qty: scopes.root.rcvQty, reason: 'received', note: scopes.root.rcvNote })" },
-        { set: "scopes.root.products", expr: "listProducts()" },
+        { set: "scopes.root.products", expr: PRODUCT_PAGE },
+        { set: "scopes.root.summary", expr: "getStockSummary()" },
+        { set: "scopes.root.restock", expr: "listProducts({ stockAtMost: 49, limit: 200 })" },
+        { set: "scopes.root.catalog", expr: "listProducts({ limit: 200 })" },
         { set: "scopes.root.rcvOpen", literal: false },
         { set: "scopes.root.rcvNote", literal: "" },
       ],
@@ -203,6 +298,9 @@ const inventoryEntries: ComponentEntry[] = [
 // ---------------------------------------------------------------------------
 // Page 2 — Sales & revenue
 // ---------------------------------------------------------------------------
+const ORDER_PAGE =
+  "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })";
+
 const salesEntries: ComponentEntry[] = [
   {
     key: "root",
@@ -210,11 +308,23 @@ const salesEntries: ComponentEntry[] = [
     props: { literal: { gap: "6" } },
     seed: [
       { set: "scopes.root.status", literal: "all" },
+      { set: "scopes.root.days", literal: "all" },
+      { set: "scopes.root.customerId", literal: "all" },
+      { set: "scopes.root.sortKey", literal: "newest" },
+      { set: "scopes.root.page", literal: 1 },
+      { set: "scopes.root.busy", literal: false },
+      { set: "scopes.root.selected", literal: {} },
+      { set: "scopes.root.expanded", literal: {} },
       { set: "scopes.root.now", expr: "Date.now()" },
-      { set: "scopes.root.orders", expr: "listOrders()" },
-      { set: "scopes.root.customers", expr: "listCustomers()" },
+      { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
+      { set: "scopes.root.week", expr: "getSalesSummary({ days: 7 })" },
+      { set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 8 })" },
+      { set: "scopes.root.customers", expr: "listCustomers({ limit: 200 })" },
+      { set: "scopes.root.busy", literal: true },
+      { set: "scopes.root.orders", expr: ORDER_PAGE },
+      { set: "scopes.root.busy", literal: false },
     ],
-    children: ["title", "subtitle", "stats", "trend-card", "filter", "table-card"],
+    children: ["title", "subtitle", "stats", "charts-row", "filters", "table-card", "pager"],
   },
   { key: "title", component: "Heading", props: { literal: { level: "1", text: "Sales & revenue" } } },
   {
@@ -222,55 +332,79 @@ const salesEntries: ComponentEntry[] = [
     component: "Text",
     props: { literal: { text: "Where the money is, and which orders still need a push.", variant: "muted" } },
   },
-  { key: "stats", component: "Grid", props: { literal: { columns: "4", gap: "4" } }, children: ["s-rev", "s-aov", "s-week", "s-pending"] },
+  { key: "stats", component: "Grid", props: { literal: { columns: "5", gap: "4" } }, children: ["s-rev", "s-aov", "s-week", "s-pending", "s-selected"] },
   {
     key: "s-rev",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Revenue', value: '$' + Math.round(scopes.root.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0)).toLocaleString(), helpText: 'excluding cancelled' })",
-    },
+    props: { expr: "({ label: 'Revenue', value: '$' + Math.round(scopes.root.month.revenue).toLocaleString(), helpText: 'last 30 days, excluding cancelled' })" },
   },
   {
     key: "s-aov",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Avg order', value: '$' + Math.round(scopes.root.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0) / Math.max(1, scopes.root.orders.filter(o => o.status !== 'cancelled').length)).toLocaleString(), helpText: 'per non-cancelled order' })",
-    },
+    props: { expr: "({ label: 'Avg order', value: '$' + Math.round(scopes.root.month.avgOrder).toLocaleString(), helpText: 'last 30 days' })" },
   },
   {
     key: "s-week",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Last 7 days', value: '$' + Math.round(scopes.root.orders.filter(o => o.status !== 'cancelled' && scopes.root.now - new Date(o.createdAt).getTime() <= 7 * 86400000).reduce((s, o) => s + o.total, 0)).toLocaleString(), trend: 'up', helpText: 'rolling week' })",
-    },
+    props: { expr: "({ label: 'Last 7 days', value: '$' + Math.round(scopes.root.week.revenue).toLocaleString(), trend: 'up', helpText: scopes.root.week.count + ' orders' })" },
   },
   {
     key: "s-pending",
     component: "Stat",
     props: {
-      expr: "({ label: 'Pending', value: scopes.root.orders.filter(o => o.status === 'pending').length, trend: scopes.root.orders.filter(o => o.status === 'pending').length > 2 ? 'down' : 'neutral', helpText: 'awaiting payment' })",
+      expr: "({ label: 'Pending', value: scopes.root.month.byStatus.find(s => s.status === 'pending')?.count ?? 0, trend: (scopes.root.month.byStatus.find(s => s.status === 'pending')?.count ?? 0) > 2 ? 'down' : 'neutral', helpText: 'awaiting payment' })",
     },
   },
-  { key: "trend-card", component: "Card", props: { literal: { title: "Revenue by day" } }, children: ["trend"] },
   {
-    key: "trend",
-    component: "AreaChart",
+    key: "s-selected",
+    component: "Stat",
     props: {
-      expr: "({ data: Object.entries(scopes.root.orders.filter(o => o.status !== 'cancelled').reduce((acc, o) => ({ ...acc, [o.createdAt.slice(5, 10)]: (acc[o.createdAt.slice(5, 10)] ?? 0) + o.total }), {})).map(([date, revenue]) => ({ date, revenue: Math.round(revenue) })).toSorted((a, b) => a.date.localeCompare(b.date)), xKey: 'date', yKeys: ['revenue'], height: 220 })",
+      expr: "({ label: 'Selected', value: Object.values(scopes.root.selected).filter(v => v).length, helpText: '$' + Math.round(scopes.root.orders.items.filter(o => scopes.root.selected[o.id]).reduce((s, o) => s + o.total, 0)).toLocaleString() + ' on this page' })",
     },
   },
+  { key: "charts-row", component: "Grid", props: { literal: { columns: "2", gap: "4" } }, children: ["trend-card", "top-card"] },
+  { key: "trend-card", component: "Card", props: { literal: { title: "Revenue by day", description: "Last 30 days" } }, children: ["trend"] },
+  { key: "trend", component: "AreaChart", props: { expr: "({ data: scopes.root.month.byDay, xKey: 'date', yKeys: ['revenue'], height: 220 })" } },
+  { key: "top-card", component: "Card", props: { literal: { title: "Top accounts", description: "Lifetime value, cancelled orders excluded" } }, children: ["top-bar"] },
+  {
+    key: "top-bar",
+    component: "BarChart",
+    props: { expr: "({ data: scopes.root.top.items.map(c => ({ name: c.company, lifetime: Math.round(c.lifetime) })), xKey: 'name', yKeys: ['lifetime'], height: 220 })" },
+  },
+  { key: "filters", component: "FlexRow", props: { literal: { gap: "3", align: "center", wrap: true } }, children: ["filter", "days", "customer-filter", "sort"] },
   {
     key: "filter",
     component: "Select",
     props: {
       expr: "({ value: scopes.root.status, options: [{ label: 'All statuses', value: 'all' }, { label: 'Pending', value: 'pending' }, { label: 'Paid', value: 'paid' }, { label: 'Shipped', value: 'shipped' }, { label: 'Delivered', value: 'delivered' }, { label: 'Cancelled', value: 'cancelled' }] })",
     },
-    callbacks: { onChange: [{ set: "scopes.root.status", expr: "evt.value" }] },
+    callbacks: { onChange: [{ set: "scopes.root.status", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "days",
+    component: "Radio",
+    props: { expr: "({ value: scopes.root.days, orientation: 'horizontal', options: [{ label: '7 days', value: '7' }, { label: '30 days', value: '30' }, { label: '90 days', value: '90' }, { label: 'All time', value: 'all' }] })" },
+    callbacks: { onChange: [{ set: "scopes.root.days", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "customer-filter",
+    component: "Combobox",
+    props: {
+      expr: "({ value: scopes.root.customerId, placeholder: 'Any customer', searchPlaceholder: 'Find a customer…', options: [{ label: 'Any customer', value: 'all' }, ...scopes.root.customers.items.map(c => ({ label: c.name + ' — ' + c.company, value: String(c.id) }))] })",
+    },
+    callbacks: { onChange: [{ set: "scopes.root.customerId", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  {
+    key: "sort",
+    component: "Select",
+    props: { expr: "({ value: scopes.root.sortKey, options: [{ label: 'Newest first', value: 'newest' }, { label: 'Oldest first', value: 'oldest' }, { label: 'Largest first', value: 'total' }] })" },
+    callbacks: { onChange: [{ set: "scopes.root.sortKey", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.busy", literal: false }] },
   },
   { key: "table-card", component: "Card", props: { literal: { title: "Orders" } }, children: ["table"] },
-  { key: "table", component: "Table", children: ["thead", "tbody"] },
+  { key: "table", component: "Table", loading: "scopes.root.busy", children: ["thead", "tbody"] },
   { key: "thead", component: "TableHeader", children: ["hrow"] },
-  { key: "hrow", component: "TableRow", children: ["h-id", "h-date", "h-cust", "h-prod", "h-total", "h-status", "h-act"] },
+  { key: "hrow", component: "TableRow", children: ["h-sel", "h-id", "h-date", "h-cust", "h-prod", "h-total", "h-status", "h-act", "h-cancel", "h-more"] },
+  { key: "h-sel", component: "TableHead", props: { literal: { text: "" } } },
   { key: "h-id", component: "TableHead", props: { literal: { text: "#" } } },
   { key: "h-date", component: "TableHead", props: { literal: { text: "Date" } } },
   { key: "h-cust", component: "TableHead", props: { literal: { text: "Customer" } } },
@@ -278,50 +412,52 @@ const salesEntries: ComponentEntry[] = [
   { key: "h-total", component: "TableHead", props: { literal: { text: "Total" } } },
   { key: "h-status", component: "TableHead", props: { literal: { text: "Status" } } },
   { key: "h-act", component: "TableHead", props: { literal: { text: "" } } },
+  { key: "h-cancel", component: "TableHead", props: { literal: { text: "" } } },
+  { key: "h-more", component: "TableHead", props: { literal: { text: "" } } },
   { key: "tbody", component: "TableBody", children: ["row"] },
   {
     key: "row",
     component: "TableRow",
-    each: "scopes.root.orders.filter(o => scopes.root.status === 'all' || o.status === scopes.root.status).toSorted((a, b) => b.id - a.id).slice(0, 100)",
+    each: "scopes.root.orders.items",
     as: "ord",
     keyBy: "id",
-    children: ["c-id", "c-date", "c-cust", "c-prod", "c-total", "c-status", "c-act"],
+    children: ["c-sel", "c-id", "c-date", "c-cust", "c-prod", "c-total", "c-status", "c-act", "c-cancel", "c-more"],
   },
-  { key: "c-id", component: "TableCell", props: { expr: "({ text: String(scopes.ord.item.id) })" } },
-  { key: "c-date", component: "TableCell", props: { expr: "({ text: scopes.ord.item.createdAt.slice(0, 10) })" } },
+  { key: "c-sel", component: "TableCell", children: ["sel-check"] },
   {
-    key: "c-cust",
-    component: "TableCell",
-    props: { expr: "({ text: scopes.root.customers.find(c => c.id === scopes.ord.item.customerId)?.name ?? '—' })" },
+    key: "sel-check",
+    component: "Checkbox",
+    props: { expr: "({ checked: scopes.root.selected[scopes.ord.$id] ?? false })" },
+    callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$id]: evt.checked })" }] },
   },
-  {
-    key: "c-prod",
-    component: "TableCell",
-    props: { expr: "({ text: scopes.ord.item.qty + '× ' + scopes.ord.item.productName })" },
-  },
-  { key: "c-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.ord.item.total.toFixed(2) })" } },
+  { key: "c-id", component: "TableCell", props: { expr: "({ text: String(scopes.ord.id) })" } },
+  { key: "c-date", component: "TableCell", props: { expr: "({ text: scopes.ord.createdAt.slice(0, 10) })" } },
+  { key: "c-cust", component: "TableCell", props: { expr: "({ text: scopes.ord.customerName })" } },
+  { key: "c-prod", component: "TableCell", props: { expr: "({ text: scopes.ord.qty + '× ' + scopes.ord.productName })" } },
+  { key: "c-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.ord.total.toFixed(2) })" } },
   { key: "c-status", component: "TableCell", children: ["badge"] },
   {
     key: "badge",
     component: "Badge",
     props: {
-      expr: "({ text: scopes.ord.item.status, variant: scopes.ord.item.status === 'cancelled' ? 'destructive' : scopes.ord.item.status === 'pending' ? 'outline' : 'secondary' })",
+      expr: "({ text: scopes.ord.status, variant: scopes.ord.status === 'cancelled' ? 'destructive' : scopes.ord.status === 'pending' ? 'outline' : 'secondary' })",
     },
   },
-  { key: "c-act", component: "TableCell", children: ["advance", "cancel"] },
+  { key: "c-act", component: "TableCell", children: ["advance"] },
   {
     key: "advance",
     component: "Button",
     props: {
-      expr: "({ text: scopes.ord.item.status === 'pending' ? 'Mark paid' : scopes.ord.item.status === 'paid' ? 'Mark shipped' : 'Mark delivered', variant: 'outline', size: 'sm' })",
+      expr: "({ text: scopes.ord.status === 'pending' ? 'Mark paid' : scopes.ord.status === 'paid' ? 'Mark shipped' : 'Mark delivered', variant: 'outline', size: 'sm' })",
     },
-    hidden: "scopes.ord.item.status === 'delivered' || scopes.ord.item.status === 'cancelled'",
+    hidden: "scopes.ord.status === 'delivered' || scopes.ord.status === 'cancelled'",
     callbacks: {
       onClick: [
-        {
-          expr: "updateOrder({ id: scopes.ord.item.id, status: scopes.ord.item.status === 'pending' ? 'paid' : scopes.ord.item.status === 'paid' ? 'shipped' : 'delivered' })",
-        },
-        { set: "scopes.root.orders", expr: "listOrders()" },
+        { expr: "updateOrder({ id: scopes.ord.id, status: scopes.ord.status === 'pending' ? 'paid' : scopes.ord.status === 'paid' ? 'shipped' : 'delivered' })" },
+        { set: "scopes.root.busy", literal: true },
+        { set: "scopes.root.orders", expr: ORDER_PAGE },
+        { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
+        { set: "scopes.root.busy", literal: false },
       ],
     },
   },
@@ -329,22 +465,49 @@ const salesEntries: ComponentEntry[] = [
     key: "cancel",
     component: "IconButton",
     props: { literal: { icon: "X", variant: "ghost", size: "sm", tooltip: "Cancel order" } },
-    hidden: "scopes.ord.item.status === 'delivered' || scopes.ord.item.status === 'cancelled'",
+    hidden: "scopes.ord.status === 'delivered' || scopes.ord.status === 'cancelled'",
     callbacks: {
       onClick: [
-        {
-          expr: "updateOrder({ id: scopes.ord.item.id, status: 'cancelled' })",
-          confirm: "Cancel this order? The customer will not be charged.",
-        },
-        { set: "scopes.root.orders", expr: "listOrders()" },
+        { expr: "updateOrder({ id: scopes.ord.id, status: 'cancelled' })", confirm: "Cancel this order? The customer will not be charged." },
+        { set: "scopes.root.busy", literal: true },
+        { set: "scopes.root.orders", expr: ORDER_PAGE },
+        { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
+        { set: "scopes.root.week", expr: "getSalesSummary({ days: 7 })" },
+        { set: "scopes.root.busy", literal: false },
       ],
     },
+  },
+  { key: "c-cancel", component: "TableCell", children: ["cancel"] },
+  { key: "c-more", component: "TableCell", children: ["more-toggle", "more"] },
+  {
+    key: "more-toggle",
+    component: "IconButton",
+    props: { expr: "({ icon: scopes.root.expanded[scopes.ord.$id] ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Details' })" },
+    callbacks: { onClick: [{ set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.ord.$id]: !currentValue[scopes.ord.$id] })" }] },
+  },
+  {
+    key: "more",
+    component: "DescriptionList",
+    hidden: "!scopes.root.expanded[scopes.ord.$id]",
+    props: {
+      expr: "({ items: [{ label: 'Company', value: scopes.root.customers.items.find(c => c.id === scopes.ord.customerId)?.company ?? '—' }, { label: 'Email', value: scopes.root.customers.items.find(c => c.id === scopes.ord.customerId)?.email ?? '—' }, { label: 'Unit price', value: '$' + scopes.ord.unitPrice.toFixed(2) }, { label: 'Placed', value: scopes.ord.createdAt.slice(0, 16).replace('T', ' ') }] })",
+    },
+  },
+  {
+    key: "pager",
+    component: "Pagination",
+    props: { expr: "({ currentPage: scopes.root.page, totalPages: Math.max(1, Math.ceil(scopes.root.orders.total / 50)) })" },
+    hidden: "scopes.root.orders.total <= 50",
+    callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.busy", literal: false }] },
   },
 ];
 
 // ---------------------------------------------------------------------------
 // Page 3 — Customer 360
 // ---------------------------------------------------------------------------
+const CUSTOMER_PAGE =
+  "listCustomers({ limit: 20, offset: (scopes.root.page - 1) * 20, sort: scopes.root.sortKey, order: scopes.root.sortKey === 'orders' || scopes.root.sortKey === 'lifetime' ? 'desc' : 'asc', q: scopes.root.q || undefined })";
+
 const customersEntries: ComponentEntry[] = [
   {
     key: "root",
@@ -352,15 +515,27 @@ const customersEntries: ComponentEntry[] = [
     props: { literal: { gap: "6" } },
     seed: [
       { set: "scopes.root.q", literal: "" },
+      { set: "scopes.root.sortKey", literal: "name" },
+      { set: "scopes.root.page", literal: 1 },
+      { set: "scopes.root.busy", literal: false },
       { set: "scopes.root.selectedId", literal: null },
+      { set: "scopes.root.history", literal: { items: [], total: 0 } },
+      { set: "scopes.root.historyBusy", literal: false },
+      { set: "scopes.root.editName", literal: "" },
+      { set: "scopes.root.editCompany", literal: "" },
+      { set: "scopes.root.editEmail", literal: "" },
       { set: "scopes.root.addOpen", literal: false },
       { set: "scopes.root.newName", literal: "" },
       { set: "scopes.root.newCompany", literal: "" },
       { set: "scopes.root.newEmail", literal: "" },
-      { set: "scopes.root.customers", expr: "listCustomers()" },
-      { set: "scopes.root.orders", expr: "listOrders()" },
+      { set: "scopes.root.now", expr: "Date.now()" },
+      { set: "scopes.root.year", expr: "getSalesSummary({ days: 365 })" },
+      { set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 1 })" },
+      { set: "scopes.root.busy", literal: true },
+      { set: "scopes.root.customers", expr: CUSTOMER_PAGE },
+      { set: "scopes.root.busy", literal: false },
     ],
-    children: ["header", "stats", "search", "table-card", "detail", "add-drawer"],
+    children: ["header", "stats", "toolbar", "table-card", "pager", "detail", "add-drawer"],
   },
   {
     key: "header",
@@ -381,34 +556,38 @@ const customersEntries: ComponentEntry[] = [
     props: { literal: { text: "Add customer" } },
     callbacks: { onClick: [{ set: "scopes.root.addOpen", literal: true }] },
   },
-  { key: "stats", component: "Grid", props: { literal: { columns: "3", gap: "4" } }, children: ["s-count", "s-repeat", "s-top"] },
+  { key: "stats", component: "Grid", props: { literal: { columns: "4", gap: "4" } }, children: ["s-active", "s-rev", "s-top", "s-avg"] },
+  { key: "s-active", component: "Stat", props: { expr: "({ label: 'Active accounts', value: scopes.root.year.customers, helpText: 'ordered in the last 12 months' })" } },
   {
-    key: "s-count",
+    key: "s-rev",
     component: "Stat",
-    props: { expr: "({ label: 'Customers', value: scopes.root.customers.length, helpText: 'accounts on file' })" },
+    props: { expr: "({ label: 'Revenue', value: '$' + Math.round(scopes.root.year.revenue).toLocaleString(), helpText: 'last 12 months, excluding cancelled' })" },
   },
+  { key: "s-top", component: "Stat", props: { expr: "({ label: 'Top account', value: scopes.root.top.items[0]?.company ?? '—', helpText: 'by lifetime spend' })" } },
   {
-    key: "s-repeat",
+    key: "s-avg",
     component: "Stat",
-    props: {
-      expr: "({ label: 'Repeat buyers', value: scopes.root.customers.filter(c => scopes.root.orders.filter(o => o.customerId === c.id && o.status !== 'cancelled').length >= 2).length, helpText: 'two or more orders' })",
-    },
+    props: { expr: "({ label: 'Avg per account', value: '$' + Math.round(scopes.root.year.revenue / Math.max(1, scopes.root.year.customers)).toLocaleString(), helpText: 'last 12 months' })" },
   },
-  {
-    key: "s-top",
-    component: "Stat",
-    props: {
-      expr: "({ label: 'Top account', value: scopes.root.customers.toSorted((a, b) => scopes.root.orders.filter(o => o.customerId === b.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0) - scopes.root.orders.filter(o => o.customerId === a.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0))[0]?.company ?? '—', helpText: 'by lifetime spend' })",
-    },
-  },
+  { key: "toolbar", component: "FlexRow", props: { literal: { gap: "3", align: "center", wrap: true } }, children: ["search", "sort"] },
   {
     key: "search",
     component: "SearchInput",
     props: { expr: "({ value: scopes.root.q, placeholder: 'Search by name or company…' })" },
-    callbacks: { onChange: [{ set: "scopes.root.q", expr: "evt.value" }] },
+    callbacks: {
+      onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { set: "scopes.root.page", literal: 1, debounce: true }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: CUSTOMER_PAGE }, { set: "scopes.root.busy", literal: false }],
+      onSubmit: [{ set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: CUSTOMER_PAGE }, { set: "scopes.root.busy", literal: false }],
+      onClear: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: CUSTOMER_PAGE }, { set: "scopes.root.busy", literal: false }],
+    },
+  },
+  {
+    key: "sort",
+    component: "Select",
+    props: { expr: "({ value: scopes.root.sortKey, options: [{ label: 'Sort by name', value: 'name' }, { label: 'Sort by company', value: 'company' }, { label: 'Most orders first', value: 'orders' }, { label: 'Highest lifetime first', value: 'lifetime' }] })" },
+    callbacks: { onChange: [{ set: "scopes.root.sortKey", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: CUSTOMER_PAGE }, { set: "scopes.root.busy", literal: false }] },
   },
   { key: "table-card", component: "Card", props: { literal: { title: "Customers" } }, children: ["table"] },
-  { key: "table", component: "Table", children: ["thead", "tbody"] },
+  { key: "table", component: "Table", loading: "scopes.root.busy", children: ["thead", "tbody"] },
   { key: "thead", component: "TableHeader", children: ["hrow"] },
   { key: "hrow", component: "TableRow", children: ["h-name", "h-comp", "h-email", "h-orders", "h-spend", "h-act"] },
   { key: "h-name", component: "TableHead", props: { literal: { text: "Name" } } },
@@ -421,50 +600,111 @@ const customersEntries: ComponentEntry[] = [
   {
     key: "row",
     component: "TableRow",
-    each: "scopes.root.customers.filter(c => c.name.toLowerCase().includes(scopes.root.q.toLowerCase()) || c.company.toLowerCase().includes(scopes.root.q.toLowerCase())).slice(0, 100)",
+    each: "scopes.root.customers.items",
     as: "cust",
     keyBy: "id",
     children: ["c-name", "c-comp", "c-email", "c-orders", "c-spend", "c-act"],
   },
-  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.cust.item.name })" } },
-  { key: "c-comp", component: "TableCell", props: { expr: "({ text: scopes.cust.item.company })" } },
-  { key: "c-email", component: "TableCell", props: { expr: "({ text: scopes.cust.item.email })" } },
-  {
-    key: "c-orders",
-    component: "TableCell",
-    props: { expr: "({ text: String(scopes.root.orders.filter(o => o.customerId === scopes.cust.item.id).length) })" },
-  },
-  {
-    key: "c-spend",
-    component: "TableCell",
-    props: {
-      expr: "({ text: '$' + scopes.root.orders.filter(o => o.customerId === scopes.cust.item.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0).toFixed(2) })",
-    },
-  },
+  { key: "c-name", component: "TableCell", props: { expr: "({ text: scopes.cust.name })" } },
+  { key: "c-comp", component: "TableCell", props: { expr: "({ text: scopes.cust.company })" } },
+  { key: "c-email", component: "TableCell", props: { expr: "({ text: scopes.cust.email })" } },
+  { key: "c-orders", component: "TableCell", props: { expr: "({ text: String(scopes.cust.orders) })" } },
+  { key: "c-spend", component: "TableCell", props: { expr: "({ text: '$' + scopes.cust.lifetime.toFixed(2) })" } },
   { key: "c-act", component: "TableCell", children: ["view-btn"] },
   {
     key: "view-btn",
     component: "Button",
     props: { literal: { text: "View", variant: "ghost", size: "sm" } },
-    callbacks: { onClick: [{ set: "scopes.root.selectedId", expr: "scopes.cust.item.id" }] },
+    callbacks: {
+      onClick: [
+        { set: "scopes.root.selectedId", expr: "scopes.cust.id" },
+        { set: "scopes.root.editName", expr: "scopes.cust.name" },
+        { set: "scopes.root.editCompany", expr: "scopes.cust.company" },
+        { set: "scopes.root.editEmail", expr: "scopes.cust.email" },
+        { set: "scopes.root.historyBusy", literal: true },
+        { set: "scopes.root.history", expr: "listOrders({ customerId: scopes.cust.id })" },
+        { set: "scopes.root.historyBusy", literal: false },
+      ],
+    },
   },
-  // Selected-customer detail: their orders, newest first.
+  {
+    key: "pager",
+    component: "Pagination",
+    props: { expr: "({ currentPage: scopes.root.page, totalPages: Math.max(1, Math.ceil(scopes.root.customers.total / 20)) })" },
+    hidden: "scopes.root.customers.total <= 20",
+    callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: CUSTOMER_PAGE }, { set: "scopes.root.busy", literal: false }] },
+  },
+  // Selected-customer detail in a drawer: their orders, newest first, loaded on View.
   {
     key: "detail",
-    component: "Card",
+    component: "Drawer",
     props: {
-      expr: "({ title: (scopes.root.customers.find(c => c.id === scopes.root.selectedId)?.name ?? '') + ' — order history', description: scopes.root.customers.find(c => c.id === scopes.root.selectedId)?.company ?? '' })",
+      expr: "({ open: scopes.root.selectedId !== null, title: scopes.root.customers.items.find(c => c.id === scopes.root.selectedId)?.name ?? '', description: scopes.root.customers.items.find(c => c.id === scopes.root.selectedId)?.company ?? '', side: 'right' })",
     },
-    hidden: "scopes.root.selectedId === null",
-    children: ["detail-close", "d-table"],
+    callbacks: { onOpenChange: [{ set: "scopes.root.selectedId", expr: "evt.open ? currentValue : null" }] },
+    children: ["detail-body"],
+  },
+  { key: "detail-body", component: "FlexCol", props: { literal: { gap: "4" } }, children: ["d-summary", "d-spark", "d-edit", "d-table"] },
+  {
+    key: "d-summary",
+    component: "DescriptionList",
+    props: {
+      expr: "({ layout: 'horizontal', columns: '3', items: [{ label: 'Orders', value: String(scopes.root.history.items.length) }, { label: 'Lifetime', value: '$' + scopes.root.history.items.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0).toFixed(2) }, { label: 'Last order', value: scopes.root.history.items[0]?.createdAt.slice(0, 10) ?? '—' }] })",
+    },
   },
   {
-    key: "detail-close",
-    component: "Button",
-    props: { literal: { text: "Close", variant: "ghost", size: "sm" } },
-    callbacks: { onClick: [{ set: "scopes.root.selectedId", literal: null }] },
+    key: "d-spark",
+    component: "Sparkline",
+    props: {
+      expr: "({ data: [5, 4, 3, 2, 1, 0].map(k => scopes.root.history.items.filter(o => o.status !== 'cancelled' && Math.floor((scopes.root.now - new Date(o.createdAt).getTime()) / (30 * 86400000)) === k).reduce((s, o) => s + o.total, 0)), width: 200, height: 32, filled: true })",
+    },
   },
-  { key: "d-table", component: "Table", children: ["d-head", "d-body"] },
+  // Edit the selected account in place; Save persists, Delete asks first.
+  { key: "d-edit", component: "FlexRow", props: { literal: { gap: "2", align: "end", wrap: true } }, children: ["e-name", "e-company", "e-email", "e-save", "e-delete"] },
+  {
+    key: "e-name",
+    component: "Input",
+    props: { expr: "({ value: scopes.root.editName, placeholder: 'Name' })" },
+    callbacks: { onChange: [{ set: "scopes.root.editName", expr: "evt.value" }] },
+  },
+  {
+    key: "e-company",
+    component: "Input",
+    props: { expr: "({ value: scopes.root.editCompany, placeholder: 'Company' })" },
+    callbacks: { onChange: [{ set: "scopes.root.editCompany", expr: "evt.value" }] },
+  },
+  {
+    key: "e-email",
+    component: "Input",
+    props: { expr: "({ value: scopes.root.editEmail, placeholder: 'Email', type: 'email' })" },
+    callbacks: { onChange: [{ set: "scopes.root.editEmail", expr: "evt.value" }] },
+  },
+  {
+    key: "e-save",
+    component: "Button",
+    props: { literal: { text: "Save", size: "sm" } },
+    callbacks: {
+      onClick: [
+        { expr: "updateCustomer({ id: scopes.root.selectedId, name: scopes.root.editName, company: scopes.root.editCompany, email: scopes.root.editEmail })" },
+        { set: "scopes.root.busy", literal: true },
+        { set: "scopes.root.customers", expr: CUSTOMER_PAGE },
+        { set: "scopes.root.busy", literal: false },
+      ],
+    },
+  },
+  {
+    key: "e-delete",
+    component: "Button",
+    props: { literal: { text: "Delete account", variant: "destructive", size: "sm" } },
+    callbacks: {
+      onClick: [
+        { expr: "deleteCustomer({ id: scopes.root.selectedId })", confirm: "Delete this account and its order history?" },
+        { set: "scopes.root.customers", expr: CUSTOMER_PAGE },
+        { set: "scopes.root.selectedId", literal: null },
+      ],
+    },
+  },
+  { key: "d-table", component: "Table", loading: "scopes.root.historyBusy", children: ["d-head", "d-body"] },
   { key: "d-head", component: "TableHeader", children: ["d-hrow"] },
   { key: "d-hrow", component: "TableRow", children: ["dh-date", "dh-prod", "dh-total", "dh-status"] },
   { key: "dh-date", component: "TableHead", props: { literal: { text: "Date" } } },
@@ -475,19 +715,15 @@ const customersEntries: ComponentEntry[] = [
   {
     key: "d-row",
     component: "TableRow",
-    each: "scopes.root.orders.filter(o => o.customerId === scopes.root.selectedId).toSorted((a, b) => b.id - a.id)",
+    each: "scopes.root.history.items",
     as: "dord",
     keyBy: "id",
     children: ["dc-date", "dc-prod", "dc-total", "dc-status"],
   },
-  { key: "dc-date", component: "TableCell", props: { expr: "({ text: scopes.dord.item.createdAt.slice(0, 10) })" } },
-  {
-    key: "dc-prod",
-    component: "TableCell",
-    props: { expr: "({ text: scopes.dord.item.qty + '× ' + scopes.dord.item.productName })" },
-  },
-  { key: "dc-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.dord.item.total.toFixed(2) })" } },
-  { key: "dc-status", component: "TableCell", props: { expr: "({ text: scopes.dord.item.status })" } },
+  { key: "dc-date", component: "TableCell", props: { expr: "({ text: scopes.dord.createdAt.slice(0, 10) })" } },
+  { key: "dc-prod", component: "TableCell", props: { expr: "({ text: scopes.dord.qty + '× ' + scopes.dord.productName })" } },
+  { key: "dc-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.dord.total.toFixed(2) })" } },
+  { key: "dc-status", component: "TableCell", props: { expr: "({ text: scopes.dord.status })" } },
   // Add-customer drawer.
   {
     key: "add-drawer",
@@ -535,7 +771,7 @@ const customersEntries: ComponentEntry[] = [
     callbacks: {
       onClick: [
         { expr: "createCustomer({ name: scopes.root.newName, company: scopes.root.newCompany, email: scopes.root.newEmail })" },
-        { set: "scopes.root.customers", expr: "listCustomers()" },
+        { set: "scopes.root.customers", expr: CUSTOMER_PAGE },
         { set: "scopes.root.addOpen", literal: false },
         { set: "scopes.root.newName", literal: "" },
         { set: "scopes.root.newCompany", literal: "" },
@@ -545,28 +781,34 @@ const customersEntries: ComponentEntry[] = [
   },
 ];
 
-
 export const SEED_PAGES: { title: string; prompt: string; entries: ComponentEntry[]; usage: SeedUsage }[] = [
   {
     title: "Inventory & restock",
-    usage: { inputTokens: 24800, outputTokens: 4300, costUsd: 0.2315 },
+    usage: { inputTokens: 37500, outputTokens: 4300, costUsd: 0.295 },
     prompt:
-      "An inventory dashboard: stock stats, units and value by category, a searchable product table with supplier lead times, and a drawer to receive stock into the ledger.",
+      "I need one place to watch stock. Show me how much we have and what it's worth, which products are running low, and let me find any product fast. I want to fix a count from the table itself, peek at what moved recently, and book a delivery when it arrives.",
     entries: inventoryEntries,
   },
   {
     title: "Sales & revenue",
-    usage: { inputTokens: 24100, outputTokens: 3200, costUsd: 0.2005 },
+    usage: { inputTokens: 36800, outputTokens: 3200, costUsd: 0.264 },
     prompt:
-      "A sales overview: revenue stats, a revenue-by-day chart, and an orders table with status filters, one-click status advancement, and cancellation with confirmation.",
+      "Give me a sales page for Monday mornings: how much we made lately, the trend, who our best accounts are, and every order with its status. I should be able to narrow it down by status, period or customer, mark orders as paid or shipped, and cancel one with a warning first.",
     entries: salesEntries,
   },
   {
     title: "Customer 360",
-    usage: { inputTokens: 24600, outputTokens: 3900, costUsd: 0.2205 },
+    usage: { inputTokens: 37300, outputTokens: 3900, costUsd: 0.284 },
     prompt:
-      "A CRM view: customer stats, a searchable account list with lifetime value, per-customer order history, and a drawer to add accounts.",
+      "A customer page for the account team: who buys from us, how much each has spent, and their order history. Let me look someone up, fix their details, add a new account, and remove one if needed.",
     entries: customersEntries,
+  },
+  {
+    title: "Operations console (big one)",
+    usage: { inputTokens: 39600, outputTokens: 15800, costUsd: 0.593 },
+    prompt:
+      "Put the whole operation on one page: the numbers at the top, a few charts, our suppliers and what we buy from each, the full catalog where I can adjust stock and prices on the spot, all orders with their status, every customer, and the stock ledger. One search box should work across all of it.",
+    entries: opsConsoleEntries,
   },
 ];
 
@@ -579,8 +821,8 @@ export const SEED_PAGES: { title: string; prompt: string; entries: ComponentEntr
 const j = (entries: object[]) => entries.map((e) => JSON.stringify(e)).join("\n");
 
 const lowStockFence = j([
-  { key: "low-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.products", expr: "listProducts()" }, { set: "scopes.root.suppliers", expr: "listSuppliers()" }], children: ["low-stat", "low-table"] },
-  { key: "low-stat", component: "Stat", props: { expr: "({ label: 'Products at or below 20 units', value: scopes.root.products.filter(p => p.stock <= 20).length })" } },
+  { key: "low-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.low", expr: "listProducts({ stockAtMost: 20, sort: 'stock' })" }, { set: "scopes.root.suppliers", expr: "listSuppliers()" }], children: ["low-stat", "low-table"] },
+  { key: "low-stat", component: "Stat", props: { expr: "({ label: 'Products at or below 20 units', value: scopes.root.low.total })" } },
   { key: "low-table", component: "Table", children: ["low-head", "low-body"] },
   { key: "low-head", component: "TableHeader", children: ["low-hrow"] },
   { key: "low-hrow", component: "TableRow", children: ["low-h1", "low-h2", "low-h3", "low-h4"] },
@@ -588,17 +830,17 @@ const lowStockFence = j([
   { key: "low-h2", component: "TableHead", props: { literal: { text: "Stock" } } },
   { key: "low-h3", component: "TableHead", props: { literal: { text: "Supplier" } } },
   { key: "low-h4", component: "TableHead", props: { literal: { text: "Lead time" } } },
-  { key: "low-row", component: "TableRow", each: "scopes.root.products.filter(p => p.stock <= 20).toSorted((a, b) => a.stock - b.stock)", as: "lp", keyBy: "id", children: ["low-c1", "low-c2", "low-c3", "low-c4"] },
   { key: "low-body", component: "TableBody", children: ["low-row"] },
-  { key: "low-c1", component: "TableCell", props: { expr: "({ text: scopes.lp.item.name })" } },
-  { key: "low-c2", component: "TableCell", props: { expr: "({ text: String(scopes.lp.item.stock) })" } },
-  { key: "low-c3", component: "TableCell", props: { expr: "({ text: scopes.root.suppliers.find(s => s.id === scopes.lp.item.supplierId)?.name ?? '—' })" } },
-  { key: "low-c4", component: "TableCell", props: { expr: "({ text: (scopes.root.suppliers.find(s => s.id === scopes.lp.item.supplierId)?.leadTimeDays ?? 0) + ' days' })" } },
+  { key: "low-row", component: "TableRow", each: "scopes.root.low.items", as: "lp", keyBy: "id", children: ["low-c1", "low-c2", "low-c3", "low-c4"] },
+  { key: "low-c1", component: "TableCell", props: { expr: "({ text: scopes.lp.name })" } },
+  { key: "low-c2", component: "TableCell", props: { expr: "({ text: String(scopes.lp.stock) })" } },
+  { key: "low-c3", component: "TableCell", props: { expr: "({ text: scopes.root.suppliers.items.find(s => s.id === scopes.lp.supplierId)?.name ?? '—' })" } },
+  { key: "low-c4", component: "TableCell", props: { expr: "({ text: (scopes.root.suppliers.items.find(s => s.id === scopes.lp.supplierId)?.leadTimeDays ?? 0) + ' days' })" } },
 ]);
 
 const restockCostFence = j([
-  { key: "cost-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.products", expr: "listProducts()" }], children: ["cost-total", "cost-table"] },
-  { key: "cost-total", component: "Stat", props: { expr: "({ label: 'Total to reach 60 units everywhere', value: '$' + Math.round(scopes.root.products.filter(p => p.stock < 60).reduce((s, p) => s + (60 - p.stock) * p.price, 0)).toLocaleString(), helpText: 'at list price — wholesale will be lower' })" } },
+  { key: "cost-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.under60", expr: "listProducts({ stockAtMost: 59, limit: 200 })" }], children: ["cost-total", "cost-table"] },
+  { key: "cost-total", component: "Stat", props: { expr: "({ label: 'Total to reach 60 units everywhere', value: '$' + Math.round(scopes.root.under60.items.reduce((s, p) => s + (60 - p.stock) * p.price, 0)).toLocaleString(), helpText: 'at list price — wholesale will be lower' })" } },
   { key: "cost-table", component: "Table", children: ["cost-head", "cost-body"] },
   { key: "cost-head", component: "TableHeader", children: ["cost-hrow"] },
   { key: "cost-hrow", component: "TableRow", children: ["cost-h1", "cost-h2", "cost-h3", "cost-h4"] },
@@ -607,15 +849,15 @@ const restockCostFence = j([
   { key: "cost-h3", component: "TableHead", props: { literal: { text: "Units needed" } } },
   { key: "cost-h4", component: "TableHead", props: { literal: { text: "Cost" } } },
   { key: "cost-body", component: "TableBody", children: ["cost-row"] },
-  { key: "cost-row", component: "TableRow", each: "scopes.root.products.filter(p => p.stock < 60).toSorted((a, b) => (60 - b.stock) * b.price - (60 - a.stock) * a.price)", as: "cp", keyBy: "id", children: ["cost-c1", "cost-c2", "cost-c3", "cost-c4"] },
-  { key: "cost-c1", component: "TableCell", props: { expr: "({ text: scopes.cp.item.name })" } },
-  { key: "cost-c2", component: "TableCell", props: { expr: "({ text: String(scopes.cp.item.stock) })" } },
-  { key: "cost-c3", component: "TableCell", props: { expr: "({ text: String(60 - scopes.cp.item.stock) })" } },
-  { key: "cost-c4", component: "TableCell", props: { expr: "({ text: '$' + ((60 - scopes.cp.item.stock) * scopes.cp.item.price).toLocaleString() })" } },
+  { key: "cost-row", component: "TableRow", each: "scopes.root.under60.items.toSorted((a, b) => (60 - b.stock) * b.price - (60 - a.stock) * a.price)", as: "cp", keyBy: "id", children: ["cost-c1", "cost-c2", "cost-c3", "cost-c4"] },
+  { key: "cost-c1", component: "TableCell", props: { expr: "({ text: scopes.cp.name })" } },
+  { key: "cost-c2", component: "TableCell", props: { expr: "({ text: String(scopes.cp.stock) })" } },
+  { key: "cost-c3", component: "TableCell", props: { expr: "({ text: String(60 - scopes.cp.stock) })" } },
+  { key: "cost-c4", component: "TableCell", props: { expr: "({ text: '$' + ((60 - scopes.cp.stock) * scopes.cp.price).toLocaleString() })" } },
 ]);
 
 const poPlanFence = j([
-  { key: "po-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.products", expr: "listProducts()" }, { set: "scopes.root.suppliers", expr: "listSuppliers()" }], children: ["po-table", "po-note"] },
+  { key: "po-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.under60", expr: "listProducts({ stockAtMost: 59, limit: 200 })" }, { set: "scopes.root.suppliers", expr: "listSuppliers()" }], children: ["po-table", "po-note"] },
   { key: "po-table", component: "Table", children: ["po-head", "po-body"] },
   { key: "po-head", component: "TableHeader", children: ["po-hrow"] },
   { key: "po-hrow", component: "TableRow", children: ["po-h1", "po-h2", "po-h3", "po-h4"] },
@@ -624,40 +866,40 @@ const poPlanFence = j([
   { key: "po-h3", component: "TableHead", props: { literal: { text: "Units" } } },
   { key: "po-h4", component: "TableHead", props: { literal: { text: "Est. cost" } } },
   { key: "po-body", component: "TableBody", children: ["po-row"] },
-  { key: "po-row", component: "TableRow", each: "scopes.root.suppliers.filter(s => scopes.root.products.some(p => p.supplierId === s.id && p.stock < 60)).toSorted((a, b) => b.leadTimeDays - a.leadTimeDays)", as: "sup", keyBy: "id", children: ["po-c1", "po-c2", "po-c3", "po-c4"] },
-  { key: "po-c1", component: "TableCell", props: { expr: "({ text: scopes.sup.item.name })" } },
+  { key: "po-row", component: "TableRow", each: "scopes.root.suppliers.items.filter(s => scopes.root.under60.items.some(p => p.supplierId === s.id)).toSorted((a, b) => b.leadTimeDays - a.leadTimeDays)", as: "sup", keyBy: "id", children: ["po-c1", "po-c2", "po-c3", "po-c4"] },
+  { key: "po-c1", component: "TableCell", props: { expr: "({ text: scopes.sup.name })" } },
   { key: "po-c2", component: "TableCell", children: ["po-lead-badge"] },
-  { key: "po-lead-badge", component: "Badge", props: { expr: "({ text: scopes.sup.item.leadTimeDays + ' days', variant: scopes.sup.item.leadTimeDays >= 14 ? 'destructive' : 'secondary' })" } },
-  { key: "po-c3", component: "TableCell", props: { expr: "({ text: String(scopes.root.products.filter(p => p.supplierId === scopes.sup.item.id && p.stock < 60).reduce((s, p) => s + (60 - p.stock), 0)) })" } },
-  { key: "po-c4", component: "TableCell", props: { expr: "({ text: '$' + Math.round(scopes.root.products.filter(p => p.supplierId === scopes.sup.item.id && p.stock < 60).reduce((s, p) => s + (60 - p.stock) * p.price, 0)).toLocaleString() })" } },
+  { key: "po-lead-badge", component: "Badge", props: { expr: "({ text: scopes.sup.leadTimeDays + ' days', variant: scopes.sup.leadTimeDays >= 14 ? 'destructive' : 'secondary' })" } },
+  { key: "po-c3", component: "TableCell", props: { expr: "({ text: String(scopes.root.under60.items.filter(p => p.supplierId === scopes.sup.id).reduce((s, p) => s + (60 - p.stock), 0)) })" } },
+  { key: "po-c4", component: "TableCell", props: { expr: "({ text: '$' + Math.round(scopes.root.under60.items.filter(p => p.supplierId === scopes.sup.id).reduce((s, p) => s + (60 - p.stock) * p.price, 0)).toLocaleString() })" } },
   { key: "po-note", component: "Text", props: { literal: { text: "Sorted by lead time — longest first, so the slowest PO goes out today.", variant: "muted" } } },
 ]);
 
 const receiveCardFence = j([
-  { key: "rcv-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.products", expr: "listProducts()" }, { set: "scopes.root.shelfQty", literal: 52 }], children: ["rcv-card"] },
+  { key: "rcv-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.shelf", expr: "listProducts({ q: 'SKU-SHLF-12', limit: 1 })" }, { set: "scopes.root.shelfQty", literal: 52 }], children: ["rcv-card"] },
   { key: "rcv-card", component: "Card", props: { literal: { title: "Receive: Walnut Bookshelf", description: "Writes a movement into the ledger and bumps the stock count." } }, children: ["rcv-stat", "rcv-row"] },
-  { key: "rcv-stat", component: "Stat", props: { expr: "({ label: 'In stock right now', value: scopes.root.products.find(p => p.sku === 'SKU-SHLF-12')?.stock ?? 0, helpText: 'updates the moment the delivery is booked' })" } },
+  { key: "rcv-stat", component: "Stat", props: { expr: "({ label: 'In stock right now', value: scopes.root.shelf.items[0]?.stock ?? 0, helpText: 'updates the moment the delivery is booked' })" } },
   { key: "rcv-row", component: "FlexRow", props: { literal: { gap: "2", align: "end" } }, children: ["rcv-qty-field", "rcv-go"] },
   { key: "rcv-qty-field", component: "Field", children: ["rcv-label", "rcv-qty"] },
   { key: "rcv-label", component: "FieldLabel", props: { literal: { text: "Units received" } } },
   { key: "rcv-qty", component: "NumberInput", props: { expr: "({ value: scopes.root.shelfQty, min: 1, step: 1 })" }, callbacks: { onChange: [{ set: "scopes.root.shelfQty", expr: "evt.value" }] } },
   { key: "rcv-go", component: "Button", props: { expr: "({ text: 'Receive ' + scopes.root.shelfQty + ' units' })" }, callbacks: { onClick: [
-    { expr: "createStockMovement({ productId: scopes.root.products.find(p => p.sku === 'SKU-SHLF-12')?.id ?? 0, qty: scopes.root.shelfQty, reason: 'received', note: 'PO from chat' })" },
-    { set: "scopes.root.products", expr: "listProducts()" },
+    { expr: "createStockMovement({ productId: scopes.root.shelf.items[0]?.id ?? 0, qty: scopes.root.shelfQty, reason: 'received', note: 'PO from chat' })" },
+    { set: "scopes.root.shelf", expr: "listProducts({ q: 'SKU-SHLF-12', limit: 1 })" },
   ] } },
-])
+]);
 
 const revenueFence = j([
-  { key: "rev-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.orders", expr: "listOrders()" }], children: ["rev-stats", "rev-chart"] },
+  { key: "rev-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.year", expr: "getSalesSummary({ days: 365 })" }], children: ["rev-stats", "rev-chart"] },
   { key: "rev-stats", component: "Grid", props: { literal: { columns: "3", gap: "4" } }, children: ["rev-total", "rev-aov", "rev-open"] },
-  { key: "rev-total", component: "Stat", props: { expr: "({ label: 'Revenue', value: '$' + Math.round(scopes.root.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0)).toLocaleString(), helpText: 'all time, excl. cancelled' })" } },
-  { key: "rev-aov", component: "Stat", props: { expr: "({ label: 'Avg order', value: '$' + Math.round(scopes.root.orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + o.total, 0) / Math.max(1, scopes.root.orders.filter(o => o.status !== 'cancelled').length)).toLocaleString() })" } },
-  { key: "rev-open", component: "Stat", props: { expr: "({ label: 'Open orders', value: scopes.root.orders.filter(o => o.status === 'pending' || o.status === 'paid').length, helpText: 'pending + paid' })" } },
-  { key: "rev-chart", component: "BarChart", props: { expr: "({ data: Object.entries(scopes.root.orders.reduce((acc, o) => ({ ...acc, [o.status]: (acc[o.status] ?? 0) + o.total }), {})).map(([name, value]) => ({ name, value: Math.round(value) })), xKey: 'name', yKeys: ['value'], height: 200 })" } },
+  { key: "rev-total", component: "Stat", props: { expr: "({ label: 'Revenue', value: '$' + Math.round(scopes.root.year.revenue).toLocaleString(), helpText: 'last 12 months, excl. cancelled' })" } },
+  { key: "rev-aov", component: "Stat", props: { expr: "({ label: 'Avg order', value: '$' + Math.round(scopes.root.year.avgOrder).toLocaleString() })" } },
+  { key: "rev-open", component: "Stat", props: { expr: "({ label: 'Open orders', value: scopes.root.year.byStatus.filter(s => s.status === 'pending' || s.status === 'paid').reduce((n, s) => n + s.count, 0), helpText: 'pending + paid' })" } },
+  { key: "rev-chart", component: "BarChart", props: { expr: "({ data: scopes.root.year.byStatus.map(s => ({ name: s.status, value: s.count })), xKey: 'name', yKeys: ['value'], height: 200 })" } },
 ]);
 
 const topCustomersFence = j([
-  { key: "top-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.orders", expr: "listOrders()" }, { set: "scopes.root.customers", expr: "listCustomers()" }], children: ["top-table"] },
+  { key: "top-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 3 })" }], children: ["top-table"] },
   { key: "top-table", component: "Table", children: ["top-head", "top-body"] },
   { key: "top-head", component: "TableHeader", children: ["top-hrow"] },
   { key: "top-hrow", component: "TableRow", children: ["top-h1", "top-h2", "top-h3", "top-h4"] },
@@ -666,15 +908,15 @@ const topCustomersFence = j([
   { key: "top-h3", component: "TableHead", props: { literal: { text: "Orders" } } },
   { key: "top-h4", component: "TableHead", props: { literal: { text: "Lifetime" } } },
   { key: "top-body", component: "TableBody", children: ["top-row"] },
-  { key: "top-row", component: "TableRow", each: "scopes.root.customers.toSorted((a, b) => scopes.root.orders.filter(o => o.customerId === b.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0) - scopes.root.orders.filter(o => o.customerId === a.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0)).slice(0, 3)", as: "tc", keyBy: "id", children: ["top-c1", "top-c2", "top-c3", "top-c4"] },
-  { key: "top-c1", component: "TableCell", props: { expr: "({ text: String(scopes.tc.index + 1) })" } },
-  { key: "top-c2", component: "TableCell", props: { expr: "({ text: scopes.tc.item.name + ' — ' + scopes.tc.item.company })" } },
-  { key: "top-c3", component: "TableCell", props: { expr: "({ text: String(scopes.root.orders.filter(o => o.customerId === scopes.tc.item.id && o.status !== 'cancelled').length) })" } },
-  { key: "top-c4", component: "TableCell", props: { expr: "({ text: '$' + scopes.root.orders.filter(o => o.customerId === scopes.tc.item.id && o.status !== 'cancelled').reduce((s, o) => s + o.total, 0).toFixed(2) })" } },
+  { key: "top-row", component: "TableRow", each: "scopes.root.top.items", as: "tc", keyBy: "id", children: ["top-c1", "top-c2", "top-c3", "top-c4"] },
+  { key: "top-c1", component: "TableCell", props: { expr: "({ text: String(scopes.tc.$index + 1) })" } },
+  { key: "top-c2", component: "TableCell", props: { expr: "({ text: scopes.tc.name + ' — ' + scopes.tc.company })" } },
+  { key: "top-c3", component: "TableCell", props: { expr: "({ text: String(scopes.tc.orders) })" } },
+  { key: "top-c4", component: "TableCell", props: { expr: "({ text: '$' + scopes.tc.lifetime.toFixed(2) })" } },
 ]);
 
 const agingFence = j([
-  { key: "age-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.orders", expr: "listOrders()" }, { set: "scopes.root.customers", expr: "listCustomers()" }, { set: "scopes.root.now", expr: "Date.now()" }], children: ["age-table"] },
+  { key: "age-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.pending", expr: "listOrders({ status: 'pending', sort: 'createdAt', order: 'asc' })" }, { set: "scopes.root.now", expr: "Date.now()" }], children: ["age-table"] },
   { key: "age-table", component: "Table", children: ["age-head", "age-body"] },
   { key: "age-head", component: "TableHeader", children: ["age-hrow"] },
   { key: "age-hrow", component: "TableRow", children: ["age-h1", "age-h2", "age-h3", "age-h4", "age-h5"] },
@@ -684,23 +926,23 @@ const agingFence = j([
   { key: "age-h4", component: "TableHead", props: { literal: { text: "Waiting" } } },
   { key: "age-h5", component: "TableHead", props: { literal: { text: "" } } },
   { key: "age-body", component: "TableBody", children: ["age-row"] },
-  { key: "age-row", component: "TableRow", each: "scopes.root.orders.filter(o => o.status === 'pending').toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))", as: "po", keyBy: "id", children: ["age-c1", "age-c2", "age-c3", "age-c4", "age-c5"] },
-  { key: "age-c1", component: "TableCell", props: { expr: "({ text: '#' + scopes.po.item.id + ' · ' + scopes.po.item.productName })" } },
-  { key: "age-c2", component: "TableCell", props: { expr: "({ text: scopes.root.customers.find(c => c.id === scopes.po.item.customerId)?.company ?? '—' })" } },
-  { key: "age-c3", component: "TableCell", props: { expr: "({ text: '$' + scopes.po.item.total.toFixed(2) })" } },
+  { key: "age-row", component: "TableRow", each: "scopes.root.pending.items", as: "po", keyBy: "id", children: ["age-c1", "age-c2", "age-c3", "age-c4", "age-c5"] },
+  { key: "age-c1", component: "TableCell", props: { expr: "({ text: '#' + scopes.po.id + ' · ' + scopes.po.productName })" } },
+  { key: "age-c2", component: "TableCell", props: { expr: "({ text: scopes.po.customerName })" } },
+  { key: "age-c3", component: "TableCell", props: { expr: "({ text: '$' + scopes.po.total.toFixed(2) })" } },
   { key: "age-c4", component: "TableCell", children: ["age-badge"] },
-  { key: "age-badge", component: "Badge", props: { expr: "({ text: Math.round((scopes.root.now - new Date(scopes.po.item.createdAt).getTime()) / 86400000) + ' days', variant: (scopes.root.now - new Date(scopes.po.item.createdAt).getTime()) / 86400000 >= 3 ? 'destructive' : 'secondary' })" } },
+  { key: "age-badge", component: "Badge", props: { expr: "({ text: Math.round((scopes.root.now - new Date(scopes.po.createdAt).getTime()) / 86400000) + ' days', variant: (scopes.root.now - new Date(scopes.po.createdAt).getTime()) / 86400000 >= 3 ? 'destructive' : 'secondary' })" } },
   { key: "age-c5", component: "TableCell", children: ["age-pay"] },
   { key: "age-pay", component: "Button", props: { literal: { text: "Mark paid", variant: "outline", size: "sm" } }, callbacks: { onClick: [
-    { expr: "updateOrder({ id: scopes.po.item.id, status: 'paid' })" },
-    { set: "scopes.root.orders", expr: "listOrders()" },
+    { expr: "updateOrder({ id: scopes.po.id, status: 'paid' })" },
+    { set: "scopes.root.pending", expr: "listOrders({ status: 'pending', sort: 'createdAt', order: 'asc' })" },
   ] } },
 ]);
 
-
 const addProductFence = j([
   { key: "ap-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [
-    { set: "scopes.root.products", expr: "listProducts()" },
+    { set: "scopes.root.stock", expr: "getStockSummary()" },
+    { set: "scopes.root.latest", expr: "listProducts({ sort: 'id', order: 'desc', limit: 3 })" },
     { set: "scopes.root.suppliers", expr: "listSuppliers()" },
     { set: "scopes.root.npOpen", literal: false },
     { set: "scopes.root.npName", literal: "" },
@@ -712,10 +954,10 @@ const addProductFence = j([
   ], children: ["ap-card", "ap-drawer"] },
   { key: "ap-card", component: "Card", props: { literal: { title: "Catalog", description: "The three newest products — this list re-reads after every save." } }, children: ["ap-head", "ap-latest"] },
   { key: "ap-head", component: "FlexRow", props: { literal: { justify: "between", align: "center" } }, children: ["ap-stat", "ap-open"] },
-  { key: "ap-stat", component: "Stat", props: { expr: "({ label: 'Products', value: scopes.root.products.length })" } },
+  { key: "ap-stat", component: "Stat", props: { expr: "({ label: 'Products', value: scopes.root.stock.products })" } },
   { key: "ap-open", component: "Button", props: { literal: { text: "Add product" } }, callbacks: { onClick: [{ set: "scopes.root.npOpen", literal: true }] } },
   { key: "ap-latest", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["ap-line"] },
-  { key: "ap-line", component: "Text", each: "scopes.root.products.toSorted((a, b) => b.id - a.id).slice(0, 3)", as: "np", keyBy: "id", props: { expr: "({ text: scopes.np.item.name + ' — ' + scopes.np.item.sku + ' — $' + scopes.np.item.price.toFixed(2), variant: 'muted' })" } },
+  { key: "ap-line", component: "Text", each: "scopes.root.latest.items", as: "np", keyBy: "id", props: { expr: "({ text: scopes.np.name + ' — ' + scopes.np.sku + ' — $' + scopes.np.price.toFixed(2), variant: 'muted' })" } },
   { key: "ap-drawer", component: "Drawer", props: { expr: "({ open: scopes.root.npOpen, title: 'New product', description: 'Saved through the same API the rest of the app uses.', side: 'right' })" }, callbacks: { onOpenChange: [{ set: "scopes.root.npOpen", expr: "evt.open" }] }, children: ["ap-form"] },
   { key: "ap-form", component: "FlexCol", props: { literal: { gap: "4" } }, children: ["apf-name", "apf-sku", "apf-cat", "apf-sup", "apf-stock", "apf-price", "ap-actions"] },
   { key: "apf-name", component: "Field", children: ["apl-name", "api-name"] },
@@ -726,10 +968,10 @@ const addProductFence = j([
   { key: "api-sku", component: "Input", props: { expr: "({ value: scopes.root.npSku, placeholder: 'SKU-RISE-13' })" }, callbacks: { onChange: [{ set: "scopes.root.npSku", expr: "evt.value" }] } },
   { key: "apf-cat", component: "Field", children: ["apl-cat", "api-cat"] },
   { key: "apl-cat", component: "FieldLabel", props: { literal: { text: "Category" } } },
-  { key: "api-cat", component: "Select", props: { expr: "({ value: scopes.root.npCategory, options: [{ label: 'Lighting', value: 'Lighting' }, { label: 'Furniture', value: 'Furniture' }, { label: 'Electronics', value: 'Electronics' }, { label: 'Accessories', value: 'Accessories' }] })" }, callbacks: { onChange: [{ set: "scopes.root.npCategory", expr: "evt.value" }] } },
+  { key: "api-cat", component: "Select", props: { expr: "({ value: scopes.root.npCategory, options: scopes.root.stock.byCategory.map(c => ({ label: c.category, value: c.category })) })" }, callbacks: { onChange: [{ set: "scopes.root.npCategory", expr: "evt.value" }] } },
   { key: "apf-sup", component: "Field", children: ["apl-sup", "api-sup"] },
   { key: "apl-sup", component: "FieldLabel", props: { literal: { text: "Supplier" } } },
-  { key: "api-sup", component: "Select", props: { expr: "({ value: scopes.root.npSupplierId, placeholder: 'Pick a supplier', options: scopes.root.suppliers.map(s => ({ label: s.name + ' (' + s.leadTimeDays + 'd)', value: String(s.id) })) })" }, callbacks: { onChange: [{ set: "scopes.root.npSupplierId", expr: "evt.value" }] } },
+  { key: "api-sup", component: "Select", props: { expr: "({ value: scopes.root.npSupplierId, placeholder: 'Pick a supplier', options: scopes.root.suppliers.items.map(s => ({ label: s.name + ' (' + s.leadTimeDays + 'd)', value: String(s.id) })) })" }, callbacks: { onChange: [{ set: "scopes.root.npSupplierId", expr: "evt.value" }] } },
   { key: "apf-stock", component: "Field", children: ["apl-stock", "api-stock"] },
   { key: "apl-stock", component: "FieldLabel", props: { literal: { text: "Opening stock" } } },
   { key: "api-stock", component: "NumberInput", props: { expr: "({ value: scopes.root.npStock, min: 0, step: 1 })" }, callbacks: { onChange: [{ set: "scopes.root.npStock", expr: "evt.value" }] } },
@@ -740,7 +982,8 @@ const addProductFence = j([
   { key: "ap-cancel", component: "Button", props: { literal: { text: "Cancel", variant: "outline" } }, callbacks: { onClick: [{ set: "scopes.root.npOpen", literal: false }] } },
   { key: "ap-save", component: "Button", props: { literal: { text: "Save product" } }, callbacks: { onClick: [
     { expr: "createProduct({ name: scopes.root.npName, sku: scopes.root.npSku, category: scopes.root.npCategory, supplierId: Number(scopes.root.npSupplierId), stock: scopes.root.npStock, price: scopes.root.npPrice })" },
-    { set: "scopes.root.products", expr: "listProducts()" },
+    { set: "scopes.root.latest", expr: "listProducts({ sort: 'id', order: 'desc', limit: 3 })" },
+    { set: "scopes.root.stock", expr: "getStockSummary()" },
     { set: "scopes.root.npOpen", literal: false },
     { set: "scopes.root.npName", literal: "" },
     { set: "scopes.root.npSku", literal: "" },
@@ -748,7 +991,7 @@ const addProductFence = j([
 ]);
 
 const quickRestockFence = j([
-  { key: "qr-root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.products", expr: "listProducts()" }], children: ["qr-table"] },
+  { key: "qr-root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.low25", expr: "listProducts({ stockAtMost: 25, sort: 'stock' })" }], children: ["qr-table"] },
   { key: "qr-table", component: "Table", children: ["qr-head", "qr-body"] },
   { key: "qr-head", component: "TableHeader", children: ["qr-hrow"] },
   { key: "qr-hrow", component: "TableRow", children: ["qr-h1", "qr-h2", "qr-h3"] },
@@ -756,19 +999,19 @@ const quickRestockFence = j([
   { key: "qr-h2", component: "TableHead", props: { literal: { text: "Stock" } } },
   { key: "qr-h3", component: "TableHead", props: { literal: { text: "" } } },
   { key: "qr-body", component: "TableBody", children: ["qr-row"] },
-  { key: "qr-row", component: "TableRow", each: "scopes.root.products.filter(p => p.stock <= 25).toSorted((a, b) => a.stock - b.stock)", as: "qp", keyBy: "id", children: ["qr-c1", "qr-c2", "qr-c3"] },
-  { key: "qr-c1", component: "TableCell", props: { expr: "({ text: scopes.qp.item.name })" } },
+  { key: "qr-row", component: "TableRow", each: "scopes.root.low25.items", as: "qp", keyBy: "id", children: ["qr-c1", "qr-c2", "qr-c3"] },
+  { key: "qr-c1", component: "TableCell", props: { expr: "({ text: scopes.qp.name })" } },
   { key: "qr-c2", component: "TableCell", children: ["qr-badge"] },
-  { key: "qr-badge", component: "Badge", props: { expr: "({ text: scopes.qp.item.stock, variant: scopes.qp.item.stock <= 10 ? 'destructive' : 'outline' })" } },
+  { key: "qr-badge", component: "Badge", props: { expr: "({ text: scopes.qp.stock, variant: scopes.qp.stock <= 10 ? 'destructive' : 'outline' })" } },
   { key: "qr-c3", component: "TableCell", children: ["qr-btn"] },
   { key: "qr-btn", component: "Button", props: { literal: { text: "Receive 25", variant: "outline", size: "sm" } }, callbacks: { onClick: [
-    { expr: "createStockMovement({ productId: scopes.qp.item.id, qty: 25, reason: 'received', note: 'Quick restock from chat' })" },
-    { set: "scopes.root.products", expr: "listProducts()" },
+    { expr: "createStockMovement({ productId: scopes.qp.id, qty: 25, reason: 'received', note: 'Quick restock from chat' })" },
+    { set: "scopes.root.low25", expr: "listProducts({ stockAtMost: 25, sort: 'stock' })" },
   ] } },
 ]);
 
 const guardedCancelFence = j([
-  { key: "gc-root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.orders", expr: "listOrders()" }, { set: "scopes.root.customers", expr: "listCustomers()" }], children: ["gc-table"] },
+  { key: "gc-root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.pending", expr: "listOrders({ status: 'pending' })" }], children: ["gc-table"] },
   { key: "gc-table", component: "Table", children: ["gc-head", "gc-body"] },
   { key: "gc-head", component: "TableHeader", children: ["gc-hrow"] },
   { key: "gc-hrow", component: "TableRow", children: ["gc-h1", "gc-h2", "gc-h3", "gc-h4"] },
@@ -777,14 +1020,14 @@ const guardedCancelFence = j([
   { key: "gc-h3", component: "TableHead", props: { literal: { text: "Total" } } },
   { key: "gc-h4", component: "TableHead", props: { literal: { text: "" } } },
   { key: "gc-body", component: "TableBody", children: ["gc-row"] },
-  { key: "gc-row", component: "TableRow", each: "scopes.root.orders.filter(o => o.status === 'pending').toSorted((a, b) => b.id - a.id)", as: "go", keyBy: "id", children: ["gc-c1", "gc-c2", "gc-c3", "gc-c4"] },
-  { key: "gc-c1", component: "TableCell", props: { expr: "({ text: '#' + scopes.go.item.id + ' · ' + scopes.go.item.qty + '\u00d7 ' + scopes.go.item.productName })" } },
-  { key: "gc-c2", component: "TableCell", props: { expr: "({ text: scopes.root.customers.find(c => c.id === scopes.go.item.customerId)?.company ?? '\u2014' })" } },
-  { key: "gc-c3", component: "TableCell", props: { expr: "({ text: '$' + scopes.go.item.total.toFixed(2) })" } },
+  { key: "gc-row", component: "TableRow", each: "scopes.root.pending.items", as: "go", keyBy: "id", children: ["gc-c1", "gc-c2", "gc-c3", "gc-c4"] },
+  { key: "gc-c1", component: "TableCell", props: { expr: "({ text: '#' + scopes.go.id + ' · ' + scopes.go.qty + '× ' + scopes.go.productName })" } },
+  { key: "gc-c2", component: "TableCell", props: { expr: "({ text: scopes.go.customerName })" } },
+  { key: "gc-c3", component: "TableCell", props: { expr: "({ text: '$' + scopes.go.total.toFixed(2) })" } },
   { key: "gc-c4", component: "TableCell", children: ["gc-btn"] },
   { key: "gc-btn", component: "Button", props: { literal: { text: "Cancel order", variant: "destructive", size: "sm" } }, callbacks: { onClick: [
-    { expr: "updateOrder({ id: scopes.go.item.id, status: 'cancelled' })", confirm: "Cancel this order? The customer will not be charged, and the row moves out of the pending queue." },
-    { set: "scopes.root.orders", expr: "listOrders()" },
+    { expr: "updateOrder({ id: scopes.go.id, status: 'cancelled' })", confirm: "Cancel this order? The customer will not be charged, and the row moves out of the pending queue." },
+    { set: "scopes.root.pending", expr: "listOrders({ status: 'pending' })" },
   ] } },
 ]);
 
@@ -803,7 +1046,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 23600, outputTokens: 620, costUsd: 0.1335 },
+        usage: { inputTokens: 36300, outputTokens: 620, costUsd: 0.197 },
         text: `Three products are at or below 20 units:\n\n\`\`\`uicast\n${lowStockFence}\n\`\`\`\n\nThe one to worry about is the **Birch Standing Desk** — Nordform Werk runs a 21-day lead time, so an order placed today lands right at the start of the push. The other two have a week or less of lead.`,
       },
       {
@@ -812,7 +1055,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 25200, outputTokens: 540, costUsd: 0.1395 },
+        usage: { inputTokens: 37900, outputTokens: 540, costUsd: 0.203 },
         text: `Here's the bill, biggest line first:\n\n\`\`\`uicast\n${restockCostFence}\n\`\`\`\n\nTwo caveats: these are list prices, so the real POs should come in 30–45% lower at wholesale — and the desk line dominates because of its unit price, not its unit count.`,
       },
       {
@@ -821,7 +1064,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 26900, outputTokens: 580, costUsd: 0.149 },
+        usage: { inputTokens: 39600, outputTokens: 580, costUsd: 0.2125 },
         text: `Grouped by supplier, slowest lead first:\n\n\`\`\`uicast\n${poPlanFence}\n\`\`\`\n\nSend **Nordform Werk today** — nothing else is time-critical. Once the goods arrive, log them with the *Receive stock* drawer on the Inventory page so the ledger stays reconciled.`,
       },
       {
@@ -830,8 +1073,8 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 28400, outputTokens: 410, costUsd: 0.1523 },
-        text: `Here you go — adjust the count if the dock miscounted, then book it:\n\n\`\`\`uicast\n${receiveCardFence}\n\`\`\`\n\nThe stat above is live: it re-reads the catalog the moment the movement lands, so you'll see the stock jump when you click.`,
+        usage: { inputTokens: 41100, outputTokens: 410, costUsd: 0.2157 },
+        text: `Here you go — adjust the count if the dock miscounted, then book it:\n\n\`\`\`uicast\n${receiveCardFence}\n\`\`\`\n\nThe stat above is live: it re-reads the product the moment the movement lands, so you'll see the stock jump when you click.`,
       },
     ],
   },
@@ -842,13 +1085,13 @@ export const SEED_CHATS: {
       { role: "user", text: "Morning. Give me the revenue picture for the standup." },
       {
         role: "assistant",
-        usage: { inputTokens: 23400, outputTokens: 480, costUsd: 0.129 },
-        text: `Here's the headline view:\n\n\`\`\`uicast\n${revenueFence}\n\`\`\`\n\nDelivered orders carry most of the total, and the open pipeline (pending + paid) is healthy. Nothing alarming in the mix.`,
+        usage: { inputTokens: 36100, outputTokens: 480, costUsd: 0.1925 },
+        text: `Here's the headline view:\n\n\`\`\`uicast\n${revenueFence}\n\`\`\`\n\nDelivered orders carry most of the volume, and the open pipeline (pending + paid) is healthy. Nothing alarming in the mix.`,
       },
       { role: "user", text: "Who are our top three accounts right now?" },
       {
         role: "assistant",
-        usage: { inputTokens: 24800, outputTokens: 510, costUsd: 0.1368 },
+        usage: { inputTokens: 37500, outputTokens: 510, costUsd: 0.2003 },
         text: `By lifetime spend, excluding cancellations:\n\n\`\`\`uicast\n${topCustomersFence}\n\`\`\`\n\nWorth noting the top account got there on furniture — high ticket, low frequency. A repeat order there moves the quarter more than five accessory sales.`,
       },
       {
@@ -857,7 +1100,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 26300, outputTokens: 540, costUsd: 0.145 },
+        usage: { inputTokens: 39000, outputTokens: 540, costUsd: 0.2085 },
         text: `Current pending queue, oldest first — with the fix built in:\n\n\`\`\`uicast\n${agingFence}\n\`\`\`\n\nAnything in red has been waiting three days or more. The **Mark paid** buttons are live: click one and the row drops out of this queue, because the table re-reads the orders after the update.`,
       },
     ],
@@ -872,7 +1115,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 23100, outputTokens: 830, costUsd: 0.1363 },
+        usage: { inputTokens: 35800, outputTokens: 830, costUsd: 0.1998 },
         text: `It's a working app surface, not a rendering. Try it — the button opens a real form:\n\n\`\`\`uicast\n${addProductFence}\n\`\`\`\n\nThe drawer, the inputs, the supplier dropdown and the save all run against the same API as the rest of the app. Save something and watch the catalog list above pick it up.`,
       },
       {
@@ -881,8 +1124,8 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 24900, outputTokens: 560, costUsd: 0.1385 },
-        text: `One click per row — each button books 25 units into the stock ledger and the badge updates in place:\n\n\`\`\`uicast\n${quickRestockFence}\n\`\`\`\n\nRows leave the list on their own once they cross 25 units, because the table is a live filter over the catalog.`,
+        usage: { inputTokens: 37600, outputTokens: 560, costUsd: 0.202 },
+        text: `One click per row — each button books 25 units into the stock ledger and the badge updates in place:\n\n\`\`\`uicast\n${quickRestockFence}\n\`\`\`\n\nRows leave the list on their own once they cross 25 units, because the table re-reads the low-stock filter after every receive.`,
       },
       {
         role: "user",
@@ -890,18 +1133,15 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 26500, outputTokens: 520, costUsd: 0.1455 },
+        usage: { inputTokens: 39200, outputTokens: 520, costUsd: 0.209 },
         text: `Cancelling an order asks first — click one:\n\n\`\`\`uicast\n${guardedCancelFence}\n\`\`\`\n\nThe confirmation is part of the callback itself: decline it and nothing after it runs, accept it and the update lands and the queue re-reads.`,
       },
     ],
   },
 ];
 
-/** Insert the default pages and chats for `userId`. `chatId` maps the canonical seed chat ids (the demo user keeps them; new users get fresh ones). */
-export async function insertSeedContent(
-  userId: string,
-  chatId: (baseId: string) => string,
-): Promise<void> {
+/** Insert the demo pages and chats for `userId`. */
+export async function insertSeedContent(userId: string): Promise<void> {
   for (const page of SEED_PAGES) {
     const [row] = await db
       .insert(pages)
@@ -912,7 +1152,7 @@ export async function insertSeedContent(
       .values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
   }
   for (const chat of SEED_CHATS) {
-    const id = chatId(chat.id);
+    const { id } = chat;
     await db.insert(chats).values({ id, userId, title: chat.title });
     await db.insert(chatMessages).values(
       chat.turns.map((turn, i) => ({

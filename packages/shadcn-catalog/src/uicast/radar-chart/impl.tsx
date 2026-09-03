@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { busy, cn } from "../../lib/utils";
 import {
   RadarChart as RechartsRadarChart,
   PolarGrid,
@@ -9,7 +10,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import { defaultChartColors } from "../../lib/chart-colors";
+import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { RadarChartDef } from "./def";
 
 export const RadarChartImpl = createComponentImplementation({
@@ -20,12 +21,11 @@ export const RadarChartImpl = createComponentImplementation({
     valueKeys = [],
     colors,
     height,
-    generatedKey,
-  }) => {
-    const radarColors = colors ?? defaultChartColors;
+  }, { entry, loading }) => {
+    const radarColors = colors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors;
 
     return (
-      <div className="w-full min-w-0" data-key={generatedKey}>
+      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsRadarChart data={data}>
             <PolarGrid />

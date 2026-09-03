@@ -25,6 +25,10 @@ type SeedResult = {
 const toError = (err: unknown): Error =>
   err instanceof Error ? err : new Error(String(err));
 
+// Sync seed and `init` writes land during render; a subscriber they wake must not set state until the render is over.
+let seedRenders = 0;
+export const inSeedRender = (): boolean => seedRenders > 0;
+
 // One-shot seed + host `init` on first real render; async batches park on one
 // Promise for <Suspense>. Attempts pin per entry object: success never
 // re-runs, a failed seed retries when a corrected entry replaces it.
@@ -59,6 +63,7 @@ export function useSeed({
     attemptRef.current = record;
     pendingSeedRef.current = null;
 
+    seedRenders++;
     try {
       const steps = (element.seed ?? []).filter((step) => step.set);
       const targets = parseStepTargets(steps, element.key);
@@ -147,6 +152,8 @@ export function useSeed({
       record.failed = true;
       record.error = toError(err);
       pendingSeedRef.current = null;
+    } finally {
+      seedRenders--;
     }
   }
 

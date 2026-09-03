@@ -9,8 +9,7 @@ export const VirtualListImpl = createComponentImplementation({
     height,
     itemHeight,
     onItemClick,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scrollTop, setScrollTop] = useState(0);
 
@@ -39,7 +38,7 @@ export const VirtualListImpl = createComponentImplementation({
         ref={containerRef}
         className="overflow-auto rounded-md border"
         style={{ height }}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         <div style={{ height: totalHeight, position: "relative" }}>
           {visibleItems.map((item, i) => {

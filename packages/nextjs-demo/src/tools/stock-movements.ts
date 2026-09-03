@@ -1,13 +1,13 @@
 import { standardTool } from "standard-tool";
-import { z } from "zod";
-import { movementInsert, movementOutput } from "@/db/zod";
-import { apiFetch } from "./http";
+import { movementInsert, movementListInput, movementListRow, movementOutput, pageOf } from "@/db/zod";
+import { apiFetch, query } from "./http";
 
 export const listStockMovements = standardTool({
   name: "listStockMovements",
-  description: "List all stock movements (the stock ledger), newest first.",
-  outputSchema: z.array(movementOutput),
-  execute: () => apiFetch("/api/stock-movements"),
+  description: "A page of the stock ledger, newest first by default.",
+  inputSchema: movementListInput.optional(),
+  outputSchema: pageOf(movementListRow),
+  execute: (input) => apiFetch(`/api/stock-movements${query(input ?? {})}`),
 });
 
 export const createStockMovement = standardTool({

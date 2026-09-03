@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const BubbleChartDef = createComponentDefinition({
   name: "BubbleChart",
@@ -18,9 +19,9 @@ export const BubbleChartDef = createComponentDefinition({
       .meta({ description: "Array of bubble data points" }),
     xLabel: z.string().optional().meta({ description: "X-axis label" }),
     yLabel: z.string().optional().meta({ description: "Y-axis label" }),
-    color: z.string().default("#8884d8").meta({ description: "Bubble color" }),
+    color: chartColorSchema.default("violet").meta({ description: "Bubble color." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
   }),

@@ -13,27 +13,33 @@ export const assertData = (value: unknown, where: string): void => {
 	if (typeof value === "function") reject(`${where} contains a function`);
 	if (value === null || typeof value !== "object") return;
 	let seen: Set<object> | null = null; // allocated only once nesting appears
+	// Arrays and plain objects first: they are nearly everything that comes through.
 	const walk = (v: unknown, depth: number): void => {
-		if (typeof v === "function") reject(`${where} contains a function`);
-		if (v === null || typeof v !== "object") return;
-		if (v instanceof Date || v instanceof URL || v instanceof Promise) return;
+		if (v === null || typeof v !== "object") {
+			if (typeof v === "function") reject(`${where} contains a function`);
+			return;
+		}
 		if (depth > MAX_DATA_DEPTH) reject(`${where} is nested deeper than ${MAX_DATA_DEPTH} levels`);
 		if (depth > 0) {
 			seen ??= new Set([value as object]);
 			if (seen.has(v)) return;
 			seen.add(v);
 		}
-		if (Array.isArray(v) || v instanceof Set) {
+		if (Array.isArray(v)) {
+			for (const item of v) walk(item, depth + 1);
+		} else if (isPlainObject(v)) {
+			for (const key of Object.keys(v)) walk((v as Record<string, unknown>)[key], depth + 1);
+		} else if (v instanceof Date || v instanceof URL || v instanceof Promise) {
+			return;
+		} else if (v instanceof Set) {
 			for (const item of v) walk(item, depth + 1);
 		} else if (v instanceof Map) {
 			for (const [k, item] of v) {
 				walk(k, depth + 1);
 				walk(item, depth + 1);
 			}
-		} else if (!isPlainObject(v)) {
-			reject(`${where} contains a ${typeName(v)}, which is not plain data`);
 		} else {
-			for (const key of Object.keys(v)) walk((v as Record<string, unknown>)[key], depth + 1);
+			reject(`${where} contains a ${typeName(v)}, which is not plain data`);
 		}
 	};
 	try {

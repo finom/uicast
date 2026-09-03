@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const PieChartDef = createComponentDefinition({
   name: "PieChart",
@@ -16,12 +17,9 @@ export const PieChartDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of data objects with name and value" }),
-    colors: z.array(z.string()).optional().meta({
-      description:
-        "Optional hex color strings for each slice, e.g. ['#8884d8', '#82ca9d']",
-    }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
     donut: z.boolean().default(false).meta({

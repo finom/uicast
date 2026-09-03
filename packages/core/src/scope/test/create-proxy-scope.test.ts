@@ -151,13 +151,13 @@ describe("createRowScope", () => {
     expect(getForwardTargets(root)).toEqual([]);
   });
 
-  it("finds the element as a field value, in an array of arrays, and among an object's values", () => {
+  it("finds the element as a field value, in an array of arrays, among an object's values, and in an object of arrays", () => {
     const element = { n: 1 };
-    const root = createProxyScope({ one: element, grid: [[element]], byId: { a: element } });
+    const root = createProxyScope({ one: element, grid: [[element]], byId: { a: element }, byGroup: { g: [element] } });
     const scope = createRowScope();
     scope.retarget(element, 0, 0);
     scope.see({ root });
-    expect(getForwardTargets(scope.proxy).map((t) => t.field)).toEqual(["one", "grid", "byId"]);
+    expect(getForwardTargets(scope.proxy).map((t) => t.field)).toEqual(["one", "grid", "byId", "byGroup"]);
   });
 
   it("refuses a write when no scope field holds the element, and after detach", () => {

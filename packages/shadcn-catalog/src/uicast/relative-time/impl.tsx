@@ -29,7 +29,7 @@ function formatRelativeTime(date: Date): string {
 
 export const RelativeTimeImpl = createComponentImplementation({
   def: RelativeTimeDef,
-  render: ({ date, prefix, generatedKey }) => {
+  render: ({ date, prefix}, { entry }) => {
     const dateObj = new Date(date);
 
     return (
@@ -37,7 +37,7 @@ export const RelativeTimeImpl = createComponentImplementation({
         dateTime={dateObj.toISOString()}
         title={dateObj.toLocaleString()}
         className="text-sm text-muted-foreground"
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {prefix && `${prefix} `}
         {formatRelativeTime(dateObj)}

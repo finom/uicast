@@ -9,11 +9,11 @@ import { TableRowDef } from "./def";
 
 export const TableRowImpl = createComponentImplementation({
   def: TableRowDef,
-  render: ({ children, onClick, generatedKey }) => {
+  render: ({ children, onClick}, { entry }) => {
     return (
       <ShadcnTableRow
         onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={generatedKey}
+        data-key={entry.key}
       >
         {children}
       </ShadcnTableRow>

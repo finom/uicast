@@ -6,7 +6,7 @@ export const ProgressBarDef = createComponentDefinition({
   description:
     "A horizontal progress bar indicating completion or loading progress. Displays a filled bar within a track. Use ProgressBar for file upload progress, task completion, loading indicators, or any percentage-based metric.",
   props: z.strictObject({
-    value: z.number().default(0).meta({
+    value: z.number().min(0).max(100).default(0).meta({
       description: "Current progress value (0-100)",
     }),
     max: z.number().default(100).meta({

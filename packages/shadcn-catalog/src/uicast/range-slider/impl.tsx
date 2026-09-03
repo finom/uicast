@@ -13,10 +13,9 @@ export const RangeSliderImpl = createComponentImplementation({
     disabled,
     showValues,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <div className="flex items-center gap-4" data-key={generatedKey}>
+      <div className="flex items-center gap-4" data-key={entry.key}>
         {showValues && (
           <span className="min-w-[3ch] text-sm font-medium tabular-nums">
             {valueLow}

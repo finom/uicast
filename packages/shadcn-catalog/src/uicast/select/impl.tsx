@@ -16,15 +16,14 @@ export const SelectImpl = createComponentImplementation({
     options = [],
     disabled,
     onChange,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
       <ShadcnSelect
         value={value}
         disabled={disabled}
         onValueChange={(v) => onChange({ value: v })}
       >
-        <SelectTrigger className="w-full" data-key={generatedKey}>
+        <SelectTrigger className="w-full" data-key={entry.key}>
           <SelectValue placeholder={placeholder ?? "Select..."} />
         </SelectTrigger>
         <SelectContent>

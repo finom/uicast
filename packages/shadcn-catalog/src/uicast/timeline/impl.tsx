@@ -1,20 +1,11 @@
 import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
-import * as LucideIcons from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { iconNode } from "../../lib/icon-node";
 import { TimelineDef } from "./def";
 
 export const TimelineImpl = createComponentImplementation({
   def: TimelineDef,
-  render: ({ items = [], onItemClick, generatedKey }) => {
-    const getIcon = (iconName?: string) => {
-      if (!iconName) return null;
-      const Icon = (LucideIcons as unknown as Record<string, LucideIcon>)[
-        iconName
-      ];
-      return Icon ? <Icon className="size-3" /> : null;
-    };
-
+  render: ({ items = [], onItemClick}, { entry }) => {
     const dotColors = {
       default: "bg-primary",
       success: "bg-green-500",
@@ -23,7 +14,7 @@ export const TimelineImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-0" data-key={generatedKey}>
+      <div className="space-y-0" data-key={entry.key}>
         {items.map((item, i) => (
           <div
             key={i}
@@ -37,7 +28,7 @@ export const TimelineImpl = createComponentImplementation({
                   item.variant ? dotColors[item.variant] : dotColors.default,
                 )}
               >
-                {getIcon(item.icon) ?? (
+                {iconNode(item.icon, "size-3") ?? (
                   <div className="size-2 rounded-full bg-white" />
                 )}
               </div>

@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const WaterfallChartDef = createComponentDefinition({
   name: "WaterfallChart",
@@ -21,20 +22,17 @@ export const WaterfallChartDef = createComponentDefinition({
       )
       .meta({ description: "Array of waterfall data items" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
-    positiveColor: z
-      .string()
-      .default("#82ca9d")
+    positiveColor: chartColorSchema
+      .default("green")
       .meta({ description: "Color for positive values" }),
-    negativeColor: z
-      .string()
-      .default("#ff6b6b")
+    negativeColor: chartColorSchema
+      .default("red")
       .meta({ description: "Color for negative values" }),
-    totalColor: z
-      .string()
-      .default("#8884d8")
+    totalColor: chartColorSchema
+      .default("blue")
       .meta({ description: "Color for total bars" }),
   }),
 });

@@ -10,7 +10,7 @@ import { NodeBoardDef } from "./def";
  */
 export const NodeBoardRenderer = createComponentImplementation({
   def: NodeBoardDef,
-  render: ({ nodes = [], links = [], onMoveNode, onConnect, generatedKey }) => {
+  render: ({ nodes = [], links = [], onMoveNode, onConnect}, { entry }) => {
     const boardRef = useRef<HTMLDivElement>(null);
     const dragId = useRef<string | null>(null);
     const [pendingFrom, setPendingFrom] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export const NodeBoardRenderer = createComponentImplementation({
 
     return (
       <div
-        data-key={generatedKey}
+        data-key={entry.key}
         ref={boardRef}
         className="relative h-80 w-full select-none overflow-hidden rounded-lg border border-border bg-muted/20"
         style={{ touchAction: "none" }}

@@ -7,8 +7,8 @@ import type { JSONSchema } from "./json-schema-to-ts";
 export const dashTail = (description: string | undefined): string =>
 	description ? ` — ${description}` : "";
 
-/** Strip the ROOT description before type rendering — the builder already prints it after an em-dash. Nested descriptions still render inline. */
-export const stripRootDescription = (jsonSchema: unknown): unknown =>
+/** Strip the ROOT description and default before type rendering — the builder prints them itself (` = default — description`). Nested ones still render inline. */
+export const stripRootAnnotations = (jsonSchema: unknown): unknown =>
 	jsonSchema !== null && typeof jsonSchema === "object"
-		? { ...(jsonSchema as JSONSchema), description: undefined }
+		? { ...(jsonSchema as JSONSchema), description: undefined, default: undefined }
 		: jsonSchema;

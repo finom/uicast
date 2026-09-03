@@ -6,14 +6,18 @@ export function json(data: unknown, status = 200) {
   return Response.json(data, { status });
 }
 
-export async function readValid<T>(
-  req: Request,
-  schema: ZodType<T>,
-): Promise<{ data: T } | { error: Response }> {
-  const body = await req.json().catch(() => undefined);
-  const parsed = schema.safeParse(body);
-  if (parsed.success) return { data: parsed.data };
-  return { error: json({ error: parsed.error.issues }, 400) };
+function validated<T>(schema: ZodType<T>, value: unknown): { data: T } | { error: Response } {
+  const parsed = schema.safeParse(value);
+  return parsed.success ? { data: parsed.data } : { error: json({ error: parsed.error.issues }, 400) };
+}
+
+export async function readValid<T>(req: Request, schema: ZodType<T>) {
+  return validated(schema, await req.json().catch(() => undefined));
+}
+
+/** The query-string twin of `readValid`; a `z.object` drops the `u=` owner param. */
+export function readQuery<T>(req: Request, schema: ZodType<T>) {
+  return validated(schema, Object.fromEntries(new URL(req.url).searchParams));
 }
 
 export async function idParam(params: Promise<{ id: string }>) {

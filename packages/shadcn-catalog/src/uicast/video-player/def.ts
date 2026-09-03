@@ -23,7 +23,7 @@ export const VideoPlayerDef = createComponentDefinition({
     loop: z.boolean().default(false).meta({
       description: "Whether to loop the video",
     }),
-    width: z.number().optional().meta({
+    width: z.number().int().positive().optional().meta({
       description: "Video width in pixels",
     }),
   }),

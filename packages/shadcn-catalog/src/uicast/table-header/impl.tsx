@@ -9,9 +9,9 @@ import { TableHeaderDef } from "./def";
 
 export const TableHeaderImpl = createComponentImplementation({
   def: TableHeaderDef,
-  render: ({ children, generatedKey }) => {
+  render: ({ children}, { entry }) => {
     return (
-      <ShadcnTableHeader data-key={generatedKey}>{children}</ShadcnTableHeader>
+      <ShadcnTableHeader data-key={entry.key}>{children}</ShadcnTableHeader>
     );
   },
   placeholder: () => (

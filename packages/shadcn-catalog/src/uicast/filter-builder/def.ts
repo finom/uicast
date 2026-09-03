@@ -1,5 +1,17 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { filterOperatorSchema } from "../../lib/filter-operators";
+
+// One condition. The same shape goes in as a prop and comes back on apply.
+const filterSchema = z
+  .strictObject({
+    field: z.string().meta({ description: "Which field the condition is on, by `name`." }),
+    operator: filterOperatorSchema.meta({ description: "How to compare." }),
+    value: z.string().meta({ description: "The value compared against." }),
+  })
+  .meta({ id: "Filter" });
+
+export type Filter = z.infer<typeof filterSchema>;
 
 export const FilterBuilderDef = createComponentDefinition({
   name: "FilterBuilder",
@@ -21,30 +33,14 @@ export const FilterBuilderDef = createComponentDefinition({
       )
       .meta({ description: "Available fields to filter on" }),
     filters: z
-      .array(
-        z.strictObject({
-          field: z.string().meta({ description: "Selected field name" }),
-          operator: z
-            .string()
-            .meta({ description: "Selected operator (e.g. equals, contains)" }),
-          value: z.string().meta({ description: "Filter value" }),
-        }),
-      )
+      .array(filterSchema)
       .optional()
       .meta({ description: "Current applied filters" }),
   }),
   callbacks: {
     onApply: z
-      .object({
-        filters: z
-          .array(
-            z.strictObject({
-              field: z.string(),
-              operator: z.string(),
-              value: z.string(),
-            }),
-          )
-          .meta({ description: "The applied filters" }),
+      .strictObject({
+        filters: z.array(filterSchema).meta({ description: "The applied filters" }),
       })
       .meta({ description: "Callback when filters are applied" }),
   },

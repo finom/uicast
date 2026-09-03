@@ -10,8 +10,7 @@ export const CarouselImpl = createComponentImplementation({
     orientation,
     loop,
     children,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     const childArray = Children.toArray(children);
     const [current, setCurrent] = useState(0);
 
@@ -31,7 +30,7 @@ export const CarouselImpl = createComponentImplementation({
     const isHorizontal = orientation === "horizontal";
 
     return (
-      <div className="relative w-full" data-key={generatedKey}>
+      <div className="relative w-full" data-key={entry.key}>
         <div className="overflow-hidden rounded-lg">
           <div
             className={`flex transition-transform duration-300 ${isHorizontal ? "" : "flex-col"}`}

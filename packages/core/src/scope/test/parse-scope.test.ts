@@ -32,8 +32,8 @@ describe("depKey", () => {
     expect(depKey("root.count")).toBe("scopes.root.count");
   });
 
-  it("is null for a bare scope", () => {
-    expect(depKey("scopes.root")).toBeNull();
-    expect(depKey("scopes.root.")).toBeNull();
+  it("is every field of a bare scope", () => {
+    expect(depKey("scopes.root")).toBe("scopes.root.*");
+    expect(depKey("scopes.")).toBeNull();
   });
 });

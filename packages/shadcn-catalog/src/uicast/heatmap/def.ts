@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const HeatmapDef = createComponentDefinition({
   name: "Heatmap",
@@ -19,13 +20,11 @@ export const HeatmapDef = createComponentDefinition({
       .meta({ description: "Array of cell data with row, col, and value" }),
     rows: z.array(z.string()).meta({ description: "Row labels in order" }),
     cols: z.array(z.string()).meta({ description: "Column labels in order" }),
-    minColor: z
-      .string()
-      .default("#f0f9ff")
+    minColor: chartColorSchema
+      .default("blue")
       .meta({ description: "Color for minimum value" }),
-    maxColor: z
-      .string()
-      .default("#1e40af")
+    maxColor: chartColorSchema
+      .default("violet")
       .meta({ description: "Color for maximum value" }),
     showValues: z
       .boolean()

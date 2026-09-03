@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const ComboChartDef = createComponentDefinition({
   name: "ComboChart",
@@ -23,14 +24,10 @@ export const ComboChartDef = createComponentDefinition({
     lineKeys: z.array(z.string()).meta({
       description: "Keys for line series, e.g. ['growthRate']",
     }),
-    barColors: z.array(z.string()).optional().meta({
-      description: "Colors for bar series",
-    }),
-    lineColors: z.array(z.string()).optional().meta({
-      description: "Colors for line series",
-    }),
+    barColors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
+    lineColors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
   }),

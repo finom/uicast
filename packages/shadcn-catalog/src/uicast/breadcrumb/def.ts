@@ -20,8 +20,8 @@ export const BreadcrumbDef = createComponentDefinition({
   }),
   callbacks: {
     onNavigate: z
-      .object({
-        index: z.number().meta({
+      .strictObject({
+        index: z.number().int().nonnegative().meta({
           description: "The zero-based index of the clicked breadcrumb item",
         }),
         label: z.string().meta({

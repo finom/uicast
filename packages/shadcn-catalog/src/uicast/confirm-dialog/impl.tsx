@@ -21,10 +21,9 @@ export const ConfirmDialogImpl = createComponentImplementation({
     variant,
     onConfirm,
     onCancel,
-    generatedKey,
-  }) => {
+  }, { entry }) => {
     return (
-      <span data-key={generatedKey}>
+      <span data-key={entry.key}>
         <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
           <DialogContent>
             <DialogHeader>

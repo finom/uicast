@@ -1,5 +1,6 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
+import { chartColorSchema } from "../../lib/chart-colors";
 
 export const TreemapChartDef = createComponentDefinition({
   name: "TreemapChart",
@@ -13,15 +14,14 @@ export const TreemapChartDef = createComponentDefinition({
           value: z
             .number()
             .meta({ description: "Item value determining rectangle size" }),
-          color: z
-            .string()
+          color: chartColorSchema
             .optional()
-            .meta({ description: "Optional rectangle color" }),
+            .meta({ description: "Optional rectangle color." }),
         }),
       )
       .meta({ description: "Array of items with name and value" }),
     height: z
-      .number()
+      .number().int().positive()
       .default(300)
       .meta({ description: "Chart height in pixels" }),
   }),

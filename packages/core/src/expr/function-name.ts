@@ -1,7 +1,7 @@
-import { ALLOWED_GLOBALS } from "@uicast/expr";
+import { ALLOWED_GLOBALS } from "@uicast/expr/internal";
 import { hostFunctionNameFault } from "@uicast/expr/internal";
 
-import { CONTEXT_NAMES } from "./context-names";
+import { CONTEXT_NAMES } from "../constants";
 
 // The prompt's screen: the language's identifier rule plus uicast's own names — the context names and the expression globals a host function would shadow.
 const GLOBALS = new Set(ALLOWED_GLOBALS);

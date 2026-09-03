@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode } from "react";
+import type { ComponentType, ReactElement } from "react";
 import type {
   CombinedSpec,
   ComponentDefinition,
@@ -9,19 +9,47 @@ import type {
   UrlPolicy,
 } from "@uicast/core";
 
-// A component's React implementation: its `def` (what the LLM reads) plus the
-// mounted `render` and an optional `placeholder`.
+export type ConfirmFn = (message: string) => Promise<boolean>;
+
+// One element's pending debounced runs, by callback name. The renderer cancels them on unmount.
+export type Debouncers = Map<string, { cancel: () => void }>;
+
+// What `render` gets besides props and callbacks.
+export type RenderContext = {
+  // The document line being rendered; `entry.key` is the element's key.
+  entry: ComponentEntry;
+  // The entry's `loading` expression, evaluated. Data components render busy while true.
+  loading: boolean;
+  // The scopes the entry evaluates against: root and the enclosing item scopes.
+  scopes: Scopes;
+};
+
+// A component's React implementation: its `def` (what the LLM reads), the
+// memoized `Render`, and what the renderer computes before calling it.
 export type ComponentImplementation<
   TProps extends CombinedSpec = CombinedSpec,
   TCallbacks extends Record<string, CombinedSpec> = Record<string, CombinedSpec>,
 > = {
   def: ComponentDefinition<TProps, TCallbacks>;
-  render: (props: {
-    entry: ComponentEntry;
-    children: ReactNode;
-    scopes: Scopes;
-  }) => ReactElement;
+  // The `render` given to createComponentImplementation, memoized: same props and context, no re-render.
+  Render: ComponentType<Record<string, unknown> & { __context: RenderContext }>;
   placeholder: ((props: PlaceholderComponentProps) => ReactElement) | null;
+  // The entry's props parsed through the def's schema, and its `hidden`. Throws a classified EntryError on a document fault.
+  evaluate: (
+    entry: ComponentEntry,
+    scopes: Scopes,
+    evaluator: ExpressionEvaluator,
+    urlPolicy: UrlPolicy | undefined,
+  ) => { props: unknown; hidden: unknown; loading: unknown };
+  // One handler per callback the def declares, wired or not.
+  callbacks: (
+    entry: ComponentEntry,
+    scopes: Scopes,
+    confirm: ConfirmFn,
+    evaluator: ExpressionEvaluator,
+    onError: ((error: EntryError) => void) | undefined,
+    debouncers: Debouncers,
+  ) => Record<string, (evt: unknown) => Promise<void>>;
 };
 
 // The `placeholder` slot's reason: `"streaming"` (entry not arrived) or
