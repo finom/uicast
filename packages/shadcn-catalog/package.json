@@ -14,13 +14,13 @@
       "types": "./dist/events/index.d.ts",
       "default": "./dist/events/index.js"
     },
-    "./defs": {
-      "types": "./dist/defs.d.ts",
-      "default": "./dist/defs.js"
+    "./all-defs": {
+      "types": "./dist/all-defs.d.ts",
+      "default": "./dist/all-defs.js"
     },
-    "./impls": {
-      "types": "./dist/impls.d.ts",
-      "default": "./dist/impls.js"
+    "./all-impls": {
+      "types": "./dist/all-impls.d.ts",
+      "default": "./dist/all-impls.js"
     },
     "./document-skeleton": {
       "types": "./dist/document-skeleton/index.d.ts",

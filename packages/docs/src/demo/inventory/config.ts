@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { resetInventory, seedIfEmpty } from "./seed";
 import type { DemoConfig } from "../types";
 import { inventoryFunctions } from "./functions";
@@ -18,7 +18,7 @@ export const inventoryDemo: DemoConfig = {
     "A CRUD dashboard streamed entry-by-entry, backed by a live in-browser database.",
   lines: inventoryLines,
   functions: inventoryFunctions,
-  catalog: [...allImplementations],
+  catalog: [...impls],
   onPlay: seedIfEmpty,
   onReplay: resetInventory,
 };

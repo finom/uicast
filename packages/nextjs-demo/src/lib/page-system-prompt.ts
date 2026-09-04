@@ -5,7 +5,7 @@ import {
   getExpressionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
 import { domainTools } from "@/tools";
 
 // The system prompt for page generation. Shared between the generate endpoint
@@ -16,7 +16,7 @@ export function buildPageSystemPrompt() {
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind: "page" }),
     getComponentsPartialPrompt({
-      definitions: allDefinitions,
+      definitions: defs,
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
     getExpressionsPartialPrompt(),

@@ -99,7 +99,7 @@ import {
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
 import { tools } from "@/tools";
 
 export const maxDuration = 300;
@@ -107,7 +107,7 @@ export const maxDuration = 300;
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
-  getComponentsPartialPrompt({ definitions: allDefinitions }),
+  getComponentsPartialPrompt({ definitions: defs }),
   getFunctionsPartialPrompt({ functions: tools }),
   getExpressionsPartialPrompt(),
 ].join("\n\n");
@@ -144,7 +144,7 @@ import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 import { useState } from "react";
 import { tools } from "@/tools";
@@ -177,7 +177,7 @@ function Generated({ prompt }: { prompt: string }) {
 
   return (
     <RendererProvider
-      implementations={allImplementations}
+      implementations={impls}
       evaluator={evaluator}
       fallbackComponents={fallbackComponents}
     >

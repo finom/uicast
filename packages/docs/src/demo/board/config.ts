@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
 import { NodeBoardRenderer } from "./components/node-board/renderer";
@@ -17,5 +17,5 @@ export const boardDemo: DemoConfig = {
     "A node canvas from one bespoke component — dragging emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to }.",
   lines: boardLines,
   functions: boardFunctions,
-  catalog: [...allImplementations, NodeBoardRenderer],
+  catalog: [...impls, NodeBoardRenderer],
 };

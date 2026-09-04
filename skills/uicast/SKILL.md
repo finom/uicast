@@ -172,8 +172,8 @@ it must stay React-free); `impls.ts` feeds `<RendererProvider>`.
 ## Using the shadcn catalog
 
 ```tsx
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import "@uicast/shadcn-catalog/catalog.css";
 ```
 
@@ -181,8 +181,8 @@ import "@uicast/shadcn-catalog/catalog.css";
   palette** — every rule reads CSS variables (`var(--card)`), so your theme
   restyles the catalog. Add `theme.css` before it only when the app has no
   shadcn setup of its own: preflight plus the standard shadcn palette.
-- **Extend**: concat your pairs — `[...allDefinitions, MyDef]` /
-  `[...allImplementations, MyImpl]`.
+- **Extend**: concat your pairs — `[...defs, MyDef]` /
+  `[...impls, MyImpl]`.
 - **Override**: duplicate names throw (in the provider and in the prompt builder
   alike), so replacing a catalog component means filtering its name out of BOTH
   arrays first, then appending yours.

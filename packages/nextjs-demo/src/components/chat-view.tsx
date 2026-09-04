@@ -15,7 +15,7 @@ import { type ErrorComponentProps, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { CostInfo } from "@/components/cost-info";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { createFenceRenderer } from "@uicast/streamdown";
 import {
   Conversation,
@@ -136,7 +136,7 @@ export function ChatView({
             showToast(error.message.replace(/^[^:]*: */, ""));
           }
         }}
-      implementations={allImplementations}
+      implementations={impls}
       evaluator={evaluator}
       fallbackComponents={rendererDefaults}
     >

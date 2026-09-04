@@ -15,14 +15,14 @@ state changes.
 ```tsx
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 
 const evaluator = new Evaluator({ functions: hostFunctions });
 const entries = [
   { key: "hello", component: "Text", props: { literal: { text: "Hello" } } },
 ];
 
-<RendererProvider implementations={allImplementations} evaluator={evaluator}>
+<RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -37,7 +37,7 @@ Every `<EntriesRenderer>` under the same provider renders against the **same
 `root` scope**:
 
 ```tsx
-<RendererProvider implementations={allImplementations} evaluator={evaluator}>
+<RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={ordersBlock} />
   <EntriesRenderer entries={statsBlock} />
 </RendererProvider>;
@@ -104,11 +104,11 @@ throws if rendered outside a `<RendererProvider>`.
 or **every element re-renders**. Use module constants:
 
 ```tsx
-const implementations = [...allImplementations, MyCard]; // ✅ module scope
+const implementations = [...impls, MyCard]; // ✅ module scope
 const functions = [listRows, deleteRow]; //                 ✅ module scope
 
 // ❌ a fresh array each render — every node under it re-renders
-<RendererProvider evaluator={evaluator} implementations={[...allImplementations, MyCard]}>…</RendererProvider>;
+<RendererProvider evaluator={evaluator} implementations={[...impls, MyCard]}>…</RendererProvider>;
 ```
 
 ### `functions` — callable from `seed` and `callbacks`
@@ -161,7 +161,7 @@ import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 
 <RendererProvider
   evaluator={evaluator}
-  implementations={allImplementations}
+  implementations={impls}
   fallbackComponents={{
     placeholder: () => <Skeleton className="h-8 w-full" />,
     confirm: ConfirmModal,
@@ -244,7 +244,7 @@ const evaluator = new Evaluator({
   budget: { steps: 200_000 },  // optional ceilings
 });
 
-<RendererProvider implementations={allImplementations} evaluator={evaluator}>
+<RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -290,7 +290,7 @@ To allow more, pass an object or a predicate:
 ```tsx
 <RendererProvider
   evaluator={evaluator}
-  implementations={allImplementations}
+  implementations={impls}
   urlPolicy={{ hosts: ["cdn.example.com", "*.imgix.net"] }}
 >
   <EntriesRenderer entries={entries} />

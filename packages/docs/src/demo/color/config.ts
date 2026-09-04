@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { ColorFieldRenderer } from "./components/color-field/renderer";
@@ -21,7 +21,7 @@ export const colorDemo: DemoConfig = {
   lines: colorLines,
   functions: colorFunctions,
   catalog: [
-    ...allImplementations,
+    ...impls,
     ColorFieldRenderer,
     SwatchRailRenderer,
     ColorPreviewRenderer,

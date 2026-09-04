@@ -16,9 +16,9 @@ import { domainTools } from "@/tools";
 const SYSTEM_SLUG = "uicast";
 const ev = new Evaluator({ functions: domainTools });
 
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
 
-const DEFS = new Map(allDefinitions.map((def) => [def.name, def]));
+const DEFS = new Map(defs.map((def) => [def.name, def]));
 
 /** The output contract's structural rules (§1 tree, §4 scope names, §6 lists), enforced on every seed document. */
 function validateStructure(where: string, entries: ComponentEntry[]): void {

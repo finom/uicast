@@ -58,7 +58,7 @@ The **system prompt** is generated from those two registries, so the model can n
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
-  getComponentsPartialPrompt({ definitions: allDefinitions }),
+  getComponentsPartialPrompt({ definitions: defs }),
   getFunctionsPartialPrompt({ functions: tools }),
   getExpressionsPartialPrompt(),
 ].join("\n\n");
@@ -69,7 +69,7 @@ const system = [
 ```tsx
 const evaluator = new Evaluator({ functions: tools });
 
-<RendererProvider implementations={allImplementations} evaluator={evaluator}>
+<RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```

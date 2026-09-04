@@ -332,7 +332,7 @@ export {
   DiffViewerImpl,
 };
 
-export const allImplementations = [
+export const impls = [
   // Layout & Container
   CardImpl,
   FlexRowImpl,

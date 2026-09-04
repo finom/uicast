@@ -67,7 +67,7 @@ Collect your tools into an array, bind them on the evaluator, and pass it to
 ```tsx
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import type { StandardToolV0 } from "standard-tool";
 
 const inventoryFunctions: StandardToolV0[] = [
@@ -78,7 +78,7 @@ const inventoryFunctions: StandardToolV0[] = [
 const evaluator = new Evaluator({ functions: inventoryFunctions });
 
 <RendererProvider
-  implementations={allImplementations}
+  implementations={impls}
   evaluator={evaluator}
 >
   <EntriesRenderer entries={entries} />

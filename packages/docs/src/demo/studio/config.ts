@@ -1,5 +1,5 @@
 "use client";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import type { DemoConfig } from "../types";
 import { StepSequencerRenderer } from "./components/step-sequencer/renderer";
@@ -20,7 +20,7 @@ export const studioDemo: DemoConfig = {
   lines: studioLines,
   functions: studioFunctions,
   catalog: [
-    ...allImplementations,
+    ...impls,
     XYPadRenderer,
     KnobRenderer,
     StepSequencerRenderer,

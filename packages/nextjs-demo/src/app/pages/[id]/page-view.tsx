@@ -16,7 +16,7 @@ import {
 import { DocumentSkeleton } from "@uicast/shadcn-catalog/document-skeleton";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
 import { Profiler, type ProfilerOnRenderCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -406,7 +406,7 @@ export function PageView({
             <div className="relative overflow-x-auto rounded-md border p-4">
               {/* The skeleton holds the height while the tree is still empty;
                   the tree stays mounted underneath so its seeds run. */}
-              {!filled && <DocumentSkeleton entries={entries} implementations={allImplementations} />}
+              {!filled && <DocumentSkeleton entries={entries} implementations={impls} />}
               <div className={filled ? undefined : "pointer-events-none absolute inset-0 overflow-hidden p-4 opacity-0"}>
               {/* key: stable per page, so iterations stream into the mounted
                   renderer (seeds and state preserved) instead of remounting —
@@ -420,7 +420,7 @@ export function PageView({
           }
         }}
                 key={page.id}
-                implementations={allImplementations}
+                implementations={impls}
                 evaluator={evaluator}
                 fallbackComponents={rendererDefaults}
               >
@@ -449,7 +449,7 @@ export function PageView({
         <div className="flex flex-col gap-2">
           <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
           <div className="overflow-x-auto rounded-md border p-4">
-            <DocumentSkeleton entries={entries} implementations={allImplementations} />
+            <DocumentSkeleton entries={entries} implementations={impls} />
           </div>
         </div>
       ) : (

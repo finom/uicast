@@ -11,18 +11,18 @@ npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @ui
 ```
 
 ```ts
-import { allDefinitions } from "@uicast/shadcn-catalog/defs";
-import { allImplementations } from "@uicast/shadcn-catalog/impls";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
+import { impls } from "@uicast/shadcn-catalog/all-impls";
 ```
 
-`allDefinitions` goes to `getComponentsPartialPrompt`, `allImplementations` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
+`defs` goes to `getComponentsPartialPrompt`, `impls` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
 
 ## Entry points
 
 | Import | What it is |
 | --- | --- |
-| `@uicast/shadcn-catalog/defs` | `allDefinitions` — every component's definition, for the prompt. |
-| `@uicast/shadcn-catalog/impls` | `allImplementations` — every component's React implementation, for the renderer. |
+| `@uicast/shadcn-catalog/all-defs` | `defs` — every component's definition, for the prompt. |
+| `@uicast/shadcn-catalog/all-impls` | `impls` — every component's React implementation, for the renderer. |
 | `@uicast/shadcn-catalog/events` | The shared event schemas a definition's `callbacks` reuse. |
 | `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` — the renderer's confirm slot. |
 | `@uicast/shadcn-catalog/document-skeleton` | `DocumentSkeleton` — a document's shape before it renders. |

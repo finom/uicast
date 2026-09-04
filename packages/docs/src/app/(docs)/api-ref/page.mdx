@@ -105,8 +105,8 @@ A ready catalog, and a demo of what one looks like. See
 
 | Entry point | What it holds |
 |---|---|
-| `@uicast/shadcn-catalog/defs` | `allDefinitions`, plus every definition by name (`CardDef`, `ButtonDef`, …) — pass to `getComponentsPartialPrompt`. |
-| `@uicast/shadcn-catalog/impls` | `allImplementations`, plus every implementation by name — pass to `<RendererProvider>`. |
+| `@uicast/shadcn-catalog/all-defs` | `defs`, plus every definition by name (`CardDef`, `ButtonDef`, …) — pass to `getComponentsPartialPrompt`. |
+| `@uicast/shadcn-catalog/all-impls` | `impls`, plus every implementation by name — pass to `<RendererProvider>`. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema` — the shared event payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
 | `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
 | `@uicast/shadcn-catalog/ui/*` | The 37 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |

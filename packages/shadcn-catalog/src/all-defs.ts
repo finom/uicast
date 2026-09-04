@@ -332,7 +332,7 @@ export {
   DiffViewerDef,
 };
 
-export const allDefinitions = [
+export const defs = [
   // Layout & Container
   CardDef,
   FlexRowDef,

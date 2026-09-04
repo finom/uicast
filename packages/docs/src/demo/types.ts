@@ -21,7 +21,7 @@ export interface DemoConfig {
   lines: ComponentEntry[];
   /** Host functions exposed to expressions. `[]` when the demo has no data layer. */
   functions: StandardToolV0[];
-  /** Base catalog + the demo's bespoke renderers: `[...allImplementations, ...bespoke]`. */
+  /** Base catalog + the demo's bespoke renderers: `[...impls, ...bespoke]`. */
   catalog: ComponentImplementation[];
   /** Host fallback UI for the engine (e.g. a custom skeleton). Falls back to RenderCanvas' default. */
   fallbackComponents?: FallbackComponents;

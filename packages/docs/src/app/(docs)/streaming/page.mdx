@@ -100,7 +100,7 @@ const { data: entries = [], isFetching } = useQuery({
 });
 
 <RendererProvider
-  implementations={allImplementations}
+  implementations={impls}
   evaluator={evaluator}
   fallbackComponents={{ placeholder: () => <Skeleton className="h-6 w-24" /> }}
 >

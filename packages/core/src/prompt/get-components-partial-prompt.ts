@@ -6,7 +6,7 @@ import type { ComponentDefinition } from "../types";
 import { noteSection } from "./note-section";
 
 export type ComponentsPromptOptions = {
-	/** The component defs to advertise — the catalog's `allDefinitions` (plus any app-local defs). */
+	/** The component defs to advertise — a catalog's registry plus any app-local defs. */
 	definitions: ComponentDefinition[];
 	/** Host-specific context, appended as this section's trailing `## Note`. */
 	note?: string;

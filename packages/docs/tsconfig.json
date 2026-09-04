@@ -46,8 +46,8 @@
         "../react/src/index.ts"
       ],
       "@uicast/shadcn-catalog/events": ["../shadcn-catalog/src/events/index.ts"],
-      "@uicast/shadcn-catalog/defs": ["../shadcn-catalog/src/defs.ts"],
-      "@uicast/shadcn-catalog/impls": ["../shadcn-catalog/src/impls.ts"],
+      "@uicast/shadcn-catalog/all-defs": ["../shadcn-catalog/src/all-defs.ts"],
+      "@uicast/shadcn-catalog/all-impls": ["../shadcn-catalog/src/all-impls.ts"],
       "@uicast/shadcn-catalog/fallback-components": ["../shadcn-catalog/src/fallback-components/index.ts"],
       "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
     }
