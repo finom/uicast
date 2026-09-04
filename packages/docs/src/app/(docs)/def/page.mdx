@@ -27,7 +27,7 @@ implementation receives the actual type, inferred from the same schema.
 
 Zod 4.2+, Valibot and ArkType all qualify; the examples use Zod.
 
-```ts filename="src/uicast/badge/def.ts"
+```ts filename="src/uicast-catalog/badge/def.ts"
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
@@ -148,7 +148,7 @@ handler is a no-op, so implementations never guard.
 them. Write it once, with a JSON Schema `$id`:
 
 ```ts
-// src/uicast/events/keyboard.ts
+// src/uicast-catalog/events/keyboard.ts
 export const keyboardEventSchema = z
   .object({
     key: z.string().meta({ description: 'The key value (e.g. "Enter", "a")' }),

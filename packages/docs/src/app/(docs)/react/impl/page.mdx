@@ -5,7 +5,7 @@ implementation React runs. The def says what the component is; the impl decides
 what it renders — a wrapper over a component from your design system, or plain
 markup.
 
-```tsx filename="src/uicast/badge/impl.tsx"
+```tsx filename="src/uicast-catalog/badge/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
 import { Badge } from "./badge";
 import { BadgeDef } from "./def";
@@ -61,7 +61,7 @@ a callback:
   the item scope of an enclosing list). Read-only from here; state changes go
   through callbacks.
 
-```tsx filename="src/uicast/search-input/impl.tsx"
+```tsx filename="src/uicast-catalog/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
   render: ({ value, onChange, onClear, onKeyDown }) => (
@@ -100,7 +100,7 @@ above — so one function can draw a different loader for each.
 suspends whole documents behind the global `fallbackComponents.placeholder`
 only — per-component placeholders play no part there.)
 
-```tsx filename="src/uicast/card/impl.tsx"
+```tsx filename="src/uicast-catalog/card/impl.tsx"
 export const CardImpl = createComponentImplementation({
   def: CardDef,
   render: ({ title, children }) => <Card title={title}>{children}</Card>,

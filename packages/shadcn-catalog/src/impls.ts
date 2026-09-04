@@ -1,184 +1,184 @@
 // Layout & Container
-import { CardImpl } from "./uicast/card/impl";
-import { FlexRowImpl } from "./uicast/flex-row/impl";
-import { FlexColImpl } from "./uicast/flex-col/impl";
-import { DividerImpl } from "./uicast/divider/impl";
-import { AccordionImpl } from "./uicast/accordion/impl";
-import { AccordionItemImpl } from "./uicast/accordion-item/impl";
-import { DrawerImpl } from "./uicast/drawer/impl";
-import { GridImpl } from "./uicast/grid/impl";
-import { StackImpl } from "./uicast/stack/impl";
-import { SpacerImpl } from "./uicast/spacer/impl";
+import { CardImpl } from "./uicast-catalog/card/impl";
+import { FlexRowImpl } from "./uicast-catalog/flex-row/impl";
+import { FlexColImpl } from "./uicast-catalog/flex-col/impl";
+import { DividerImpl } from "./uicast-catalog/divider/impl";
+import { AccordionImpl } from "./uicast-catalog/accordion/impl";
+import { AccordionItemImpl } from "./uicast-catalog/accordion-item/impl";
+import { DrawerImpl } from "./uicast-catalog/drawer/impl";
+import { GridImpl } from "./uicast-catalog/grid/impl";
+import { StackImpl } from "./uicast-catalog/stack/impl";
+import { SpacerImpl } from "./uicast-catalog/spacer/impl";
 
 // Typography & Display
-import { HeadingImpl } from "./uicast/heading/impl";
-import { TextImpl } from "./uicast/text/impl";
-import { BadgeImpl } from "./uicast/badge/impl";
-import { LabelImpl } from "./uicast/label/impl";
-import { IconImpl } from "./uicast/icon/impl";
-import { TagImpl } from "./uicast/tag/impl";
-import { StatImpl } from "./uicast/stat/impl";
+import { HeadingImpl } from "./uicast-catalog/heading/impl";
+import { TextImpl } from "./uicast-catalog/text/impl";
+import { BadgeImpl } from "./uicast-catalog/badge/impl";
+import { LabelImpl } from "./uicast-catalog/label/impl";
+import { IconImpl } from "./uicast-catalog/icon/impl";
+import { TagImpl } from "./uicast-catalog/tag/impl";
+import { StatImpl } from "./uicast-catalog/stat/impl";
 
 // Tabs
-import { TabsImpl } from "./uicast/tabs/impl";
-import { TabListImpl } from "./uicast/tab-list/impl";
-import { TabTriggerImpl } from "./uicast/tab-trigger/impl";
-import { TabContentImpl } from "./uicast/tab-content/impl";
+import { TabsImpl } from "./uicast-catalog/tabs/impl";
+import { TabListImpl } from "./uicast-catalog/tab-list/impl";
+import { TabTriggerImpl } from "./uicast-catalog/tab-trigger/impl";
+import { TabContentImpl } from "./uicast-catalog/tab-content/impl";
 
 // Feedback
-import { AlertImpl } from "./uicast/alert/impl";
-import { SkeletonImpl } from "./uicast/skeleton/impl";
-import { EmptyStateImpl } from "./uicast/empty-state/impl";
-import { ToastImpl } from "./uicast/toast/impl";
-import { SpinnerImpl } from "./uicast/spinner/impl";
+import { AlertImpl } from "./uicast-catalog/alert/impl";
+import { SkeletonImpl } from "./uicast-catalog/skeleton/impl";
+import { EmptyStateImpl } from "./uicast-catalog/empty-state/impl";
+import { ToastImpl } from "./uicast-catalog/toast/impl";
+import { SpinnerImpl } from "./uicast-catalog/spinner/impl";
 
 // Form
-import { InputImpl } from "./uicast/input/impl";
-import { TextareaImpl } from "./uicast/textarea/impl";
-import { NumberInputImpl } from "./uicast/number-input/impl";
-import { SelectImpl } from "./uicast/select/impl";
-import { MultiSelectImpl } from "./uicast/multi-select/impl";
-import { DatePickerImpl } from "./uicast/date-picker/impl";
-import { DateRangePickerImpl } from "./uicast/date-range-picker/impl";
-import { TimePickerImpl } from "./uicast/time-picker/impl";
-import { CheckboxImpl } from "./uicast/checkbox/impl";
-import { RadioImpl } from "./uicast/radio/impl";
-import { SwitchImpl } from "./uicast/switch/impl";
-import { FileUploadImpl } from "./uicast/file-upload/impl";
-import { ColorPickerImpl } from "./uicast/color-picker/impl";
-import { ButtonImpl } from "./uicast/button/impl";
-import { IconButtonImpl } from "./uicast/icon-button/impl";
-import { ButtonGroupImpl } from "./uicast/button-group/impl";
-import { FieldImpl } from "./uicast/field/impl";
-import { FieldLabelImpl } from "./uicast/field-label/impl";
-import { FieldDescriptionImpl } from "./uicast/field-description/impl";
+import { InputImpl } from "./uicast-catalog/input/impl";
+import { TextareaImpl } from "./uicast-catalog/textarea/impl";
+import { NumberInputImpl } from "./uicast-catalog/number-input/impl";
+import { SelectImpl } from "./uicast-catalog/select/impl";
+import { MultiSelectImpl } from "./uicast-catalog/multi-select/impl";
+import { DatePickerImpl } from "./uicast-catalog/date-picker/impl";
+import { DateRangePickerImpl } from "./uicast-catalog/date-range-picker/impl";
+import { TimePickerImpl } from "./uicast-catalog/time-picker/impl";
+import { CheckboxImpl } from "./uicast-catalog/checkbox/impl";
+import { RadioImpl } from "./uicast-catalog/radio/impl";
+import { SwitchImpl } from "./uicast-catalog/switch/impl";
+import { FileUploadImpl } from "./uicast-catalog/file-upload/impl";
+import { ColorPickerImpl } from "./uicast-catalog/color-picker/impl";
+import { ButtonImpl } from "./uicast-catalog/button/impl";
+import { IconButtonImpl } from "./uicast-catalog/icon-button/impl";
+import { ButtonGroupImpl } from "./uicast-catalog/button-group/impl";
+import { FieldImpl } from "./uicast-catalog/field/impl";
+import { FieldLabelImpl } from "./uicast-catalog/field-label/impl";
+import { FieldDescriptionImpl } from "./uicast-catalog/field-description/impl";
 
 // Overlay
-import { ModalImpl } from "./uicast/modal/impl";
-import { ConfirmDialogImpl } from "./uicast/confirm-dialog/impl";
-import { DropdownMenuImpl } from "./uicast/dropdown-menu/impl";
-import { DropdownMenuItemImpl } from "./uicast/dropdown-menu-item/impl";
-import { PopoverImpl } from "./uicast/popover/impl";
+import { ModalImpl } from "./uicast-catalog/modal/impl";
+import { ConfirmDialogImpl } from "./uicast-catalog/confirm-dialog/impl";
+import { DropdownMenuImpl } from "./uicast-catalog/dropdown-menu/impl";
+import { DropdownMenuItemImpl } from "./uicast-catalog/dropdown-menu-item/impl";
+import { PopoverImpl } from "./uicast-catalog/popover/impl";
 
 // Data Display
-import { ListImpl } from "./uicast/list/impl";
-import { DataGridImpl } from "./uicast/data-grid/impl";
-import { AvatarImpl } from "./uicast/avatar/impl";
-import { TooltipImpl } from "./uicast/tooltip/impl";
-import { ProgressBarImpl } from "./uicast/progress-bar/impl";
-import { ImageImpl } from "./uicast/image/impl";
+import { ListImpl } from "./uicast-catalog/list/impl";
+import { DataGridImpl } from "./uicast-catalog/data-grid/impl";
+import { AvatarImpl } from "./uicast-catalog/avatar/impl";
+import { TooltipImpl } from "./uicast-catalog/tooltip/impl";
+import { ProgressBarImpl } from "./uicast-catalog/progress-bar/impl";
+import { ImageImpl } from "./uicast-catalog/image/impl";
 
-import { CalendarImpl } from "./uicast/calendar/impl";
-import { TimelineImpl } from "./uicast/timeline/impl";
-import { TreeViewImpl } from "./uicast/tree-view/impl";
-import { DescriptionListImpl } from "./uicast/description-list/impl";
-import { CodeBlockImpl } from "./uicast/code-block/impl";
-import { MarkdownViewerImpl } from "./uicast/markdown-viewer/impl";
-import { AvatarGroupImpl } from "./uicast/avatar-group/impl";
-import { StatusIndicatorImpl } from "./uicast/status-indicator/impl";
-import { CarouselImpl } from "./uicast/carousel/impl";
-import { CalloutImpl } from "./uicast/callout/impl";
-import { KBDImpl } from "./uicast/kbd/impl";
-import { HighlightImpl } from "./uicast/highlight/impl";
-import { RelativeTimeImpl } from "./uicast/relative-time/impl";
-import { TruncatedTextImpl } from "./uicast/truncated-text/impl";
-import { CopyButtonImpl } from "./uicast/copy-button/impl";
-import { QRCodeImpl } from "./uicast/qr-code/impl";
-import { BarcodeImpl } from "./uicast/barcode/impl";
+import { CalendarImpl } from "./uicast-catalog/calendar/impl";
+import { TimelineImpl } from "./uicast-catalog/timeline/impl";
+import { TreeViewImpl } from "./uicast-catalog/tree-view/impl";
+import { DescriptionListImpl } from "./uicast-catalog/description-list/impl";
+import { CodeBlockImpl } from "./uicast-catalog/code-block/impl";
+import { MarkdownViewerImpl } from "./uicast-catalog/markdown-viewer/impl";
+import { AvatarGroupImpl } from "./uicast-catalog/avatar-group/impl";
+import { StatusIndicatorImpl } from "./uicast-catalog/status-indicator/impl";
+import { CarouselImpl } from "./uicast-catalog/carousel/impl";
+import { CalloutImpl } from "./uicast-catalog/callout/impl";
+import { KBDImpl } from "./uicast-catalog/kbd/impl";
+import { HighlightImpl } from "./uicast-catalog/highlight/impl";
+import { RelativeTimeImpl } from "./uicast-catalog/relative-time/impl";
+import { TruncatedTextImpl } from "./uicast-catalog/truncated-text/impl";
+import { CopyButtonImpl } from "./uicast-catalog/copy-button/impl";
+import { QRCodeImpl } from "./uicast-catalog/qr-code/impl";
+import { BarcodeImpl } from "./uicast-catalog/barcode/impl";
 
 // Table
-import { TableImpl } from "./uicast/table/impl";
-import { TableHeaderImpl } from "./uicast/table-header/impl";
-import { TableBodyImpl } from "./uicast/table-body/impl";
-import { TableFooterImpl } from "./uicast/table-footer/impl";
-import { TableRowImpl } from "./uicast/table-row/impl";
-import { TableHeadImpl } from "./uicast/table-head/impl";
-import { TableCellImpl } from "./uicast/table-cell/impl";
+import { TableImpl } from "./uicast-catalog/table/impl";
+import { TableHeaderImpl } from "./uicast-catalog/table-header/impl";
+import { TableBodyImpl } from "./uicast-catalog/table-body/impl";
+import { TableFooterImpl } from "./uicast-catalog/table-footer/impl";
+import { TableRowImpl } from "./uicast-catalog/table-row/impl";
+import { TableHeadImpl } from "./uicast-catalog/table-head/impl";
+import { TableCellImpl } from "./uicast-catalog/table-cell/impl";
 
 // Navigation
-import { PaginationImpl } from "./uicast/pagination/impl";
-import { BreadcrumbImpl } from "./uicast/breadcrumb/impl";
-import { StepperImpl } from "./uicast/stepper/impl";
+import { PaginationImpl } from "./uicast-catalog/pagination/impl";
+import { BreadcrumbImpl } from "./uicast-catalog/breadcrumb/impl";
+import { StepperImpl } from "./uicast-catalog/stepper/impl";
 
 // Charts
-import { BarChartImpl } from "./uicast/bar-chart/impl";
-import { LineChartImpl } from "./uicast/line-chart/impl";
-import { PieChartImpl } from "./uicast/pie-chart/impl";
-import { AreaChartImpl } from "./uicast/area-chart/impl";
-import { FunnelChartImpl } from "./uicast/funnel-chart/impl";
+import { BarChartImpl } from "./uicast-catalog/bar-chart/impl";
+import { LineChartImpl } from "./uicast-catalog/line-chart/impl";
+import { PieChartImpl } from "./uicast-catalog/pie-chart/impl";
+import { AreaChartImpl } from "./uicast-catalog/area-chart/impl";
+import { FunnelChartImpl } from "./uicast-catalog/funnel-chart/impl";
 
-import { ScatterChartImpl } from "./uicast/scatter-chart/impl";
-import { RadarChartImpl } from "./uicast/radar-chart/impl";
-import { DonutChartImpl } from "./uicast/donut-chart/impl";
-import { GaugeChartImpl } from "./uicast/gauge-chart/impl";
-import { SparklineImpl } from "./uicast/sparkline/impl";
-import { HeatmapImpl } from "./uicast/heatmap/impl";
-import { TreemapChartImpl } from "./uicast/treemap-chart/impl";
-import { WaterfallChartImpl } from "./uicast/waterfall-chart/impl";
-import { SankeyChartImpl } from "./uicast/sankey-chart/impl";
-import { ComboChartImpl } from "./uicast/combo-chart/impl";
-import { GanttChartImpl } from "./uicast/gantt-chart/impl";
-import { BubbleChartImpl } from "./uicast/bubble-chart/impl";
+import { ScatterChartImpl } from "./uicast-catalog/scatter-chart/impl";
+import { RadarChartImpl } from "./uicast-catalog/radar-chart/impl";
+import { DonutChartImpl } from "./uicast-catalog/donut-chart/impl";
+import { GaugeChartImpl } from "./uicast-catalog/gauge-chart/impl";
+import { SparklineImpl } from "./uicast-catalog/sparkline/impl";
+import { HeatmapImpl } from "./uicast-catalog/heatmap/impl";
+import { TreemapChartImpl } from "./uicast-catalog/treemap-chart/impl";
+import { WaterfallChartImpl } from "./uicast-catalog/waterfall-chart/impl";
+import { SankeyChartImpl } from "./uicast-catalog/sankey-chart/impl";
+import { ComboChartImpl } from "./uicast-catalog/combo-chart/impl";
+import { GanttChartImpl } from "./uicast-catalog/gantt-chart/impl";
+import { BubbleChartImpl } from "./uicast-catalog/bubble-chart/impl";
 
 // Navigation & Wayfinding
-import { SidebarImpl } from "./uicast/sidebar/impl";
-import { NavigationMenuImpl } from "./uicast/navigation-menu/impl";
-import { MenubarImpl } from "./uicast/menubar/impl";
-import { CommandMenuImpl } from "./uicast/command-menu/impl";
-import { LinkImpl } from "./uicast/link/impl";
-import { ContextMenuImpl } from "./uicast/context-menu/impl";
+import { SidebarImpl } from "./uicast-catalog/sidebar/impl";
+import { NavigationMenuImpl } from "./uicast-catalog/navigation-menu/impl";
+import { MenubarImpl } from "./uicast-catalog/menubar/impl";
+import { CommandMenuImpl } from "./uicast-catalog/command-menu/impl";
+import { LinkImpl } from "./uicast-catalog/link/impl";
+import { ContextMenuImpl } from "./uicast-catalog/context-menu/impl";
 
 // Form & Input
-import { ComboboxImpl } from "./uicast/combobox/impl";
-import { SliderImpl } from "./uicast/slider/impl";
-import { RangeSliderImpl } from "./uicast/range-slider/impl";
-import { PasswordInputImpl } from "./uicast/password-input/impl";
-import { SearchInputImpl } from "./uicast/search-input/impl";
-import { PhoneInputImpl } from "./uicast/phone-input/impl";
-import { CurrencyInputImpl } from "./uicast/currency-input/impl";
-import { MaskedInputImpl } from "./uicast/masked-input/impl";
-import { PinInputImpl } from "./uicast/pin-input/impl";
-import { TagInputImpl } from "./uicast/tag-input/impl";
-import { RatingImpl } from "./uicast/rating/impl";
-import { CodeEditorImpl } from "./uicast/code-editor/impl";
-import { SignaturePadImpl } from "./uicast/signature-pad/impl";
-import { ToggleImpl } from "./uicast/toggle/impl";
-import { ToggleGroupImpl } from "./uicast/toggle-group/impl";
-import { SegmentedControlImpl } from "./uicast/segmented-control/impl";
-import { FormSectionImpl } from "./uicast/form-section/impl";
+import { ComboboxImpl } from "./uicast-catalog/combobox/impl";
+import { SliderImpl } from "./uicast-catalog/slider/impl";
+import { RangeSliderImpl } from "./uicast-catalog/range-slider/impl";
+import { PasswordInputImpl } from "./uicast-catalog/password-input/impl";
+import { SearchInputImpl } from "./uicast-catalog/search-input/impl";
+import { PhoneInputImpl } from "./uicast-catalog/phone-input/impl";
+import { CurrencyInputImpl } from "./uicast-catalog/currency-input/impl";
+import { MaskedInputImpl } from "./uicast-catalog/masked-input/impl";
+import { PinInputImpl } from "./uicast-catalog/pin-input/impl";
+import { TagInputImpl } from "./uicast-catalog/tag-input/impl";
+import { RatingImpl } from "./uicast-catalog/rating/impl";
+import { CodeEditorImpl } from "./uicast-catalog/code-editor/impl";
+import { SignaturePadImpl } from "./uicast-catalog/signature-pad/impl";
+import { ToggleImpl } from "./uicast-catalog/toggle/impl";
+import { ToggleGroupImpl } from "./uicast-catalog/toggle-group/impl";
+import { SegmentedControlImpl } from "./uicast-catalog/segmented-control/impl";
+import { FormSectionImpl } from "./uicast-catalog/form-section/impl";
 
 // Layout & Structure
-import { ContainerImpl } from "./uicast/container/impl";
-import { AspectRatioImpl } from "./uicast/aspect-ratio/impl";
-import { ScrollAreaImpl } from "./uicast/scroll-area/impl";
-import { CollapsibleImpl } from "./uicast/collapsible/impl";
-import { ResizablePanelImpl } from "./uicast/resizable-panel/impl";
-import { SheetImpl } from "./uicast/sheet/impl";
-import { StickyHeaderImpl } from "./uicast/sticky-header/impl";
-import { PageHeaderImpl } from "./uicast/page-header/impl";
-import { ToolbarImpl } from "./uicast/toolbar/impl";
+import { ContainerImpl } from "./uicast-catalog/container/impl";
+import { AspectRatioImpl } from "./uicast-catalog/aspect-ratio/impl";
+import { ScrollAreaImpl } from "./uicast-catalog/scroll-area/impl";
+import { CollapsibleImpl } from "./uicast-catalog/collapsible/impl";
+import { ResizablePanelImpl } from "./uicast-catalog/resizable-panel/impl";
+import { SheetImpl } from "./uicast-catalog/sheet/impl";
+import { StickyHeaderImpl } from "./uicast-catalog/sticky-header/impl";
+import { PageHeaderImpl } from "./uicast-catalog/page-header/impl";
+import { ToolbarImpl } from "./uicast-catalog/toolbar/impl";
 
 // Feedback & Status
-import { BannerImpl } from "./uicast/banner/impl";
-import { InlineMessageImpl } from "./uicast/inline-message/impl";
-import { AlertDialogImpl } from "./uicast/alert-dialog/impl";
-import { CircularProgressImpl } from "./uicast/circular-progress/impl";
-import { CountdownTimerImpl } from "./uicast/countdown-timer/impl";
-import { NotificationBadgeImpl } from "./uicast/notification-badge/impl";
+import { BannerImpl } from "./uicast-catalog/banner/impl";
+import { InlineMessageImpl } from "./uicast-catalog/inline-message/impl";
+import { AlertDialogImpl } from "./uicast-catalog/alert-dialog/impl";
+import { CircularProgressImpl } from "./uicast-catalog/circular-progress/impl";
+import { CountdownTimerImpl } from "./uicast-catalog/countdown-timer/impl";
+import { NotificationBadgeImpl } from "./uicast-catalog/notification-badge/impl";
 
 // Specialized / Business-Specific
-import { KanbanBoardImpl } from "./uicast/kanban-board/impl";
-import { SortableListImpl } from "./uicast/sortable-list/impl";
-import { VirtualListImpl } from "./uicast/virtual-list/impl";
-import { MapImpl } from "./uicast/map/impl";
-import { OrgChartImpl } from "./uicast/org-chart/impl";
-import { FlowDiagramImpl } from "./uicast/flow-diagram/impl";
-import { ChatThreadImpl } from "./uicast/chat-thread/impl";
-import { VideoPlayerImpl } from "./uicast/video-player/impl";
-import { CronBuilderImpl } from "./uicast/cron-builder/impl";
-import { FilterBuilderImpl } from "./uicast/filter-builder/impl";
-import { FormulaBarImpl } from "./uicast/formula-bar/impl";
-import { DiffViewerImpl } from "./uicast/diff-viewer/impl";
+import { KanbanBoardImpl } from "./uicast-catalog/kanban-board/impl";
+import { SortableListImpl } from "./uicast-catalog/sortable-list/impl";
+import { VirtualListImpl } from "./uicast-catalog/virtual-list/impl";
+import { MapImpl } from "./uicast-catalog/map/impl";
+import { OrgChartImpl } from "./uicast-catalog/org-chart/impl";
+import { FlowDiagramImpl } from "./uicast-catalog/flow-diagram/impl";
+import { ChatThreadImpl } from "./uicast-catalog/chat-thread/impl";
+import { VideoPlayerImpl } from "./uicast-catalog/video-player/impl";
+import { CronBuilderImpl } from "./uicast-catalog/cron-builder/impl";
+import { FilterBuilderImpl } from "./uicast-catalog/filter-builder/impl";
+import { FormulaBarImpl } from "./uicast-catalog/formula-bar/impl";
+import { DiffViewerImpl } from "./uicast-catalog/diff-viewer/impl";
 export {
   CardImpl,
   FlexRowImpl,

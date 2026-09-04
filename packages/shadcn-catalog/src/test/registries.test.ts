@@ -5,11 +5,11 @@ import { describe, expect, it } from "vitest";
 import { allDefinitions } from "../defs";
 import { allImplementations } from "../impls";
 
-// defs.ts and impls.ts are hand-maintained mirrors of src/uicast/. Nothing
+// defs.ts and impls.ts are hand-maintained mirrors of src/uicast-catalog/. Nothing
 // else guards them against drift: a pair left out of one registry, or a def
 // without an impl, would fail only at runtime in a consumer.
 
-const uicastDir = resolve(dirname(fileURLToPath(import.meta.url)), "../uicast");
+const catalogDir = resolve(dirname(fileURLToPath(import.meta.url)), "../uicast-catalog");
 
 describe("catalog registries", () => {
   it("every def name is unique", () => {
@@ -25,8 +25,8 @@ describe("catalog registries", () => {
     expect(implNames.size).toBe(defNames.size);
   });
 
-  it("every src/uicast/ component directory is registered", () => {
-    const dirs = readdirSync(uicastDir, { withFileTypes: true })
+  it("every src/uicast-catalog/ component directory is registered", () => {
+    const dirs = readdirSync(catalogDir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
       .map((entry) => entry.name);
     expect(allDefinitions.length).toBe(dirs.length);

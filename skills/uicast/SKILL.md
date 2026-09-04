@@ -158,7 +158,7 @@ registry files (mirroring the shadcn catalog's own layout; the `src/` prefix
 follows the project's setup):
 
 ```
-src/uicast/
+src/uicast-catalog/
 ├── stat-card/
 │   ├── def.ts        # createComponentDefinition — no React imports
 │   └── impl.tsx      # createComponentImplementation, imports ./def
