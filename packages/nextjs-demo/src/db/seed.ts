@@ -2,7 +2,7 @@ import { Evaluator } from "@uicast/expr";
 import type { ComponentEntry } from "@uicast/core";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { users } from "./schema";
+import { pages, users } from "./schema";
 import { insertSeedContent, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData } from "./starter-data";
 import { domainTools } from "@/tools";
@@ -104,6 +104,15 @@ async function main() {
   validateFences();
 
   const [existing] = await db.select().from(users).where(eq(users.slug, SYSTEM_SLUG));
+  // `--if-empty` is for the deploy: reseeding recreates the account, and the
+  // new row ids would break every link already shared to a page or a chat.
+  if (existing && process.argv.includes("--if-empty")) {
+    const [page] = await db.select({ id: pages.id }).from(pages).where(eq(pages.userId, existing.id)).limit(1);
+    if (page) {
+      console.log(`@${SYSTEM_SLUG} already seeded — leaving it alone.`);
+      process.exit(0);
+    }
+  }
   if (existing) await db.delete(users).where(eq(users.id, existing.id));
   const [system] = await db.insert(users).values({ slug: SYSTEM_SLUG }).returning();
   await insertStarterData(system.id);

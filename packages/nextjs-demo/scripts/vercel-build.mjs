@@ -8,7 +8,9 @@ const run = (command) => execSync(command, { stdio: "inherit" });
 
 if (process.env.VERCEL_ENV === "production") {
   run("npm run db:push -- --force");
-  run("npm run db:seed");
+  // `--if-empty`: reseeding would recreate the demo account under new row ids
+  // and break every link already shared to one of its pages.
+  run("npm run db:seed -- --if-empty");
 }
 
 run("next build");
