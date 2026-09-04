@@ -55,7 +55,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
 
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-1 pr-2">
-          <p className="px-2 text-xs font-medium text-muted-foreground">{me ? "Your pages" : "Demo pages"}</p>
+          <p className="px-2 text-xs font-medium text-muted-foreground">{me ? "Your pages" : `@${slug} pages`}</p>
           <nav className="flex flex-col gap-1">
             {pages === undefined ? null : pages.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
@@ -83,7 +83,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
             )}
           </nav>
 
-          <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">{me ? "Your chats" : "Demo chats"}</p>
+          <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">{me ? "Your chats" : `@${slug} chats`}</p>
           <nav className="flex flex-col gap-1">
             {chats === undefined ? null : chats.length === 0 ? (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">

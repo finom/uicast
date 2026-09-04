@@ -39,7 +39,12 @@ import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 import { CostInfo } from "@/components/cost-info";
 import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
-import { setApiOwner } from "@/tools/http";
+import { setApiOwner, watchApiActivity } from "@/tools/http";
+
+// How long to wait for a document's first fetch to start, and for its seeds to
+// finish once they have. Both are caps: the skeleton never outlasts them.
+const SEED_START_MS = 400;
+const SEED_WAIT_MS = 5000;
 
 // One evaluator for the app: the host functions bind on it, and it holds the parse cache.
 const evaluator = new Evaluator({ functions: domainTools });
@@ -103,6 +108,22 @@ export function PageView({
   // so the server pass can only error and fall back — skip it instead.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
+  // The tree mounts empty and fills as its seeds return, so the skeleton stays
+  // up until they settle — a document with no seeds settles on the timeout.
+  const [filled, setFilled] = useState(false);
+  useEffect(() => {
+    if (!mounted) return;
+    let started = false;
+    const stop = watchApiActivity((count) => {
+      if (count > 0) started = true;
+      else if (started) setFilled(true);
+    });
+    const giveUp = setTimeout(() => setFilled(true), started ? SEED_WAIT_MS : SEED_START_MS);
+    return () => {
+      stop();
+      clearTimeout(giveUp);
+    };
+  }, [mounted]);
   const perf = useMemo(() => mounted && new URLSearchParams(window.location.search).has("perf"), [mounted]);
   const queryClient = useQueryClient();
 
@@ -369,7 +390,11 @@ export function PageView({
           {/* forceMount: unmounting the renderer on tab switch would re-run
               seeds and wipe the generated page's state */}
           <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
-            <div className="overflow-x-auto rounded-md border p-4">
+            <div className="relative overflow-x-auto rounded-md border p-4">
+              {/* The skeleton holds the height while the tree is still empty;
+                  the tree stays mounted underneath so its seeds run. */}
+              {!filled && <DocumentSkeleton entries={entries} />}
+              <div className={filled ? undefined : "pointer-events-none absolute inset-0 overflow-hidden p-4 opacity-0"}>
               {/* key: stable per page, so iterations stream into the mounted
                   renderer (seeds and state preserved) instead of remounting —
                   and the provider's shared root scope resets per page */}
@@ -394,6 +419,7 @@ export function PageView({
                   <EntriesRenderer entries={entries} />
                 )}
               </RendererProvider>
+              </div>
             </div>
           </TabsContent>
           <TabsContent value="entries">

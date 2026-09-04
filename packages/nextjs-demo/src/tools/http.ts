@@ -13,7 +13,34 @@ export function setApiOwner(slug: string | null) {
   apiOwner = slug;
 }
 
+// Every seed and callback fetch passes through here, so the count of in-flight
+// requests is how a freshly mounted document says it is still filling up.
+let inFlight = 0;
+const watchers = new Set<(inFlight: number) => void>();
+
+export function watchApiActivity(watcher: (inFlight: number) => void) {
+  watchers.add(watcher);
+  return () => void watchers.delete(watcher);
+}
+
+function track(delta: number) {
+  inFlight += delta;
+  for (const watcher of watchers) watcher(inFlight);
+}
+
 export async function apiFetch(
+  path: string,
+  init?: { method?: string; body?: unknown; success?: string },
+) {
+  track(1);
+  try {
+    return await request(path, init);
+  } finally {
+    track(-1);
+  }
+}
+
+async function request(
   path: string,
   init?: { method?: string; body?: unknown; success?: string },
 ) {
