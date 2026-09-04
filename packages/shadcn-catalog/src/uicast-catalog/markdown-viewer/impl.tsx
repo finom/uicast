@@ -1,5 +1,6 @@
 import { Streamdown } from "streamdown";
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { MarkdownViewerDef } from "./def";
 
 // Rendering is delegated to streamdown: full GitHub-flavored Markdown with
@@ -12,4 +13,5 @@ export const MarkdownViewerImpl = createComponentImplementation({
       <Streamdown>{content}</Streamdown>
     </div>
   ),
+  placeholder: () => <Skeleton className="w-full" style={{ height: 160 }} />,
 });

@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import { ToolbarDef } from "./def";
 
@@ -25,4 +25,5 @@ export const ToolbarImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

@@ -1,4 +1,5 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import {
   Popover,
   PopoverContent,
@@ -31,4 +32,10 @@ export const PopoverImpl = createComponentImplementation({
       </span>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => (
+    <div className="flex flex-col gap-3 rounded-lg border p-4">
+      <Skeleton className="h-4 w-40" />
+      {children}
+    </div>
+  ),
 });

@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { HeatmapDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
@@ -89,4 +90,5 @@ export const HeatmapImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

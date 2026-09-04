@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import {
   Avatar,
   AvatarFallback,
@@ -44,4 +44,5 @@ export const AvatarGroupImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

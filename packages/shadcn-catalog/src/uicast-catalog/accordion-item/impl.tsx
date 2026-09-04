@@ -1,5 +1,5 @@
 import { useContext, useEffect, useId, useState } from "react";
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import {
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,
@@ -63,4 +63,5 @@ export const AccordionItemImpl = createComponentImplementation({
       </ShadcnAccordion>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

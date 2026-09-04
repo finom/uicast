@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import {
   Avatar,
   AvatarFallback,
@@ -57,4 +58,5 @@ export const ChatThreadImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 320 }} />,
 });

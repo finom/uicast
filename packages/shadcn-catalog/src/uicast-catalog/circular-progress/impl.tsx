@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { CircularProgressDef } from "./def";
 
 // Written-out CSS variables: an SVG stroke cannot take a Tailwind class.
@@ -68,4 +69,5 @@ export const CircularProgressImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 120 }} />,
 });

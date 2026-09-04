@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { GripVertical } from "lucide-react";
 import { iconNode } from "../../lib/icon-node";
 import { SortableListDef } from "./def";
@@ -27,4 +27,5 @@ export const SortableListImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

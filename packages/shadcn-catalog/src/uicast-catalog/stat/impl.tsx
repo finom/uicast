@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { StatDef } from "./def";
@@ -46,4 +47,10 @@ export const StatImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => (
+    <div className="flex min-w-0 flex-col gap-1">
+      <Skeleton className="h-4 w-20" />
+      <Skeleton className="h-9 w-28" />
+    </div>
+  ),
 });

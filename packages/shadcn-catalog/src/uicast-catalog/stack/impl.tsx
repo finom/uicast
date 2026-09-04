@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { StackDef } from "./def";
 
@@ -39,4 +39,5 @@ export const StackImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { MapPin } from "lucide-react";
 import { MapDef } from "./def";
 
@@ -57,4 +58,5 @@ export const MapImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

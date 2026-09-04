@@ -406,7 +406,7 @@ export function PageView({
             <div className="relative overflow-x-auto rounded-md border p-4">
               {/* The skeleton holds the height while the tree is still empty;
                   the tree stays mounted underneath so its seeds run. */}
-              {!filled && <DocumentSkeleton entries={entries} />}
+              {!filled && <DocumentSkeleton entries={entries} implementations={allImplementations} />}
               <div className={filled ? undefined : "pointer-events-none absolute inset-0 overflow-hidden p-4 opacity-0"}>
               {/* key: stable per page, so iterations stream into the mounted
                   renderer (seeds and state preserved) instead of remounting —
@@ -449,7 +449,7 @@ export function PageView({
         <div className="flex flex-col gap-2">
           <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
           <div className="overflow-x-auto rounded-md border p-4">
-            <DocumentSkeleton entries={entries} />
+            <DocumentSkeleton entries={entries} implementations={allImplementations} />
           </div>
         </div>
       ) : (

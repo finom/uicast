@@ -1,5 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { Card, CardContent } from "../../components/ui/card";
 import { QRCodeDef } from "./def";
 
@@ -31,4 +32,5 @@ export const QRCodeImpl = createComponentImplementation({
       </CardContent>
     </Card>
   ),
+  placeholder: () => <Skeleton className="w-full" style={{ height: 160 }} />,
 });

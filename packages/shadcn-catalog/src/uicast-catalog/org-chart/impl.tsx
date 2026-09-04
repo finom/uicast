@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import {
   Avatar,
@@ -75,4 +76,5 @@ export const OrgChartImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

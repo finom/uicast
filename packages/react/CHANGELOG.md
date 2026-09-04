@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `PlaceholderComponentProps.children`. The renderer never passes it, so a placeholder that receives children knows it is drawing the element itself and renders its own tag; without them it is filling a slot inside a real element. A skeleton pass over the entries uses this to draw a document before anything is evaluated.
+
 ### Changed
 
 - **Row scopes are the items.** `scopes.<as>.name` reads the element's field; `scopes.<as>.$index`, `$id` and `$value` are the runtime's. `scopes.<as>.item` / `.index` / `.id` and `childScopes` are gone; per-row UI state lives at root keyed by `$id`. A row write edits the element inside the source array in place and wakes the array's readers, through nested lists and across lists sharing an array. Rows with duplicate `keyBy` values no longer share a scope.

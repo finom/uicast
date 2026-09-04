@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import {
   AreaChart as RechartsAreaChart,
@@ -50,4 +51,5 @@ export const AreaChartImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

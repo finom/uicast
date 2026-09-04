@@ -4,7 +4,7 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { Accordion } from "../../components/ui/accordion";
 import { AccordionDef } from "./def";
 
@@ -47,4 +47,5 @@ export const AccordionImpl = createComponentImplementation({
       </AccordionContext.Provider>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

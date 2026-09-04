@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { Calendar as ShadcnCalendar } from "../../components/ui/calendar";
 import { CalendarDef } from "./def";
 
@@ -40,4 +41,5 @@ export const CalendarImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

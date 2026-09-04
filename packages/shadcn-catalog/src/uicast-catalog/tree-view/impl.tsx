@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { useState } from "react";
 import {
   Collapsible,
@@ -121,4 +122,5 @@ export const TreeViewImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

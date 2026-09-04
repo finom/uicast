@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { pickMouseEvent } from "../../events/mouse";
 import { ImageDef } from "./def";
 import { height as toHeight, width as toWidth } from "../../lib/sizes";
@@ -38,4 +39,5 @@ export const ImageImpl = createComponentImplementation({
       />
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 200 }} />,
 });

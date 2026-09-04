@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import { GaugeChartDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
@@ -76,4 +77,5 @@ export const GaugeChartImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

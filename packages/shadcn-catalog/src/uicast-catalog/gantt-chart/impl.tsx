@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { cn, busy } from "../../lib/utils";
 import { defaultChartColors } from "../../lib/chart-colors";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
@@ -94,4 +95,5 @@ export const GanttChartImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

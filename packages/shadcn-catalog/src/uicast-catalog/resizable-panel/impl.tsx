@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -35,4 +35,5 @@ export const ResizablePanelImpl = createComponentImplementation({
       </ResizablePanelGroup>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

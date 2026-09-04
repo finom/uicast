@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { VirtualListDef } from "./def";
 
@@ -68,4 +69,5 @@ export const VirtualListImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 320 }} />,
 });

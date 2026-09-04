@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { useRef, useCallback } from "react";
 import { Button } from "../../components/ui/button";
 import { Eraser } from "lucide-react";
@@ -103,4 +104,5 @@ export const SignaturePadImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 160 }} />,
 });

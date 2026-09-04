@@ -96,6 +96,9 @@ still missing. Two cases, both inside an already-mounted parent:
 The placeholder is passed `{ reason: "streaming" | "seeding" }` — the two cases
 above — so one function can draw a different loader for each.
 
+A placeholder is also passed `children` — the drawn children of the element —
+which can be used to build a document skeleton.
+
 (A pending group [`init`](/react/renderer#init--preload-state-for-the-group)
 suspends whole documents behind the global `fallbackComponents.placeholder`
 only — per-component placeholders play no part there.)

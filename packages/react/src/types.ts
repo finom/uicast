@@ -1,4 +1,4 @@
-import type { ComponentType, ReactElement } from "react";
+import type { ComponentType, ReactElement, ReactNode } from "react";
 import type {
   CombinedSpec,
   ComponentDefinition,
@@ -56,6 +56,9 @@ export type ComponentImplementation<
 // `"seeding"` (async seed/init still resolving). Ignorable.
 export type PlaceholderComponentProps = {
   reason: "streaming" | "seeding";
+  // Absent when the placeholder fills a slot inside a real element. Present when
+  // the caller draws the element itself, so the placeholder renders its own tag.
+  children?: ReactNode;
 };
 
 // The host confirm modal's contract. The engine keeps it mounted and drives it

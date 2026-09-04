@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { VideoPlayerDef } from "./def";
 
 export const VideoPlayerImpl = createComponentImplementation({
@@ -35,4 +36,5 @@ export const VideoPlayerImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

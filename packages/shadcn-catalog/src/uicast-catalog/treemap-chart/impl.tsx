@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
 import { defaultChartColors } from "../../lib/chart-colors";
@@ -66,4 +67,5 @@ export const TreemapChartImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

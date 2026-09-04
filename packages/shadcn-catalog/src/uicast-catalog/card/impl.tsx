@@ -1,4 +1,5 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import { pickMouseEvent } from "../../events/mouse";
 import {
@@ -32,4 +33,12 @@ export const CardImpl = createComponentImplementation({
       </Card>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => (
+    <Card className="min-w-0">
+      <CardHeader>
+        <Skeleton className="h-4 w-40" />
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">{children}</CardContent>
+    </Card>
+  ),
 });

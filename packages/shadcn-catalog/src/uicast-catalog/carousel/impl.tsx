@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { Button } from "../../components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Children, useState } from "react";
@@ -68,4 +69,5 @@ export const CarouselImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

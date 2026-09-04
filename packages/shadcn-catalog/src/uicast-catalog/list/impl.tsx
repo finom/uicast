@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { ListDef } from "./def";
 
 export const ListImpl = createComponentImplementation({
@@ -23,4 +23,5 @@ export const ListImpl = createComponentImplementation({
       </Tag>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
 import { CodeEditorDef } from "./def";
 
@@ -50,4 +51,5 @@ export const CodeEditorImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

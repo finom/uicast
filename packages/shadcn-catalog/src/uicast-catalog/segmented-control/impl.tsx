@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
 import { SegmentedControlDef } from "./def";
 
@@ -30,4 +30,5 @@ export const SegmentedControlImpl = createComponentImplementation({
       </ToggleGroup>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

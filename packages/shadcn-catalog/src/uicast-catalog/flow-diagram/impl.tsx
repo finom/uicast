@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
 import { ArrowDown, ArrowRight } from "lucide-react";
 import { FlowDiagramDef } from "./def";
@@ -79,4 +80,5 @@ export const FlowDiagramImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

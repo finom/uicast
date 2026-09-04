@@ -1,5 +1,6 @@
 import { diffLines } from "diff";
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DiffViewerDef } from "./def";
@@ -137,4 +138,5 @@ export const DiffViewerImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
 import { Check } from "lucide-react";
@@ -103,4 +103,5 @@ export const StepperImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
 });

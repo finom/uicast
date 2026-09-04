@@ -1,4 +1,4 @@
-import { createComponentImplementation } from "@uicast/react";
+import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
 import { ButtonGroupDef } from "./def";
 
 export const ButtonGroupImpl = createComponentImplementation({
@@ -18,4 +18,5 @@ export const ButtonGroupImpl = createComponentImplementation({
       </div>
     );
   },
+  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

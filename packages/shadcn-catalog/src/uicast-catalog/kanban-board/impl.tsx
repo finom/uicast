@@ -21,6 +21,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { createComponentImplementation } from "@uicast/react";
+import { Skeleton } from "../../components/ui/skeleton";
 import {
   Card,
   CardContent,
@@ -292,4 +293,5 @@ export const KanbanBoardImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
+  placeholder: () => <Skeleton className="w-full" style={{ height: 320 }} />,
 });
