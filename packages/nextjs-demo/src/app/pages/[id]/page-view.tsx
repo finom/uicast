@@ -41,10 +41,11 @@ import { showToast } from "@/components/toaster";
 import { domainTools } from "@/tools";
 import { setApiOwner, watchApiActivity } from "@/tools/http";
 
-// How long to wait for a document's first fetch to start, and for its seeds to
-// finish once they have. Both are caps: the skeleton never outlasts them.
+// The skeleton comes down when a document's seeds have been quiet this long,
+// or on one of the two caps: nothing ever started, or something is hanging.
+const SEED_QUIET_MS = 250;
 const SEED_START_MS = 400;
-const SEED_WAIT_MS = 5000;
+const SEED_WAIT_MS = 8000;
 
 // One evaluator for the app: the host functions bind on it, and it holds the parse cache.
 const evaluator = new Evaluator({ functions: domainTools });
@@ -114,13 +115,25 @@ export function PageView({
   useEffect(() => {
     if (!mounted) return;
     let started = false;
+    let quiet: ReturnType<typeof setTimeout> | undefined;
     const stop = watchApiActivity((count) => {
-      if (count > 0) started = true;
-      else if (started) setFilled(true);
+      if (count > 0) {
+        started = true;
+        clearTimeout(quiet);
+      } else if (started) {
+        // A dependent seed wave starts milliseconds after the one it reads
+        // from ends, so wait for quiet rather than for the first zero.
+        quiet = setTimeout(() => setFilled(true), SEED_QUIET_MS);
+      }
     });
-    const giveUp = setTimeout(() => setFilled(true), started ? SEED_WAIT_MS : SEED_START_MS);
+    const noSeeds = setTimeout(() => {
+      if (!started) setFilled(true);
+    }, SEED_START_MS);
+    const giveUp = setTimeout(() => setFilled(true), SEED_WAIT_MS);
     return () => {
       stop();
+      clearTimeout(quiet);
+      clearTimeout(noSeeds);
       clearTimeout(giveUp);
     };
   }, [mounted]);
