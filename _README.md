@@ -7,36 +7,79 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/uicast-hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="packages/docs/public/uicast-hero-light.svg">
-  <img alt="A pipeline: your components and functions merge into one prompt, a model streams entries as JSON lines, and the entries render into a complete app built from those same components." src="packages/docs/public/uicast-hero-light.svg" width="936">
+  <img alt="Your components and your functions become one prompt; the model answers with a screen built from those same components." src="packages/docs/public/uicast-hero-light.svg" width="936">
 </picture>
 
-LLM-generated UIs, rendered from JSONLines. The model writes one JSON object per line. The engine places each line in a tree, wires it to a reactive state store, and renders it with your React components. The lines are data, so there is no build or deploy step per page, and a page can be saved and replayed.
+**uicast** renders a user interface that a language model writes at run time. The model picks components from a catalog you register and calls functions you expose. It writes no React, and nothing it produces is compiled or added to your bundle; what it produces is data, which the renderer evaluates and can store and render again.
 
-uicast gives a model what JSX gives a developer: components, state, events. JSX is designed to be easy for a person to maintain; uicast is designed to be reliable for a model to generate.
+Logic in a generated screen is written in an expression language: a subset of JavaScript, one expression per value. A total, a filter, a condition, the steps an event runs — all of it is source the evaluator interprets, never source the JavaScript engine runs. That language is [`@uicast/expr`](packages/expr), and its limits are below.
 
-## A document
+## What a generated document can do
 
-Three lines, for the prompt *"Open orders, with a refresh button"*:
+- Elements reference their children by key. The renderer builds the tree and renders each element as it arrives.
+- State lives in scopes. A `seed` runs once when an element mounts, usually to fetch.
+- A prop is either a literal or an expression. An expression re-evaluates when the state it reads changes.
+- An event runs steps. `set` is the only way to write state; steps otherwise compute.
+- A list renders one child per item, each item with its own scope.
+- Host functions are the only path to your backend.
 
-```jsonl
-{ "key": "root", "component": "Card", "props": { "literal": { "title": "Open orders" } }, "seed": [{ "set": "scopes.root.orders", "expr": "listOrders({ status: 'open' })" }], "children": ["count", "refresh"] }
-{ "key": "count", "component": "Stat", "props": { "expr": "({ label: 'Open', value: scopes.root.orders.length })" } }
-{ "key": "refresh", "component": "Button", "props": { "literal": { "text": "Refresh" } }, "callbacks": { "onClick": [{ "set": "scopes.root.orders", "expr": "listOrders({ status: 'open' })" }] } }
+## What you write
+
+A **definition** is what the model reads about one component — its name, what it is for, its props:
+
+```ts
+export const StatDef = createComponentDefinition({
+  name: "Stat",
+  description: "One number with a label. Use it for a KPI, not for a table cell.",
+  props: z.strictObject({
+    label: z.string().meta({ description: "What the number means" }),
+    value: z.number().meta({ description: "The number itself" }),
+  }),
+});
 ```
 
-- `seed` runs once when the element mounts and fills the state it needs.
-- `props.expr` is re-evaluated whenever the state it reads changes.
-- `callbacks` are steps that write state on an event. Steps only compute; `set` is the only way to change state.
-- `listOrders` is a **host function**: a function you registered, the only way a document reaches your backend.
+An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 150 pairs over shadcn/ui if you do not want to start with your own.
 
-Every element renders as soon as its line arrives, so the page builds up while the model is still writing.
+A **host function** is one [`standard-tool`](https://standard-tool.js.org/) per operation the model may perform. Its input schema is checked before `execute` runs; its output schema is how the model knows what the result contains:
+
+```ts
+export const listOrders = standardTool({
+  name: "listOrders",
+  description: "Orders for the signed-in customer, newest first.",
+  inputSchema: z.object({ status: z.enum(["all", "open", "refunded"]).default("all") }),
+  outputSchema: z.array(orderSchema),
+  execute: ({ status }) => fetch(`/api/orders?status=${status}`).then((r) => r.json()),
+});
+```
+
+The **system prompt** is generated from those two registries, so the model can name nothing else, and every `description` reaches it word for word:
+
+```ts
+const system = [
+  getCommonInstructionsPartialPrompt(),
+  getScopePartialPrompt({ kind: "page" }),
+  getComponentsPartialPrompt({ definitions: allDefinitions }),
+  getFunctionsPartialPrompt({ functions: tools }),
+  getExpressionsPartialPrompt(),
+].join("\n\n");
+```
+
+**Rendering** is a provider and a renderer. The evaluator is constructed once, with the host functions bound to it:
+
+```tsx
+const evaluator = new Evaluator({ functions: tools });
+
+<RendererProvider implementations={allImplementations} evaluator={evaluator}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
 
 ## Expressions
 
-Every value a document computes is an expression: a **subset of JavaScript**, run by [`@uicast/expr`](packages/expr). Models write it fluently, and it is still a language of its own: a closed grammar parsed once with acorn, reads by own property only, an allow-list of methods and globals, a step, time and allocation budget. Nothing reaches `eval` or `new Function`, so a uicast app runs under a Content-Security-Policy without `unsafe-eval`.
+A closed grammar, parsed once with acorn. Reads are own-property only. Methods and globals come from an allow-list. Every evaluation runs under a budget on steps, time and allocation. There is no `eval` and no `new Function` in the package, so a **uicast** app runs under a Content-Security-Policy without `unsafe-eval`.
 
 ```js
-scopes.root.orders.reduce((a, o) => a + o.total, 0)  // ✅ → a number
+scopes.root.orders.reduce((a, o) => a + o.total, 0)   // ✅ → a number
 listOrders({ status: "open" })                        // ✅ a host function you registered
 fetch("/api/orders")                                  // ❌ "fetch" is not available in expressions
 ({}).constructor                                      // ❌ undefined — nothing inherited is reachable
@@ -44,11 +87,7 @@ fetch("/api/orders")                                  // ❌ "fetch" is not avai
 
 The interpreter secures the language, not what you plug into it. Host functions are capabilities you grant, so authorize them on the server. Scope data is only as safe as what you put there. Props that reach the DOM, such as URLs, go through the renderer's `urlPolicy`.
 
-For documents from an author you trust, [`@uicast/expr-passthrough`](packages/expr-passthrough) runs the same checked language through `new Function`, about as fast as plain JavaScript. It needs `unsafe-eval`, and with it the model is the first line of defence.
-
-## The prompt
-
-The model works from the brief you would give a new front-end developer: the components and the functions, generated from your code. The catalog is your design system, so the model picks a component and never invents one. The functions are your endpoints, each a [`standard-tool`](https://standard-tool.js.org/), and it can call nothing else. Every description reaches the model word for word, from the prop or schema field you wrote it on.
+[`@uicast/expr-passthrough`](packages/expr-passthrough) is the faster path: the same static checks, then the source goes through `new Function`. Roughly 3× on one expression and 50× on anything that loops over data, where the engine runs the loop instead of the interpreter. It needs `unsafe-eval`, nothing meters it, and a property name assembled at run time is never checked, so it is for documents whose author you trust.
 
 ## Install
 
@@ -62,8 +101,8 @@ Four steps to a first page, spelled out in [Getting started](packages/docs/src/a
 
 1. Register the catalog, or your own components with a definition and an implementation each.
 2. Expose your data as host functions.
-3. Build the system prompt from the same catalog and functions, and stream the model's JSONLines through.
-4. Render the stream with `<RendererProvider>` and `<EntriesRenderer>`.
+3. Build the system prompt from the same catalog and functions, and stream the model's answer through.
+4. Render it with `<RendererProvider>` and `<EntriesRenderer>`.
 
 ## Packages
 
@@ -71,14 +110,14 @@ Four steps to a first page, spelled out in [Getting started](packages/docs/src/a
 | --- | --- |
 | [`@uicast/core`](packages/core) | The engine, framework-agnostic: entry format, reactive scopes, dependency extraction, error classification, prompt builders. |
 | [`@uicast/react`](packages/react) | The React binding: provider, renderer, per-element error boundary, the confirm seam. |
-| [`@uicast/expr`](packages/expr) | The expression language and its interpreter. No uicast dependency; works standalone. |
-| [`@uicast/expr-passthrough`](packages/expr-passthrough) | The same language run through `new Function`, for trusted authors. |
+| [`@uicast/expr`](packages/expr) | The expression language and its interpreter. No **uicast** dependency; works standalone. |
+| [`@uicast/expr-passthrough`](packages/expr-passthrough) | The same language run through `new Function`: faster, needs `unsafe-eval`, for trusted authors. |
 | [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 150 components over shadcn/ui and Radix, each with the definition the model reads. |
-| [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: documents inside ` ```uicast ` fences in Markdown chat replies. |
+| [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: generated screens inside ` ```uicast ` fences in Markdown chat replies. |
 
 ## Documentation
 
-The docs site is `packages/docs` (`npm run dev` there). The site is not published yet.
+The docs site is `packages/docs` (`npm run dev` there). It is not published yet.
 
 - [Concepts](packages/docs/src/app/%28docs%29/concepts/page.mdx) — the vocabulary: document, entry, element, scope, expression, step.
 - [The expression evaluator](packages/docs/src/app/%28docs%29/expr/page.mdx) — the language, the budgets, the threat model.

@@ -55,13 +55,13 @@ context rendered as that section's trailing `## Note`, verbatim.
 
 ## `@uicast/expr`
 
-The [expression language](/expr), standalone — nothing uicast-specific in
+The [expression language](/expr), standalone — nothing **uicast**-specific in
 it.
 
 | Export | What it does |
 |---|---|
 | `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs; `budget` sets the ceilings. |
-| `ExpressionEvaluator` | The interface both evaluators implement and uicast types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator of your own, for any language. |
+| `ExpressionEvaluator` | The interface both evaluators implement and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator of your own, for any language. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
 Types: `EvaluatorOptions`, `EvaluatorContexts`,

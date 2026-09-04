@@ -14,7 +14,7 @@ your users' browsers.
 JavaScript**: the syntax models already write fluently, cut down to an
 allow-list of operators, globals and methods. Anything outside the subset is
 refused before it runs. The package parses an expression once with acorn and
-interprets it itself; nothing reaches the engine's `eval`. It has no uicast
+interprets it itself; nothing reaches the engine's `eval`. It has no **uicast**
 dependency and works standalone.
 
 ## Two evaluators
@@ -34,7 +34,7 @@ One grammar, one validator, two ways to run what passes:
   for anything a stranger can steer.
 
 Both take the same options and implement `ExpressionEvaluator`, so switching
-is the class name. uicast types against that interface, so an evaluator of
+is the class name. **uicast** types against that interface, so an evaluator of
 your own can implement it too:
 
 ```tsx

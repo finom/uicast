@@ -62,7 +62,7 @@ By default, expressions never reach `eval` or `new Function`. They run on an
 [interpreter](/expr) built for a **fraction of JavaScript**: a closed
 grammar, an allow-list of methods and globals, a check on every property read,
 and a CPU and allocation budget. The JavaScript engine never executes generated
-text, so a uicast app runs under a strict Content-Security-Policy — no
+text, so a **uicast** app runs under a strict Content-Security-Policy — no
 `unsafe-eval`.
 
 Need more speed? A second package, `@uicast/expr-passthrough`, validates against
