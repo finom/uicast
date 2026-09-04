@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `@uicast/shadcn-catalog/document-skeleton`: `<DocumentSkeleton entries>` draws a document's shape from the entries alone — the tree from `children`, real text from literal props, a shimmer everywhere a prop is an expression. It evaluates nothing, so it renders on the server while the client tree boots; the real render replaces it and nothing has to match. Implementations are untouched.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
 

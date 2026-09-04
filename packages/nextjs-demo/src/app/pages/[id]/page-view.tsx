@@ -13,6 +13,7 @@ import {
   EntriesRenderer,
   RendererProvider,
 } from "@uicast/react";
+import { DocumentSkeleton } from "@uicast/shadcn-catalog/document-skeleton";
 import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { allImplementations } from "@uicast/shadcn-catalog/impls";
@@ -403,6 +404,15 @@ export function PageView({
             </ScrollArea>
           </TabsContent>
         </Tabs>
+      ) : entries.length > 0 ? (
+        // Server pass and first client render: the document's shape, drawn from
+        // the entries, so a reload is not a blank rectangle until hydration.
+        <div className="flex flex-col gap-2">
+          <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
+          <div className="overflow-x-auto rounded-md border p-4">
+            <DocumentSkeleton entries={entries} />
+          </div>
+        </div>
       ) : (
         mounted &&
         !isFetching && (

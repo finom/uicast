@@ -22,6 +22,10 @@
       "types": "./dist/impls.d.ts",
       "default": "./dist/impls.js"
     },
+    "./document-skeleton": {
+      "types": "./dist/document-skeleton/index.d.ts",
+      "default": "./dist/document-skeleton/index.js"
+    },
     "./fallback-components": {
       "types": "./dist/fallback-components/index.d.ts",
       "default": "./dist/fallback-components/index.js"
