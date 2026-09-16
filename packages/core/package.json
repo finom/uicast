@@ -49,12 +49,12 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "standard-tool": "^0.1.0"
+    "standard-tool": "^0.1.1"
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.1.0",
-    "vitest": "^4.1.0",
-    "zod": "~4.3.6"
+    "@vitest/coverage-v8": "^5.0.0",
+    "vitest": "^5.0.0",
+    "zod": "~4.6.4"
   },
   "publishConfig": {
     "access": "public"
