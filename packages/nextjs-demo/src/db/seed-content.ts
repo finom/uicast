@@ -1145,6 +1145,10 @@ export async function insertSeedContent(userId: string): Promise<void> {
       .insert(componentEntries)
       .values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
   }
+  await insertSeedChats(userId);
+}
+
+export async function insertSeedChats(userId: string): Promise<void> {
   for (const chat of SEED_CHATS) {
     const { id } = chat;
     await db.insert(chats).values({ id, userId, title: chat.title });

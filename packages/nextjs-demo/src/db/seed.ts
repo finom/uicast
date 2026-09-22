@@ -1,17 +1,18 @@
 import { Evaluator } from "@uicast/expr";
 import type { ComponentEntry } from "@uicast/core";
-import { eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 import { db } from "./index";
-import { pages, users } from "./schema";
-import { insertSeedContent, SEED_CHATS, SEED_PAGES } from "./seed-content";
+import { chats, componentEntries, pages, users } from "./schema";
+import { insertSeedChats, insertSeedContent, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData } from "./starter-data";
 import { domainTools } from "@/tools";
 
-// Seeds the public demo account (slug "uicast"): its domain data, three
-// hand-authored pages, and two multi-turn chats. Idempotent — the user is
-// recreated, cascades wipe the old content. Every expression is validated
-// against the current language before insert, so a language change fails the
-// seed loudly.
+// Seeds the public demo account (slug "uicast"): its domain data, the
+// hand-authored pages and the multi-turn chats. An existing account keeps its
+// row ids: pages are matched by title and chats by id, so shared links survive
+// a reseed. `--fresh` recreates the account and its domain data instead.
+// Every entry is checked against the current catalog and language first, so a
+// catalog or language change fails the seed loudly.
 
 const SYSTEM_SLUG = "uicast";
 const ev = new Evaluator({ functions: domainTools });
@@ -47,6 +48,13 @@ function validateStructure(where: string, entries: ComponentEntry[]): void {
     }
     const def = DEFS.get(e.component);
     if (!def) throw new Error(`[${where}] "${e.key}" uses unknown component "${e.component}"`);
+    if (e.props && "literal" in e.props) {
+      const result = def.props["~standard"].validate(e.props.literal);
+      if (result instanceof Promise) throw new Error(`[${where}] async props schema on ${e.component}`);
+      if (result.issues) {
+        throw new Error(`[${where}] "${e.key}" props do not match ${e.component}: ${result.issues.map((i) => i.message).join("; ")}`);
+      }
+    }
     for (const cb of Object.keys(e.callbacks ?? {})) {
       if (!def.callbacks || !(cb in def.callbacks)) {
         throw new Error(`[${where}] "${e.key}" wires undeclared callback "${cb}" on ${e.component}`);
@@ -99,24 +107,38 @@ function validateFences(): void {
   }
 }
 
+// Pages by title, chats by id; whatever the seed no longer lists goes.
+async function updateSeedContent(userId: string): Promise<void> {
+  const titles = SEED_PAGES.map((page) => page.title);
+  await db.delete(pages).where(and(eq(pages.userId, userId), notInArray(pages.title, titles)));
+  for (const page of SEED_PAGES) {
+    const [existing] = await db.select({ id: pages.id }).from(pages).where(and(eq(pages.userId, userId), eq(pages.title, page.title)));
+    const values = { userId, title: page.title, prompt: page.prompt, ...page.usage };
+    const [row] = existing
+      ? await db.update(pages).set(values).where(eq(pages.id, existing.id)).returning()
+      : await db.insert(pages).values(values).returning();
+    await db.delete(componentEntries).where(eq(componentEntries.pageId, row.id));
+    await db.insert(componentEntries).values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
+  }
+
+  // Chat ids are fixed strings, so a rewrite keeps every chat link.
+  await db.delete(chats).where(eq(chats.userId, userId));
+  await insertSeedChats(userId);
+}
+
 async function main() {
   for (const page of SEED_PAGES) validateEntries(page.title, page.entries);
   validateFences();
 
   const [existing] = await db.select().from(users).where(eq(users.slug, SYSTEM_SLUG));
-  // `--if-empty` is for the deploy: reseeding recreates the account, and the
-  // new row ids would break every link already shared to a page or a chat.
-  if (existing && process.argv.includes("--if-empty")) {
-    const [page] = await db.select({ id: pages.id }).from(pages).where(eq(pages.userId, existing.id)).limit(1);
-    if (page) {
-      console.log(`@${SYSTEM_SLUG} already seeded — leaving it alone.`);
-      process.exit(0);
-    }
+  if (existing && !process.argv.includes("--fresh")) {
+    await updateSeedContent(existing.id);
+    console.log(`Updated @${SYSTEM_SLUG}: ${SEED_PAGES.length} pages, ${SEED_CHATS.length} chats.`);
+    process.exit(0);
   }
   if (existing) await db.delete(users).where(eq(users.id, existing.id));
   const [system] = await db.insert(users).values({ slug: SYSTEM_SLUG }).returning();
   await insertStarterData(system.id);
-
   await insertSeedContent(system.id);
 
   console.log(`Seeded @${SYSTEM_SLUG}: ${SEED_PAGES.length} pages, ${SEED_CHATS.length} chats.`);
