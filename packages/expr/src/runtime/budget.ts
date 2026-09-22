@@ -1,7 +1,8 @@
 import { type BudgetOptions, DEFAULT_BUDGET, MAX_CALLBACK_DEPTH } from "../constants/limits";
 import { ExpressionError } from "../errors";
 
-// Every iterating built-in is implemented in this package, so each iteration ticks and each allocation is capped; straight-line work is charged per compiled node.
+// Every iterating built-in is implemented in this package, so each iteration ticks and each allocation is capped;
+// straight-line work is charged per compiled node.
 
 const now = Date.now;
 

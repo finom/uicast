@@ -20,13 +20,15 @@ const formatIssues = (issues: Settled["issues"]): string =>
 		})
 		.join("; ");
 
-// The host's own message rides along: the error-recovery prompt shows it to the model, and "server unreachable" is what makes a failure actionable.
+// The host's own message rides along: the error-recovery prompt shows it to the model,
+// and "server unreachable" is what makes a failure actionable.
 const hostFailure = (name: string, err: unknown): ExpressionError =>
 	ExpressionError.is(err)
 		? err
 		: new ExpressionError(`"${name}" failed: ${err instanceof Error ? err.message : String(err)}`, "host-function", err);
 
-// A validator's own throw, or a thenable that is not a Promise, is the host's schema misbehaving — refused as such rather than read as a verdict.
+// A validator's own throw, or a thenable that is not a Promise, is the host's schema misbehaving —
+// refused as such rather than read as a verdict.
 const runSchema = (schema: Schema, name: string, value: unknown): Validation => {
 	let result: Validation;
 	try {

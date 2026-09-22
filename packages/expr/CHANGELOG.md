@@ -4,6 +4,7 @@
 
 ### Changed
 
+- **`Analyzer` in `@uicast/expr/internal`.** Parse, validate and the per-source cache in one class; `Evaluator` and `PassthroughEvaluator` both hold one instead of each carrying a copy.
 - **Breaking: `ALLOWED_GLOBALS` and `DEFAULT_BUDGET` moved to `@uicast/expr/internal`.** They are the language's own tables, read by core's prompt builder and the passthrough package, not something a host calls. The index is `Evaluator`, `ExpressionEvaluator`, `ExpressionError` and the option and tool types.
 - **Exit gate checks arrays and plain objects first.** The same refusals, fewer `instanceof` tests on the common case; a result object leaves both evaluators faster.
 - **Charging moved into the membrane.** One step per method or global call and the result's size, charged after the call; a method charges only its own proportional work and output that can outgrow its input. A function result is refused at the call. One `Budget` per evaluation, none shared.
@@ -34,6 +35,10 @@
 
 ### Fixed
 
+- **`JSON.stringify`, `join`, `toString` and `toLocaleString` on arrays are charged before the string exists.** They were charged after, once the engine had built it: stringifying 100,000 references to a one-megabyte string blocked for 29 seconds before failing. The output size is now counted from the value first, the way `replaceAll` is charged.
+- **`{ ["__proto__"]: x }` is an own property.** A computed key spelled as a literal was folded to a written one and assigned, which set the prototype; the passthrough back end defined an own key, as JS does. Both agree now, and the case is in the corpus.
+- **A raw `TypeError` no longer escapes `Evaluator.eval`.** An operator's native coercion — `x + ""` when `x` carries a non-function `toString` — threw the engine's own error; it is an `ExpressionError` with reason `runtime`, as the passthrough already did.
+- A name written as a substitution-free template literal — `` a[`map`]() `` — is checked statically like `a["map"]()`.
 - **Nothing but plain data leaves an expression, in either mode.** The per-read gate refused a function on a direct read, but every bulk copy walked past it: `Object.values(o)`, spread, `slice`, `filter`, a plain `scopes.arr` read — each returned a live function, callable by the host, and `send(Object.values(o))` delivered one straight into host code. `Object.values(x => x * 2)` even leaked the interpreter's own closure. An exit gate now walks what an expression returns and what it hands to a host function; a function or a class instance anywhere inside is refused, and `Object.keys` / `values` / `entries`, object spread and `...rest` in a pattern refuse a non-plain receiver the way a direct read already did. `native` inherits the exit gate too — it can still read through the prototype chain, but a function can no longer come back out.
 - **The exit gate stops at 256 levels** and classifies what it meets: a 10,000-level nesting escaped as a raw `RangeError`, a Proxy over a `Map` as a raw `TypeError`.
 - **Every lookup table is null-prototype**, the nested ones included, so `Object.prototype` never looks like entries: `Math.toString` returned the real `Object.prototype.toString`, `[1].toString()` rendered `"[object Undefined]"`, `toString.trim()` threw a raw `TypeError` out of `validate()`, and `new Date(0)["to" + "String"]()` answered `"[object Undefined]"`.

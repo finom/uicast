@@ -15,10 +15,13 @@ const OPERATORS: Record<string, ReadonlySet<string>> = {
 	LogicalExpression: ALLOWED_LOGICAL,
 };
 
-// A property name the source spells out: `a.b`, `a["b"]`, `{ b: 1 }`, `{ "b": 1 }`.
+// A property name the source spells out: `a.b`, `a["b"]`, a[`b`], `{ b: 1 }`, `{ "b": 1 }`.
 export const writtenName = (key: acorn.AnyNode, computed: boolean): string | null => {
 	if (!computed && key.type === "Identifier") return key.name;
 	if (key.type === "Literal" && typeof key.value === "string") return key.value;
+	if (key.type === "TemplateLiteral" && key.expressions.length === 0) {
+		return key.quasis[0].value.cooked ?? null;
+	}
 	return null;
 };
 
@@ -67,7 +70,8 @@ export const validateNode = (node: acorn.AnyNode, depth = 0): void => {
 		case "Property": {
 			if (node.kind !== "init") throw new ExpressionError("Getters and setters are not allowed in an object literal");
 			if (node.method) throw new ExpressionError("Method shorthand is not allowed in an object literal");
-			// `{ __proto__: x }` is JS syntax for setting the prototype — a form the language does not have. A computed key defines an own property, as in JS.
+			// `{ __proto__: x }` is JS syntax for setting the prototype — a form the language does not have.
+			// A computed key defines an own property, as in JS.
 			if (!node.computed && writtenName(node.key, false) === "__proto__") {
 				throw new ExpressionError('An object literal cannot set "__proto__"');
 			}
@@ -111,7 +115,8 @@ export const validateNode = (node: acorn.AnyNode, depth = 0): void => {
 	}
 };
 
-// Names from outside. A host function may only be the callee of a call with 0 or 1 non-spread argument, never a value; a global is callable or constructible only where the tables say.
+// Names from outside. A host function may only be the callee of a call with 0 or 1 non-spread argument, never a value;
+// a global is callable or constructible only where the tables say.
 // Returns the free identifiers, so one walk serves both.
 export const validateFreeIdentifiers = (ast: acorn.Expression, isTool: (name: string) => boolean): string[] => {
 	const out = new Set<string>();

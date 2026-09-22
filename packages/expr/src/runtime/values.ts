@@ -3,14 +3,16 @@ import { ExpressionError } from "../errors";
 
 // The value kinds an expression can hold besides plain data, and the helpers every layer shares.
 
-// A function literal. Not a real JS function: five positional slots (MAX_ARROW_PARAMS), no arguments array per call. The method tables fill at most four.
+// A function literal. Not a real JS function: five positional slots (MAX_ARROW_PARAMS), no arguments array per call.
+// The method tables fill at most four.
 export type LambdaCall = (a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) => unknown;
 
 export class Lambda {
 	constructor(readonly call: LambdaCall) {}
 }
 
-// A bound host function: input validated, output validated, errors classified. The validator lets its name appear only as a callee, so it is never a value.
+// A bound host function: input validated, output validated, errors classified.
+// The validator lets its name appear only as a callee, so it is never a value.
 export type HostFunction = (input: unknown) => unknown;
 
 // An allow-listed global (`Math`, `Date`, `Intl.NumberFormat`, …). Reads and calls on it go through the tables.
@@ -20,7 +22,7 @@ export class Namespace {
 
 // An Intl formatter — the one built-in that legitimately holds a method.
 export class Formatter {
-	constructor(readonly format: (value: never) => string) {}
+	constructor(readonly format: (value: unknown) => string) {}
 }
 
 // `typeof`, answered the way JS answers it for the kinds above.
@@ -48,12 +50,13 @@ export const typeName = (value: unknown): string => {
 };
 
 // A policy rejection: the expression asked for something the language refuses.
-export const reject = (message: string): never => {
+// Typed explicitly so a bare `reject(...)` statement narrows like a `throw`.
+export const reject: (message: string) => never = (message) => {
 	throw new ExpressionError(message);
 };
 
 // A runtime fault: the expression was fine, the values were not.
-export const fail = (message: string, cause?: unknown): never => {
+export const fail: (message: string, cause?: unknown) => never = (message, cause) => {
 	throw new ExpressionError(message, "runtime", cause);
 };
 

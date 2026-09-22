@@ -114,7 +114,7 @@ describe("the shared grammar is enforced by both", () => {
 
 describe("a written prototype name", () => {
 	// The interpreter reads own properties only, so the name is simply absent; passthrough has no read gate and refuses the written form up front.
-	for (const expr of [`({}).constructor`, `({})["constructor"]`, `({}).__proto__`, `[].map.bind`]) {
+	for (const expr of [`({}).constructor`, `({})["constructor"]`, `({})[\`constructor\`]`, `({}).__proto__`, `[].map.bind`]) {
 		it(`is nothing under interpret and refused under passthrough: ${expr}`, () => {
 			try {
 				expect(interpret.eval(expr)).toBeUndefined();
@@ -124,6 +124,16 @@ describe("a written prototype name", () => {
 			expect(refuses(passthrough, expr)).toBe(true);
 		});
 	}
+});
+
+describe("a written prototype name in a destructuring key", () => {
+	it("binds nothing under interpret and is refused under passthrough", () => {
+		expect(interpret.eval(`[{}].map(({ constructor: c }) => c)`)).toEqual([undefined]);
+		expect(refuses(passthrough, `[{}].map(({ constructor: c }) => c)`)).toBe(true);
+		// The same key in an object literal defines an own property, in both.
+		expect(interpret.eval(`Object.keys({ constructor: 1 })`)).toEqual(["constructor"]);
+		expect(passthrough.eval(`Object.keys({ constructor: 1 })`)).toEqual(["constructor"]);
+	});
 });
 
 describe("the passthrough residual — known, documented, and deliberately not fixed", () => {

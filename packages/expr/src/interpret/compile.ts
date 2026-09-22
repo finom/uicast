@@ -6,7 +6,8 @@ import { callMember, construct, defineKey, getMember, getStaticMember, pushSprea
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
 import { childNodes, patternNames } from "../syntax/ast";
 
-// The AST is walked once into a tree of closures; evaluation is then nested calls, no per-node dispatch. Operators and budget costs are resolved at compile time.
+// The AST is walked once into a tree of closures; evaluation is then nested calls, no per-node dispatch.
+// Operators and budget costs are resolved at compile time.
 
 // Lexical frame: value slots in binding order. Identifiers resolve to (depth, slot) at compile time.
 type Frame = {
@@ -19,7 +20,8 @@ type Lexical = readonly (readonly string[])[];
 
 const isBound = (name: string, lexical: Lexical): boolean => lexical.some((names) => names.includes(name));
 
-// What compilation needs besides the node: the enclosing arrows' names, and the host functions — a call to one resolves here, not at run time.
+// What compilation needs besides the node: the enclosing arrows' names, and the host functions —
+// a call to one resolves here, not at run time.
 type Cx = { readonly lexical: Lexical; readonly tools: Record<string, HostFunction> };
 
 // Per-evaluation state. Contexts stay a list — one object spread per evaluation cost more than most expressions.
@@ -40,7 +42,8 @@ const nodeCount = (node: acorn.AnyNode): number => {
 	return total;
 };
 
-// A name no arrow binds: the contexts, last one first, then the built-ins. Host functions never get here — the validator allows them only as a callee, which is fused at compile time.
+// A name no arrow binds: the contexts, last one first, then the built-ins.
+// Host functions never get here — the validator allows them only as a callee, which is fused at compile time.
 const freeLookup = (name: string, rt: Runtime): unknown => {
 	const contexts = rt.contexts;
 	for (let i = contexts.length - 1; i >= 0; i--) {
@@ -67,11 +70,10 @@ const compileIdentifier = (name: string, lexical: Lexical): Thunk => {
 	return (_frame, rt) => freeLookup(name, rt);
 };
 
-// An object key: written, or compiled if computed.
+// An object key: a written name, or a thunk for a computed one.
 const propertyKey = (prop: Pick<acorn.Property, "key" | "computed">, cx: Cx): string | Thunk => {
-	if (prop.computed && prop.key.type !== "Literal") return compileNode(prop.key as acorn.Expression, cx);
-	if (prop.key.type === "Identifier" && !prop.computed) return prop.key.name;
-	return String((prop.key as acorn.Literal).value);
+	if (prop.computed) return compileNode(prop.key as acorn.Expression, cx);
+	return prop.key.type === "Identifier" ? prop.key.name : String((prop.key as acorn.Literal).value);
 };
 
 type Binder = (value: unknown, frame: Frame, rt: Runtime) => void;
@@ -146,13 +148,15 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 	}
 };
 
+const HOLE: Thunk = () => undefined;
+
 // Evaluate a list left to right, flattening spreads; a hole is `undefined`.
 const compileList = (
 	items: readonly (acorn.Expression | acorn.SpreadElement | null)[],
 	cx: Cx,
 ): ((frame: Frame | null, rt: Runtime) => unknown[]) => {
 	const parts = items.map((item) => ({
-		thunk: item === null ? ((() => undefined) as Thunk) : compileNode(item.type === "SpreadElement" ? item.argument : item, cx),
+		thunk: item === null ? HOLE : compileNode(item.type === "SpreadElement" ? item.argument : item, cx),
 		spread: item !== null && item.type === "SpreadElement",
 	}));
 	return (frame, rt) => {
@@ -406,7 +410,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 		}
 
 		case "ObjectExpression": {
-			type Entry = { spread: true; value: Thunk } | { spread: false; key: Thunk | string; value: Thunk };
+			type Entry = { spread: true; value: Thunk } | { spread: false; key: string | Thunk; value: Thunk };
 			const entries: Entry[] = node.properties.map((prop) =>
 				prop.type === "SpreadElement"
 					? { spread: true, value: compileNode(prop.argument, cx) }
@@ -419,7 +423,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 					if (entry.spread) {
 						spreadInto(out, entry.value(frame, rt), rt.budget);
 					} else if (typeof entry.key === "string") {
-						// A written key already passed the validator's forbidden-name check, so plain assignment is safe and far cheaper than defineProperty.
+						// A written key already passed the validator's `__proto__` check.
 						out[entry.key] = entry.value(frame, rt);
 					} else {
 						defineKey(out, entry.key(frame, rt), entry.value(frame, rt));
@@ -437,10 +441,12 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 			const body = compileNode(node.body as acorn.Expression, inner);
 			// One invocation costs the whole arrow, parameters included — destructuring reads are membrane reads too.
 			const cost = nodeCount(node);
-			const run = (frame: Frame, rt: Runtime): unknown => {
+			// Charge and enter before binding: a default value can call back into the expression.
+			const run = (frame: Frame, rt: Runtime, bindParams?: () => void): unknown => {
 				const budget = rt.budget;
 				budget.tick(cost);
 				budget.enter();
+				bindParams?.();
 				const out = body(frame, rt);
 				budget.depth--;
 				return out;
@@ -464,19 +470,14 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 				}
 			}
 
-			// Charge and enter before binding: a default value can call back into the expression.
 			const binders = params.map((param) => compilePattern(param, inner));
 			return (frame, rt) =>
 				new Lambda((a, b, c, d, e) => {
-					const budget = rt.budget;
-					budget.tick(cost);
-					budget.enter();
 					const inFlight: Frame = { values: [], parent: frame };
 					const args = [a, b, c, d, e];
-					for (let i = 0; i < binders.length; i++) binders[i](args[i], inFlight, rt);
-					const out = body(inFlight, rt);
-					budget.depth--;
-					return out;
+					return run(inFlight, rt, () => {
+						for (let i = 0; i < binders.length; i++) binders[i](args[i], inFlight, rt);
+					});
 				});
 		}
 

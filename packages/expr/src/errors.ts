@@ -12,7 +12,8 @@ export type ExpressionErrorReason =
 	| "invalid-arguments"
 	// A host function threw, or its output schema rejected what it returned.
 	| "host-function"
-	// Allowed expression, wrong values (property of `null`, malformed JSON) — an ordinary runtime failure, classified apart from a policy rejection.
+	// Allowed expression, wrong values (property of `null`, malformed JSON).
+	// An ordinary runtime failure, classified apart from a policy rejection.
 	| "runtime";
 
 export class ExpressionError extends Error {

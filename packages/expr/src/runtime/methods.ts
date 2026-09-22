@@ -2,11 +2,13 @@ import { OBJECT_NAMESPACES } from "../constants/globals";
 import { MAX_FLAT_DEPTH } from "../constants/limits";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import type { Budget } from "./budget";
-import { fail, Formatter, invoke, Lambda, Namespace, num, plainData, reject, table } from "./values";
+import { fail, Formatter, invoke, isPlainObject, Lambda, Namespace, num, plainData, reject, table } from "./values";
 
-// The implementation behind constants/methods.ts. The membrane charges one step per call and the result's size and refuses a function result;
-// a method charges only its own proportional work, and output that can outgrow its input before producing it.
+// The implementation behind constants/methods.ts. The membrane charges one step per call and the result's size
+// and refuses a function result; a method charges only its own proportional work, and output that can outgrow
+// its input before producing it.
 
+// `recv` is `never` so each table can type its own receiver.
 export type MethodImpl = (recv: never, args: unknown[], budget: Budget) => unknown;
 
 const requireString = (v: unknown, method: string): string =>
@@ -31,6 +33,45 @@ const occurrences = (s: string, sub: string): number => {
 
 // A replacement string may hold `$&`, `` $` `` and `$'`, each expanding to up to the whole receiver.
 const replacementBound = (s: string, to: string): number => to.length + occurrences(to, "$") * s.length;
+
+// Widest a JSON scalar prints: `-1.7976931348623157e+308` is 24 characters.
+const JSON_SCALAR_WIDTH = 24;
+
+// Characters an array's elements contribute to join. Nested arrays join too.
+const joinedSize = (items: unknown[], budget: Budget): number => {
+	let size = 0;
+	for (const item of items) {
+		budget.tick(1);
+		if (typeof item === "string") size += item.length;
+		else if (Array.isArray(item)) size += joinedSize(item, budget);
+		else size += JSON_SCALAR_WIDTH;
+	}
+	return size;
+};
+
+// Characters JSON.stringify will produce. Counted before the engine builds them.
+const jsonSize = (value: unknown, indent: number, depth: number, budget: Budget): number => {
+	budget.tick(1);
+	if (typeof value === "string") return value.length + 2;
+	if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
+	const newline = 1 + indent * (depth + 1);
+	let size = 2;
+	if (Array.isArray(value)) {
+		for (const item of value) size += newline + 1 + jsonSize(item, indent, depth + 1, budget);
+	} else if (isPlainObject(value)) {
+		for (const [key, item] of Object.entries(value)) {
+			size += newline + key.length + 4 + jsonSize(item, indent, depth + 1, budget);
+		}
+	}
+	return size;
+};
+
+// The indent JSON.stringify applies per level: a number or a string's length, clamped to 10.
+const indentWidth = (space: unknown): number => {
+	if (typeof space === "number") return Math.min(10, Math.max(0, Math.trunc(space)));
+	if (typeof space === "string") return Math.min(10, space.length);
+	return 0;
+};
 
 // The index the callback first answers true for, from either end.
 const indexWhere = (a: unknown[], f: unknown, fromEnd: boolean): number => {
@@ -105,7 +146,7 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 	slice: (a: unknown[], [start, end]) => a.slice(optNum(start), optNum(end)),
 	join: (a: unknown[], [sep], budget) => {
 		const separator = sep === undefined ? "," : String(sep);
-		budget.string(a.length * separator.length);
+		budget.string(joinedSize(a, budget) + a.length * separator.length);
 		return a.map((v) => (v === null || v === undefined ? "" : String(v))).join(separator);
 	},
 	includes: (a: unknown[], [v, from], budget) => {
@@ -161,11 +202,11 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 	toReversed: (a: unknown[]) => a.slice().reverse(),
 	// `toString` and `toLocaleString` collide with Object.prototype's members, so the literal loses contextual typing on them.
 	toString: ((a: unknown[], _args: unknown[], budget: Budget) => {
-		budget.tick(a.length);
+		budget.string(joinedSize(a, budget) + a.length);
 		return a.toString();
 	}) as MethodImpl,
 	toLocaleString: ((a: unknown[], [locale, options]: unknown[], budget: Budget) => {
-		budget.tick(a.length);
+		budget.string(joinedSize(a, budget) + a.length);
 		return locale === undefined ? a.toLocaleString() : a.toLocaleString(locale as string, options as Intl.NumberFormatOptions | undefined);
 	}) as MethodImpl,
 	valueOf: (a: unknown[]) => a,
@@ -242,6 +283,7 @@ const NUMBER_METHODS: Record<string, MethodImpl> = table({
 		n.toLocaleString(locale as string | undefined, options as Intl.NumberFormatOptions | undefined)) as MethodImpl,
 });
 
+// The listed Date methods take at most two arguments (locale, options).
 const DATE_METHODS: Record<string, MethodImpl> = methodTable(METHOD_NAMES.Date, (name) => (d: Date, args: unknown[]) => {
 	const method = (d as unknown as Record<string, (...a: unknown[]) => unknown>)[name];
 	return method.apply(d, args.slice(0, 2));
@@ -261,7 +303,7 @@ const SET_METHODS: Record<string, MethodImpl> = table({
 });
 
 const FORMATTER_METHODS: Record<string, MethodImpl> = table({
-	format: (f: Formatter, [v]) => f.format(v as never),
+	format: (f: Formatter, [v]) => f.format(v),
 });
 
 // Static members of the allow-listed namespaces.
@@ -275,7 +317,8 @@ const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
 			budget.tick(Math.ceil(source.length / 64));
 			return JSON.parse(source);
 		},
-		stringify: (_r, [value, replacer, space]) => {
+		stringify: (_r, [value, replacer, space], budget) => {
+			budget.string(jsonSize(value, indentWidth(space), 0, budget));
 			// A function replacer would take a function, so it is dropped; an array one is JS's key allow-list.
 			const allowed = Array.isArray(replacer) ? new Set(replacer.map(String)) : null;
 			return JSON.stringify(

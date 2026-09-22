@@ -113,6 +113,8 @@ describe("prototype pollution", () => {
 	it("the written literal form is refused as syntax; a computed key is an own property", () => {
 		mustBlock(`({ __proto__: { pwned: 1 } })`);
 		ownKeyOnly(ev.eval(`({ ["__pro"+"to__"]: { pwned: 1 } })`));
+		ownKeyOnly(ev.eval(`({ ["__proto__"]: { pwned: 1 } })`));
+		ownKeyOnly(ev.eval(`({ [\`__proto__\`]: { pwned: 1 } })`));
 		expect(ev.eval(`({ ["constructor"]: 1 })`)).toEqual({ constructor: 1 });
 		expect(({} as Record<string, unknown>).pwned).toBeUndefined();
 	});
@@ -326,6 +328,11 @@ describe("what a rejection looks like", () => {
 		expect(attempt(`nope()`)).toMatchObject({ reason: "unknown-reference" });
 		expect(attempt(`1 +`)).toMatchObject({ reason: "expression-syntax" });
 		expect(attempt(`"x".repeat(1e9)`)).toMatchObject({ reason: "budget-exceeded" });
+		// Native coercion inside an operator.
+		const odd = { toString: "x" };
+		expect(attempt(`x + ""`, { x: odd })).toMatchObject({ reason: "runtime" });
+		expect(attempt(`x < 1`, { x: odd })).toMatchObject({ reason: "runtime" });
+		expect(attempt("`${" + "x}`", { x: odd })).toMatchObject({ reason: "runtime" });
 	});
 
 	it("classifies host-function failures apart from the language's own", () => {
@@ -391,6 +398,17 @@ describe("single operations the step counter could not see", () => {
 		expect(() => new Evaluator().eval("'a'.repeat(100000).replaceAll('a', 'b'.repeat(1000)).length")).toThrow(
 			budget("budget-exceeded"),
 		);
+	});
+	it("join and JSON.stringify are charged before the string exists", () => {
+		const s = "x".repeat(100_000);
+		const ev = new Evaluator();
+		expect(() => ev.eval("Array.from({ length: 100 }, () => s).join('')", { s })).toThrow(budget("budget-exceeded"));
+		expect(() => ev.eval("Array.from({ length: 100 }, () => s).toString()", { s })).toThrow(budget("budget-exceeded"));
+		expect(() => ev.eval("JSON.stringify(Array.from({ length: 100 }, () => s))", { s })).toThrow(budget("budget-exceeded"));
+		expect(() => ev.eval("JSON.stringify(Array.from({ length: 100 }, () => [s]), null, 2)", { s })).toThrow(budget("budget-exceeded"));
+		// the same shapes fit once they are small
+		expect(ev.eval("[1, [2, 3]].join('-')")).toBe("1-2,3");
+		expect(ev.eval("JSON.stringify({ a: [1, { b: 's' }] }, null, 2)")).toBe(JSON.stringify({ a: [1, { b: "s" }] }, null, 2));
 	});
 	it("flat is charged as it grows", () => {
 		const big = Array.from({ length: 100_000 }, (_, i) => i);

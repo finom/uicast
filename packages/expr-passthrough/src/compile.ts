@@ -1,9 +1,10 @@
 import type * as acorn from "acorn";
 import { type EvaluatorContexts, ExpressionError } from "@uicast/expr";
-import { childNodes, type HostFunction, writtenName } from "@uicast/expr/internal";
+import { type Analysis, childNodes, type HostFunction, writtenName } from "@uicast/expr/internal";
 import { PLATFORM_GLOBALS } from "./platform-globals";
 
-// Every identifier in the source becomes a parameter, so nothing resolves to a global by accident: bound names get values, the rest are `undefined`.
+// Every identifier in the source becomes a parameter, so nothing resolves to a global by accident:
+// bound names get values, the rest are `undefined`.
 // Written prototype names are refused up front — nothing checks a read at run time here.
 
 // Can the engine take `name` as a strict-mode parameter? Asked once per name, no list.
@@ -28,17 +29,25 @@ const identifierNames = (node: acorn.AnyNode, out: Set<string>): void => {
 	for (const child of childNodes(node)) identifierNames(child, out);
 };
 
-// Written member names that reach the prototype chain or re-bind a receiver. The interpreter's membrane makes them unreachable; here they are refused before the source runs. A name assembled at run time is this package's documented residual.
+// Written member names that reach the prototype chain or re-bind a receiver. The interpreter's membrane makes
+// them unreachable; here they are refused before the source runs. A name assembled at run time is the documented residual.
 const PROTOTYPE_NAMES: ReadonlySet<string> = new Set([
 	"constructor", "__proto__", "prototype",
 	"__defineGetter__", "__defineSetter__", "__lookupGetter__", "__lookupSetter__",
 	"caller", "callee", "arguments", "bind", "call", "apply",
 ]);
 
+const refuse = (key: string | null): void => {
+	if (key !== null && PROTOTYPE_NAMES.has(key)) throw new ExpressionError(`Access to "${key}" is not allowed`);
+};
+
+// Member reads and destructuring keys read a name; an object literal's key defines an own one.
 const refusePrototypeNames = (node: acorn.AnyNode): void => {
-	if (node.type === "MemberExpression") {
-		const key = writtenName(node.property, node.computed);
-		if (key !== null && PROTOTYPE_NAMES.has(key)) throw new ExpressionError(`Access to "${key}" is not allowed`);
+	if (node.type === "MemberExpression") refuse(writtenName(node.property, node.computed));
+	if (node.type === "ObjectPattern") {
+		for (const prop of node.properties) {
+			if (prop.type === "Property") refuse(writtenName(prop.key, prop.computed));
+		}
 	}
 	for (const child of childNodes(node)) refusePrototypeNames(child);
 };
@@ -54,17 +63,15 @@ const lookup = (name: string, contexts: EvaluatorContexts): unknown => {
 
 export type Compiled = (contexts: EvaluatorContexts) => unknown;
 
-// One engine-compiled function per source. `inner` takes every identifier the source writes as a parameter; the wrapper fills the bound ones — the host functions, then each context id looked up in the contexts — in one fixed-arity call, so nothing is allocated per evaluation.
-export const compile = (
-	source: string,
-	ast: acorn.Expression,
-	toolCalls: readonly string[],
-	contextIds: readonly string[],
-	tools: Record<string, HostFunction>,
-): Compiled => {
+// One engine-compiled function per source. `inner` takes every identifier the source writes as a parameter;
+// the wrapper fills the bound ones — host functions, then each context id — in one fixed-arity call, so nothing is
+// allocated per evaluation.
+export const compile = ({ source, ast, freeIds, toolCalls }: Analysis<Compiled>, tools: Record<string, HostFunction>): Compiled => {
 	refusePrototypeNames(ast);
 	const names = new Set<string>();
 	identifierNames(ast, names);
+	// Free ids a context must supply.
+	const contextIds = freeIds.filter((id) => !toolCalls.includes(id));
 	const bound = [...toolCalls, ...contextIds];
 	// A keyword or `eval` cannot be a parameter — and cannot be a reference in strict code either, so skipping it loses nothing.
 	const dead = [...names].filter((name) => !bound.includes(name) && canBind(name));

@@ -30,7 +30,8 @@ describe("binding", () => {
 
 	it("every identifier is a parameter, so a name the walker missed is undefined, not a global", () => {
 		// compile() with no bindings at all: nothing the source names resolves to anything
-		const run = (source: string) => compile(source, parseExpression(source), [], [], {})([]);
+		const run = (source: string) =>
+			compile({ source, ast: parseExpression(source), freeIds: [], toolCalls: [] }, {})([]);
 		expect(run("typeof fetch")).toBe("undefined");
 		expect(run("typeof globalThis")).toBe("undefined");
 		expect(run("typeof Function")).toBe("undefined");

@@ -8,7 +8,8 @@ import { fail, Formatter, isPlainObject, Namespace, plainData, reject, runtimeFa
 // Every read and call arrives here with its key already resolved, so a computed name gets the same answer as a written one.
 // Own properties only, data only, methods called in place — nothing inherited is reachable, so no name needs to be refused by name.
 
-// What may leave an expression, as result or host-function argument: plain data and the built-in value types. Anything else, however deep, is refused — a bulk copy can carry it past the per-read gate.
+// What may leave an expression, as result or host-function argument: plain data and the built-in value types.
+// Anything else, however deep, is refused — a bulk copy can carry it past the per-read gate.
 export const assertData = (value: unknown, where: string): void => {
 	if (typeof value === "function") reject(`${where} contains a function`);
 	if (value === null || typeof value !== "object") return;
@@ -126,7 +127,8 @@ const read = (obj: unknown, key: string | number): unknown => {
 		return Object.hasOwn(obj, key as string) ? noFunction((obj as Record<string | number, unknown>)[key], key) : undefined;
 	}
 
-	// Primitives, dates, functions and class instances have no readable properties — a live object would let the expression walk a graph one innocent key at a time.
+	// Primitives, dates, functions and class instances have no readable properties —
+	// a live object would let the expression walk a graph one innocent key at a time.
 	return reject(`"${String(key)}" is not readable on ${typeName(obj)}`);
 };
 
@@ -175,7 +177,7 @@ export const construct = (callee: unknown, args: unknown[], budget: Budget): unk
 const constructOne = (name: string, args: unknown[], budget: Budget): unknown => {
 	switch (name) {
 		case "Date":
-			return args.length === 0 ? new Date() : new Date(...(args as unknown as [string | number]));
+			return Reflect.construct(Date, args);
 		case "Map":
 			budget.array(iterableSize(args[0]) ?? 0);
 			return new Map(args[0] as Iterable<[unknown, unknown]> | undefined);
@@ -189,11 +191,11 @@ const constructOne = (name: string, args: unknown[], budget: Budget): unknown =>
 				return fail(`"${String(args[0])}" is not a valid URL`);
 			}
 		case "Intl.NumberFormat": {
-			const fmt = new Intl.NumberFormat(args[0] as string | undefined, args[1] as Intl.NumberFormatOptions | undefined);
+			const fmt = Reflect.construct(Intl.NumberFormat, args) as Intl.NumberFormat;
 			return new Formatter((v) => fmt.format(v as number));
 		}
 		case "Intl.DateTimeFormat": {
-			const fmt = new Intl.DateTimeFormat(args[0] as string | undefined, args[1] as Intl.DateTimeFormatOptions | undefined);
+			const fmt = Reflect.construct(Intl.DateTimeFormat, args) as Intl.DateTimeFormat;
 			return new Formatter((v) => fmt.format(v as Date));
 		}
 		default:
@@ -214,10 +216,7 @@ const iterableSize = (v: unknown): number | null =>
 // Spread `...value` into an array or argument list.
 export const pushSpread = (out: unknown[], value: unknown, budget: Budget): void => {
 	const size = iterableSize(value);
-	if (size === null || value instanceof Map) {
-		reject("Only arrays, strings, and Sets can be spread here");
-		return;
-	}
+	if (size === null || value instanceof Map) reject("Only arrays, strings, and Sets can be spread here");
 	budget.growArray(out.length + size, size);
 	out.push(...(value as Iterable<unknown>));
 };

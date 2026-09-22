@@ -9,7 +9,8 @@ export const MAX_AST_DEPTH = 100;
 // Arrow parameters — the interpreter's call slots. The method tables pass at most four (`reduce`).
 export const MAX_ARROW_PARAMS = 5;
 
-// Nested callback invocations before `budget-exceeded`. Self-application is the one recursion the grammar cannot forbid, and it blows the stack before the step budget reacts.
+// Nested callback invocations before `budget-exceeded`. Self-application is the one recursion the grammar
+// cannot forbid, and it blows the stack before the step budget reacts.
 export const MAX_CALLBACK_DEPTH = 64;
 
 // `.flat()` depth, so a pathologically nested host value cannot overflow the stack.
@@ -27,7 +28,8 @@ export type BudgetOptions = {
 	maxStringLength?: number;
 	// Longest array any operation may produce. Default 100_000.
 	maxArrayLength?: number;
-	// Total characters + elements one evaluation may allocate across ALL operations. Default 10_000_000 — per-op caps don't compose, so the total is bounded too.
+	// Total characters + elements one evaluation may allocate across all operations. Default 10_000_000.
+	// Per-op caps don't compose, so the total is bounded too.
 	maxTotalAllocation?: number;
 };
 

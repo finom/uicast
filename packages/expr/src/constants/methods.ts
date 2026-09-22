@@ -1,4 +1,5 @@
-// The methods an expression can call, by receiver — the whole allow-list, as data. runtime/methods.ts implements exactly these; constants.test.ts holds the two equal.
+// The methods an expression can call, by receiver — the whole allow-list, as data.
+// runtime/methods.ts implements exactly these; constants.test.ts holds the two equal.
 
 const names = (list: string[]): ReadonlySet<string> => new Set(list);
 
