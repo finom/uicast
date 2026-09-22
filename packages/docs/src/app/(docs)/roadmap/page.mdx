@@ -18,3 +18,8 @@ Where **uicast** is headed.
 An opt-in mark — `meta: { pure: true }` on the tool — declaring a host function
 synchronous, deterministic, and effect-free. Marked functions become callable
 in `props`, `hidden`, and `each`; unmarked ones stay rejected there.
+
+## Reusable expressions
+
+A document names an expression once and refers to it from every seed and step
+that needs it. Today the same fetch is repeated in full at every call site.
