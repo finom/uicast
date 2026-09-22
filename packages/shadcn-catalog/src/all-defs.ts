@@ -7,14 +7,11 @@ import { AccordionDef } from "./uicast-catalog/accordion/def";
 import { AccordionItemDef } from "./uicast-catalog/accordion-item/def";
 import { DrawerDef } from "./uicast-catalog/drawer/def";
 import { GridDef } from "./uicast-catalog/grid/def";
-import { StackDef } from "./uicast-catalog/stack/def";
-import { SpacerDef } from "./uicast-catalog/spacer/def";
 
 // Typography & Display
 import { HeadingDef } from "./uicast-catalog/heading/def";
 import { TextDef } from "./uicast-catalog/text/def";
 import { BadgeDef } from "./uicast-catalog/badge/def";
-import { LabelDef } from "./uicast-catalog/label/def";
 import { IconDef } from "./uicast-catalog/icon/def";
 import { TagDef } from "./uicast-catalog/tag/def";
 import { StatDef } from "./uicast-catalog/stat/def";
@@ -39,7 +36,6 @@ import { NumberInputDef } from "./uicast-catalog/number-input/def";
 import { SelectDef } from "./uicast-catalog/select/def";
 import { MultiSelectDef } from "./uicast-catalog/multi-select/def";
 import { DatePickerDef } from "./uicast-catalog/date-picker/def";
-import { DateRangePickerDef } from "./uicast-catalog/date-range-picker/def";
 import { TimePickerDef } from "./uicast-catalog/time-picker/def";
 import { CheckboxDef } from "./uicast-catalog/checkbox/def";
 import { RadioDef } from "./uicast-catalog/radio/def";
@@ -75,7 +71,6 @@ import { DescriptionListDef } from "./uicast-catalog/description-list/def";
 import { CodeBlockDef } from "./uicast-catalog/code-block/def";
 import { MarkdownViewerDef } from "./uicast-catalog/markdown-viewer/def";
 import { AvatarGroupDef } from "./uicast-catalog/avatar-group/def";
-import { StatusIndicatorDef } from "./uicast-catalog/status-indicator/def";
 import { CarouselDef } from "./uicast-catalog/carousel/def";
 import { CalloutDef } from "./uicast-catalog/callout/def";
 import { KBDDef } from "./uicast-catalog/kbd/def";
@@ -84,7 +79,6 @@ import { RelativeTimeDef } from "./uicast-catalog/relative-time/def";
 import { TruncatedTextDef } from "./uicast-catalog/truncated-text/def";
 import { CopyButtonDef } from "./uicast-catalog/copy-button/def";
 import { QRCodeDef } from "./uicast-catalog/qr-code/def";
-import { BarcodeDef } from "./uicast-catalog/barcode/def";
 
 // Table
 import { TableDef } from "./uicast-catalog/table/def";
@@ -109,7 +103,6 @@ import { FunnelChartDef } from "./uicast-catalog/funnel-chart/def";
 
 import { ScatterChartDef } from "./uicast-catalog/scatter-chart/def";
 import { RadarChartDef } from "./uicast-catalog/radar-chart/def";
-import { DonutChartDef } from "./uicast-catalog/donut-chart/def";
 import { GaugeChartDef } from "./uicast-catalog/gauge-chart/def";
 import { SparklineDef } from "./uicast-catalog/sparkline/def";
 import { HeatmapDef } from "./uicast-catalog/heatmap/def";
@@ -123,16 +116,13 @@ import { BubbleChartDef } from "./uicast-catalog/bubble-chart/def";
 // Navigation & Wayfinding
 import { SidebarDef } from "./uicast-catalog/sidebar/def";
 import { NavigationMenuDef } from "./uicast-catalog/navigation-menu/def";
-import { MenubarDef } from "./uicast-catalog/menubar/def";
 import { CommandMenuDef } from "./uicast-catalog/command-menu/def";
 import { LinkDef } from "./uicast-catalog/link/def";
-import { ContextMenuDef } from "./uicast-catalog/context-menu/def";
 
 // Form & Input
 import { ComboboxDef } from "./uicast-catalog/combobox/def";
 import { SliderDef } from "./uicast-catalog/slider/def";
 import { RangeSliderDef } from "./uicast-catalog/range-slider/def";
-import { PasswordInputDef } from "./uicast-catalog/password-input/def";
 import { SearchInputDef } from "./uicast-catalog/search-input/def";
 import { PhoneInputDef } from "./uicast-catalog/phone-input/def";
 import { CurrencyInputDef } from "./uicast-catalog/currency-input/def";
@@ -142,10 +132,7 @@ import { TagInputDef } from "./uicast-catalog/tag-input/def";
 import { RatingDef } from "./uicast-catalog/rating/def";
 import { CodeEditorDef } from "./uicast-catalog/code-editor/def";
 import { SignaturePadDef } from "./uicast-catalog/signature-pad/def";
-import { ToggleDef } from "./uicast-catalog/toggle/def";
 import { ToggleGroupDef } from "./uicast-catalog/toggle-group/def";
-import { SegmentedControlDef } from "./uicast-catalog/segmented-control/def";
-import { FormSectionDef } from "./uicast-catalog/form-section/def";
 
 // Layout & Structure
 import { ContainerDef } from "./uicast-catalog/container/def";
@@ -153,26 +140,18 @@ import { AspectRatioDef } from "./uicast-catalog/aspect-ratio/def";
 import { ScrollAreaDef } from "./uicast-catalog/scroll-area/def";
 import { CollapsibleDef } from "./uicast-catalog/collapsible/def";
 import { ResizablePanelDef } from "./uicast-catalog/resizable-panel/def";
-import { SheetDef } from "./uicast-catalog/sheet/def";
 import { StickyHeaderDef } from "./uicast-catalog/sticky-header/def";
-import { PageHeaderDef } from "./uicast-catalog/page-header/def";
-import { ToolbarDef } from "./uicast-catalog/toolbar/def";
 
 // Feedback & Status
 import { BannerDef } from "./uicast-catalog/banner/def";
-import { InlineMessageDef } from "./uicast-catalog/inline-message/def";
-import { AlertDialogDef } from "./uicast-catalog/alert-dialog/def";
-import { CircularProgressDef } from "./uicast-catalog/circular-progress/def";
 import { CountdownTimerDef } from "./uicast-catalog/countdown-timer/def";
 import { NotificationBadgeDef } from "./uicast-catalog/notification-badge/def";
 
 // Specialized / Business-Specific
 import { KanbanBoardDef } from "./uicast-catalog/kanban-board/def";
-import { SortableListDef } from "./uicast-catalog/sortable-list/def";
 import { VirtualListDef } from "./uicast-catalog/virtual-list/def";
 import { MapDef } from "./uicast-catalog/map/def";
 import { OrgChartDef } from "./uicast-catalog/org-chart/def";
-import { FlowDiagramDef } from "./uicast-catalog/flow-diagram/def";
 import { ChatThreadDef } from "./uicast-catalog/chat-thread/def";
 import { VideoPlayerDef } from "./uicast-catalog/video-player/def";
 import { CronBuilderDef } from "./uicast-catalog/cron-builder/def";
@@ -188,12 +167,9 @@ export {
   AccordionItemDef,
   DrawerDef,
   GridDef,
-  StackDef,
-  SpacerDef,
   HeadingDef,
   TextDef,
   BadgeDef,
-  LabelDef,
   IconDef,
   TagDef,
   StatDef,
@@ -212,7 +188,6 @@ export {
   SelectDef,
   MultiSelectDef,
   DatePickerDef,
-  DateRangePickerDef,
   TimePickerDef,
   CheckboxDef,
   RadioDef,
@@ -253,14 +228,11 @@ export {
   FunnelChartDef,
   SidebarDef,
   NavigationMenuDef,
-  MenubarDef,
   CommandMenuDef,
   LinkDef,
-  ContextMenuDef,
   ComboboxDef,
   SliderDef,
   RangeSliderDef,
-  PasswordInputDef,
   SearchInputDef,
   PhoneInputDef,
   CurrencyInputDef,
@@ -270,19 +242,13 @@ export {
   RatingDef,
   CodeEditorDef,
   SignaturePadDef,
-  ToggleDef,
   ToggleGroupDef,
-  SegmentedControlDef,
-  FormSectionDef,
   ContainerDef,
   AspectRatioDef,
   ScrollAreaDef,
   CollapsibleDef,
   ResizablePanelDef,
-  SheetDef,
   StickyHeaderDef,
-  PageHeaderDef,
-  ToolbarDef,
   CalendarDef,
   TimelineDef,
   TreeViewDef,
@@ -290,7 +256,6 @@ export {
   CodeBlockDef,
   MarkdownViewerDef,
   AvatarGroupDef,
-  StatusIndicatorDef,
   CarouselDef,
   CalloutDef,
   KBDDef,
@@ -299,10 +264,8 @@ export {
   TruncatedTextDef,
   CopyButtonDef,
   QRCodeDef,
-  BarcodeDef,
   ScatterChartDef,
   RadarChartDef,
-  DonutChartDef,
   GaugeChartDef,
   SparklineDef,
   HeatmapDef,
@@ -313,17 +276,12 @@ export {
   GanttChartDef,
   BubbleChartDef,
   BannerDef,
-  InlineMessageDef,
-  AlertDialogDef,
-  CircularProgressDef,
   CountdownTimerDef,
   NotificationBadgeDef,
   KanbanBoardDef,
-  SortableListDef,
   VirtualListDef,
   MapDef,
   OrgChartDef,
-  FlowDiagramDef,
   ChatThreadDef,
   VideoPlayerDef,
   CronBuilderDef,
@@ -342,13 +300,10 @@ export const defs = [
   AccordionItemDef,
   DrawerDef,
   GridDef,
-  StackDef,
-  SpacerDef,
   // Typography & Display
   HeadingDef,
   TextDef,
   BadgeDef,
-  LabelDef,
   IconDef,
   TagDef,
   StatDef,
@@ -370,7 +325,6 @@ export const defs = [
   SelectDef,
   MultiSelectDef,
   DatePickerDef,
-  DateRangePickerDef,
   TimePickerDef,
   CheckboxDef,
   RadioDef,
@@ -403,7 +357,6 @@ export const defs = [
   CodeBlockDef,
   MarkdownViewerDef,
   AvatarGroupDef,
-  StatusIndicatorDef,
   CarouselDef,
   CalloutDef,
   KBDDef,
@@ -412,7 +365,6 @@ export const defs = [
   TruncatedTextDef,
   CopyButtonDef,
   QRCodeDef,
-  BarcodeDef,
   // Table
   TableDef,
   TableHeaderDef,
@@ -433,7 +385,6 @@ export const defs = [
   FunnelChartDef,
   ScatterChartDef,
   RadarChartDef,
-  DonutChartDef,
   GaugeChartDef,
   SparklineDef,
   HeatmapDef,
@@ -446,15 +397,12 @@ export const defs = [
   // Navigation & Wayfinding
   SidebarDef,
   NavigationMenuDef,
-  MenubarDef,
   CommandMenuDef,
   LinkDef,
-  ContextMenuDef,
   // Form & Input
   ComboboxDef,
   SliderDef,
   RangeSliderDef,
-  PasswordInputDef,
   SearchInputDef,
   PhoneInputDef,
   CurrencyInputDef,
@@ -464,34 +412,23 @@ export const defs = [
   RatingDef,
   CodeEditorDef,
   SignaturePadDef,
-  ToggleDef,
   ToggleGroupDef,
-  SegmentedControlDef,
-  FormSectionDef,
   // Layout & Structure
   ContainerDef,
   AspectRatioDef,
   ScrollAreaDef,
   CollapsibleDef,
   ResizablePanelDef,
-  SheetDef,
   StickyHeaderDef,
-  PageHeaderDef,
-  ToolbarDef,
   // Feedback & Status
   BannerDef,
-  InlineMessageDef,
-  AlertDialogDef,
-  CircularProgressDef,
   CountdownTimerDef,
   NotificationBadgeDef,
   // Specialized / Business-Specific
   KanbanBoardDef,
-  SortableListDef,
   VirtualListDef,
   MapDef,
   OrgChartDef,
-  FlowDiagramDef,
   ChatThreadDef,
   VideoPlayerDef,
   CronBuilderDef,

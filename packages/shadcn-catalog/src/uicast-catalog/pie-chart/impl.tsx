@@ -20,6 +20,7 @@ export const PieChartImpl = createComponentImplementation({
     height,
     donut,
     showLabels,
+    centerLabel,
   }, { entry, loading }) => {
     const data = rawData.map((d) => ({ ...d, value: Number(d.value) }));
     const defaultColors = [
@@ -31,7 +32,7 @@ export const PieChartImpl = createComponentImplementation({
     ];
     const sliceColors = colors ?? defaultColors;
     return (
-      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
+      <div className={cn("relative w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <RechartsPieChart>
             <Pie isAnimationActive={false}
@@ -57,6 +58,11 @@ export const PieChartImpl = createComponentImplementation({
             <Legend />
           </RechartsPieChart>
         </ResponsiveContainer>
+        {donut && centerLabel && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+            <span className="text-lg font-semibold">{centerLabel}</span>
+          </div>
+        )}
       </div>
     );
   },

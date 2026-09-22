@@ -30,5 +30,9 @@ export const PieChartDef = createComponentDefinition({
       .boolean()
       .default(true)
       .meta({ description: "Whether to show labels on each slice" }),
+    centerLabel: z
+      .string()
+      .optional()
+      .meta({ description: "Text in the hole of a donut chart, such as a total. Ignored unless `donut` is true." }),
   }),
 });

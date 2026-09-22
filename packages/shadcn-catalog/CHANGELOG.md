@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `@uicast/shadcn-catalog/essential-defs` and `/essential-impls`: 30 of the 129 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. They export the same `defs` and `impls` names as the full registries, so switching is one import. The prompt they render is about a quarter of the whole catalog's.
+- `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - `@uicast/shadcn-catalog/document-skeleton`: `<DocumentSkeleton entries implementations>` draws a document's shape before the renderer boots. It walks the entries and draws each element with that element's own `placeholder`, passing the drawn children down; a list is repeated a few times. It evaluates nothing and reads no props, so it renders on the server while the client tree mounts, and the real render replaces it.
 - A `placeholder` on 79 implementations, so `DocumentSkeleton` draws them. A placeholder given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
@@ -15,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Breaking: 21 redundant components are gone**, leaving 129. Each was covered by one that remains: `Stack` (FlexRow/FlexCol), `Sheet` (Drawer, identical props), `Spacer` (the gap props), `Label` (Text, or FieldLabel in a form), `DonutChart` (PieChart's `donut`), `AlertDialog` (ConfirmDialog), `SegmentedControl` (ToggleGroup), `PasswordInput` (Input's `password` type), `DateRangePicker` (two DatePickers), `FlowDiagram` (Stepper), `Toolbar` (FlexRow), `FormSection` (Card), `PageHeader` (Heading + Text + Breadcrumb), `StatusIndicator` (Badge), `InlineMessage` (Alert), `CircularProgress` (GaugeChart or ProgressBar), `Menubar` (NavigationMenu), `ContextMenu` (DropdownMenu), `Toggle` (Switch or ToggleGroup). `SortableList` and `Barcode` went because neither did what its name said — the drag handles never reordered and the barcode was never scannable.
 - **Breaking: the registry entry points are `@uicast/shadcn-catalog/all-defs` and `/all-impls`, exporting `defs` and `impls`.** Was `/defs` and `/impls` exporting `allDefinitions` and `allImplementations`. Every definition and implementation is still exported by name from the same module.
 - Pairs moved from `src/uicast/` to `src/uicast-catalog/`. Internal layout — the package's entry points are unchanged.
 - Table containers and `Card` set `content-visibility: auto` with an intrinsic size, so off-screen tables and cards skip layout and paint. On a large page, resize and scroll no longer lay out every section.

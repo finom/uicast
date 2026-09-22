@@ -47,7 +47,9 @@
       ],
       "@uicast/shadcn-catalog/events": ["../shadcn-catalog/src/events/index.ts"],
       "@uicast/shadcn-catalog/all-defs": ["../shadcn-catalog/src/all-defs.ts"],
+      "@uicast/shadcn-catalog/essential-defs": ["../shadcn-catalog/src/essential-defs.ts"],
       "@uicast/shadcn-catalog/all-impls": ["../shadcn-catalog/src/all-impls.ts"],
+      "@uicast/shadcn-catalog/essential-impls": ["../shadcn-catalog/src/essential-impls.ts"],
       "@uicast/shadcn-catalog/fallback-components": ["../shadcn-catalog/src/fallback-components/index.ts"],
       "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
     }

@@ -8,7 +8,7 @@ configuration is needed.
 | [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders. No React. |
 | [`@uicast/expr`](#uicastexpr) | The expression evaluator: closed grammar, runtime membrane, budget. No uicast imports. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
-| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 150 ready components as def/impl pairs, over shadcn/ui. |
+| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 129 ready components as def/impl pairs, over shadcn/ui. |
 | [`@uicast/streamdown`](#uicaststreamdown) | Renders `uicast` fences inside a Markdown chat reply. |
 
 ## `@uicast/core`
@@ -107,6 +107,8 @@ A ready catalog, and a demo of what one looks like. See
 |---|---|
 | `@uicast/shadcn-catalog/all-defs` | `defs`, plus every definition by name (`CardDef`, `ButtonDef`, …) — pass to `getComponentsPartialPrompt`. |
 | `@uicast/shadcn-catalog/all-impls` | `impls`, plus every implementation by name — pass to `<RendererProvider>`. |
+| `@uicast/shadcn-catalog/essential-defs` | `defs` — 30 of the 129, enough to build a page. About a quarter of the prompt text. |
+| `@uicast/shadcn-catalog/essential-impls` | `impls` — the matching implementations. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema` — the shared event payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
 | `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
 | `@uicast/shadcn-catalog/ui/*` | The 37 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |

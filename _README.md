@@ -38,7 +38,7 @@ export const StatDef = createComponentDefinition({
 });
 ```
 
-An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 150 pairs over shadcn/ui if you do not want to start with your own.
+An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 129 pairs over shadcn/ui if you do not want to start with your own.
 
 A **host function** is one [`standard-tool`](https://standard-tool.js.org/) per operation the model may perform. Its input schema is checked before `execute` runs; its output schema is how the model knows what the result contains:
 
@@ -112,7 +112,7 @@ Four steps to a first page, spelled out in [Getting started](packages/docs/src/a
 | [`@uicast/react`](packages/react) | The React binding: provider, renderer, per-element error boundary, the confirm seam. |
 | [`@uicast/expr`](packages/expr) | The expression language and its interpreter. No **uicast** dependency; works standalone. |
 | [`@uicast/expr-passthrough`](packages/expr-passthrough) | The same language run through `new Function`: faster, needs `unsafe-eval`, for trusted authors. |
-| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 150 components over shadcn/ui and Radix, each with the definition the model reads. |
+| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 129 components over shadcn/ui and Radix, each with the definition the model reads. |
 | [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: generated screens inside ` ```uicast ` fences in Markdown chat replies. |
 
 ## Documentation

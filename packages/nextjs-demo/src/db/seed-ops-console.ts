@@ -4,15 +4,6 @@ import type { ComponentEntry } from "@uicast/core";
 // server pages and filters; the KPIs and charts read the two summaries. One
 // search box refetches every window. Row edits write the element in place.
 
-const PRODUCT_PAGE =
-  "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })";
-const ORDER_PAGE =
-  "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })";
-const ACCOUNT_PAGE =
-  "listCustomers({ limit: 30, offset: (scopes.root.custPage - 1) * 30, q: scopes.root.q || undefined })";
-const LEDGER_PAGE =
-  "listStockMovements({ limit: 50, offset: (scopes.root.movPage - 1) * 50, q: scopes.root.q || undefined })";
-
 // Every window back to page one, then refetched.
 const SEARCH_STEPS = [
   { set: "scopes.root.prodPage", literal: 1 },
@@ -23,10 +14,10 @@ const SEARCH_STEPS = [
   { set: "scopes.root.ordersBusy", literal: true },
   { set: "scopes.root.accountsBusy", literal: true },
   { set: "scopes.root.movementsBusy", literal: true },
-  { set: "scopes.root.products", expr: PRODUCT_PAGE },
-  { set: "scopes.root.orders", expr: ORDER_PAGE },
-  { set: "scopes.root.accounts", expr: ACCOUNT_PAGE },
-  { set: "scopes.root.movements", expr: LEDGER_PAGE },
+  { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" },
+  { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })" },
+  { set: "scopes.root.accounts", expr: "listCustomers({ limit: 30, offset: (scopes.root.custPage - 1) * 30, q: scopes.root.q || undefined })" },
+  { set: "scopes.root.movements", expr: "listStockMovements({ limit: 50, offset: (scopes.root.movPage - 1) * 50, q: scopes.root.q || undefined })" },
   { set: "scopes.root.productsBusy", literal: false },
   { set: "scopes.root.ordersBusy", literal: false },
   { set: "scopes.root.accountsBusy", literal: false },
@@ -65,11 +56,11 @@ export const opsConsoleEntries: ComponentEntry[] = [
       { set: "scopes.root.stock", expr: "getStockSummary()" },
       { set: "scopes.root.sales", expr: "getSalesSummary({ days: 30 })" },
       { set: "scopes.root.suppliers", expr: "listSuppliers()" },
-      { set: "scopes.root.products", expr: PRODUCT_PAGE },
-      { set: "scopes.root.orders", expr: ORDER_PAGE },
-      { set: "scopes.root.accounts", expr: ACCOUNT_PAGE },
+      { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" },
+      { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })" },
+      { set: "scopes.root.accounts", expr: "listCustomers({ limit: 30, offset: (scopes.root.custPage - 1) * 30, q: scopes.root.q || undefined })" },
       { set: "scopes.root.movementsBusy", literal: true },
-      { set: "scopes.root.movements", expr: LEDGER_PAGE },
+      { set: "scopes.root.movements", expr: "listStockMovements({ limit: 50, offset: (scopes.root.movPage - 1) * 50, q: scopes.root.q || undefined })" },
       { set: "scopes.root.movementsBusy", literal: false },
     ],
     children: ["header", "kpis", "charts", "suppliers-card", "products-card", "orders-card", "customers-card", "ledger-card"],
@@ -104,7 +95,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
         { set: "scopes.root.lowOnly", expr: "evt.checked" },
         { set: "scopes.root.prodPage", literal: 1 },
         { set: "scopes.root.productsBusy", literal: true },
-        { set: "scopes.root.products", expr: PRODUCT_PAGE },
+        { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" },
         { set: "scopes.root.productsBusy", literal: false },
       ],
     },
@@ -266,7 +257,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
         { set: "scopes.root.sortKey", expr: "evt.value" },
         { set: "scopes.root.prodPage", literal: 1 },
         { set: "scopes.root.productsBusy", literal: true },
-        { set: "scopes.root.products", expr: PRODUCT_PAGE },
+        { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" },
         { set: "scopes.root.productsBusy", literal: false },
       ],
     },
@@ -280,7 +271,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
         { set: "scopes.root.sortDesc", expr: "!currentValue" },
         { set: "scopes.root.prodPage", literal: 1 },
         { set: "scopes.root.productsBusy", literal: true },
-        { set: "scopes.root.products", expr: PRODUCT_PAGE },
+        { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" },
         { set: "scopes.root.productsBusy", literal: false },
       ],
     },
@@ -416,7 +407,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     component: "Pagination",
     props: { expr: "({ currentPage: scopes.root.prodPage, totalPages: Math.max(1, Math.ceil(scopes.root.products.total / 50)) })" },
     hidden: "scopes.root.products.total <= 50",
-    callbacks: { onPageChange: [{ set: "scopes.root.prodPage", expr: "evt.page" }, { set: "scopes.root.productsBusy", literal: true }, { set: "scopes.root.products", expr: PRODUCT_PAGE }, { set: "scopes.root.productsBusy", literal: false }] },
+    callbacks: { onPageChange: [{ set: "scopes.root.prodPage", expr: "evt.page" }, { set: "scopes.root.productsBusy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.productsBusy", literal: false }] },
   },
 
   // Orders: a status select per row, selection kept at root by $id.
@@ -442,7 +433,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
         { set: "scopes.root.minTotal", expr: "evt.value" },
         { set: "scopes.root.ordPage", literal: 1, debounce: true },
         { set: "scopes.root.ordersBusy", literal: true },
-        { set: "scopes.root.orders", expr: ORDER_PAGE },
+        { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })" },
         { set: "scopes.root.ordersBusy", literal: false },
       ],
     },
@@ -538,7 +529,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     component: "Pagination",
     props: { expr: "({ currentPage: scopes.root.ordPage, totalPages: Math.max(1, Math.ceil(scopes.root.orders.total / 50)) })" },
     hidden: "scopes.root.orders.total <= 50",
-    callbacks: { onPageChange: [{ set: "scopes.root.ordPage", expr: "evt.page" }, { set: "scopes.root.ordersBusy", literal: true }, { set: "scopes.root.orders", expr: ORDER_PAGE }, { set: "scopes.root.ordersBusy", literal: false }] },
+    callbacks: { onPageChange: [{ set: "scopes.root.ordPage", expr: "evt.page" }, { set: "scopes.root.ordersBusy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })" }, { set: "scopes.root.ordersBusy", literal: false }] },
   },
 
   // Customers: a card per account, 30 a page.
@@ -569,7 +560,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     component: "Pagination",
     props: { expr: "({ currentPage: scopes.root.custPage, totalPages: Math.max(1, Math.ceil(scopes.root.accounts.total / 30)) })" },
     hidden: "scopes.root.accounts.total <= 30",
-    callbacks: { onPageChange: [{ set: "scopes.root.custPage", expr: "evt.page" }, { set: "scopes.root.accountsBusy", literal: true }, { set: "scopes.root.accounts", expr: ACCOUNT_PAGE }, { set: "scopes.root.accountsBusy", literal: false }] },
+    callbacks: { onPageChange: [{ set: "scopes.root.custPage", expr: "evt.page" }, { set: "scopes.root.accountsBusy", literal: true }, { set: "scopes.root.accounts", expr: "listCustomers({ limit: 30, offset: (scopes.root.custPage - 1) * 30, q: scopes.root.q || undefined })" }, { set: "scopes.root.accountsBusy", literal: false }] },
   },
 
   // Ledger: 50 movements a page, newest first.
@@ -617,6 +608,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     component: "Pagination",
     props: { expr: "({ currentPage: scopes.root.movPage, totalPages: Math.max(1, Math.ceil(scopes.root.movements.total / 50)) })" },
     hidden: "scopes.root.movements.total <= 50",
-    callbacks: { onPageChange: [{ set: "scopes.root.movPage", expr: "evt.page" }, { set: "scopes.root.movementsBusy", literal: true }, { set: "scopes.root.movements", expr: LEDGER_PAGE }, { set: "scopes.root.movementsBusy", literal: false }] },
+    callbacks: { onPageChange: [{ set: "scopes.root.movPage", expr: "evt.page" }, { set: "scopes.root.movementsBusy", literal: true }, { set: "scopes.root.movements", expr: "listStockMovements({ limit: 50, offset: (scopes.root.movPage - 1) * 50, q: scopes.root.q || undefined })" }, { set: "scopes.root.movementsBusy", literal: false }] },
   },
 ];

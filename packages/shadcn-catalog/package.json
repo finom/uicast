@@ -18,9 +18,17 @@
       "types": "./dist/all-defs.d.ts",
       "default": "./dist/all-defs.js"
     },
+    "./essential-defs": {
+      "types": "./dist/essential-defs.d.ts",
+      "default": "./dist/essential-defs.js"
+    },
     "./all-impls": {
       "types": "./dist/all-impls.d.ts",
       "default": "./dist/all-impls.js"
+    },
+    "./essential-impls": {
+      "types": "./dist/essential-impls.d.ts",
+      "default": "./dist/essential-impls.js"
     },
     "./document-skeleton": {
       "types": "./dist/document-skeleton/index.d.ts",

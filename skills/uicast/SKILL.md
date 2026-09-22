@@ -21,7 +21,7 @@ is everything around it, and that is what this skill covers.
 | --- | --- |
 | `@uicast/core` | Engine, framework-free: entry types, expression guardrail, reactive scopes, prompt builders (`@uicast/core/prompt`). |
 | `@uicast/react` | React binding: `<RendererProvider>`, `<EntriesRenderer>`, `createComponentImplementation`. |
-| `@uicast/shadcn-catalog` | ~150 ready components as definition/implementation pairs over shadcn/Radix. Optional — you can ship only your own. |
+| `@uicast/shadcn-catalog` | 129 ready components as definition/implementation pairs over shadcn/Radix, or 30 from its `essential-defs` / `essential-impls`. Optional — you can ship only your own. |
 | `@uicast/streamdown` | Chat surface: renders ```uicast fences inside Markdown replies via Streamdown. Only for chat hosts. |
 
 ```bash
@@ -149,7 +149,9 @@ The render contract:
   hasn't streamed in (`reason: "streaming"` — the PARENT's placeholder fills
   the empty slot) or while its own async seed resolves (`"seeding"`). It beats
   the global `fallbackComponents.placeholder`; with neither, the pending slot
-  renders **nothing** — there is no built-in placeholder.
+  renders **nothing** — there is no built-in placeholder. It may also receive
+  `children`; the renderer never passes them, so a placeholder that gets them
+  is being asked to draw the element itself and must render its own tag.
 
 ### Where components live
 
@@ -162,12 +164,13 @@ src/uicast-catalog/
 ├── stat-card/
 │   ├── def.ts        # createComponentDefinition — no React imports
 │   └── impl.tsx      # createComponentImplementation, imports ./def
-├── defs.ts           # export const definitions = [StatCardDef, ...]
-└── impls.ts          # export const implementations = [StatCardImpl, ...]
+├── all-defs.ts       # export const defs = [StatCardDef, ...]
+└── all-impls.ts      # export const impls = [StatCardImpl, ...]
 ```
 
-`defs.ts` feeds `getComponentsPartialPrompt` (and can be imported server-side —
-it must stay React-free); `impls.ts` feeds `<RendererProvider>`.
+`all-defs.ts` feeds `getComponentsPartialPrompt` (and can be imported
+server-side — it must stay React-free); `all-impls.ts` feeds
+`<RendererProvider>`.
 
 ## Using the shadcn catalog
 
@@ -186,6 +189,10 @@ import "@uicast/shadcn-catalog/catalog.css";
 - **Override**: duplicate names throw (in the provider and in the prompt builder
   alike), so replacing a catalog component means filtering its name out of BOTH
   arrays first, then appending yours.
+- **Start smaller**: `essential-defs` and `essential-impls` export the same two
+  names from 30 of the 129 components — layout, text, the table family, the
+  common form controls, three charts. About a quarter of the prompt text, and a
+  smaller set to choose from. Swapping is one import line.
 - `@uicast/shadcn-catalog/fallback-components` exports `ConfirmModal` and
   `RenderError` for the provider's `fallbackComponents` slots.
 
@@ -439,7 +446,10 @@ rendering. Elements mount progressively as lines land; child slots referenced
 before they arrive show the placeholder.
 
 **Persistence**: the document IS the JSONL — store lines as they arrive, replay
-them into `<EntriesRenderer>` to restore the page. A re-emitted key replaces its
+them into `<EntriesRenderer>` to restore the page. On that replay the tree is
+empty until the seeds resolve; `@uicast/shadcn-catalog/document-skeleton`
+draws the page's shape from the stored entries in the meantime, evaluating
+nothing. A re-emitted key replaces its
 old subtree at render time; compact storage the same way with
 `buildElementsByKey(entries)` (fold to the surviving `key → entry` map) so the
 stored document matches what renders.
