@@ -19,8 +19,12 @@ export default async function UserChat({
     .from(chats)
     .innerJoin(users, eq(chats.userId, users.id))
     .where(and(eq(chats.id, id), eq(users.slug, slug)));
-  if (!row) notFound();
   const me = await getSessionUser();
+  // The row appears with the first message; until then only its owner sees it.
+  if (!row) {
+    if (me?.slug !== slug) notFound();
+    return <ChatView chatId={id} ownerSlug={slug} />;
+  }
 
   const rows = await db
     .select()

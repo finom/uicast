@@ -5,7 +5,7 @@ import { db } from "@/db";
 import { componentEntries, pages, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
 import { GENERATION_MODEL } from "@/lib/openrouter";
-import { PageView } from "../../../../pages/[id]/page-view";
+import { PageView } from "@/components/page-view";
 
 export const dynamic = "force-dynamic";
 

@@ -122,7 +122,7 @@ export function ChatView({
     if (replaceUrlOnFirstSend && messages.length === 0) {
       // Shallow URL swap: the stream must keep flowing into this mounted
       // view, so no router navigation until the user leaves on their own.
-      window.history.replaceState(null, "", `/chats/${chatId}`);
+      window.history.replaceState(null, "", `/u/${ownerSlug}/c/${chatId}`);
     }
     sendMessage({ text });
   };

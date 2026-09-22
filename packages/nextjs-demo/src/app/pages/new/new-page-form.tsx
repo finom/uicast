@@ -25,7 +25,7 @@ export function NewPageForm() {
 
   // Only the page row is created here; generation starts on the page itself.
   const create = useMutation({
-    mutationFn: async (): Promise<{ id: number }> => {
+    mutationFn: async (): Promise<{ id: number; slug: string }> => {
       const res = await fetch("/api/pages", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -36,7 +36,7 @@ export function NewPageForm() {
     },
     onSuccess: (page) => {
       queryClient.invalidateQueries({ queryKey: ["pages"] });
-      router.push(`/pages/${page.id}`);
+      router.push(`/u/${page.slug}/p/${page.id}`);
     },
   });
 
