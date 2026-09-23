@@ -9,6 +9,9 @@ export const MAX_AST_DEPTH = 100;
 // The interpreter's call slots; the method tables pass at most four (`reduce`).
 export const MAX_ARROW_PARAMS = 5;
 
+// Distinct locale-and-options pairs kept per Intl kind.
+export const INTL_CACHE_SIZE = 64;
+
 // Characters the engine scans or copies for one step.
 export const CHARS_PER_STEP = 64;
 
@@ -24,15 +27,13 @@ export const ARRAY_ALLOCATION_SHIFT = 3;
 export const PRICES = Object.freeze({
 	// Any method or global function call, before its own work.
 	call: 2,
-	// A `new`, before its own work.
-	construct: 4,
 	// A number formatted or two strings compared through a locale.
 	locale: 32,
-	// A date formatted through a locale.
-	dateLocale: 128,
-	// A date turned into text, or read from text (plus a step per character).
+	// Building an Intl object, per locale tag it reads: charged once per distinct locale and options in an evaluation.
+	intlBuild: 2_000,
+	// A date read from text (plus a step per character).
 	dateText: 64,
-	// A value hashed into a Set, or looked up in one.
+	// An item hashed into its group by Object.groupBy.
 	hash: 4,
 	// A number added by Math.sumPrecise, or rounded by Math.f16round.
 	exactNumber: 8,

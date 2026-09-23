@@ -144,12 +144,12 @@ field:
 ```
 
 **The same state must give the same result.** Expressions in `props`, `hidden`
-and `each` re-run whenever a path they read changes, so a random value there
-changes with every render. A step rolls once and stores it:
+and `each` re-run whenever a path they read changes, so a time read there is
+only as fresh as the last re-run. A step reads the clock once and stores it:
 
 ```jsonc
-{ "props": { "expr": "({ text: Math.floor(Math.random() * 6) + 1 })" } }  // ❌ different every render
-{ "set": "scopes.root.dice", "expr": "Math.floor(Math.random() * 6) + 1" } // ✅ a step rolls once; props read scopes.root.dice
+{ "props": { "expr": "({ text: 'Saved at ' + Date.now() })" } }  // ❌ changes with every re-run
+{ "set": "scopes.root.savedAt", "expr": "Date.now()" }           // ✅ read once; props read scopes.root.savedAt
 ```
 
 ## Nothing runs on its own

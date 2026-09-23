@@ -5,7 +5,7 @@ export const nullProto = <T>(entries: Record<string, T>): Readonly<Record<string
 
 export const NAMESPACE_GLOBALS: readonly string[] = Object.freeze([
 	"Math", "JSON", "Object", "Array",
-	"Number", "String", "Boolean", "Date", "Set",
+	"Number", "String", "Boolean", "Date",
 	"parseInt", "parseFloat", "isNaN", "isFinite", "encodeURIComponent", "decodeURIComponent",
 ]);
 
@@ -24,8 +24,13 @@ export const CALLABLE_GLOBALS: ReadonlySet<string> = new Set([
 	"parseInt", "parseFloat", "isNaN", "isFinite", "encodeURIComponent", "decodeURIComponent",
 ]);
 
-// `new` works for these.
-export const CONSTRUCTIBLE_GLOBALS: ReadonlySet<string> = new Set(["Date", "Set"]);
+// These take one argument, so a method's index and array arguments change nothing: `rows.filter(Boolean)` gives JS's answer.
+export const CALLBACK_GLOBALS: ReadonlySet<string> = new Set([
+	"Number", "String", "Boolean", "parseFloat", "isNaN", "isFinite", "encodeURIComponent", "decodeURIComponent",
+]);
+
+export const globalCallbackMessage = (name: string): string =>
+	`"${name}" cannot be passed as a callback — only a global that takes one argument can, as in rows.filter(Boolean). Write an arrow instead`;
 
 // Globals that are objects in JS; every other namespace is a function there.
 export const OBJECT_NAMESPACES: ReadonlySet<string> = new Set(["Math", "JSON"]);

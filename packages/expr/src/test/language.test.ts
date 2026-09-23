@@ -115,12 +115,11 @@ describe("the language", () => {
 		expect(run(`"ab".toUpperCase()`)).toBe("AB");
 	});
 
-	it("supports the two constructors", () => {
-		expect(run(`new Date(0).getFullYear()`)).toBe(1970);
+	it("has no new: every value is JSON, and a date is a string or a timestamp", () => {
 		expect(run(`Date.now() > 0`)).toBe(true);
-		expect(run(`new Set([1, 1, 2]).size`)).toBe(2);
-		for (const expr of [`new Map()`, `new Intl.NumberFormat("en-US")`, `new URL("https://a.example.com/")`]) {
-			expect(() => run(expr), expr).toThrow(ExpressionError);
+		expect(run(`Date.parse("1970-01-02T00:00:00Z")`)).toBe(86_400_000);
+		for (const expr of [`new Date(0)`, `new Set([1])`, `new Map()`, `new Intl.NumberFormat("en-US")`, `new URL("https://a.example.com/")`]) {
+			expect(() => run(expr), expr).toThrow(/"new" is not part of the expression language/);
 		}
 	});
 
@@ -212,6 +211,17 @@ describe("a function is written only where a method takes one", () => {
 		expect(run(`rows.map(r => rows.filter(o => o.a <= r.a).length)`, rows)).toEqual([1, 2]);
 		expect(run(`Array.from({ length: 2 }, (_, i) => i * 2)`)).toEqual([0, 2]);
 		expect(run(`Object.keys(Object.groupBy(rows, r => r.s))`, rows)).toEqual(["x", "y"]);
+	});
+
+	it("accepts a global that takes one argument, and no other", () => {
+		expect(run(`[0, 1, "", "a", null].filter(Boolean)`)).toEqual([1, "a"]);
+		expect(run(`["1", "2.5"].map(Number)`)).toEqual([1, 2.5]);
+		expect(run(`Array.from("12", Number)`)).toEqual([1, 2]);
+		expect(run(`rows[k](Boolean).length`, { rows: [0, 1], k: "filter" })).toBe(1);
+		for (const expr of [`["1", "2"].map(parseInt)`, `[1].map(Math)`, `[1].map(Date)`, `[[1]].map(Array)`, `[1].filter(Object)`]) {
+			expect(() => ev.validate(expr), expr).toThrow(/only a global that takes one argument/);
+		}
+		expect(() => run(`rows[k](Math)`, { rows: [1], k: "map" })).toThrow(/"Math" cannot be passed as a callback/);
 	});
 
 	it("refuses one anywhere else", () => {
@@ -358,7 +368,7 @@ describe("cut syntax — recognizable JS the language deliberately refuses", () 
 	});
 
 	it("has no method that only runs a callback for its effect, or returns an iterator", () => {
-		for (const expr of [`[1].forEach(n => n)`, `new Set([1]).values()`, `[1].keys()`]) {
+		for (const expr of [`[1].forEach(n => n)`, `[1].values()`, `[1].keys()`]) {
 			expect(() => run(expr), expr).toThrow(/not an available method/);
 		}
 	});
@@ -373,9 +383,8 @@ describe("evaluation plumbing", () => {
 		}
 	});
 
-	it("Math.random gives a number from 0 up to 1", () => {
-		const n = run(`Math.random()`) as number;
-		expect(n >= 0 && n < 1).toBe(true);
+	it("Math.random is not in the language", () => {
+		expect(() => run(`Math.random()`)).toThrow(/"Math.random\(\)" is not available/);
 	});
 
 	it("a large flatMap of singletons stays inside the budget", () => {
@@ -389,9 +398,8 @@ describe("pinned against plain JS", () => {
 		expect(run('[9, 8]["1"]')).toBe(8);
 		expect(() => run('[9, 8]["0" + "1"]')).toThrow(ExpressionError);
 	});
-	it("toLocaleString uses the viewer's locale, and takes no other", () => {
-		expect(run("[1234.5].toLocaleString()")).toBe([1234.5].toLocaleString());
-		expect(() => run("[1234.5].toLocaleString('de')")).toThrow(/takes no arguments/);
+	it("toLocaleString takes a locale", () => {
+		expect(run("[1234.5].toLocaleString('de')")).toBe([1234.5].toLocaleString("de"));
 	});
 	it("valueOf on a number", () => {
 		expect(run("(1).valueOf()")).toBe(1);

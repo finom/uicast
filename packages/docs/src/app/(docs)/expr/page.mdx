@@ -12,8 +12,8 @@ your users' browsers.
 
 `@uicast/expr` is what runs it. The expression language is **JavaScript
 expressions over JSON data**: the syntax models already write fluently, with
-the standard methods of strings, numbers, arrays, dates and sets and a short
-list of globals, and without statements, mutation, regular expressions or
+the standard methods of strings, numbers and arrays and a short list of
+globals, and without statements, `new`, mutation, regular expressions or
 function values. Anything outside it is refused before it runs. The package parses an expression once with acorn and
 interprets it itself; nothing reaches the engine's `eval`. It has no **uicast**
 dependency and works standalone.
@@ -132,7 +132,7 @@ validation, in both evaluators.
 | --- | --- |
 | Values | numbers, strings, booleans, `null`, template literals |
 | Access | `a.b`, `a[b]`, `a?.b`, `a?.[b]` (optional *receiver*, not `a?.()`) |
-| Calls | methods, host functions, `new` for `Date` / `Set` |
+| Calls | methods, host functions |
 | Operators | arithmetic, comparison, `===`/`==`, `&&`, `\|\|`, `??`, `!`, `-`, `+`, `typeof`, `? :` |
 | Literals | arrays and objects, with spread and computed keys |
 | Functions | arrow functions with an **expression body**, only as a method's callback; parameters may destructure |
@@ -150,19 +150,21 @@ What is missing is deliberate:
   real cases.
 - **Functions as values.** An arrow is written only where a method takes one
   — `rows.map(r => r.name)` — never in an array, as a result, or called. So
-  nothing can store, return or call a function, and nothing recurses.
+  nothing can store, return or call a function, and nothing recurses. A global
+  that takes one argument can stand in for the arrow: `rows.filter(Boolean)`.
 - **`await`.** Host calls return promises and the runtime awaits them — the
   expression never does. So a host call is the expression's result: the whole
   of it, a branch of `?:`, or the right side of `??`, `||`, `&&`.
   `getUser({ id }).name`, `[getUser(a), getUser(b)]` and
   `ids.map(id => getUser({ id }))` are refused before any call runs.
-- **`Intl`, and a locale or options argument.** `toLocaleString()` and the
-  other locale methods use the viewer's locale. Currency, month names and
-  relative times are a component's job.
-- **`Map`, `forEach`, iterators.** Data arrives and leaves as JSON: an object
-  does a `Map`'s job, `[...set]` replaces an iterator, and a callback has no
-  effect for `forEach` to run it for. A `Date` or a `Set` is for computing
-  inside the expression; the result is plain data.
+- **`Intl`.** The locale methods take its locale and options, as in
+  JavaScript: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`.
+- **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
+  an ISO string, or a timestamp from `Date.parse(text)` or `Date.now()`.
+  `Object.keys(Object.groupBy(rows, r => r.tag))` lists the distinct tags, and
+  an object does a `Map`'s job.
+- **`forEach`, iterators.** A callback has no effect for `forEach` to run it
+  for, and a function is never a value.
 - **`in`, bitwise operators, `x?.()`, `instanceof`, tagged templates, `this`.**
   None shapes a display value.
 
@@ -183,10 +185,11 @@ construction**: the only way to change state is a step's `set`, and
 `.reverse()` are not in the language — order with `.toSorted()`, reverse with
 `.toReversed()`, the standard non-mutating pair.
 
-Two values change between runs: the clock and `Math.random()`. A reactive
-site re-evaluates whenever a path it reads changes, so a time computed there is
-as fresh as its last re-evaluation, and a random value changes with every
-render. Produce either one in a step and read it back:
+They are also **stateless**: `Math.random` is absent and there is nothing to
+store a counter in. The one seam left open is the clock — `Date` is
+allow-listed, so `Date.now()` does not fail, it *drifts*. A reactive site
+re-evaluates whenever a path it reads changes, so produce a timestamp once in
+a step and read it back:
 
 ```jsonc
 // ❌ a new timestamp every render pass

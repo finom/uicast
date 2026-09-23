@@ -1,4 +1,4 @@
-import { OBJECT_NAMESPACES } from "../constants/globals";
+import { globalCallbackMessage, OBJECT_NAMESPACES } from "../constants/globals";
 import { ExpressionError } from "../errors";
 
 // Positional slots, no arguments array per call; the method tables fill at most four.
@@ -70,7 +70,7 @@ export const plainData = (value: unknown, where: string): object => {
 // Checked before the first element as well, so an empty array refuses a non-function, as in JS.
 export const checkCallback = (f: unknown): void => {
 	if (f instanceof Lambda) return;
-	if (f instanceof Namespace) fail(`${f.name} cannot be passed as a function; write an arrow, as in x => ${f.name}(x)`);
+	if (f instanceof Namespace) fail(globalCallbackMessage(f.name));
 	fail(`Expected a function here, got ${typeName(f)}`);
 };
 

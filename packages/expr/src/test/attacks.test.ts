@@ -398,6 +398,7 @@ describe("single operations the step counter could not see", () => {
 			"JSON.stringify(a)",
 			"JSON.stringify([a], null, 2)",
 			"a.toLocaleString()",
+			"(5).toLocaleString(a)",
 		]) {
 			expect(() => ev.eval(expr, { a }), expr).toThrow(exceeded);
 		}
@@ -424,16 +425,27 @@ describe("single operations the step counter could not see", () => {
 			expect(() => ev.eval(expr, { s, big }), expr).toThrow(exceeded);
 		}
 	});
-	it("no locale or options reach the engine, even through a computed name", () => {
+	it("a locale list is charged per tag, before the engine reads it", () => {
 		const tags = Array.from({ length: 1_000 }, () => "en-US");
 		const ev = new Evaluator();
 		for (const expr of [
 			"(5).toLocaleString(tags)",
 			"(5)[k](tags)",
 			"'a'.localeCompare('b', tags)",
-			"new Date(0)['toLocaleDateString'](...[tags])",
+			"(5)['toLocaleString'](...[tags, { style: 'percent' }])",
 		]) {
-			expect(() => ev.eval(expr, { tags, k: "toLocaleString" }), expr).toThrow(/uses the viewer's locale/);
+			expect(() => ev.eval(expr, { tags, k: "toLocaleString" }), expr).toThrow(exceeded);
+		}
+	});
+	it("the engine reads only plain locales and options", () => {
+		const ev = new Evaluator();
+		for (const [expr, value] of [
+			["(5).toLocaleString(x)", { length: 1e9 }],
+			["(5).toLocaleString(x)", [{ toString: () => "en" }]],
+			["(5).toLocaleString('en', x)", { style: { toString: () => "percent" } }],
+			["(5).toLocaleString('en', x)", null],
+		] as const) {
+			expect(() => ev.eval(expr, { x: value }), expr).toThrow(ExpressionError);
 		}
 	});
 	it("flat is charged as it grows", () => {
@@ -466,13 +478,5 @@ describe("single operations the step counter could not see", () => {
 	it("a NaN size does not disable the total allocation cap", () => {
 		const ev = new Evaluator({ budget: { maxTotalAllocation: 100 } });
 		expect(() => ev.eval(`["a".padStart("x"), "b".repeat(200)]`)).toThrow(exceeded);
-	});
-	it("Set construction is charged by source size, and takes nothing the engine would iterate uncharged", () => {
-		const s = "x".repeat(5000);
-		const ev = new Evaluator({ budget: { maxArrayLength: 1000 } });
-		expect(() => ev.eval("new Set(s).size", { s })).toThrow(exceeded);
-		expect(() => ev.eval("new Set(source).size", { source: { *[Symbol.iterator]() { yield 1; } } })).toThrow(
-			/new Set needs an array, a string or a Set/,
-		);
 	});
 });

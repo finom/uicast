@@ -38,10 +38,10 @@ describe("the shared grammar is enforced by both", () => {
 		`"a".substr(0, 1)`,
 		`"a".search("a")`,
 		`[1].entries()`,
+		`Math.random()`,
 		`new Map()`,
 		`[1].forEach(n => n)`,
 		`[1, , 2]`,
-		`(1).toLocaleString("de")`,
 		`String.raw({ raw: ["a"] })`,
 		`Object.assign({}, { a: 1 })`,
 		`Object.freeze({})`,
@@ -94,9 +94,11 @@ describe("the shared grammar is enforced by both", () => {
 		`RegExp`,
 		`Symbol`,
 		`nope()`,
-		// a global that is a value, not a function; a constructor that is not
+		// a global that is not a function; `new` at all
 		`Date()`,
 		`new Number(1)`,
+		`new Date(0)`,
+		`new Set([1])`,
 		// more than five parameters, rest parameters
 		`(a, b, c, d, e, f) => f`,
 		`(...args) => args`,

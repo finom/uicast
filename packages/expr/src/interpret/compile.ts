@@ -2,9 +2,9 @@ import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
 import type { Budget } from "../runtime/budget";
 import { chargeCompare, chargeNumber, chargeText } from "../runtime/coerce";
-import { callGlobal, GLOBAL_VALUES } from "../runtime/globals";
+import { callGlobal, GLOBAL_VALUES, withGlobalCallback } from "../runtime/globals";
 import { lookupName } from "../runtime/lookup";
-import { callMember, construct, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
+import { callMember, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
 import { childNodes, patternNames } from "../syntax/ast";
 
@@ -442,7 +442,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 					if (o === SHORT) return SHORT;
 					if (optional && (o === null || o === undefined)) return SHORT;
 					const key = keyThunk ? keyThunk(frame, rt) : staticKey;
-					return callMember(o, key, evalArgs(frame, rt), rt.budget);
+					return callMember(o, key, withGlobalCallback(key, evalArgs(frame, rt), rt.budget), rt.budget);
 				};
 			}
 
@@ -463,12 +463,6 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 					"expression-runtime",
 				);
 			};
-		}
-
-		case "NewExpression": {
-			const callee = compileNode(node.callee, cx);
-			const evalArgs = compileList(node.arguments, cx);
-			return (frame, rt) => construct(callee(frame, rt), evalArgs(frame, rt), rt.budget);
 		}
 
 		case "UnaryExpression": {

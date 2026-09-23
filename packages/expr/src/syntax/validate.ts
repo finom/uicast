@@ -1,8 +1,8 @@
 import type * as acorn from "acorn";
-import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, CONSTRUCTIBLE_GLOBALS } from "../constants/globals";
+import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, CALLBACK_GLOBALS, globalCallbackMessage } from "../constants/globals";
 import { ALLOWED_BINARY, ALLOWED_LOGICAL, ALLOWED_NODES, ALLOWED_UNARY } from "../constants/grammar";
 import { MAX_ARROW_PARAMS, MAX_AST_DEPTH } from "../constants/limits";
-import { ALLOWED_METHOD_NAMES, CALLBACK_ARGUMENT, LOCALE_METHOD_ARITY, localeArgumentsMessage, NAMESPACE_METHOD_NAMES } from "../constants/methods";
+import { ALLOWED_METHOD_NAMES, CALLBACK_ARGUMENT, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import { ExpressionError } from "../errors";
 import { walkFreeIdentifiers } from "./analyze";
 import { childNodes } from "./ast";
@@ -38,7 +38,11 @@ const callbackArgument = (node: acorn.CallExpression): acorn.AnyNode | undefined
 export const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void => {
 	if (depth > MAX_AST_DEPTH) throw new ExpressionError(`Expression nests deeper than ${MAX_AST_DEPTH} levels`);
 	if (!ALLOWED_NODES.has(node.type)) {
-		throw new ExpressionError(`"${node.type}" is not part of the expression language`);
+		throw new ExpressionError(
+			node.type === "NewExpression"
+				? '"new" is not part of the expression language — every value is JSON. A date is an ISO string, or a timestamp from Date.parse(text) or Date.now()'
+				: `"${node.type}" is not part of the expression language`,
+		);
 	}
 
 	switch (node.type) {
@@ -119,12 +123,6 @@ export const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false)
 							: `".${name}()" is not an available method`,
 					);
 				}
-				const arity = name === null ? undefined : LOCALE_METHOD_ARITY[name];
-				if (name !== null && arity !== undefined) {
-					if (node.arguments.length > arity || node.arguments.some((arg) => arg.type === "SpreadElement")) {
-						throw new ExpressionError(localeArgumentsMessage(name));
-					}
-				}
 			}
 			break;
 		}
@@ -152,7 +150,7 @@ const resultPositions = (node: acorn.AnyNode, out: Set<acorn.AnyNode>): Set<acor
 };
 
 // A host function may only be the callee of a call with 0 or 1 non-spread argument, standing where its value is the result,
-// never a value; a global is callable or constructible only where the tables say. Returns the free identifiers.
+// never a value; a global is callable only where the tables say. Returns the free identifiers.
 export const validateFreeIdentifiers = (ast: acorn.Expression, isTool: (name: string) => boolean): string[] => {
 	const out = new Set<string>();
 	let results: Set<acorn.AnyNode> | null = null;
@@ -192,16 +190,10 @@ export const validateFreeIdentifiers = (ast: acorn.Expression, isTool: (name: st
 			return;
 		}
 		if (!ALLOWED_GLOBALS.includes(name)) return;
-		if (callee && !CALLABLE_GLOBALS.has(name)) {
-			throw new ExpressionError(
-				CONSTRUCTIBLE_GLOBALS.has(name)
-					? `"${name}" cannot be called — use new ${name}(...)`
-					: `"${name}" cannot be called`,
-			);
+		if (parent?.type === "CallExpression" && callbackArgument(parent) === node && !CALLBACK_GLOBALS.has(name)) {
+			throw new ExpressionError(globalCallbackMessage(name));
 		}
-		if (parent?.type === "NewExpression" && parent.callee === node && !CONSTRUCTIBLE_GLOBALS.has(name)) {
-			throw new ExpressionError(`"new ${name}" is not available — only Date and Set`);
-		}
+		if (callee && !CALLABLE_GLOBALS.has(name)) throw new ExpressionError(`"${name}" cannot be called`);
 	});
 	return [...out];
 };

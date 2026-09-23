@@ -16,17 +16,6 @@ export const METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>>> = Objec
 		"normalize", "isWellFormed", "toWellFormed", "localeCompare", "toString", "toLocaleString", "valueOf",
 	]),
 	number: new Set(["toFixed", "toExponential", "toPrecision", "toString", "toLocaleString", "valueOf"]),
-	Date: new Set([
-		"getTime", "getFullYear", "getMonth", "getDate", "getDay", "getHours",
-		"getMinutes", "getSeconds", "getMilliseconds", "getTimezoneOffset",
-		"getUTCFullYear", "getUTCMonth", "getUTCDate", "getUTCDay", "getUTCHours",
-		"getUTCMinutes", "getUTCSeconds", "getUTCMilliseconds",
-		"toISOString", "toJSON", "toUTCString", "toDateString", "toTimeString",
-		"toLocaleDateString", "toLocaleTimeString", "toLocaleString", "toString", "valueOf",
-	]),
-	Set: new Set([
-		"has", "union", "intersection", "difference", "symmetricDifference", "isSubsetOf", "isSupersetOf", "isDisjointFrom",
-	]),
 });
 
 // Read by the validator from a written name, so null-prototype.
@@ -35,7 +24,7 @@ export const NAMESPACE_METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>
 		"abs", "ceil", "floor", "round", "trunc", "sign", "sqrt", "cbrt",
 		"pow", "min", "max", "hypot", "log", "log2", "log10", "log1p",
 		"exp", "expm1", "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
-		"sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "fround", "f16round", "clz32", "imul", "sumPrecise", "random",
+		"sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "fround", "f16round", "clz32", "imul", "sumPrecise",
 	]),
 	JSON: new Set(["parse", "stringify"]),
 	Object: new Set(["keys", "values", "entries", "fromEntries", "groupBy", "hasOwn", "is"]),
@@ -58,14 +47,3 @@ export const CALLBACK_ARGUMENT: Readonly<Record<string, number>> = nullProto({
 	find: 0, findIndex: 0, findLast: 0, findLastIndex: 0, some: 0, every: 0, flatMap: 0, toSorted: 0,
 	from: 1, groupBy: 1,
 });
-
-// Locale methods format and compare in the viewer's locale, so they take no locale or options argument.
-export const LOCALE_METHOD_ARITY: Readonly<Record<string, number>> = nullProto({
-	toLocaleString: 0, toLocaleDateString: 0, toLocaleTimeString: 0,
-	toLocaleLowerCase: 0, toLocaleUpperCase: 0, localeCompare: 1,
-});
-
-export const localeArgumentsMessage = (name: string): string =>
-	LOCALE_METHOD_ARITY[name] === 0
-		? `".${name}()" takes no arguments: it uses the viewer's locale. Currency, month names and relative times are a component's job`
-		: `".${name}()" takes only the string to compare with: it uses the viewer's locale`;

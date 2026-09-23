@@ -1,9 +1,10 @@
-import { CALLABLE_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
+import { CALLABLE_GLOBALS, CALLBACK_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
 import { PRICES } from "../constants/limits";
+import { CALLBACK_ARGUMENT } from "../constants/methods";
 import type { Budget } from "./budget";
 import { chargeNumber } from "./coerce";
 import { chargeResult } from "./membrane";
-import { fail, Namespace, runtimeFault, table } from "./values";
+import { fail, Lambda, Namespace, runtimeFault, table } from "./values";
 
 export const GLOBAL_VALUES: Readonly<Record<string, unknown>> = Object.freeze({
 	...Object.fromEntries(NAMESPACE_GLOBALS.map((name) => [name, new Namespace(name)])),
@@ -28,4 +29,13 @@ export const callGlobal = (name: string, args: unknown[], budget: Budget): unkno
 	} catch (err) {
 		return runtimeFault(`${name}()`, err);
 	}
+};
+
+// A global from CALLBACK_GLOBALS where a method takes its callback is called with the item alone.
+export const withGlobalCallback = (key: unknown, args: unknown[], budget: Budget): unknown[] => {
+	const index = typeof key === "string" ? CALLBACK_ARGUMENT[key] : undefined;
+	if (index === undefined) return args;
+	const f = args[index];
+	if (f instanceof Namespace && CALLBACK_GLOBALS.has(f.name)) args[index] = new Lambda((item) => callGlobal(f.name, [item], budget));
+	return args;
 };

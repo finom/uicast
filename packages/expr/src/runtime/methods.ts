@@ -1,10 +1,11 @@
 import { OBJECT_NAMESPACES } from "../constants/globals";
 import { MAX_FLAT_DEPTH, PRICES } from "../constants/limits";
-import { LOCALE_METHOD_ARITY, localeArgumentsMessage, METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
+import { NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import type { Budget } from "./budget";
+import { collator, localeList, numberFormat } from "./intl";
 import { f16round, sumPrecise } from "./numeric";
 import { chargeDateText, chargeNumber, chargeText, joinedSize, jsonSize, num, scanCost, textCost, toInteger, toLength } from "./coerce";
-import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData, reject, table } from "./values";
+import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData, table } from "./values";
 
 // The membrane charges each call and the result's size; a method charges only its own proportional work,
 // and output that can outgrow its input before producing it.
@@ -75,13 +76,11 @@ const fold = (a: unknown[], args: unknown[], method: string, fromEnd: boolean): 
 	return acc;
 };
 
-// The items of what JS iterates: an array, a string's characters, a Set's values.
-// Anything but an array is copied, charged first.
+// The items of what JS iterates: an array, or a string's characters, copied and charged first.
 const itemsOf = (v: unknown, where: string, budget: Budget): unknown[] => {
 	if (Array.isArray(v)) return v;
-	if (typeof v === "string") budget.array(v.length);
-	else if (v instanceof Set) budget.array(v.size);
-	else return fail(`${where} needs an array, string or Set`);
+	if (typeof v !== "string") return fail(`${where} needs an array or a string`);
+	budget.array(v.length);
 	return [...v];
 };
 
@@ -116,13 +115,6 @@ const asJson = (v: unknown): unknown => {
 // JS boxes a primitive receiver; this language refuses it, and null throws in both.
 const objectArg = (o: unknown, where: string): object =>
 	o === null || o === undefined ? fail(`${where} cannot convert ${String(o)} to an object`) : plainData(o, where);
-
-const setArg = (v: unknown, method: string): Set<unknown> => (v instanceof Set ? v : fail(`"${method}" needs a Set`));
-
-// The viewer's locale only. The validator refuses a written call with more; this catches a computed one.
-const viewerLocale = (name: string, args: unknown[]): void => {
-	if (args.length > LOCALE_METHOD_ARITY[name]) reject(localeArgumentsMessage(name));
-};
 
 const ARRAY_METHODS: Record<string, MethodImpl> = table({
 	// No per-iteration tick: each `invoke` charges the callback's whole compiled cost.
@@ -247,10 +239,9 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 		budget.tick(textCost(size));
 		return a.toString();
 	},
-	toLocaleString: (a: unknown[], args: unknown[], budget: Budget) => {
-		viewerLocale("toLocaleString", args);
+	toLocaleString: (a: unknown[], [locales, options]: unknown[], budget: Budget) => {
 		budget.string(joinedSize(a, budget) + a.length);
-		return localeJoin(a, budget);
+		return localeJoin(a, locales, options, budget);
 	},
 	valueOf: (a: unknown[]) => a,
 });
@@ -274,20 +265,19 @@ const sortAsText = (a: unknown[], budget: Budget): unknown[] => {
 	return out;
 };
 
-// Array.prototype.toLocaleString element by element, so each number and date is charged its formatting.
-const localeJoin = (a: readonly unknown[], budget: Budget): string => {
+// Array.prototype.toLocaleString element by element, so each number is charged its formatting.
+const localeJoin = (a: readonly unknown[], locales: unknown, options: unknown, budget: Budget): string => {
 	let out = "";
 	for (let i = 0; i < a.length; i++) {
 		if (i > 0) out += ",";
-		out += localeText(a[i], budget);
+		out += localeText(a[i], locales, options, budget);
 	}
 	return out;
 };
 
-const localeText = (item: unknown, budget: Budget): string => {
-	if (typeof item === "number") return numberInLocale(item, budget);
-	if (item instanceof Date) return dateInLocale(item, budget);
-	if (Array.isArray(item)) return localeJoin(item, budget);
+const localeText = (item: unknown, locales: unknown, options: unknown, budget: Budget): string => {
+	if (typeof item === "number") return formatNumber(item, [locales, options], budget);
+	if (Array.isArray(item)) return localeJoin(item, locales, options, budget);
 	// Nothing else reads the locale.
 	return [item].toLocaleString();
 };
@@ -309,10 +299,7 @@ const REPLACEMENT_CHARACTER = "�";
 const STRING_METHODS: Record<string, MethodImpl> = table({
 	toString: (s: string) => s,
 	valueOf: (s: string) => s,
-	toLocaleString: (s: string, args: unknown[]) => {
-		viewerLocale("toLocaleString", args);
-		return s;
-	},
+	toLocaleString: (s: string) => s,
 	at: (s: string, [i], budget) => s.at(num(i, budget)),
 	charAt: (s: string, [i], budget) => s.charAt(num(i, budget)),
 	charCodeAt: (s: string, [i], budget) => s.charCodeAt(num(i, budget)),
@@ -406,15 +393,15 @@ const STRING_METHODS: Record<string, MethodImpl> = table({
 		budget.tick(textCost(s.length));
 		return s.toUpperCase();
 	},
-	toLocaleLowerCase: (s: string, args, budget) => {
-		viewerLocale("toLocaleLowerCase", args);
+	toLocaleLowerCase: (s: string, [locales], budget) => {
+		const list = locales === undefined ? undefined : localeList(locales, budget);
 		budget.tick(PRICES.locale + textCost(s.length));
-		return s.toLocaleLowerCase();
+		return s.toLocaleLowerCase(list);
 	},
-	toLocaleUpperCase: (s: string, args, budget) => {
-		viewerLocale("toLocaleUpperCase", args);
+	toLocaleUpperCase: (s: string, [locales], budget) => {
+		const list = locales === undefined ? undefined : localeList(locales, budget);
 		budget.tick(PRICES.locale + textCost(s.length));
-		return s.toLocaleUpperCase();
+		return s.toLocaleUpperCase(list);
 	},
 	trim: (s: string, _args, budget) => {
 		budget.tick(scanCost(s.length));
@@ -442,23 +429,19 @@ const STRING_METHODS: Record<string, MethodImpl> = table({
 		}
 		return from === 0 ? s : out + s.slice(from);
 	},
-	localeCompare: (s: string, args, budget) => {
-		viewerLocale("localeCompare", args);
-		const other = asText(args[0], budget);
+	localeCompare: (s: string, [v, locales, options], budget) => {
+		const other = asText(v, budget);
 		budget.tick(PRICES.locale + textCost(Math.min(s.length, other.length)));
-		return s.localeCompare(other);
+		if (locales === undefined && options === undefined) return s.localeCompare(other);
+		return collator(locales, options, budget).compare(s, other);
 	},
 });
 
-// In the viewer's locale and time zone: no locale or options reach the engine.
-const numberInLocale = (n: number, budget: Budget): string => {
+// Without a locale or options, the engine's own default formatter.
+const formatNumber = (n: number, [locales, options]: unknown[], budget: Budget): string => {
 	budget.tick(PRICES.locale);
-	return n.toLocaleString();
-};
-
-const dateInLocale = (d: Date, budget: Budget): string => {
-	budget.tick(PRICES.dateLocale);
-	return d.toLocaleString();
+	if (locales === undefined && options === undefined) return n.toLocaleString();
+	return numberFormat(locales, options, budget).format(n);
 };
 
 const NUMBER_METHODS: Record<string, MethodImpl> = table({
@@ -467,103 +450,7 @@ const NUMBER_METHODS: Record<string, MethodImpl> = table({
 	toExponential: (n: number, [digits], budget) => n.toExponential(optNum(digits, budget)),
 	toPrecision: (n: number, [precision], budget) => n.toPrecision(optNum(precision, budget)),
 	toString: (n: number, [radix]: unknown[], budget: Budget) => n.toString(optNum(radix, budget)),
-	toLocaleString: (n: number, args: unknown[], budget: Budget) => {
-		viewerLocale("toLocaleString", args);
-		return numberInLocale(n, budget);
-	},
-});
-
-// Priced: the ones that print a date as text, and the ones that print it in the viewer's locale.
-const DATE_TEXT_METHODS: ReadonlySet<string> = new Set(["toISOString", "toJSON", "toUTCString", "toString", "toDateString", "toTimeString"]);
-const DATE_LOCALE_METHODS: ReadonlySet<string> = new Set(["toLocaleString", "toLocaleDateString", "toLocaleTimeString"]);
-
-// The listed Date methods take no arguments.
-const nativeDate = (name: string, d: Date): unknown => (d as unknown as Record<string, () => unknown>)[name].call(d);
-
-const DATE_METHODS: Record<string, MethodImpl> = methodTable(METHOD_NAMES.Date, (name) => {
-	if (DATE_TEXT_METHODS.has(name)) {
-		return (d: Date, _args: unknown[], budget: Budget) => {
-			budget.tick(PRICES.dateText);
-			return nativeDate(name, d);
-		};
-	}
-	if (DATE_LOCALE_METHODS.has(name)) {
-		return (d: Date, args: unknown[], budget: Budget) => {
-			viewerLocale(name, args);
-			budget.tick(PRICES.dateLocale);
-			return nativeDate(name, d);
-		};
-	}
-	return (d: Date) => nativeDate(name, d);
-});
-
-// ES2025's set algebra. Which side is walked depends on the sizes, exactly as the spec says, so the order of the result matches JS.
-const SET_METHODS: Record<string, MethodImpl> = table({
-	has: (s: Set<unknown>, [v]) => s.has(v),
-	union: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "union");
-		budget.tick(PRICES.hash * (s.size + o.size));
-		const out = new Set(s);
-		for (const k of o.keys()) out.add(k);
-		return out;
-	},
-	intersection: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "intersection");
-		const out = new Set();
-		if (s.size <= o.size) {
-			budget.tick(PRICES.hash * s.size);
-			for (const v of s) if (o.has(v)) out.add(v);
-		} else {
-			budget.tick(PRICES.hash * o.size);
-			for (const k of o.keys()) if (s.has(k)) out.add(k);
-		}
-		return out;
-	},
-	difference: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "difference");
-		budget.tick(PRICES.hash * (s.size + Math.min(s.size, o.size)));
-		const out = new Set(s);
-		if (s.size <= o.size) {
-			for (const v of s) if (o.has(v)) out.delete(v);
-		} else {
-			for (const k of o.keys()) out.delete(k);
-		}
-		return out;
-	},
-	symmetricDifference: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "symmetricDifference");
-		budget.tick(PRICES.hash * (s.size + o.size));
-		const out = new Set(s);
-		for (const k of o.keys()) {
-			if (s.has(k)) out.delete(k);
-			else out.add(k);
-		}
-		return out;
-	},
-	isSubsetOf: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "isSubsetOf");
-		if (s.size > o.size) return false;
-		budget.tick(PRICES.hash * s.size);
-		for (const v of s) if (!o.has(v)) return false;
-		return true;
-	},
-	isSupersetOf: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "isSupersetOf");
-		if (s.size < o.size) return false;
-		budget.tick(PRICES.hash * o.size);
-		for (const k of o.keys()) if (!s.has(k)) return false;
-		return true;
-	},
-	isDisjointFrom: (s: Set<unknown>, [other], budget) => {
-		const o = setArg(other, "isDisjointFrom");
-		budget.tick(PRICES.hash * Math.min(s.size, o.size));
-		if (s.size <= o.size) {
-			for (const v of s) if (o.has(v)) return false;
-		} else {
-			for (const k of o.keys()) if (s.has(k)) return false;
-		}
-		return true;
-	},
+	toLocaleString: formatNumber,
 });
 
 const MATH_OWN: Record<string, MethodImpl> = {
@@ -666,7 +553,5 @@ export const methodsOf = (obj: unknown): Record<string, MethodImpl> | undefined 
 	if (typeof obj === "number") return NUMBER_METHODS;
 	if (Array.isArray(obj)) return ARRAY_METHODS;
 	if (obj instanceof Namespace) return NAMESPACE_METHODS[obj.name];
-	if (obj instanceof Date) return DATE_METHODS;
-	if (obj instanceof Set) return SET_METHODS;
 	return undefined;
 };

@@ -19,7 +19,18 @@ describe("README", () => {
 	it("the callback examples", () => {
 		const ev = new Evaluator();
 		expect(ev.eval("Array.from({ length: 3 }, (_, i) => i)")).toEqual([0, 1, 2]);
+		expect(ev.eval("rows.filter(Boolean)", { rows: [0, 1, ""] })).toEqual([1]);
+		expect(ev.eval("ids.map(Number)", { ids: ["1", "2"] })).toEqual([1, 2]);
 		expect(() => ev.eval("[x => x]")).toThrow(/only be written as a method's callback/);
+	});
+
+	it("random values come from a host function; the time is in the language", () => {
+		const ev = new Evaluator({
+			functions: [{ name: "random", description: "A random number in [0, 1)", execute: () => Math.random() }],
+		});
+		expect(ev.eval<number>("random()")).toBeLessThan(1);
+		expect(() => ev.eval("Math.random()")).toThrow(/"Math.random\(\)" is not available/);
+		expect(typeof ev.eval("Date.now()")).toBe("number");
 	});
 
 	it("the constructor options", () => {
@@ -97,7 +108,6 @@ describe("README", () => {
 			name = "Ada";
 		}
 		expect(() => ev.eval("user", { user: new User() })).toThrow(/The result contains a User, which is not plain data/);
-		expect(() => ev.eval("new Date(0)")).toThrow(/The result contains a Date, which is not plain data/);
 		expect(() => ev.eval("scopes.fn", { scopes: { fn: () => 1 } })).toThrow(/"fn" holds a function, which cannot be read/);
 	});
 
@@ -117,8 +127,6 @@ describe("the README's language section matches the tables", () => {
 		Array: "array",
 		String: "string",
 		Number: "number",
-		Date: "Date",
-		Set: "Set",
 	};
 
 	it("lists every method of every receiver, and nothing else", () => {

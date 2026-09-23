@@ -2,7 +2,6 @@ import { MATH_CONSTANTS, NUMBER_CONSTANTS } from "../constants/globals";
 import { MAX_DATA_DEPTH, PRICES } from "../constants/limits";
 import { ExpressionError } from "../errors";
 import type { Budget } from "./budget";
-import { chargeDateText } from "./coerce";
 import { methodsOf } from "./methods";
 import { fail, isPlainObject, Namespace, plainData, reject, runtimeFault, typeName } from "./values";
 
@@ -11,7 +10,7 @@ import { fail, isPlainObject, Namespace, plainData, reject, runtimeFault, typeNa
 const ignore = (): void => {};
 
 // A bulk copy can carry a function past the per-read gate, so the whole value is walked.
-// Only JSON-shaped data leaves: a Date or a Set is for computing inside the expression.
+// Only JSON-shaped data leaves.
 // A promise may be the whole result, never a part of one and never an argument: nothing would await it.
 export const assertData = (value: unknown, where: string, wholePromise = false): void => {
 	let seen: Set<object> | null = null; // allocated only once nesting appears
@@ -37,10 +36,6 @@ export const assertData = (value: unknown, where: string, wholePromise = false):
 			promise = true;
 			// It has already started; this keeps a later rejection from going unhandled.
 			Promise.prototype.then.call(v, undefined, ignore);
-		} else if (v instanceof Date) {
-			reject(`${where} contains a Date, which is not plain data — pass date.toISOString() or date.getTime()`);
-		} else if (v instanceof Set) {
-			reject(`${where} contains a Set, which is not plain data — spread it into an array: [...set]`);
 		} else {
 			reject(`${where} contains a ${typeName(v)}, which is not plain data`);
 		}
@@ -117,11 +112,6 @@ const read = (obj: unknown, key: string | number): unknown => {
 		return reject(`"${obj.name}.${key}" is not available`);
 	}
 
-	if (obj instanceof Set) {
-		if (key === "size") return obj.size;
-		return reject(`"${key}" is not readable on a ${typeName(obj)}`);
-	}
-
 	if (typeof obj === "object" && isPlainObject(obj)) {
 		return Object.hasOwn(obj, key) ? noFunction((obj as Record<string | number, unknown>)[key], key) : undefined;
 	}
@@ -134,7 +124,6 @@ export const chargeResult = (value: unknown, what: string, budget: Budget): unkn
 	if (typeof value === "function") return reject(`"${what}" returned a function, which cannot be read in an expression`);
 	if (typeof value === "string") budget.string(value.length);
 	else if (Array.isArray(value)) budget.array(value.length);
-	else if (value instanceof Set) budget.array(value.size);
 	return value;
 };
 
@@ -157,53 +146,15 @@ export const callMember = (obj: unknown, rawKey: unknown, args: unknown[], budge
 	}
 };
 
-export const construct = (callee: unknown, args: unknown[], budget: Budget): unknown => {
-	budget.tick(PRICES.construct);
-	if (!(callee instanceof Namespace)) {
-		return reject(`"new" is only available for Date and Set`);
-	}
-	try {
-		return constructOne(callee.name, args, budget);
-	} catch (err) {
-		return runtimeFault(`new ${callee.name}`, err);
-	}
-};
-
-const constructOne = (name: string, args: unknown[], budget: Budget): unknown => {
-	switch (name) {
-		case "Date":
-			for (const arg of args) chargeDateText(arg, budget);
-			return Reflect.construct(Date, args);
-		case "Set": {
-			const [source] = args;
-			const size = source === undefined || source === null ? 0 : iterableSize(source);
-			// Anything else would be iterated by the engine, uncharged.
-			if (size === null) return reject("new Set needs an array, a string or a Set");
-			budget.array(size);
-			budget.tick(PRICES.hash * size);
-			return new Set(source as Iterable<unknown> | null | undefined);
-		}
-		default:
-			return reject(`"new ${name}" is not available`);
-	}
-};
-
 // A computed `__proto__` key becomes an own key, as in JS.
 export const defineKey = (target: Record<string, unknown>, rawKey: unknown, value: unknown): void => {
 	Object.defineProperty(target, String(asKey(rawKey)), { value, writable: true, enumerable: true, configurable: true });
 };
 
-const iterableSize = (v: unknown): number | null => {
-	if (Array.isArray(v) || typeof v === "string") return v.length;
-	if (v instanceof Set) return v.size;
-	return null;
-};
-
 export const pushSpread = (out: unknown[], value: unknown, budget: Budget): void => {
-	const size = iterableSize(value);
-	if (size === null) reject("Only arrays, strings, and Sets can be spread here");
-	budget.growArray(out.length + size, size);
-	out.push(...(value as Iterable<unknown>));
+	if (!Array.isArray(value) && typeof value !== "string") reject("Only arrays and strings can be spread here");
+	budget.growArray(out.length + value.length, value.length);
+	out.push(...value);
 };
 
 // The engine copies; only an own `__proto__` key, which assignment would turn into a prototype, is copied by hand.

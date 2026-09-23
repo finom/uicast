@@ -89,24 +89,21 @@ it("plain data still flows", () => {
 	expect(ev.eval("Object.values({ a: 1, b: 2 })")).toEqual([1, 2]);
 	expect(ev.eval("Object.entries({ a: 1 })")).toEqual([["a", 1]]);
 	expect(ev.eval("Object.fromEntries([['a', 1]])")).toEqual({ a: 1 });
-	expect(ev.eval("Object.fromEntries(new Set([['a', 1]]))")).toEqual({ a: 1 });
-	expect(ev.eval("[new Date(0), new Set([1])].length")).toBe(2);
 	// a cycle in host data is walked once, not forever
 	expect(ev.eval("scopes.self", ctx)).toBe(ctx.scopes.self);
 });
 
 describe("only JSON-shaped data leaves", () => {
-	it("a Date or a Set is refused as the result or a host function's input, with the conversion to write", () => {
+	it("a Date or a Set from a context is refused as the result or a host function's input", () => {
 		let received: unknown = "untouched";
 		const send = { name: "send", description: "", execute: (i: unknown) => (received = i) } as StandardToolV0;
 		const ev = new Evaluator({ functions: [send] });
-		expect(() => ev.eval("new Date(0)")).toThrow(/The result contains a Date.*toISOString/);
-		expect(() => ev.eval("({ when: new Date(0) })")).toThrow(/contains a Date/);
-		expect(() => ev.eval("new Set([1])")).toThrow(/The result contains a Set.*\[\.\.\.set\]/);
-		expect(() => ev.eval("send({ tags: new Set(['a']) })")).toThrow(/"send" argument contains a Set/);
+		const context = { d: new Date(0), s: new Set(["a"]) };
+		expect(() => ev.eval("d", context)).toThrow(/The result contains a Date, which is not plain data/);
+		expect(() => ev.eval("({ when: d })", context)).toThrow(/contains a Date/);
+		expect(() => ev.eval("send({ tags: s })", context)).toThrow(/"send" argument contains a Set/);
+		expect(() => ev.eval("d.toString()", context)).toThrow(/not an available method on Date/);
 		expect(received).toBe("untouched");
-		expect(ev.eval("new Date(0).toISOString()")).toBe("1970-01-01T00:00:00.000Z");
-		expect(ev.eval("[...new Set([1, 1, 2])]")).toEqual([1, 2]);
 	});
 });
 

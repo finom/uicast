@@ -21,7 +21,7 @@ describe("binding", () => {
 		expect([...Object.keys(PLATFORM_GLOBALS)].sort()).toEqual([...ALLOWED_GLOBALS].sort());
 		expect(ev.eval("Math.max(1, 2) + parseInt('3') + (undefined === undefined ? 1 : 0)")).toBe(6);
 		expect(ev.eval("[NaN, Infinity].map(v => typeof v)")).toEqual(["number", "number"]);
-		expect(ev.eval("new Date(0).getTime()")).toBe(0);
+		expect(ev.eval('Date.parse("1970-01-01T00:00:00Z")')).toBe(0);
 	});
 
 	it("a context value shadows a global", () => {

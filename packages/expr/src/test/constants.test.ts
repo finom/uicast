@@ -15,8 +15,6 @@ describe("constants and runtime tables agree", () => {
 			array: [],
 			string: "",
 			number: 1,
-			Date: new Date(0),
-			Set: new Set(),
 		};
 		expect(sorted(Object.keys(samples))).toEqual(sorted(Object.keys(METHOD_NAMES)));
 		for (const [kind, sample] of Object.entries(samples)) {

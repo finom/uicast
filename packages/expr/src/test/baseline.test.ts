@@ -8,9 +8,6 @@ const NEWER: [object, string][] = [
 	[String.prototype, "isWellFormed"],
 	[String.prototype, "toWellFormed"],
 	[Object, "groupBy"],
-	...["union", "intersection", "difference", "symmetricDifference", "isSubsetOf", "isSupersetOf", "isDisjointFrom"].map(
-		(name): [object, string] => [Set.prototype, name],
-	),
 	[Math, "f16round"],
 	[Math, "sumPrecise"],
 ];

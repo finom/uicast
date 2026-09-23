@@ -6,7 +6,6 @@ export const ALLOWED_NODES: ReadonlySet<string> = new Set([
 	"MemberExpression",
 	"ChainExpression",
 	"CallExpression",
-	"NewExpression",
 	"UnaryExpression",
 	"BinaryExpression",
 	"LogicalExpression",

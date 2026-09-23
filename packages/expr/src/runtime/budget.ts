@@ -26,6 +26,7 @@ export class Budget {
 	private startedAt = 0;
 	private nextClockCheck = CLOCK_EVERY;
 	private nextCheck: number;
+	private charged: Set<string> | null = null;
 
 	constructor(private readonly limits: Required<BudgetOptions>) {
 		this.nextCheck = Math.min(CLOCK_EVERY, limits.steps);
@@ -46,6 +47,14 @@ export class Budget {
 			else if (t - this.startedAt > this.limits.ms) exceeded("Expression exceeded its time budget");
 		}
 		this.nextCheck = Math.min(this.nextClockCheck, this.limits.steps);
+	}
+
+	// Charges `cost` the first time `key` comes up in this evaluation.
+	once(key: string, cost: number): void {
+		this.charged ??= new Set();
+		if (this.charged.has(key)) return;
+		this.charged.add(key);
+		this.tick(cost);
 	}
 
 	string(length: number): void {

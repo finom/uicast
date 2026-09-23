@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PRICES } from "../constants/limits";
 import { Evaluator } from "../index";
 
 const ev = new Evaluator();
@@ -30,19 +31,18 @@ describe("Math.sumPrecise", () => {
 });
 
 describe("locale-aware calls", () => {
-	it("use the viewer's locale and refuse a locale or options, before anything runs", () => {
-		expect(ev.eval(`(1234.5).toLocaleString()`)).toBe((1234.5).toLocaleString());
-		expect(ev.eval(`"a".localeCompare("b")`)).toBe("a".localeCompare("b"));
-		for (const expr of [
-			`(1).toLocaleString(undefined)`,
-			`(1.5).toLocaleString("en", { maximumFractionDigits: 0 })`,
-			`new Date(0).toLocaleDateString("en-US")`,
-			`new Date(0).toLocaleTimeString(undefined, { hour: "2-digit" })`,
-			`"i".toLocaleUpperCase("tr")`,
-			`"a".localeCompare("b", "en")`,
-			`[1].toLocaleString(...["de"])`,
-		]) {
-			expect(() => ev.validate(expr), expr).toThrow(/uses the viewer's locale/);
-		}
+	it("charge building a locale's Intl object once per evaluation, whether it was cached or not", () => {
+		ev.eval(`(1).toLocaleString("fr-FR")`);
+		const tight = new Evaluator({ budget: { steps: PRICES.intlBuild } });
+		expect(() => tight.eval(`(1).toLocaleString("fr-FR")`)).toThrow(/step budget/);
+		const roomy = new Evaluator({ budget: { steps: PRICES.intlBuild + 8 * PRICES.locale + 200 } });
+		expect(roomy.eval(`[1, 2, 3].map(n => n.toLocaleString("fr-FR")).length`)).toBe(3);
+	});
+
+	it("keep options apart that JSON would print alike", () => {
+		expect(ev.eval(`(1.5).toLocaleString("en", { maximumFractionDigits: 0 })`)).toBe("2");
+		expect(() => ev.eval(`(1.5).toLocaleString("en", { maximumFractionDigits: NaN })`)).toThrow();
+		expect(() => ev.eval(`(1).toLocaleString(null)`)).toThrow();
+		expect(ev.eval(`(1).toLocaleString(undefined)`)).toBe((1).toLocaleString());
 	});
 });

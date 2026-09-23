@@ -10,10 +10,6 @@ export const textCost = (length: number): number => Math.ceil(length / TEXT_CHAR
 
 // Widest a JSON scalar prints: `-1.7976931348623157e+308` is 24 characters.
 export const JSON_SCALAR_WIDTH = 24;
-// A date's `toString`, with the longest time zone names.
-export const DATE_TEXT_WIDTH = 100;
-// A date in JSON: its ISO string in quotes, six-digit years included.
-const DATE_JSON_WIDTH = 29;
 
 // Nested arrays join too. A function would print its source.
 export const joinedSize = (items: unknown[], budget: Budget): number => {
@@ -22,7 +18,6 @@ export const joinedSize = (items: unknown[], budget: Budget): number => {
 		budget.tick(1);
 		if (typeof item === "string") size += item.length;
 		else if (Array.isArray(item)) size += joinedSize(item, budget);
-		else if (item instanceof Date) size += DATE_TEXT_WIDTH;
 		else if (typeof item === "function") reject("An array holds a function, which cannot be read in an expression");
 		else size += JSON_SCALAR_WIDTH;
 	}
@@ -33,7 +28,6 @@ export const joinedSize = (items: unknown[], budget: Budget): number => {
 export const textSize = (v: unknown, budget: Budget): number => {
 	if (typeof v === "string") return v.length;
 	if (Array.isArray(v)) return joinedSize(v, budget);
-	if (v instanceof Date) return DATE_TEXT_WIDTH;
 	return JSON_SCALAR_WIDTH;
 };
 
@@ -109,7 +103,6 @@ export const jsonSize = (
 	budget.tick(1);
 	if (typeof value === "string") return value.length + 2;
 	if (value instanceof Namespace) globals.found = true;
-	if (value instanceof Date) return DATE_JSON_WIDTH;
 	if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
 	const newline = 1 + indent * (depth + 1);
 	let size = 2;
