@@ -28,7 +28,7 @@ const system = [...parts].filter(Boolean).join("\n\n");
 | `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
 | `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
 | `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/functions). |
-| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/expr#two-evaluators) rules. |
+| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/security#what-stays-your-job) rules. |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat-surface fence convention — see [Chat surfaces](#chat-surfaces). |
 
 Every builder also takes **`note?`** — host-specific context rendered as that
@@ -79,7 +79,7 @@ A typical response on this surface is around 10 elements (JSONL lines) — treat
 ```
 
 **Expressions** carries the standing
-[safety instruction](/expr#two-evaluators), so every assembly ships it
+[safety instruction](/security#what-stays-your-job), so every assembly ships it
 without the host adding anything. Its allow-list line is a slot in the authored
 `EXPRESSIONS.md`:
 

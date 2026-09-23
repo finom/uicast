@@ -9,6 +9,7 @@ const meta: MetaRecord = {
   skill: "Agent skill",
   concepts: "Concepts",
   expr: "The expression evaluator",
+  "custom-expr": "Custom evaluator",
   def: "Component definition",
   react: {
     title: "React",

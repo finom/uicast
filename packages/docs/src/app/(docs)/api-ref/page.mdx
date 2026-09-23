@@ -60,8 +60,8 @@ it.
 
 | Export | What it does |
 |---|---|
-| `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs; `budget` sets the ceilings. |
-| `ExpressionEvaluator` | The interface both evaluators implement and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator of your own, for any language. |
+| `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/functions) at construction, which is what lets a call be checked before it runs; `budget` sets the ceilings. A subclass that sets `toFunction` runs expressions with `new Function` — see [Custom evaluator](/custom-expr). |
+| `ExpressionEvaluator` | The interface `Evaluator` implements and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator for another language. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
 Types: `EvaluatorOptions`, `EvaluatorContexts`,
@@ -70,19 +70,8 @@ Types: `EvaluatorOptions`, `EvaluatorContexts`,
 verbatim from `standard-tool` and the Standard Schema spec; a tool built with
 `standard-tool` satisfies it as-is.
 
-There is also `@uicast/expr/internal`, shared with core and the passthrough
-package. It carries **no semver guarantee** — don't build on it.
-
-## `@uicast/expr-passthrough`
-
-The same language run by the engine through `new Function` — for documents
-from a trusted author; see [Two evaluators](/expr#two-evaluators).
-
-| Export | What it does |
-|---|---|
-| `PassthroughEvaluator` | `Evaluator`'s options minus `budget`, same methods; its own class, built on `@uicast/expr`'s static checks. Needs CSP `unsafe-eval`. |
-
-Types: `PassthroughEvaluatorOptions`.
+There is also `@uicast/expr/internal`, shared with core. It carries **no
+semver guarantee** — don't build on it.
 
 ## `@uicast/react`
 

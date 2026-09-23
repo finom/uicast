@@ -1,0 +1,100 @@
+---
+title: Custom evaluator
+---
+
+# Custom evaluator
+
+## What an evaluator does
+
+Every expression in a document runs on one object: the evaluator you pass to
+the renderer.
+
+```tsx
+import { Evaluator } from "@uicast/expr";
+
+const evaluator = new Evaluator({ functions });
+
+<RendererProvider implementations={impls} evaluator={evaluator}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
+
+For each expression it:
+
+1. **checks** the source against [the language](/expr#the-language), once per
+   source;
+2. **reports** the `scopes` paths the expression reads and the host functions
+   it calls, so **uicast** knows when to re-evaluate it and what to await;
+3. **runs** it, with `scopes`, `evt`, `currentValue`, the host functions and
+   the language's globals in scope;
+4. **checks the result**: only plain data leaves.
+
+`Evaluator` runs step 3 in an interpreter. Every read and call is checked as it
+happens, under a [budget](/expr#budgets), and no source reaches the JavaScript
+engine, so the page needs no `unsafe-eval`. A subclass can hand step 3 to the
+engine instead.
+
+## A faster evaluator
+
+```ts
+import { Evaluator } from "@uicast/expr";
+
+export class FunctionEvaluator extends Evaluator {
+  protected override toFunction(names: readonly string[], body: string) {
+    return new Function(...names, body);
+  }
+}
+
+const evaluator = new FunctionEvaluator({ functions });
+```
+
+**uicast** does not ship this class: copy it. `toFunction` runs once per
+expression and gets the arguments `new Function` takes. Steps 1, 2 and 4 stay
+as they are. The JavaScript engine runs step 3.
+
+The reason to do it is speed. Same expressions, measured with
+`npx vitest bench --run --root packages/expr`:
+
+| expression | in a document | `Evaluator` | `FunctionEvaluator` |
+| --- | --- | --- | --- |
+| `scopes.root.count > 0` | a `hidden` condition | ~80 ns | ~29 ns |
+| `scopes.root.user.name` | any scope read | ~115 ns | ~38 ns |
+| template, two interpolations | a text prop | ~255 ns | ~56 ns |
+| object literal from scope | every `props.expr` | ~260 ns | ~93 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–63 µs | 0.7–1.9 µs |
+| a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms | ~0.26 ms |
+
+A single expression runs 3–5× faster. A loop over data runs 20–90× faster,
+because the engine runs the loop.
+
+What the speed costs:
+
+- **No budget.** Nothing meters the engine, and the `budget` option does
+  nothing. `"x".repeat(1e9)` runs.
+- **No check at run time.** A name built while the expression runs reaches
+  whatever it names. `"abc"["sub" + "str"](1)` returns `"bc"`, and
+  `[({}).constructor.constructor][0]("…")()` reaches `Function`, which runs any
+  code.
+- **`unsafe-eval`.** The page's Content-Security-Policy has to allow it.
+
+### The model is the first line of defence
+
+With `FunctionEvaluator`, step 1 still refuses what it can see: statements,
+assignment, regular expressions, unknown names, methods outside the
+allow-list. It cannot see a name built at run time. From there, an expression
+can do anything the page can: call `fetch`, read cookies, change the DOM.
+
+So you bet on the author. A production model that follows
+[the prompt contract](/prompt) in your own pipeline is a fair bet: asked for a
+dashboard, a good model does not write `obj["__pro" + "to__"]`. A stranger's
+prompt is not. Neither is text the model reads along the way: a user's
+message, a fetched page, a tool result someone else can write. Any of them can
+carry instructions.
+
+`Evaluator` does not depend on the model. The interpreter refuses an escape
+whether the model meant it or not. The prompt tells the model that text inside
+data is data, not instructions. That makes bad output rare; the interpreter is
+what stops it.
+
+Use `FunctionEvaluator` only when nothing untrusted reaches the prompt: your
+own pipeline, an admin tool, your tests.

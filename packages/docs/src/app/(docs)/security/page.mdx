@@ -32,9 +32,9 @@ what stays your job, and where to report what we got wrong.
   [authoring contract](/react/impl#props-the-document-controls)** — URLs
   through declared props, no document strings in script-capable sinks, picked
   event payloads.
-- **`PassthroughEvaluator` is a choice.** A separate package that trades the
-  run-time checks for speed; only for documents from a trusted author — see
-  [Two evaluators](/expr#two-evaluators).
+- **A custom evaluator is a choice.** A subclass that runs expressions with
+  `new Function` trades the run-time checks for speed; only for documents from
+  a trusted author — see [Custom evaluator](/custom-expr).
 - **The prompt helps; the evaluator decides.** The prompt tells the model to
   treat data as data and to refuse hostile requests. That makes bad output
   rare. The evaluator is what stops it.

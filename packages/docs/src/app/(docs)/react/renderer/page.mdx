@@ -250,17 +250,14 @@ const evaluator = new Evaluator({
 ```
 
 `Evaluator` checks each read and call at run time and needs no CSP
-`unsafe-eval` — the choice for any document you did not author yourself.
-`PassthroughEvaluator` from `@uicast/expr-passthrough` takes the same options
-minus `budget` and runs the source with `new Function`: several times faster,
-`unsafe-eval` required, and a [run-time-assembled key](/expr#two-evaluators)
-goes unchecked. Only for documents from a trusted author — your own pipeline,
-an admin. See [Two evaluators](/expr#two-evaluators).
+`unsafe-eval` — the choice for any document you did not author yourself. For
+documents from a trusted author, a [custom evaluator](/custom-expr) runs the
+same expressions with `new Function`.
 
 The prop is typed as `ExpressionEvaluator`, the interface from `@uicast/expr`
-that both evaluators implement (`@uicast/core` re-exports it). An evaluator of
-your own — a different policy, or a different language with its own prompt —
-implements it and plugs in the same way.
+that `Evaluator` implements (`@uicast/core` re-exports it). An evaluator for
+another language, with its own prompt, implements it and plugs in the same
+way.
 
 ### Expression length
 
@@ -383,4 +380,5 @@ Nothing checks that the note and the object agree. Keep them in step yourself.
 
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
-- [The expression evaluator](/expr) — what runs inside an entry, and the two evaluators.
+- [The expression evaluator](/expr) — what runs inside an entry.
+- [Custom evaluator](/custom-expr) — running expressions with `new Function`.

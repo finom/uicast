@@ -18,47 +18,36 @@ function values. Anything outside it is refused before it runs. The package pars
 interprets it itself; nothing reaches the engine's `eval`. It has no **uicast**
 dependency and works standalone.
 
-## Two evaluators
+## How an expression runs
 
-One grammar, one validator, two ways to run what passes:
-
-- **`Evaluator`** (`@uicast/expr`) — the default. The AST is compiled to a tree
-  of closures the package evaluates itself. Every property read and every call
-  is checked as it happens, under a CPU and allocation [budget](#budgets). The
-  package never hands source to the JavaScript engine, so it runs under a strict
-  Content-Security-Policy — no `unsafe-eval`. Use it whenever someone else can
-  steer the document: multi-tenant products, customer prompts, replayed pages.
-- **`PassthroughEvaluator`** (`@uicast/expr-passthrough`) — the same static
-  checks, then the source runs through `new Function`. Several times faster,
-  needs `unsafe-eval`, and a property name assembled at run time goes unchecked.
-  Only for documents from a trusted author — your own pipeline, an admin — never
-  for anything a stranger can steer.
-
-Both take the same options and implement `ExpressionEvaluator`, so switching
-is the class name. **uicast** types against that interface, so an evaluator of
-your own can implement it too:
+`Evaluator` compiles the AST to a tree of closures and evaluates it itself.
+Every property read and every call is checked as it happens, under a CPU and
+allocation [budget](#budgets). The package never hands source to the
+JavaScript engine, so it runs under a strict Content-Security-Policy — no
+`unsafe-eval`.
 
 ```tsx
 import { Evaluator } from "@uicast/expr";
-import { PassthroughEvaluator } from "@uicast/expr-passthrough";
 
 const evaluator = new Evaluator({ functions });
-const evaluator = new PassthroughEvaluator({ functions });
 
 <RendererProvider evaluator={evaluator} /> // the React binding
 ```
 
-The difference in guarantee comes down to one line of JavaScript:
+A subclass can run expressions with `new Function` instead, for speed: see
+[Custom evaluator](/custom-expr).
+
+Checking at run time matters because of one line of JavaScript:
 
 ```js
-"abc".substr(1)            // refused by both — `substr` is not in the language
+"abc".substr(1)            // refused — `substr` is not in the language
 "abc"["sub" + "str"](1)    // the same call — the name exists only at run time
 ```
 
 A validator sees written names; JavaScript resolves keys when it runs. Under
 `Evaluator` the call itself is the checkpoint, so both lines above are the same
-event and get the same rejection; under `PassthroughEvaluator` the second line
-runs and returns `"bc"`. Three rules do most of the interpreter's work:
+event and get the same rejection. Three rules do most of the interpreter's
+work:
 
 - **Plain objects are read by own property only.** Nothing walks a prototype
   chain, so `constructor`, `toString` and everything else inherited is simply
@@ -68,28 +57,6 @@ runs and returns `"bc"`. Three rules do most of the interpreter's work:
   — a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
 - **Methods are invoked, never handed around.** `rows.map(f)` works; `rows.map`
   as a value is an error, so nothing can be re-bound.
-
-## With the passthrough evaluator, the model is the first line of defence
-
-This section is about `PassthroughEvaluator` only. It trusts whoever wrote the
-document. The shared validator still refuses what it can see: statements,
-assignment, regular expressions, unknown names, method calls outside the
-allow-list, and written prototype names (`obj.constructor`, `obj["__proto__"]`).
-It cannot see a name built at run time.
-`rows["so" + "rt"]()` reaches the real `sort` and changes the array. Allocation
-has no cap.
-
-So you bet on the author. A production model that follows
-[the prompt contract](/prompt) in your own pipeline is a fair bet: asked for a
-dashboard, a good model does not write `obj["__pro" + "to__"]`. A stranger's
-prompt is not. That is why it is a separate package and `Evaluator` is the
-default.
-
-`Evaluator`, the default, does not depend on the model at all. The interpreter
-refuses an escape whether the model meant it or not. With a good model you rarely see a
-rejection, and the [prompt](/prompt) already tells the model that text inside
-data is data, not instructions. That makes bad output rare. The interpreter is
-what stops it.
 
 ## Where expressions appear
 
@@ -126,7 +93,7 @@ that works, and why paths must be written out literally, is on
 ## The language
 
 The grammar is a closed allow-list of AST node types: anything not on it fails
-validation, in both evaluators.
+validation.
 
 | | |
 | --- | --- |
@@ -161,6 +128,8 @@ What is missing is deliberate:
   JavaScript: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`.
 - **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
   an ISO string, or a timestamp from `Date.parse(text)` or `Date.now()`.
+  Formatting a date belongs in a component: see
+  [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time).
   `Object.keys(Object.groupBy(rows, r => r.tag))` lists the distinct tags, and
   an object does a `Map`'s job.
 - **`forEach`, iterators.** A callback has no effect for `forEach` to run it
@@ -185,11 +154,11 @@ construction**: the only way to change state is a step's `set`, and
 `.reverse()` are not in the language — order with `.toSorted()`, reverse with
 `.toReversed()`, the standard non-mutating pair.
 
-They are also **stateless**: `Math.random` is absent and there is nothing to
-store a counter in. The one seam left open is the clock — `Date` is
-allow-listed, so `Date.now()` does not fail, it *drifts*. A reactive site
-re-evaluates whenever a path it reads changes, so produce a timestamp once in
-a step and read it back:
+They are also **stateless**: `Math.random` is absent (a random value comes
+from a host function), and there is nothing to store a counter in. The one
+seam left open is the clock — `Date` is allow-listed, so `Date.now()` does not
+fail, it *drifts*. A reactive site re-evaluates whenever a path it reads
+changes, so produce a timestamp once in a step and read it back:
 
 ```jsonc
 // ❌ a new timestamp every render pass
@@ -241,10 +210,6 @@ long evaluation first. Slowed 12×, heavier operations such as locale
 formatting can reach the clock first. So can comparing two long strings,
 which runs at memory speed for one step.
 
-`PassthroughEvaluator` keeps only the AST depth and source-length limits; the
-engine runs real methods with no counter around them — part of the
-trusted-author trade.
-
 ## When an expression is rejected
 
 A rejection is a classified
@@ -261,23 +226,20 @@ A rejection is a classified
 ## Performance
 
 The walk happens once, at compile time, and produces closures — evaluation
-afterwards is nested function calls. Both evaluators against bare
-`new Function`, same expressions (`npx vitest bench --run --root packages/expr-passthrough`):
+afterwards is nested function calls. Measured with
+`npx vitest bench --run --root packages/expr`:
 
-| expression | in a document | `Evaluator` | `PassthroughEvaluator` | bare `new Function` |
-| --- | --- | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~80 ns | ~36 ns | ~22 ns |
-| `scopes.root.user.name` | any scope read | ~115 ns | ~46 ns | ~27 ns |
-| template, two interpolations | a text prop | ~225 ns | ~61 ns | ~32 ns |
-| object literal from scope | every `props.expr` | ~255 ns | ~99 ns | ~29 ns |
-| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–58 µs | 0.7–1.9 µs | 0.7–1.8 µs |
-| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.73 ms | ~0.32 ms | ~0.06 ms |
+| expression | in a document | `Evaluator` |
+| --- | --- | --- |
+| `scopes.root.count > 0` | a `hidden` condition | ~80 ns |
+| `scopes.root.user.name` | any scope read | ~115 ns |
+| template, two interpolations | a text prop | ~255 ns |
+| object literal from scope | every `props.expr` | ~260 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–63 µs |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms |
 
-In `PassthroughEvaluator` the engine does the work, binding included: the
-compiled function looks its names up in the contexts itself, in one fixed-arity
-call. What remains is the name lookup and the exit gate both evaluators walk
-before a result leaves — the object-literal row is that walk. Anything that
-loops over data runs at engine speed.
+The same expressions run through the engine are on
+[Custom evaluator](/custom-expr#a-faster-evaluator).
 
 The absolute numbers are what matter: the worst-case row — a 1000-row table,
 five expression sites per row, all re-evaluating at once — costs under a
@@ -340,17 +302,18 @@ Three suites verify the implementation:
   techniques — reading `constructor` through a computed key, polluting
   `Object.prototype`, allocation bombs, recursion tricks, a live object placed
   in scope — and assert that none reaches anything.
-- **Against the other evaluator.** The parity suite in `@uicast/expr-passthrough`
-  runs the same list a third time, through `PassthroughEvaluator`, checks that
-  everything the grammar forbids fails in both, and pins the residual:
-  `"abc"["sub" + "str"](1)` throws under `Evaluator` and returns `"bc"` under
-  `PassthroughEvaluator`. The limitation described on this page is verified by
-  a test, not just stated.
+- **Through the engine.** The same list runs through the subclass on
+  [Custom evaluator](/custom-expr) and must agree with plain JavaScript; every
+  refusal of the language holds there too. What that subclass gives up is
+  pinned as well: `"abc"["sub" + "str"](1)` throws under `Evaluator` and
+  returns `"bc"` through the engine. The limit described there is verified by a
+  test, not just stated.
 
 ## Reviewing the package
 
-One runtime dependency (acorn) and no `new Function` anywhere in the package —
-the engine back end is a separate package. Every rule is an allow-list held as data in `src/constants/` — grammar,
+One runtime dependency (acorn) and no `new Function` anywhere in the package:
+the engine runs an expression only in a subclass you write
+([Custom evaluator](/custom-expr)). Every rule is an allow-list held as data in `src/constants/` — grammar,
 globals, methods per receiver, caps — and the interpreter carries no deny-list:
 nothing inherited is readable, so no name has to be refused by name. A test
 holds the runtime tables equal to the constants, and the README's language
@@ -362,13 +325,13 @@ corpus), `exit-gate.test.ts` (nothing but plain data leaves),
 (null-prototype tables), `corpus.test.ts` (agreement with plain JavaScript),
 `baseline.test.ts` (the same corpus on an ES2022 engine, every newer built-in
 deleted), `prices.test.ts` (every operation within 4× a plain step's time),
-and the parity suite in `@uicast/expr-passthrough`.
+and `hooks.test.ts` (the same corpus through the engine).
 
 <Callout type="warning">
   Any evaluator of untrusted expressions can carry implementation bugs, and
   this one is no exception. The risk is bounded — a grammar small enough to
   review, tested differentially and adversarially — not eliminated. The claim
   is precise: `Evaluator` closes the computed-key class outright and needs no
-  `unsafe-eval`; `PassthroughEvaluator` keeps that residual by an explicit,
-  documented choice.
+  `unsafe-eval`; a [custom evaluator](/custom-expr) that runs expressions
+  through the engine gives that up by choice.
 </Callout>
