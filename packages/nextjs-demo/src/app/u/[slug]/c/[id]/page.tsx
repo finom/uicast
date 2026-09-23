@@ -9,11 +9,7 @@ import type { Usage } from "@/components/cost-info";
 
 export const dynamic = "force-dynamic";
 
-export default async function UserChat({
-  params,
-}: {
-  params: Promise<{ slug: string; id: string }>;
-}) {
+export default async function UserChat({ params }: PageProps<"/u/[slug]/c/[id]">) {
   const { slug, id } = await params;
   const [row] = await db
     .select({ chat: chats })

@@ -5,7 +5,7 @@ import { pages } from "@/db/schema";
 import { pageUpdate } from "@/db/zod";
 import { idParam, json, readValid, requireUser } from "@/lib/api";
 
-export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: NextRequest, { params }: RouteContext<"/api/pages/[id]">) {
   const auth = await requireUser();
   if ("error" in auth) return auth.error;
   const id = await idParam(params);

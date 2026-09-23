@@ -8,11 +8,7 @@ import { PageView } from "@/components/page-view";
 
 export const dynamic = "force-dynamic";
 
-export default async function UserPage({
-  params,
-}: {
-  params: Promise<{ slug: string; id: string }>;
-}) {
+export default async function UserPage({ params }: PageProps<"/u/[slug]/p/[id]">) {
   const { slug, id: rawId } = await params;
   const id = Number(rawId);
   const [row] = Number.isNaN(id)

@@ -8,7 +8,7 @@ import { getSessionUser, getUserBySlug } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-export default async function UserIndex({ params }: { params: Promise<{ slug: string }> }) {
+export default async function UserIndex({ params }: PageProps<"/u/[slug]">) {
   const { slug } = await params;
   const user = await getUserBySlug(slug);
   if (!user) notFound();

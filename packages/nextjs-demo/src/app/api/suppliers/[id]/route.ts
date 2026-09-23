@@ -6,7 +6,7 @@ import { products, suppliers } from "@/db/schema";
 import { supplierUpdate } from "@/db/zod";
 import { idParam, json, ownerForRead, readValid, requireUser } from "@/lib/api";
 
-type Ctx = { params: Promise<{ id: string }> };
+type Ctx = RouteContext<"/api/suppliers/[id]">;
 
 const COLS = publicColumns(suppliers);
 
