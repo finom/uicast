@@ -51,12 +51,13 @@ line waits for its newline.
 import { Streamdown } from "streamdown";
 import { RendererProvider } from "@uicast/react";
 import { createFenceRenderer } from "@uicast/streamdown";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { Evaluator } from "@uicast/expr";
 import { tools } from "./tools";
 
 const evaluator = new Evaluator({ functions: tools });
 const fenceRenderer = createFenceRenderer();
+const impls = Object.values(catalogImpls);
 
 export function Chat({ replies }: { replies: string[] }) {
   return (

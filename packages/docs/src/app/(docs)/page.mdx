@@ -65,7 +65,7 @@ and a CPU and allocation budget. The JavaScript engine never executes generated
 text, so a **uicast** app runs under a strict Content-Security-Policy — no
 `unsafe-eval`.
 
-Need more speed? A [custom evaluator](/custom-expr) runs expressions with
+Need more speed? A [custom evaluator](/expr/custom-expr) runs expressions with
 `new Function` after the same checks — several times faster, and only for
 documents from a trusted author: your own pipeline, an admin, never a stranger.
 

@@ -35,7 +35,7 @@ const evaluator = new Evaluator({ functions });
 ```
 
 A subclass can run expressions with `new Function` instead, for speed: see
-[Custom evaluator](/custom-expr).
+[Custom evaluator](/expr/custom-expr).
 
 Checking at run time matters because of one line of JavaScript:
 
@@ -79,7 +79,7 @@ object, `literal` is taken as-is. `hidden` and `each` are **bare strings**, not
 value sources.
 
 Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
-may call host [`functions`](/functions) — the two sites where an async result
+may call host [`functions`](/expr/functions) — the two sites where an async result
 is awaited; a host call in `props`, `hidden`, or `each` is rejected into the
 error slot. A `set` step also sees
 [`currentValue`](/entry/value-sources#valuesourceassignment) — whatever is at
@@ -239,7 +239,7 @@ afterwards is nested function calls. Measured with
 | re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms |
 
 The same expressions run through the engine are on
-[Custom evaluator](/custom-expr#a-faster-evaluator).
+[Custom evaluator](/expr/custom-expr#a-faster-evaluator).
 
 The absolute numbers are what matter: the worst-case row — a 1000-row table,
 five expression sites per row, all re-evaluating at once — costs under a
@@ -303,7 +303,7 @@ Three suites verify the implementation:
   `Object.prototype`, allocation bombs, recursion tricks, a live object placed
   in scope — and assert that none reaches anything.
 - **Through the engine.** The same list runs through the subclass on
-  [Custom evaluator](/custom-expr) and must agree with plain JavaScript; every
+  [Custom evaluator](/expr/custom-expr) and must agree with plain JavaScript; every
   refusal of the language holds there too. What that subclass gives up is
   pinned as well: `"abc"["sub" + "str"](1)` throws under `Evaluator` and
   returns `"bc"` through the engine. The limit described there is verified by a
@@ -313,7 +313,7 @@ Three suites verify the implementation:
 
 One runtime dependency (acorn) and no `new Function` anywhere in the package:
 the engine runs an expression only in a subclass you write
-([Custom evaluator](/custom-expr)). Every rule is an allow-list held as data in `src/constants/` — grammar,
+([Custom evaluator](/expr/custom-expr)). Every rule is an allow-list held as data in `src/constants/` — grammar,
 globals, methods per receiver, caps — and the interpreter carries no deny-list:
 nothing inherited is readable, so no name has to be refused by name. A test
 holds the runtime tables equal to the constants, and the README's language
@@ -332,6 +332,6 @@ and `hooks.test.ts` (the same corpus through the engine).
   this one is no exception. The risk is bounded — a grammar small enough to
   review, tested differentially and adversarially — not eliminated. The claim
   is precise: `Evaluator` closes the computed-key class outright and needs no
-  `unsafe-eval`; a [custom evaluator](/custom-expr) that runs expressions
+  `unsafe-eval`; a [custom evaluator](/expr/custom-expr) that runs expressions
   through the engine gives that up by choice.
 </Callout>

@@ -27,7 +27,7 @@ const system = [...parts].filter(Boolean).join("\n\n");
 | `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | The output contract — JSONL entries, keys and children, partial replacement — and the expression context: `scopes` / `evt` / `currentValue` and the host-function calling rule. |
 | `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
 | `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
-| `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/functions). |
+| `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/expr/functions). |
 | `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/security#what-stays-your-job) rules. |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat-surface fence convention — see [Chat surfaces](#chat-surfaces). |
 
@@ -93,9 +93,9 @@ test holds the rest of the section to the same standard: no method it advertises
 is one the evaluator would refuse.
 
 **Functions** renders the tool array. Its signature format,
-[undeclared returns](/functions#undeclared-returns), and
-[shared types](/functions#shared-types) are covered in
-[Host functions](/functions).
+[undeclared returns](/expr/functions#undeclared-returns), and
+[shared types](/expr/functions#shared-types) are covered in
+[Host functions](/expr/functions).
 
 ## Order
 
@@ -132,14 +132,14 @@ import {
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
-import { defs } from "@uicast/shadcn-catalog/all-defs";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
 import { tools } from "./tools";
 
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "answer" }),
   getExpressionsPartialPrompt(),
-  getComponentsPartialPrompt({ definitions: defs }),
+  getComponentsPartialPrompt({ definitions: Object.values(catalogDefs) }),
   getFunctionsPartialPrompt({ functions: tools }),
   getFencePartialPrompt(),
 ].join("\n\n");
@@ -183,6 +183,6 @@ above; in a chat it is a plain user message. See
 ## Where to go next
 
 - [Component definition](/def) — where the advertised component menu comes from.
-- [Host functions](/functions) — the function block's format, in detail.
+- [Host functions](/expr/functions) — the function block's format, in detail.
 - [The expression evaluator](/expr) — the language the expressions block teaches.
 - [Streamdown plugin](/streamdown) — the render side of the fence contract.

@@ -22,10 +22,8 @@ what stays your job, and where to report what we got wrong.
 ## What stays your job
 
 - **Host functions are capabilities.** An expression can only use what you
-  gave it: the scopes and the functions you bound. `rows.map(r => deleteRow(r.id))`
-  deletes every row before its result is refused; nothing escaped — the
-  document used a tool you granted.
-  Keep `functions` narrow and enforce authorization on the server.
+  gave it: the scopes and the functions you bound. Keep `functions` narrow and
+  enforce authorization on the server.
 - **Scope data must be plain.** Inject JSON-shaped values only; a tool's
   `outputSchema` gives you that by construction.
 - **Catalog implementations follow the
@@ -34,7 +32,7 @@ what stays your job, and where to report what we got wrong.
   event payloads.
 - **A custom evaluator is a choice.** A subclass that runs expressions with
   `new Function` trades the run-time checks for speed; only for documents from
-  a trusted author — see [Custom evaluator](/custom-expr).
+  a trusted author — see [Custom evaluator](/expr/custom-expr).
 - **The prompt helps; the evaluator decides.** The prompt tells the model to
   treat data as data and to refuse hostile requests. That makes bad output
   rare. The evaluator is what stops it.

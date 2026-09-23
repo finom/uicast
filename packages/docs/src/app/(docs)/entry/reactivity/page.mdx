@@ -75,7 +75,7 @@ wait for and both share one wave, running in parallel:
 ```
 
 Callbacks add two barriers the scan cannot infer. A step calling a
-[host function](/functions) runs in a wave of its own — nothing runs beside it,
+[host function](/expr/functions) runs in a wave of its own — nothing runs beside it,
 before or after — since a mutation's effect is invisible to path analysis. A
 `confirm` step is the same kind of barrier. Only callbacks do this: independent
 host calls in `seed` still run in parallel, as above.

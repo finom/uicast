@@ -3,7 +3,7 @@
 Two pieces, both from `@uicast/react`.
 
 `<RendererProvider>` is the **host side**: your
-[implementations](/react/impl), your [host functions](/functions), the engine's
+[implementations](/react/impl), your [host functions](/expr/functions), the engine's
 fallback UI, and one shared reactive store for everything beneath it.
 
 `<EntriesRenderer>` is the **mount point**: give it [entries](/entry) and it
@@ -15,9 +15,10 @@ state changes.
 ```tsx
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 
 const evaluator = new Evaluator({ functions: hostFunctions });
+const impls = Object.values(catalogImpls);
 const entries = [
   { key: "hello", component: "Typography", props: { literal: { text: "Hello" } } },
 ];
@@ -75,7 +76,7 @@ To isolate documents instead, give each its own provider.
   rather than appending over it.
 - **`evaluator`** — the expression evaluator, with your host functions bound
   on it: `new Evaluator({ functions })` from `@uicast/expr`. See
-  [below](#evaluator--the-expression-evaluator) and [Host functions](/functions).
+  [below](#evaluator--the-expression-evaluator) and [Host functions](/expr/functions).
 - **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
   [below](#fallbackcomponents--the-engines-fallback-ui).
 - **`init`** *(optional)* — a one-shot side effect for the whole group: preload
@@ -153,10 +154,7 @@ yourself:
 
 ```tsx
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import {
-  ConfirmModal,
-  RenderError,
-} from "@uicast/shadcn-catalog/fallback-components";
+import { ConfirmModal, RenderError } from "@uicast/shadcn-catalog";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 
 <RendererProvider
@@ -251,7 +249,7 @@ const evaluator = new Evaluator({
 
 `Evaluator` checks each read and call at run time and needs no CSP
 `unsafe-eval` — the choice for any document you did not author yourself. For
-documents from a trusted author, a [custom evaluator](/custom-expr) runs the
+documents from a trusted author, a [custom evaluator](/expr/custom-expr) runs the
 same expressions with `new Function`.
 
 The prop is typed as `ExpressionEvaluator`, the interface from `@uicast/expr`
@@ -381,4 +379,4 @@ Nothing checks that the note and the object agree. Keep them in step yourself.
 - [Component implementation](/react/impl) — the `implementations` you pass in.
 - [Component Entry Format](/entry) — the `entries` the renderer mounts.
 - [The expression evaluator](/expr) — what runs inside an entry.
-- [Custom evaluator](/custom-expr) — running expressions with `new Function`.
+- [Custom evaluator](/expr/custom-expr) — running expressions with `new Function`.

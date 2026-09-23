@@ -82,7 +82,7 @@ export const tools = [listOrders];
 `inputSchema` is what lets the model paginate and filter on its own; it is
 checked before `execute` runs. `outputSchema` is how the model knows it can write
 `scopes.root.orders[0].customer`. Every `description` reaches the model word for
-word. See [Host functions](/functions).
+word. See [Host functions](/expr/functions).
 
 ## 3. Generate on the server
 
@@ -99,7 +99,7 @@ import {
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { defs } from "@uicast/shadcn-catalog/all-defs";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
 import { tools } from "@/tools";
 
 export const maxDuration = 300;
@@ -107,7 +107,7 @@ export const maxDuration = 300;
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
-  getComponentsPartialPrompt({ definitions: defs }),
+  getComponentsPartialPrompt({ definitions: Object.values(catalogDefs) }),
   getFunctionsPartialPrompt({ functions: tools }),
   getExpressionsPartialPrompt(),
 ].join("\n\n");
@@ -143,14 +143,15 @@ import {
 import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import { ConfirmModal } from "@uicast/shadcn-catalog";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 import { useState } from "react";
 import { tools } from "@/tools";
 
 // Once, at module scope: the host functions bind on it, and it holds the parse cache.
 const evaluator = new Evaluator({ functions: tools });
+const impls = Object.values(catalogImpls);
 
 const fallbackComponents = {
   confirm: ConfirmModal,
@@ -216,5 +217,5 @@ again.
 - [Concepts](/concepts) — the element model, expressions, and scopes.
 - [Component definition](/def) and [Component implementation](/react/impl) —
   replacing the catalog with your own design system.
-- [Host functions](/functions) — changing data, confirmation, refetching.
+- [Host functions](/expr/functions) — changing data, confirmation, refetching.
 - [Streaming](/streaming) — saving entries as they stream.

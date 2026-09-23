@@ -105,7 +105,7 @@ Per-row state that is not data — which rows are expanded — lives at root, ke
 by the row's `$id`: [State &amp; Scopes](/entry/state#per-row-state).
 
 Both edits also call `updateProduct(...)` in a second step — a
-[host function](/functions) that persists the change, so a reload keeps it.
+[host function](/expr/functions) that persists the change, so a reload keeps it.
 Save asks first: its
 first step carries a
 [`confirm`](/entry/value-sources#callbackvaluesourceassignment) message, and
@@ -224,4 +224,4 @@ separately, and an entry sets them as separate fields.
 | **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar compiled to a closure tree, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
 | **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react/impl). |
-| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/functions). |
+| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/expr/functions). |

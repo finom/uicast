@@ -167,7 +167,7 @@ confirmed or debounced.
 
 - **Steps run in [dependency order](/entry/reactivity)**: a step reading a path
   an earlier one wrote waits for that write; independent pure steps run in
-  parallel; a [host-function](/functions) step is a barrier, alone in its wave.
+  parallel; a [host-function](/expr/functions) step is a barrier, alone in its wave.
 - **`evt`** is the event payload, shaped by the component's callback
   [definition](/def).
 - **`currentValue`** is bound to the value currently at the step's `set` path,
