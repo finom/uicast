@@ -7,7 +7,6 @@ const PROV = {
   gen: "generated from definition",
   llm: "the LLM generates",
   glue: "you mount it",
-  example: "example",
 } as const;
 type Prov = keyof typeof PROV;
 type Lang = "json" | "md";
@@ -261,7 +260,6 @@ const CSS = `
 .mini-example .mx-prov[data-prov=glue]{color:var(--warn);background:var(--warn-soft)}
 .mini-example .mx-prov[data-prov=gen]{color:var(--teal);background:var(--teal-soft)}
 .mini-example .mx-prov[data-prov=llm]{color:var(--accent);background:var(--accent-soft)}
-.mini-example .mx-prov[data-prov=example]{color:var(--muted);background:var(--slate-soft)}
 .mini-example .mx-copy{flex:none;border:1px solid var(--code-border);background:transparent;color:var(--muted);font:500 10.5px 'IBM Plex Mono',monospace;padding:4px 9px;border-radius:7px;cursor:pointer}
 .mini-example .mx-copy:hover{color:var(--text);border-color:var(--faint)}
 .mini-example .mx-switch-row{display:flex;padding:8px 12px;border-bottom:1px solid var(--code-border)}

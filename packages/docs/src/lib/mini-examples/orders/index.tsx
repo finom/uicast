@@ -16,7 +16,6 @@ import { listProducts, updateProduct } from "./tools";
 import DefMdx from "./def.mdx";
 import ImplMdx from "./impl.mdx";
 import ToolsMdx from "./tools.mdx";
-import ReactMdx from "./react-equivalent.mdx";
 import RendererMdx from "./renderer.mdx";
 import orderEntries from "./entries.json";
 
@@ -28,7 +27,6 @@ const PROMPT = [
 ].join("\n\n");
 
 const setup: CodePart[] = [
-  { name: "Same UI in React", file: "by hand", prov: "example", node: <ReactMdx /> },
   { name: "Definitions", file: "def.ts", prov: "you", node: <DefMdx /> },
   { name: "Implementations", file: "impl.tsx", prov: "you", node: <ImplMdx /> },
   { name: "Host function", file: "tools.ts", prov: "you", node: <ToolsMdx /> },
