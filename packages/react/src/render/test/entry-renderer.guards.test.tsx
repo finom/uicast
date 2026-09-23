@@ -34,7 +34,7 @@ describe("EntryRenderer — document faults that must not crash", () => {
         component: "Box",
         each: "scopes.root.items",
         as: "row",
-        props: { expr: "({ text: scopes.row.$value })" },
+        props: { expr: "({ text: scopes.row.$$value })" },
       },
     ];
     const { container } = mountEntries(lines, { rootScope: { items: ["one", "two"] } });
@@ -87,7 +87,7 @@ describe("EntryRenderer — document faults that must not crash", () => {
         each: "scopes.root.items",
         as: "row",
         keyBy: "constructor",
-        props: { expr: "({ text: 'id:' + scopes.row.$id + ';' })" },
+        props: { expr: "({ text: 'id:' + scopes.row.$$id + ';' })" },
       },
     ];
     const { container } = mountEntries(lines, {

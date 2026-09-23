@@ -13,10 +13,10 @@ const list = (patch: Partial<ComponentEntry> = {}): ComponentEntry => ({
 });
 
 describe("EntryRenderer — row windows", () => {
-  it("reads the element's fields and the runtime's $index / $id", () => {
+  it("reads the element's fields and the runtime's $$index / $$id", () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
-      list({ props: { expr: "({ text: scopes.row.$index + '/' + scopes.row.$id + '/' + scopes.row.name + ';' })" } }),
+      list({ props: { expr: "({ text: scopes.row.$$index + '/' + scopes.row.$$id + '/' + scopes.row.name + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
       rootScope: { items: [{ id: "a", name: "Ada" }, { id: "b", name: "Bob" }] },
@@ -24,19 +24,19 @@ describe("EntryRenderer — row windows", () => {
     expect(container.textContent).toBe("0/a/Ada;1/b/Bob;");
   });
 
-  it("$value reads a primitive element; a row of primitives cannot be written", async () => {
+  it("$$value reads a primitive element; a row of primitives cannot be written", async () => {
     const seen: EntryError[] = [];
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
       list({
         keyBy: undefined,
-        props: { expr: "({ text: scopes.row.$value })" },
+        props: { expr: "({ text: scopes.row.$$value })" },
         children: ["poke"],
       }),
       {
         key: "poke",
         component: "Button",
-        props: { expr: "({ label: 'poke-' + scopes.row.$value })" },
+        props: { expr: "({ label: 'poke-' + scopes.row.$$value })" },
         callbacks: { onClick: [{ set: "scopes.row.x", literal: 1 }] },
       },
     ];
@@ -55,13 +55,13 @@ describe("EntryRenderer — row windows", () => {
     consoleError.mockRestore();
   });
 
-  it("a write to $id, $index or $value is refused at mount", () => {
+  it("a write to $$id, $$index or $$value is refused at mount", () => {
     const seen: EntryError[] = [];
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     mountEntries(
       [
         { key: "root", component: "Box", children: ["rows"] },
-        list({ callbacks: { onClick: [{ set: "scopes.row.$index", literal: 0 }] } }),
+        list({ callbacks: { onClick: [{ set: "scopes.row.$$index", literal: 0 }] } }),
       ],
       { rootScope: { items: [{ id: 1 }] }, onError: (e) => seen.push(e) },
     );
@@ -80,7 +80,7 @@ describe("EntryRenderer — row windows", () => {
       {
         key: "bump",
         component: "Button",
-        props: { expr: "({ label: 'fbump-' + scopes.row.$id })" },
+        props: { expr: "({ label: 'fbump-' + scopes.row.$$id })" },
         callbacks: { onClick: [{ set: "scopes.row.qty", expr: "currentValue + 1" }] },
       },
       {
@@ -99,18 +99,18 @@ describe("EntryRenderer — row windows", () => {
     expect(items[0].qty).toBe(2);
   });
 
-  it("an edit through a sorted `each` reaches the source array, and $index is the sorted position", async () => {
+  it("an edit through a sorted `each` reaches the source array, and $$index is the sorted position", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
       list({
         each: "scopes.root.items.toSorted((a, b) => a.name.localeCompare(b.name))",
-        props: { expr: "({ text: scopes.row.$index + ':' + scopes.row.name + ';' })" },
+        props: { expr: "({ text: scopes.row.$$index + ':' + scopes.row.name + ';' })" },
         children: ["rename"],
       }),
       {
         key: "rename",
         component: "Button",
-        props: { expr: "({ label: 'rename-' + scopes.row.$id })" },
+        props: { expr: "({ label: 'rename-' + scopes.row.$$id })" },
         callbacks: { onClick: [{ set: "scopes.row.name", literal: "Zed" }] },
       },
     ];
@@ -136,7 +136,7 @@ describe("EntryRenderer — row windows", () => {
       {
         key: "bump",
         component: "Button",
-        props: { expr: "({ label: 'nbump-' + scopes.row.$id })" },
+        props: { expr: "({ label: 'nbump-' + scopes.row.$$id })" },
         callbacks: { onClick: [{ set: "scopes.row.qty", literal: 9 }] },
       },
     ];
@@ -163,7 +163,7 @@ describe("EntryRenderer — row windows", () => {
     });
     expect(container.textContent).toBe("Ada;");
     act(() => {
-      scopes.root.$set("items", [{ id: 1, name: "Hopper" }]);
+      scopes.root.$$set("items", [{ id: 1, name: "Hopper" }]);
     });
     expect(container.textContent).toBe("Hopper;");
   });
@@ -175,9 +175,9 @@ describe("EntryRenderer — row windows", () => {
       {
         key: "del",
         component: "Button",
-        props: { expr: "({ label: 'del-' + scopes.row.$id })" },
+        props: { expr: "({ label: 'del-' + scopes.row.$$id })" },
         callbacks: {
-          onClick: [{ set: "scopes.root.items", expr: "currentValue.filter(i => i.id !== scopes.row.$id)" }],
+          onClick: [{ set: "scopes.root.items", expr: "currentValue.filter(i => i.id !== scopes.row.$$id)" }],
         },
       },
     ];
@@ -199,10 +199,10 @@ describe("EntryRenderer — row windows", () => {
       {
         key: "del",
         component: "Button",
-        props: { expr: "({ label: 'drop-' + scopes.row.$id })" },
+        props: { expr: "({ label: 'drop-' + scopes.row.$$id })" },
         callbacks: {
           onClick: [
-            { set: "scopes.root.items", expr: "currentValue.filter(i => i.id !== scopes.row.$id)" },
+            { set: "scopes.root.items", expr: "currentValue.filter(i => i.id !== scopes.row.$$id)" },
             { set: "scopes.row.gone", literal: true },
           ],
         },
@@ -230,7 +230,7 @@ describe("EntryRenderer — row windows", () => {
       {
         key: "bump",
         component: "Button",
-        props: { expr: "({ label: 'tbump-' + scopes.ra.$id })" },
+        props: { expr: "({ label: 'tbump-' + scopes.ra.$$id })" },
         callbacks: { onClick: [{ set: "scopes.ra.n", expr: "currentValue + 1" }] },
       },
     ];
@@ -248,7 +248,7 @@ describe("EntryRenderer — row windows", () => {
   it("duplicate keyBy values keep separate rows", () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
-      list({ props: { expr: "({ text: scopes.row.$id + ':' + scopes.row.n + ';' })" } }),
+      list({ props: { expr: "({ text: scopes.row.$$id + ':' + scopes.row.n + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
       rootScope: { items: [{ id: 1, n: "x" }, { id: 1, n: "y" }] },
@@ -260,7 +260,7 @@ describe("EntryRenderer — row windows", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
-      list({ props: { expr: "({ text: scopes.row.$id + ':' + scopes.row.n + ';' })" } }),
+      list({ props: { expr: "({ text: scopes.row.$$id + ':' + scopes.row.n + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
       rootScope: { items: [{ id: 1, n: "x" }, { id: "1", n: "y" }] },
@@ -273,7 +273,7 @@ describe("EntryRenderer — row windows", () => {
   it("a keyBy value that is not a string or number keys the row by its index", () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
-      list({ props: { expr: "({ text: scopes.row.$id + ';' })" } }),
+      list({ props: { expr: "({ text: scopes.row.$$id + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
       rootScope: { items: [{ id: { a: 1 } }, { id: true }] },

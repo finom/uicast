@@ -77,9 +77,9 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - All state lives under the `scopes` namespace.
 - The root element's scope is `scopes.root`. All root-level state is `scopes.root.<key>`.
 - List items get their own scope, named by `as`. With `as: "row"`, each item's scope is `scopes.row`.
-- **A list item scope IS the item.** `scopes.row.name` reads the `name` field of the current element of the array; `scopes.row.$index` is its zero-based position, `scopes.row.$id` its `keyBy` value (the index when there is no `keyBy`). When the array holds strings or numbers, the value is `scopes.row.$value`. These three `$` names belong to the runtime and cannot be set. Use `$id` to key per-row UI state and `$index` for numbering; a host call takes the data field, `scopes.row.id`.
+- **A list item scope IS the item.** `scopes.row.name` reads the `name` field of the current element of the array; `scopes.row.$$index` is its zero-based position, `scopes.row.$$id` its `keyBy` value (the index when there is no `keyBy`). When the array holds strings or numbers, the value is `scopes.row.$$value`. These three `$$` names belong to the runtime and cannot be set. Use `$$id` to key per-row UI state and `$$index` for numbering; a host call takes the data field, `scopes.row.id`.
 - Scope names must be globally unique across ALL lists in the output, whatever the nesting depth. Do not use `as: "item"` on two different lists.
-- **Per-row UI state lives at root, keyed by `$id`** — a row scope holds data, not flags. Read: `scopes.root.expanded[scopes.row.$id] ?? false`. Toggle: `{ "set": "scopes.root.expanded", "expr": "({ ...currentValue, [scopes.row.$id]: !currentValue[scopes.row.$id] })" }`. Expand all: `{ "set": "scopes.root.expanded", "expr": "scopes.root.rows.reduce((m, r) => ({ ...m, [r.id]: true }), {})" }`. Collapse all: `{ "set": "scopes.root.expanded", "literal": {} }`. Seed the map (`{}`) on the root element.
+- **Per-row UI state lives at root, keyed by `$$id`** — a row scope holds data, not flags. Read: `scopes.root.expanded[scopes.row.$$id] ?? false`. Toggle: `{ "set": "scopes.root.expanded", "expr": "({ ...currentValue, [scopes.row.$$id]: !currentValue[scopes.row.$$id] })" }`. Expand all: `{ "set": "scopes.root.expanded", "expr": "scopes.root.rows.reduce((m, r) => ({ ...m, [r.id]: true }), {})" }`. Collapse all: `{ "set": "scopes.root.expanded", "literal": {} }`. Seed the map (`{}`) on the root element.
 
 ## 5. Reactivity
 
@@ -101,7 +101,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - The list element's `component` renders once per item — it wraps each item, not the whole list. A list with `component: "TableRow"` renders one `<tr>` per item.
 - The list element can have `props` evaluated per item with the item scope available: `"props": { "expr": "({ text: scopes.row.name })" }`. For a text prop read a **field** of `scopes.<as>`, never the scope itself — `scopes.row` is the whole record (see §2).
 - List elements can have `children`, also rendered per item. Inside children, the item scope is available.
-- **Per-item UI state**: seeds never run per item, and a row scope is the item's data. Keep per-row flags at root keyed by `$id` (§4).
+- **Per-item UI state**: seeds never run per item, and a row scope is the item's data. Keep per-row flags at root keyed by `$$id` (§4).
 - A list element can never be the root. Always wrap a list in a container element (e.g. `TableBody` or `FlexCol`).
 
 ## 7. Callbacks
@@ -177,7 +177,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 
 Every JavaScript expression — `props.expr`, `hidden`, `loading`, `each`, `seed[].expr`, `callbacks[].expr` — is written in the language described under **JavaScript Expressions**. On top of that language, these names are in scope:
 
-- `scopes` - reactive state object. Page-wide state lives in the always-present **root** scope: read it as `scopes.root.<field>` (e.g. `scopes.root.searchTerm`), and initialize every root field in the root element's `seed` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's `as` name becomes `scopes.<as>` inside that list's rows: the item's own fields, plus `scopes.<as>.$index`, `scopes.<as>.$id` and, for a primitive item, `scopes.<as>.$value`. Invent no other top-level scope name — any other `scopes.foo` yields `undefined`, and writing to it throws.
+- `scopes` - reactive state object. Page-wide state lives in the always-present **root** scope: read it as `scopes.root.<field>` (e.g. `scopes.root.searchTerm`), and initialize every root field in the root element's `seed` before any expression reads it. The ONLY other scopes are per-list-item scopes — a list element's `as` name becomes `scopes.<as>` inside that list's rows: the item's own fields, plus `scopes.<as>.$$index`, `scopes.<as>.$$id` and, for a primitive item, `scopes.<as>.$$value`. Invent no other top-level scope name — any other `scopes.foo` yields `undefined`, and writing to it throws.
 - `evt` - event object (callbacks only)
 - `currentValue` - within a `seed` or `callback` `expr`, the current value of that assignment's `set` field (the value being replaced). Use it for read-modify-write without re-reading it: `!currentValue` (toggle), `currentValue + 1` (increment), `[...currentValue, evt.item]` (append). It is `undefined` when the field was never set, so a first-time `!currentValue` is `true`. Bound ONLY in `set`-bearing expressions; `props`, `hidden`, and `each` have no `currentValue`.
 - All host functions listed under **Available Functions** are async, but the runtime awaits a step's result before writing it to the `set` path — call them bare: `getUsers()`, never `await getUsers()`. Callable only from `seed` and `callbacks` expressions, never from `props`, `hidden`, or `each`.

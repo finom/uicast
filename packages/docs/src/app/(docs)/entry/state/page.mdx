@@ -17,11 +17,11 @@ underneath. Everything under a field is plain data.
 ```ts
 const root = createProxyScope<{ count: number; user?: { name: string } }>({ count: 0 });
 
-root.$emitter.on("user", () => { /* … */ });   // subscribe to a field
+root.$$emitter.on("user", () => { /* … */ });   // subscribe to a field
 
 root.count = 1;                             // write — emits "count"
-root.$set("user", { name: "Ada" });         // the same, as a call
-root.$set("count", 0, { default: true });   // no-op — writes only if unset
+root.$$set("user", { name: "Ada" });         // the same, as a call
+root.$$set("count", 0, { default: true });   // no-op — writes only if unset
 root.user.name = "Hopper";                  // ❌ a plain write into plain data — nobody hears it
 ```
 
@@ -58,14 +58,14 @@ window onto the element in the array, plus three fields of the runtime's own.
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "children": ["order-title"] }
 { "key": "order-title", "component": "Typography",
-  "props": { "expr": "({ text: (scopes.order.$index + 1) + '. ' + scopes.order.customer + ' #' + scopes.order.$id })" } }
+  "props": { "expr": "({ text: (scopes.order.$$index + 1) + '. ' + scopes.order.customer + ' #' + scopes.order.$$id })" } }
 ```
 
 Over `[{ id: "a1", customer: "Ada" }, { id: "b2", customer: "Grace" }]` that is
 `1. Ada #a1` then `2. Grace #b2`. `customer` is the element's own field;
-`$index` is the row's zero-based position in the `each` result, `$id` the key
+`$$index` is the row's zero-based position in the `each` result, `$$id` the key
 `keyBy` picked (the index when there is no `keyBy`). When the array holds
-strings or numbers, the value is `$value`. The three `$` names are read-only.
+strings or numbers, the value is `$$value`. The three `$$` names are read-only.
 
 **A write goes into the array.** `set: "scopes.order.status"` changes that
 element inside `scopes.root.orders`, in place, and wakes everything reading the
@@ -97,15 +97,15 @@ written at all — replace the array.
 ## Per-row state
 
 A row scope holds the row's data. State that is *about* a row but is not data —
-expanded, selected — lives at root, keyed by `$id`:
+expanded, selected — lives at root, keyed by `$$id`:
 
 ```jsonc
 { "key": "page", "component": "Card",
   "seed": [{ "set": "scopes.root.expanded", "literal": {} }], "children": ["orders", "expand-all"] }
 { "key": "orders", "component": "Row", "each": "scopes.root.orders", "as": "order", "keyBy": "id",
-  "props": { "expr": "({ open: scopes.root.expanded[scopes.order.$id] ?? false })" },
+  "props": { "expr": "({ open: scopes.root.expanded[scopes.order.$$id] ?? false })" },
   "callbacks": { "onToggle": [{ "set": "scopes.root.expanded",
-    "expr": "({ ...currentValue, [scopes.order.$id]: !currentValue[scopes.order.$id] })" }] } }
+    "expr": "({ ...currentValue, [scopes.order.$$id]: !currentValue[scopes.order.$$id] })" }] } }
 { "key": "expand-all", "component": "Button", "props": { "literal": { "text": "Expand all" } },
   "callbacks": { "onClick": [{ "set": "scopes.root.expanded",
     "expr": "scopes.root.orders.reduce((m, o) => ({ ...m, [o.id]: true }), {})" }] } }

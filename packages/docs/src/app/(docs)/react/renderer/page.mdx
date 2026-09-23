@@ -313,7 +313,7 @@ evaluate:
 import type { InitFn } from "@uicast/react";
 
 const init: InitFn = async ({ scopes }) => {
-  // assigning a field emits, exactly like `$set`; a nested assignment
+  // assigning a field emits, exactly like `$$set`; a nested assignment
   // (`scopes.root.user.name = …`) is a plain write nobody hears
   (scopes.root as Record<string, unknown>).user = await fetchUser();
 };

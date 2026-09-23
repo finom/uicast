@@ -36,9 +36,9 @@ function createEmitter(): Emitter {
 type SetOptions = { default?: boolean };
 
 type ReactiveProxy<T extends object = Record<string, unknown>> = T & {
-  $emitter: Emitter;
+  $$emitter: Emitter;
   // `default: true` writes only when the field is still undefined (first writer wins).
-  $set: (field: string, value: unknown, options?: SetOptions) => void;
+  $$set: (field: string, value: unknown, options?: SetOptions) => void;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> =>
@@ -73,8 +73,8 @@ function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> 
 
   return new Proxy(bag, {
     get(target, prop, receiver) {
-      if (prop === "$emitter") return emitter;
-      if (prop === "$set") return write;
+      if (prop === "$$emitter") return emitter;
+      if (prop === "$$set") return write;
       return Reflect.get(target, prop, receiver);
     },
     set(target, prop, value) {
@@ -141,17 +141,17 @@ function createRowScope(): RowScope {
 
   emitter.on("*", () => {
     for (const t of findTargets()) {
-      t.scope.$emitter.emit(t.field);
+      t.scope.$$emitter.emit(t.field);
     }
   });
 
   const engineField = (prop: string): unknown => {
-    if (prop === "$index") return index;
-    if (prop === "$id") return id;
+    if (prop === "$$index") return index;
+    if (prop === "$$id") return id;
     return element;
   };
   const isEngineField = (prop: string): boolean =>
-    RESERVED_ROW_FIELDS.has(prop) && (prop !== "$value" || !isObject(element));
+    RESERVED_ROW_FIELDS.has(prop) && (prop !== "$$value" || !isObject(element));
 
   const write = (field: string, value: unknown, options?: SetOptions): void => {
     assertField(field);
@@ -193,8 +193,8 @@ function createRowScope(): RowScope {
     {},
     {
       get(_, prop) {
-        if (prop === "$emitter") return emitter;
-        if (prop === "$set") return write;
+        if (prop === "$$emitter") return emitter;
+        if (prop === "$$set") return write;
         if (typeof prop !== "string") return undefined;
         if (isEngineField(prop)) return engineField(prop);
         return isObject(element) ? element[prop] : undefined;
@@ -207,8 +207,8 @@ function createRowScope(): RowScope {
         const keys = isObject(element)
           ? Reflect.ownKeys(element).filter((k) => typeof k !== "string" || !RESERVED_ROW_FIELDS.has(k))
           : [];
-        keys.push("$index", "$id");
-        if (!isObject(element)) keys.push("$value");
+        keys.push("$$index", "$$id");
+        if (!isObject(element)) keys.push("$$value");
         return keys;
       },
       getOwnPropertyDescriptor(_, prop) {

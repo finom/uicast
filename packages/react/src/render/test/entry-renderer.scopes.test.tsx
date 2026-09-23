@@ -32,7 +32,7 @@ describe("EntryRenderer — scopes", () => {
     expect(container.textContent).toContain("0");
 
     act(() => {
-      scopes.root.$set("count", 7);
+      scopes.root.$$set("count", 7);
     });
     expect(container.textContent).toContain("7");
   });
@@ -51,7 +51,7 @@ describe("EntryRenderer — scopes", () => {
     expect(container.textContent).toContain("first");
 
     act(() => {
-      scopes.root.$set("b", "still-ignored");
+      scopes.root.$$set("b", "still-ignored");
     });
     expect(container.textContent).toContain("first");
   });
@@ -70,7 +70,7 @@ describe("EntryRenderer — scopes", () => {
     expect(container.textContent).toContain("2 products");
 
     act(() => {
-      scopes.root.$set("products", [{ id: 1 }, { id: 2 }, { id: 3 }]);
+      scopes.root.$$set("products", [{ id: 1 }, { id: 2 }, { id: 3 }]);
     });
     expect(container.textContent).toContain("3 products");
   });
@@ -109,7 +109,7 @@ describe("EntryRenderer — scopes", () => {
     expect(container.textContent).toContain("from-root");
 
     act(() => {
-      scopes.root.$set("shared", "updated");
+      scopes.root.$$set("shared", "updated");
     });
     expect(container.textContent).toContain("updated");
   });

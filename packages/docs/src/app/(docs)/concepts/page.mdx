@@ -42,13 +42,13 @@ for every item in the array:
 
 - **`each`** — the array to repeat over, evaluated in the *parent's* scope.
 - **`as`** — names the per-item scope. Inside, `scopes.product` is the
-  product: `scopes.product.name`, plus `scopes.product.$index` (0, 1, 2 …)
-  and `scopes.product.$id`.
-- **`keyBy`** — which field that `$id` comes from. `"id"` means the product's `id`.
+  product: `scopes.product.name`, plus `scopes.product.$$index` (0, 1, 2 …)
+  and `scopes.product.$$id`.
+- **`keyBy`** — which field that `$$id` comes from. `"id"` means the product's `id`.
 
 So with three products in state, one entry produces three elements:
 
-| `scopes.product` | `scopes.product.$index` | rendered |
+| `scopes.product` | `scopes.product.$$index` | rendered |
 |---|---|---|
 | `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }` | `0` | Espresso Beans · $15 × 1 |
 | `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }` | `1` | Pour-Over Kettle · $23 × 4 |
@@ -102,7 +102,7 @@ edit dialog's Save replaces the array with `products.map(...)`, and everything
 reading it — the rows included — re-renders.
 
 Per-row state that is not data — which rows are expanded — lives at root, keyed
-by the row's `$id`: [State &amp; Scopes](/entry/state#per-row-state).
+by the row's `$$id`: [State &amp; Scopes](/entry/state#per-row-state).
 
 Both edits also call `updateProduct(...)` in a second step — a
 [host function](/expr/functions) that persists the change, so a reload keeps it.

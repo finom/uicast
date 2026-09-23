@@ -30,7 +30,7 @@ describe("findSetAddressFault", () => {
 	});
 
 	it("refuses the runtime's row fields", () => {
-		for (const field of ["$id", "$index", "$value"]) {
+		for (const field of ["$$id", "$$index", "$$value"]) {
 			expect(findSetAddressFault(`scopes.row.${field}`)).toEqual({ kind: "reserved", segment: field });
 		}
 	});
@@ -64,7 +64,7 @@ describe("setAddressError", () => {
 		expect(setAddressError("scopes.root.a.b", { kind: "shape" }).message).toContain(
 			"write the whole field",
 		);
-		expect(setAddressError("scopes.row.$id", { kind: "reserved", segment: "$id" }).message).toContain(
+		expect(setAddressError("scopes.row.$$id", { kind: "reserved", segment: "$$id" }).message).toContain(
 			"read-only",
 		);
 		expect(

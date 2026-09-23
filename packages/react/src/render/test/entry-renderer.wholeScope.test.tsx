@@ -10,7 +10,7 @@ describe("EntryRenderer — whole-scope reads", () => {
     ];
     const { container, scopes } = mountEntries(lines, { rootScope: { a: 1 } });
     expect(container.textContent).toBe("1");
-    act(() => scopes.root.$set("b", 2));
+    act(() => scopes.root.$$set("b", 2));
     expect(container.textContent).toBe("2");
   });
 
@@ -28,10 +28,10 @@ describe("EntryRenderer — whole-scope reads", () => {
       },
     ];
     const { container, getByText } = mountEntries(lines, { rootScope: { items: [{ id: 1 }] } });
-    expect(container.textContent).toBe("id,$index,$id");
+    expect(container.textContent).toBe("id,$$index,$$id");
     await act(async () => {
-      fireEvent.click(getByText("id,$index,$id"));
+      fireEvent.click(getByText("id,$$index,$$id"));
     });
-    await waitFor(() => expect(container.textContent).toBe("id,extra,$index,$id"));
+    await waitFor(() => expect(container.textContent).toBe("id,extra,$$index,$$id"));
   });
 });

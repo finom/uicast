@@ -45,13 +45,13 @@ describe("EntryRenderer — hidden", () => {
     expect(container.textContent).toContain("panel-text");
 
     act(() => {
-      scopes.root.$set("hidden", true);
+      scopes.root.$$set("hidden", true);
     });
     expect(container.querySelector("[data-key='panel']")).toBe(panel);
     expect(panel.style.display).toBe("none");
 
     act(() => {
-      scopes.root.$set("hidden", false);
+      scopes.root.$$set("hidden", false);
     });
     expect(panel.style.display).not.toBe("none");
     expect(container.textContent).toContain("panel-text");

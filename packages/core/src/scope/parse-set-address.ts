@@ -14,7 +14,7 @@ export const PROTOTYPE_KEYS = new Set([
 ]);
 
 // Readable, never written.
-export const RESERVED_ROW_FIELDS = new Set(["$id", "$index", "$value"]);
+export const RESERVED_ROW_FIELDS = new Set(["$$id", "$$index", "$$value"]);
 
 type SetAddressFault = {
 	kind: "shape" | "reserved" | "prototype";
@@ -41,7 +41,7 @@ export function setAddressError(
 ): EntryError {
 	const messages: Record<SetAddressFault["kind"], string> = {
 		shape: `"set": "${address}" is not an address. A set names one field, "scopes.<scope>.<field>"; to change part of a field, write the whole field.`,
-		reserved: `"set": "${address}" writes "${fault.segment}", which the runtime owns ($id, $index and $value are read-only).`,
+		reserved: `"set": "${address}" writes "${fault.segment}", which the runtime owns ($$id, $$index and $$value are read-only).`,
 		prototype: `"set": "${address}" writes through "${fault.segment}", which reaches the prototype chain.`,
 	};
 	return new EntryError(messages[fault.kind], { reason: "guardrail-violation", elementKey });

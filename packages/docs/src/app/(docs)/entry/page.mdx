@@ -217,7 +217,7 @@ it:
 {"key":"task-table","component":"Table","children":["task-body"]}
 {"key":"task-body","component":"TableBody","children":["task-row"]}
 {"key":"task-row","component":"TableRow","each":"scopes.root.tasks","as":"task","keyBy":"id","children":["task-num","task-title"]}
-{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.$index + 1 })"}}
+{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.$$index + 1 })"}}
 {"key":"task-title","component":"TableCell","props":{"expr":"({ text: scopes.task.title })"}}
 ```
 
@@ -241,8 +241,8 @@ An `each` evaluating to `undefined` renders zero rows, not an error.
 ### `as`
 The scope name each item is exposed under, on the list entry and its whole
 subtree. `scopes.<as>` is the item itself — `scopes.<as>.title` reads its
-`title` — plus `$index` and `$id` (from [`keyBy`](#keyby)); a primitive item
-is read as `$value`. See [State &amp; Scopes](/entry/state#item-scopes).
+`title` — plus `$$index` and `$$id` (from [`keyBy`](#keyby)); a primitive item
+is read as `$$value`. See [State &amp; Scopes](/entry/state#item-scopes).
 
 Scope names are one flat namespace, so it **must be globally unique**. Reuse it
 in a nested list and the inner one replaces the outer:

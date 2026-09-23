@@ -170,11 +170,11 @@ export const opsConsoleEntries: ComponentEntry[] = [
     as: "sup",
     keyBy: "id",
     props: {
-      expr: "({ title: scopes.sup.name + ' — ' + scopes.sup.category + ' · ' + scopes.sup.leadTimeDays + 'd lead · ' + (scopes.root.stock.bySupplier.find(s => s.supplierId === scopes.sup.id)?.products ?? 'no') + ' products', open: scopes.root.openSupplierId === scopes.sup.$id })",
+      expr: "({ title: scopes.sup.name + ' — ' + scopes.sup.category + ' · ' + scopes.sup.leadTimeDays + 'd lead · ' + (scopes.root.stock.bySupplier.find(s => s.supplierId === scopes.sup.id)?.products ?? 'no') + ' products', open: scopes.root.openSupplierId === scopes.sup.$$id })",
     },
     callbacks: {
       onToggle: [
-        { set: "scopes.root.openSupplierId", expr: "evt.open ? scopes.sup.$id : currentValue === scopes.sup.$id ? null : currentValue" },
+        { set: "scopes.root.openSupplierId", expr: "evt.open ? scopes.sup.$$id : currentValue === scopes.sup.$$id ? null : currentValue" },
         { set: "scopes.root.supplierBusy", expr: "evt.open" },
         { set: "scopes.root.supplierProducts", expr: "evt.open ? listProducts({ supplierId: scopes.sup.id, limit: 50 }) : currentValue" },
         { set: "scopes.root.supplierBusy", literal: false },
@@ -300,8 +300,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   {
     key: "prod-check",
     component: "Checkbox",
-    props: { expr: "({ checked: scopes.root.picked[scopes.prod.$id] ?? false })" },
-    callbacks: { onChange: [{ set: "scopes.root.picked", expr: "({ ...currentValue, [scopes.prod.$id]: evt.checked })" }] },
+    props: { expr: "({ checked: scopes.root.picked[scopes.prod.$$id] ?? false })" },
+    callbacks: { onChange: [{ set: "scopes.root.picked", expr: "({ ...currentValue, [scopes.prod.$$id]: evt.checked })" }] },
   },
   { key: "pc-name", component: "TableCell", children: ["prod-name"] },
   { key: "prod-name", component: "HighlightedText", props: { expr: "({ text: scopes.prod.name, highlight: scopes.root.q })" } },
@@ -360,10 +360,10 @@ export const opsConsoleEntries: ComponentEntry[] = [
   {
     key: "details-toggle",
     component: "IconButton",
-    props: { expr: "({ icon: scopes.root.openProductId === scopes.prod.$id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
+    props: { expr: "({ icon: scopes.root.openProductId === scopes.prod.$$id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
     callbacks: {
       onClick: [
-        { set: "scopes.root.openProductId", expr: "currentValue === scopes.prod.$id ? null : scopes.prod.$id" },
+        { set: "scopes.root.openProductId", expr: "currentValue === scopes.prod.$$id ? null : scopes.prod.$$id" },
         { set: "scopes.root.moves", expr: "listStockMovements({ productId: scopes.prod.id, limit: 12 })" },
       ],
     },
@@ -372,7 +372,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     key: "details",
     component: "FlexCol",
     props: { literal: { gap: "1" } },
-    hidden: "scopes.root.openProductId !== scopes.prod.$id",
+    hidden: "scopes.root.openProductId !== scopes.prod.$$id",
     children: ["details-spark", "pmov"],
   },
   {
@@ -470,8 +470,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   {
     key: "ord-check",
     component: "Checkbox",
-    props: { expr: "({ checked: scopes.root.selected[scopes.ord.$id] ?? false })" },
-    callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$id]: evt.checked })" }] },
+    props: { expr: "({ checked: scopes.root.selected[scopes.ord.$$id] ?? false })" },
+    callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$$id]: evt.checked })" }] },
   },
   { key: "oc-id", component: "TableCell", props: { expr: "({ text: '#' + scopes.ord.id })" } },
   { key: "oc-date", component: "TableCell", children: ["oc-date-value"] },

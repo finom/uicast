@@ -11,7 +11,7 @@ type ItemRow = {
 };
 
 // A repeated id gets a suffix, so two rows never share one window. Ids compare as strings, as React keys and
-// `$id`-keyed maps do: `1` and `"1"` are one id.
+// `$$id`-keyed maps do: `1` and `"1"` are one id.
 function getItemId(keyBy: string | undefined, item: unknown, index: number, seen: Set<string>): ItemId {
   let id: ItemId = index;
   if (keyBy !== undefined && typeof item === "object" && item !== null && Object.hasOwn(item, keyBy)) {

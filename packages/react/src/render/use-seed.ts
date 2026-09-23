@@ -64,12 +64,12 @@ export function useSeed({
           return { scope, field: step.field, value };
         });
         if (evaluated.every((e) => !(e.value instanceof Promise))) {
-          for (const e of evaluated) e.scope.$set(e.field, e.value, { default: true });
+          for (const e of evaluated) e.scope.$$set(e.field, e.value, { default: true });
           return null;
         }
         return Promise.all(
           evaluated.map(async (e) => {
-            e.scope.$set(e.field, await e.value, { default: true });
+            e.scope.$$set(e.field, await e.value, { default: true });
           }),
         );
       };
@@ -107,7 +107,7 @@ export function useSeed({
 
       if (chain) {
         const batch = chain.then(() => {
-          // A `$set` wake can land before this settles, so the gate is cleared explicitly.
+          // A `$$set` wake can land before this settles, so the gate is cleared explicitly.
           pendingSeedRef.current = null;
           forceRender();
         });
