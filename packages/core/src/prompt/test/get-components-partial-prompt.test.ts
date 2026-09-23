@@ -256,13 +256,13 @@ describe("getComponentsPartialPrompt — props that are not one object", () => {
 		const Both = createComponentDefinition({
 			name: "Both",
 			description: "Both.",
-			props: z.object({ a: z.string() }).and(z.object({ b: z.number().optional() })),
+			props: z.object({ a: z.string() }).and(z.record(z.string(), z.number())),
 		});
 		const out = getComponentsPartialPrompt({ definitions: [Shape, Both] });
 		expect(out).toContain(
 			'- Shape — A shape.\n  Props: { kind: "circle"; radius: number } | { kind: "square"; side: number }',
 		);
-		expect(out).toContain("- Both — Both.\n  Props: { a: string } & { b?: number }");
+		expect(out).toContain("- Both — Both.\n  Props: { a: string } & { [key: string]: number }");
 	});
 
 	it("lists the fields of the object a root `$ref` names", () => {

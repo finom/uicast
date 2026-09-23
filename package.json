@@ -61,7 +61,7 @@
     "standard-tool": "^0.1.0",
     "streamdown": "^2.5.0",
     "tailwind-merge": "^3.5.0",
-    "zod": "~4.3.6"
+    "zod": "~4.6.5"
   },
   "peerDependencies": {
     "react": "^19.2.5",
@@ -74,21 +74,23 @@
     "@types/node": "^26.2.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@vitest/coverage-v8": "^5.0.1",
     "glob": "^13.0.6",
     "happy-dom": "^20.9.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "tsc-alias": "^1.9.2",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.0"
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   },
   "overrides": {
-    "nextra": {
-      "zod": "~4.3.6"
-    },
+    "zod": "$zod",
+    "@xmldom/xmldom": "^0.9.12",
     "nextra-theme-docs": {
-      "zod": "~4.3.6"
+      "zod": "4.3.6"
+    },
+    "@shikijs/twoslash": {
+      "typescript": "6.0.3"
     }
   }
 }

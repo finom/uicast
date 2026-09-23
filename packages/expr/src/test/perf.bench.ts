@@ -1,4 +1,4 @@
-import { bench, describe } from "vitest";
+import { test } from "vitest";
 import { Evaluator, type StandardToolV0 } from "../index";
 import { BUDGET, cases, rows, scopes, WAVE_EXPRS } from "./bench-cases";
 
@@ -17,41 +17,45 @@ const waveEngine = WAVE_EXPRS.map((e) => engine.compile(e));
 const wavePlain = WAVE_EXPRS.map(
 	(e) => new Function("scopes", `"use strict"; return (${e})`),
 );
-describe("full wave — 5 expressions × 1000 rows", () => {
-	bench("interpret", () => {
-		for (const item of rows) {
-			const ctx = { scopes: { row: item } };
-			for (const f of waveInterpret) f(ctx);
-		}
-	});
-	bench("toFunction", () => {
-		for (const item of rows) {
-			const ctx = { scopes: { row: item } };
-			for (const f of waveEngine) f(ctx);
-		}
-	});
-	bench("new Function", () => {
-		for (const item of rows) {
-			const ctx = { scopes: { row: item } };
-			for (const f of wavePlain) f(ctx.scopes);
-		}
-	});
+test("full wave — 5 expressions × 1000 rows", async ({ bench }) => {
+	await bench.compare(
+		bench("interpret", () => {
+			for (const item of rows) {
+				const ctx = { scopes: { row: item } };
+				for (const f of waveInterpret) f(ctx);
+			}
+		}),
+		bench("toFunction", () => {
+			for (const item of rows) {
+				const ctx = { scopes: { row: item } };
+				for (const f of waveEngine) f(ctx);
+			}
+		}),
+		bench("new Function", () => {
+			for (const item of rows) {
+				const ctx = { scopes: { row: item } };
+				for (const f of wavePlain) f(ctx.scopes);
+			}
+		}),
+	);
 });
 
 for (const [label, expr] of cases) {
 	const interpreted = interpret.compile(expr);
 	const compiled = engine.compile(expr);
 	const plain = new Function("scopes", `"use strict"; return (${expr})`);
-	describe(label, () => {
-		bench("interpret", () => {
-			interpreted({ scopes });
-		});
-		bench("toFunction", () => {
-			compiled({ scopes });
-		});
-		bench("new Function", () => {
-			plain(scopes);
-		});
+	test(label, async ({ bench }) => {
+		await bench.compare(
+			bench("interpret", () => {
+				interpreted({ scopes });
+			}),
+			bench("toFunction", () => {
+				compiled({ scopes });
+			}),
+			bench("new Function", () => {
+				plain(scopes);
+			}),
+		);
 	});
 }
 
@@ -83,13 +87,15 @@ const checked = new Evaluator({
 	],
 });
 
-describe("host call", () => {
+test("host call", async ({ bench }) => {
 	const noSchema = bare.compile("load(n)");
 	const withSchema = checked.compile("load(n)");
-	bench("no schemas", () => {
-		noSchema({ n: 1 });
-	});
-	bench("input + output schema", () => {
-		withSchema({ n: 1 });
-	});
+	await bench.compare(
+		bench("no schemas", () => {
+			noSchema({ n: 1 });
+		}),
+		bench("input + output schema", () => {
+			withSchema({ n: 1 });
+		}),
+	);
 });

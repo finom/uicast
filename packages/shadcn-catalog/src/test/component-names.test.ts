@@ -5,8 +5,11 @@ import { describe, expect, it } from "vitest";
 import { groupDefs } from "./groups";
 
 // Every global the TypeScript lib files declare: ES built-ins (`Map`) and DOM globals (`Image`, `Text`).
+// TypeScript 7 ships them next to its native binary, in the package for this platform.
 const readGlobalNames = (): Set<string> => {
-  const libDir = join(dirname(createRequire(import.meta.url).resolve("typescript/package.json")), "lib");
+  const fromTypescript = createRequire(createRequire(import.meta.url).resolve("typescript/package.json"));
+  const platformPackage = `@typescript/typescript-${process.platform}-${process.arch}/package.json`;
+  const libDir = join(dirname(fromTypescript.resolve(platformPackage)), "lib");
   const names = new Set<string>();
   for (const file of readdirSync(libDir).filter((name) => /^lib\..*\.d\.ts$/.test(name))) {
     const source = readFileSync(join(libDir, file), "utf8");
