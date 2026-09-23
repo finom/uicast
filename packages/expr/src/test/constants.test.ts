@@ -3,7 +3,7 @@ import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, NAMESPACE_GLOBALS } from "../constan
 import { ALLOWED_BINARY, ALLOWED_UNARY } from "../constants/grammar";
 import { BINARY_FNS, UNARY_FNS } from "../interpret/compile";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
-import { GLOBAL_FUNCTIONS, GLOBAL_VALUES } from "../runtime/globals";
+import { GLOBAL_FUNCTIONS, GLOBAL_VALUES, PLATFORM_GLOBALS } from "../runtime/globals";
 import { methodsOf } from "../runtime/methods";
 import { Namespace } from "../runtime/values";
 
@@ -38,6 +38,7 @@ describe("constants and runtime tables agree", () => {
 
 	it("the globals and the callable ones", () => {
 		expect(sorted(Object.keys(GLOBAL_VALUES))).toEqual(sorted(ALLOWED_GLOBALS));
+		expect(sorted(Object.keys(PLATFORM_GLOBALS))).toEqual(sorted(ALLOWED_GLOBALS));
 		expect(sorted(Object.keys(GLOBAL_FUNCTIONS))).toEqual(sorted(CALLABLE_GLOBALS));
 		for (const name of ALLOWED_GLOBALS) {
 			expect(name in globalThis, `${name} is not a real global`).toBe(true);

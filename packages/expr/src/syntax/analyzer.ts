@@ -1,8 +1,6 @@
 import type * as acorn from "acorn";
-import type { HostFunction } from "../runtime/values";
-import { extractMemberReads } from "./analyze";
+import { extractMemberReads, freeIdentifiers } from "./analyze";
 import { parseExpression } from "./parse";
-import { validateFreeIdentifiers, validateNode } from "./validate";
 
 export type ExpressionFacts = {
 	freeIds: readonly string[];
@@ -18,14 +16,18 @@ export type Analysis<TCompiled> = ExpressionFacts & {
 };
 
 type AnalyzerOptions = {
-	tools: Record<string, HostFunction>;
+	isTool: (name: string) => boolean;
+	// The language rules, or whatever replaces them. Throws to refuse the source.
+	check: (source: string) => void;
 	maxSourceLength: number;
 	maxCacheSize: number;
 };
 
 // Keyed by source alone, which is only sound because the host functions are fixed for the analyzer's lifetime.
+// The facts are collected whatever `check` does: the host needs them to run the expression at all.
 export class Analyzer<TCompiled> {
 	#cache = new Map<string, Analysis<TCompiled>>();
+	#checking: { source: string; ast: acorn.Expression } | null = null;
 	readonly #options: AnalyzerOptions;
 
 	constructor(options: AnalyzerOptions) {
@@ -36,15 +38,21 @@ export class Analyzer<TCompiled> {
 		const cached = this.#cache.get(source);
 		if (cached) return cached;
 
-		const { tools, maxSourceLength, maxCacheSize } = this.#options;
+		const { isTool, check, maxSourceLength, maxCacheSize } = this.#options;
 		const ast = parseExpression(source, maxSourceLength);
-		validateNode(ast);
-		const freeIds = validateFreeIdentifiers(ast, (name) => tools[name] !== undefined);
+		const outer = this.#checking;
+		this.#checking = { source, ast };
+		try {
+			check(source);
+		} finally {
+			this.#checking = outer;
+		}
+		const freeIds = freeIdentifiers(ast);
 		const entry: Analysis<TCompiled> = {
 			source,
 			ast,
 			freeIds: Object.freeze(freeIds),
-			toolCalls: Object.freeze(freeIds.filter((id) => tools[id] !== undefined)),
+			toolCalls: Object.freeze(freeIds.filter(isTool)),
 		};
 
 		if (this.#cache.size >= maxCacheSize) {
@@ -53,6 +61,12 @@ export class Analyzer<TCompiled> {
 		}
 		this.#cache.set(source, entry);
 		return entry;
+	}
+
+	// The tree `check` is looking at, so the rules need no second parse.
+	parse(source: string): acorn.Expression {
+		const checking = this.#checking;
+		return checking?.source === source ? checking.ast : parseExpression(source, this.#options.maxSourceLength);
 	}
 
 	memberReads(source: string, root: string): readonly string[] {

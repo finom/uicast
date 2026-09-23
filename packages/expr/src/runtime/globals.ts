@@ -1,4 +1,4 @@
-import { CALLABLE_GLOBALS, CALLBACK_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
+import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, CALLBACK_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
 import { PRICES } from "../constants/limits";
 import { CALLBACK_ARGUMENT } from "../constants/methods";
 import type { Budget } from "./budget";
@@ -10,6 +10,11 @@ export const GLOBAL_VALUES: Readonly<Record<string, unknown>> = Object.freeze({
 	...Object.fromEntries(NAMESPACE_GLOBALS.map((name) => [name, new Namespace(name)])),
 	...CONSTANT_GLOBALS,
 });
+
+// The same names as the engine's own objects, for an expression the engine runs.
+export const PLATFORM_GLOBALS: Readonly<Record<string, unknown>> = Object.freeze(
+	Object.fromEntries(ALLOWED_GLOBALS.map((name) => [name, (globalThis as Record<string, unknown>)[name]])),
+);
 
 export const GLOBAL_FUNCTIONS: Readonly<Record<string, (...args: unknown[]) => unknown>> = table(
 	Object.fromEntries([...CALLABLE_GLOBALS].map((name) => [name, (globalThis as Record<string, unknown>)[name] as (...args: unknown[]) => unknown])),

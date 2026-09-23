@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { ALLOWED_METHOD_NAMES } from "../constants/methods";
 import { compileAst } from "../interpret/compile";
 import { Budget, resolveLimits } from "../runtime/budget";
+import { GLOBAL_VALUES } from "../runtime/globals";
+import { unknownName } from "../runtime/lookup";
 import { Analyzer } from "../syntax/analyzer";
+import { validateExpression } from "../syntax/validate";
 import { CONTEXT, PLAIN, WORKLOADS } from "./price-workloads";
 
 // Each operation's time per charged step, over a plain step's. Far above 1, the operation is underpriced:
@@ -18,7 +21,14 @@ const LIMITS = resolveLimits({
 	maxArrayLength: UNLIMITED,
 	maxTotalAllocation: UNLIMITED,
 });
-const analyzer = new Analyzer({ tools: {}, maxSourceLength: 10_000, maxCacheSize: 1_000 });
+const noTools = () => false;
+const analyzer: Analyzer<unknown> = new Analyzer({
+	isTool: noTools,
+	check: (source) => validateExpression(analyzer.parse(source), noTools),
+	maxSourceLength: 10_000,
+	maxCacheSize: 1_000,
+});
+const global = (name: string) => (Object.hasOwn(GLOBAL_VALUES, name) ? GLOBAL_VALUES[name] : unknownName(name));
 const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)];
 
 const nsPerStep = (source: string): number => {
@@ -26,7 +36,7 @@ const nsPerStep = (source: string): number => {
 	const once = () => {
 		const budget = new Budget(LIMITS);
 		const start = performance.now();
-		run(null, { budget, contexts: [CONTEXT] });
+		run(null, { budget, contexts: [CONTEXT], global });
 		return ((performance.now() - start) * 1e6) / budget.steps;
 	};
 	once();

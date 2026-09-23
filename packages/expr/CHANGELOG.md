@@ -2,19 +2,26 @@
 
 ## [Unreleased]
 
+Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuilt as a boundary rather than a guardrail.
+
+- **No `new Function`.** Expressions are parsed once with acorn and compiled to a tree of closures. Nothing in this package hands source to the JavaScript engine, so **uicast** runs under a strict Content-Security-Policy with no `unsafe-eval`.
+- **Closed AST allow-list.** The grammar is a fixed set of node types. There are no statements, so no loops and no `try`/`catch`; no declarations and no `function` keyword, so nothing can be named; no assignment, so an expression is pure structurally rather than by convention. The operator set is trimmed to what a display value needs — no `in`, no bitwise operators — and an optional *call* (`x?.()`) is rejected in favour of an optional *receiver* (`x?.y()`).
+- **Runtime membrane.** Every property read and every call resolves through one chokepoint that sees the resolved key, closing the computed-key escape class (`obj["con"+"structor"]`). Plain objects are read by own property only, and only plain data is readable — a class instance, DOM node, or function is refused at the boundary.
+- **CPU and allocation budget.** Step counter, wall-clock deadline, string and array caps, and an AST depth limit.
+- No regular expressions: ReDoS runs inside the regex engine where no counter can reach it.
+
 ### Changed
 
 - **The expression language of uicast documents: JavaScript expressions over JSON data.** The methods of strings, numbers and arrays are the standard ones, minus those that mutate, return an iterator, take a regular expression, exist only for a side effect, or are legacy. The globals stay a short list.
 - **Breaking: an array literal cannot skip an item.** `[1, , 2]` fails validation: JS leaves a hole there, which array methods skip, and the interpreter did not. Write `undefined`.
 - **A host function inside a callback is refused before anything runs.** `ids.map(id => deleteOrder({ id }))` used to run every call and only then refuse the result; `forEach` and `filter` did not refuse at all, and none of the calls was awaited. Now any host function written inside an arrow, its parameters included, fails validation, synchronous or not. Call one function that takes every id instead.
 - **Breaking: reason `runtime` is `expression-runtime`.** `ExpressionErrorReason` is now a subset of **uicast**'s `EntryErrorReason`, so core passes a reason through instead of mapping it.
-- **`Analyzer` in `@uicast/expr/internal`.** Parse, validate and the per-source cache in one class; `Evaluator` and `PassthroughEvaluator` both hold one instead of each carrying a copy.
-- **Breaking: `ALLOWED_GLOBALS` moved to `@uicast/expr/internal`, and `DEFAULT_BUDGET` is no longer exported.** The globals are the language's own table, read by core's prompt builder and the passthrough package, not something a host calls. The index is `Evaluator`, `ExpressionEvaluator`, `ExpressionError` and the option and tool types.
+- **Breaking: `ALLOWED_GLOBALS` moved to `@uicast/expr/internal`, and `DEFAULT_BUDGET` is no longer exported.** The globals are the language's own table, read by core's prompt builder, not something a host calls. The index is `Evaluator`, `ExpressionEvaluator`, `ExpressionError` and the option and tool types.
 - **Exit gate checks arrays and plain objects first.** The same refusals, fewer `instanceof` tests on the common case; a result object leaves both evaluators faster.
 - **Charging moved into the membrane.** Each method or global call is charged its price and the result's size, after the call; a method charges only its own proportional work and output that can outgrow its input. A function result is refused at the call. One `Budget` per evaluation, none shared.
-- **`ExpressionEvaluator`, the interface.** `Evaluator` implements it, so does `PassthroughEvaluator`, and **uicast** types against it. Implement it to plug in an evaluator of your own.
-- **The `new Function` back end is its own package.** `mode: "native"` is gone; `@uicast/expr-passthrough` ships `PassthroughEvaluator` with the same options, minus `budget`. This package now contains no `new Function` at all — a dependency scan of the shipped code finds none. The static half of the language — parser, validator, analysis, host-function binding, the exit gate — is exported from `@uicast/expr/internal` so the passthrough package checks exactly the same grammar; uicast types against its own `ExpressionEvaluator` interface in `@uicast/core`, which both satisfy.
-- **No deny-list anywhere in the interpreter.** `FORBIDDEN_KEYS`, `FORBIDDEN_IDENTIFIERS` and `RESERVED_WORDS` are gone. Reads were already own-property only and calls already go through null-prototype tables, so `({}).constructor` is simply `undefined` and `.constructor()` is "not an available method" — no name needs refusing by name. What stays is one grammar rule: `{ __proto__: x }` in an object literal is JS syntax for setting a prototype, a form the language does not have; a computed `__proto__` key is an own property, as in JS. A host-function name is screened by the parser's own verdict (does it parse as a bare identifier?) instead of a word list. The passthrough package keeps a static backstop for written prototype names, because it has no membrane.
+- **`ExpressionEvaluator`, the interface.** `Evaluator` implements it, and **uicast** types against it. Implement it to plug in an evaluator of your own.
+- **Breaking: `mode: "native"` is gone.** This package contains no `new Function` at all — a dependency scan of the shipped code finds none. A subclass that sets `toFunction` runs expressions through the engine instead (see Added).
+- **No deny-list anywhere in the interpreter.** `FORBIDDEN_KEYS`, `FORBIDDEN_IDENTIFIERS` and `RESERVED_WORDS` are gone. Reads were already own-property only and calls already go through null-prototype tables, so `({}).constructor` is simply `undefined` and `.constructor()` is "not an available method" — no name needs refusing by name. What stays is one grammar rule: `{ __proto__: x }` in an object literal is JS syntax for setting a prototype, a form the language does not have; a computed `__proto__` key is an own property, as in JS. A host-function name is screened by the parser's own verdict (does it parse as a bare identifier?) instead of a word list.
 - **A host-function call is bound at compile time.** The validator already allows a tool only as a callee, so the interpreter resolves it when it compiles the call; the `HostFn` value kind is gone, and `typeof` never sees a tool.
 - **`StandardToolV0` and the Standard Schema interfaces ship in this package**, copied verbatim from `standard-tool` 0.1.0 and `@standard-schema/spec` 1.1.0 (the spec is meant to be copied) — the `standard-tool` dependency is gone. A tool built with that library satisfies the type as-is.
 - **Host functions bind at construction, and the evaluator owns the boundary.** `new Evaluator({ functions })` takes `StandardToolV0[]`; there is no per-call `functions` option. Every call now validates its input against the tool's `inputSchema` before `execute` and its output against `outputSchema` after — nothing checked the call before this, so an expression could hand a tool any shape it computed. A synchronous tool with synchronous schemas still allocates no promise; async appears only where a validator or the tool actually returns one.
@@ -36,18 +43,19 @@
 
 ### Added
 
+- **`toFunction`, for a subclass that runs expressions through the engine.** `protected override toFunction(names, body) { return new Function(...names, body); }` — the same checks, name lookup, host-function calls and exit gate, then the engine runs the expression: no membrane, no budget, and it needs CSP `unsafe-eval`. For sources you trust.
 - **Methods newer than ES2022, implemented in the interpreter**, so an ES2022 engine gives the same answers: array `.toSpliced()` / `.with()`, string `.isWellFormed()` / `.toWellFormed()`, number `.toExponential()`, `Math.asinh()` / `acosh()` / `atanh()` / `f16round()` / `sumPrecise()`, `Object.groupBy()` / `hasOwn()` / `is()`, `String.fromCodePoint()`. The ES2023 array methods (`findLast`, `toSorted`, …) no longer come from the engine either. `baseline.test.ts` runs the corpus with every newer built-in deleted.
 - **A global that takes one argument can be passed as a callback**: `rows.filter(Boolean)`, `ids.map(Number)`. `parseInt`, which takes a radix, cannot, nor can `Math`, `Date` or the other namespaces; a written one fails validation.
 - **A source-length limit.** One expression may be at most `maxSourceLength` characters (default 1000 — the shipped corpus tops out around 140), rejected before acorn runs, so oversized input costs nothing. The prompt renders the limit from the same constant.
-- `@uicast/expr/internal`: `DEFAULT_MAX_SOURCE_LENGTH`, `hostFunctionNameFault`, `ALLOWED_METHOD_NAMES`, so a host's prompt can be checked against the language it describes and its host-function names against the screen the evaluator runs; `childNodes`, `lookupName`, `writtenName` and `DEFAULT_MAX_CACHE_SIZE` for the passthrough package.
+- `@uicast/expr/internal`: `DEFAULT_MAX_SOURCE_LENGTH`, `hostFunctionNameFault`, `ALLOWED_METHOD_NAMES`, so a host's prompt can be checked against the language it describes and its host-function names against the screen the evaluator runs.
 - `corpus.test.ts`: the interpreter against plain JavaScript on every expression the language allows — the differential suite lives with the interpreter, not only with the other back end.
 - The README lists the whole language — syntax, globals, every method — and a test keeps that list equal to the tables.
 
 ### Fixed
 
 - **`JSON.stringify`, `join`, `toString` and `toLocaleString` on arrays are charged before the string exists.** They were charged after, once the engine had built it: stringifying 100,000 references to a one-megabyte string blocked for 29 seconds before failing. The output size is now counted from the value first, the way `replaceAll` is charged.
-- **`{ ["__proto__"]: x }` is an own property.** A computed key spelled as a literal was folded to a written one and assigned, which set the prototype; the passthrough back end defined an own key, as JS does. Both agree now, and the case is in the corpus.
-- **A raw `TypeError` no longer escapes `Evaluator.eval`.** An operator's native coercion — `x + ""` when `x` carries a non-function `toString` — threw the engine's own error; it is an `ExpressionError` with reason `expression-runtime`, as the passthrough already did.
+- **`{ ["__proto__"]: x }` is an own property.** A computed key spelled as a literal was folded to a written one and assigned, which set the prototype. It defines an own key now, as JS does, and the case is in the corpus.
+- **A raw `TypeError` no longer escapes `Evaluator.eval`.** An operator's native coercion — `x + ""` when `x` carries a non-function `toString` — threw the engine's own error; it is an `ExpressionError` with reason `expression-runtime`.
 - A name written as a substitution-free template literal — `` a[`map`]() `` — is checked statically like `a["map"]()`.
 - **Nothing but plain data leaves an expression, in either mode.** The per-read gate refused a function on a direct read, but every bulk copy walked past it: `Object.values(o)`, spread, `slice`, `filter`, a plain `scopes.arr` read — each returned a live function, callable by the host, and `send(Object.values(o))` delivered one straight into host code. `Object.values(x => x * 2)` even leaked the interpreter's own closure. An exit gate now walks what an expression returns and what it hands to a host function; a function or a class instance anywhere inside is refused, and `Object.keys` / `values` / `entries`, object spread and `...rest` in a pattern refuse a non-plain receiver the way a direct read already did. `native` inherits the exit gate too — it can still read through the prototype chain, but a function can no longer come back out.
 - **The exit gate stops at 256 levels** and classifies what it meets: a 10,000-level nesting escaped as a raw `RangeError`, a Proxy over a `Map` as a raw `TypeError`.
@@ -77,45 +85,3 @@
 - `globalNames()` — it returned exactly what `ALLOWED_GLOBALS` already is. `Evaluator.clearCache()` — the cache self-bounds at `maxCacheSize`, and a host wanting a clean slate can construct a new evaluator. `ALLOWED_NODES`, `Lambda`, and `Namespace` are no longer exported: grammar tables and membrane classes the evaluator builds itself.
 - The `sandbox` and `safe-eval` npm keywords — it is neither, and the README says why.
 - The `StandardTypedV1` re-export. `StandardSchemaV1` and `StandardJSONSchemaV1` extend it and are still exported.
-
-## 0.0.1-beta.0
-
-Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuilt as a boundary rather than a guardrail.
-
-- **No `new Function`.** Expressions are parsed once with acorn and compiled to a tree of closures. Nothing hands source to the JavaScript engine, so **uicast** runs under a strict Content-Security-Policy with no `unsafe-eval`.
-- **Closed AST allow-list.** The grammar is a fixed set of node types. There are no statements, so no loops and no `try`/`catch`; no declarations and no `function` keyword, so nothing can be named; no assignment, so an expression is pure structurally rather than by convention. The operator set is trimmed to what a display value needs — no `in`, no bitwise operators — and an optional *call* (`x?.()`) is rejected in favour of an optional *receiver* (`x?.y()`).
-- **Runtime membrane.** Every property read and every call resolves through one chokepoint that sees the resolved key, closing the computed-key escape class (`obj["con"+"structor"]`). Plain objects are read by own property only, and only plain data is readable — a class instance, DOM node, or function is refused at the boundary.
-- **CPU and allocation budget.** Step counter, wall-clock deadline, string and array caps, and an AST depth limit.
-- No regular expressions: ReDoS runs inside the regex engine where no counter can reach it.
-
-### Prompt
-
-`getExpressionsPartialPrompt({ allowGlobals?, note? })` (exported from `@uicast/expr/prompt`) returns the `# JavaScript Expressions` block: the syntax, the method allow-list, and the globals. It lives here because it is a description of `grammar.ts`, `membrane.ts`, and `globals.ts`, and the globals slot is filled from `ALLOWED_GLOBALS` itself, so that half cannot drift from what the evaluator accepts. `note` appends host-specific context as a trailing `## Note`. Hosts embedding the evaluator describe their own context variables separately.
-
-### Back ends
-
-Two, selected with `mode` — different threat models, not two strengths of one guarantee.
-
-- `interpret` (default) compiles the AST to a closure tree this package runs itself, checking every read and call as it happens. Nothing is trusted. No `new Function`, so no CSP `unsafe-eval`.
-- `native` validates against the same grammar and then runs the expression with `new Function`. For documents the host generated itself, where the model is the first line of defence and `unsafe-eval` is acceptable. Within a few percent of raw `new Function` once a callback is involved.
-
-`native` still enforces everything the shared validator can decide without running anything: no statements, declarations, assignment, regular expressions, tagged templates, `eval`, or immediately-invoked functions; no prototype-reaching property name that is *written down*, including `obj["constructor"]`; and no free identifier the host did not hand in. Its residual is the case a static pass cannot decide — a property name assembled at run time, `obj["con"+"structor"]` — plus uncapped allocation and the real prototype methods.
-
-A parity suite runs one shared corpus through both back ends and plain JavaScript and requires all three to agree, requires both to refuse everything the grammar forbids, and asserts the residual explicitly in both directions so the difference between the modes stays visible in CI.
-
-### Layout
-
-`src/` holds the shared language machinery — parse, validate, grammar, membrane, budget, globals, analyze. The back ends sit beside it: `src/interpret/` compiles the AST to a closure tree (the default, and the reason there is no `unsafe-eval` requirement), and `src/native/` validates and then runs the source with `new Function`. `index.ts` wires whichever one is selected, so the two differ in mechanism and never in policy.
-
-### Performance
-
-Everything that can be settled while compiling is, so evaluation is closures calling closures:
-
-- Identifiers resolve to a `(depth, slot)` frame address at compile time — the run-time frame is a values array, never searched by name.
-- A plain member chain `a.b.c` fuses into one closure walking a key array.
-- Operator implementations are resolved once; a subtree that cannot produce a Promise gets a direct closure, not one that checks.
-- Callback arguments are positional into a slots array — no per-element argument array, no per-call `Map`.
-- The budget is charged statically: one tick per callback invocation, costed by the arrow's node count, instead of one per node.
-- Sync evaluations reuse one `Budget`, host-function wrappers and native parameter shapes are cached, so the steady-state per-eval allocation is close to zero.
-
-Measured, interpret / native / bare `new Function`: `scopes.root.count > 0` ~72 / ~60 / ~20 ns; a 1000-row `.filter()` ~25 µs / ~1.44 µs / ~1.36 µs; a 1000-row `.reduce()` ~80 µs / ~1.04 µs / ~0.96 µs.

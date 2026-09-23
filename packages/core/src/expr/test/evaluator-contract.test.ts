@@ -6,11 +6,17 @@ import {
   type ExpressionFacts,
   type StandardToolV0,
 } from "@uicast/expr";
-import { PassthroughEvaluator } from "@uicast/expr-passthrough";
 import { EntryError } from "../../entry-error";
 import { evaluate } from "../evaluate";
 
 const tool = (name: string): StandardToolV0 => ({ name, description: "", execute: () => 42 });
+
+// The engine runs the expression: the subclass the docs show.
+class FunctionEvaluator extends Evaluator {
+  protected override toFunction(names: readonly string[], body: string) {
+    return new Function(...names, body);
+  }
+}
 
 // A toy language: the source is a key into `scopes`, or a host-function name.
 class ToyEvaluator implements ExpressionEvaluator {
@@ -31,8 +37,8 @@ class ToyEvaluator implements ExpressionEvaluator {
 }
 
 describe("ExpressionEvaluator", () => {
-  it("is implemented by both shipped evaluators", () => {
-    const shipped: ExpressionEvaluator[] = [new Evaluator(), new PassthroughEvaluator()];
+  it("is implemented by Evaluator and by a subclass that sets toFunction", () => {
+    const shipped: ExpressionEvaluator[] = [new Evaluator(), new FunctionEvaluator()];
     for (const ev of shipped) {
       expect(evaluate({ expr: "scopes.root.n + 1" }, { scopes: { root: { n: 1 } } }, ev)).toBe(2);
       expect(ev.memberReads("scopes.root.n + 1", "scopes")).toEqual(["scopes.root.n"]);

@@ -32,12 +32,12 @@
     "beta-notest-IAMSURE": "PACKAGE=${PACKAGE:-core} NPM_TAG=beta VERSION_TYPE=\"prerelease --preid=beta\" npm run vpub-notest",
     "draft-notest": "PACKAGE=${PACKAGE:-core} NPM_TAG=draft VERSION_TYPE=\"prerelease --preid=draft\" npm run vpub-notest",
     "vpub-all-guard": "if ! git diff --quiet HEAD; then echo 'Error: the git tree is not clean \u2014 commit or stash first (the release flow makes its own commit)'; exit 1; fi",
-    "vpub-all:version": "set -e; for P in expr expr-passthrough core react shadcn-catalog streamdown; do npm version --prefix ./packages/$P $VERSION_TYPE --no-git-tag-version; done; node scripts/sync-internal-deps.mjs; npm install --package-lock-only",
-    "vpub-all:publish": "set -e; for P in expr expr-passthrough core react shadcn-catalog streamdown; do npm run --prefix ./packages/$P npm-publish; done",
-    "vpub-all:commit": "VERSION=$(node -p \"require('./packages/core/package.json').version\") && git add packages/expr/package.json packages/expr-passthrough/package.json packages/core/package.json packages/react/package.json packages/shadcn-catalog/package.json packages/streamdown/package.json package-lock.json && git commit -m \"chore(release): all packages @ $VERSION\" && git push",
+    "vpub-all:version": "set -e; for P in expr core react shadcn-catalog streamdown; do npm version --prefix ./packages/$P $VERSION_TYPE --no-git-tag-version; done; node scripts/sync-internal-deps.mjs; npm install --package-lock-only",
+    "vpub-all:publish": "set -e; for P in expr core react shadcn-catalog streamdown; do npm run --prefix ./packages/$P npm-publish; done",
+    "vpub-all:commit": "VERSION=$(node -p \"require('./packages/core/package.json').version\") && git add packages/expr/package.json packages/core/package.json packages/react/package.json packages/shadcn-catalog/package.json packages/streamdown/package.json package-lock.json && git commit -m \"chore(release): all packages @ $VERSION\" && git push",
     "vpub-all-notest": "npm run vpub-all-guard && npm run build && npm run vpub-all:version && npm run vpub-all:publish && npm run vpub-all:commit",
     "beta-notest-all": "NPM_TAG=beta VERSION_TYPE=\"prerelease --preid=beta\" npm run vpub-all-notest",
-    "build": "set -e; for P in expr expr-passthrough core react shadcn-catalog streamdown; do npm run build --prefix ./packages/$P; done"
+    "build": "set -e; for P in expr core react shadcn-catalog streamdown; do npm run build --prefix ./packages/$P; done"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.41",
@@ -46,7 +46,6 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@standard-schema/spec": "^1.1.0",
     "@uicast/expr": "^0.0.1-beta.0",
-    "@uicast/expr-passthrough": "^0.0.1-beta.0",
     "acorn": "^8.16.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

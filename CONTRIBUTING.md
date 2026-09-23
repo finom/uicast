@@ -20,7 +20,7 @@ A change in behavior comes with a test. Lint warnings fail the gate.
 
 ## Changing the expression language
 
-Anything that adds or removes syntax, a method, a global or a cap in `@uicast/expr` is a language change. Open an issue first; the prompt, the docs and the passthrough package all mirror the language and change with it.
+Anything that adds or removes syntax, a method, a global or a cap in `@uicast/expr` is a language change. Open an issue first; the prompt and the docs mirror the language and change with it.
 
 ## Security
 

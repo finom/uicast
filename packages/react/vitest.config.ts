@@ -13,10 +13,6 @@ export default defineConfig({
         replacement: resolve(import.meta.dirname, "../expr/src/index.ts"),
       },
       {
-        find: /^@uicast\/expr-passthrough$/,
-        replacement: resolve(import.meta.dirname, "../expr-passthrough/src/index.ts"),
-      },
-      {
         find: /^@uicast\/core\/prompt$/,
         replacement: resolve(import.meta.dirname, "../core/src/prompt/index.ts"),
       },

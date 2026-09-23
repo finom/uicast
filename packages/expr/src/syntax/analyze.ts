@@ -95,3 +95,9 @@ const walkFree = (node: acorn.AnyNode, parent: acorn.AnyNode | null, stack: Set<
 export const walkFreeIdentifiers = (ast: acorn.AnyNode, visit: FreeVisitor): void => {
 	walkFree(ast, null, [], visit);
 };
+
+export const freeIdentifiers = (ast: acorn.AnyNode): string[] => {
+	const out = new Set<string>();
+	walkFree(ast, null, [], (name) => out.add(name));
+	return [...out];
+};

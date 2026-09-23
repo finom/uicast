@@ -17,7 +17,6 @@
       "@uicast/core": ["./packages/core/src/index.ts"],
       "@uicast/expr": ["./packages/expr/src/index.ts"],
       "@uicast/expr/internal": ["./packages/expr/src/internal.ts"],
-      "@uicast/expr-passthrough": ["./packages/expr-passthrough/src/index.ts"],
       "@uicast/core/internal": ["./packages/core/src/internal.ts"],
       "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],
       "@uicast/react": ["./packages/react/src/index.ts"],
@@ -29,7 +28,6 @@
   },
   "include": [
     "packages/expr/**/*.ts",
-    "packages/expr-passthrough/**/*.ts",
     "packages/core/**/*.ts",
     "packages/core/**/*.tsx",
     "packages/core/**/*.mts",

@@ -40,55 +40,69 @@ const runSchema = (schema: Schema, name: string, value: unknown): Validation => 
 	return result;
 };
 
-const bind = (tool: StandardToolV0): HostFunction => {
+const checkSchema = (
+	name: string,
+	schema: Schema | undefined,
+	value: unknown,
+	reason: ExpressionErrorReason,
+	what: string,
+): unknown =>
+	schema === undefined
+		? value
+		: then(runSchema(schema, name, value), (result) => {
+				const settled = result as Settled;
+				if (settled.issues) throw new ExpressionError(`"${name}" ${what} — ${formatIssues(settled.issues)}`, reason);
+				return settled.value;
+			});
+
+const execute = (tool: StandardToolV0, input: unknown): unknown => {
+	try {
+		const output = tool.execute(input);
+		return output instanceof Promise
+			? output.catch((err) => {
+					throw hostFailure(tool.name, err);
+				})
+			: output;
+	} catch (err) {
+		throw hostFailure(tool.name, err);
+	}
+};
+
+const asData = (name: string, value: unknown): unknown => {
+	try {
+		assertData(value, `"${name}" result`);
+	} catch (err) {
+		throw new ExpressionError((err as Error).message, "host-function", err);
+	}
+	return value;
+};
+
+// The data gate and the tool's own schemas on both sides of `execute`.
+export const callTool = (tool: StandardToolV0, input: unknown): unknown => {
 	const name = tool.name;
-	const check = (schema: Schema | undefined, value: unknown, reason: ExpressionErrorReason, what: string): unknown =>
-		schema === undefined
-			? value
-			: then(runSchema(schema, name, value), (result) => {
-					const settled = result as Settled;
-					if (settled.issues) throw new ExpressionError(`"${name}" ${what} — ${formatIssues(settled.issues)}`, reason);
-					return settled.value;
-				});
-	const execute = (input: unknown): unknown => {
-		try {
-			const output = tool.execute(input);
-			return output instanceof Promise
-				? output.catch((err) => {
-						throw hostFailure(name, err);
-					})
-				: output;
-		} catch (err) {
-			throw hostFailure(name, err);
-		}
-	};
-	const asData = (value: unknown): unknown => {
-		try {
-			assertData(value, `"${name}" result`);
-		} catch (err) {
-			throw new ExpressionError((err as Error).message, "host-function", err);
-		}
-		return value;
-	};
-	return (input) => {
-		assertData(input, `"${name}" argument`);
-		return then(check(tool.inputSchema, input, "invalid-arguments", "rejected its argument"), (checked) =>
-			then(execute(checked), (output) =>
-				then(check(tool.outputSchema, output, "host-function", "returned a value its output schema rejects"), asData),
+	assertData(input, `"${name}" argument`);
+	return then(checkSchema(name, tool.inputSchema, input, "invalid-arguments", "rejected its argument"), (checked) =>
+		then(execute(tool, checked), (output) =>
+			then(
+				checkSchema(name, tool.outputSchema, output, "host-function", "returned a value its output schema rejects"),
+				(value) => asData(name, value),
 			),
-		);
-	};
+		),
+	);
 };
 
 // A bad or duplicate name is a host configuration error.
-export const bindTools = (tools: readonly StandardToolV0[]): Record<string, HostFunction> => {
+export const bindTools = (
+	tools: readonly StandardToolV0[],
+	call: (tool: StandardToolV0, input: unknown) => unknown,
+): Record<string, HostFunction> => {
 	const bound: Record<string, HostFunction> = Object.create(null);
 	for (const tool of tools) {
 		const name = tool.name;
 		const fault = hostFunctionNameFault(name);
 		if (fault) throw new ExpressionError(`Host function name "${name}" ${fault}`, "host-function");
 		if (bound[name] !== undefined) throw new ExpressionError(`Duplicate host function name "${name}"`, "host-function");
-		bound[name] = bind(tool);
+		bound[name] = (input) => call(tool, input);
 	}
 	return bound;
 };

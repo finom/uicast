@@ -14,7 +14,7 @@ const OPERATORS: Record<string, ReadonlySet<string>> = {
 };
 
 // A property name the source spells out: `a.b`, `a["b"]`, a[`b`], `{ b: 1 }`, `{ "b": 1 }`.
-export const writtenName = (key: acorn.AnyNode, computed: boolean): string | null => {
+const writtenName = (key: acorn.AnyNode, computed: boolean): string | null => {
 	if (!computed && key.type === "Identifier") return key.name;
 	if (key.type === "Literal" && typeof key.value === "string") return key.value;
 	if (key.type === "TemplateLiteral" && key.expressions.length === 0) {
@@ -35,7 +35,7 @@ const callbackArgument = (node: acorn.CallExpression): acorn.AnyNode | undefined
 	return index === undefined ? undefined : node.arguments[index];
 };
 
-export const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void => {
+const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void => {
 	if (depth > MAX_AST_DEPTH) throw new ExpressionError(`Expression nests deeper than ${MAX_AST_DEPTH} levels`);
 	if (!ALLOWED_NODES.has(node.type)) {
 		throw new ExpressionError(
@@ -150,12 +150,10 @@ const resultPositions = (node: acorn.AnyNode, out: Set<acorn.AnyNode>): Set<acor
 };
 
 // A host function may only be the callee of a call with 0 or 1 non-spread argument, standing where its value is the result,
-// never a value; a global is callable only where the tables say. Returns the free identifiers.
-export const validateFreeIdentifiers = (ast: acorn.Expression, isTool: (name: string) => boolean): string[] => {
-	const out = new Set<string>();
+// never a value; a global is callable only where the tables say.
+const validateNames = (ast: acorn.Expression, isTool: (name: string) => boolean): void => {
 	let results: Set<acorn.AnyNode> | null = null;
 	walkFreeIdentifiers(ast, (name, node, parent, inCallback) => {
-		out.add(name);
 		// `foo(double)` also gives `double` a CallExpression parent — only the identity check tells callee from argument.
 		const callee = parent !== null && parent.type === "CallExpression" && parent.callee === node;
 		if (isTool(name)) {
@@ -195,5 +193,10 @@ export const validateFreeIdentifiers = (ast: acorn.Expression, isTool: (name: st
 		}
 		if (callee && !CALLABLE_GLOBALS.has(name)) throw new ExpressionError(`"${name}" cannot be called`);
 	});
-	return [...out];
+};
+
+// The language rules for one parsed expression.
+export const validateExpression = (ast: acorn.Expression, isTool: (name: string) => boolean): void => {
+	validateNode(ast);
+	validateNames(ast, isTool);
 };

@@ -2,7 +2,7 @@ import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
 import type { Budget } from "../runtime/budget";
 import { chargeCompare, chargeNumber, chargeText } from "../runtime/coerce";
-import { callGlobal, GLOBAL_VALUES, withGlobalCallback } from "../runtime/globals";
+import { callGlobal, withGlobalCallback } from "../runtime/globals";
 import { lookupName } from "../runtime/lookup";
 import { callMember, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
@@ -19,9 +19,11 @@ type Lexical = readonly (readonly string[])[];
 type Cx = { readonly lexical: Lexical; readonly tools: Record<string, HostFunction> };
 
 // Contexts stay a list: one object spread per evaluation cost more than most expressions.
+// `global` answers for a name no context has.
 export type Runtime = {
 	budget: Budget;
 	contexts: readonly Record<string, unknown>[];
+	global: (name: string) => unknown;
 };
 
 export type Thunk = (frame: Frame | null, rt: Runtime) => unknown;
@@ -48,7 +50,7 @@ const slotOf = (name: string, lexical: Lexical): { depth: number; index: number 
 const compileIdentifier = (name: string, lexical: Lexical): Thunk => {
 	const slot = slotOf(name, lexical);
 	// Host functions never get here: the validator allows them only as a callee, fused at compile time.
-	if (slot === null) return (_frame, rt) => lookupName(name, rt.contexts, GLOBAL_VALUES);
+	if (slot === null) return (_frame, rt) => lookupName(name, rt.contexts, rt.global);
 	const { depth, index } = slot;
 	if (depth === 0) return (frame) => (frame as Frame).values[index];
 	if (depth === 1) return (frame) => ((frame as Frame).parent as Frame).values[index];

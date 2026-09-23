@@ -2,9 +2,18 @@ import { bench, describe } from "vitest";
 import { Evaluator, type StandardToolV0 } from "../index";
 import { BUDGET, cases, rows, scopes, WAVE_EXPRS } from "./bench-cases";
 
+// The subclass the Custom evaluator docs page shows.
+class FunctionEvaluator extends Evaluator {
+	protected override toFunction(names: readonly string[], body: string) {
+		return new Function(...names, body);
+	}
+}
+
 const interpret = new Evaluator(BUDGET);
+const engine = new FunctionEvaluator();
 
 const waveInterpret = WAVE_EXPRS.map((e) => interpret.compile(e));
+const waveEngine = WAVE_EXPRS.map((e) => engine.compile(e));
 const wavePlain = WAVE_EXPRS.map(
 	(e) => new Function("scopes", `"use strict"; return (${e})`),
 );
@@ -13,6 +22,12 @@ describe("full wave — 5 expressions × 1000 rows", () => {
 		for (const item of rows) {
 			const ctx = { scopes: { row: item } };
 			for (const f of waveInterpret) f(ctx);
+		}
+	});
+	bench("toFunction", () => {
+		for (const item of rows) {
+			const ctx = { scopes: { row: item } };
+			for (const f of waveEngine) f(ctx);
 		}
 	});
 	bench("new Function", () => {
@@ -25,10 +40,14 @@ describe("full wave — 5 expressions × 1000 rows", () => {
 
 for (const [label, expr] of cases) {
 	const interpreted = interpret.compile(expr);
+	const compiled = engine.compile(expr);
 	const plain = new Function("scopes", `"use strict"; return (${expr})`);
 	describe(label, () => {
 		bench("interpret", () => {
 			interpreted({ scopes });
+		});
+		bench("toFunction", () => {
+			compiled({ scopes });
 		});
 		bench("new Function", () => {
 			plain(scopes);

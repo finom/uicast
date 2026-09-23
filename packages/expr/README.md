@@ -155,11 +155,21 @@ ev.eval("user", { user: new User() });      // → ExpressionError: The result c
 ev.eval("scopes.fn", { scopes: { fn } });   // → ExpressionError: "fn" holds a function, which cannot be read in an expression
 ```
 
-## Two evaluators
+## Running expressions through the engine
 
 `Evaluator` checks every read and call as it happens and stops every expression within its budget. Use it when anyone else can steer the expression.
 
-[`@uicast/expr-passthrough`](https://www.npmjs.com/package/@uicast/expr-passthrough) ships `PassthroughEvaluator`: the same grammar and static checks, then `new Function`. It is faster and has no budget, needs `unsafe-eval`, and does not check a name assembled at run time, so it is for an author you trust. Both implement `ExpressionEvaluator`.
+A subclass can hand the expression to the JavaScript engine instead:
+
+```ts
+class FunctionEvaluator extends Evaluator {
+  protected override toFunction(names: readonly string[], body: string) {
+    return new Function(...names, body);
+  }
+}
+```
+
+The same checks run first. Then the engine runs the expression: it is faster, has no budget, needs `unsafe-eval`, and does not check a name assembled at run time, so it is for an author you trust.
 
 ## What it does not cover
 

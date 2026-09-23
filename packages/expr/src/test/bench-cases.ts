@@ -1,4 +1,4 @@
-// The shapes real documents use. Both evaluators' benchmarks run them; the table on the /expr docs page quotes them.
+// The shapes real documents use. The interpreter and a toFunction subclass run them; the /expr and /custom-expr docs pages quote them.
 
 export const BUDGET = { budget: { steps: 50_000_000, ms: 60_000 } };
 
