@@ -6,7 +6,7 @@ import { currencySchema, localeSchema } from "../../lib/locales";
 export const CurrencyInputDef = createComponentDefinition({
   name: "CurrencyInput",
   description:
-    "A formatted currency entry input. Displays amounts with currency symbol and formatting. Use CurrencyInput for financial forms, pricing inputs, payment amounts, etc.",
+    "A currency entry input. Displays amounts with a currency symbol. Use CurrencyInput for financial forms, pricing inputs, payment amounts, etc.",
   props: z.strictObject({
     value: z.number().optional().meta({
       description: "The numeric currency value",
@@ -18,12 +18,6 @@ export const CurrencyInputDef = createComponentDefinition({
     }),
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",
-    }),
-    min: z.number().optional().meta({
-      description: "Minimum allowed value",
-    }),
-    max: z.number().optional().meta({
-      description: "Maximum allowed value",
     }),
   }),
   callbacks: {

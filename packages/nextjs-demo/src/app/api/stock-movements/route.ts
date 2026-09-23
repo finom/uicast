@@ -35,8 +35,7 @@ export async function GET(req: NextRequest) {
   return json({ items, total, limit, offset });
 }
 
-// A movement adjusts the product's stock in the same transaction, so the
-// ledger and the counter cannot drift apart.
+// The stock adjustment rides the same transaction, so the ledger and the counter cannot drift apart.
 export async function POST(req: NextRequest) {
   const auth = await requireUser();
   if ("error" in auth) return auth.error;
@@ -49,7 +48,8 @@ export async function POST(req: NextRequest) {
     const [product] = await tx
       .select({ id: products.id, stock: products.stock })
       .from(products)
-      .where(and(eq(products.id, productId), eq(products.userId, auth.me.id)));
+      .where(and(eq(products.id, productId), eq(products.userId, auth.me.id)))
+      .for("update");
     if (!product) return { error: json({ error: "productId does not exist" }, 400) };
     if (product.stock + qty < 0) {
       return {

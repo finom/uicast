@@ -1,44 +1,47 @@
 import type { CallbackValueSourceAssignment, ExpressionEvaluator, ReactiveProxy } from "@uicast/core";
-import { CALLBACK_DEBOUNCE_MS, evaluate, getForwardTargets, planStepWaves } from "@uicast/core/internal";
-import { readField, requireScope } from "../read-scope-path";
-import { parseStepTargets } from "../step-targets";
+import { CALLBACK_DEBOUNCE_MS, evaluate, getForwardTargets, parseSetAddress, planStepWaves } from "@uicast/core/internal";
+import { requireScope } from "../require-scope";
 import type { ConfirmFn, Debouncers, Scopes } from "../types";
 
-// Run a callback's steps in dependency waves; `confirm` and host calls are barriers (their effects are invisible to path analysis).
-// Throws the first classified failure; a declined `confirm` resolves early. The steps from the first `debounce` on run
-// after `CALLBACK_DEBOUNCE_MS` of quiet; a newer call of the same callback replaces a pending run.
-export async function runCallbackSteps({
-	steps,
-	payload,
-	scopes,
-	confirm,
-	evaluator,
-	elementKey,
-	callbackName,
-	debouncers,
-}: {
-	steps: CallbackValueSourceAssignment[];
+type Step = CallbackValueSourceAssignment & { target: { scope: string; field: string } | null };
+
+type Run = {
 	payload: unknown;
 	scopes: Scopes;
 	confirm: ConfirmFn;
 	evaluator: ExpressionEvaluator;
 	elementKey: string;
+};
+
+// `confirm` and host calls are barriers; a declined `confirm` resolves early. From the first `debounce` step on,
+// the steps wait `CALLBACK_DEBOUNCE_MS` of quiet, and a newer call of the same callback replaces a pending run.
+export async function runCallbackSteps({
+	steps,
+	callbackName,
+	debouncers,
+	...run
+}: Run & {
+	steps: CallbackValueSourceAssignment[];
 	callbackName: string;
 	debouncers: Debouncers;
 }): Promise<void> {
-	const targets = parseStepTargets(steps, elementKey);
-	const debounceAt = steps.findIndex((step) => step.debounce);
-	const now = debounceAt === -1 ? steps : steps.slice(0, debounceAt);
-	const later = debounceAt === -1 ? [] : steps.slice(debounceAt);
+	// A bad address fails classified before any step runs.
+	const parsed: Step[] = steps.map((step) => ({
+		...step,
+		target: step.set ? parseSetAddress(step.set, run.elementKey) : null,
+	}));
+	const debounceAt = parsed.findIndex((step) => step.debounce);
+	const now = debounceAt === -1 ? parsed : parsed.slice(0, debounceAt);
+	const later = debounceAt === -1 ? [] : parsed.slice(debounceAt);
 
-	await runWaves(now, { targets, payload, scopes, confirm, evaluator, elementKey });
+	await runWaves(now, run);
 	if (later.length === 0) return;
 
 	debouncers.get(callbackName)?.cancel();
 	await new Promise<void>((resolve, reject) => {
 		const timer = setTimeout(() => {
 			debouncers.delete(callbackName);
-			runWaves(later, { targets, payload, scopes, confirm, evaluator, elementKey }).then(resolve, reject);
+			runWaves(later, run).then(resolve, reject);
 		}, CALLBACK_DEBOUNCE_MS);
 		// A replaced or unmounted run resolves as done: nothing ran, nothing failed.
 		debouncers.set(callbackName, {
@@ -51,26 +54,8 @@ export async function runCallbackSteps({
 	});
 }
 
-async function runWaves(
-	steps: CallbackValueSourceAssignment[],
-	{
-		targets,
-		payload,
-		scopes,
-		confirm,
-		evaluator,
-		elementKey,
-	}: {
-		targets: Map<CallbackValueSourceAssignment, { scope: string; field: string }>;
-		payload: unknown;
-		scopes: Scopes;
-		confirm: ConfirmFn;
-		evaluator: ExpressionEvaluator;
-		elementKey: string;
-	},
-): Promise<void> {
-
-	// The evaluator's own parse, not a regex. An invalid expression throws classified at evaluation; here it is simply not a barrier.
+async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, elementKey }: Run): Promise<void> {
+	// An invalid expression is no barrier: it fails classified when evaluated.
 	const callsHostFunction = (expr: string | undefined): boolean => {
 		if (!expr) return false;
 		try {
@@ -83,12 +68,8 @@ async function runWaves(
 		steps,
 		evaluator,
 		(step) => callsHostFunction("expr" in step ? step.expr : undefined),
-		// A row write also wakes the fields its list's `each` reads, so declare
-		// them — a later step reading one waits for it.
-		(step) => {
-			const target = targets.get(step);
-			return target ? forwardedFields(scopes, target.scope) : [];
-		},
+		// A row write also wakes the fields its list's `each` reads.
+		(step) => (step.target ? forwardedFields(scopes, step.target.scope) : []),
 	);
 
 	for (const wave of waves) {
@@ -97,28 +78,24 @@ async function runWaves(
 			if (!confirmed) return;
 		}
 		const evaluated = wave.map((step) => {
-			const target = targets.get(step) ?? null;
-			const currentValue = target ? readField(scopes, target.scope, target.field) : undefined;
-			// Evaluate inside an async thunk: a synchronous throw becomes a
-			// rejection, so allSettled observes every step and nothing rejects
-			// unhandled.
+			const write = step.target && {
+				scope: requireScope(scopes, step.target.scope, elementKey),
+				field: step.target.field,
+			};
+			const currentValue = write ? write.scope[write.field] : undefined;
+			// A synchronous throw becomes a rejection, so allSettled observes every step.
 			return {
-				target,
-				value: (async () =>
-					evaluate(step, { evt: payload, scopes, currentValue }, evaluator))(),
+				write,
+				value: (async () => evaluate(step, { evt: payload, scopes, currentValue }, evaluator))(),
 			};
 		});
-		// Let every step in the wave settle, apply the successful writes in step
-		// order, then fail on the first rejection — so parallel peers of a failed
-		// step still land, and later waves are skipped.
+		// Successful writes land in step order before the first rejection fails the run.
 		const settled = await Promise.allSettled(evaluated.map((e) => e.value));
 		let firstError: unknown = null;
 		settled.forEach((result, i) => {
 			if (result.status === "fulfilled") {
-				const { target } = evaluated[i];
-				if (target) {
-					requireScope(scopes, target.scope, elementKey).$set(target.field, result.value);
-				}
+				const { write } = evaluated[i];
+				if (write) write.scope.$set(write.field, result.value);
 			} else if (firstError === null) {
 				firstError = result.reason;
 			}
@@ -127,7 +104,7 @@ async function runWaves(
 	}
 }
 
-// Every `scopes.<scope>.<field>` a write to `scope` also emits on, transitively (a row forwards to its list's reads, which may be a row too).
+// Every field a write to `scope` also emits on, transitively.
 function forwardedFields(scopes: Scopes, scope: string): string[] {
 	const out: string[] = [];
 	const visit = (proxy: ReactiveProxy | undefined) => {

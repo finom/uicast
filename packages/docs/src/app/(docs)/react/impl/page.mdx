@@ -19,7 +19,9 @@ export const BadgeImpl = createComponentImplementation({
 ```
 
 `createComponentImplementation` comes from `@uicast/react`. It takes the `def`
-and a `render` function and returns the implementation you register.
+and a `render` function and returns the implementation you register:
+`{ def, placeholder }`. The renderer accepts only objects this function made; a
+copy or a hand-built object throws at `<RendererProvider>`.
 
 ## The render function
 
@@ -32,7 +34,7 @@ and a `render` function and returns the implementation you register.
   applied.
 
   ```jsonc
-  { "key": "total", "component": "Text", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
+  { "key": "total", "component": "Typography", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
   // render receives { text: "Open: 3" }
   // …and is called again with "Open: 4" the moment something writes scopes.root.open
   ```

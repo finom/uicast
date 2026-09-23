@@ -1,26 +1,34 @@
 import { OBJECT_NAMESPACES } from "../constants/globals";
-import { MAX_FLAT_DEPTH } from "../constants/limits";
-import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
+import { MAX_FLAT_DEPTH, PRICES } from "../constants/limits";
+import { LOCALE_METHOD_ARITY, localeArgumentsMessage, METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import type { Budget } from "./budget";
-import { fail, Formatter, invoke, isPlainObject, Lambda, Namespace, num, plainData, reject, table } from "./values";
+import { f16round, sumPrecise } from "./numeric";
+import { chargeDateText, chargeNumber, chargeText, joinedSize, jsonSize, num, scanCost, textCost, toInteger, toLength } from "./coerce";
+import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData, reject, table } from "./values";
 
-// The implementation behind constants/methods.ts. The membrane charges one step per call and the result's size
-// and refuses a function result; a method charges only its own proportional work, and output that can outgrow
-// its input before producing it.
+// The membrane charges each call and the result's size; a method charges only its own proportional work,
+// and output that can outgrow its input before producing it.
+// Methods newer than ES2022 are written out here, so an engine without them still runs them.
 
 // `recv` is `never` so each table can type its own receiver.
-export type MethodImpl = (recv: never, args: unknown[], budget: Budget) => unknown;
+type MethodImpl = (recv: never, args: unknown[], budget: Budget) => unknown;
 
 const requireString = (v: unknown, method: string): string =>
 	typeof v === "string" ? v : fail(`"${method}" needs a string argument here — regular expressions are not available`);
 
-const optNum = (v: unknown): number | undefined => (v === undefined ? undefined : num(v));
-const optString = (v: unknown): string | undefined => (v === undefined ? undefined : String(v));
+const optNum = (v: unknown, budget: Budget): number | undefined => (v === undefined ? undefined : num(v, budget));
 
-// JS's ToLength: NaN and negatives are 0.
-const toLength = (v: unknown): number => {
-	const n = Math.trunc(num(v));
-	return n > 0 ? Math.min(n, Number.MAX_SAFE_INTEGER) : 0;
+// JS's ToString, charged: only an array is long to convert.
+const asText = (v: unknown, budget: Budget): string => {
+	chargeText(v, budget);
+	return String(v);
+};
+const optString = (v: unknown, budget: Budget): string | undefined => (v === undefined ? undefined : asText(v, budget));
+
+// A relative position clamped into [0, length], as slice and toSpliced read it.
+const clampIndex = (v: unknown, length: number, budget: Budget): number => {
+	const n = toInteger(v, budget);
+	return n < 0 ? Math.max(length + n, 0) : Math.min(n, length);
 };
 
 // Non-overlapping occurrences — what replaceAll replaces and split cuts at.
@@ -34,47 +42,15 @@ const occurrences = (s: string, sub: string): number => {
 // A replacement string may hold `$&`, `` $` `` and `$'`, each expanding to up to the whole receiver.
 const replacementBound = (s: string, to: string): number => to.length + occurrences(to, "$") * s.length;
 
-// Widest a JSON scalar prints: `-1.7976931348623157e+308` is 24 characters.
-const JSON_SCALAR_WIDTH = 24;
-
-// Characters an array's elements contribute to join. Nested arrays join too.
-const joinedSize = (items: unknown[], budget: Budget): number => {
-	let size = 0;
-	for (const item of items) {
-		budget.tick(1);
-		if (typeof item === "string") size += item.length;
-		else if (Array.isArray(item)) size += joinedSize(item, budget);
-		else size += JSON_SCALAR_WIDTH;
-	}
-	return size;
-};
-
-// Characters JSON.stringify will produce. Counted before the engine builds them.
-const jsonSize = (value: unknown, indent: number, depth: number, budget: Budget): number => {
-	budget.tick(1);
-	if (typeof value === "string") return value.length + 2;
-	if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
-	const newline = 1 + indent * (depth + 1);
-	let size = 2;
-	if (Array.isArray(value)) {
-		for (const item of value) size += newline + 1 + jsonSize(item, indent, depth + 1, budget);
-	} else if (isPlainObject(value)) {
-		for (const [key, item] of Object.entries(value)) {
-			size += newline + key.length + 4 + jsonSize(item, indent, depth + 1, budget);
-		}
-	}
-	return size;
-};
-
 // The indent JSON.stringify applies per level: a number or a string's length, clamped to 10.
-const indentWidth = (space: unknown): number => {
-	if (typeof space === "number") return Math.min(10, Math.max(0, Math.trunc(space)));
+const indentWidth = (space: unknown, budget: Budget): number => {
+	if (typeof space === "number") return Math.min(10, toLength(space, budget));
 	if (typeof space === "string") return Math.min(10, space.length);
 	return 0;
 };
 
-// The index the callback first answers true for, from either end.
 const indexWhere = (a: unknown[], f: unknown, fromEnd: boolean): number => {
+	checkCallback(f);
 	if (fromEnd) {
 		for (let i = a.length - 1; i >= 0; i--) if (invoke(f, a[i], i, a)) return i;
 	} else {
@@ -85,6 +61,7 @@ const indexWhere = (a: unknown[], f: unknown, fromEnd: boolean): number => {
 
 const fold = (a: unknown[], args: unknown[], method: string, fromEnd: boolean): unknown => {
 	const [f] = args;
+	checkCallback(f);
 	const step = fromEnd ? -1 : 1;
 	let i = fromEnd ? a.length - 1 : 0;
 	let acc: unknown;
@@ -98,20 +75,40 @@ const fold = (a: unknown[], args: unknown[], method: string, fromEnd: boolean): 
 	return acc;
 };
 
-// A table of methods that share one implementation, keyed by name.
+// The items of what JS iterates: an array, a string's characters, a Set's values.
+// Anything but an array is copied, charged first.
+const itemsOf = (v: unknown, where: string, budget: Budget): unknown[] => {
+	if (Array.isArray(v)) return v;
+	if (typeof v === "string") budget.array(v.length);
+	else if (v instanceof Set) budget.array(v.size);
+	else return fail(`${where} needs an array, string or Set`);
+	return [...v];
+};
+
 const methodTable = (names: Iterable<string>, impl: (name: string) => MethodImpl): Record<string, MethodImpl> =>
 	table(Object.fromEntries([...names].map((name) => [name, impl(name)])));
 
-// The engine's own static functions of a namespace, by name from the allow-list.
 const nativeTable = (target: object, names: Iterable<string>): Record<string, MethodImpl> =>
 	methodTable(names, (name) => {
 		const fn = (target as Record<string, (...a: unknown[]) => unknown>)[name];
-		return (_r, args) => fn(...args);
+		return (_r, args, budget) => {
+			for (const arg of args) chargeNumber(arg, budget);
+			return fn(...args);
+		};
 	});
 
-// What JS's stringify does to a function or a global: omitted, or `{}` for the object namespaces.
+// `{ length: n }` is the one source that makes items out of a number: charged before they exist.
+const arrayLike = (source: Record<string, unknown>, budget: Budget): unknown[] => {
+	const length = Object.hasOwn(source, "length") ? toLength(source.length, budget) : 0;
+	budget.array(length);
+	budget.tick(length);
+	const out: unknown[] = [];
+	for (let i = 0; i < length; i++) out.push(Object.hasOwn(source, i) ? source[i] : undefined);
+	return out;
+};
+
+// What JS's stringify does to a global: omitted, or `{}` for the object namespaces.
 const asJson = (v: unknown): unknown => {
-	if (v instanceof Lambda) return undefined;
 	if (v instanceof Namespace) return OBJECT_NAMESPACES.has(v.name) ? {} : undefined;
 	return v;
 };
@@ -120,20 +117,26 @@ const asJson = (v: unknown): unknown => {
 const objectArg = (o: unknown, where: string): object =>
 	o === null || o === undefined ? fail(`${where} cannot convert ${String(o)} to an object`) : plainData(o, where);
 
+const setArg = (v: unknown, method: string): Set<unknown> => (v instanceof Set ? v : fail(`"${method}" needs a Set`));
+
+// The viewer's locale only. The validator refuses a written call with more; this catches a computed one.
+const viewerLocale = (name: string, args: unknown[]): void => {
+	if (args.length > LOCALE_METHOD_ARITY[name]) reject(localeArgumentsMessage(name));
+};
+
 const ARRAY_METHODS: Record<string, MethodImpl> = table({
-	// No per-iteration tick in the callback loops: each `invoke` charges the callback's whole compiled cost, never less than one.
+	// No per-iteration tick: each `invoke` charges the callback's whole compiled cost.
 	map: (a: unknown[], [f]) => {
+		checkCallback(f);
 		const out: unknown[] = [];
 		for (let i = 0; i < a.length; i++) out.push(invoke(f, a[i], i, a));
 		return out;
 	},
 	filter: (a: unknown[], [f]) => {
+		checkCallback(f);
 		const out: unknown[] = [];
 		for (let i = 0; i < a.length; i++) if (invoke(f, a[i], i, a)) out.push(a[i]);
 		return out;
-	},
-	forEach: (a: unknown[], [f]) => {
-		for (let i = 0; i < a.length; i++) invoke(f, a[i], i, a);
 	},
 	reduce: (a: unknown[], args) => fold(a, args, "reduce", false),
 	reduceRight: (a: unknown[], args) => fold(a, args, "reduceRight", true),
@@ -142,32 +145,45 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 	findLast: (a: unknown[], [f]) => a[indexWhere(a, f, true)],
 	findLastIndex: (a: unknown[], [f]) => indexWhere(a, f, true),
 	some: (a: unknown[], [f]) => indexWhere(a, f, false) !== -1,
-	every: (a: unknown[], [f]) => indexWhere(a, new Lambda((v, i, arr) => !invoke(f, v, i, arr)), false) === -1,
-	slice: (a: unknown[], [start, end]) => a.slice(optNum(start), optNum(end)),
+	every: (a: unknown[], [f]) => {
+		checkCallback(f);
+		return indexWhere(a, new Lambda((v, i, arr) => !invoke(f, v, i, arr)), false) === -1;
+	},
+	slice: (a: unknown[], [start, end], budget) => a.slice(optNum(start, budget), optNum(end, budget)),
+	// Charged before it exists: each written argument can be the whole receiver again.
+	concat: (a: unknown[], args, budget) => {
+		let length = a.length;
+		for (const arg of args) length += Array.isArray(arg) ? arg.length : 1;
+		budget.growArray(length, length);
+		return a.concat(...args);
+	},
 	join: (a: unknown[], [sep], budget) => {
-		const separator = sep === undefined ? "," : String(sep);
-		budget.string(joinedSize(a, budget) + a.length * separator.length);
+		const separator = sep === undefined ? "," : asText(sep, budget);
+		const size = joinedSize(a, budget) + a.length * separator.length;
+		budget.string(size);
+		budget.tick(textCost(size));
 		return a.map((v) => (v === null || v === undefined ? "" : String(v))).join(separator);
 	},
 	includes: (a: unknown[], [v, from], budget) => {
 		budget.tick(a.length);
-		return a.includes(v, optNum(from));
+		return a.includes(v, optNum(from, budget));
 	},
 	indexOf: (a: unknown[], [v, from], budget) => {
 		budget.tick(a.length);
-		return a.indexOf(v, optNum(from));
+		return a.indexOf(v, optNum(from, budget));
 	},
-	lastIndexOf: (a: unknown[], [v, from], budget) => {
+	lastIndexOf: (a: unknown[], args, budget) => {
 		budget.tick(a.length);
-		return from === undefined ? a.lastIndexOf(v) : a.lastIndexOf(v, num(from));
+		return args.length < 2 ? a.lastIndexOf(args[0]) : a.lastIndexOf(args[0], num(args[1], budget));
 	},
-	at: (a: unknown[], [i]) => a.at(num(i)),
+	at: (a: unknown[], [i], budget) => a.at(num(i, budget)),
 	// Charged as it grows: a cycle in host data would double every level.
 	flat: (a: unknown[], [depth], budget) => {
-		const max = depth === undefined ? 1 : Math.min(num(depth), MAX_FLAT_DEPTH);
+		const max = depth === undefined ? 1 : Math.min(toInteger(depth, budget), MAX_FLAT_DEPTH);
 		const out: unknown[] = [];
 		const push = (items: unknown[], level: number): void => {
 			budget.growArray(out.length + items.length, items.length);
+			budget.tick(items.length);
 			for (let i = 0; i < items.length; i++) {
 				if (!(i in items)) continue; // flat() drops holes
 				const item = items[i];
@@ -179,6 +195,7 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 		return out;
 	},
 	flatMap: (a: unknown[], [f], budget) => {
+		checkCallback(f);
 		const out: unknown[] = [];
 		for (let i = 0; i < a.length; i++) {
 			const v = invoke(f, a[i], i, a);
@@ -189,193 +206,467 @@ const ARRAY_METHODS: Record<string, MethodImpl> = table({
 		}
 		return out;
 	},
-	// The standard non-mutating pair; the mutating sort/reverse are not in the language.
+	// The standard non-mutating trio; the mutating sort, reverse and splice are not in the language.
 	toSorted: (a: unknown[], [f], budget) => {
+		if (f === undefined) return sortAsText(a, budget);
+		checkCallback(f);
 		budget.tick(a.length * 2);
-		const copy = a.slice();
-		if (f === undefined) return copy.sort();
-		return copy.sort((x, y) => {
+		return a.slice().sort((x, y) => {
 			budget.tick(1);
-			return num(invoke(f, x, y));
+			return num(invoke(f, x, y), budget);
 		});
 	},
 	toReversed: (a: unknown[]) => a.slice().reverse(),
+	// A missing argument and an `undefined` one differ here, as in JS.
+	toSpliced: (a: unknown[], args, budget) => {
+		const length = a.length;
+		const start = clampIndex(args[0], length, budget);
+		let skip = 0;
+		if (args.length === 1) skip = length - start;
+		else if (args.length > 1) skip = Math.min(Math.max(toInteger(args[1], budget), 0), length - start);
+		budget.tick(length);
+		const out: unknown[] = [];
+		for (let i = 0; i < start; i++) out.push(a[i]);
+		for (let i = 2; i < args.length; i++) out.push(args[i]);
+		for (let i = start + skip; i < length; i++) out.push(a[i]);
+		return out;
+	},
+	with: (a: unknown[], [index, value], budget) => {
+		const relative = toInteger(index, budget);
+		const at = relative < 0 ? a.length + relative : relative;
+		if (at < 0 || at >= a.length) return fail(`Index ${String(index)} is out of range for an array of ${a.length}`);
+		budget.tick(a.length);
+		const out: unknown[] = [];
+		for (let i = 0; i < a.length; i++) out.push(i === at ? value : a[i]);
+		return out;
+	},
 	// `toString` and `toLocaleString` collide with Object.prototype's members, so the literal loses contextual typing on them.
-	toString: ((a: unknown[], _args: unknown[], budget: Budget) => {
-		budget.string(joinedSize(a, budget) + a.length);
+	toString: (a: unknown[], _args: unknown[], budget: Budget) => {
+		const size = joinedSize(a, budget) + a.length;
+		budget.string(size);
+		budget.tick(textCost(size));
 		return a.toString();
-	}) as MethodImpl,
-	toLocaleString: ((a: unknown[], [locale, options]: unknown[], budget: Budget) => {
+	},
+	toLocaleString: (a: unknown[], args: unknown[], budget: Budget) => {
+		viewerLocale("toLocaleString", args);
 		budget.string(joinedSize(a, budget) + a.length);
-		return locale === undefined ? a.toLocaleString() : a.toLocaleString(locale as string, options as Intl.NumberFormatOptions | undefined);
-	}) as MethodImpl,
+		return localeJoin(a, budget);
+	},
 	valueOf: (a: unknown[]) => a,
 });
+
+// JS's default order compares items as text, converting both sides on every comparison.
+// Each item converts once here, charged; `undefined` sorts last, as in JS.
+const sortAsText = (a: unknown[], budget: Budget): unknown[] => {
+	const keyed: { key: string; value: unknown }[] = [];
+	let missing = 0;
+	for (const value of a) {
+		if (value === undefined) missing++;
+		else keyed.push({ key: asText(value, budget), value });
+	}
+	keyed.sort((x, y) => {
+		budget.tick(1 + scanCost(Math.min(x.key.length, y.key.length)));
+		if (x.key < y.key) return -1;
+		return x.key > y.key ? 1 : 0;
+	});
+	const out = keyed.map((item) => item.value);
+	for (let i = 0; i < missing; i++) out.push(undefined);
+	return out;
+};
+
+// Array.prototype.toLocaleString element by element, so each number and date is charged its formatting.
+const localeJoin = (a: readonly unknown[], budget: Budget): string => {
+	let out = "";
+	for (let i = 0; i < a.length; i++) {
+		if (i > 0) out += ",";
+		out += localeText(a[i], budget);
+	}
+	return out;
+};
+
+const localeText = (item: unknown, budget: Budget): string => {
+	if (typeof item === "number") return numberInLocale(item, budget);
+	if (item instanceof Date) return dateInLocale(item, budget);
+	if (Array.isArray(item)) return localeJoin(item, budget);
+	// Nothing else reads the locale.
+	return [item].toLocaleString();
+};
+
+// The offset of the first lone surrogate at or after `from`, or -1.
+const loneSurrogate = (s: string, from: number): number => {
+	for (let i = from; i < s.length; i++) {
+		const c = s.charCodeAt(i);
+		if (c < 0xd800 || c > 0xdfff) continue;
+		const pairs = c <= 0xdbff && i + 1 < s.length && (s.charCodeAt(i + 1) & 0xfc00) === 0xdc00;
+		if (!pairs) return i;
+		i++;
+	}
+	return -1;
+};
+
+const REPLACEMENT_CHARACTER = "�";
 
 const STRING_METHODS: Record<string, MethodImpl> = table({
 	toString: (s: string) => s,
 	valueOf: (s: string) => s,
-	toLocaleString: (s: string) => s,
-	at: (s: string, [i]) => s.at(num(i)),
-	endsWith: (s: string, [v, end]) => s.endsWith(String(v), optNum(end)),
-	startsWith: (s: string, [v, position]) => s.startsWith(String(v), optNum(position)),
-	includes: (s: string, [v, position]) => s.includes(String(v), optNum(position)),
-	indexOf: (s: string, [v, position]) => s.indexOf(String(v), optNum(position)),
-	lastIndexOf: (s: string, [v, position], budget) => {
-		budget.tick(s.length); // V8 searches backwards naively — charged as a full scan
-		return s.lastIndexOf(String(v), optNum(position));
+	toLocaleString: (s: string, args: unknown[]) => {
+		viewerLocale("toLocaleString", args);
+		return s;
 	},
-	normalize: (s: string, [form]) => s.normalize(optString(form)),
+	at: (s: string, [i], budget) => s.at(num(i, budget)),
+	charAt: (s: string, [i], budget) => s.charAt(num(i, budget)),
+	charCodeAt: (s: string, [i], budget) => s.charCodeAt(num(i, budget)),
+	codePointAt: (s: string, [i], budget) => s.codePointAt(num(i, budget)),
+	endsWith: (s: string, [v, end], budget) => {
+		const suffix = asText(v, budget);
+		budget.tick(scanCost(suffix.length));
+		return s.endsWith(suffix, optNum(end, budget));
+	},
+	startsWith: (s: string, [v, position], budget) => {
+		const prefix = asText(v, budget);
+		budget.tick(scanCost(prefix.length));
+		return s.startsWith(prefix, optNum(position, budget));
+	},
+	includes: (s: string, [v, position], budget) => {
+		budget.tick(scanCost(s.length));
+		return s.includes(asText(v, budget), optNum(position, budget));
+	},
+	indexOf: (s: string, [v, position], budget) => {
+		budget.tick(scanCost(s.length));
+		return s.indexOf(asText(v, budget), optNum(position, budget));
+	},
+	// The engine searches backwards naively: every position can compare the whole search text.
+	lastIndexOf: (s: string, [v, position], budget) => {
+		const search = asText(v, budget);
+		budget.tick(scanCost(s.length * Math.max(search.length, 1)));
+		return s.lastIndexOf(search, optNum(position, budget));
+	},
+	normalize: (s: string, [form], budget) => {
+		budget.tick(textCost(s.length));
+		return s.normalize(optString(form, budget));
+	},
 	padStart: (s: string, [n, pad], budget) => {
-		const target = toLength(n);
+		const target = toLength(n, budget);
 		budget.string(target);
-		return s.padStart(target, optString(pad));
+		budget.tick(scanCost(target));
+		return s.padStart(target, optString(pad, budget));
 	},
 	padEnd: (s: string, [n, pad], budget) => {
-		const target = toLength(n);
+		const target = toLength(n, budget);
 		budget.string(target);
-		return s.padEnd(target, optString(pad));
+		budget.tick(scanCost(target));
+		return s.padEnd(target, optString(pad, budget));
 	},
 	repeat: (s: string, [n], budget) => {
-		const count = num(n);
+		const count = toInteger(n, budget);
 		if (!Number.isFinite(count) || count < 0) return fail(`repeat count ${String(n)} is not valid`);
 		budget.string(s.length * count);
+		budget.tick(scanCost(s.length * count));
 		return s.repeat(count);
+	},
+	concat: (s: string, args, budget) => {
+		const parts = args.map((arg) => asText(arg, budget));
+		let length = s.length;
+		for (const part of parts) length += part.length;
+		budget.string(length);
+		return s.concat(...parts);
 	},
 	// String patterns only. A regular expression would put ReDoS inside the regex engine, where no step counter can see it.
 	replace: (s: string, [from, to], budget) => {
 		const pattern = requireString(from, "replace");
-		const replacement = String(to);
+		const replacement = asText(to, budget);
+		budget.tick(scanCost(s.length));
 		budget.string(s.length + replacementBound(s, replacement));
 		return s.replace(pattern, replacement);
 	},
 	replaceAll: (s: string, [from, to], budget) => {
 		const pattern = requireString(from, "replaceAll");
-		const replacement = String(to);
+		const replacement = asText(to, budget);
 		budget.tick(s.length);
 		budget.string(s.length + occurrences(s, pattern) * replacementBound(s, replacement));
 		return s.replaceAll(pattern, replacement);
 	},
-	slice: (s: string, [start, end]) => s.slice(optNum(start), optNum(end)),
-	substring: (s: string, [start, end]) => s.substring(start === undefined ? 0 : num(start), optNum(end)),
+	slice: (s: string, [start, end], budget) => s.slice(optNum(start, budget), optNum(end, budget)),
+	substring: (s: string, [start, end], budget) => s.substring(num(start, budget), optNum(end, budget)),
 	split: (s: string, [sep, limit], budget) => {
+		const max = limit === undefined ? undefined : num(limit, budget) >>> 0;
+		if (max === 0) return [];
 		if (sep === undefined) return [s];
 		const separator = requireString(sep, "split");
 		budget.tick(s.length);
 		const parts = separator === "" ? s.length : occurrences(s, separator) + 1;
-		budget.array(limit === undefined ? parts : Math.min(parts, num(limit) >>> 0));
-		return s.split(separator, optNum(limit));
+		budget.array(max === undefined ? parts : Math.min(parts, max));
+		return s.split(separator, max);
 	},
-	toLowerCase: (s: string) => s.toLowerCase(),
-	toUpperCase: (s: string) => s.toUpperCase(),
-	trim: (s: string) => s.trim(),
-	trimStart: (s: string) => s.trimStart(),
-	trimEnd: (s: string) => s.trimEnd(),
-	localeCompare: (s: string, [v, locales, options]) =>
-		s.localeCompare(String(v), locales as string | undefined, options as Intl.CollatorOptions | undefined),
+	toLowerCase: (s: string, _args, budget) => {
+		budget.tick(textCost(s.length));
+		return s.toLowerCase();
+	},
+	toUpperCase: (s: string, _args, budget) => {
+		budget.tick(textCost(s.length));
+		return s.toUpperCase();
+	},
+	toLocaleLowerCase: (s: string, args, budget) => {
+		viewerLocale("toLocaleLowerCase", args);
+		budget.tick(PRICES.locale + textCost(s.length));
+		return s.toLocaleLowerCase();
+	},
+	toLocaleUpperCase: (s: string, args, budget) => {
+		viewerLocale("toLocaleUpperCase", args);
+		budget.tick(PRICES.locale + textCost(s.length));
+		return s.toLocaleUpperCase();
+	},
+	trim: (s: string, _args, budget) => {
+		budget.tick(scanCost(s.length));
+		return s.trim();
+	},
+	trimStart: (s: string, _args, budget) => {
+		budget.tick(scanCost(s.length));
+		return s.trimStart();
+	},
+	trimEnd: (s: string, _args, budget) => {
+		budget.tick(scanCost(s.length));
+		return s.trimEnd();
+	},
+	isWellFormed: (s: string, _args, budget) => {
+		budget.tick(textCost(s.length));
+		return loneSurrogate(s, 0) === -1;
+	},
+	toWellFormed: (s: string, _args, budget) => {
+		budget.tick(textCost(s.length));
+		let out = "";
+		let from = 0;
+		for (let i = loneSurrogate(s, 0); i !== -1; i = loneSurrogate(s, i + 1)) {
+			out += s.slice(from, i) + REPLACEMENT_CHARACTER;
+			from = i + 1;
+		}
+		return from === 0 ? s : out + s.slice(from);
+	},
+	localeCompare: (s: string, args, budget) => {
+		viewerLocale("localeCompare", args);
+		const other = asText(args[0], budget);
+		budget.tick(PRICES.locale + textCost(Math.min(s.length, other.length)));
+		return s.localeCompare(other);
+	},
 });
+
+// In the viewer's locale and time zone: no locale or options reach the engine.
+const numberInLocale = (n: number, budget: Budget): string => {
+	budget.tick(PRICES.locale);
+	return n.toLocaleString();
+};
+
+const dateInLocale = (d: Date, budget: Budget): string => {
+	budget.tick(PRICES.dateLocale);
+	return d.toLocaleString();
+};
 
 const NUMBER_METHODS: Record<string, MethodImpl> = table({
 	valueOf: (n: number) => n,
-	toFixed: (n: number, [digits]) => n.toFixed(optNum(digits)),
-	toString: ((n: number, [radix]: unknown[]) => n.toString(optNum(radix))) as MethodImpl,
-	toLocaleString: ((n: number, [locale, options]: unknown[]) =>
-		n.toLocaleString(locale as string | undefined, options as Intl.NumberFormatOptions | undefined)) as MethodImpl,
+	toFixed: (n: number, [digits], budget) => n.toFixed(optNum(digits, budget)),
+	toExponential: (n: number, [digits], budget) => n.toExponential(optNum(digits, budget)),
+	toPrecision: (n: number, [precision], budget) => n.toPrecision(optNum(precision, budget)),
+	toString: (n: number, [radix]: unknown[], budget: Budget) => n.toString(optNum(radix, budget)),
+	toLocaleString: (n: number, args: unknown[], budget: Budget) => {
+		viewerLocale("toLocaleString", args);
+		return numberInLocale(n, budget);
+	},
 });
 
-// The listed Date methods take at most two arguments (locale, options).
-const DATE_METHODS: Record<string, MethodImpl> = methodTable(METHOD_NAMES.Date, (name) => (d: Date, args: unknown[]) => {
-	const method = (d as unknown as Record<string, (...a: unknown[]) => unknown>)[name];
-	return method.apply(d, args.slice(0, 2));
+// Priced: the ones that print a date as text, and the ones that print it in the viewer's locale.
+const DATE_TEXT_METHODS: ReadonlySet<string> = new Set(["toISOString", "toJSON", "toUTCString", "toString", "toDateString", "toTimeString"]);
+const DATE_LOCALE_METHODS: ReadonlySet<string> = new Set(["toLocaleString", "toLocaleDateString", "toLocaleTimeString"]);
+
+// The listed Date methods take no arguments.
+const nativeDate = (name: string, d: Date): unknown => (d as unknown as Record<string, () => unknown>)[name].call(d);
+
+const DATE_METHODS: Record<string, MethodImpl> = methodTable(METHOD_NAMES.Date, (name) => {
+	if (DATE_TEXT_METHODS.has(name)) {
+		return (d: Date, _args: unknown[], budget: Budget) => {
+			budget.tick(PRICES.dateText);
+			return nativeDate(name, d);
+		};
+	}
+	if (DATE_LOCALE_METHODS.has(name)) {
+		return (d: Date, args: unknown[], budget: Budget) => {
+			viewerLocale(name, args);
+			budget.tick(PRICES.dateLocale);
+			return nativeDate(name, d);
+		};
+	}
+	return (d: Date) => nativeDate(name, d);
 });
 
-const MAP_METHODS: Record<string, MethodImpl> = table({
-	get: (m: Map<unknown, unknown>, [k]) => m.get(k),
-	has: (m: Map<unknown, unknown>, [k]) => m.has(k),
-	keys: (m: Map<unknown, unknown>) => [...m.keys()],
-	values: (m: Map<unknown, unknown>) => [...m.values()],
-	entries: (m: Map<unknown, unknown>) => [...m.entries()],
-});
-
+// ES2025's set algebra. Which side is walked depends on the sizes, exactly as the spec says, so the order of the result matches JS.
 const SET_METHODS: Record<string, MethodImpl> = table({
 	has: (s: Set<unknown>, [v]) => s.has(v),
-	values: (s: Set<unknown>) => [...s.values()],
+	union: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "union");
+		budget.tick(PRICES.hash * (s.size + o.size));
+		const out = new Set(s);
+		for (const k of o.keys()) out.add(k);
+		return out;
+	},
+	intersection: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "intersection");
+		const out = new Set();
+		if (s.size <= o.size) {
+			budget.tick(PRICES.hash * s.size);
+			for (const v of s) if (o.has(v)) out.add(v);
+		} else {
+			budget.tick(PRICES.hash * o.size);
+			for (const k of o.keys()) if (s.has(k)) out.add(k);
+		}
+		return out;
+	},
+	difference: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "difference");
+		budget.tick(PRICES.hash * (s.size + Math.min(s.size, o.size)));
+		const out = new Set(s);
+		if (s.size <= o.size) {
+			for (const v of s) if (o.has(v)) out.delete(v);
+		} else {
+			for (const k of o.keys()) out.delete(k);
+		}
+		return out;
+	},
+	symmetricDifference: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "symmetricDifference");
+		budget.tick(PRICES.hash * (s.size + o.size));
+		const out = new Set(s);
+		for (const k of o.keys()) {
+			if (s.has(k)) out.delete(k);
+			else out.add(k);
+		}
+		return out;
+	},
+	isSubsetOf: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "isSubsetOf");
+		if (s.size > o.size) return false;
+		budget.tick(PRICES.hash * s.size);
+		for (const v of s) if (!o.has(v)) return false;
+		return true;
+	},
+	isSupersetOf: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "isSupersetOf");
+		if (s.size < o.size) return false;
+		budget.tick(PRICES.hash * o.size);
+		for (const k of o.keys()) if (!s.has(k)) return false;
+		return true;
+	},
+	isDisjointFrom: (s: Set<unknown>, [other], budget) => {
+		const o = setArg(other, "isDisjointFrom");
+		budget.tick(PRICES.hash * Math.min(s.size, o.size));
+		if (s.size <= o.size) {
+			for (const v of s) if (o.has(v)) return false;
+		} else {
+			for (const k of o.keys()) if (s.has(k)) return false;
+		}
+		return true;
+	},
 });
 
-const FORMATTER_METHODS: Record<string, MethodImpl> = table({
-	format: (f: Formatter, [v]) => f.format(v),
-});
+const MATH_OWN: Record<string, MethodImpl> = {
+	f16round: (_r, [x], budget) => {
+		budget.tick(PRICES.exactNumber);
+		return f16round(num(x, budget));
+	},
+	sumPrecise: (_r, [items], budget) => {
+		const list = itemsOf(items, "Math.sumPrecise", budget);
+		budget.tick(PRICES.exactNumber * (list.length + 1));
+		return sumPrecise(list);
+	},
+};
 
-// Static members of the allow-listed namespaces.
 const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
-	Math: nativeTable(Math, NAMESPACE_METHOD_NAMES.Math),
+	Math: table({ ...nativeTable(Math, NAMESPACE_METHOD_NAMES.Math), ...MATH_OWN }),
 	Number: nativeTable(Number, NAMESPACE_METHOD_NAMES.Number),
-	Date: nativeTable(Date, NAMESPACE_METHOD_NAMES.Date),
+	String: nativeTable(String, NAMESPACE_METHOD_NAMES.String),
+	Date: table({
+		...nativeTable(Date, ["now", "UTC"]),
+		parse: (_r, [text], budget) => {
+			chargeDateText(text, budget);
+			return Date.parse(String(text));
+		},
+	}),
 	JSON: table({
 		parse: (_r, [text], budget) => {
-			const source = String(text);
-			budget.tick(Math.ceil(source.length / 64));
+			const source = asText(text, budget);
+			budget.tick(PRICES.json + textCost(source.length));
 			return JSON.parse(source);
 		},
 		stringify: (_r, [value, replacer, space], budget) => {
-			budget.string(jsonSize(value, indentWidth(space), 0, budget));
+			const globals = { found: false };
+			const size = jsonSize(value, indentWidth(space, budget), 0, budget, globals);
+			budget.string(size);
+			budget.tick(PRICES.json + textCost(size));
 			// A function replacer would take a function, so it is dropped; an array one is JS's key allow-list.
 			const allowed = Array.isArray(replacer) ? new Set(replacer.map(String)) : null;
+			// With neither to handle, the engine's own fast path prints it.
+			if (!allowed && !globals.found) return JSON.stringify(value, null, space as string | number | undefined);
 			return JSON.stringify(
 				value,
 				function (this: unknown, key: string, v: unknown) {
 					if (allowed && key !== "" && !Array.isArray(this) && !allowed.has(key)) return undefined;
 					return asJson(v);
 				},
-				space === undefined ? undefined : (space as string | number),
+				space as string | number | undefined,
 			);
 		},
 	}),
 	Object: table({
 		keys: (_r, [o]) => Object.keys(objectArg(o, "Object.keys")),
 		values: (_r, [o]) => Object.values(objectArg(o, "Object.values")),
-		entries: (_r, [o]) => Object.entries(objectArg(o, "Object.entries")),
+		entries: (_r, [o], budget) => {
+			const entries = Object.entries(objectArg(o, "Object.entries"));
+			budget.tick(entries.length);
+			return entries;
+		},
 		fromEntries: (_r, [source], budget) => {
-			const pairs = source instanceof Map ? [...source] : source;
-			if (!Array.isArray(pairs)) return reject("Object.fromEntries needs an array or Map of [key, value] pairs");
+			const pairs = itemsOf(source, "Object.fromEntries", budget);
 			const out: Record<string, unknown> = {};
 			for (const pair of pairs) {
-				budget.tick(1);
-				if (!Array.isArray(pair)) return reject("Object.fromEntries needs [key, value] pairs");
-				Object.defineProperty(out, String(pair[0]), { value: pair[1], writable: true, enumerable: true, configurable: true });
+				budget.tick(PRICES.call);
+				if (!Array.isArray(pair)) return fail("Object.fromEntries needs [key, value] pairs");
+				Object.defineProperty(out, asText(pair[0], budget), { value: pair[1], writable: true, enumerable: true, configurable: true });
 			}
 			return out;
 		},
+		// Null-prototype, as in JS: a group named "__proto__" or "toString" is just a key.
+		groupBy: (_r, [items, f], budget) => {
+			const list = itemsOf(items, "Object.groupBy", budget);
+			checkCallback(f);
+			budget.array(list.length);
+			budget.tick(PRICES.hash * list.length);
+			const out: Record<string, unknown[]> = Object.create(null);
+			for (let i = 0; i < list.length; i++) {
+				const key = asText(invoke(f, list[i], i), budget);
+				if (out[key] === undefined) out[key] = [list[i]];
+				else out[key].push(list[i]);
+			}
+			return out;
+		},
+		hasOwn: (_r, [o, key], budget) => Object.hasOwn(objectArg(o, "Object.hasOwn"), asText(key, budget)),
+		is: (_r, [a, b]) => Object.is(a, b),
 	}),
 	Array: table({
 		isArray: (_r, [v]) => Array.isArray(v),
 		from: (_r, [source, mapper], budget) => {
-			let base: unknown[];
-			if (Array.isArray(source)) base = source;
-			else if (typeof source === "string") base = [...source];
-			else if (source instanceof Set || source instanceof Map) base = [...source];
-			else if (source && typeof source === "object" && "length" in source) {
-				// The one source that makes elements out of a number — charged before they exist.
-				const length = toLength((source as { length: unknown }).length);
-				budget.array(length);
-				base = new Array(length).fill(undefined);
-			} else {
-				return fail("Array.from needs an array, string, Set, Map, or {length}");
-			}
+			if (mapper !== undefined) checkCallback(mapper);
+			const plain = typeof source === "object" && source !== null && isPlainObject(source);
+			const base = plain ? arrayLike(source as Record<string, unknown>, budget) : itemsOf(source, "Array.from", budget);
 			return mapper === undefined ? [...base] : base.map((v, i) => invoke(mapper, v, i));
 		},
+		of: (_r, items) => [...items],
 	}),
 });
 
-// The table a receiver's methods live in, or undefined when it has none.
 export const methodsOf = (obj: unknown): Record<string, MethodImpl> | undefined => {
 	if (typeof obj === "string") return STRING_METHODS;
 	if (typeof obj === "number") return NUMBER_METHODS;
 	if (Array.isArray(obj)) return ARRAY_METHODS;
 	if (obj instanceof Namespace) return NAMESPACE_METHODS[obj.name];
 	if (obj instanceof Date) return DATE_METHODS;
-	if (obj instanceof Map) return MAP_METHODS;
 	if (obj instanceof Set) return SET_METHODS;
-	if (obj instanceof Formatter) return FORMATTER_METHODS;
 	return undefined;
 };

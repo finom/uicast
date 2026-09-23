@@ -3,13 +3,7 @@ import { notFound } from "next/navigation";
 import { getDemo } from "@/demo/registry";
 import { DemoPlayer } from "../demo-player";
 
-/**
- * Client-side bridge: the server route hands us a serializable `slug`, and we
- * resolve the rich {@link DemoConfig} (renderer fns, host functions, the
- * artifact) here in client land — those values can't cross the server→client
- * prop boundary. Keyed by slug so switching demos fully remounts the player,
- * resetting `count`/`phase`/the reveal timer with no stale closures.
- */
+// The config holds closures, so it cannot cross the server→client boundary. Keyed by slug, so a switch remounts the player.
 export function DemoRoute({ slug }: { slug: string }) {
   const demo = getDemo(slug);
   if (!demo) notFound();

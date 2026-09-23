@@ -8,27 +8,20 @@ import {
 } from "../../components/ui/avatar";
 import { Card } from "../../components/ui/card";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
-import { OrgChartDef } from "./def";
-
-interface OrgNode {
-  name: string;
-  title?: string;
-  avatar?: string;
-  children?: OrgNode[];
-}
+import { type OrgNode, OrgChartDef } from "./def";
 
 function OrgNodeComponent({
   node,
   onNodeClick,
 }: {
   node: OrgNode;
-  onNodeClick?: (args: { name: string; title?: string }) => Promise<void>;
+  onNodeClick: (args: { name: string; title?: string }) => Promise<void>;
 }) {
   return (
     <div className="flex flex-col items-center">
       <Card
         className="flex flex-col items-center p-3 hover:shadow-md cursor-pointer transition-shadow"
-        onClick={() => onNodeClick?.({ name: node.name, title: node.title })}
+        onClick={() => onNodeClick({ name: node.name, title: node.title })}
       >
         <Avatar className="size-10 mb-1">
           {node.avatar && <AvatarImage src={node.avatar} alt={node.name} />}
@@ -66,11 +59,11 @@ function OrgNodeComponent({
 
 export const OrgChartImpl = createComponentImplementation({
   def: OrgChartDef,
-  render: ({ root, onNodeClick}, { entry, loading }) => {
+  render: ({ root, onNodeClick }, { entry, loading }) => {
     return (
       <ScrollArea className={cn("py-4", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <div className="flex justify-center">
-          <OrgNodeComponent node={root as OrgNode} onNodeClick={onNodeClick} />
+          <OrgNodeComponent node={root} onNodeClick={onNodeClick} />
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>

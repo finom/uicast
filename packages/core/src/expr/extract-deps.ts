@@ -1,23 +1,18 @@
 import type { ExpressionEvaluator } from "@uicast/expr";
 import { type ComponentEntry, isComponentListEntry } from "../types";
 import { depKey } from "../scope/parse-scope";
-import { getScopeReads } from "./evaluate";
 
-// "all": props + hidden + loading + each. "render": props + hidden + loading, for list items (the container re-renders rows on `each`).
-// "each": the container only.
+// "render": props, hidden, loading (a list item's part); "each": the container's; "all": both.
 export type DepsPart = "all" | "render" | "each";
 
-// Entries are immutable and the reads are static, so cached reads never go
-// stale; WeakMap so a dropped entry can be collected.
+// Entries are immutable, so cached reads never go stale.
 const cache = new WeakMap<ComponentEntry, Partial<Record<DepsPart, string[]>>>();
 
-// The `scopes.<scope>.<field>` keys an entry reads — the renderer subscribes to
-// these. (seed runs once and callbacks read at fire time, so neither is
-// scanned.)
+// seed runs once and callbacks read at fire time, so neither is scanned.
 export function extractDeps(
   entry: ComponentEntry,
   evaluator: ExpressionEvaluator,
-  part: DepsPart = "all",
+  part: DepsPart,
 ): string[] {
   const slots = cache.get(entry);
   const cached = slots?.[part];
@@ -25,10 +20,7 @@ export function extractDeps(
 
   const out = new Set<string>();
   const add = (expr: string) => {
-    for (const r of getScopeReads(expr, evaluator)) {
-      const key = depKey(r);
-      if (key) out.add(key);
-    }
+    for (const r of evaluator.memberReads(expr, "scopes")) out.add(depKey(r));
   };
 
   if (part !== "each") {

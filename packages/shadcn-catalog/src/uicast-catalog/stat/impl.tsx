@@ -4,25 +4,21 @@ import { busy, cn } from "../../lib/utils";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { StatDef } from "./def";
 
+const TREND_ICONS = {
+  up: <TrendingUp className="size-4" />,
+  down: <TrendingDown className="size-4" />,
+  neutral: <Minus className="size-4" />,
+};
+
+const TREND_COLORS = {
+  up: "text-green-600",
+  down: "text-red-600",
+  neutral: "text-muted-foreground",
+};
+
 export const StatImpl = createComponentImplementation({
   def: StatDef,
-  render: ({ label, value, trend, trendValue, helpText}, { entry, loading }) => {
-    const trendIcon =
-      trend === "up" ? (
-        <TrendingUp className="size-4 text-green-600" />
-      ) : trend === "down" ? (
-        <TrendingDown className="size-4 text-red-600" />
-      ) : trend === "neutral" ? (
-        <Minus className="size-4 text-muted-foreground" />
-      ) : null;
-
-    const trendColor =
-      trend === "up"
-        ? "text-green-600"
-        : trend === "down"
-          ? "text-red-600"
-          : "text-muted-foreground";
-
+  render: ({ label, value, trend, trendValue, helpText }, { entry, loading }) => {
     return (
       <div className={cn("flex flex-col gap-1", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <span className="text-sm font-medium text-muted-foreground">
@@ -30,13 +26,13 @@ export const StatImpl = createComponentImplementation({
         </span>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold tracking-tight">
-            {String(value)}
+            {value}
           </span>
-          {(trendIcon || trendValue) && (
+          {(trend || trendValue) && (
             <span
-              className={`flex items-center gap-1 text-sm font-medium ${trendColor}`}
+              className={`flex items-center gap-1 text-sm font-medium ${TREND_COLORS[trend ?? "neutral"]}`}
             >
-              {trendIcon}
+              {trend && TREND_ICONS[trend]}
               {trendValue}
             </span>
           )}

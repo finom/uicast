@@ -6,12 +6,10 @@ import type { CustomRenderer, CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
 
 export type FenceRendererOptions = {
-  /** Show a Rendered/Source switcher above each block. Default false. */
   showSourceToggle?: boolean;
 };
 
-// Chat hosts commonly wrap blocks in overflow:hidden; 1px padding keeps
-// edge rings/shadows of rendered components from being clipped.
+// Chat hosts often wrap blocks in overflow:hidden; 1px keeps focus rings from being clipped.
 const blockStyle: CSSProperties = { padding: 1 };
 
 const toggleRowStyle: CSSProperties = {
@@ -45,30 +43,21 @@ function toggleButtonStyle(active: boolean): CSSProperties {
   };
 }
 
-/**
- * Streamdown renderer for ```uicast fences; wrap the chat in one
- * <RendererProvider>. Call ONCE per option set and reuse — a fresh component
- * type per render remounts every block and wipes state.
- */
+// Call once per option set and reuse: a fresh component type per render remounts every block.
 export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
-  const { showSourceToggle = false } = options;
+  const { showSourceToggle } = options;
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
-    // One cache per block keeps entry identity stable across streaming re-parses — see parseFenceCode.
     const cacheRef = useRef<Map<string, ComponentEntry> | null>(null);
     if (!cacheRef.current) cacheRef.current = new Map();
     const cache = cacheRef.current;
     const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
     const [view, setView] = useState<"rendered" | "source">("rendered");
-    // Seeds and tool calls must never run during SSR (tools fetch with
-    // browser-relative URLs) — mount the Renderer client-side only.
+    // Tools fetch with browser-relative URLs, so nothing runs during SSR.
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     const rendered = mounted ? <EntriesRenderer entries={entries} /> : null;
-    if (!showSourceToggle) return <div style={blockStyle}>{rendered}</div>;
-    // A just-opened fence that hasn't produced a complete entry yet would show
-    // a toggle row above nothing — wait for content (or for the fence to
-    // finish, so garbage-only fences still get the Source view).
-    if (entries.length === 0 && isIncomplete) {
+    // No toggle row above nothing; a finished garbage-only fence still gets the Source view.
+    if (!showSourceToggle || (entries.length === 0 && isIncomplete)) {
       return <div style={blockStyle}>{rendered}</div>;
     }
     return (

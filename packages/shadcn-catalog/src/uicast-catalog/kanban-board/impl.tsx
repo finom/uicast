@@ -35,8 +35,7 @@ import { type KanbanCard, type KanbanColumn, KanbanBoardDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
 
 
-// The column an item id belongs to — the id may be a card's or a column's own
-// (dropping onto an empty column targets the column itself).
+// Dropping onto an empty column targets the column itself.
 const findColumnId = (
   columns: KanbanColumn[],
   itemId: string,
@@ -91,7 +90,7 @@ const SortableCard = ({
 }: {
   card: KanbanCard;
   columnId: string;
-  onCardClick?: (evt: { cardId: string; columnId: string }) => void;
+  onCardClick: (evt: { cardId: string; columnId: string }) => void;
 }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id });
@@ -106,7 +105,7 @@ const SortableCard = ({
     >
       <CardView
         card={card}
-        onClick={() => onCardClick?.({ cardId: card.id, columnId })}
+        onClick={() => onCardClick({ cardId: card.id, columnId })}
       />
     </div>
   );
@@ -117,10 +116,9 @@ const BoardColumn = ({
   onCardClick,
 }: {
   column: KanbanColumn;
-  onCardClick?: (evt: { cardId: string; columnId: string }) => void;
+  onCardClick: (evt: { cardId: string; columnId: string }) => void;
 }) => {
-  // The cards container is droppable under the column's own id, so a card can
-  // be dropped into a column with no cards to land on.
+  // Droppable under the column's own id, so a card can land in an empty column.
   const { setNodeRef } = useDroppable({ id: column.id });
 
   return (
@@ -154,11 +152,9 @@ const BoardColumn = ({
 
 export const KanbanBoardImpl = createComponentImplementation({
   def: KanbanBoardDef,
-  render: ({ columns = [], onCardClick, onCardMove}, { entry }) => {
-    // Optimistic local mirror of the `columns` prop. Props re-evaluate with a
-    // fresh identity every render, so the mirror resyncs by CONTENT — when the
-    // document writes `evt.columns` back (the documented binding), the incoming
-    // content matches the local state and nothing moves.
+  render: ({ columns, onCardClick, onCardMove }, { entry }) => {
+    // Props re-evaluate with a fresh identity every render, so the mirror resyncs by content: the document writing
+    // `evt.columns` back matches the local state and nothing moves.
     const propsKey = JSON.stringify(columns);
     const [board, setBoard] = useState<KanbanColumn[]>(columns);
     const lastPropsKey = useRef(propsKey);
@@ -168,8 +164,8 @@ export const KanbanBoardImpl = createComponentImplementation({
     }
 
     const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
-    // Where the active card started, to skip the callback on a no-op drop.
-    const dragOrigin = useRef<{ columnId: string; index: number } | null>(null);
+    // The state at drag start: a no-op drop skips the callback, a cancel puts `board` back.
+    const dragOrigin = useRef<{ columnId: string; index: number; board: KanbanColumn[] } | null>(null);
 
     const sensors = useSensors(
       // The distance threshold keeps plain clicks flowing to onCardClick.
@@ -186,12 +182,12 @@ export const KanbanBoardImpl = createComponentImplementation({
         ? {
             columnId: column.id,
             index: column.cards.findIndex((c) => c.id === active.id),
+            board,
           }
         : null;
     };
 
-    // Cross-column moves happen live while hovering; within-column order is
-    // settled on drop.
+    // Cross-column moves happen live while hovering; within-column order settles on drop.
     const handleDragOver = ({ active, over }: DragOverEvent) => {
       if (!over) return;
       const activeId = String(active.id);
@@ -271,6 +267,7 @@ export const KanbanBoardImpl = createComponentImplementation({
           onDragEnd={handleDragEnd}
           onDragCancel={() => {
             setActiveCard(null);
+            if (dragOrigin.current) setBoard(dragOrigin.current.board);
             dragOrigin.current = null;
           }}
         >
@@ -283,8 +280,7 @@ export const KanbanBoardImpl = createComponentImplementation({
               />
             ))}
           </div>
-          {/* Rendered in a fixed-position layer, so the dragged card isn't
-              clipped by the column/board scroll containers. */}
+          {/* A fixed-position layer, so the dragged card is not clipped by the scroll containers. */}
           <DragOverlay>
             {activeCard ? <CardView card={activeCard} /> : null}
           </DragOverlay>

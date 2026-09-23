@@ -1,8 +1,8 @@
 import { and, asc, count, desc, eq, lte, or } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
-import { contains, publicColumns } from "@/db/query";
-import { products } from "@/db/schema";
+import { contains, ownsRow, publicColumns } from "@/db/query";
+import { products, suppliers } from "@/db/schema";
 import { productInsert, productListInput } from "@/db/zod";
 import { json, ownerForRead, readQuery, readValid, requireUser } from "@/lib/api";
 
@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
   if ("error" in auth) return auth.error;
   const body = await readValid(req, productInsert);
   if ("error" in body) return body.error;
+  if (!(await ownsRow(suppliers, body.data.supplierId, auth.me.id))) {
+    return json({ error: "supplierId does not exist" }, 400);
+  }
   const [row] = await db
     .insert(products)
     .values({ ...body.data, userId: auth.me.id })

@@ -1,11 +1,10 @@
 export type EditRequestPromptOptions = {
-	/** The user's change request, e.g. "Add pagination to the orders table". */
 	request: string;
-	/** Keys referenced as children but never emitted — listed so the model re-emits them instead of keeping them by reference. */
+	// Referenced as children but never emitted; the model re-emits them.
 	missingKeys?: string[];
 };
 
-/** The user-turn message for an incremental edit: the change request plus the re-emit-a-key convention. Per-turn content, not a system-prompt partial. */
+// Per-turn content, not a system-prompt partial.
 export function getEditRequestPrompt({
 	request,
 	missingKeys = [],

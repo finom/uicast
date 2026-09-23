@@ -1,10 +1,7 @@
-import { customers, orders, products, stockMovements, suppliers } from "./schema";
+import { customers, type ORDER_STATUSES, orders, products, stockMovements, suppliers } from "./schema";
 import { db } from "./index";
 
-// The domain dataset every user starts with (and the seed user's data).
-// Deterministic, so a fresh login and the public demo look the same. The stock
-// ledger reconciles exactly: every order gets a "shipped" movement, and
-// "received" batches balance each product to its current stock.
+// Deterministic. The ledger reconciles: every order not cancelled gets a "shipped" movement and "received" batches balance each product.
 
 const NAMED_SUPPLIERS = [
   { name: "Lumen Trade Co.", email: "orders@lumentrade.eu", category: "Lighting", leadTimeDays: 7 },
@@ -39,8 +36,8 @@ const NAMED_CUSTOMERS = [
   { name: "Yuki Tanaka", company: "Sakura Metrics", email: "yuki@sakura.jp" },
 ];
 
-// (customerIndex, productIndex, qty, daysAgo, status) — snapshots derive.
-type StarterOrder = [number, number, number, number, string];
+type OrderStatus = (typeof ORDER_STATUSES)[number];
+type StarterOrder = [customerIndex: number, productIndex: number, qty: number, daysAgo: number, status: OrderStatus];
 const NAMED_ORDERS: StarterOrder[] = [
   [0, 1, 1, 2, "paid"],
   [0, 3, 2, 9, "delivered"],
@@ -63,7 +60,7 @@ const NAMED_ORDERS: StarterOrder[] = [
 ];
 
 
-// Deterministic PRNG (mulberry32), so every account starts from the same rows.
+// mulberry32.
 function makeRandom(seed: number): () => number {
   let t = seed;
   return () => {
@@ -74,10 +71,7 @@ function makeRandom(seed: number): () => number {
   };
 }
 
-// Generated on top of the named rows: six more categories with a supplier each,
-// 84 products, 100 customers and about 550 small orders. Generated stock stays
-// above 20 and a generated account stays under $800 lifetime, so the seeded
-// chats' prose stays true: three low-stock products, the same top accounts.
+// Generated stock stays above 20 and a generated account under $800 lifetime, so the seeded chats' prose stays true.
 const EXTRA_SUPPLIERS = [
   { name: "Klangwerk Audio", email: "b2b@klangwerk.de", category: "Audio", leadTimeDays: 12 },
   { name: "Vault Storage Systems", email: "sales@vaultstorage.com", category: "Storage", leadTimeDays: 14 },
@@ -102,6 +96,14 @@ const COMPANY_A = ["Blue", "Granite", "Cedar", "Harbor", "Meridian", "Quartz", "
 const COMPANY_B = ["Labs", "Studio", "Analytics", "Logistics", "Robotics", "Foods", "Media", "Works"];
 
 const CHEAP_PRICE = 120;
+const SPEND_CAP = 800;
+
+function orderStatus(daysAgo: number, roll: number): OrderStatus {
+  if (daysAgo > 30) return roll < 0.92 ? "delivered" : "cancelled";
+  if (daysAgo > 8) return roll < 0.7 ? "delivered" : "shipped";
+  if (daysAgo > 3) return roll < 0.6 ? "shipped" : "paid";
+  return roll < 0.5 ? "pending" : "paid";
+}
 
 function generateStarter() {
   const random = makeRandom(20260902);
@@ -139,34 +141,28 @@ function generateStarter() {
       const pi = cheap[Math.floor(random() * cheap.length)];
       const qty = 1 + Math.floor(random() * 4);
       const total = qty * products[pi].price;
-      if (spend + total > 800) break;
+      if (spend + total > SPEND_CAP) break;
       spend += total;
       const daysAgo = Math.floor(random() * 120);
-      const roll = random();
-      const status =
-        daysAgo > 30 ? (roll < 0.92 ? "delivered" : "cancelled")
-        : daysAgo > 8 ? (roll < 0.7 ? "delivered" : "shipped")
-        : daysAgo > 3 ? (roll < 0.6 ? "shipped" : "paid")
-        : roll < 0.5 ? "pending" : "paid";
-      orders.push([ci, pi, qty, daysAgo, status]);
+      orders.push([ci, pi, qty, daysAgo, orderStatus(daysAgo, random())]);
     }
   }
   return { products, customers, orders };
 }
 
-const generated = generateStarter();
-export const STARTER_SUPPLIERS = [...NAMED_SUPPLIERS, ...EXTRA_SUPPLIERS];
-export const STARTER_PRODUCTS = generated.products;
-export const STARTER_CUSTOMERS = generated.customers;
-const STARTER_ORDERS = generated.orders;
+const STARTER_SUPPLIERS = [...NAMED_SUPPLIERS, ...EXTRA_SUPPLIERS];
+const { products: STARTER_PRODUCTS, customers: STARTER_CUSTOMERS, orders: STARTER_ORDERS } = generateStarter();
 
-/** Give `userId` its own copy of the starter dataset. Call once, at user creation. */
+// Call once, at user creation.
 export async function insertStarterData(userId: string): Promise<void> {
   const supplierRows = await db
     .insert(suppliers)
     .values(STARTER_SUPPLIERS.map((sup) => ({ ...sup, userId })))
     .returning({ id: suppliers.id, category: suppliers.category });
-  const supplierByCategory = new Map(supplierRows.map((sup) => [sup.category, sup.id]));
+  // Every product category in STARTER_PRODUCTS has a supplier of that category.
+  const supplierByCategory: Record<string, number> = Object.fromEntries(
+    supplierRows.map((sup) => [sup.category, sup.id]),
+  );
 
   const productRows = await db
     .insert(products)
@@ -174,7 +170,7 @@ export async function insertStarterData(userId: string): Promise<void> {
       STARTER_PRODUCTS.map((prod) => ({
         ...prod,
         userId,
-        supplierId: supplierByCategory.get(prod.category) ?? supplierRows[0].id,
+        supplierId: supplierByCategory[prod.category],
       })),
     )
     .returning({ id: products.id });
@@ -197,14 +193,14 @@ export async function insertStarterData(userId: string): Promise<void> {
         qty,
         unitPrice: product.price,
         total: qty * product.price,
-        status: status as (typeof orders.$inferInsert)["status"],
+        status,
         createdAt: day(daysAgo),
       };
     }),
   );
 
-  // The ledger: one "shipped" row per non-cancelled order, and "received"
-  // batches dated before the first sale so each product sums to its stock.
+  // "received" batches are dated before the first sale, so each product sums to its stock.
+  const firstSale = Math.max(...STARTER_ORDERS.map(([, , , daysAgo]) => daysAgo));
   const movements: (typeof stockMovements.$inferInsert)[] = [];
   const shippedByProduct = new Map<number, number>();
   for (const [, pi, qty, daysAgo, status] of STARTER_ORDERS) {
@@ -228,7 +224,7 @@ export async function insertStarterData(userId: string): Promise<void> {
       qty: first,
       reason: "received",
       note: "Initial delivery",
-      createdAt: day(45),
+      createdAt: day(firstSale + 15),
     });
     if (totalIn - first > 0) {
       movements.push({
@@ -237,7 +233,7 @@ export async function insertStarterData(userId: string): Promise<void> {
         qty: totalIn - first,
         reason: "received",
         note: "Restock",
-        createdAt: day(32),
+        createdAt: day(firstSale + 2),
       });
     }
   });

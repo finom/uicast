@@ -1,10 +1,6 @@
 import Dexie, { type EntityTable } from "dexie";
 
-/**
- * The one persisted entity behind the demo. A browser-local IndexedDB table
- * (via Dexie) standing in for whatever remote data source a real generated app
- * would talk to — so the demo is fully self-contained and offline.
- */
+// Stands in for a remote data source.
 export interface Product {
   id: number;
   name: string;
@@ -14,7 +10,6 @@ export interface Product {
   price: number;
 }
 
-/** Shape for inserts — `id` is auto-incremented by Dexie. */
 export type NewProduct = Omit<Product, "id">;
 
 const db = new Dexie("uicast-inventory") as Dexie & {
@@ -22,8 +17,6 @@ const db = new Dexie("uicast-inventory") as Dexie & {
 };
 
 db.version(1).stores({
-  // ++id = auto-increment primary key; the rest are secondary indexes used by
-  // the read functions (filtering, category aggregation).
   products: "++id, name, sku, category, stock, price",
 });
 

@@ -38,7 +38,7 @@ export const StatDef = createComponentDefinition({
 });
 ```
 
-An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 129 pairs over shadcn/ui if you do not want to start with your own.
+An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 128 pairs over shadcn/ui if you do not want to start with your own.
 
 A **host function** is one [`standard-tool`](https://standard-tool.js.org/) per operation the model may perform. Its input schema is checked before `execute` runs; its output schema is how the model knows what the result contains:
 
@@ -85,9 +85,11 @@ fetch("/api/orders")                                  // ❌ "fetch" is not avai
 ({}).constructor                                      // ❌ undefined — nothing inherited is reachable
 ```
 
+An arrow is written only as a method's callback, so a function is never a value and nothing recurses. Methods newer than ES2022 — `toSorted`, `Object.groupBy`, the `Set` operations, `Math.sumPrecise` — are implemented in the interpreter, so they work the same on any ES2022 engine. Regular expressions, mutation, `async`, `Math.random()` and `Temporal` are left out; the [`@uicast/expr` README](packages/expr) lists what is in and why the rest is not.
+
 The interpreter secures the language, not what you plug into it. Host functions are capabilities you grant, so authorize them on the server. Scope data is only as safe as what you put there. Props that reach the DOM, such as URLs, go through the renderer's `urlPolicy`.
 
-[`@uicast/expr-passthrough`](packages/expr-passthrough) is the faster path: the same static checks, then the source goes through `new Function`. Roughly 3× on one expression and 50× on anything that loops over data, where the engine runs the loop instead of the interpreter. It needs `unsafe-eval`, nothing meters it, and a property name assembled at run time is never checked, so it is for documents whose author you trust.
+[`@uicast/expr-passthrough`](packages/expr-passthrough) is the faster path: the same static checks, then the source goes through `new Function`. Roughly 2–4× on one expression and 20–80× on anything that loops over data, where the engine runs the loop instead of the interpreter. It needs `unsafe-eval`, nothing meters it, and a property name assembled at run time is never checked, so it is for documents whose author you trust.
 
 ## Install
 
@@ -112,7 +114,7 @@ Four steps to a first page, spelled out in [Getting started](packages/docs/src/a
 | [`@uicast/react`](packages/react) | The React binding: provider, renderer, per-element error boundary, the confirm seam. |
 | [`@uicast/expr`](packages/expr) | The expression language and its interpreter. No **uicast** dependency; works standalone. |
 | [`@uicast/expr-passthrough`](packages/expr-passthrough) | The same language run through `new Function`: faster, needs `unsafe-eval`, for trusted authors. |
-| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 129 components over shadcn/ui and Radix, each with the definition the model reads. |
+| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 128 components over shadcn/ui and Radix, each with the definition the model reads. |
 | [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: generated screens inside ` ```uicast ` fences in Markdown chat replies. |
 
 ## Documentation

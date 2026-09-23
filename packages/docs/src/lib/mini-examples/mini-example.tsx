@@ -1,8 +1,7 @@
 "use client";
 import { ChevronRight } from "lucide-react";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { type MouseEvent, type ReactNode, useState } from "react";
 
-// Provenance of each part, mirroring the pipeline the docs teach.
 const PROV = {
   you: "you provide",
   gen: "generated from definition",
@@ -11,7 +10,7 @@ const PROV = {
   example: "example",
 } as const;
 type Prov = keyof typeof PROV;
-type Lang = "js" | "jsx" | "json" | "md";
+type Lang = "json" | "md";
 
 export type CodeVariant = { label: string; code: string; lang: Lang };
 export type CodePart = {
@@ -21,19 +20,14 @@ export type CodePart = {
   code?: string;
   lang?: Lang;
   variants?: CodeVariant[];
-  /** Which variant opens selected. Defaults to the first. */
   defaultVariant?: number;
   node?: ReactNode;
 };
-export type SetupPart = CodePart;
 
 const esc = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const attr = (s: string) => esc(s).replace(/"/g, "&quot;");
 
-// One-line glosses for the JSONLines keys, shown as hover tooltips on keys in
-// the Entries block. Keyed by the bare key name (no quotes); a key is only
-// tipped in key position (followed by `:`) inside a `json` block.
 const KEY_TIPS: Record<string, string> = {
   key: "Unique id for this element.",
   component: "Which registered component this entry renders.",
@@ -52,8 +46,6 @@ const KEY_TIPS: Record<string, string> = {
   onClick: "An event handler; its assignments run on click.",
 };
 
-// Lightweight token highlighter. Emits `tk-*` spans that the stylesheet
-// colours per theme — kept local so docs code stays framework-free.
 function highlight(code: string, lang: Lang): string {
   if (lang === "md") {
     return code
@@ -68,17 +60,16 @@ function highlight(code: string, lang: Lang): string {
       })
       .join("\n");
   }
-  const re =
-    /(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+(?:\.\d+)?\b)|(\b(?:import|from|export|const|let|var|return|default|function|new|class|null|true|false|undefined|async|await|if|else|for|of|in|extends)\b)|([A-Za-z_$][\w$]*(?=\s*\())|([{}[\]().,;:])/g;
-  const cls = [null, "tk-comment", "tk-str", "tk-num", "tk-kw", "tk-fn", "tk-punct"];
+  const re = /("(?:[^"\\]|\\.)*")|(-?\b\d+(?:\.\d+)?\b)|(\b(?:null|true|false)\b)|([{}[\],:])/g;
+  const cls = [null, "tk-str", "tk-num", "tk-kw", "tk-punct"];
   let out = "";
   let last = 0;
   for (let m = re.exec(code); m; m = re.exec(code)) {
     if (m.index > last) out += esc(code.slice(last, m.index));
     let gi = 1;
-    while (gi <= 6 && m[gi] == null) gi++;
+    while (gi <= 4 && m[gi] == null) gi++;
     const end = m.index + m[0].length;
-    if (gi === 2 && lang === "json") {
+    if (gi === 1) {
       const tip = KEY_TIPS[m[0].slice(1, -1)];
       if (tip && /^\s*:/.test(code.slice(end))) {
         out += `<span class="tk-str tk-key" data-tip="${attr(tip)}">${esc(m[0])}</span>`;
@@ -122,9 +113,10 @@ const Chip = ({ prov }: { prov: Prov }) => (
 
 function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node }: CodePart) {
   const [sel, setSel] = useState(defaultVariant ?? 0);
-  const active = variants?.[sel] ?? { code: code ?? "", lang: lang ?? "json" };
+  const shown = variants ?? [{ label: name, code: code ?? "", lang: lang ?? "json" }];
+  const active = shown[sel];
   return (
-    <div className="mx-card" data-mdx={node ? "true" : undefined}>
+    <div className="mx-card">
       <div className="mx-card-head">
         <span className="mx-card-head-l">
           <span className="mx-name">{name}</span>
@@ -152,71 +144,56 @@ function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node
       ) : null}
       {node ? (
         <div className="mx-mdx">{node}</div>
-      ) : variants ? (
+      ) : (
         <div className="mx-stack">
-          {variants.map((v, i) => (
+          {shown.map((v, i) => (
             <pre className="mx-pre" key={v.label} data-active={i === sel} aria-hidden={i !== sel}>
-              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-highlighted example code from this repo, not user input */}
+              {/* biome-ignore lint/security/noDangerouslySetInnerHtml: highlighter output over this repo's own examples, not user input */}
               <code dangerouslySetInnerHTML={{ __html: highlight(v.code, v.lang) }} />
             </pre>
           ))}
         </div>
-      ) : (
-        <pre className="mx-pre">
-          {/* biome-ignore lint/security/noDangerouslySetInnerHtml: shiki-highlighted example code from this repo, not user input */}
-              <code dangerouslySetInnerHTML={{ __html: highlight(active.code, active.lang) }} />
-        </pre>
       )}
     </div>
   );
 }
 
-// Where the key tooltip sits, in coordinates relative to the `.mini-example`
-// root. It cannot live inside the code block: `.mx-pre` scrolls and `.mx-card`
-// clips, so an absolutely positioned child of either is cut off at the first
-// line. One tooltip at the root, positioned from the hovered key's rect,
-// escapes both.
+// At the root, not inside the code block: `.mx-pre` scrolls and `.mx-card` clips, so a child of either is cut off.
 type Tip = { text: string; x: number; y: number };
 
 export function MiniExample({
   entry,
   result,
   setup,
-  open = false,
 }: {
   entry: CodePart;
   result: ReactNode;
-  setup: SetupPart[];
-  open?: boolean;
+  setup: CodePart[];
 }) {
-  const rootRef = useRef<HTMLElement>(null);
   const [tip, setTip] = useState<Tip | null>(null);
 
   // Delegated: the keys are highlighter output, not React nodes.
-  const onOver = useCallback((event: React.MouseEvent) => {
-    const key = (event.target as HTMLElement).closest?.(".tk-key");
-    const root = rootRef.current;
+  const onOver = (event: MouseEvent<HTMLElement>) => {
+    const key = (event.target as HTMLElement).closest(".tk-key");
     const text = key?.getAttribute("data-tip");
-    if (!key || !root || !text) return;
+    if (!key || !text) return;
     const k = key.getBoundingClientRect();
-    const r = root.getBoundingClientRect();
+    const r = event.currentTarget.getBoundingClientRect();
     setTip({ text, x: k.left - r.left, y: k.top - r.top - 7 });
-  }, []);
+  };
 
-  const onOut = useCallback((event: React.MouseEvent) => {
-    const from = (event.target as HTMLElement).closest?.(".tk-key");
-    const to = (event.relatedTarget as HTMLElement | null)?.closest?.(".tk-key");
+  const onOut = (event: MouseEvent) => {
+    const from = (event.target as HTMLElement).closest(".tk-key");
+    const to = (event.relatedTarget as HTMLElement | null)?.closest(".tk-key");
     if (from && from !== to) setTip(null);
-  }, []);
+  };
 
   return (
     <article
       className="mini-example"
-      ref={rootRef}
       onMouseOver={onOver}
       onMouseOut={onOut}
-      // A code block scrolls under the tooltip, which would leave it pointing at
-      // the wrong token; drop it instead of tracking the scroll.
+      // The tip is positioned on hover, so a scroll inside a code block would leave it behind.
       onScrollCapture={() => setTip(null)}
     >
       <style>{CSS}</style>
@@ -239,8 +216,8 @@ export function MiniExample({
         </div>
       </div>
 
-      <details className="mx-built" open={open}>
-        <summary className="mx-summary">
+      <details className="mx-built">
+        <summary>
           <ChevronRight className="mx-chev" size={16} />
           <span className="mx-summary-strong">How it&apos;s built</span>
           <span className="mx-summary-dim">
@@ -309,11 +286,9 @@ const CSS = `
 .mini-example .mx-mdx span[style*="E36209"]{--shiki-light:var(--tok-num)!important;--shiki-dark:var(--tok-num)!important}
 .mini-example .mx-mdx span[style*="24292E"]{--shiki-light:var(--text)!important;--shiki-dark:var(--text)!important}
 .mini-example .mx-mdx span[style*="22863A"]{--shiki-light:var(--tok-fn)!important;--shiki-dark:var(--tok-fn)!important}
-.mini-example .tk-comment{color:var(--tok-comment)}
 .mini-example .tk-str{color:var(--tok-str)}
 .mini-example .tk-num{color:var(--tok-num)}
 .mini-example .tk-kw{color:var(--tok-kw)}
-.mini-example .tk-fn{color:var(--tok-fn)}
 .mini-example .tk-punct{color:var(--tok-punct)}
 .mini-example .tk-muted{color:var(--muted)}
 .mini-example .tk-key{position:relative;cursor:help;text-decoration:underline dotted;text-decoration-color:var(--faint);text-underline-offset:3px}

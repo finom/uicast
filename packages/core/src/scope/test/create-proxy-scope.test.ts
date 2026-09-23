@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { EntryError } from "../../entry-error";
-import { createEmitter, createProxyScope, createRowScope, getForwardTargets } from "../create-proxy-scope";
+import { createProxyScope, createRowScope, getForwardTargets } from "../create-proxy-scope";
 
 describe("createProxyScope — reads", () => {
   it("reads fields as plain values, nested objects included", () => {
@@ -23,7 +23,7 @@ describe("createProxyScope — writes", () => {
     const spy = vi.fn();
     state.$emitter.on("count", spy);
     state.count = 1;
-    expect(spy).toHaveBeenCalledWith({ field: "count", value: 1, oldValue: 0 });
+    expect(spy).toHaveBeenCalledTimes(1);
   });
 
   it("a nested assignment is a plain write: nothing emits", () => {
@@ -124,7 +124,7 @@ describe("createRowScope", () => {
     scope.proxy.$emitter.on("qty", spy);
     scope.proxy.$set("qty", 2);
     expect(element.qty).toBe(2);
-    expect(spy).toHaveBeenCalledWith({ field: "qty", value: 2, oldValue: 1 });
+    expect(spy).toHaveBeenCalledTimes(1);
     scope.proxy.qty = 3;
     expect(element.qty).toBe(3);
   });
@@ -140,13 +140,11 @@ describe("createRowScope", () => {
     line.retarget(lineElement, 0, 0);
     line.see({ root, order: order.proxy });
     const spy = vi.fn();
-    root.$emitter.on("orders", spy);
-    root.$emitter.on("selected", spy);
-    root.$emitter.on("other", spy);
-    order.proxy.$emitter.on("lines", spy);
+    for (const field of ["orders", "selected", "other"]) root.$emitter.on(field, () => spy(field));
+    order.proxy.$emitter.on("lines", () => spy("lines"));
 
     line.proxy.$set("qty", 2);
-    expect(spy.mock.calls.map((c) => c[0].field)).toEqual(["lines", "orders", "selected"]);
+    expect(spy.mock.calls.map((c) => c[0])).toEqual(["lines", "orders", "selected"]);
     expect(getForwardTargets(line.proxy)).toEqual([{ scope: order.proxy, field: "lines" }]);
     expect(getForwardTargets(root)).toEqual([]);
   });
@@ -233,25 +231,24 @@ describe("createRowScope", () => {
   });
 });
 
-describe("createEmitter", () => {
+describe("createProxyScope — $emitter", () => {
   it("emits to every handler of a field, and to '*'", () => {
-    const e = createEmitter();
+    const e = createProxyScope({}).$emitter;
     const a = vi.fn();
     const any = vi.fn();
     e.on("foo", a);
     e.on("*", any);
-    const payload = { field: "foo", value: 1, oldValue: undefined };
-    e.emit("foo", payload);
-    e.emit("bar", payload);
+    e.emit("foo");
+    e.emit("bar");
     expect(a).toHaveBeenCalledTimes(1);
     expect(any).toHaveBeenCalledTimes(2);
   });
 
   it("on() returns an unsubscribe function", () => {
-    const e = createEmitter();
+    const e = createProxyScope({}).$emitter;
     const spy = vi.fn();
     e.on("foo", spy)();
-    e.emit("foo", { field: "foo", value: 1, oldValue: undefined });
+    e.emit("foo");
     expect(spy).not.toHaveBeenCalled();
   });
 });

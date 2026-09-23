@@ -92,7 +92,6 @@ describe("dependency waves", () => {
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );
-    // Both calls started before either resolved — that's the parallelism.
     await waitFor(() => {
       expect(started).toEqual(["a", "b"]);
     });
@@ -127,10 +126,8 @@ describe("dependency waves", () => {
         props: { literal: { label: "run-chain" } },
         callbacks: {
           onClick: [
-            // wave 1: two independent calls
             { set: "scopes.root.x", expr: "slowEcho({ v: 'x' })" },
             { set: "scopes.root.y", expr: "slowEcho({ v: 'y' })" },
-            // wave 2: depends on both writes
             { set: "scopes.root.sum", expr: "slowEcho({ v: scopes.root.x + scopes.root.y })" },
           ],
         },
@@ -152,7 +149,6 @@ describe("dependency waves", () => {
     await waitFor(() => {
       expect(container.textContent).toContain("sum:xy");
     });
-    // host-function steps keep their order; the dependent step saw both writes.
     expect(started).toEqual(["x", "y", "xy"]);
   });
 
@@ -188,8 +184,7 @@ describe("dependency waves", () => {
         callbacks: {
           onClick: [
             { expr: "del()" },
-            // reads no path del writes — ordering must come from the
-            // host-function barrier, not path analysis
+            // Reads nothing `del` writes: only the host-function barrier orders them.
             { set: "scopes.root.rows", expr: "list()" },
           ],
         },

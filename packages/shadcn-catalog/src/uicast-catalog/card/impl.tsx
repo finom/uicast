@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import { pickMouseEvent } from "../../events/mouse";
@@ -13,11 +13,10 @@ import { CardDef } from "./def";
 
 export const CardImpl = createComponentImplementation({
   def: CardDef,
-  render: ({ title, description, children, onClick}, { entry, loading }) => {
+  render: ({ title, description, children, onClick }, { entry, loading }) => {
     return (
       <Card
-        // min-w-0: as a grid/flex item, never let intrinsic content width
-        // (charts, tables) win over the track size. Off-screen cards skip layout and paint.
+        // min-w-0: intrinsic content width (charts, tables) must not win over the track size.
         className={cn("min-w-0 [content-visibility:auto] [contain-intrinsic-size:auto_16rem]", busy(loading))}
         onClick={(e) => onClick(pickMouseEvent(e))}
         aria-busy={loading || undefined}
@@ -33,7 +32,7 @@ export const CardImpl = createComponentImplementation({
       </Card>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => (
+  placeholder: ({ children }) => (
     <Card className="min-w-0">
       <CardHeader>
         <Skeleton className="h-4 w-40" />

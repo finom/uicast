@@ -12,7 +12,7 @@ becomes a subscription to a field, and a write to that field re-renders exactly
 the elements reading it, however deep the read goes.
 
 ```jsonl
-{"key":"count","component":"Text","props":{"expr":"({ text: scopes.root.products.length + ' products' })"}}
+{"key":"count","component":"Typography","props":{"expr":"({ text: scopes.root.products.length + ' products' })"}}
 ```
 
 `count` subscribes to `scopes.root.products`. Writing `products` wakes it.
@@ -37,7 +37,7 @@ document, whose ancestor seeds `scopes.root.products`:
 
 ```jsonl
 {"key":"search","component":"SearchInput","seed":[{"set":"scopes.root.query","literal":""}],"props":{"expr":"({ value: scopes.root.query })"},"callbacks":{"onChange":[{"set":"scopes.root.query","expr":"evt.value"}]}}
-{"key":"rows","component":"Text","each":"scopes.root.products.filter(p => p.name.includes(scopes.root.query))","as":"row","keyBy":"id","props":{"expr":"({ text: scopes.row.name })"}}
+{"key":"rows","component":"Typography","each":"scopes.root.products.filter(p => p.name.includes(scopes.root.query))","as":"row","keyBy":"id","props":{"expr":"({ text: scopes.row.name })"}}
 ```
 
 `rows` subscribes to `scopes.root.products` (a method call truncates the path, so
@@ -101,7 +101,7 @@ step reading `scopes.root.products` waits for it.
 Extraction is static and stops at the field:
 
 ```jsonl
-{"key":"selected","component":"Text","props":{"expr":"({ text: scopes.root.rows[scopes.root.sel].name })"}}
+{"key":"selected","component":"Typography","props":{"expr":"({ text: scopes.root.rows[scopes.root.sel].name })"}}
 ```
 
 Two fields are extracted, `scopes.root.rows` and `scopes.root.sel`, and any

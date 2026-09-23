@@ -1,6 +1,6 @@
 import type { ExpressionEvaluator } from "@uicast/expr";
 import { depKey } from "../scope/parse-scope";
-import { getScopeReads } from "./evaluate";
+import { wrapEvalError } from "./evaluate";
 
 type PlannableStep = {
   set?: string;
@@ -8,8 +8,7 @@ type PlannableStep = {
   confirm?: string;
 };
 
-// Partition steps into waves: reads wait for earlier writes, independent steps share a wave, `confirm` is a barrier.
-// `isBarrier` adds barriers (host calls); `declaredWrites` adds unnamed written keys.
+// Reads wait for earlier writes, independent steps share a wave, `confirm` and `isBarrier` steps are barriers.
 export function planStepWaves<T extends PlannableStep>(
   steps: readonly T[],
   evaluator: ExpressionEvaluator,
@@ -29,12 +28,14 @@ export function planStepWaves<T extends PlannableStep>(
   for (const step of steps) {
     const reads: string[] = [];
     if (step.expr) {
-      for (const r of getScopeReads(step.expr, evaluator)) {
-        const key = depKey(r);
-        if (key) reads.push(key);
+      // Planning parses before `evaluate` runs, so a bad expression must be classified here.
+      try {
+        for (const r of evaluator.memberReads(step.expr, "scopes")) reads.push(depKey(r));
+        // `currentValue` is the value at the step's own `set`.
+        if (step.set && evaluator.validate(step.expr).freeIds.includes("currentValue")) reads.push(step.set);
+      } catch (err) {
+        throw wrapEvalError(err);
       }
-      // The dep extraction is text-based, so `currentValue` is matched the same way.
-      if (step.set && /\bcurrentValue\b/.test(step.expr)) reads.push(step.set);
     }
     // A whole-scope read (`scopes.root.*`) waits for any write into that scope.
     const dependsOnWave = reads.some((r) =>

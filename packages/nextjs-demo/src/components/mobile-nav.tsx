@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { AppSidebar } from "./app-sidebar";
 
-// Mobile drawer around the same sidebar; closes on navigation.
 export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();

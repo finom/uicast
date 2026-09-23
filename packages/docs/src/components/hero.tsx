@@ -2,13 +2,7 @@ import Link from "next/link";
 import { GitHubIcon } from "nextra/icons";
 import { BetaBadge } from "./beta-badge";
 
-/**
- * The docs index doubles as the front door, so its first screen is a hero
- * rather than a page heading. The `h1` stays real markup — the document
- * outline reads it; the page `<title>` comes from the file's frontmatter.
- * `clear-both` keeps the centered block clear of Nextra's floated "Copy page"
- * control, which is laid out above it.
- */
+// The `h1` is real markup for the outline; `clear-both` keeps the block clear of Nextra's floated "Copy page" control.
 export function Hero() {
   return (
     <div className="clear-both mb-12 flex flex-col items-center gap-4 border-b pb-12 pt-6 text-center">

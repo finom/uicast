@@ -124,8 +124,6 @@ describe("EntryRenderer — callbacks", () => {
 });
 
 describe("EntryRenderer — the confirm seam", () => {
-  // A step carrying `confirm:` waits for an answer before it (and everything
-  // after it) runs; a declined confirm is a clean stop, not a failure.
   const lines: ComponentEntry[] = [
     {
       key: "root",
@@ -137,7 +135,6 @@ describe("EntryRenderer — the confirm seam", () => {
     },
   ];
 
-  // happy-dom ships no window.confirm — stub it the way confirm.test.tsx does.
   const originalConfirm = window.confirm;
   afterEach(() => {
     window.confirm = originalConfirm;
@@ -196,7 +193,6 @@ describe("EntryRenderer — the confirm seam", () => {
         container.querySelector("button[data-key='root']") as HTMLButtonElement,
       );
     });
-    // The step is parked on the modal — nothing ran, window.confirm untouched.
     expect(
       container.querySelector("[data-modal-message]")?.textContent,
     ).toBe("Sure?");

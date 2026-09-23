@@ -15,7 +15,7 @@ export async function readValid<T>(req: Request, schema: ZodType<T>) {
   return validated(schema, await req.json().catch(() => undefined));
 }
 
-/** The query-string twin of `readValid`; a `z.object` drops the `u=` owner param. */
+// A `z.object` drops the `u=` owner param.
 export function readQuery<T>(req: Request, schema: ZodType<T>) {
   return validated(schema, Object.fromEntries(new URL(req.url).searchParams));
 }
@@ -24,7 +24,7 @@ export async function idParam(params: Promise<{ id: string }>) {
   return Number((await params).id);
 }
 
-/** Reads: whose copy of the data to serve (`?u=` slug > session > seed user). */
+// `?u=` slug, else the session user, else the seed user.
 export async function ownerForRead(
   req: Request,
 ): Promise<{ owner: User } | { error: Response }> {
@@ -33,7 +33,6 @@ export async function ownerForRead(
   return { owner };
 }
 
-/** Writes: the session user, or a 401 whose message reads well in the error slot. */
 export async function requireUser(): Promise<{ me: User } | { error: Response }> {
   const me = await getSessionUser();
   if (!me) return { error: json({ error: READONLY_ERROR }, 401) };

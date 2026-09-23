@@ -22,6 +22,5 @@ export async function POST(req: NextRequest) {
     .insert(pages)
     .values({ ...body.data, userId: auth.me.id })
     .returning();
-  // The slug rides along so the client can go straight to /u/<slug>/p/<id>.
   return json({ ...row, slug: auth.me.slug }, 201);
 }

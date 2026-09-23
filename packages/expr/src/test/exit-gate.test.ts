@@ -1,13 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
 
-// Nothing but plain data leaves an expression — not as the result, not as a host-function argument. These are the paths that copied a function past the per-read gate.
-
 class Secret {
 	secret = "s3cret";
 }
 const fn = () => "live";
-const ctx = { scopes: { o: { fn, n: 1 }, arr: [fn], instance: new Secret(), self: {} as Record<string, unknown> } };
+const ctx = { f: fn, scopes: { o: { fn, n: 1 }, arr: [fn], instance: new Secret(), self: {} as Record<string, unknown> } };
 ctx.scopes.self.me = ctx.scopes.self;
 
 const refuses = (ev: Evaluator, expr: string): boolean => {
@@ -36,7 +34,7 @@ describe("a function cannot leave an expression", () => {
 		}
 	});
 
-	it("not even the interpreter's own closure", () => {
+	it("an arrow outside a method's callback is refused before it runs", () => {
 		expect(refuses(new Evaluator(), "Object.values(x => x * 2)")).toBe(true);
 		expect(refuses(new Evaluator(), "[x => x]")).toBe(true);
 	});
@@ -48,6 +46,29 @@ describe("a function cannot leave an expression", () => {
 		expect(refuses(ev, "send(Object.values(scopes.o))")).toBe(true);
 		expect(refuses(ev, "send(scopes.arr)")).toBe(true);
 		expect(received).toBe("untouched");
+	});
+});
+
+describe("a function's source cannot be read", () => {
+	it("by any conversion", () => {
+		const ev = new Evaluator();
+		for (const expr of [
+			"f + ''",
+			"scopes.arr + ''",
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
+			"`${scopes.arr}`",
+			"scopes.arr.join()",
+			"String(...scopes.arr)",
+			"''.concat(...scopes.arr)",
+			"'x'.includes(...scopes.arr)",
+			"scopes.arr.toSorted().length",
+			"scopes.arr.map(x => x + '')",
+			"scopes.arr.reduce((s, x) => s + x, '')",
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
+			"[scopes.arr].map(([x]) => `${x}`)",
+		]) {
+			expect(refuses(ev, expr), expr).toBe(true);
+		}
 	});
 });
 
@@ -68,10 +89,25 @@ it("plain data still flows", () => {
 	expect(ev.eval("Object.values({ a: 1, b: 2 })")).toEqual([1, 2]);
 	expect(ev.eval("Object.entries({ a: 1 })")).toEqual([["a", 1]]);
 	expect(ev.eval("Object.fromEntries([['a', 1]])")).toEqual({ a: 1 });
-	expect(ev.eval("Object.fromEntries(new Map([['a', 1]]))")).toEqual({ a: 1 });
-	expect(ev.eval("[new Date(0), new Map(), new Set([1])].length")).toBe(3);
+	expect(ev.eval("Object.fromEntries(new Set([['a', 1]]))")).toEqual({ a: 1 });
+	expect(ev.eval("[new Date(0), new Set([1])].length")).toBe(2);
 	// a cycle in host data is walked once, not forever
 	expect(ev.eval("scopes.self", ctx)).toBe(ctx.scopes.self);
+});
+
+describe("only JSON-shaped data leaves", () => {
+	it("a Date or a Set is refused as the result or a host function's input, with the conversion to write", () => {
+		let received: unknown = "untouched";
+		const send = { name: "send", description: "", execute: (i: unknown) => (received = i) } as StandardToolV0;
+		const ev = new Evaluator({ functions: [send] });
+		expect(() => ev.eval("new Date(0)")).toThrow(/The result contains a Date.*toISOString/);
+		expect(() => ev.eval("({ when: new Date(0) })")).toThrow(/contains a Date/);
+		expect(() => ev.eval("new Set([1])")).toThrow(/The result contains a Set.*\[\.\.\.set\]/);
+		expect(() => ev.eval("send({ tags: new Set(['a']) })")).toThrow(/"send" argument contains a Set/);
+		expect(received).toBe("untouched");
+		expect(ev.eval("new Date(0).toISOString()")).toBe("1970-01-01T00:00:00.000Z");
+		expect(ev.eval("[...new Set([1, 1, 2])]")).toEqual([1, 2]);
+	});
 });
 
 describe("what a built-in throws is classified, not raw", () => {
@@ -79,10 +115,9 @@ describe("what a built-in throws is classified, not raw", () => {
 		const ev = new Evaluator();
 		for (const expr of [
 			"(1).toFixed(101)",
-			'new Intl.NumberFormat("!!")',
 			"Object.keys(null)",
 			'encodeURIComponent("\\uD800")',
-			"new Map([1])",
+			'"a".repeat(-1)',
 			"Object.fromEntries(1)",
 		]) {
 			expect(refuses(ev, expr), expr).toBe(true);
@@ -90,7 +125,7 @@ describe("what a built-in throws is classified, not raw", () => {
 	});
 });
 
-describe("budgets cover the loops that escaped them", () => {
+describe("budgets cover built-in loops", () => {
 	it("Object.fromEntries charges per pair and refuses a string", () => {
 		const big = Array.from({ length: 1000 }, (_, i) => [String(i), i]);
 		const ev = new Evaluator({ budget: { steps: 100 } });

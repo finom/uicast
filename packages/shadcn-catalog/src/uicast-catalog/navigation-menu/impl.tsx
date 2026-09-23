@@ -12,7 +12,7 @@ import { NavigationMenuDef } from "./def";
 
 export const NavigationMenuImpl = createComponentImplementation({
   def: NavigationMenuDef,
-  render: ({ items = [], onNavigate}, { entry }) => {
+  render: ({ items, onNavigate }, { entry }) => {
     return (
       <NavigationMenu data-key={entry.key}>
         <NavigationMenuList>
@@ -52,11 +52,11 @@ export const NavigationMenuImpl = createComponentImplementation({
               </NavigationMenuItem>
             ) : (
               <NavigationMenuItem key={i}>
-                <NavigationMenuLink
-                  className={navigationMenuTriggerStyle()}
-                  onClick={() => onNavigate({ label: item.label })}
-                >
-                  {item.label}
+                {/* A button child: an `<a>` without `href` cannot take keyboard focus. */}
+                <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                  <button type="button" onClick={() => onNavigate({ label: item.label })}>
+                    {item.label}
+                  </button>
                 </NavigationMenuLink>
               </NavigationMenuItem>
             ),

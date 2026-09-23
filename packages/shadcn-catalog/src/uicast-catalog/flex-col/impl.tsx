@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ALIGN, GAP, JUSTIFY } from "../../lib/layout";
 import { pickMouseEvent } from "../../events/mouse";
 import { FlexColDef } from "./def";
@@ -22,5 +22,5 @@ export const FlexColImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

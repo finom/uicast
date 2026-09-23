@@ -1,5 +1,3 @@
-// The closed allow-list of AST node types and operators — syntax/validate.ts rejects anything else.
-
 export const ALLOWED_NODES: ReadonlySet<string> = new Set([
 	"Literal",
 	"TemplateLiteral",

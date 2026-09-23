@@ -32,7 +32,6 @@ describe("EntryError", () => {
     expect(EntryError.is(err)).toBe(true);
     expect(EntryError.is(new Error("x"))).toBe(false);
     expect(EntryError.is(null)).toBe(false);
-    // A structurally-branded object from another core copy still passes.
     expect(EntryError.is({ uicastEntryError: true })).toBe(true);
   });
 
@@ -52,7 +51,6 @@ describe("EntryError", () => {
     const rewrapped = EntryError.wrap(tagged, "host-function", "el-2");
     expect(rewrapped).toBe(tagged);
     expect(rewrapped.reason).toBe("invalid-arguments");
-    // A missing elementKey is filled in, an existing one is not clobbered.
     expect(rewrapped.elementKey).toBe("el-2");
     expect(EntryError.wrap(tagged, "unknown", "other").elementKey).toBe("el-2");
   });
@@ -84,6 +82,16 @@ describe("evaluate — classification at the throw site", () => {
       expect.unreachable();
     } catch (err) {
       expect(EntryError.is(err) && err.reason).toBe("unknown-reference");
+    }
+  });
+
+  it("tags an exhausted budget as budget-exceeded (document)", () => {
+    try {
+      evaluate({ expr: '"x".repeat(1e9)' }, { scopes: {} });
+      expect.unreachable();
+    } catch (err) {
+      expect(EntryError.is(err) && err.reason).toBe("budget-exceeded");
+      expect(EntryError.is(err) && err.fault).toBe("document");
     }
   });
 

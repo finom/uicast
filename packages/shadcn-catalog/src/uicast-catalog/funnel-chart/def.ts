@@ -22,7 +22,7 @@ export const FunnelChartDef = createComponentDefinition({
         description:
           "Array of stage data, ordered from widest (first stage) to narrowest (last stage)",
       }),
-    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per stage, in order." }),
     height: z
       .number().int().positive()
       .default(300)

@@ -3,13 +3,10 @@ import { Skeleton } from "../../components/ui/skeleton";
 import { Calendar as ShadcnCalendar } from "../../components/ui/calendar";
 import { CalendarDef } from "./def";
 
-// Date-only strings must round-trip through LOCAL dates: `new Date("YYYY-MM-DD")`
-// parses as UTC midnight, which lands on the previous day in negative-offset
-// timezones (and `toISOString()` has the mirror problem in positive offsets).
+// `new Date("YYYY-MM-DD")` parses as UTC midnight, the previous day in negative-offset timezones.
 function parseLocalDate(value: string): Date {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return new Date(value);
-  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function formatLocalDate(date: Date): string {
@@ -20,7 +17,7 @@ function formatLocalDate(date: Date): string {
 
 export const CalendarImpl = createComponentImplementation({
   def: CalendarDef,
-  render: ({ selected, disabled, onSelect}, { entry }) => {
+  render: ({ selected, disabled, onSelect }, { entry }) => {
     const selectedDate = selected ? parseLocalDate(selected) : undefined;
 
     return (

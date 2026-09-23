@@ -1,12 +1,11 @@
 "use client";
 
+import type { EntryError } from "@uicast/core";
 import { useEffect, useState } from "react";
 
-// Minimal app-level toasts: module bus + one fixed stack, 5s auto-dismiss.
-// Used for callback failures inside generated UI (e.g. a write rejected on a
-// read-only view) — the element stays, the server's message flashes.
-
 type Toast = { id: number; message: string };
+const MAX_TOASTS = 4;
+const TOAST_MS = 5000;
 let nextId = 1;
 let push: ((message: string) => void) | null = null;
 
@@ -14,13 +13,20 @@ export function showToast(message: string) {
   push?.(message);
 }
 
+// A callback failure has no error slot, so the server's own message flashes instead.
+export function toastCallbackFailure(error: EntryError) {
+  if (error.reason === "host-function" || error.reason === "invalid-arguments") {
+    showToast(error.message.replace(/^[^:]*: */, ""));
+  }
+}
+
 export function Toaster() {
   const [toasts, setToasts] = useState<Toast[]>([]);
   useEffect(() => {
     push = (message) => {
       const id = nextId++;
-      setToasts((prev) => [...prev.slice(-3), { id, message }]);
-      setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 5000);
+      setToasts((prev) => [...prev, { id, message }].slice(-MAX_TOASTS));
+      setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), TOAST_MS);
     };
     return () => {
       push = null;

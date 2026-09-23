@@ -5,27 +5,24 @@ import {
 } from "../entry-error";
 
 export type RenderFailure = {
-	/** The `key` of the element whose render failed. */
 	key: string;
-	/** The runtime error message, verbatim. */
 	message: string;
-	/** The failure's `EntryError.reason`, when the host has it — annotates the line with what that class of failure means. */
+	// Annotates the line with what that class of failure means.
 	reason?: EntryErrorReason;
 };
 
 export type ErrorRecoveryPromptOptions = {
-	/** The failures to report, one per failed element. */
 	failures: RenderFailure[];
 };
 
-/** The user-turn message asking the model to re-emit a failed element corrected. Per-turn content, not a system-prompt partial. */
+// Per-turn content, not a system-prompt partial.
 export function getErrorRecoveryPrompt({
 	failures,
 }: ErrorRecoveryPromptOptions): string {
 	const list = failures
 		.map(({ key, message, reason }) => {
 			const line = `- Element \`${key}\`: ${message}`;
-			// Environment faults aren't the model's to fix — no annotation.
+			// Environment faults are not the model's to fix.
 			if (!reason || FAULT_BY_REASON[reason] === "environment") return line;
 			return `${line} (${reason} — ${REASON_DESCRIPTIONS[reason]})`;
 		})

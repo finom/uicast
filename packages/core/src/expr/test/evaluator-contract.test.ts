@@ -10,7 +10,7 @@ import { PassthroughEvaluator } from "@uicast/expr-passthrough";
 import { EntryError } from "../../entry-error";
 import { evaluate } from "../evaluate";
 
-const tool = (name: string): StandardToolV0 => ({ name, description: "", execute: () => 42 }) as StandardToolV0;
+const tool = (name: string): StandardToolV0 => ({ name, description: "", execute: () => 42 });
 
 // A toy language: the source is a key into `scopes`, or a host-function name.
 class ToyEvaluator implements ExpressionEvaluator {
@@ -60,7 +60,6 @@ describe("ExpressionEvaluator", () => {
       expect.objectContaining({ reason: "expression-runtime" }),
     );
 
-    // an EntryError the evaluator throws keeps its own reason
     class Classified extends ToyEvaluator {
       override eval(): never {
         throw new EntryError("bad", { reason: "expression-syntax" });

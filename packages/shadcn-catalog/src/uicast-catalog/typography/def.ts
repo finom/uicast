@@ -1,10 +1,10 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
-export const TextDef = createComponentDefinition({
-  name: "Text",
+export const TypographyDef = createComponentDefinition({
+  name: "Typography",
   description:
-    "A text display component for rendering inline or block text. Renders a span (inline) or p (block) element. Use Text for body copy, labels, descriptions, or any general-purpose text content. Pass a dynamic value through the `text` prop.",
+    "A text display component for rendering inline or block text. Renders a span (inline), p or div (block) element. Use Typography for body copy, labels, descriptions, or any general-purpose text content. Pass a dynamic value through the `text` prop.",
   props: z.strictObject({
     text: z
       .union([z.string(), z.number()])

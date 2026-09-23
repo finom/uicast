@@ -18,7 +18,7 @@ export const TextareaImpl = createComponentImplementation({
   }, { entry }) => {
     return (
       <ShadcnTextarea
-        value={value as string | undefined}
+        value={value}
         placeholder={placeholder}
         disabled={disabled}
         rows={rows}

@@ -19,7 +19,7 @@ export const InputImpl = createComponentImplementation({
     return (
       <ShadcnInput
         type={type}
-        value={value as string | number | readonly string[] | undefined}
+        value={value}
         placeholder={placeholder}
         disabled={disabled}
         onChange={(e) =>

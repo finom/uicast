@@ -1,20 +1,12 @@
-// Tools run inside the generated UI and call the REST API over real HTTP.
-// Relative paths (base "") hit the same origin in the browser; set
-// NEXT_PUBLIC_API_BASE for server-side / cross-origin use.
 import { showToast } from "@/components/toaster";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE ?? "";
-
-// Whose copy of the data GETs read — the slug of the page/chat owner being
-// viewed. Writes ignore it: they always act as the session user, so viewing
-// someone else's page is read-only by construction.
+// Writes ignore it: they act as the session user, so viewing someone else's page is read-only.
 let apiOwner: string | null = null;
-export function setApiOwner(slug: string | null) {
+export function setApiOwner(slug: string) {
   apiOwner = slug;
 }
 
-// Every seed and callback fetch passes through here, so the count of in-flight
-// requests is how a freshly mounted document says it is still filling up.
+// The count of in-flight requests is how a freshly mounted document says it is still filling up.
 let inFlight = 0;
 const watchers = new Set<(inFlight: number) => void>();
 
@@ -28,10 +20,9 @@ function track(delta: number) {
   for (const watcher of watchers) watcher(inFlight);
 }
 
-export async function apiFetch(
-  path: string,
-  init?: { method?: string; body?: unknown; success?: string },
-) {
+type ApiInit = { method?: string; body?: unknown; success?: string };
+
+export async function apiFetch(path: string, init?: ApiInit) {
   track(1);
   try {
     return await request(path, init);
@@ -40,30 +31,23 @@ export async function apiFetch(
   }
 }
 
-async function request(
-  path: string,
-  init?: { method?: string; body?: unknown; success?: string },
-) {
+async function request(path: string, init?: ApiInit) {
   const method = init?.method ?? "GET";
-  const ownered =
-    method === "GET" && apiOwner
-      ? `${path}${path.includes("?") ? "&" : "?"}u=${encodeURIComponent(apiOwner)}`
-      : path;
-  const res = await fetch(`${API_BASE}${ownered}`, {
+  let url = path;
+  if (method === "GET" && apiOwner) url += `${path.includes("?") ? "&" : "?"}u=${encodeURIComponent(apiOwner)}`;
+  const res = await fetch(url, {
     method,
     headers: init?.body !== undefined ? { "content-type": "application/json" } : undefined,
     body: init?.body !== undefined ? JSON.stringify(init.body) : undefined,
   });
   if (!res.ok) {
-    // Surface the route's own `error` — a message string, or zod issues from
-    // request validation — so it reaches the error slot and the recovery
-    // prompt instead of a bare status line.
+    // The route's own `error` (a message, or zod issues) reaches the error slot and the recovery prompt.
     const body = (await res.json().catch(() => null)) as { error?: unknown } | null;
     const error = body?.error;
     if (typeof error === "string") throw new Error(error);
     if (Array.isArray(error)) {
       const issues = error
-        .map((issue) => `${issue?.path?.join?.(".") || "body"}: ${issue?.message ?? JSON.stringify(issue)}`)
+        .map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`)
         .join("; ");
       throw new Error(`${method} ${path} → ${res.status}: ${issues}`);
     }
@@ -73,7 +57,6 @@ async function request(
   return res.json();
 }
 
-// `?a=1&b=x` from an input object; absent values are not sent, an empty object yields "".
 export function query(params: Record<string, unknown>) {
   const entries = Object.entries(params).flatMap(([k, v]) => (v === undefined ? [] : [[k, String(v)]]));
   const qs = new URLSearchParams(entries).toString();

@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
 
-// The standing adversarial corpus: everything here MUST throw. Grouped by the mechanism abused, because a mechanism closes at once; a payload list does not.
-
 const ev = new Evaluator();
 
-// Run and report whether it was refused, and with which reason.
 const attempt = (expr: string, context: Record<string, unknown> = {}) => {
 	try {
 		const value = ev.eval(expr, context);
@@ -24,7 +21,7 @@ const mustBlock = (expr: string, context?: Record<string, unknown>) => {
 	expect(result, `EXPECTED BLOCK: ${expr}`).toMatchObject({ blocked: true });
 };
 
-// Refused, or `undefined`: a plain object has no readable inherited member, so a prototype name is simply absent. Either way nothing is reached.
+// Refused, or `undefined`: a plain object has no readable inherited member, so a prototype name is simply absent.
 const mustNotReach = (expr: string) => {
 	const result = attempt(expr);
 	if (!result.blocked) expect(result.value, `EXPECTED NOTHING: ${expr}`).toBeUndefined();
@@ -92,19 +89,15 @@ describe("reaching the Function constructor", () => {
 	});
 
 	it("does not let a method be read as a value at all", () => {
-		// A method that can be read can be handed somewhere and re-bound. It can
-		// only ever be called in place.
 		for (const expr of [`[].map`, `"".slice`, `[1,2].filter`, `Math.max`, `JSON.parse`]) {
 			mustBlock(expr);
 		}
-		// …but calling it in place works.
 		expect(ev.eval(`[1,2,3].filter(n => n > 1)`)).toEqual([2, 3]);
 		expect(ev.eval(`Math.max(1, 5, 3)`)).toBe(5);
 	});
 });
 
 describe("prototype pollution", () => {
-	// A `__proto__` key that reaches the object builder becomes an own property, as a computed key does in JS — never the prototype.
 	const ownKeyOnly = (value: unknown) => {
 		expect(Object.getPrototypeOf(value)).toBe(Object.prototype);
 		expect(Object.hasOwn(value as object, "__proto__")).toBe(true);
@@ -137,8 +130,6 @@ describe("prototype pollution", () => {
 
 describe("denial of service", () => {
 	it("has no loop syntax to write", () => {
-		// The block body is what carried every statement; without it there is no
-		// `while`, no `for`, and nothing to put them in.
 		mustBlock(`[1].map(() => { while (true) {} })`);
 		mustBlock(`[1].map(() => { for (;;) {} })`);
 		mustBlock(`[1].map(x => { let i = 0; return i })`);
@@ -146,18 +137,19 @@ describe("denial of service", () => {
 	});
 
 	it("cannot name a function to recurse through", () => {
-		// No `function` keyword means no name to recurse through; no declarations
-		// means no binding to hold one; an IIFE is rejected.
 		mustBlock(`[1].map(function f(n) { return f(n) })`);
 		mustBlock(`(function f(){ return f() })()`);
 		mustBlock(`(f => f(f))(f => f(f))`);
 	});
 
-	it("self-application through an array is stopped by the budget", () => {
-		// The one recursion the grammar cannot forbid: a lambda handed to itself
-		// as an argument. Unbounded, so the step budget is what ends it.
-		const result = attempt(`[f => f(f)].map(f => f(f)).length`);
-		expect(result).toMatchObject({ blocked: true, reason: "budget-exceeded" });
+	it("cannot put a function where it could be called again", () => {
+		for (const expr of [
+			`[f => f(f)].map(f => f(f)).length`,
+			`[(v, i, a) => a.map(a[0])].map((v, i, a) => a.map(a[0]))`,
+			`({ f: x => x }).f(1)`,
+		]) {
+			expect(attempt(expr), expr).toMatchObject({ blocked: true, reason: "guardrail-violation" });
+		}
 	});
 
 	it("caps string allocation", () => {
@@ -175,10 +167,7 @@ describe("denial of service", () => {
 
 	it("spends a step budget on iteration", () => {
 		const rows = Array.from({ length: 5_000 }, (_, i) => i);
-		// A realistic pass is affordable under the default budget…
 		expect(ev.eval("scopes.rows.map(n => n + 1).length", { scopes: { rows } })).toBe(5_000);
-		// …and a deliberately tight budget proves the counter is what stops it,
-		// rather than the wall clock happening to expire.
 		const tight = new Evaluator({ budget: { steps: 2_000 } });
 		let blocked = false;
 		try {
@@ -190,14 +179,12 @@ describe("denial of service", () => {
 	});
 
 	it("caps allocation across the whole evaluation, not just per operation", () => {
-		// Per-operation caps do not compose: each slice is far under maxArrayLength, and five thousand of them were half a gigabyte inside the step budget.
 		const rows = Array.from({ length: 5000 }, (_, i) => i);
 		const result = attempt("scopes.rows.map(x => scopes.rows.slice()).length", {
 			scopes: { rows },
 		});
 		expect(result).toMatchObject({ blocked: true, reason: "budget-exceeded" });
 
-		// A realistic transform over the same data stays well inside it.
 		expect(
 			ev.eval("scopes.rows.filter(n => n % 2 === 0).length", { scopes: { rows } }),
 		).toBe(2500);
@@ -246,9 +233,7 @@ describe("walking a live object graph", () => {
 
 	it("never walks a prototype chain, named or not", () => {
 		const withProto = Object.assign(Object.create({ inherited: "leak" }), { own: "fine" });
-		// Not a plain object any more, so it is refused at the boundary…
 		mustBlock(`scopes.o.inherited`, { scopes: { o: withProto } });
-		// …and a genuinely plain object simply has no inherited members.
 		expect(ev.eval(`scopes.o.toString`, { scopes: { o: { a: 1 } } })).toBeUndefined();
 		expect(ev.eval(`scopes.o.hasOwnProperty`, { scopes: { o: { a: 1 } } })).toBeUndefined();
 		expect(ev.eval(`scopes.o.valueOf`, { scopes: { o: { a: 1 } } })).toBeUndefined();
@@ -330,9 +315,9 @@ describe("what a rejection looks like", () => {
 		expect(attempt(`"x".repeat(1e9)`)).toMatchObject({ reason: "budget-exceeded" });
 		// Native coercion inside an operator.
 		const odd = { toString: "x" };
-		expect(attempt(`x + ""`, { x: odd })).toMatchObject({ reason: "runtime" });
-		expect(attempt(`x < 1`, { x: odd })).toMatchObject({ reason: "runtime" });
-		expect(attempt("`${" + "x}`", { x: odd })).toMatchObject({ reason: "runtime" });
+		expect(attempt(`x + ""`, { x: odd })).toMatchObject({ reason: "expression-runtime" });
+		expect(attempt(`x < 1`, { x: odd })).toMatchObject({ reason: "expression-runtime" });
+		expect(attempt("`${" + "x}`", { x: odd })).toMatchObject({ reason: "expression-runtime" });
 	});
 
 	it("classifies host-function failures apart from the language's own", () => {
@@ -365,9 +350,7 @@ describe("what a rejection looks like", () => {
 			}
 			return null;
 		};
-		// The document passed the wrong shape …
 		expect(attemptWith(`f("x")`)).toMatchObject({ reason: "invalid-arguments" });
-		// … versus the host's own code failing.
 		expect(attemptWith(`boom()`)).toMatchObject({ reason: "host-function" });
 	});
 
@@ -386,68 +369,110 @@ describe("what a rejection looks like", () => {
 });
 
 describe("single operations the step counter could not see", () => {
-	const budget = (reason: string) => expect.objectContaining({ reason });
+	const exceeded = expect.objectContaining({ reason: "budget-exceeded" });
 	it("a BigInt literal is refused before it runs", () => {
 		expect(() => new Evaluator().eval("7n ** 300000000n > 0n")).toThrow(/BigInt/);
 	});
-	it("lastIndexOf is charged as a scan", () => {
+	it("lastIndexOf is charged for its naive search: every position can compare the whole search text", () => {
 		const s = "a".repeat(100_000);
-		expect(() => new Evaluator({ budget: { steps: 1000 } }).eval("s.lastIndexOf('b')", { s })).toThrow(budget("budget-exceeded"));
+		expect(() => new Evaluator({ budget: { steps: 1000 } }).eval("s.lastIndexOf('b')", { s })).toThrow(exceeded);
+		expect(() => new Evaluator().eval("s.lastIndexOf(t)", { s, t: `${"a".repeat(10_000)}b` })).toThrow(exceeded);
 	});
 	it("replaceAll is charged by its output", () => {
 		expect(() => new Evaluator().eval("'a'.repeat(100000).replaceAll('a', 'b'.repeat(1000)).length")).toThrow(
-			budget("budget-exceeded"),
+			exceeded,
 		);
 	});
 	it("join and JSON.stringify are charged before the string exists", () => {
-		const s = "x".repeat(100_000);
+		// Built, each would pass the engine's own string limit and throw its RangeError instead.
+		const a = Array.from({ length: 1_000 }, () => "x".repeat(1_000_000));
 		const ev = new Evaluator();
-		expect(() => ev.eval("Array.from({ length: 100 }, () => s).join('')", { s })).toThrow(budget("budget-exceeded"));
-		expect(() => ev.eval("Array.from({ length: 100 }, () => s).toString()", { s })).toThrow(budget("budget-exceeded"));
-		expect(() => ev.eval("JSON.stringify(Array.from({ length: 100 }, () => s))", { s })).toThrow(budget("budget-exceeded"));
-		expect(() => ev.eval("JSON.stringify(Array.from({ length: 100 }, () => [s]), null, 2)", { s })).toThrow(budget("budget-exceeded"));
-		// the same shapes fit once they are small
+		for (const expr of [
+			"a.join('')",
+			"a.toString()",
+			"a + ''",
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
+			"`${a}`",
+			"String(a)",
+			"[a].toSorted()",
+			"JSON.stringify(a)",
+			"JSON.stringify([a], null, 2)",
+			"a.toLocaleString()",
+		]) {
+			expect(() => ev.eval(expr, { a }), expr).toThrow(exceeded);
+		}
 		expect(ev.eval("[1, [2, 3]].join('-')")).toBe("1-2,3");
 		expect(ev.eval("JSON.stringify({ a: [1, { b: 's' }] }, null, 2)")).toBe(JSON.stringify({ a: [1, { b: "s" }] }, null, 2));
+	});
+	it("a conversion is charged by what it reads: a string parses, an array joins", () => {
+		const s = "1".repeat(100_000);
+		const big = Array.from({ length: 30_000 }, (_, i) => i);
+		const ev = new Evaluator();
+		for (const expr of [
+			"Array.from({ length: 1000 }, () => +s)",
+			"Array.from({ length: 1000 }, () => s - 1)",
+			"Array.from({ length: 1000 }, () => s < 1)",
+			"Array.from({ length: 1000 }, () => s == 1)",
+			"Array.from({ length: 1000 }, () => Number(s))",
+			"Array.from({ length: 1000 }, () => [].at(s))",
+			"Array.from({ length: 1000 }, () => Date.parse(s))",
+			"Array.from({ length: 1000 }, () => Math.max(big))",
+			"Array.from({ length: 1000 }, () => big + '')",
+			"Array.from({ length: 1000 }, () => 'x'.includes(big))",
+			"Array.from({ length: 1000 }, () => big).toSorted().length",
+		]) {
+			expect(() => ev.eval(expr, { s, big }), expr).toThrow(exceeded);
+		}
+	});
+	it("no locale or options reach the engine, even through a computed name", () => {
+		const tags = Array.from({ length: 1_000 }, () => "en-US");
+		const ev = new Evaluator();
+		for (const expr of [
+			"(5).toLocaleString(tags)",
+			"(5)[k](tags)",
+			"'a'.localeCompare('b', tags)",
+			"new Date(0)['toLocaleDateString'](...[tags])",
+		]) {
+			expect(() => ev.eval(expr, { tags, k: "toLocaleString" }), expr).toThrow(/uses the viewer's locale/);
+		}
 	});
 	it("flat is charged as it grows", () => {
 		const big = Array.from({ length: 100_000 }, (_, i) => i);
 		const nested = Array.from({ length: 20 }, () => Array.from({ length: 20 }, () => big));
-		expect(() => new Evaluator().eval("nested.flat(2).length", { nested })).toThrow(budget("budget-exceeded"));
+		expect(() => new Evaluator().eval("nested.flat(2).length", { nested })).toThrow(exceeded);
 	});
 	it("replace is charged for what a `$'` replacement can expand to", () => {
 		expect(() => new Evaluator().eval(`"x".repeat(100000).replace("x", "$'".repeat(100)).length`)).toThrow(
-			budget("budget-exceeded"),
+			exceeded,
 		);
 		expect(() => new Evaluator().eval(`"x".repeat(20000).replaceAll("x", "$'").length`)).toThrow(
-			budget("budget-exceeded"),
+			exceeded,
 		);
-		// the same replacement on a short string is fine
 		expect(new Evaluator().eval(`"abc".replace("b", "$'")`)).toBe("acc");
 	});
 	it("normalize and toUpperCase are charged by their output, which can be larger than the input", () => {
 		expect(() => new Evaluator().eval(`"\uFDFA".repeat(60000).normalize("NFKD").length`)).toThrow(
-			budget("budget-exceeded"),
+			exceeded,
 		);
 		expect(() => new Evaluator({ budget: { maxStringLength: 5 } }).eval(`"ßßß".toUpperCase()`)).toThrow(
-			budget("budget-exceeded"),
+			exceeded,
 		);
 	});
 	it("split is charged before the array exists", () => {
 		const ev = new Evaluator({ budget: { maxArrayLength: 10 } });
-		expect(() => ev.eval(`"x".repeat(1000).split("")`)).toThrow(budget("budget-exceeded"));
+		expect(() => ev.eval(`"x".repeat(1000).split("")`)).toThrow(exceeded);
 		expect(ev.eval(`"a,b".split(",")`)).toEqual(["a", "b"]);
 	});
 	it("a NaN size does not disable the total allocation cap", () => {
 		const ev = new Evaluator({ budget: { maxTotalAllocation: 100 } });
-		expect(() => ev.eval(`["a".padStart("x"), "b".repeat(200)]`)).toThrow(budget("budget-exceeded"));
+		expect(() => ev.eval(`["a".padStart("x"), "b".repeat(200)]`)).toThrow(exceeded);
 	});
-	it("Map and Set construction is charged by source size", () => {
+	it("Set construction is charged by source size, and takes nothing the engine would iterate uncharged", () => {
 		const s = "x".repeat(5000);
 		const ev = new Evaluator({ budget: { maxArrayLength: 1000 } });
-		expect(() => ev.eval("new Set(s).size", { s })).toThrow(budget("budget-exceeded"));
-		expect(() => ev.eval("new Map(pairs).size", { pairs: Array.from({ length: 5000 }, (_, i) => [i, i]) })).toThrow(
-			budget("budget-exceeded"),
+		expect(() => ev.eval("new Set(s).size", { s })).toThrow(exceeded);
+		expect(() => ev.eval("new Set(source).size", { source: { *[Symbol.iterator]() { yield 1; } } })).toThrow(
+			/new Set needs an array, a string or a Set/,
 		);
 	});
 });

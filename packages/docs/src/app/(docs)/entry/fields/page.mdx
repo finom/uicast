@@ -52,8 +52,8 @@ The child lines' `key`s, in render order. Absent or empty means a leaf:
 
 ```jsonl
 {"key":"row","component":"FlexRow","children":["name","email"]}
-{"key":"name","component":"Text","props":{"literal":{"text":"Ada Lovelace"}}}
-{"key":"email","component":"Text","props":{"literal":{"text":"ada@example.com"}}}
+{"key":"name","component":"Typography","props":{"literal":{"text":"Ada Lovelace"}}}
+{"key":"email","component":"Typography","props":{"literal":{"text":"ada@example.com"}}}
 ```
 
 Three lines, one row. `name` and `email` are top-level lines that `row` names by
@@ -253,7 +253,7 @@ The new entry's `children` decides what survives. Already streamed:
 
 ```jsonl
 {"key":"task-card","component":"Card","children":["task-rows","refresh"]}
-{"key":"task-rows","component":"Text","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
+{"key":"task-rows","component":"Typography","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
 {"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}}}
 ```
 
@@ -261,7 +261,7 @@ Later in the same stream:
 
 ```jsonl
 {"key":"task-card","component":"Card","children":["refresh","task-rows","empty-note"]}
-{"key":"empty-note","component":"Text","props":{"literal":{"text":"No tasks yet"}}}
+{"key":"empty-note","component":"Typography","props":{"literal":{"text":"No tasks yet"}}}
 ```
 
 `refresh` and `task-rows` are never re-emitted. The new `children` reference them

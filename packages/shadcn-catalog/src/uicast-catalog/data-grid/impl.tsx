@@ -1,7 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -15,8 +14,8 @@ import { columnWidth } from "../../lib/sizes";
 export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
   render: ({
-    columns = [],
-    rows = [],
+    columns,
+    rows,
     maxHeight,
     striped,
     onRowClick,
@@ -27,7 +26,8 @@ export const DataGridImpl = createComponentImplementation({
         data-key={entry.key}
       >
         <ScrollArea style={{ maxHeight }}>
-          <Table>
+          {/* Not the ui Table: its overflow wrapper would become the sticky header's scroll container. */}
+          <table className="w-full text-sm">
             <TableHeader className="sticky top-0 z-10 bg-muted">
               <TableRow>
                 {columns.map((col) => (
@@ -57,7 +57,7 @@ export const DataGridImpl = createComponentImplementation({
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </table>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </div>

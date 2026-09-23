@@ -1,10 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 
-export const runtime = "nodejs";
-
-// OpenRouter OAuth PKCE, step 1: stash the verifier in a short-lived cookie
-// and send the challenge to OpenRouter's consent page.
+// PKCE step 1: the verifier goes into a short-lived cookie.
 export async function GET(req: Request) {
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier).digest("base64url");

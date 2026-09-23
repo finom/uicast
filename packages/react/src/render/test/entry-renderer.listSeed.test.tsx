@@ -4,10 +4,6 @@ import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import { mountEntries } from "../../../test/render-helpers";
 
-// Seed semantics on LIST elements: the contract blesses initializing the
-// `each` state via a seed on the list element itself, and a seed runs exactly
-// once per element — on the container pass, never once per item.
-
 const errorSlot = {
   error: ({ error, elementKey }: { error: Error; elementKey?: string }) => (
     <div data-error-for={elementKey}>
@@ -50,8 +46,6 @@ describe("EntryRenderer — seeds on list elements", () => {
         props: { expr: "({ text: scopes.row.$value })" },
       },
     ];
-    // Awaited act: Suspense resumption after the seed settles only flushes
-    // under act in React 19 + testing-library (see renderer.init.test.tsx).
     let container!: HTMLElement;
     await act(async () => {
       ({ container } = mountEntries(lines, { functions }));
@@ -60,7 +54,6 @@ describe("EntryRenderer — seeds on list elements", () => {
       expect(container.textContent).toContain("alpha");
     });
     expect(container.textContent).toContain("beta");
-    // Once per ELEMENT, not per item: two rendered items, one seed execution.
     expect(fetchRows).toHaveBeenCalledTimes(1);
   });
 

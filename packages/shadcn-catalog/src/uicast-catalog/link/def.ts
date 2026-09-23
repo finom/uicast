@@ -4,12 +4,12 @@ import { createComponentDefinition } from "@uicast/core";
 export const LinkDef = createComponentDefinition({
   name: "Link",
   description:
-    "A styled navigable link for internal or external navigation. Renders an anchor-style text element. Use Link for text navigation, breadcrumb-like inline links, or any clickable text that navigates. The `text` prop sets the link text.",
+    "A text link: an <a> element that opens `href` when clicked. With `external`, it opens in a new tab and shows an external-link icon. Use Link to go to another page or site; for an action, use Button. The `text` prop sets the link text.",
   props: z.strictObject({
     text: z.union([z.string(), z.number()]).optional().meta({ description: "The link text content" }),
-    href: z.string().optional().meta({
+    href: z.string().meta({
       format: "uri-reference",
-      description: "The URL to navigate to (for display purposes)",
+      description: "The address the link opens",
     }),
     variant: z
       .enum(["default", "muted", "destructive"])
@@ -25,19 +25,7 @@ export const LinkDef = createComponentDefinition({
       description: "Underline behavior: always, hover, none",
     }),
     external: z.boolean().default(false).meta({
-      description: "Whether the link opens in a new tab (shows external icon)",
-    }),
-    disabled: z.boolean().default(false).meta({
-      description: "Whether the link is disabled",
+      description: "Open in a new tab, with an external-link icon",
     }),
   }),
-  callbacks: {
-    onClick: z
-      .strictObject({
-        href: z.string().optional().meta({
-          description: "The href value of the clicked link",
-        }),
-      })
-      .meta({ description: "Callback when the link is clicked" }),
-  },
 });

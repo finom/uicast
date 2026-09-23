@@ -27,6 +27,7 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   const id = await idParam(params);
   const body = await readValid(req, supplierUpdate);
   if ("error" in body) return body.error;
+  // Every field is optional — an empty patch would render UPDATE with no SET.
   if (Object.keys(body.data).length === 0) return json({ error: "No fields to update" }, 400);
   const [row] = await db
     .update(suppliers)

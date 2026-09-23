@@ -1,14 +1,14 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { cn, busy } from "../../lib/utils";
-import { defaultChartColors } from "../../lib/chart-colors";
+import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { GanttChartDef } from "./def";
 
 export const GanttChartImpl = createComponentImplementation({
   def: GanttChartDef,
   render: ({
-    tasks = [],
+    tasks,
     totalUnits,
   }, { entry, loading }) => {
     const unitHeaders = Array.from({ length: totalUnits }, (_, i) => i + 1);
@@ -42,11 +42,10 @@ export const GanttChartImpl = createComponentImplementation({
                     u >= task.start + 1 && u <= task.start + task.duration;
                   const isStart = u === task.start + 1;
                   const isEnd = u === task.start + task.duration;
-                  const barColor =
-                    task.color ??
-                    defaultChartColors[ti % defaultChartColors.length];
-                  // this cell's share of the progress fill: 1 before the
-                  // boundary, fractional at it, 0 after
+                  const barColor = task.color
+                    ? CHART_COLORS[task.color]
+                    : defaultChartColors[ti % defaultChartColors.length];
+                  // This cell's share of the progress fill.
                   const progressFill = Math.min(
                     Math.max(
                       ((task.progress ?? 0) / 100) * task.duration -
@@ -67,7 +66,7 @@ export const GanttChartImpl = createComponentImplementation({
                           )}
                           style={{ backgroundColor: barColor, opacity: 0.8 }}
                         >
-                          {task.progress !== undefined && progressFill > 0 && (
+                          {progressFill > 0 && (
                             <div
                               className={cn(
                                 "h-full",
@@ -76,8 +75,7 @@ export const GanttChartImpl = createComponentImplementation({
                               )}
                               style={{
                                 width: `${progressFill * 100}%`,
-                                // darkens the bar; a same-color fill would be
-                                // invisible under the bar's group opacity
+                                // A same-color fill would be invisible under the bar's group opacity.
                                 backgroundColor: "rgb(0 0 0 / 0.25)",
                               }}
                             />

@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 import type { CombinedSpec } from "../../types";
-import { createComponentDefinition, NO_PROPS } from "../create-component-definition";
+import { createComponentDefinition } from "../create-component-definition";
 
-// `children` is the entry field naming child elements. A def taking it as a
-// prop would put two different things behind one name, and the renderer's
-// React children would silently win over the document's value.
 describe("createComponentDefinition — the reserved `children` name", () => {
 	it("throws when props declare `children`", () => {
 		expect(() =>
@@ -28,8 +25,18 @@ describe("createComponentDefinition — the reserved `children` name", () => {
 		).toThrow(/callback "onExpand" declares a "children" field/);
 	});
 
+	it("throws when a branch of union or intersection props declares `children`", () => {
+		for (const props of [
+			z.union([z.object({ text: z.string() }), z.object({ children: z.string() })]),
+			z.object({ text: z.string() }).and(z.object({ children: z.string() })),
+		]) {
+			expect(() => createComponentDefinition({ name: "Badge", description: "A badge.", props })).toThrow(
+				/"children" is a reserved name/,
+			);
+		}
+	});
+
 	it("allows `children` nested inside a prop's own shape", () => {
-		// Only the top level is reserved — a tree node's `children` is data.
 		const node = z.object({ label: z.string(), children: z.array(z.any()).optional() });
 		expect(() =>
 			createComponentDefinition({
@@ -42,9 +49,9 @@ describe("createComponentDefinition — the reserved `children` name", () => {
 
 	it("returns the def unchanged otherwise", () => {
 		const props = z.strictObject({ text: z.string() });
-		const def = createComponentDefinition({ name: "Text", description: "Text.", props });
+		const def = createComponentDefinition({ name: "Typography", description: "Text.", props });
 		expect(def).toEqual({
-			name: "Text",
+			name: "Typography",
 			description: "Text.",
 			props,
 			callbacks: undefined,
@@ -54,15 +61,12 @@ describe("createComponentDefinition — the reserved `children` name", () => {
 });
 
 describe("createComponentDefinition — defaulted and odd specs", () => {
-	it("defaults omitted props to NO_PROPS, which accepts anything", () => {
+	it("defaults omitted props to a schema that accepts anything", () => {
 		const def = createComponentDefinition({ name: "Divider", description: "A divider." });
-		expect(def.props).toBe(NO_PROPS);
 		expect(def.props["~standard"].validate({ any: 1 })).toEqual({ value: { any: 1 } });
 	});
 
 	it("tolerates a spec whose jsonSchema.input throws", () => {
-		// The reserved-name check needs the schema's property names; a spec that
-		// cannot convert fails loudly in the prompt builder instead, not here.
 		const broken: CombinedSpec = {
 			"~standard": {
 				version: 1,

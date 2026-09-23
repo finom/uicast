@@ -1,13 +1,6 @@
 import type { ComponentEntry } from "@uicast/core";
 
-/**
- * The flow-board artifact. One `scopes.root.*` namespace holds the nodes and
- * the links between them. NodeBoard is a single bespoke component that emits TWO
- * differently-shaped events — a spatial { id, x, y } on drag and a relational
- * { from, to } on connect — both wired declaratively into the same scope; every
- * callback also records itself in `scopes.root.lastEvt` so the "Last event"
- * panel shows the payload shape change between a drag and a connect.
- */
+// Every callback also records itself in `scopes.root.lastEvt`, which the "Last event" card prints.
 export const boardLines: ComponentEntry[] = [
   {
     key: "root",
@@ -37,7 +30,6 @@ export const boardLines: ComponentEntry[] = [
     children: ["intro", "board-card", "controls", "readout-row"],
   },
 
-  // Intro
   {
     key: "intro",
     component: "FlexCol",
@@ -51,7 +43,7 @@ export const boardLines: ComponentEntry[] = [
   },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: {
       literal: {
         text:
@@ -61,7 +53,6 @@ export const boardLines: ComponentEntry[] = [
     },
   },
 
-  // The board itself
   {
     key: "board-card",
     component: "Card",
@@ -103,7 +94,6 @@ export const boardLines: ComponentEntry[] = [
     },
   },
 
-  // Controls: a host-function call + a confirm-gated clear
   {
     key: "controls",
     component: "FlexRow",
@@ -146,7 +136,6 @@ export const boardLines: ComponentEntry[] = [
     },
   },
 
-  // Readouts: derived graph stat + the live "Last event" panel
   {
     key: "readout-row",
     component: "Grid",
@@ -168,7 +157,7 @@ export const boardLines: ComponentEntry[] = [
   },
   {
     key: "evt-text",
-    component: "Text",
+    component: "Typography",
     props: {
       expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Drag a node or wire two together to see its event payload…', variant: 'muted' })",
     },

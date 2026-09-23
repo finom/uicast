@@ -1,6 +1,4 @@
-// Yields every parseable JSON value from a byte or string stream, skipping
-// blank/non-JSON lines (code fences, model prose, partial lines). Narrow the
-// element type via <T>; shape-checking is the caller's concern.
+// Skips blank and non-JSON lines: code fences, prose, partial lines.
 export async function* streamJsonLines<T = unknown>(
   source: ReadableStream<Uint8Array | string> | AsyncIterable<string | Uint8Array>,
 ): AsyncGenerator<T> {
@@ -27,7 +25,6 @@ function* parseLine<T>(raw: string): Generator<T> {
   try {
     yield JSON.parse(line) as T;
   } catch {
-    // non-JSON noise (fences, prose, partial) — drop it
   }
 }
 
@@ -37,7 +34,7 @@ function toAsyncIterable(
   if (Symbol.asyncIterator in source) {
     return source as AsyncIterable<string | Uint8Array>;
   }
-  // Browser ReadableStream isn't async-iterable — pull it through a reader.
+  // Not every browser's ReadableStream is async-iterable.
   const stream = source as ReadableStream<Uint8Array | string>;
   return {
     async *[Symbol.asyncIterator]() {
@@ -46,7 +43,7 @@ function toAsyncIterable(
         for (;;) {
           const { done, value } = await reader.read();
           if (done) return;
-          if (value !== undefined) yield value;
+          yield value;
         }
       } finally {
         reader.releaseLock();

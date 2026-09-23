@@ -1,7 +1,7 @@
+import { isSchemaObject, type JSONSchema, resolveRef } from "../prompt-utils/json-schema-to-ts";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
 import type { CombinedSpec, ComponentDefinition } from "../types";
 
-/** A component that takes no props at all — the schema `props` defaults to. */
 type EmptyProps = Record<string, never>;
 
 const EMPTY_OBJECT_SCHEMA = {
@@ -10,8 +10,8 @@ const EMPTY_OBJECT_SCHEMA = {
   additionalProperties: false,
 } as const;
 
-/** Props schema of a propless component — accepts anything, hand-written so core stays schema-library-agnostic. */
-export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
+// Hand-written, so core needs no schema library.
+const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
   "~standard": {
     version: 1,
     vendor: "uicast",
@@ -23,21 +23,31 @@ export const NO_PROPS: CombinedSpec<EmptyProps, EmptyProps> = {
   },
 };
 
-/** `children` is the entry's own field, so a def may not also declare it as a prop. */
 const RESERVED_PROP = "children";
 
-/** Top-level property names of a spec's JSON Schema; `[]` if it isn't an object schema. */
+// The top-level field names: the root object's, each union or intersection branch's, and a root `$ref`'s.
 const propertyNames = (spec: CombinedSpec): string[] => {
+  let schema: JSONSchema;
   try {
-    const { properties } = specToJSONSchema(spec);
-    return properties ? Object.keys(properties) : [];
+    schema = specToJSONSchema(spec);
   } catch {
     // A spec that cannot convert fails loudly in the prompt builder instead.
     return [];
   }
+  const names = new Set<string>();
+  const seen = new Set<JSONSchema>();
+  const stack: unknown[] = [schema];
+  while (stack.length > 0) {
+    const node = stack.pop();
+    if (!isSchemaObject(node) || seen.has(node)) continue;
+    seen.add(node);
+    for (const name of Object.keys(node.properties ?? {})) names.add(name);
+    if (typeof node.$ref === "string") stack.push(resolveRef(node.$ref, schema));
+    stack.push(...(node.anyOf ?? []), ...(node.oneOf ?? []), ...(node.allOf ?? []));
+  }
+  return [...names];
 };
 
-/** Value-side constructor for a {@link ComponentDefinition}; infers the concrete `props`/`callbacks` spec types at the call site. Rejects a `children` prop or callback. */
 export const createComponentDefinition = <
   TProps extends CombinedSpec = typeof NO_PROPS,
   TCallbacks extends Record<string, CombinedSpec> = Record<string, never>,
@@ -48,7 +58,6 @@ export const createComponentDefinition = <
   callbacks,
   hidden,
 }: Omit<ComponentDefinition<TProps, TCallbacks>, "props"> & {
-  /** Omit for a component that takes no props — a wrapper, a divider. */
   props?: TProps;
 }): ComponentDefinition<TProps, TCallbacks> => {
   if (propertyNames(props).includes(RESERVED_PROP)) {
@@ -57,7 +66,7 @@ export const createComponentDefinition = <
     );
   }
   for (const [event, payload] of Object.entries(callbacks ?? {})) {
-    if (propertyNames(payload as CombinedSpec).includes(RESERVED_PROP)) {
+    if (propertyNames(payload).includes(RESERVED_PROP)) {
       throw new Error(
         `Component "${name}": callback "${event}" declares a "children" field, which is a reserved name. Rename it.`,
       );

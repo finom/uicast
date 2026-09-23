@@ -1,10 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { Evaluator } from "@uicast/expr";
-// Cross-package on purpose: these fixtures are hand-maintained documents, and
-// nothing else fails loudly when a language change invalidates them (caught
-// live once — `await` in the inventory demo after the await cut). The docs
-// package has no test runner, so the guard lives with the engine it tests.
+// Cross-package on purpose: the docs package has no test runner, and nothing else fails when a language change breaks these documents.
 import { boardLines } from "../../../../docs/src/demo/board/board.lines";
 import { colorLines } from "../../../../docs/src/demo/color/color.lines";
 import { inventoryLines } from "../../../../docs/src/demo/inventory/inventory.lines";
@@ -14,17 +11,15 @@ const ev = new Evaluator();
 
 function collect(entry: Record<string, unknown>, out: string[]): void {
 	const vs = (v: unknown) => {
-		if (v && typeof v === "object" && "expr" in (v as object)) {
-			const e = (v as { expr?: unknown }).expr;
-			if (typeof e === "string") out.push(e);
-		}
+		if (v && typeof v === "object" && "expr" in v && typeof v.expr === "string") out.push(v.expr);
 	};
 	vs(entry.props);
 	if (typeof entry.hidden === "string") out.push(entry.hidden);
+	if (typeof entry.loading === "string") out.push(entry.loading);
 	if (typeof entry.each === "string") out.push(entry.each);
 	for (const step of (entry.seed as unknown[]) ?? []) vs(step);
 	for (const steps of Object.values((entry.callbacks as Record<string, unknown[]>) ?? {})) {
-		for (const step of steps ?? []) vs(step);
+		for (const step of steps) vs(step);
 	}
 }
 

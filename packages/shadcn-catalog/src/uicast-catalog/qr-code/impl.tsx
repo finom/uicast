@@ -6,8 +6,7 @@ import { QRCodeDef } from "./def";
 
 const SWATCH = { white: "#ffffff", black: "#000000" } as const;
 
-// Rendered locally via qrcode.react — the encoded value never leaves the page
-// (a hot-linked image service would ship it in the URL and break offline).
+// Rendered locally: a hot-linked image service would ship the value in the URL.
 export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({

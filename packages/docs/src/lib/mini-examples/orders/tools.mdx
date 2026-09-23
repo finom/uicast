@@ -2,6 +2,8 @@
 import z from "zod";
 import { standardTool } from "standard-tool";
 
+const LATENCY_MS = 350;
+
 const PRODUCTS = [
   { id: 7, name: "Filter Papers", price: 8, qty: 5 },
   { id: 8, name: "Espresso Beans", price: 15, qty: 1 },
@@ -9,8 +11,7 @@ const PRODUCTS = [
   { id: 10, name: "Ceramic Mug", price: 14, qty: 2 },
 ];
 
-// The "database": hard-coded products, with edits kept as per-id overrides in
-// localStorage so they survive a reload.
+// Edits are per-id overrides in localStorage, so they survive a reload.
 const KEY = "uicast-docs-products";
 
 type Override = { name?: string; price?: number; qty?: number };
@@ -35,7 +36,7 @@ export const listProducts = standardTool({
     }),
   ),
   async execute() {
-    await new Promise((resolve) => setTimeout(resolve, 350));
+    await new Promise((resolve) => setTimeout(resolve, LATENCY_MS));
     PRODUCTS.splice(
       0,
       PRODUCTS.length,

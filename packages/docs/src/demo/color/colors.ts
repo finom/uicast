@@ -1,10 +1,6 @@
-// Small, dependency-free color math shared by the color demo's bespoke
-// components and its host function. Kept out of expressions on purpose: the
-// JSONLines never call these directly (expressions can't import) — the
-// components and the `suggestPalette` host function do the conversions and feed
-// plain values / hex strings into scope.
+// Expressions cannot import, so the components and the `suggestPalette` function do the conversions.
 
-/** HSL (h:0-360, s:0-100, l:0-100) → `#rrggbb`. */
+// h 0-360, s 0-100, l 0-100.
 export function hslToHex(h: number, s: number, l: number): string {
   const sn = s / 100;
   const ln = l / 100;
@@ -19,7 +15,6 @@ export function hslToHex(h: number, s: number, l: number): string {
   return `#${f(0)}${f(8)}${f(4)}`;
 }
 
-/** `#rrggbb` → HSL (h:0-360, s:0-100, l:0-100). Tolerates a missing leading `#`. */
 export function hexToHsl(hex: string): { h: number; s: number; l: number } {
   const m = hex.replace("#", "");
   const r = parseInt(m.slice(0, 2), 16) / 255;

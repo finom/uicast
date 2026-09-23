@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const MultiSelectDef = createComponentDefinition({
   name: "MultiSelect",
   description:
-    "A multi-select dropdown for choosing multiple options from a list. Renders a trigger that opens a dropdown with checkboxes. Selected values are shown as tags in the trigger area. Use MultiSelect for filters, categories, permissions, or any field where multiple choices are needed.",
+    "A multi-select dropdown for choosing several options from a list. The trigger shows the selected options as tags, each with a remove icon, and opens a list where a click on an option toggles it; a check marks each selected option. Use MultiSelect for filters, categories, permissions, or any field where multiple choices are needed.",
   props: z.strictObject({
     value: z.array(z.string()).default([]).meta({
       description: "Array of currently selected option values",

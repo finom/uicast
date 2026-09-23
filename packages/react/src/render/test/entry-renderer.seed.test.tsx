@@ -58,7 +58,6 @@ describe("EntryRenderer — seed", () => {
     });
     expect(count).toBe(1);
 
-    // Re-render via state change — seed must NOT fire again.
     act(() => {
       scopes.root.$set("other", "force-rerender");
     });
@@ -67,10 +66,6 @@ describe("EntryRenderer — seed", () => {
   });
 
   it("supports async seed via Suspense (use(promise))", async () => {
-    // Uses the full provider+renderer rather than bare mountEntries: React 19 + RTL
-    // only flush a top-level Suspense recovery when the initial mount runs
-    // inside an *awaited* act() (see the same note in Renderer.init.test.tsx).
-    // The async seed step is gated so it resolves inside act().
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -94,7 +89,6 @@ describe("EntryRenderer — seed", () => {
         <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
       ).container;
     });
-    // Suspended on the pending seed — the value isn't shown yet.
     expect(container.textContent ?? "").not.toContain("loaded-value");
 
     await act(async () => {
@@ -137,7 +131,6 @@ describe("EntryRenderer — seed", () => {
         </RendererProvider>,
       ).container;
     });
-    // The element is here, its seed is loading — "seeding", not "streaming".
     expect(container.querySelector("[data-ph]")?.textContent).toBe("seeding");
 
     await act(async () => {
@@ -149,10 +142,6 @@ describe("EntryRenderer — seed", () => {
     });
   });
 
-  // Unmounting while an async seed is in flight must be silent when it later
-  // settles: no console noise, no unhandled rejection (vitest fails the run on
-  // one). The wake lands on an unmounted component, which React 19 ignores.
-  // Mounted inside an awaited act() like the Suspense test above.
   it("stays silent when an async seed resolves after unmount", async () => {
     const consoleError = vi
       .spyOn(console, "error")
@@ -190,6 +179,7 @@ describe("EntryRenderer — seed", () => {
     consoleError.mockRestore();
   });
 
+  // vitest also fails the run on an unhandled rejection.
   it("stays silent when an async seed rejects after unmount", async () => {
     const consoleError = vi
       .spyOn(console, "error")

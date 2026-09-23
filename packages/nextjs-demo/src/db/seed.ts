@@ -1,27 +1,19 @@
-import { Evaluator } from "@uicast/expr";
-import type { ComponentEntry } from "@uicast/core";
+import type { ComponentEntry, ValueSource } from "@uicast/core";
+import { defs } from "@uicast/shadcn-catalog/all-defs";
 import { and, eq, notInArray } from "drizzle-orm";
 import { db } from "./index";
 import { chats, componentEntries, pages, users } from "./schema";
-import { insertSeedChats, insertSeedContent, SEED_CHATS, SEED_PAGES } from "./seed-content";
+import { insertSeedChats, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData } from "./starter-data";
-import { domainTools } from "@/tools";
+import { evaluator } from "@/lib/evaluator";
+import { SYSTEM_SLUG } from "@/lib/system-slug";
 
-// Seeds the public demo account (slug "uicast"): its domain data, the
-// hand-authored pages and the multi-turn chats. An existing account keeps its
-// row ids: pages are matched by title and chats by id, so shared links survive
-// a reseed. `--fresh` recreates the account and its domain data instead.
-// Every entry is checked against the current catalog and language first, so a
-// catalog or language change fails the seed loudly.
-
-const SYSTEM_SLUG = "uicast";
-const ev = new Evaluator({ functions: domainTools });
-
-import { defs } from "@uicast/shadcn-catalog/all-defs";
+// An existing account keeps its row ids (pages by title, chats by id), so shared links survive a reseed.
+// `--fresh` recreates the account and its domain data.
 
 const DEFS = new Map(defs.map((def) => [def.name, def]));
 
-/** The output contract's structural rules (§1 tree, §4 scope names, §6 lists), enforced on every seed document. */
+// §1 tree, §4 scope names, §6 lists.
 function validateStructure(where: string, entries: ComponentEntry[]): void {
   const byKey = new Map(entries.map((e) => [e.key, e]));
   if (byKey.size !== entries.length) throw new Error(`[${where}] duplicate keys`);
@@ -67,11 +59,8 @@ function validateEntries(where: string, entries: ComponentEntry[]): void {
   validateStructure(where, entries);
   const exprs: string[] = [];
   for (const entry of entries) {
-    const vs = (v: unknown) => {
-      if (v && typeof v === "object" && "expr" in (v as object)) {
-        const e = (v as { expr?: unknown }).expr;
-        if (typeof e === "string") exprs.push(e);
-      }
+    const vs = (v: ValueSource | undefined) => {
+      if (v && "expr" in v) exprs.push(v.expr);
     };
     vs(entry.props);
     if (typeof entry.hidden === "string") exprs.push(entry.hidden);
@@ -82,7 +71,7 @@ function validateEntries(where: string, entries: ComponentEntry[]): void {
   }
   for (const e of exprs) {
     try {
-      ev.validate(e);
+      evaluator.validate(e);
     } catch (err) {
       throw new Error(`[${where}] invalid expression: ${e}\n  ${(err as Error).message}`);
     }
@@ -107,7 +96,6 @@ function validateFences(): void {
   }
 }
 
-// Pages by title, chats by id; whatever the seed no longer lists goes.
 async function updateSeedContent(userId: string): Promise<void> {
   const titles = SEED_PAGES.map((page) => page.title);
   await db.delete(pages).where(and(eq(pages.userId, userId), notInArray(pages.title, titles)));
@@ -139,7 +127,7 @@ async function main() {
   if (existing) await db.delete(users).where(eq(users.id, existing.id));
   const [system] = await db.insert(users).values({ slug: SYSTEM_SLUG }).returning();
   await insertStarterData(system.id);
-  await insertSeedContent(system.id);
+  await updateSeedContent(system.id);
 
   console.log(`Seeded @${SYSTEM_SLUG}: ${SEED_PAGES.length} pages, ${SEED_CHATS.length} chats.`);
   process.exit(0);

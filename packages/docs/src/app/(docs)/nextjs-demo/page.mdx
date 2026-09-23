@@ -1,7 +1,8 @@
 # Next.js demo
 
-`packages/nextjs-demo` is a small back office over three tables: products,
-customers and orders in Postgres (Neon in production, docker-compose locally).
+`packages/nextjs-demo` is a small back office over five tables in Postgres
+(Neon in production, docker-compose locally): suppliers, products, customers,
+orders and a stock ledger.
 It has some hand-written UI — a sidebar, a chat panel, the shell — but not one
 component for the screens. Every table, form and detail view is generated.
 
@@ -29,8 +30,9 @@ npm run dev -w @uicast/nextjs-demo
 Copy `packages/nextjs-demo/.env.example` to `.env.local`: `DATABASE_URL`
 (docker default works as-is; point it at a Neon pooled string in production),
 `APP_SECRET` (encrypts stored OpenRouter keys — `openssl rand -base64 32`),
-and optionally `OPENROUTER_MODEL`. There is no site-wide model key: each user
-logs in with OpenRouter and generations run on their own key.
+and optionally `OPENROUTER_MODEL` and `AI_MAX_OUTPUT_TOKENS`. There is no
+site-wide model key: each user logs in with OpenRouter and generations run on
+their own key.
 
 Then **Create page** for a full generated page, or **New chat** for answers that
 render as live UI:
@@ -39,6 +41,7 @@ render as live UI:
 - `Product catalog with an add-product form`
 - `How much did we earn this month?`
 - `Help me clear the pending queue`
+- `Which products are running low, and who supplies them?`
 
 The generated UIs are fully working: forms validate and submit, buttons mutate
 the database through the domain tools, destructive actions ask for confirmation,
@@ -63,16 +66,23 @@ a hand-written front end would have called:
 ```ts filename="src/tools/products.ts"
 export const listProducts = standardTool({
   name: "listProducts",
-  description: "List all products.",
-  outputSchema: z.array(productOutput),
-  execute: () => apiFetch("/api/products"),
+  description: "A page of products, by name by default.",
+  inputSchema: productListInput.optional(),
+  outputSchema: pageOf(productOutput),
+  execute: (input) => apiFetch(`/api/products${query(input ?? {})}`),
 });
 ```
 
-`productOutput` comes from the Drizzle table, so the schema the model reads and
-the one the database enforces are the same declaration. Fifteen of these cover
-the demo — `list` / `get` / `create` / `update` / `delete` across **products**,
-**customers** and **orders**. That is everything the model is given.
+The schemas live in `src/db/zod.ts`. The route validates its query string with
+the same `productListInput`, so the input the model reads and the input the API
+checks are one declaration. A list tool takes filters, a sort and a window, and
+returns one page of rows with the total.
+
+Twenty-four of these cover the demo: `list` / `get` / `create` / `update` /
+`delete` for **suppliers**, **products**, **customers** and **orders**, `list` /
+`create` for the **stock ledger** (a movement adjusts the product's stock in the
+same transaction), and two summaries, sales and stock. That is everything the
+model is given.
 
 ## The model gets the domain, not the platform
 
@@ -80,13 +90,15 @@ The demo's database also holds `users`, `sessions`, `pages`,
 `component_entries`, `chats` and `chat_messages` — the app's own tables. They have endpoints, and are deliberately
 **left out** of the tool set:
 
-```ts
-// The full set handed to the prompt assembler. Page/entry endpoints are
-// intentionally excluded — the page system isn't the model's to mutate.
+```ts filename="src/tools/index.ts"
+// Page and entry endpoints are excluded: the page system is not the model's to mutate.
 export const domainTools: StandardToolV0[] = [
   listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer,
   listProducts, getProduct, createProduct, updateProduct, deleteProduct,
   listOrders, getOrder, createOrder, updateOrder, deleteOrder,
+  listSuppliers, getSupplier, createSupplier, updateSupplier, deleteSupplier,
+  listStockMovements, createStockMovement,
+  getSalesSummary, getStockSummary,
 ];
 ```
 
@@ -111,12 +123,14 @@ or three hundred: none.
 
 ```
 packages/nextjs-demo
-├── src/db/schema.ts     products · customers · orders   (the domain, per user)
-│                        users · sessions                (OpenRouter login)
-│                        pages · component_entries       (generated UI, persisted)
-│                        chats · chat_messages           (the chat surface)
-├── src/tools/           15 standard-tools over the REST API
-├── src/app/api/         the REST API itself, /api/generate, /api/auth/*
+├── src/db/schema.ts     suppliers · products · customers  (the domain, per user)
+│                        orders · stock_movements
+│                        users · sessions                  (OpenRouter login)
+│                        pages · component_entries         (generated UI, persisted)
+│                        chats · chat_messages             (the chat surface)
+├── src/db/zod.ts        schemas shared by the tools and the routes
+├── src/tools/           24 standard-tools over the REST API
+├── src/app/api/         the REST API itself, /api/generate, /api/chat, /api/auth/*
 └── src/app/u/[slug]     a user's public index, pages and chats
 ```
 

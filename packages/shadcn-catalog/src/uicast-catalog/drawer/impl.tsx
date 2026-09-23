@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import {
   Sheet,
@@ -37,7 +37,7 @@ export const DrawerImpl = createComponentImplementation({
       </span>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => (
+  placeholder: ({ children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <Skeleton className="h-4 w-40" />
       {children}

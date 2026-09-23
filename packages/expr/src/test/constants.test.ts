@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
+import { ALLOWED_BINARY, ALLOWED_UNARY } from "../constants/grammar";
+import { BINARY_FNS, UNARY_FNS } from "../interpret/compile";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import { GLOBAL_FUNCTIONS, GLOBAL_VALUES } from "../runtime/globals";
 import { methodsOf } from "../runtime/methods";
-import { Formatter, Namespace } from "../runtime/values";
-
-// The constants are the allow-lists; the runtime tables implement them. Neither may hold a name the other lacks.
+import { Namespace } from "../runtime/values";
 
 const sorted = (names: Iterable<string>) => [...names].sort();
 
@@ -16,9 +16,7 @@ describe("constants and runtime tables agree", () => {
 			string: "",
 			number: 1,
 			Date: new Date(0),
-			Map: new Map(),
 			Set: new Set(),
-			formatter: new Formatter(() => ""),
 		};
 		expect(sorted(Object.keys(samples))).toEqual(sorted(Object.keys(METHOD_NAMES)));
 		for (const [kind, sample] of Object.entries(samples)) {
@@ -33,6 +31,11 @@ describe("constants and runtime tables agree", () => {
 		for (const ns of NAMESPACE_GLOBALS) {
 			if (!(ns in NAMESPACE_METHOD_NAMES)) expect(methodsOf(new Namespace(ns)), ns).toBeUndefined();
 		}
+	});
+
+	it("the operator tables", () => {
+		expect(sorted(Object.keys(UNARY_FNS))).toEqual(sorted(ALLOWED_UNARY));
+		expect(sorted(Object.keys(BINARY_FNS))).toEqual(sorted(ALLOWED_BINARY));
 	});
 
 	it("the globals and the callable ones", () => {

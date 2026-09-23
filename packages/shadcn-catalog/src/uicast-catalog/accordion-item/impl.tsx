@@ -1,5 +1,5 @@
 import { useContext, useEffect, useId, useState } from "react";
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,
@@ -11,10 +11,9 @@ import { AccordionItemDef } from "./def";
 
 export const AccordionItemImpl = createComponentImplementation({
   def: AccordionItemDef,
-  render: ({ title, open, children, onToggle}, { entry }) => {
+  render: ({ title, open, children, onToggle }, { entry }) => {
     const ctx = useContext(AccordionContext);
-    // non-null under a type="single" Accordion, where siblings share one open
-    // slot; standalone and type="multiple" items keep their own state
+    // Non-null under a type="single" Accordion, where siblings share one open slot.
     const single = ctx?.type === "single" ? ctx : null;
     // Per instance, not `entry.key`: list items share one entry key.
     const id = useId();
@@ -24,9 +23,7 @@ export const AccordionItemImpl = createComponentImplementation({
     // biome-ignore lint/correctness/useExhaustiveDependencies: re-sync only when the document-driven open changes; single is read from the syncing render on purpose
     useEffect(() => {
       if (single) {
-        // Functional close: when the document opens one item and closes
-        // another in the same commit, the closing effect must not clobber the
-        // opener's write with a stale openKey.
+        // Functional: the document can open one item and close another in the same commit.
         if (open) single.setOpenKey(id);
         else single.setOpenKey((key) => (key === id ? "" : key));
       } else {
@@ -34,8 +31,7 @@ export const AccordionItemImpl = createComponentImplementation({
       }
     }, [open]);
 
-    // A sibling taking the single-slot closes this item without its trigger
-    // firing — tell the document, or its mirrored open state goes stale.
+    // A sibling taking the slot closes this item without its trigger firing; the document must hear it.
     // biome-ignore lint/correctness/useExhaustiveDependencies: fire only when the slot owner changes
     useEffect(() => {
       if (single && open && single.openKey !== "" && single.openKey !== id) {
@@ -63,5 +59,5 @@ export const AccordionItemImpl = createComponentImplementation({
       </ShadcnAccordion>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

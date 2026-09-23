@@ -13,7 +13,7 @@ export const SelectImpl = createComponentImplementation({
   render: ({
     value,
     placeholder,
-    options = [],
+    options,
     disabled,
     onChange,
   }, { entry }) => {

@@ -1,4 +1,4 @@
-import { convertToModelMessages, createUIMessageStreamResponse, streamText, toUIMessageStream, type UIMessage } from "ai";
+import { convertToModelMessages, createUIMessageStreamResponse, isTextUIPart, streamText, toUIMessageStream, type UIMessage } from "ai";
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
@@ -17,12 +17,9 @@ import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrou
 import { computeCostUsd, getModelPricing } from "@/lib/pricing";
 import { domainTools } from "@/tools";
 
-export const runtime = "nodejs";
 export const maxDuration = 300;
 
-// The message array is the AI SDK's UIMessage shape — only the fields this
-// route reads (id / role / parts, and text on text parts) are validated; the
-// rest rides along loosely (it round-trips through useChat).
+// Only the fields this route reads are validated; the rest round-trips through useChat.
 const chatInput = z.object({
   id: z.string().min(1),
   messages: z
@@ -44,27 +41,20 @@ const chatInput = z.object({
 
 function firstUserText(messages: UIMessage[]): string {
   const user = messages.find((message) => message.role === "user");
-  const textPart = user?.parts.find(
-    (part): part is Extract<UIMessage["parts"][number], { type: "text" }> =>
-      part.type === "text",
-  );
-  return textPart?.text.trim() ?? "";
+  return user?.parts.find(isTextUIPart)?.text.trim() ?? "";
 }
 
-// Replace-all persistence: the incoming array is the client's full message
-// list, so mirroring it wholesale is simpler and self-healing. The delete and
-// reinsert ride one transaction so a failed insert can't leave the chat empty.
+// The incoming array is the client's full list. Delete and reinsert ride one transaction, so a failed insert cannot leave the chat empty.
 async function persistMessages(chatId: string, messages: UIMessage[]) {
   await db.transaction(async (tx) => {
     await tx.delete(chatMessages).where(eq(chatMessages.chatId, chatId));
-    if (messages.length === 0) return;
     await tx.insert(chatMessages).values(
       messages.map((message) => ({
         chatId,
         messageId: message.id,
         role: message.role,
         parts: message.parts,
-        metadata: (message as { metadata?: unknown }).metadata ?? null,
+        metadata: message.metadata ?? null,
       })),
     );
   });
@@ -87,9 +77,7 @@ export async function POST(req: Request) {
   const { id } = parsed.data;
   const uiMessages = parsed.data.messages as unknown as UIMessage[];
 
-  // The chat row is created lazily by the first message (the client mints the
-  // uuid), titled from that message's text. Continuing someone else's chat is
-  // refused — everything is readable, only the owner writes.
+  // The client mints the id, so the row is created by the first message. Only the owner writes.
   const [existing] = await db.select().from(chats).where(eq(chats.id, id));
   if (existing && existing.userId !== auth.me.id) {
     return Response.json({ error: "This chat belongs to another user." }, { status: 403 });
@@ -125,7 +113,6 @@ export async function POST(req: Request) {
     stream: result.stream,
     originalMessages: uiMessages,
     generateMessageId: () => crypto.randomUUID(),
-    // Every assistant message carries its own bill.
     messageMetadata: ({ part }) => {
       if (part.type !== "finish") return undefined;
       const inputTokens = part.totalUsage.inputTokens ?? 0;

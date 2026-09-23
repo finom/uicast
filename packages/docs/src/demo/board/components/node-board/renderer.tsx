@@ -1,16 +1,11 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
 import { useRef, useState } from "react";
 import { NodeBoardDef } from "./def";
 
-/**
- * Drag a node's body to move it (emits onMoveNode); click a node's port, then
- * another node's port, to wire them (emits onConnect). The pending "from" node
- * is purely local UI state — the committed graph lives in scope.
- */
+// The pending "from" node is local UI state; the committed graph lives in scope.
 export const NodeBoardRenderer = createComponentImplementation({
   def: NodeBoardDef,
-  render: ({ nodes = [], links = [], onMoveNode, onConnect}, { entry }) => {
+  render: ({ nodes, links, onMoveNode, onConnect }, { entry }) => {
     const boardRef = useRef<HTMLDivElement>(null);
     const dragId = useRef<string | null>(null);
     const [pendingFrom, setPendingFrom] = useState<string | null>(null);
@@ -24,7 +19,7 @@ export const NodeBoardRenderer = createComponentImplementation({
       const r = el.getBoundingClientRect();
       const x = Math.round(Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * 1000) / 1000;
       const y = Math.round(Math.min(1, Math.max(0, (clientY - r.top) / r.height)) * 1000) / 1000;
-      onMoveNode?.({ id, x, y });
+      onMoveNode({ id, x, y });
     };
 
     const clickPort = (id: string) => {
@@ -36,7 +31,7 @@ export const NodeBoardRenderer = createComponentImplementation({
         setPendingFrom(null);
         return;
       }
-      onConnect?.({ from: pendingFrom, to: id });
+      onConnect({ from: pendingFrom, to: id });
       setPendingFrom(null);
     };
 
@@ -46,9 +41,7 @@ export const NodeBoardRenderer = createComponentImplementation({
         ref={boardRef}
         className="relative h-80 w-full select-none overflow-hidden rounded-lg border border-border bg-muted/20"
         style={{ touchAction: "none" }}
-        onPointerMove={(e) => {
-          if (dragId.current) moveTo(e.clientX, e.clientY);
-        }}
+        onPointerMove={(e) => moveTo(e.clientX, e.clientY)}
         onPointerUp={() => {
           dragId.current = null;
         }}

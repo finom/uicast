@@ -1,7 +1,7 @@
 {
   "name": "@uicast/expr",
   "version": "0.0.1-beta.0",
-  "description": "A subset of JavaScript for stateless expressions: closed AST allow-list, runtime membrane, CPU and allocation budget. Never calls new Function, so it needs no unsafe-eval.",
+  "description": "The expression language of uicast documents: JavaScript expressions over JSON data. Closed AST allow-list, runtime membrane, CPU and allocation budget. Never calls new Function, so it needs no unsafe-eval.",
   "license": "MIT",
   "repository": {
     "type": "git",

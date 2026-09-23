@@ -4,11 +4,6 @@ import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import { mountEntries } from "../../../test/render-helpers";
 
-// In-stream error recovery: re-emitting a key (partial replacement) must give
-// the element a fresh render attempt instead of staying latched on the old
-// error, the blast radius of a bad expression must stay on the element itself,
-// and a seed that never ran must retry from the corrected entry.
-
 const errorSlot = {
   error: ({ error, elementKey }: { error: Error; elementKey?: string }) => (
     <div data-error-for={elementKey}>
@@ -29,7 +24,6 @@ describe("EntryRenderer — error recovery via re-emission", () => {
         key: "bad",
         component: "Box",
         props: { expr: "({ text: 'never-shown' })" },
-        // `document` is outside the sandbox allowlist — throws at evaluation.
         hidden: "document.title",
       },
       {
@@ -190,7 +184,6 @@ describe("EntryRenderer — error recovery via re-emission", () => {
     });
     expect(container.textContent).toContain("x=changed");
 
-    // Re-emitting the identical element must not reset state to the seed value.
     emit({
       key: "seeder",
       component: "Box",
@@ -201,16 +194,11 @@ describe("EntryRenderer — error recovery via re-emission", () => {
   });
 
   it("re-emitting only a broken parent revives children it kept by reference", () => {
-    // The user-visible shape: parent line broken, child line fine, then the
-    // parent alone is re-emitted with the SAME children array. The child must
-    // render from its original line — never re-emitted.
     const consoleError = silenceConsoleError();
     const lines: ComponentEntry[] = [
       {
         key: "foo",
         component: "Box",
-        // Prohibited global — the element renders the error slot, so its
-        // children never mount.
         props: { expr: "({ text: document.title })" },
         children: ["bar"],
       },
@@ -239,8 +227,6 @@ describe("EntryRenderer — error recovery via re-emission", () => {
   });
 
   it("keeps referenced children mounted (same DOM node) when a healthy parent is re-emitted", () => {
-    // The edit flow, no error involved: a later call re-emits one element to
-    // change it; children referenced by the new line are kept as-is.
     const lines: ComponentEntry[] = [
       {
         key: "parent",
@@ -267,7 +253,6 @@ describe("EntryRenderer — error recovery via re-emission", () => {
     expect(container.textContent).toContain("parent-v2");
     expect(container.textContent).not.toContain("parent-v1");
     expect(container.textContent).toContain("kid-content");
-    // Same DOM node — the child was reused in place, not remounted.
     expect(container.querySelector('[data-key="kid"]')).toBe(kidNodeBefore);
   });
 
@@ -301,8 +286,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
       fallbackComponents: errorSlot,
     });
     await waitFor(() => {
-      // The host's own message survives the evaluator's wrapper — the recovery
-      // prompt shows it to the model — and the wrapper names the tool that failed.
+      // The recovery prompt shows the model the host's message and the failing tool's name.
       expect(container.textContent).toContain("SEED_FAIL");
       expect(container.textContent).toContain("failNow");
     });

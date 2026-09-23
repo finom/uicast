@@ -24,7 +24,7 @@ export const ComboboxImpl = createComponentImplementation({
     value,
     placeholder,
     searchPlaceholder,
-    options = [],
+    options,
     disabled,
     emptyMessage,
     onChange,

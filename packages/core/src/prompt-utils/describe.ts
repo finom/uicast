@@ -1,13 +1,21 @@
 import type { JSONSchema } from "./json-schema-to-ts";
 
-/**
- * The prompt's description convention: a type, then ` — description`.
- * `dashTail` renders the tail (empty when there is nothing to say).
- */
+// The prompt's convention: a type, then ` — description`.
 export const dashTail = (description: string | undefined): string =>
 	description ? ` — ${description}` : "";
 
-/** Strip the ROOT description and default before type rendering — the builder prints them itself (` = default — description`). Nested ones still render inline. */
+// Drops one pair of parentheses around the whole type: `(A & B)` → `A & B`, but `(A) | (B)` stays.
+export const unwrapParens = (ts: string): string => {
+	if (!ts.startsWith("(") || !ts.endsWith(")")) return ts;
+	let depth = 0;
+	for (let i = 0; i < ts.length - 1; i++) {
+		if (ts[i] === "(") depth++;
+		else if (ts[i] === ")" && --depth === 0) return ts;
+	}
+	return ts.slice(1, -1);
+};
+
+// The builder prints the root description and default itself.
 export const stripRootAnnotations = (jsonSchema: unknown): unknown =>
 	jsonSchema !== null && typeof jsonSchema === "object"
 		? { ...(jsonSchema as JSONSchema), description: undefined, default: undefined }

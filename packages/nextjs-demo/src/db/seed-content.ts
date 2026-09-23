@@ -1,16 +1,12 @@
 import type { ComponentEntry } from "@uicast/core";
 import { db } from "./index";
-import { chatMessages, chats, componentEntries, pages } from "./schema";
+import { chatMessages, chats } from "./schema";
 import { opsConsoleEntries } from "./seed-ops-console";
 
 // The demo user's pages and chats. New accounts start empty.
 
-export type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number };
-export const SEED_MODEL = "anthropic/claude-opus-5";
-
-// ---------------------------------------------------------------------------
-// Page 1 — Inventory & restock
-// ---------------------------------------------------------------------------
+type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number };
+const SEED_MODEL = "anthropic/claude-opus-5";
 
 const inventoryEntries: ComponentEntry[] = [
   {
@@ -51,7 +47,7 @@ const inventoryEntries: ComponentEntry[] = [
   { key: "title", component: "Heading", props: { literal: { level: "1", text: "Inventory & restock" } } },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: { literal: { text: "Live stock levels, supplier lead times, and receiving.", variant: "muted" } },
   },
   {
@@ -169,7 +165,6 @@ const inventoryEntries: ComponentEntry[] = [
     },
   },
   { key: "c-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.prod.price.toFixed(2) })" } },
-  // One unit in or out: the ledger records it, the row's stock changes in place, the totals re-read.
   { key: "c-adjust", component: "TableCell", children: ["adjust-row"] },
   { key: "adjust-row", component: "FlexRow", props: { literal: { gap: "1", align: "center" } }, children: ["adjust-minus", "adjust-plus"] },
   {
@@ -196,7 +191,6 @@ const inventoryEntries: ComponentEntry[] = [
       ],
     },
   },
-  // The ledger peek loads on open, one row at a time.
   { key: "c-details", component: "TableCell", children: ["details-toggle", "details"] },
   {
     key: "details-toggle",
@@ -218,7 +212,7 @@ const inventoryEntries: ComponentEntry[] = [
   },
   {
     key: "pmov",
-    component: "Text",
+    component: "Typography",
     each: "scopes.root.moves.items",
     as: "pmov",
     keyBy: "id",
@@ -233,7 +227,6 @@ const inventoryEntries: ComponentEntry[] = [
     hidden: "scopes.root.products.total <= 25",
     callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 25, offset: (scopes.root.page - 1) * 25, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, category: scopes.root.cat === 'all' ? undefined : scopes.root.cat, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.busy", literal: false }] },
   },
-  // Receiving drawer: records a stock movement, which adjusts stock atomically.
   {
     key: "rcv-drawer",
     component: "Drawer",
@@ -293,10 +286,6 @@ const inventoryEntries: ComponentEntry[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Page 2 — Sales & revenue
-// ---------------------------------------------------------------------------
-
 const salesEntries: ComponentEntry[] = [
   {
     key: "root",
@@ -325,7 +314,7 @@ const salesEntries: ComponentEntry[] = [
   { key: "title", component: "Heading", props: { literal: { level: "1", text: "Sales & revenue" } } },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: { literal: { text: "Where the money is, and which orders still need a push.", variant: "muted" } },
   },
   { key: "stats", component: "Grid", props: { literal: { columns: "5", gap: "4" } }, children: ["s-rev", "s-aov", "s-week", "s-pending", "s-selected"] },
@@ -498,10 +487,6 @@ const salesEntries: ComponentEntry[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Page 3 — Customer 360
-// ---------------------------------------------------------------------------
-
 const customersEntries: ComponentEntry[] = [
   {
     key: "root",
@@ -541,7 +526,7 @@ const customersEntries: ComponentEntry[] = [
   { key: "title", component: "Heading", props: { literal: { level: "1", text: "Customer 360" } } },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: { literal: { text: "Every account, its order history, and lifetime value.", variant: "muted" } },
   },
   {
@@ -628,7 +613,6 @@ const customersEntries: ComponentEntry[] = [
     hidden: "scopes.root.customers.total <= 20",
     callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: "listCustomers({ limit: 20, offset: (scopes.root.page - 1) * 20, sort: scopes.root.sortKey, order: scopes.root.sortKey === 'orders' || scopes.root.sortKey === 'lifetime' ? 'desc' : 'asc', q: scopes.root.q || undefined })" }, { set: "scopes.root.busy", literal: false }] },
   },
-  // Selected-customer detail in a drawer: their orders, newest first, loaded on View.
   {
     key: "detail",
     component: "Drawer",
@@ -653,7 +637,6 @@ const customersEntries: ComponentEntry[] = [
       expr: "({ data: [5, 4, 3, 2, 1, 0].map(k => scopes.root.history.items.filter(o => o.status !== 'cancelled' && Math.floor((scopes.root.now - new Date(o.createdAt).getTime()) / (30 * 86400000)) === k).reduce((s, o) => s + o.total, 0)), width: 200, height: 32, filled: true })",
     },
   },
-  // Edit the selected account in place; Save persists, Delete asks first.
   { key: "d-edit", component: "FlexRow", props: { literal: { gap: "2", align: "end", wrap: true } }, children: ["e-name", "e-company", "e-email", "e-save", "e-delete"] },
   {
     key: "e-name",
@@ -718,7 +701,6 @@ const customersEntries: ComponentEntry[] = [
   { key: "dc-prod", component: "TableCell", props: { expr: "({ text: scopes.dord.qty + '× ' + scopes.dord.productName })" } },
   { key: "dc-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.dord.total.toFixed(2) })" } },
   { key: "dc-status", component: "TableCell", props: { expr: "({ text: scopes.dord.status })" } },
-  // Add-customer drawer.
   {
     key: "add-drawer",
     component: "Drawer",
@@ -806,11 +788,7 @@ export const SEED_PAGES: { title: string; prompt: string; entries: ComponentEntr
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Chats — multi-turn exchanges whose answers carry live uicast fences.
-// All fences in a chat share one root scope, so seeded paths are reused
-// (first writer wins) and later fences derive from the same data.
-// ---------------------------------------------------------------------------
+// All fences in a chat share one root scope: a seeded path keeps its first value, so later fences derive from the same data.
 
 const j = (entries: object[]) => entries.map((e) => JSON.stringify(e)).join("\n");
 
@@ -866,7 +844,7 @@ const poPlanFence = j([
   { key: "po-lead-badge", component: "Badge", props: { expr: "({ text: scopes.sup.leadTimeDays + ' days', variant: scopes.sup.leadTimeDays >= 14 ? 'destructive' : 'secondary' })" } },
   { key: "po-c3", component: "TableCell", props: { expr: "({ text: String(scopes.root.under60.items.filter(p => p.supplierId === scopes.sup.id).reduce((s, p) => s + (60 - p.stock), 0)) })" } },
   { key: "po-c4", component: "TableCell", props: { expr: "({ text: '$' + Math.round(scopes.root.under60.items.filter(p => p.supplierId === scopes.sup.id).reduce((s, p) => s + (60 - p.stock) * p.price, 0)).toLocaleString() })" } },
-  { key: "po-note", component: "Text", props: { literal: { text: "Sorted by lead time — longest first, so the slowest PO goes out today.", variant: "muted" } } },
+  { key: "po-note", component: "Typography", props: { literal: { text: "Sorted by lead time — longest first, so the slowest PO goes out today.", variant: "muted" } } },
 ]);
 
 const receiveCardFence = j([
@@ -951,7 +929,7 @@ const addProductFence = j([
   { key: "ap-stat", component: "Stat", props: { expr: "({ label: 'Products', value: scopes.root.stock.products })" } },
   { key: "ap-open", component: "Button", props: { literal: { text: "Add product" } }, callbacks: { onClick: [{ set: "scopes.root.npOpen", literal: true }] } },
   { key: "ap-latest", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["ap-line"] },
-  { key: "ap-line", component: "Text", each: "scopes.root.latest.items", as: "np", keyBy: "id", props: { expr: "({ text: scopes.np.name + ' — ' + scopes.np.sku + ' — $' + scopes.np.price.toFixed(2), variant: 'muted' })" } },
+  { key: "ap-line", component: "Typography", each: "scopes.root.latest.items", as: "np", keyBy: "id", props: { expr: "({ text: scopes.np.name + ' — ' + scopes.np.sku + ' — $' + scopes.np.price.toFixed(2), variant: 'muted' })" } },
   { key: "ap-drawer", component: "Drawer", props: { expr: "({ open: scopes.root.npOpen, title: 'New product', description: 'Saved through the same API the rest of the app uses.', side: 'right' })" }, callbacks: { onOpenChange: [{ set: "scopes.root.npOpen", expr: "evt.open" }] }, children: ["ap-form"] },
   { key: "ap-form", component: "FlexCol", props: { literal: { gap: "4" } }, children: ["apf-name", "apf-sku", "apf-cat", "apf-sup", "apf-stock", "apf-price", "ap-actions"] },
   { key: "apf-name", component: "Field", children: ["apl-name", "api-name"] },
@@ -1133,20 +1111,6 @@ export const SEED_CHATS: {
     ],
   },
 ];
-
-/** Insert the demo pages and chats for `userId`. */
-export async function insertSeedContent(userId: string): Promise<void> {
-  for (const page of SEED_PAGES) {
-    const [row] = await db
-      .insert(pages)
-      .values({ userId, title: page.title, prompt: page.prompt, ...page.usage })
-      .returning();
-    await db
-      .insert(componentEntries)
-      .values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
-  }
-  await insertSeedChats(userId);
-}
 
 export async function insertSeedChats(userId: string): Promise<void> {
   for (const chat of SEED_CHATS) {

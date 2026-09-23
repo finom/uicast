@@ -1,4 +1,5 @@
 import z from "zod";
+import type { KeyboardEvent } from "react";
 
 export const keyboardEventSchema = z
   .object({
@@ -23,7 +24,7 @@ export const keyboardEventSchema = z
     description: "Callback for a keyboard key event (keydown / keyup)",
   });
 
-export function pickKeyboardEvent(e: React.KeyboardEvent) {
+export function pickKeyboardEvent(e: KeyboardEvent) {
   return {
     key: e.key,
     code: e.code,

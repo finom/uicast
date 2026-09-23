@@ -1,31 +1,51 @@
 "use client";
 
 import { Info } from "lucide-react";
-import { useRef, useState } from "react";
+import { type MouseEvent, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const BUBBLE_WIDTH = 288;
 const MARGIN = 16;
+const GAP = 6;
 
-// The ⓘ next to a cost line: click reveals the model and the estimate note.
-// The bubble is position:fixed, measured from the icon and clamped to the
-// viewport, so it fits wherever the icon sits.
-export function CostInfo({ model }: { model: string }) {
-  const buttonRef = useRef<HTMLButtonElement>(null);
+const formatTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
+
+export type Usage = { inputTokens: number; outputTokens: number; costUsd: number | null; model: string };
+
+export function UsageLine({
+  inputTokens,
+  outputTokens,
+  costUsd,
+  model,
+  className,
+}: Usage & { className?: string }) {
+  return (
+    <p className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
+      <span>
+        {formatTokens(inputTokens)} in · {formatTokens(outputTokens)} out
+        {typeof costUsd === "number" ? ` · ≈$${costUsd.toFixed(3)}` : ""}
+      </span>
+      <CostInfo model={model} />
+    </p>
+  );
+}
+
+// position:fixed and clamped to the viewport, so it fits wherever the icon sits.
+function CostInfo({ model }: { model: string }) {
   const [pos, setPos] = useState<{ left: number; top: number; width: number } | null>(null);
-  const toggle = () => {
-    const rect = buttonRef.current?.getBoundingClientRect();
-    if (pos || !rect) return setPos(null);
+  const toggle = (event: MouseEvent<HTMLButtonElement>) => {
+    if (pos) return setPos(null);
+    const rect = event.currentTarget.getBoundingClientRect();
     const width = Math.min(BUBBLE_WIDTH, window.innerWidth - MARGIN * 2);
     setPos({
       left: Math.min(Math.max(MARGIN, rect.left), window.innerWidth - width - MARGIN),
-      top: rect.bottom + 6,
+      top: rect.bottom + GAP,
       width,
     });
   };
   return (
     <span className="relative inline-flex align-middle">
       <button
-        ref={buttonRef}
         type="button"
         aria-label="About this cost"
         className="inline-flex items-center text-muted-foreground hover:text-foreground"

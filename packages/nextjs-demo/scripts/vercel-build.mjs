@@ -1,8 +1,7 @@
 import { execSync } from "node:child_process";
 
-// Vercel runs this instead of `build`. Preview deploys share the production
-// database, so only a production build touches the schema and the demo account.
-// `--force` because a build has no one to answer drizzle-kit's data-loss prompt.
+// Preview deploys share the production database, so only a production build touches the schema and the demo account.
+// `--force`: a build has no one to answer drizzle-kit's data-loss prompt.
 
 const run = (command) => execSync(command, { stdio: "inherit" });
 

@@ -3,10 +3,6 @@ import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry, EntryError } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-// A row scope is a window onto the element its list iterates: reads see the
-// element's fields plus `$index`, `$id`, `$value`; a write changes the element
-// in place and wakes every scope field that holds it.
-
 const list = (patch: Partial<ComponentEntry> = {}): ComponentEntry => ({
   key: "rows",
   component: "Box",
@@ -258,6 +254,31 @@ describe("EntryRenderer — row windows", () => {
       rootScope: { items: [{ id: 1, n: "x" }, { id: 1, n: "y" }] },
     });
     expect(container.textContent).toBe("1:x;1#2:y;");
+  });
+
+  it("keyBy values 1 and \"1\" are one id, so the rows get distinct keys", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      list({ props: { expr: "({ text: scopes.row.$id + ':' + scopes.row.n + ';' })" } }),
+    ];
+    const { container } = mountEntries(lines, {
+      rootScope: { items: [{ id: 1, n: "x" }, { id: "1", n: "y" }] },
+    });
+    expect(container.textContent).toBe("1:x;1#2:y;");
+    expect(consoleError.mock.calls.flat().join(" ")).not.toContain("same key");
+    consoleError.mockRestore();
+  });
+
+  it("a keyBy value that is not a string or number keys the row by its index", () => {
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["rows"] },
+      list({ props: { expr: "({ text: scopes.row.$id + ';' })" } }),
+    ];
+    const { container } = mountEntries(lines, {
+      rootScope: { items: [{ id: { a: 1 } }, { id: true }] },
+    });
+    expect(container.textContent).toBe("0;1;");
   });
 
   it("a `set` without the scopes. prefix is refused at mount", () => {

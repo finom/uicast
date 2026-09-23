@@ -1,1 +1,1 @@
-export { getFencePartialPrompt } from "./get-fence-partial-prompt";
+export { type FencePromptOptions, getFencePartialPrompt } from "./get-fence-partial-prompt";

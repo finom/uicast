@@ -48,7 +48,9 @@ Test with **`EntryError.is(err)`**, not `instanceof`.
 |---|---|---|
 | `expression-syntax` | the expression doesn't parse | `document` |
 | `guardrail-violation` | the expression uses blocked syntax or APIs, or a `set` is not `scopes.<scope>.<field>` | `document` |
+| `budget-exceeded` | the expression ran past its step, time or allocation budget | `document` |
 | `unknown-reference` | an unregistered function, global, or scope path | `document` |
+| `invalid-entry` | a field of the line has the wrong type, like a `seed` that is not an array of steps | `document` |
 | `unknown-component` | the `component` name has no implementation | `document` |
 | `invalid-list` | `each` didn't evaluate to an array | `document` |
 | `invalid-props` | the evaluated props **fail** the def's schema, before render runs | `document` |

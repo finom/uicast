@@ -8,8 +8,7 @@ import {
 } from "@uicast/shadcn-catalog/ui/dialog";
 import type { ComponentEntry } from "@uicast/core";
 
-// JSON token → Tailwind color. Tuned to read on the dialog's `bg-muted/40` code
-// panel in both light and dark themes.
+// Tuned to read on the dialog's `bg-muted/40` panel in both themes.
 const TOKEN_CLASS = {
   key: "text-sky-700 dark:text-sky-300",
   str: "text-emerald-700 dark:text-emerald-300",
@@ -21,11 +20,7 @@ const TOKEN_CLASS = {
 
 type Token = { text: string; cls: keyof typeof TOKEN_CLASS };
 
-// Minimal JSON tokenizer — enough to colorize a pretty-printed entry: object
-// keys, string / number / boolean / null values, and everything else (braces,
-// commas, colons, indentation) as punctuation. A key is a string immediately
-// followed by `:`. The embedded `expr` / `set` JavaScript stays a single string
-// token (not re-highlighted as JS).
+// A key is a string followed by `:`; the embedded expression strings stay single tokens.
 function tokenizeJson(json: string): Token[] {
   const out: Token[] = [];
   const re =
@@ -50,41 +45,33 @@ function tokenizeJson(json: string): Token[] {
   return out;
 }
 
-/**
- * Inspect one streamed entry: the raw `ComponentEntry` pretty-printed and
- * syntax-highlighted, in a shadcn `Dialog`. Opened by clicking a line in
- * {@link StreamPanel}; the Dialog provides the overlay, the close button, and
- * close-on-Escape / click-outside.
- */
+export type SelectedEntry = { entry: ComponentEntry; index: number };
+
 export function EntryModal({
-  entry,
-  index,
+  selected,
   onClose,
 }: {
-  entry: ComponentEntry | null;
-  index: number | null;
+  selected: SelectedEntry | null;
   onClose: () => void;
 }) {
   return (
     <Dialog
-      open={entry != null}
+      open={selected !== null}
       onOpenChange={(open) => {
         if (!open) onClose();
       }}
     >
-      {entry && (
+      {selected && (
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-mono text-sm">{entry.key}</DialogTitle>
+            <DialogTitle className="font-mono text-sm">{selected.entry.key}</DialogTitle>
             <DialogDescription className="font-mono text-xs">
-              entry{" "}
-              {index != null ? String(index + 1).padStart(2, "0") : "—"} ·{" "}
-              {entry.component}
+              entry {String(selected.index + 1).padStart(2, "0")} · {selected.entry.component}
             </DialogDescription>
           </DialogHeader>
           <pre className="max-h-[70vh] overflow-auto whitespace-pre-wrap wrap-break-word rounded-lg bg-muted/40 p-3 font-mono text-xs/relaxed">
             <code>
-              {tokenizeJson(JSON.stringify(entry, null, 2)).map((t, i) => (
+              {tokenizeJson(JSON.stringify(selected.entry, null, 2)).map((t, i) => (
                 <span key={i} className={TOKEN_CLASS[t.cls]}>
                   {t.text}
                 </span>

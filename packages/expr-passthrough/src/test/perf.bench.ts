@@ -3,11 +3,9 @@ import { Evaluator } from "@uicast/expr";
 import { BUDGET, cases, rows, scopes, WAVE_EXPRS } from "../../../expr/src/test/bench-cases";
 import { PassthroughEvaluator } from "../index";
 
-// Three back ends over the same cases: the interpreter, this package, and the engine with nothing in front of it.
-
 const interpret = new Evaluator(BUDGET);
 const passthrough = new PassthroughEvaluator();
-const plain = (expr: string) => new Function("scopes", `"use strict"; return (${expr})`) as (s: unknown) => unknown;
+const plain = (expr: string) => new Function("scopes", `"use strict"; return (${expr})`);
 
 const waveInterpret = WAVE_EXPRS.map((e) => interpret.compile(e));
 const wavePassthrough = WAVE_EXPRS.map((e) => passthrough.compile(e));

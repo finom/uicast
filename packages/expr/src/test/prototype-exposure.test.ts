@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError } from "../index";
 
-// Lookup tables read by key are null-prototype, so Object.prototype's members never look like entries. They did: `Math.toString` returned the real function.
+// Lookup tables read by key are null-prototype, so Object.prototype's members never look like entries.
 const ev = new Evaluator();
 const probe = (expr: string): string => {
 	try {
@@ -12,7 +12,7 @@ const probe = (expr: string): string => {
 	}
 };
 
-it("prototype members are no longer readable off a namespace", () => {
+it("prototype members are not readable off a namespace", () => {
 	for (const expr of [
 		"Math.toString",
 		"Math.valueOf",
@@ -23,25 +23,22 @@ it("prototype members are no longer readable off a namespace", () => {
 	]) {
 		expect(probe(expr), expr).toMatch(/^refused/);
 	}
-	// the real members still work
 	expect(ev.eval("Math.PI")).toBe(Math.PI);
 	expect(ev.eval("Number.MAX_SAFE_INTEGER")).toBe(Number.MAX_SAFE_INTEGER);
 });
 
-it("toString/valueOf answer for real, no longer '[object Undefined]'", () => {
-	// Once "[object Undefined]" under interpret; now implemented, so both back ends match plain JS.
+it("toString and valueOf answer as in plain JS", () => {
 	expect(ev.eval("[1, 2].toString()")).toBe("1,2");
 	expect(ev.eval('"a".toString()')).toBe("a");
 	expect(ev.eval("[1, 2].valueOf()")).toEqual([1, 2]);
 	expect(ev.eval("(1).toString()")).toBe("1");
 	expect(ev.eval("(255).toString(16)")).toBe("ff");
-	// Prototype-only names the language does not implement stay refused.
 	for (const expr of ['[1]["hasOwn" + "Property"](0)', "[1].isPrototypeOf([1])"]) {
 		expect(probe(expr), expr).toMatch(/^refused/);
 	}
 });
 
-it("a prototype name as a callee no longer throws a raw TypeError", () => {
+it("a prototype name as a callee is refused, not a raw TypeError", () => {
 	for (const expr of [
 		"toString.trim()",
 		"constructor.map(x => x)",

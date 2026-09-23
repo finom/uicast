@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
 import { Check } from "lucide-react";
@@ -8,7 +8,7 @@ import { StepperDef } from "./def";
 export const StepperImpl = createComponentImplementation({
   def: StepperDef,
   render: ({
-    steps = [],
+    steps,
     currentStep,
     orientation,
     onStepClick,
@@ -17,7 +17,7 @@ export const StepperImpl = createComponentImplementation({
     return (
       <div
         className={cn(
-          "flex gap-0",
+          "flex",
           isHorizontal ? "flex-row items-start" : "flex-col",
         )}
         data-key={entry.key}
@@ -43,7 +43,6 @@ export const StepperImpl = createComponentImplementation({
                   isHorizontal ? "flex-row w-full" : "flex-col mr-4",
                 )}
               >
-                {/* Connector before */}
                 {i > 0 && (
                   <Separator
                     orientation={isHorizontal ? "horizontal" : "vertical"}
@@ -54,7 +53,6 @@ export const StepperImpl = createComponentImplementation({
                   />
                 )}
 
-                {/* Step circle */}
                 <Button
                   variant={isCompleted ? "default" : "outline"}
                   size="icon"
@@ -68,7 +66,6 @@ export const StepperImpl = createComponentImplementation({
                   {isCompleted ? <Check className="size-4" /> : i + 1}
                 </Button>
 
-                {/* Connector after */}
                 {!isLast && isHorizontal && (
                   <Separator
                     className={cn(
@@ -79,10 +76,7 @@ export const StepperImpl = createComponentImplementation({
                 )}
               </div>
 
-              {/* Label */}
-              <div
-                className={cn(isHorizontal ? "text-center mt-2 px-1" : "pt-1")}
-              >
+              <div className={isHorizontal ? "text-center mt-2 px-1" : "pt-1"}>
                 <p
                   className={cn(
                     "text-sm font-medium",
@@ -103,5 +97,5 @@ export const StepperImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

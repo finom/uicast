@@ -1,6 +1,7 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
+import { GAP } from "../../lib/layout";
 import { ContainerDef } from "./def";
 
 export const ContainerImpl = createComponentImplementation({
@@ -11,22 +12,11 @@ export const ContainerImpl = createComponentImplementation({
     gap,
     children,
   }, { entry }) => {
-    // Static map: Tailwind only compiles class names that appear literally in
-    // source — a runtime-built `gap-${gap}` never generates CSS.
-    const gapMap: Record<string, string> = {
-      "0": "gap-0",
-      "1": "gap-1",
-      "2": "gap-2",
-      "3": "gap-3",
-      "4": "gap-4",
-      "6": "gap-6",
-      "8": "gap-8",
-    };
     return (
       <div
         className={cn(
           "mx-auto flex w-full flex-col",
-          gapMap[gap],
+          GAP[gap],
           maxWidth === "sm" && "max-w-screen-sm",
           maxWidth === "md" && "max-w-3xl",
           maxWidth === "lg" && "max-w-5xl",
@@ -44,7 +34,7 @@ export const ContainerImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => (
+  placeholder: ({ children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <Skeleton className="h-4 w-40" />
       {children}

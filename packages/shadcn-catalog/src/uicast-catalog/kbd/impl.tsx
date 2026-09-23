@@ -3,7 +3,7 @@ import { KBDDef } from "./def";
 
 export const KBDImpl = createComponentImplementation({
   def: KBDDef,
-  render: ({ keys = []}, { entry }) => {
+  render: ({ keys}, { entry }) => {
     return (
       <span className="inline-flex items-center gap-1" data-key={entry.key}>
         {keys.map((key, i) => (

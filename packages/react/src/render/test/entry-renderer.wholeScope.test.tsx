@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-// A read of a whole scope has no field to subscribe to; it subscribes to all of them.
 describe("EntryRenderer — whole-scope reads", () => {
   it("Object.keys(scopes.root) re-renders on a write to any root field", () => {
     const lines: ComponentEntry[] = [

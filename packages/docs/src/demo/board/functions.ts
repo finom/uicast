@@ -1,6 +1,8 @@
 import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
 
+const CIRCLE_RADIUS = 0.34;
+
 const NodeSchema = z.object({
   id: z.string(),
   label: z.string(),
@@ -8,11 +10,6 @@ const NodeSchema = z.object({
   y: z.number(),
 });
 
-/**
- * The board's host function: arrange the given nodes evenly around a circle and
- * return them with updated positions. The "Auto-arrange" button `await`s this
- * and writes the laid-out nodes back into `scopes.root.nodes`.
- */
 const autoLayout = standardTool({
   name: "autoLayout",
   description:
@@ -20,14 +17,14 @@ const autoLayout = standardTool({
   inputSchema: z.object({ nodes: z.array(NodeSchema) }),
   outputSchema: z.array(NodeSchema),
   async execute({ nodes }) {
-    const n = nodes.length || 1;
+    const n = nodes.length;
     return nodes.map((node, i) => {
       const a = (i / n) * Math.PI * 2 - Math.PI / 2;
       return {
         id: node.id,
         label: node.label,
-        x: Math.round((0.5 + 0.34 * Math.cos(a)) * 1000) / 1000,
-        y: Math.round((0.5 + 0.34 * Math.sin(a)) * 1000) / 1000,
+        x: Math.round((0.5 + CIRCLE_RADIUS * Math.cos(a)) * 1000) / 1000,
+        y: Math.round((0.5 + CIRCLE_RADIUS * Math.sin(a)) * 1000) / 1000,
       };
     });
   },

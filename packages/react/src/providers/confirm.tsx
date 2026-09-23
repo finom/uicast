@@ -1,4 +1,3 @@
-"use client";
 import {
   createContext,
   type ReactElement,
@@ -8,30 +7,20 @@ import {
   useRef,
   useState,
 } from "react";
-import type { ConfirmFn } from "../types";
-import type { ConfirmComponentProps } from "../types";
-
-// A callback step carrying `confirm:` awaits this before running. It resolves
-// through the host modal when one is supplied via `fallbackComponents.confirm`, else
-// `window.confirm` — so the engine has no UI dependency.
-export type { ConfirmFn };
+import type { ConfirmComponentProps, ConfirmFn } from "../types";
 
 const windowConfirm: ConfirmFn = (message) =>
   Promise.resolve(
-    // No window means no way to ask — refuse, don't auto-confirm: `confirm`
-    // guards destructive callback steps.
+    // No window means no way to ask; `confirm` guards destructive steps, so refuse.
     typeof window !== "undefined" ? window.confirm(message) : false,
   );
 
 const ConfirmContext = createContext<ConfirmFn>(windowConfirm);
 
-/** The active confirm fn — `window.confirm` unless a host modal is mounted. */
 export const useConfirm = (): ConfirmFn => useContext(ConfirmContext);
 
 type Pending = { message: string; resolve: (confirmed: boolean) => void };
 
-// Owns the pending-confirm state: `confirm()` parks a `Promise.withResolvers()`
-// pair in state, the modal's buttons settle it.
 export const ConfirmHost = ({
   confirm: Confirm,
   children,
@@ -47,8 +36,7 @@ export const ConfirmHost = ({
 
   const modalConfirm = useCallback<ConfirmFn>((message) => {
     const { promise, resolve } = Promise.withResolvers<boolean>();
-    // A newer confirm supersedes an unanswered one — resolve it `false` so its
-    // awaiting callback chain unblocks instead of hanging forever.
+    // A newer confirm resolves an unanswered one `false`, so its callback chain unblocks.
     setPending((prev) => {
       prev?.resolve(false);
       return { message, resolve };

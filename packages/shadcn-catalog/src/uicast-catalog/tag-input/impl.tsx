@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { useState } from "react";
 import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
@@ -26,8 +26,7 @@ export const TagInputImpl = createComponentImplementation({
       if (tags.includes(trimmed)) return;
       if (maxTags && tags.length >= maxTags) return;
 
-      const newTags = [...tags, trimmed];
-      onAdd({ tag: trimmed, tags: newTags });
+      onAdd({ tag: trimmed, tags: [...tags, trimmed] });
       setInputValue("");
     };
 
@@ -43,10 +42,7 @@ export const TagInputImpl = createComponentImplementation({
               <button
                 type="button"
                 className="ml-1 rounded-full outline-none hover:bg-muted-foreground/20"
-                onClick={() => {
-                  const newTags = tags.filter((_, idx) => idx !== i);
-                  onRemove({ tag, index: i, tags: newTags });
-                }}
+                onClick={() => onRemove({ tag, index: i, tags: tags.filter((_, idx) => idx !== i) })}
               >
                 <X className="size-3" />
               </button>
@@ -65,13 +61,7 @@ export const TagInputImpl = createComponentImplementation({
               handleAdd();
             }
             if (e.key === "Backspace" && !inputValue && tags.length > 0) {
-              const lastTag = tags[tags.length - 1];
-              const newTags = tags.slice(0, -1);
-              onRemove({
-                tag: lastTag,
-                index: tags.length - 1,
-                tags: newTags,
-              });
+              onRemove({ tag: tags[tags.length - 1], index: tags.length - 1, tags: tags.slice(0, -1) });
             }
           }}
           onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
@@ -80,5 +70,5 @@ export const TagInputImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

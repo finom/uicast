@@ -1,6 +1,5 @@
 import z from "zod";
 
-// The calling codes PhoneInput offers, and the country each belongs to.
 export const CALLING_CODES = {
 	"+1": "US", "+7": "RU", "+33": "FR", "+34": "ES", "+39": "IT", "+44": "UK", "+49": "DE",
 	"+52": "MX", "+55": "BR", "+61": "AU", "+65": "SG", "+81": "JP", "+82": "KR", "+86": "CN",

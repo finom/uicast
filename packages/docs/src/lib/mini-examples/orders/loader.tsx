@@ -3,12 +3,7 @@ import type { ComponentEntry } from "@uicast/core";
 import { useEffect, useState } from "react";
 import { Products } from "./renderer";
 
-/**
- * Docs-only. The example's entries are served as a static asset and loaded
- * client-side, because the document's async `seed` cannot resolve during the
- * site's static export. Kept out of `renderer.tsx` so the snippet the page
- * shows is the mount and nothing else.
- */
+// Fetched client-side: the async `seed` cannot resolve during the static export. Not in `renderer.tsx`, so the page snippet is the mount only.
 export function OrdersLoader() {
   const [entries, setEntries] = useState<ComponentEntry[] | null>(null);
 

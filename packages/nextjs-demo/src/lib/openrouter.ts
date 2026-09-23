@@ -2,8 +2,6 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import type { User } from "@/db/schema";
 import { decryptSecret } from "./crypto";
 
-// Generation runs on the signed-in user's own OpenRouter key — one fixed
-// model, no picker.
 export const GENERATION_MODEL = process.env.OPENROUTER_MODEL ?? "anthropic/claude-opus-5";
 export const MAX_OUTPUT_TOKENS = Number(process.env.AI_MAX_OUTPUT_TOKENS ?? 62_000);
 

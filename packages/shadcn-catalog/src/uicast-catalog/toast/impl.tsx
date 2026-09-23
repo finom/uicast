@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import { Button } from "../../components/ui/button";
@@ -25,7 +26,7 @@ export const ToastImpl = createComponentImplementation({
       "bottom-left": "bottom-4 left-4",
     };
 
-    const iconMap: Record<string, React.ReactNode> = {
+    const iconMap: Record<string, ReactNode> = {
       default: null,
       success: <CheckCircle2 className="size-4 text-green-500" />,
       error: <AlertCircle className="size-4 text-red-500" />,

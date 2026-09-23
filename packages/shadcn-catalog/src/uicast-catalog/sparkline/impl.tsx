@@ -14,13 +14,13 @@ import { CHART_COLORS } from "../../lib/chart-colors";
 export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
   render: ({
-    data = [],
+    data,
     width,
     height,
     color,
     filled,
   }, { entry, loading }) => {
-    const chartData = data.map((value, i) => ({ i, value }));
+    const chartData = data.map((value) => ({ value }));
 
     return (
       <div

@@ -1,11 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke studio component: a tracks × steps grid. Its `onToggle` carries a
- * *grid-coordinate* payload — another shape the generic catalog has no notion
- * of, flowing through the same declarative callback pipeline.
- */
 export const StepSequencerDef = createComponentDefinition({
   name: "StepSequencer",
   description:

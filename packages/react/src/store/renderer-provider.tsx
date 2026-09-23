@@ -6,7 +6,8 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { createProxyScope, type ReactiveProxy } from "@uicast/core";
+import { createProxyScope } from "@uicast/core";
+import { engineOf } from "../impl/engine";
 import { ConfirmHost } from "../providers/confirm";
 import { RootFragmentImpl } from "../render/root-fragment-impl";
 import type {
@@ -19,15 +20,14 @@ import type {
 import { RendererRegistryProvider } from "./renderer-registry";
 
 type RendererGroup = {
-  // The shared scopes — one `root` proxy for every renderer in the group.
   scopes: Scopes;
-  // Group-level `init`, latched to run once; the first renderer's seed pass executes it, the rest await.
+  // Latched to run once: the first renderer's seed pass runs it, the rest await.
   init?: InitFn;
 };
 
 const RendererGroupContext = createContext<RendererGroup | null>(null);
 
-// Host side of the binding: registry, evaluator, fallback UI, and ONE shared store — every renderer beneath behaves as one app.
+// Shared scopes: every renderer beneath behaves as one app.
 export function RendererProvider({
   implementations,
   fallbackComponents,
@@ -37,15 +37,11 @@ export function RendererProvider({
   init,
   children,
 }: RendererProviderProps & { children: ReactNode }) {
-  // The group's root proxy — created once, lives as long as the provider.
-  const rootRef = useRef<ReactiveProxy | null>(null);
-  if (!rootRef.current) rootRef.current = createProxyScope({});
-  const root = rootRef.current;
-  // One stable store for the group's lifetime — root captured once. `init` can
-  // assign more named scopes onto this object.
-  const scopes = useMemo<Scopes>(() => ({ root }), [root]);
+  // `init` may assign more named scopes onto this object.
+  const scopesRef = useRef<Scopes | null>(null);
+  if (!scopesRef.current) scopesRef.current = { root: createProxyScope({}) };
+  const scopes = scopesRef.current;
 
-  // Run-once latch — see RendererGroup.init.
   const initBoxRef = useRef<{ ran: boolean; result: unknown }>({
     ran: false,
     result: undefined,
@@ -66,18 +62,18 @@ export function RendererProvider({
     };
   }, [scopes, init]);
 
-  // name→implementation lookup. A duplicate name throws, matching the prompt
-  // builder — an array carrying one could never have reached a working
-  // generation. Replace a catalog component by filtering its name out, not
-  // appending over it. RootFragment is merged in last as host infrastructure.
+  // A duplicate name throws, as in the prompt builder. Replace a catalog component by filtering its name out.
   const implementationsByName = useMemo(() => {
-    const map: Record<string, ComponentImplementation> = {};
+    // Null prototype: a model-written name like "constructor" finds nothing.
+    const map: Record<string, ComponentImplementation> = Object.create(null);
     for (const impl of implementations) {
       if (impl.def.name in map) {
         throw new Error(
           `[uicast] Duplicate component name "${impl.def.name}" in implementations.`,
         );
       }
+      // Throws here, not at first render, for an object `createComponentImplementation` did not make.
+      engineOf(impl);
       map[impl.def.name] = impl;
     }
     map.RootFragment = RootFragmentImpl;
@@ -104,7 +100,6 @@ export function RendererProvider({
   );
 }
 
-// The shared group store, or a clear error outside a <RendererProvider>.
 export function useRendererGroup(): RendererGroup {
   const group = useContext(RendererGroupContext);
   if (!group) {

@@ -1,49 +1,56 @@
-import type { JSONSchema } from "../prompt-utils/json-schema-to-ts";
+import { isSchemaObject, type JSONSchema } from "../prompt-utils/json-schema-to-ts";
 
-// Which URLs a document may put into a def-declared URL prop (`z.url()`).
-// Building any string is legal in the evaluator — the danger is the
-// DESTINATION: `<img src>` fetches on render with no interaction. Checked
-// where the destination is declared, strict by default.
+// An `<img src>` fetches on render, so the destination is checked, not the string that built it.
 
-/**
- * Fine-grained policy, or a predicate for hosts that want their own rule.
- * Every field is optional; the defaults are the strict ones.
- */
+// Every field optional; the defaults are the strict ones.
 export type UrlPolicy =
 	| {
-			/** Relative URLs — `/a`, `a/b`, `?q=1`, `#x`. Default `true`. */
+			// Relative URLs — `/a`, `a/b`, `?q=1`, `#x`. Default `true`.
 			allowRelative?: boolean;
-			/** Absolute URLs matching the page origin. Default `true`. */
+			// Absolute URLs matching the page origin. Default `true`.
 			allowSameOrigin?: boolean;
-			/** Extra http/https hosts. Exact match, or `*.example.com` for subdomains (not the apex — list both). */
+			// Extra http/https hosts. Exact match, or `*.example.com` for subdomains (not the apex — list both).
 			hosts?: readonly string[];
-			/** `data:` raster images. Default `true`. SVG stays excluded regardless — it can carry script. */
+			// `data:` raster images. Default `true`. SVG stays excluded regardless — it can carry script.
 			allowDataImages?: boolean;
-			/**
-			 * Page origin, for environments with no `location` (SSR). Without it,
-			 * `allowSameOrigin` cannot match and only `hosts` applies.
-			 */
+			// Page origin for environments with no `location` (SSR); without it only `hosts` applies.
 			origin?: string;
 	  }
 	| ((url: string) => boolean);
 
-export type UrlCheck = { ok: true } | { ok: false; reason: string };
+type UrlCheck = { ok: true } | { ok: false; reason: string };
 
-/** Schemes that never fetch on their own and need no origin check. */
+const OK: UrlCheck = { ok: true };
+
+// Never fetch on their own.
 const INERT_SCHEMES = new Set(["mailto", "tel", "sms", "blob"]);
 
-/** Raster image media types accepted in a `data:` URL. No `svg+xml`. */
+// No `svg+xml`: SVG can carry script.
 const DATA_IMAGE_RE =
 	/^data:image\/(png|jpe?g|gif|webp|avif|bmp|x-icon|vnd\.microsoft\.icon)[;,]/i;
 
 const SCHEME_RE = /^([a-z][a-z0-9+.-]*):/i;
 
-/** Strip what the URL parser strips (tab/LF/CR, edge C0 controls) — otherwise `"java\nscript:"` reads as relative here and `javascript:` in the DOM. */
+// For http(s) the URL parser reads `\` as `/`, so a value with no scheme names a host exactly when it starts with two.
+const NAMES_HOST_RE = /^[\\/]{2}/;
+
+// Supplies only the scheme: a value that names a host keeps its own.
+const NETWORK_PATH_BASE = "https://base.invalid/";
+
+// Strip what the URL parser strips, or `"java\nscript:"` reads as relative here and `javascript:` in the DOM.
 const normalize = (raw: string): string =>
 	raw
 		.replace(/[\t\n\r]/g, "")
 		// biome-ignore lint/suspicious/noControlCharactersInRegex: mirroring the URL parser is the point
 		.replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, "");
+
+const parseUrl = (url: string, base?: string): URL | null => {
+	try {
+		return new URL(url, base);
+	} catch {
+		return null;
+	}
+};
 
 const hostAllowed = (host: string, hosts: readonly string[]): boolean => {
 	const lower = host.toLowerCase();
@@ -56,24 +63,43 @@ const hostAllowed = (host: string, hosts: readonly string[]): boolean => {
 	});
 };
 
+// Parsed once per string: an explicit origin with a path or a trailing slash still names its origin.
+const explicitOrigins = new Map<string, string | null>();
+
 const currentOrigin = (explicit?: string): string | null => {
-	if (explicit) return explicit;
-	if (typeof location !== "undefined" && location?.origin) return location.origin;
-	return null;
+	if (!explicit) return typeof location !== "undefined" ? location.origin : null;
+	let origin = explicitOrigins.get(explicit);
+	if (origin === undefined) {
+		origin = parseUrl(explicit)?.origin ?? null;
+		explicitOrigins.set(explicit, origin);
+	}
+	return origin;
 };
 
-/**
- * Is this URL string allowed to reach a component? Non-strings and empty
- * strings pass — there is nothing to fetch, and the schema owns the type.
- */
-export const checkUrl = (value: unknown, policy?: UrlPolicy): UrlCheck => {
-	if (typeof value !== "string") return { ok: true };
+const checkHost = (
+	url: URL,
+	allowSameOrigin: boolean,
+	explicitOrigin: string | undefined,
+	hosts: readonly string[],
+): UrlCheck => {
+	if (allowSameOrigin && url.origin === currentOrigin(explicitOrigin)) return OK;
+	if (hosts.length && hostAllowed(url.hostname, hosts)) return OK;
+	return {
+		ok: false,
+		reason:
+			`"${url.hostname}" is not an allowed host. Add it to the renderer's ` +
+			`urlPolicy ({ hosts: ["${url.hostname}"] }) if this destination is trusted`,
+	};
+};
+
+// An empty string passes: nothing to fetch.
+export const checkUrl = (value: string, policy?: UrlPolicy): UrlCheck => {
 	const url = normalize(value);
-	if (!url) return { ok: true };
+	if (!url) return OK;
 
 	if (typeof policy === "function") {
 		return policy(url)
-			? { ok: true }
+			? OK
 			: { ok: false, reason: "rejected by the host's urlPolicy predicate" };
 	}
 
@@ -84,21 +110,21 @@ export const checkUrl = (value: unknown, policy?: UrlPolicy): UrlCheck => {
 		allowDataImages = true,
 		origin: explicitOrigin,
 	} = policy ?? {};
-
-	// Protocol-relative (`//host/path`) is absolute, not relative.
-	const isProtocolRelative = url.startsWith("//");
-	const scheme = isProtocolRelative
-		? "https"
-		: (SCHEME_RE.exec(url)?.[1]?.toLowerCase() ?? null);
+	const scheme = SCHEME_RE.exec(url)?.[1]?.toLowerCase() ?? null;
 
 	if (scheme === null) {
+		if (NAMES_HOST_RE.test(url)) {
+			const resolved = parseUrl(url, NETWORK_PATH_BASE);
+			if (!resolved) return { ok: false, reason: "not a parseable URL" };
+			return checkHost(resolved, allowSameOrigin, explicitOrigin, hosts);
+		}
 		return allowRelative
-			? { ok: true }
+			? OK
 			: { ok: false, reason: "relative URLs are not allowed by this urlPolicy" };
 	}
 
 	if (scheme === "data") {
-		if (allowDataImages && DATA_IMAGE_RE.test(url)) return { ok: true };
+		if (allowDataImages && DATA_IMAGE_RE.test(url)) return OK;
 		return {
 			ok: false,
 			reason: DATA_IMAGE_RE.test(url)
@@ -107,123 +133,187 @@ export const checkUrl = (value: unknown, policy?: UrlPolicy): UrlCheck => {
 		};
 	}
 
-	if (INERT_SCHEMES.has(scheme)) return { ok: true };
+	if (INERT_SCHEMES.has(scheme)) return OK;
 
 	if (scheme !== "http" && scheme !== "https") {
 		return { ok: false, reason: `the "${scheme}:" scheme is not allowed` };
 	}
 
-	const origin = currentOrigin(explicitOrigin);
-	let parsed: URL;
-	try {
-		parsed = new URL(isProtocolRelative ? `https:${url}` : url);
-	} catch {
-		return { ok: false, reason: "not a parseable absolute URL" };
-	}
-
-	if (allowSameOrigin && origin && parsed.origin === origin) return { ok: true };
-	if (hosts.length && hostAllowed(parsed.hostname, hosts)) return { ok: true };
-
-	return {
-		ok: false,
-		reason:
-			`"${parsed.hostname}" is not an allowed host. Add it to the renderer's ` +
-			`urlPolicy ({ hosts: ["${parsed.hostname}"] }) if this destination is trusted`,
-	};
+	const parsed = parseUrl(url);
+	if (!parsed) return { ok: false, reason: "not a parseable absolute URL" };
+	return checkHost(parsed, allowSameOrigin, explicitOrigin, hosts);
 };
 
-/** One rejected URL, with the prop path that carried it. */
-export type UrlViolation = { path: string; url: string; reason: string };
+type UrlViolation = { path: string; url: string; reason: string };
 
-/** Every JSON Schema `format` this treats as a URL. */
 const URL_FORMATS = new Set(["uri", "url", "uri-reference", "iri", "iri-reference"]);
 
-const MAX_DEPTH = 12;
-
-const deref = (schema: JSONSchema, root: JSONSchema): JSONSchema => {
-	const ref = schema.$ref;
-	if (!ref?.startsWith("#/")) return schema;
-	let node: unknown = root;
-	for (const raw of ref.slice(2).split("/")) {
-		const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
-		if (!node || typeof node !== "object") return schema;
-		node = (node as Record<string, unknown>)[key];
-	}
-	return node && typeof node === "object" ? (node as JSONSchema) : schema;
+const hasUrlFormat = (node: object): boolean => {
+	const format: unknown = Object.hasOwn(node, "format") ? Reflect.get(node, "format") : undefined;
+	return typeof format === "string" && URL_FORMATS.has(format);
 };
 
-/**
- * Walk the props schema next to the value, collecting URL-declared strings the
- * policy rejects. Only DECLARED props are checked: a URL-looking `text` prop
- * is content, not a destination.
- */
+// `#` is the document itself. Own keys only, so a pointer never lands on a prototype member.
+const resolvePointer = (ref: string, root: JSONSchema): unknown => {
+	if (ref === "#") return root;
+	if (!ref.startsWith("#/")) return undefined;
+	let node: unknown = root;
+	for (const segment of ref.slice(2).split("/")) {
+		const key = segment.replace(/~1/g, "/").replace(/~0/g, "~");
+		if (typeof node !== "object" || node === null || !Object.hasOwn(node, key)) return undefined;
+		node = Reflect.get(node, key);
+	}
+	return node;
+};
+
+// What a walk learns about a schema's nodes, kept per document: a `$ref` resolves against the document it sits in.
+type SchemaIndex = { root: JSONSchema; reach: Map<object, boolean>; applicable: Map<JSONSchema, JSONSchema[]> };
+const indexes = new WeakMap<JSONSchema, SchemaIndex>();
+
+const indexOf = (root: JSONSchema): SchemaIndex => {
+	let index = indexes.get(root);
+	if (!index) {
+		index = { root, reach: new Map(), applicable: new Map() };
+		indexes.set(root, index);
+	}
+	return index;
+};
+
+// Whether a URL format sits at or below `start`, through any keyword and any `$ref` chain. A stack, so depth sets no limit.
+const reachesUrlFormat = (index: SchemaIndex, start: unknown): boolean => {
+	if (typeof start !== "object" || start === null) return false;
+	const cached = index.reach.get(start);
+	if (cached !== undefined) return cached;
+
+	const seen = new Set<object>();
+	const stack: unknown[] = [start];
+	let found = false;
+	while (!found && stack.length > 0) {
+		const node = stack.pop();
+		if (typeof node !== "object" || node === null || seen.has(node)) continue;
+		seen.add(node);
+		found = hasUrlFormat(node);
+		for (const [key, child] of Object.entries(node)) {
+			stack.push(key === "$ref" && typeof child === "string" ? resolvePointer(child, index.root) : child);
+		}
+	}
+	index.reach.set(start, found);
+	return found;
+};
+
+// The nodes that hold for one value: `start` and every applicator under it that keeps the value.
+// All but `not` (a URL format under it forbids a URL); one that holds for only some values counts for all.
+const applicableNodes = (index: SchemaIndex, start: JSONSchema): JSONSchema[] => {
+	const cached = index.applicable.get(start);
+	if (cached) return cached;
+
+	const out = new Set<JSONSchema>();
+	const stack: unknown[] = [start];
+	while (stack.length > 0) {
+		const node = stack.pop();
+		if (!isSchemaObject(node) || out.has(node) || !reachesUrlFormat(index, node)) continue;
+		out.add(node);
+		if (typeof node.$ref === "string") stack.push(resolvePointer(node.$ref, index.root));
+		stack.push(...(node.allOf ?? []), ...(node.anyOf ?? []), ...(node.oneOf ?? []));
+		stack.push(node.if, node.then, node.else, ...Object.values(node.dependentSchemas ?? {}));
+	}
+	const nodes = [...out];
+	index.applicable.set(start, nodes);
+	return nodes;
+};
+
+// The path is built only for a violation: most values pass.
+type Visit = { node: JSONSchema; value: unknown; parent: Visit | null; key: string | number };
+
+const pathOf = (visit: Visit): string => {
+	let path = "";
+	for (let at: Visit | null = visit; at?.parent; at = at.parent) {
+		const step = typeof at.key === "number" ? `[${at.key}]` : `.${at.key}`;
+		path = step + path;
+	}
+	return path.startsWith(".") ? path.slice(1) : path;
+};
+
+// A subschema with no URL format below it is never walked, so a URL-free table costs nothing.
+const pushVisit = (
+	stack: Visit[],
+	index: SchemaIndex,
+	node: unknown,
+	value: unknown,
+	parent: Visit,
+	key: string | number,
+): void => {
+	if (isSchemaObject(node) && reachesUrlFormat(index, node)) stack.push({ node, value, parent, key });
+};
+
+// Only declared URL props are checked: a URL-looking `text` prop is content.
 export const findUrlViolations = (
 	schema: JSONSchema | undefined,
 	value: unknown,
 	policy?: UrlPolicy,
 ): UrlViolation[] => {
 	if (!schema) return [];
+	const index = indexOf(schema);
+	if (!reachesUrlFormat(index, schema)) return [];
 	const out: UrlViolation[] = [];
-	const root = schema;
+	const flagged = new Set<string>();
+	// Per object, the nodes already applied: a shared or cyclic value is walked once per node.
+	const walked = new WeakMap<object, Set<JSONSchema>>();
 
-	const walk = (node: JSONSchema, val: unknown, path: string, depth: number): void => {
-		if (depth > MAX_DEPTH || val === null || val === undefined) return;
-		const s = deref(node, root);
-
-		for (const branch of [...(s.anyOf ?? []), ...(s.oneOf ?? []), ...(s.allOf ?? [])]) {
-			walk(branch, val, path, depth + 1);
-		}
-
-		if (typeof val === "string" && s.format && URL_FORMATS.has(s.format)) {
+	// Children are pushed last to first, so values are checked, and violations reported, in document order.
+	const stack: Visit[] = [{ node: schema, value, parent: null, key: "" }];
+	for (let visit = stack.pop(); visit; visit = stack.pop()) {
+		const val = visit.value;
+		const nodes = applicableNodes(index, visit.node);
+		if (typeof val === "string") {
+			if (!nodes.some(hasUrlFormat)) continue;
 			const result = checkUrl(val, policy);
-			if (!result.ok && !out.some((v) => v.path === path)) {
+			if (result.ok) continue;
+			const path = pathOf(visit);
+			if (!flagged.has(path)) {
+				flagged.add(path);
 				out.push({ path, url: val, reason: result.reason });
 			}
-			return;
+			continue;
 		}
-
-		if (Array.isArray(val)) {
-			const items = typeof s.items === "object" ? s.items : undefined;
-			if (!items) return;
-			val.forEach((item, i) => {
-				walk(items, item, `${path}[${i}]`, depth + 1);
-			});
-			return;
+		if (typeof val !== "object" || val === null) continue;
+		let done = walked.get(val);
+		if (!done) {
+			done = new Set();
+			walked.set(val, done);
 		}
-
-		if (typeof val === "object" && s.properties) {
-			for (const [key, child] of Object.entries(s.properties)) {
-				if (!Object.hasOwn(val as object, key)) continue;
-				walk(
-					child,
-					(val as Record<string, unknown>)[key],
-					path ? `${path}.${key}` : key,
-					depth + 1,
-				);
+		for (let n = nodes.length - 1; n >= 0; n--) {
+			const node = nodes[n];
+			if (done.has(node)) continue;
+			done.add(node);
+			if (Array.isArray(val)) {
+				const tuple = node.prefixItems ?? [];
+				for (let i = val.length - 1; i >= 0; i--) {
+					pushVisit(stack, index, node.unevaluatedItems, val[i], visit, i);
+					pushVisit(stack, index, node.contains, val[i], visit, i);
+					pushVisit(stack, index, i < tuple.length ? tuple[i] : node.items, val[i], visit, i);
+				}
+				continue;
+			}
+			const declared = node.properties ?? {};
+			// Patterns are not matched: each one applies to every key.
+			const patterns = Object.values(node.patternProperties ?? {});
+			const entries = Object.entries(val);
+			for (let e = entries.length - 1; e >= 0; e--) {
+				const [key, child] = entries[e];
+				if (Object.hasOwn(declared, key)) {
+					pushVisit(stack, index, declared[key], child, visit, key);
+				} else {
+					pushVisit(stack, index, node.unevaluatedProperties, child, visit, key);
+					pushVisit(stack, index, node.additionalProperties, child, visit, key);
+				}
+				for (const sub of patterns) pushVisit(stack, index, sub, child, visit, key);
+				pushVisit(stack, index, node.propertyNames, key, visit, key);
 			}
 		}
-	};
-
-	walk(root, value, "", 0);
+	}
 	return out;
 };
 
-/** Does the schema declare any URL-formatted string? One-time scan so URL-free components skip the walk. */
-export const schemaHasUrlFormat = (schema: JSONSchema | undefined): boolean => {
-	if (!schema) return false;
-	const seen = new Set<object>();
-	const scan = (node: unknown, depth: number): boolean => {
-		if (depth > MAX_DEPTH || !node || typeof node !== "object") return false;
-		if (seen.has(node)) return false;
-		seen.add(node);
-		const s = node as JSONSchema;
-		if (s.format && URL_FORMATS.has(s.format)) return true;
-		for (const child of Object.values(node as Record<string, unknown>)) {
-			if (Array.isArray(child)) {
-				if (child.some((c) => scan(c, depth + 1))) return true;
-			} else if (scan(child, depth + 1)) return true;
-		}
-		return false;
-	};
-	return scan(schema, 0);
-};
+export const schemaHasUrlFormat = (schema: JSONSchema | undefined): boolean =>
+	schema !== undefined && reachesUrlFormat(indexOf(schema), schema);

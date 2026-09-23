@@ -1,14 +1,13 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
 import { StepSequencerDef } from "./def";
 
 export const StepSequencerRenderer = createComponentImplementation({
   def: StepSequencerDef,
   render: ({
-    tracks = [],
-    steps = 16,
-    pattern = [],
-    playhead = -1,
+    tracks,
+    steps,
+    pattern,
+    playhead,
     onToggle,
   }, { entry }) => {
     return (
@@ -22,6 +21,9 @@ export const StepSequencerRenderer = createComponentImplementation({
               {Array.from({ length: steps }, (_, si) => {
                 const on = pattern[ti]?.[si] ?? false;
                 const isBeat = si % 4 === 0;
+                const offClass = isBeat
+                  ? "border-border bg-muted hover:bg-muted/70"
+                  : "border-border/50 bg-muted/40 hover:bg-muted/60";
                 return (
                   <button
                     key={si}
@@ -29,7 +31,7 @@ export const StepSequencerRenderer = createComponentImplementation({
                     aria-pressed={on}
                     aria-label={`${track.label} step ${si + 1}`}
                     onClick={() =>
-                      onToggle?.({
+                      onToggle({
                         track: track.id,
                         trackIndex: ti,
                         step: si,
@@ -38,11 +40,7 @@ export const StepSequencerRenderer = createComponentImplementation({
                     }
                     className={[
                       "h-7 flex-1 rounded-sm border transition",
-                      on
-                        ? "border-primary bg-primary"
-                        : isBeat
-                          ? "border-border bg-muted hover:bg-muted/70"
-                          : "border-border/50 bg-muted/40 hover:bg-muted/60",
+                      on ? "border-primary bg-primary" : offClass,
                       playhead === si ? "ring-2 ring-primary/50" : "",
                     ].join(" ")}
                   />

@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Input } from "../../components/ui/input";
-import { ColorPickerDef } from "./def";
+import { ColorPickerDef, HEX_COLOR } from "./def";
 
 export const ColorPickerImpl = createComponentImplementation({
   def: ColorPickerDef,
@@ -22,7 +22,9 @@ export const ColorPickerImpl = createComponentImplementation({
           type="text"
           value={value}
           disabled={disabled}
-          onChange={(e) => onChange({ value: e.target.value })}
+          onChange={(e) => {
+            if (HEX_COLOR.test(e.target.value)) onChange({ value: e.target.value });
+          }}
           className="w-28"
         />
       </div>

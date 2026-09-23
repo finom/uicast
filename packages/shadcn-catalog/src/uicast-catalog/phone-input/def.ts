@@ -9,7 +9,7 @@ export const PhoneInputDef = createComponentDefinition({
     "A phone number input with country code picker. Renders a select for country code and an input for the phone number. Use PhoneInput for contact forms, user registration, or any phone number entry.",
   props: z.strictObject({
     value: z.string().optional().meta({
-      description: "The full phone number value (e.g. +1 555-1234)",
+      description: "The phone number without the calling code (e.g. 555-1234)",
     }),
     countryCode: callingCodeSchema.default("+1").meta({ description: "The selected calling code." }),
     placeholder: z.string().default("Phone number").meta({

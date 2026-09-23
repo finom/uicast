@@ -17,7 +17,7 @@ import { CHART_COLORS } from "../../lib/chart-colors";
 export const BubbleChartImpl = createComponentImplementation({
   def: BubbleChartDef,
   render: ({
-    data = [],
+    data,
     xLabel,
     yLabel,
     color,
@@ -25,7 +25,7 @@ export const BubbleChartImpl = createComponentImplementation({
   }, { entry, loading }) => {
     const zValues = data.map((d) => d.z);
     const zRange: [number, number] = [
-      Math.min(...zValues) || 0,
+      Math.min(...zValues),
       Math.max(...zValues) || 100,
     ];
 
@@ -34,25 +34,20 @@ export const BubbleChartImpl = createComponentImplementation({
         <ResponsiveContainer width="100%" height={height}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="x" name={xLabel ?? "X"} type="number" />
-            <YAxis dataKey="y" name={yLabel ?? "Y"} type="number" />
+            <XAxis dataKey="x" type="number" />
+            <YAxis dataKey="y" type="number" />
             <ZAxis dataKey="z" range={[40, 400]} domain={zRange} />
             <Tooltip
               cursor={{ strokeDasharray: "3 3" }}
               content={(props) => {
                 const payload = props.payload;
                 if (!payload?.length) return null;
-                const d = payload[0].payload as {
-                  x: number;
-                  y: number;
-                  z: number;
-                  name?: string;
-                };
+                const d = payload[0].payload as (typeof data)[number];
                 return (
                   <div className="rounded-md border bg-background p-2 text-xs shadow-md">
                     {d.name && <p className="font-medium">{d.name}</p>}
-                    <p>X: {d.x}</p>
-                    <p>Y: {d.y}</p>
+                    <p>{xLabel ?? "X"}: {d.x}</p>
+                    <p>{yLabel ?? "Y"}: {d.y}</p>
                     <p>Size: {d.z}</p>
                   </div>
                 );

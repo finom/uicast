@@ -1,7 +1,4 @@
-// Pins internal @uicast/* dependency ranges of the publishable packages to
-// the exact workspace versions. `*` doesn't resolve on the registry when
-// only prerelease versions exist, so the all-packages release flow rewrites
-// the ranges right after the version bumps.
+// Exact pins: `*` does not resolve on the registry when only prerelease versions exist.
 import { readFileSync, writeFileSync } from "node:fs";
 
 const read = (dir) => JSON.parse(readFileSync(`./packages/${dir}/package.json`, "utf8"));
@@ -27,6 +24,6 @@ for (const dir of ["expr-passthrough", "core", "react", "shadcn-catalog", "strea
       }
     }
   }
-  if (changed) writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
+  if (changed) writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`${dir}: ${changed ? "pinned" : "up to date"}`);
 }

@@ -28,18 +28,9 @@ export const CurrencyInputImpl = createComponentImplementation({
     onKeyUp,
   }, { entry }) => {
     const symbol = currencySymbols[currency] ?? currency;
-    const displayValue = value != null ? String(value) : "";
 
-    const formatCurrency = (num: number) => {
-      try {
-        return new Intl.NumberFormat(locale, {
-          style: "currency",
-          currency,
-        }).format(num);
-      } catch {
-        return `${symbol}${num.toFixed(2)}`;
-      }
-    };
+    const formatCurrency = (num: number) =>
+      new Intl.NumberFormat(locale, { style: "currency", currency }).format(num);
 
     return (
       <div className="relative" data-key={entry.key}>
@@ -48,7 +39,7 @@ export const CurrencyInputImpl = createComponentImplementation({
         </span>
         <Input
           type="number"
-          value={displayValue}
+          value={value ?? ""}
           placeholder={placeholder}
           disabled={disabled}
           onChange={(e) => {

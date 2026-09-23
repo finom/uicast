@@ -1,4 +1,5 @@
 import z from "zod";
+import type { MouseEvent } from "react";
 
 export const mouseEventSchema = z
   .object({
@@ -26,7 +27,7 @@ export const mouseEventSchema = z
     description: "Callback for a mouse event such as a click",
   });
 
-export function pickMouseEvent(e: React.MouseEvent) {
+export function pickMouseEvent(e: MouseEvent) {
   return {
     pageX: e.pageX,
     pageY: e.pageY,

@@ -28,7 +28,7 @@ export const ConfirmDialogDef = createComponentDefinition({
       .meta({ description: "Label for the cancel button" }),
     variant: z.enum(["default", "destructive"]).default("default").meta({
       description:
-        "Button style for confirm: default (primary blue) or destructive (red, for dangerous actions)",
+        "Button style for confirm: default (primary) or destructive (red, for dangerous actions)",
     }),
   }),
   callbacks: {

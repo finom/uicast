@@ -1,23 +1,7 @@
 import type { ComponentEntry } from "@uicast/core";
 
-/**
- * The generated artifact — the JSONLines a model would stream to build the
- * inventory app, hand-authored here as a typed `ComponentEntry[]`. The demo
- * reveals these one element at a time to simulate streaming, feeding the
- * growing array to the engine's `<EntriesRenderer entries={…} />`.
- *
- * Design notes (why it's shaped this way):
- * - Everything reactive derives from ONE source array, `scopes.root.products`,
- *   loaded by the root's async `seed`. Subscription is path-exact, so the
- *   stats (derived inline), the chart's category data, and the table list all
- *   read whole-array paths that the CRUD callbacks re-write wholesale — which
- *   is what makes the UI stay in sync after add/edit/delete.
- * - List items are read as `scopes.row.*`.
- * - `seed` whose expr returns a Promise suspends that element (Suspense),
- *   showing a placeholder until the data resolves — the async-seed showcase.
- */
+// Every write re-fetches `products` and `categories` whole, so each element that reads them updates.
 export const inventoryLines: ComponentEntry[] = [
-  // Root: seeds all UI state + the async product load everything derives from.
   {
     key: "root",
     component: "FlexCol",
@@ -37,7 +21,6 @@ export const inventoryLines: ComponentEntry[] = [
     children: ["header", "stats-row", "chart-card", "toolbar", "table-card", "drawer"],
   },
 
-  // Header: title block + primary "New product" action.
   {
     key: "header",
     component: "FlexRow",
@@ -57,7 +40,7 @@ export const inventoryLines: ComponentEntry[] = [
   },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: {
       literal: {
         text: "Manage your product catalog — add, edit, and track stock.",
@@ -82,7 +65,6 @@ export const inventoryLines: ComponentEntry[] = [
     },
   },
 
-  // Stats: derived inline from products → re-compute on every CRUD reload.
   {
     key: "stats-row",
     component: "Grid",
@@ -111,7 +93,7 @@ export const inventoryLines: ComponentEntry[] = [
     },
   },
 
-  // Chart: its own async default → a localized loading skeleton.
+  // An async `seed` of its own: only this card shows its placeholder while the breakdown loads.
   {
     key: "chart-card",
     component: "Card",
@@ -128,7 +110,6 @@ export const inventoryLines: ComponentEntry[] = [
     },
   },
 
-  // Toolbar: search filters the table list reactively.
   {
     key: "toolbar",
     component: "FlexRow",
@@ -147,7 +128,6 @@ export const inventoryLines: ComponentEntry[] = [
     },
   },
 
-  // Products table.
   {
     key: "table-card",
     component: "Card",
@@ -169,7 +149,6 @@ export const inventoryLines: ComponentEntry[] = [
   { key: "h-actions", component: "TableHead", props: { literal: { text: "" } } },
   { key: "tbody", component: "TableBody", children: ["row-list"] },
 
-  // The list: one TableRow per (filtered) product. Row scope is `scopes.row`.
   {
     key: "row-list",
     component: "TableRow",
@@ -238,7 +217,6 @@ export const inventoryLines: ComponentEntry[] = [
       "scopes.root.products.filter(p => !scopes.root.q || p.name.toLowerCase().includes(scopes.root.q.toLowerCase()) || p.sku.toLowerCase().includes(scopes.root.q.toLowerCase())).length > 0",
   },
 
-  // Add / edit drawer (a controlled side panel bound to the flat draft* state).
   {
     key: "drawer",
     component: "Drawer",

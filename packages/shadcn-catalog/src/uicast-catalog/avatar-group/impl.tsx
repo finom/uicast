@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   Avatar,
   AvatarFallback,
@@ -9,7 +9,7 @@ import { AvatarGroupDef } from "./def";
 
 export const AvatarGroupImpl = createComponentImplementation({
   def: AvatarGroupDef,
-  render: ({ avatars = [], max, size}, { entry }) => {
+  render: ({ avatars, max, size }, { entry }) => {
     const visible = avatars.slice(0, max);
     const overflow = avatars.length - max;
 
@@ -44,5 +44,5 @@ export const AvatarGroupImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

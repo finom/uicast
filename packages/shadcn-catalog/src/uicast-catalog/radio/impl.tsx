@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
@@ -7,11 +8,13 @@ export const RadioImpl = createComponentImplementation({
   def: RadioDef,
   render: ({
     value,
-    options = [],
+    options,
     orientation,
     disabled,
     onChange,
   }, { entry }) => {
+    // Per instance, not `entry.key`: list items share one entry key.
+    const id = useId();
     return (
       <RadioGroup
         value={value}
@@ -26,10 +29,10 @@ export const RadioImpl = createComponentImplementation({
           <div key={opt.value} className="flex items-center gap-2">
             <RadioGroupItem
               value={opt.value}
-              id={`${entry.key}-${opt.value}`}
+              id={`${id}-${opt.value}`}
             />
             <Label
-              htmlFor={`${entry.key}-${opt.value}`}
+              htmlFor={`${id}-${opt.value}`}
               className="text-sm font-normal cursor-pointer"
             >
               {opt.label}

@@ -16,7 +16,7 @@ export const ScrollAreaDef = createComponentDefinition({
       .enum(["vertical", "horizontal", "both"])
       .default("vertical")
       .meta({
-        description: "Scroll direction",
+        description: "Scroll direction. Vertical scrolling is always on; horizontal and both add sideways scrolling.",
       }),
   }),
 });

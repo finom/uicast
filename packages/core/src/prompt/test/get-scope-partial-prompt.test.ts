@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getScopePartialPrompt } from "../get-scope-partial-prompt";
 
-// The scope partial is the host's ambition dial: the same engine serves a
-// page builder, an embeddable widget, and a chat that answers with UI. Each
-// kind must render its own guidance; the size anchor and host note are
-// opt-in extras.
-
 describe("getScopePartialPrompt", () => {
 	it("renders a # Scope section for each kind", () => {
 		const page = getScopePartialPrompt({ kind: "page" });

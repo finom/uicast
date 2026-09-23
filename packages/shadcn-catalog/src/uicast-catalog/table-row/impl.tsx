@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   TableRow as ShadcnTableRow,
   TableCell,
@@ -15,7 +15,7 @@ const CELLS = (
 
 export const TableRowImpl = createComponentImplementation({
   def: TableRowDef,
-  render: ({ children, onClick}, { entry }) => {
+  render: ({ children, onClick }, { entry }) => {
     return (
       <ShadcnTableRow
         onClick={(e) => onClick(pickMouseEvent(e))}
@@ -25,6 +25,6 @@ export const TableRowImpl = createComponentImplementation({
       </ShadcnTableRow>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) =>
+  placeholder: ({ children }) =>
     children === undefined ? CELLS : <ShadcnTableRow>{children ?? CELLS}</ShadcnTableRow>,
 });

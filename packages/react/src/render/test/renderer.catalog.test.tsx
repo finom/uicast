@@ -6,14 +6,8 @@ import type { InitFn } from "@uicast/react";
 import { z } from "zod";
 import { defaultImplementationsList, testEvaluator } from "../../../test/render-helpers";
 
-// `catalog` is a runtime prop on the <RendererProvider> — an array of
-// implementations, symmetric with `functions`. The provider builds the name→renderer
-// lookup itself. These tests pin that prop path directly.
-describe("Renderer — catalog prop", () => {
+describe("RendererProvider — implementations prop", () => {
   it("renders an entry tree from a catalog array passed as a prop (merging RootFragment when absent)", () => {
-    // `defaultImplementationsList` carries no `RootFragment` entry, so a successful render
-    // also proves the provider's RootFragment merge — without it the synthetic root
-    // wrapper would hit the Unknown-component branch and nothing would show.
     const lines: ComponentEntry[] = [
       {
         key: "k1",
@@ -27,10 +21,7 @@ describe("Renderer — catalog prop", () => {
     expect(container.textContent).toContain("from-catalog-prop");
   });
 
-  it("gives each mounted Renderer an isolated root scope", () => {
-    // Two Renderers in one tree; each `init` captures its own `scopes.root`.
-    // If `root` were shared (module/closure) the two references would be equal —
-    // per-instance isolation requires them to differ.
+  it("gives each RendererProvider an isolated root scope", () => {
     let rootA: unknown;
     let rootB: unknown;
     const initA: InitFn = ({ scopes }) => {
@@ -56,11 +47,6 @@ describe("Renderer — catalog prop", () => {
   });
 
   it("throws on a duplicate component name", () => {
-    // Two implementations share the def name "Box". `getComponentsPartialPrompt`
-    // refuses to build a prompt from duplicate def names, so an implementations
-    // array carrying one could never have reached a working generation — the
-    // provider refuses it the same way. Overriding a catalog component means
-    // filtering its name out of both arrays.
     const boxDef = createComponentDefinition({
       name: "Box",
       description: "test box",
@@ -82,6 +68,21 @@ describe("Renderer — catalog prop", () => {
         <RendererProvider evaluator={testEvaluator} implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
       ),
     ).toThrow(/Duplicate component name "Box"/);
+    errorSpy.mockRestore();
+  });
+
+  it("exposes only def and placeholder, and refuses an implementation it did not make", () => {
+    const boxDef = createComponentDefinition({ name: "Box", description: "test box", props: z.object({}) });
+    const made = createComponentImplementation({ def: boxDef, render: () => <span>made</span> });
+    expect(Object.keys(made).sort()).toEqual(["def", "placeholder"]);
+
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
+    expect(() =>
+      render(
+        <RendererProvider evaluator={testEvaluator} implementations={[{ ...made }]}><EntriesRenderer entries={lines} /></RendererProvider>,
+      ),
+    ).toThrow(/"Box" was not made by createComponentImplementation/);
     errorSpy.mockRestore();
   });
 });

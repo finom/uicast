@@ -1,13 +1,13 @@
 import { createComponentImplementation } from "@uicast/react";
-import { TextDef } from "./def";
+import { TypographyDef } from "./def";
 
-export const TextImpl = createComponentImplementation({
-  def: TextDef,
+export const TypographyImpl = createComponentImplementation({
+  def: TypographyDef,
   render: ({
     text,
     children,
     variant,
-    as: Tag = "span",
+    as: Tag,
   }, { entry }) => {
     const styles: Record<string, string> = {
       body: "text-base",

@@ -7,11 +7,12 @@ import { usePathname } from "next/navigation";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Separator } from "@uicast/shadcn-catalog/ui/separator";
+import { SYSTEM_SLUG } from "@/lib/system-slug";
 
 type SidebarPage = { id: number; title: string };
 type SidebarChat = { id: string; title: string };
 
-export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
+export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
   const pathname = usePathname();
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -20,7 +21,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
       return res.ok ? res.json() : null;
     },
   });
-  const slug = me?.slug ?? "uicast";
+  const slug = me?.slug ?? SYSTEM_SLUG;
   const { data: pages } = useQuery({
     queryKey: ["pages"],
     queryFn: async (): Promise<SidebarPage[]> => {
@@ -57,58 +58,56 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean } = {}) {
         <div className="flex flex-col gap-1 pr-2">
           <p className="px-2 text-xs font-medium text-muted-foreground">Pages</p>
           <nav className="flex flex-col gap-1">
-            {pages === undefined ? null : pages.length === 0 ? (
+            {pages?.length === 0 && (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
                 No pages yet. Create one to get started.
               </p>
-            ) : (
-              pages.map((page) => {
-                const href = `/u/${slug}/p/${page.id}`;
-                const active = pathname === href;
-                return (
-                  <Button
-                    key={page.id}
-                    asChild
-                    variant={active ? "secondary" : "ghost"}
-                    size="sm"
-                    className="w-full justify-start"
-                  >
-                    <Link href={href}>
-                      <FileText data-icon="inline-start" />
-                      <span className="truncate">{page.title}</span>
-                    </Link>
-                  </Button>
-                );
-              })
             )}
+            {pages?.map((page) => {
+              const href = `/u/${slug}/p/${page.id}`;
+              const active = pathname === href;
+              return (
+                <Button
+                  key={page.id}
+                  asChild
+                  variant={active ? "secondary" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <Link href={href}>
+                    <FileText data-icon="inline-start" />
+                    <span className="truncate">{page.title}</span>
+                  </Link>
+                </Button>
+              );
+            })}
           </nav>
 
           <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">Chats</p>
           <nav className="flex flex-col gap-1">
-            {chats === undefined ? null : chats.length === 0 ? (
+            {chats?.length === 0 && (
               <p className="px-2 py-4 text-center text-xs text-muted-foreground">
                 No chats yet. Start one to ask about your data.
               </p>
-            ) : (
-              chats.map((chat) => {
-                const href = `/u/${slug}/c/${chat.id}`;
-                const active = pathname === href;
-                return (
-                  <Button
-                    key={chat.id}
-                    asChild
-                    variant={active ? "secondary" : "ghost"}
-                    size="sm"
-                    className="w-full justify-start"
-                  >
-                    <Link href={href}>
-                      <MessageSquare data-icon="inline-start" />
-                      <span className="truncate">{chat.title}</span>
-                    </Link>
-                  </Button>
-                );
-              })
             )}
+            {chats?.map((chat) => {
+              const href = `/u/${slug}/c/${chat.id}`;
+              const active = pathname === href;
+              return (
+                <Button
+                  key={chat.id}
+                  asChild
+                  variant={active ? "secondary" : "ghost"}
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <Link href={href}>
+                    <MessageSquare data-icon="inline-start" />
+                    <span className="truncate">{chat.title}</span>
+                  </Link>
+                </Button>
+              );
+            })}
           </nav>
         </div>
       </ScrollArea>

@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Check, Copy } from "lucide-react";
+import { useCopy } from "../../lib/use-copy";
 import { CopyButtonDef } from "./def";
 
 export const CopyButtonImpl = createComponentImplementation({
@@ -13,13 +13,11 @@ export const CopyButtonImpl = createComponentImplementation({
     size,
     onCopy,
   }, { entry }) => {
-    const [copied, setCopied] = useState(false);
+    const { copied, copy } = useCopy();
 
     const handleCopy = async () => {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
+      await copy(text);
       onCopy({ text });
-      setTimeout(() => setCopied(false), 2000);
     };
 
     return (

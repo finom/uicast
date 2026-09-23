@@ -10,8 +10,7 @@ const implementations = [WeatherCardImpl];
 const evaluator = new Evaluator({ functions: [getWeather] });
 
 export function Weather() {
-  // The async seed can't resolve during SSR — mount client-side only,
-  // exactly like the Streamdown plugin does for chat blocks.
+  // The async seed cannot resolve during SSR, so this mounts client-side only.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;

@@ -7,7 +7,7 @@ import { useRendererGroup } from "../store/renderer-provider";
 import { ROOT_FRAGMENT_KEY } from "./root-fragment-impl";
 import { EntryRenderer } from "./entry-renderer";
 
-/** Renders one entry tree against the nearest provider's shared store — every renderer under one provider shares `root`. */
+// Every renderer under one provider shares its scopes.
 export const EntriesRenderer = memo(function EntriesRenderer({
   entries,
 }: EntriesRendererProps) {
@@ -34,9 +34,7 @@ export const EntriesRenderer = memo(function EntriesRenderer({
     };
   }, [entries]);
 
-  // Every root gets an invisible RootFragment wrapper — one `init` mount point.
-  // Identity must stay stable while the root set is unchanged (the seed hook
-  // pins one `init` attempt per entry object), hence keyed by content.
+  // Identity must stay stable while the root set is unchanged: the seed hook pins one `init` attempt per entry object.
   // biome-ignore lint/correctness/useExhaustiveDependencies: content-keyed on rootKeysSignature by design — see above
   const syntheticRootFragment: ComponentEntry = useMemo(
     () => ({
@@ -54,20 +52,17 @@ export const EntriesRenderer = memo(function EntriesRenderer({
     [elementsById, syntheticRootFragment],
   );
 
-  // The store lives across renders; refresh it after commit so swapping the map
-  // wakes only the keys that changed, not settled nodes.
+  // Refreshed after commit, so swapping the map wakes only the keys that changed.
   const storeRef = useRef<ElementsStore | null>(null);
-  if (!storeRef.current) {
-    storeRef.current = createElementsStore(elementsWithRootFragment);
-  }
+  if (!storeRef.current) storeRef.current = createElementsStore(elementsWithRootFragment);
+  const store = storeRef.current;
   useLayoutEffect(() => {
-    storeRef.current?.setMap(elementsWithRootFragment);
-  }, [elementsWithRootFragment]);
+    store.setMap(elementsWithRootFragment);
+  }, [store, elementsWithRootFragment]);
 
   return (
-    <ElementsStoreProvider value={storeRef.current}>
+    <ElementsStoreProvider value={store}>
       <EntryRenderer
-        key={ROOT_FRAGMENT_KEY}
         elementKey={ROOT_FRAGMENT_KEY}
         scopes={scopes}
         init={init}

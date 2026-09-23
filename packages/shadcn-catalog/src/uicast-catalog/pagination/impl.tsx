@@ -8,10 +8,11 @@ import {
 } from "lucide-react";
 import { PaginationDef } from "./def";
 
-// Up to five page numbers around the current one.
+const PAGE_WINDOW = 5;
+
 function visiblePages(current: number, total: number): number[] {
-  const start = Math.max(1, Math.min(current - 2, total - 4));
-  return Array.from({ length: Math.min(5, total) }, (_, i) => start + i);
+  const start = Math.max(1, Math.min(current - Math.floor(PAGE_WINDOW / 2), total - PAGE_WINDOW + 1));
+  return Array.from({ length: Math.min(PAGE_WINDOW, total) }, (_, i) => start + i);
 }
 
 export const PaginationImpl = createComponentImplementation({
@@ -26,7 +27,7 @@ export const PaginationImpl = createComponentImplementation({
     // Without a page count, the pages behind the current one are still known.
     const pages = visiblePages(currentPage, totalPages ?? currentPage);
     const atEnd = totalPages === undefined ? !hasNext : currentPage >= totalPages;
-    const last = pages[pages.length - 1] ?? currentPage;
+    const last = pages[pages.length - 1];
     const moreAfter = totalPages === undefined ? hasNext : last < totalPages;
     const ellipsis = <span className="px-1 text-muted-foreground">…</span>;
 

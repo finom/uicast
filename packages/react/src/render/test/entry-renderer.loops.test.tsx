@@ -9,15 +9,6 @@ import {
   RendererProvider,
 } from "@uicast/react";
 
-// ---------------------------------------------------------------------------
-// Feedback loops.
-//
-// The React failure mode this format is meant to rule out: an effect writes
-// state it also depends on, so every render schedules the next one. Two shapes
-// could still reach it here — a parent aggregating over the list it contains,
-// and an entry tree whose `children` reference each other in a cycle.
-// ---------------------------------------------------------------------------
-
 const boxDef = createComponentDefinition({
   name: "Box",
   description: "A div that counts its renders.",
@@ -44,7 +35,6 @@ function countingSetup() {
 }
 
 describe("EntriesRenderer — feedback loops", () => {
-  // A parent whose props aggregate over the array its own list iterates.
   it("settles when a parent aggregates over the list it contains", async () => {
     const { catalog, counts } = countingSetup();
     const entries: ComponentEntry[] = [
@@ -79,9 +69,7 @@ describe("EntriesRenderer — feedback loops", () => {
     expect(counts.card).toBeLessThan(10);
   });
 
-  // `a` lists `b` as a child and `b` lists `a` back. Neither can be the root
-  // (both appear in a `children` array), so nothing mounts — the cycle is
-  // unreachable rather than infinitely deep.
+  // A root is a key no `children` array names, so a closed cycle has none and nothing mounts.
   it("renders nothing for a children cycle instead of recursing", () => {
     const { catalog } = countingSetup();
     const entries: ComponentEntry[] = [
@@ -97,7 +85,6 @@ describe("EntriesRenderer — feedback loops", () => {
     expect(container.textContent).toBe("");
   });
 
-  // A root that lists itself: it IS in a `children` array, so it is not a root.
   it("renders nothing for an entry that references itself", () => {
     const { catalog } = countingSetup();
     const entries: ComponentEntry[] = [

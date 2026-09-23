@@ -1,4 +1,3 @@
-// Why an expression was rejected. Callers map these onto their own faults.
 export type ExpressionErrorReason =
 	// Did not parse, or parsed as something other than one expression.
 	| "expression-syntax"
@@ -13,12 +12,10 @@ export type ExpressionErrorReason =
 	// A host function threw, or its output schema rejected what it returned.
 	| "host-function"
 	// Allowed expression, wrong values (property of `null`, malformed JSON).
-	// An ordinary runtime failure, classified apart from a policy rejection.
-	| "runtime";
+	| "expression-runtime";
 
 export class ExpressionError extends Error {
-	// Set on the instance, not the prototype: `instanceof` is unreliable when two
-	// copies of this package end up in one bundle, and it is a peer dependency.
+	// On the instance: `instanceof` fails when two copies of this package share a bundle.
 	readonly uicastExpressionError = true;
 	readonly reason: ExpressionErrorReason;
 
@@ -32,7 +29,6 @@ export class ExpressionError extends Error {
 		this.reason = reason;
 	}
 
-	// Cross-copy-safe `instanceof`.
 	static is(err: unknown): err is ExpressionError {
 		return (
 			typeof err === "object" &&

@@ -35,9 +35,7 @@ export const RatingImpl = createComponentImplementation({
                   : "cursor-pointer hover:text-yellow-400",
               )}
               disabled={disabled}
-              onClick={() => {
-                if (!disabled) onChange({ value: i + 1 });
-              }}
+              onClick={() => onChange({ value: i + 1 })}
             >
               <Star
                 className={cn(

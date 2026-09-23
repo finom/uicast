@@ -1,41 +1,28 @@
-/**
- * Server-safe demo metadata — the ONLY demo module a Server Component may import.
- * It deliberately has zero imports of configs / lines / functions, so the home
- * page, `generateStaticParams`, and `generateMetadata` never pull renderer or
- * Dexie code onto the server/build path. The full runtime configs live in
- * `registry.ts` (client-only). **Keep these slugs in sync with `registry.ts`.**
- */
+// The only demo module a Server Component may import.
 export interface DemoMeta {
-  slug: string;
   title: string;
   tagline: string;
 }
 
-export const demoManifest: DemoMeta[] = [
-  {
-    slug: "inventory",
+export const demoManifest: Record<string, DemoMeta> = {
+  inventory: {
     title: "Inventory",
     tagline:
       "A CRUD dashboard streamed entry-by-entry, backed by a live in-browser database.",
   },
-  {
-    slug: "studio",
+  studio: {
     title: "Groovebox",
     tagline:
       "A beat studio built from bespoke XY-pad, knob, and step-sequencer components — every interaction a custom event.",
   },
-  {
-    slug: "color",
+  color: {
     title: "Palette studio",
     tagline:
       "A color picker from bespoke field, swatch, and preview components — picking emits a structured { hex, h, s, l } payload.",
   },
-  {
-    slug: "board",
+  board: {
     title: "Flow board",
     tagline:
       "A node canvas from one bespoke component — dragging emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to }.",
   },
-];
-
-export const demoSlugs = demoManifest.map((d) => d.slug);
+};

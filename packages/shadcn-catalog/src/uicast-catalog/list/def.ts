@@ -9,9 +9,9 @@ export const ListDef = createComponentDefinition({
     ordered: z.boolean().default(false).meta({
       description: "Whether to render as an ordered (numbered) list",
     }),
-    styleType: z.enum(["disc", "decimal", "none"]).default("disc").meta({
+    styleType: z.enum(["disc", "decimal", "none"]).optional().meta({
       description:
-        "List marker style: disc (bullet), decimal (numbered), none (no markers)",
+        "List marker style: disc (bullet), decimal (numbered), none (no markers). Unset: decimal when ordered, else disc",
     }),
   }),
 });

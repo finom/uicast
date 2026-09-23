@@ -24,8 +24,5 @@ export const BannerDef = createComponentDefinition({
     onDismiss: z.null().meta({
       description: "Callback when the banner is dismissed",
     }),
-    onAction: z.null().meta({
-      description: "Callback when the action button is clicked",
-    }),
   },
 });

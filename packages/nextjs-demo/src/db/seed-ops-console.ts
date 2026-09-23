@@ -1,10 +1,5 @@
 import type { ComponentEntry } from "@uicast/core";
 
-// Page 4 — Operations console: every table on one page, each a window the
-// server pages and filters; the KPIs and charts read the two summaries. One
-// search box refetches every window. Row edits write the element in place.
-
-// Every window back to page one, then refetched.
 const SEARCH_STEPS = [
   { set: "scopes.root.prodPage", literal: 1 },
   { set: "scopes.root.ordPage", literal: 1 },
@@ -23,8 +18,6 @@ const SEARCH_STEPS = [
   { set: "scopes.root.accountsBusy", literal: false },
   { set: "scopes.root.movementsBusy", literal: false },
 ];
-// The same steps, run once typing pauses.
-const debounced = <T extends object>(steps: T[]): T[] => steps.map((step, i) => (i === 0 ? { ...step, debounce: true } : step));
 
 export const opsConsoleEntries: ComponentEntry[] = [
   {
@@ -66,13 +59,12 @@ export const opsConsoleEntries: ComponentEntry[] = [
     children: ["header", "kpis", "charts", "suppliers-card", "products-card", "orders-card", "customers-card", "ledger-card"],
   },
 
-  // Header: title and the global controls.
   { key: "header", component: "FlexRow", props: { literal: { justify: "between", align: "center", wrap: true } }, children: ["header-text", "controls"] },
   { key: "header-text", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["title", "subtitle"] },
   { key: "title", component: "Heading", props: { literal: { level: "1", text: "Operations console" } } },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: { literal: { text: "Every table on one page. One search box filters all of them.", variant: "muted" } },
   },
   { key: "controls", component: "FlexRow", props: { literal: { gap: "3", align: "center", wrap: true } }, children: ["search", "low-switch"] },
@@ -81,7 +73,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     component: "SearchInput",
     props: { expr: "({ value: scopes.root.q, placeholder: 'Search products, orders, customers, ledger…' })" },
     callbacks: {
-      onChange: [{ set: "scopes.root.q", expr: "evt.value" }, ...debounced(SEARCH_STEPS)],
+      onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { ...SEARCH_STEPS[0], debounce: true }, ...SEARCH_STEPS.slice(1)],
       onSubmit: SEARCH_STEPS,
       onClear: [{ set: "scopes.root.q", literal: "" }, ...SEARCH_STEPS],
     },
@@ -101,7 +93,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     },
   },
 
-  // KPIs: the two summaries, plus the selections on the pages below.
   {
     key: "kpis",
     component: "Grid",
@@ -141,7 +132,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     },
   },
 
-  // Charts: the summaries again, shaped per chart.
   { key: "charts", component: "Grid", props: { literal: { columns: "2", gap: "4" } }, children: ["chart-rev", "chart-units", "chart-status", "chart-heat"] },
   { key: "chart-rev", component: "Card", props: { literal: { title: "Revenue by day", description: "Last 30 days, cancelled orders excluded" } }, children: ["rev-area"] },
   { key: "rev-area", component: "AreaChart", props: { expr: "({ data: scopes.root.sales.byDay, xKey: 'date', yKeys: ['revenue'], height: 220 })" } },
@@ -166,7 +156,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     },
   },
 
-  // Suppliers: an accordion item per supplier, its count from the stock summary; its products load when it opens, one open at a time.
   {
     key: "suppliers-card",
     component: "Card",
@@ -233,7 +222,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
   },
   { key: "sc-price", component: "TableCell", props: { expr: "({ text: '$' + scopes.sprod.price.toFixed(2) })" } },
 
-  // Products: a sorted, filtered window; every row editable in place.
   {
     key: "products-card",
     component: "Card",
@@ -316,7 +304,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: { onChange: [{ set: "scopes.root.picked", expr: "({ ...currentValue, [scopes.prod.$id]: evt.checked })" }] },
   },
   { key: "pc-name", component: "TableCell", children: ["prod-name"] },
-  { key: "prod-name", component: "Highlight", props: { expr: "({ text: scopes.prod.name, highlight: scopes.root.q })" } },
+  { key: "prod-name", component: "HighlightedText", props: { expr: "({ text: scopes.prod.name, highlight: scopes.root.q })" } },
   { key: "pc-sku", component: "TableCell", props: { expr: "({ text: scopes.prod.sku })" } },
   { key: "pc-cat", component: "TableCell", children: ["prod-cat"] },
   { key: "prod-cat", component: "Badge", props: { expr: "({ text: scopes.prod.category, variant: 'outline' })" } },
@@ -394,7 +382,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
   },
   {
     key: "pmov",
-    component: "Text",
+    component: "Typography",
     each: "scopes.root.moves.items.slice(0, 5)",
     as: "pmov",
     keyBy: "id",
@@ -410,7 +398,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: { onPageChange: [{ set: "scopes.root.prodPage", expr: "evt.page" }, { set: "scopes.root.productsBusy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 50, offset: (scopes.root.prodPage - 1) * 50, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.productsBusy", literal: false }] },
   },
 
-  // Orders: a status select per row, selection kept at root by $id.
   {
     key: "orders-card",
     component: "Card",
@@ -423,7 +410,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     props: { literal: { gap: "3", align: "center", wrap: true } },
     children: ["ord-min-label", "ord-min", "ord-select-all", "ord-select-none"],
   },
-  { key: "ord-min-label", component: "Text", props: { literal: { text: "Min total", variant: "muted" } } },
+  { key: "ord-min-label", component: "Typography", props: { literal: { text: "Min total", variant: "muted" } } },
   {
     key: "ord-min",
     component: "Slider",
@@ -490,9 +477,9 @@ export const opsConsoleEntries: ComponentEntry[] = [
     },
   },
   { key: "oc-cust", component: "TableCell", children: ["ord-cust"] },
-  { key: "ord-cust", component: "Highlight", props: { expr: "({ text: scopes.ord.customerName, highlight: scopes.root.q })" } },
+  { key: "ord-cust", component: "HighlightedText", props: { expr: "({ text: scopes.ord.customerName, highlight: scopes.root.q })" } },
   { key: "oc-prod", component: "TableCell", children: ["ord-prod"] },
-  { key: "ord-prod", component: "Highlight", props: { expr: "({ text: scopes.ord.productName, highlight: scopes.root.q })" } },
+  { key: "ord-prod", component: "HighlightedText", props: { expr: "({ text: scopes.ord.productName, highlight: scopes.root.q })" } },
   { key: "oc-qty", component: "TableCell", props: { expr: "({ text: scopes.ord.qty })" } },
   { key: "oc-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.ord.total.toFixed(2) })" } },
   { key: "oc-status", component: "TableCell", children: ["ord-status"] },
@@ -532,7 +519,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: { onPageChange: [{ set: "scopes.root.ordPage", expr: "evt.page" }, { set: "scopes.root.ordersBusy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.ordPage - 1) * 50, q: scopes.root.q || undefined, minTotal: scopes.root.minTotal || undefined })" }, { set: "scopes.root.ordersBusy", literal: false }] },
   },
 
-  // Customers: a card per account, 30 a page.
   {
     key: "customers-card",
     component: "Card",
@@ -552,7 +538,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
   },
   {
     key: "cust-line",
-    component: "Text",
+    component: "Typography",
     props: { expr: "({ text: scopes.cust.orders + ' orders · $' + scopes.cust.lifetime.toFixed(2) + ' lifetime', variant: 'small', as: 'p' })" },
   },
   {
@@ -563,7 +549,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: { onPageChange: [{ set: "scopes.root.custPage", expr: "evt.page" }, { set: "scopes.root.accountsBusy", literal: true }, { set: "scopes.root.accounts", expr: "listCustomers({ limit: 30, offset: (scopes.root.custPage - 1) * 30, q: scopes.root.q || undefined })" }, { set: "scopes.root.accountsBusy", literal: false }] },
   },
 
-  // Ledger: 50 movements a page, newest first.
   {
     key: "ledger-card",
     component: "Card",
@@ -589,7 +574,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
   },
   { key: "mc-date", component: "TableCell", props: { expr: "({ text: scopes.mov.createdAt.slice(0, 10) })" } },
   { key: "mc-prod", component: "TableCell", children: ["mov-prod"] },
-  { key: "mov-prod", component: "Highlight", props: { expr: "({ text: scopes.mov.productName, highlight: scopes.root.q })" } },
+  { key: "mov-prod", component: "HighlightedText", props: { expr: "({ text: scopes.mov.productName, highlight: scopes.root.q })" } },
   { key: "mc-qty", component: "TableCell", children: ["mov-qty"] },
   {
     key: "mov-qty",

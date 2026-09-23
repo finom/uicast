@@ -2,7 +2,6 @@ import { createComponentImplementation } from "@uicast/react";
 import { useRef } from "react";
 import { Input } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
-import { cn } from "../../lib/utils";
 import { PinInputDef } from "./def";
 
 export const PinInputImpl = createComponentImplementation({
@@ -36,8 +35,7 @@ export const PinInputImpl = createComponentImplementation({
         inputRefs.current[index + 1]?.focus();
       }
 
-      // join() collapses empty positions, so the joined value reaches the
-      // full length exactly when every position holds a character.
+      // join() collapses empty positions, so the full length means every position holds a character.
       if (newValue.length === length) {
         onComplete({ value: newValue });
       }
@@ -56,7 +54,7 @@ export const PinInputImpl = createComponentImplementation({
             maxLength={1}
             value={chars[i] ?? ""}
             disabled={disabled}
-            className={cn("size-12 text-center text-lg font-semibold")}
+            className="size-12 text-center text-lg font-semibold"
             onChange={(e) => handleInput(i, e.target.value)}
             onKeyDown={(e) => {
               onKeyDown(pickKeyboardEvent(e));

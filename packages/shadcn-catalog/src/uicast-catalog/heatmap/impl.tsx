@@ -4,15 +4,13 @@ import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { HeatmapDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
 
+// `hex` is one of CHART_COLORS: `#rrggbb`.
 function hexToRgb(hex: string) {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16),
-      }
-    : { r: 0, g: 0, b: 0 };
+  return {
+    r: parseInt(hex.slice(1, 3), 16),
+    g: parseInt(hex.slice(3, 5), 16),
+    b: parseInt(hex.slice(5, 7), 16),
+  };
 }
 
 function interpolateColor(min: string, max: string, t: number) {
@@ -27,9 +25,9 @@ function interpolateColor(min: string, max: string, t: number) {
 export const HeatmapImpl = createComponentImplementation({
   def: HeatmapDef,
   render: ({
-    data = [],
-    rows = [],
-    cols = [],
+    data,
+    rows,
+    cols,
     minColor,
     maxColor,
     showValues,

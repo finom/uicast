@@ -2,6 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Upload } from "lucide-react";
 import { FileUploadDef } from "./def";
 import { acceptAttribute } from "../../lib/file-kinds";
+import { cn } from "../../lib/utils";
 
 export const FileUploadImpl = createComponentImplementation({
   def: FileUploadDef,
@@ -13,7 +14,10 @@ export const FileUploadImpl = createComponentImplementation({
   }, { entry }) => {
     return (
       <label
-        className={`flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-input px-6 py-8 text-center cursor-pointer transition-colors hover:border-ring hover:bg-accent/50 ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={cn(
+          "flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed border-input px-6 py-8 text-center cursor-pointer transition-colors hover:border-ring hover:bg-accent/50",
+          disabled && "opacity-50 cursor-not-allowed",
+        )}
         data-key={entry.key}
       >
         <Upload className="size-8 text-muted-foreground" />
@@ -34,7 +38,7 @@ export const FileUploadImpl = createComponentImplementation({
               size: f.size,
               type: f.type,
             }));
-            // so re-selecting the same file fires a change event again
+            // So re-selecting the same file fires a change event again.
             e.target.value = "";
             onChange({ files });
           }}

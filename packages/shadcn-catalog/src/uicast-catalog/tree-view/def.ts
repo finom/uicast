@@ -2,7 +2,7 @@ import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { type IconName, iconNameSchema } from "../../lib/icons";
 
-// Recursive: a node's children are nodes, to any depth. The explicit type is what `z.lazy` needs to infer.
+// The explicit type is what `z.lazy` needs.
 export type TreeNode = {
   label: string;
   icon?: IconName;

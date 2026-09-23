@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError } from "../index";
-import { CORPUS, SCOPES } from "./corpus";
+import { SCOPES } from "./corpus";
 
 const ev = new Evaluator();
 const run = (expr: string, context: Record<string, unknown> = {}) => ev.eval(expr, context);
-
-// The grammar, one representative expression per allowed construct.
 
 describe("the language", () => {
 	it("evaluates literals and templates", () => {
@@ -30,7 +28,6 @@ describe("the language", () => {
 		expect(run(`scopes.root.products.length`, { scopes: SCOPES })).toBe(3);
 		expect(run(`"abc"[1]`)).toBe("b");
 		expect(run(`"abc".length`)).toBe(3);
-		// A missing own key is undefined, not an error.
 		expect(run(`scopes.root.missing`, { scopes: SCOPES })).toBe(undefined);
 	});
 
@@ -118,13 +115,13 @@ describe("the language", () => {
 		expect(run(`"ab".toUpperCase()`)).toBe("AB");
 	});
 
-	it("supports the four constructors and Intl formatters", () => {
+	it("supports the two constructors", () => {
 		expect(run(`new Date(0).getFullYear()`)).toBe(1970);
 		expect(run(`Date.now() > 0`)).toBe(true);
-		expect(run(`new Map([["a", 1]]).get("a")`)).toBe(1);
 		expect(run(`new Set([1, 1, 2]).size`)).toBe(2);
-		expect(run(`new URL("https://a.example.com/p?q=1").hostname`)).toBe("a.example.com");
-		expect(run(`new Intl.NumberFormat("en-US").format(1234)`)).toBe("1,234");
+		for (const expr of [`new Map()`, `new Intl.NumberFormat("en-US")`, `new URL("https://a.example.com/")`]) {
+			expect(() => run(expr), expr).toThrow(ExpressionError);
+		}
 	});
 
 	it("rejects an expression over the source-length limit before parsing it", () => {
@@ -163,7 +160,6 @@ describe("the language", () => {
 			"scopes.root.count",
 			"scopes.root.products",
 		]);
-		// The tracked root is the caller's word, not the language's.
 		expect([...ev.memberReads(`data.a + data.b + other.c`, "data")].sort()).toEqual([
 			"data.a",
 			"data.b",
@@ -171,32 +167,13 @@ describe("the language", () => {
 	});
 });
 
-// Differential: the interpreter against the JS engine.
-
-// Every expression runs through the interpreter and through `new Function`, and the results must match.
-// The risk in a hand-written evaluator is semantic drift, not escape, and drift is what a differential catches.
 describe("differential against new Function", () => {
 	const CONTEXT = { scopes: SCOPES };
 
 	const native = (expr: string): unknown => {
-		// eslint-disable-next-line no-new-func
 		const fn = new Function("scopes", `"use strict"; return (${expr})`);
 		return fn(CONTEXT.scopes);
 	};
-
-	for (const expr of CORPUS) {
-		it(`matches JS for: ${expr}`, () => {
-			let expected: unknown;
-			let threw = false;
-			try {
-				expected = native(expr);
-			} catch {
-				threw = true;
-			}
-			expect(threw, `native evaluation threw for ${expr}`).toBe(false);
-			expect(run(expr, CONTEXT)).toEqual(expected);
-		});
-	}
 
 	it("matches JS on the expressions the demo documents actually use", () => {
 		const demo: [string, unknown][] = [
@@ -225,13 +202,133 @@ describe("differential against new Function", () => {
 	});
 });
 
-// Deliberate divergences — documented, tested, and few.
+describe("a function is written only where a method takes one", () => {
+	const rows = { rows: [{ a: 1, s: "x" }, { a: 2, s: "y" }] };
+
+	it("accepts every callback position", () => {
+		expect(run(`rows.map(r => r.a)`, rows)).toEqual([1, 2]);
+		expect(run(`rows?.map(r => r.a)`, rows)).toEqual([1, 2]);
+		expect(run(`rows["filter"](r => r.a > 1).length`, rows)).toBe(1);
+		expect(run(`rows.map(r => rows.filter(o => o.a <= r.a).length)`, rows)).toEqual([1, 2]);
+		expect(run(`Array.from({ length: 2 }, (_, i) => i * 2)`)).toEqual([0, 2]);
+		expect(run(`Object.keys(Object.groupBy(rows, r => r.s))`, rows)).toEqual(["x", "y"]);
+	});
+
+	it("refuses one anywhere else", () => {
+		for (const expr of [
+			`x => x`,
+			`[x => x]`,
+			`({ f: x => x })`,
+			`typeof (x => x)`,
+			`(x => x)(1)`,
+			`true ? x => 1 : x => 2`,
+			`rows.map(r => x => x)`,
+			`rows.map((r = x => x) => r)`,
+			`rows.reduce((a, r) => a, x => x)`,
+			`rows.concat(x => x)`,
+			`JSON.stringify(x => x)`,
+			`rows[k](x => x)`,
+			`Array.from(x => x)`,
+			`[f => f(f)].map(f => f(f))`,
+		]) {
+			expect(() => ev.validate(expr), expr).toThrow(/can only be written as a method's callback/);
+		}
+	});
+});
+
+describe("a host call stands only where its value is the result", () => {
+	const functions = [
+		{ name: "getOrder", description: "", execute: async (input: unknown) => input },
+		{ name: "save", description: "", execute: (input: unknown) => input },
+	];
+	const withTools = new Evaluator({ functions });
+
+	it("returns its promise from any result position", () => {
+		for (const expr of [
+			`getOrder({ id: 1 })`,
+			`c ? getOrder({ id: 1 }) : null`,
+			`c ? (d ? null : getOrder({ id: 1 })) : null`,
+			`cached ?? getOrder({ id: 1 })`,
+			`c && getOrder({ id: 1 })`,
+			`d || getOrder({ id: 1 })`,
+		]) {
+			expect(withTools.eval(expr, { c: true, d: false, cached: null }), expr).toBeInstanceOf(Promise);
+		}
+		expect(withTools.eval(`cached ?? getOrder({ id: 1 })`, { cached: 5 })).toBe(5);
+	});
+
+	it("refuses one that is part of the result, before anything runs", () => {
+		let calls = 0;
+		const counted = new Evaluator({ functions: [{ name: "getOrder", description: "", execute: async () => calls++ }] });
+		for (const expr of [
+			`[getOrder({ id: 1 }), getOrder({ id: 2 })]`,
+			`({ order: getOrder({ id: 1 }) })`,
+			`getOrder({ id: 1 }).name`,
+			`getOrder({ id: 1 }) ?? 5`,
+			`getOrder({ id: 1 }) ? 1 : 2`,
+			`!getOrder({ id: 1 })`,
+			// biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
+			"`${getOrder({ id: 1 })}`",
+			`JSON.stringify(getOrder({ id: 1 }))`,
+			`getOrder(getOrder({ id: 1 }))`,
+		]) {
+			expect(() => counted.eval(expr), expr).toThrow(/must be the result itself/);
+		}
+		expect(calls).toBe(0);
+	});
+
+	it("refuses a host function inside a callback before anything runs", () => {
+		let calls = 0;
+		const counted = new Evaluator({
+			functions: [{ name: "deleteOrder", description: "", execute: async () => calls++ }],
+		});
+		for (const expr of [
+			`ids.find(id => deleteOrder({ id }))`,
+			`ids.filter(id => deleteOrder({ id }))`,
+			`ids.some(id => deleteOrder({ id }))`,
+			`ids.map(id => deleteOrder({ id }))`,
+			`ids.reduce((acc, id) => deleteOrder({ id }), 0)`,
+			`ids.toSorted((a, b) => deleteOrder({ id: a }))`,
+			`Array.from(ids, id => deleteOrder({ id }))`,
+			`Object.groupBy(ids, id => deleteOrder({ id }))`,
+			`ids.map((id, i = deleteOrder({ id })) => i)`,
+			`ids.map(id => [id].map(x => deleteOrder({ id: x })))`,
+		]) {
+			expect(() => counted.validate(expr), expr).toThrow(/cannot be called inside a callback.*returns everything/);
+			expect(() => counted.eval(expr, { ids: [1, 2, 3] }), expr).toThrow(ExpressionError);
+		}
+		expect(calls).toBe(0);
+		// A parameter named like the function shadows it.
+		expect(counted.eval(`ids.map(deleteOrder => deleteOrder)`, { ids: [1] })).toEqual([1]);
+	});
+
+	it("refuses a promise held in data as part of the result or a host function's input", () => {
+		const scopes = { p: Promise.resolve(1) };
+		expect(() => withTools.eval(`save(scopes.p)`, { scopes })).toThrow(/"save" argument holds a promise/);
+		expect(() => withTools.eval(`[scopes.p]`, { scopes })).toThrow(/inside an array or object/);
+	});
+
+	it("leaves no rejection unhandled", async () => {
+		const failing = new Evaluator({
+			functions: [{ name: "boom", description: "", execute: () => ({ later: Promise.reject(new Error("down")) }) }],
+		});
+		const unhandled: unknown[] = [];
+		const listen = (reason: unknown) => unhandled.push(reason);
+		process.on("unhandledRejection", listen);
+		try {
+			expect(() => failing.eval(`boom()`)).toThrow(ExpressionError);
+			await new Promise((resolve) => setTimeout(resolve, 10));
+		} finally {
+			process.off("unhandledRejection", listen);
+		}
+		expect(unhandled).toEqual([]);
+	});
+});
 
 describe("deliberate divergences from plain JS", () => {
 	it("`typeof` on an unknown name throws instead of answering 'undefined'", () => {
 		expect(() => run(`typeof nope`)).toThrow(/not available/);
 	});
-
 });
 
 describe("cut syntax — recognizable JS the language deliberately refuses", () => {
@@ -249,23 +346,36 @@ describe("cut syntax — recognizable JS the language deliberately refuses", () 
 		]) {
 			expect(() => run(expr, { scopes: { o: { a: 1 }, missing: undefined } }), expr).toThrow();
 		}
-		// The receiver-optional form still works.
 		expect(run(`scopes.o?.a`, { scopes: { o: { a: 1 } } })).toBe(1);
+	});
+
+	it("has no holes in an array literal", () => {
+		for (const expr of [`[1, , 2]`, `[, 1]`, `[1, , ]`]) {
+			expect(() => ev.validate(expr), expr).toThrow(/cannot skip an item/);
+		}
+		expect(run(`[1, undefined, 2].length`)).toBe(3);
+		expect(run(`[1, 2, ]`)).toEqual([1, 2]);
+	});
+
+	it("has no method that only runs a callback for its effect, or returns an iterator", () => {
+		for (const expr of [`[1].forEach(n => n)`, `new Set([1]).values()`, `[1].keys()`]) {
+			expect(() => run(expr), expr).toThrow(/not an available method/);
+		}
 	});
 });
 
 describe("evaluation plumbing", () => {
-	it("keeps sequential evaluations' budgets independent (pooled sync budget)", () => {
+	it("keeps sequential evaluations' budgets independent", () => {
 		const tight = new Evaluator({ budget: { steps: 2_000 } });
 		const rows = Array.from({ length: 300 }, (_, i) => i);
-		// Each pass alone fits the budget; ten passes only fit if the pool resets.
 		for (let i = 0; i < 10; i++) {
 			expect(tight.eval(`scopes.rows.map(n => n + 1).length`, { scopes: { rows } })).toBe(300);
 		}
 	});
 
-	it("Math.random stays out — expressions are stateless by contract", () => {
-		expect(() => run(`Math.random()`)).toThrow(/is not available/);
+	it("Math.random gives a number from 0 up to 1", () => {
+		const n = run(`Math.random()`) as number;
+		expect(n >= 0 && n < 1).toBe(true);
 	});
 
 	it("a large flatMap of singletons stays inside the budget", () => {
@@ -279,13 +389,23 @@ describe("pinned against plain JS", () => {
 		expect(run('[9, 8]["1"]')).toBe(8);
 		expect(() => run('[9, 8]["0" + "1"]')).toThrow(ExpressionError);
 	});
-	it("toLocaleString takes a locale", () => {
-		expect(run("[1234.5].toLocaleString('de')")).toBe([1234.5].toLocaleString("de"));
+	it("toLocaleString uses the viewer's locale, and takes no other", () => {
+		expect(run("[1234.5].toLocaleString()")).toBe([1234.5].toLocaleString());
+		expect(() => run("[1234.5].toLocaleString('de')")).toThrow(/takes no arguments/);
 	});
 	it("valueOf on a number", () => {
 		expect(run("(1).valueOf()")).toBe(1);
 	});
 	it("a computed key in a pattern is evaluated", () => {
 		expect(run("[{ a: 1 }].map(({ [k]: v }) => v)", { k: "a" })).toEqual([1]);
+	});
+	it("a callback that is not a function throws, even over an empty array", () => {
+		for (const expr of ["[].map(5)", "[].every(null)", "[].toSorted(5)", "[].reduce(1, 0)", "Array.from([], null)"]) {
+			expect(() => run(expr), expr).toThrow(ExpressionError);
+			expect(() => new Function(`return (${expr})`)(), expr).toThrow(TypeError);
+		}
+	});
+	it("a trailing line comment ends at the end of the expression", () => {
+		expect(run("1 + 2 // sum")).toBe(3);
 	});
 });

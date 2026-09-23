@@ -1,24 +1,21 @@
 import type { StandardToolV0 } from "standard-tool";
-import { JSONSchemaToTs } from "../prompt-utils/json-schema-to-ts";
+import { unwrapParens } from "../prompt-utils/describe";
+import { jsonSchemaToTs } from "../prompt-utils/json-schema-to-ts";
 import { collectSharedTypes, type SharedTypes } from "../prompt-utils/shared-types";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
 import { functionNameFault } from "../expr/function-name";
 import { noteSection } from "./note-section";
 
-/** A tool's schema slot. Indexed access — standard-tool has renamed the type across releases. */
+// Indexed access: standard-tool has renamed the type across releases.
 type ToolSchema = StandardToolV0["inputSchema"];
 
 export type FunctionsPromptOptions = {
-	/** The host functions to advertise — the same set handed to the renderer's `functions` prop. */
 	functions: StandardToolV0[];
-	/** Host-specific context, appended as this section's trailing `## Note`. */
+	// Host-specific context, appended as this section's trailing `## Note`.
 	note?: string;
 };
 
-/**
- * One tool schema as a TypeScript-ish string; `undefined` → `fallback`.
- * A schema with no JSON Schema form throws (authoring error, e.g. `z.void()`).
- */
+// A schema with no JSON Schema form (`z.void()`) throws: an authoring error.
 function schemaToTs(
 	schema: ToolSchema,
 	fallback: string,
@@ -26,34 +23,23 @@ function schemaToTs(
 ): string {
 	if (!schema) return fallback;
 	const jsonSchema = specToJSONSchema(schema);
-	// Multiline with a two-space pad: the signature spans several lines inside
-	// its Markdown bullet, one field per line, so per-field descriptions stay
-	// readable instead of running together on one long line.
-	return JSONSchemaToTs(jsonSchema, {
+	// One field per line inside the Markdown bullet, so per-field descriptions stay readable.
+	return jsonSchemaToTs(jsonSchema, {
 		multiline: "  ",
 		namedRefs: shared.add(jsonSchema),
 	});
 }
 
-/** Tools → `# Available Functions` / `# Function Details` / `# Shared Types`. No `outputSchema` renders `=> unknown` — undeclared, not empty. */
-// `(A & B)` reads as a call argument already; `name((A & B))` would not.
-function unwrapParens(ts: string): string {
-	if (!ts.startsWith("(") || !ts.endsWith(")")) return ts;
-	let depth = 0;
-	for (let i = 0; i < ts.length - 1; i++) {
-		if (ts[i] === "(") depth++;
-		else if (ts[i] === ")" && --depth === 0) return ts;
-	}
-	return ts.slice(1, -1);
-}
-
+// No `outputSchema` renders `=> unknown`: undeclared, not empty.
 export function getFunctionsPartialPrompt({
 	functions,
 	note,
 }: FunctionsPromptOptions): string {
+	// A heading with nothing under it is dropped.
+	if (functions.length === 0) return noteSection(note);
 	const seen = new Set<string>();
 	for (const { name } of functions) {
-		// Same screen as `evaluate` — a name advertised here must be callable there.
+		// A superset of what evaluation refuses, so an advertised name is always callable.
 		const fault = functionNameFault(name);
 		if (fault) {
 			throw new Error(`Host function name "${name}" ${fault}`);
@@ -66,10 +52,10 @@ export function getFunctionsPartialPrompt({
 
 	const names = functions.map((tool) => tool.name).join(", ");
 	const shared = collectSharedTypes();
-	// Rendered first, so `shared` holds every hoisted definition by the time the
-	// block below asks for its lines.
+	// Rendered first, so `shared` holds every hoisted definition.
 	const details = functions
 		.map(({ name, title, description, inputSchema, outputSchema }) => {
+			// `name(A & B)`, not `name((A & B))`.
 			const paramsTs = unwrapParens(schemaToTs(inputSchema, "", shared));
 			const outputTs = schemaToTs(outputSchema, "unknown", shared);
 			const label = title ? `${title} — ` : "";

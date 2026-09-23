@@ -1,5 +1,4 @@
 import type { ComponentEntry } from "@uicast/core";
-import { relations } from "drizzle-orm";
 import {
   index,
   integer,
@@ -12,17 +11,17 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Every user owns a full copy of the domain data (products / customers /
-// orders) plus their pages and chats. The seed user (slug "uicast") owns the
-// public demo content; everything is world-readable, writes are owner-only.
+// Every user owns a full copy of the domain data. Everything is world-readable; writes are owner-only.
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   slug: text("slug").notNull().unique(),
-  /** OpenRouter key, AES-256-GCM under APP_SECRET (`iv.tag.cipher`, base64url). */
+  // OpenRouter key, AES-256-GCM under APP_SECRET (`iv.tag.cipher`, base64url).
   openrouterKeyEnc: text("openrouter_key_enc"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export type User = typeof users.$inferSelect;
 
 export const sessions = pgTable("sessions", {
   id: text("id").primaryKey(),
@@ -83,7 +82,6 @@ export const customers = pgTable(
 );
 
 export const ORDER_STATUSES = ["pending", "paid", "shipped", "delivered", "cancelled"] as const;
-export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export const orders = pgTable(
   "orders",
@@ -109,10 +107,8 @@ export const orders = pgTable(
 );
 
 export const MOVEMENT_REASONS = ["received", "shipped", "adjustment", "returned"] as const;
-export type MovementReason = (typeof MOVEMENT_REASONS)[number];
 
-// The stock ledger. Creating a movement adjusts the product's `stock` in the
-// same transaction, so the ledger and the counter always reconcile.
+// Creating a movement adjusts the product's `stock` in the same transaction.
 export const stockMovements = pgTable(
   "stock_movements",
   {
@@ -123,7 +119,7 @@ export const stockMovements = pgTable(
     productId: integer("product_id")
       .notNull()
       .references(() => products.id, { onDelete: "cascade" }),
-    /** Positive = stock in, negative = stock out. */
+    // Positive = stock in, negative = stock out.
     qty: integer("qty").notNull(),
     reason: text("reason", { enum: MOVEMENT_REASONS }).notNull(),
     note: text("note"),
@@ -131,36 +127,6 @@ export const stockMovements = pgTable(
   },
   (t) => [index("stock_movements_user_created").on(t.userId, t.createdAt)],
 );
-
-export type Supplier = typeof suppliers.$inferSelect;
-export type StockMovement = typeof stockMovements.$inferSelect;
-
-export const usersRelations = relations(users, ({ many }) => ({
-  pages: many(pages),
-  chats: many(chats),
-}));
-
-export const customersRelations = relations(customers, ({ many }) => ({
-  orders: many(orders),
-}));
-
-export const productsRelations = relations(products, ({ many }) => ({
-  orders: many(orders),
-}));
-
-export const ordersRelations = relations(orders, ({ one }) => ({
-  customer: one(customers, { fields: [orders.customerId], references: [customers.id] }),
-  product: one(products, { fields: [orders.productId], references: [products.id] }),
-}));
-
-export type User = typeof users.$inferSelect;
-export type Session = typeof sessions.$inferSelect;
-export type Product = typeof products.$inferSelect;
-export type NewProduct = typeof products.$inferInsert;
-export type Customer = typeof customers.$inferSelect;
-export type NewCustomer = typeof customers.$inferInsert;
-export type Order = typeof orders.$inferSelect;
-export type NewOrder = typeof orders.$inferInsert;
 
 export const pages = pgTable(
   "pages",
@@ -171,7 +137,7 @@ export const pages = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     title: text("title").notNull(),
     prompt: text("prompt"),
-    /** Accumulated across every generation run of this page. */
+    // Accumulated across every generation run of this page.
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: real("cost_usd").notNull().default(0),
@@ -188,32 +154,17 @@ export const componentEntries = pgTable(
       .notNull()
       .references(() => pages.id, { onDelete: "cascade" }),
     data: jsonb("data").$type<ComponentEntry>().notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true, mode: "date" })
+    createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .defaultNow(),
   },
   (t) => [index("component_entries_page_created").on(t.pageId, t.createdAt)],
 );
 
-export const pagesRelations = relations(pages, ({ many, one }) => ({
-  entries: many(componentEntries),
-  user: one(users, { fields: [pages.userId], references: [users.id] }),
-}));
-
-export const componentEntriesRelations = relations(componentEntries, ({ one }) => ({
-  page: one(pages, { fields: [componentEntries.pageId], references: [pages.id] }),
-}));
-
-export type Page = typeof pages.$inferSelect;
-export type NewPage = typeof pages.$inferInsert;
-export type ComponentEntryRow = typeof componentEntries.$inferSelect;
-export type NewComponentEntryRow = typeof componentEntries.$inferInsert;
-
 export const chats = pgTable(
   "chats",
   {
-    // The id comes from the client (useChat's generated uuid), so the chat row
-    // can be created lazily on the first message without an id handshake.
+    // The client mints the id, so the row can be created lazily on the first message.
     id: text("id").primaryKey(),
     userId: uuid("user_id")
       .notNull()
@@ -231,27 +182,13 @@ export const chatMessages = pgTable(
     chatId: text("chat_id")
       .notNull()
       .references(() => chats.id, { onDelete: "cascade" }),
-    // UIMessage id from the AI SDK, preserved so reloads restore the exact
-    // message identities useChat expects.
+    // Preserved so reloads restore the message identities useChat expects.
     messageId: text("message_id").notNull(),
     role: text("role", { enum: ["user", "assistant", "system"] }).notNull(),
-    // UIMessage.parts, stored verbatim.
     parts: jsonb("parts").notNull(),
-    /** UIMessage.metadata — carries per-message usage/cost on assistant rows. */
+    // UIMessage.metadata: per-message usage and cost on assistant rows.
     metadata: jsonb("metadata"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("chat_messages_chat_created").on(t.chatId, t.createdAt)],
 );
-
-export const chatsRelations = relations(chats, ({ many, one }) => ({
-  messages: many(chatMessages),
-  user: one(users, { fields: [chats.userId], references: [users.id] }),
-}));
-
-export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
-  chat: one(chats, { fields: [chatMessages.chatId], references: [chats.id] }),
-}));
-
-export type Chat = typeof chats.$inferSelect;
-export type ChatMessageRow = typeof chatMessages.$inferSelect;

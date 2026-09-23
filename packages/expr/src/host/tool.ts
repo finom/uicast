@@ -12,23 +12,21 @@ type Schema = NonNullable<StandardToolV0["inputSchema"]>;
 type Validation = ReturnType<Schema["~standard"]["validate"]>;
 type Settled = Awaited<Validation>;
 
-const formatIssues = (issues: Settled["issues"]): string =>
-	(issues ?? [])
+const formatIssues = (issues: NonNullable<Settled["issues"]>): string =>
+	issues
 		.map((issue) => {
 			const at = (issue.path ?? []).map((seg) => String(typeof seg === "object" ? seg.key : seg)).join(".");
 			return at ? `${at}: ${issue.message}` : issue.message;
 		})
 		.join("; ");
 
-// The host's own message rides along: the error-recovery prompt shows it to the model,
-// and "server unreachable" is what makes a failure actionable.
+// The host's own message rides along: "server unreachable" is what makes a failure actionable.
 const hostFailure = (name: string, err: unknown): ExpressionError =>
 	ExpressionError.is(err)
 		? err
 		: new ExpressionError(`"${name}" failed: ${err instanceof Error ? err.message : String(err)}`, "host-function", err);
 
-// A validator's own throw, or a thenable that is not a Promise, is the host's schema misbehaving —
-// refused as such rather than read as a verdict.
+// A validator's own throw, or a thenable that is not a Promise, is the host's schema misbehaving, not a verdict.
 const runSchema = (schema: Schema, name: string, value: unknown): Validation => {
 	let result: Validation;
 	try {
@@ -82,7 +80,7 @@ const bind = (tool: StandardToolV0): HostFunction => {
 	};
 };
 
-// Bind every tool once. A bad or duplicate name is a host configuration error, thrown here.
+// A bad or duplicate name is a host configuration error.
 export const bindTools = (tools: readonly StandardToolV0[]): Record<string, HostFunction> => {
 	const bound: Record<string, HostFunction> = Object.create(null);
 	for (const tool of tools) {

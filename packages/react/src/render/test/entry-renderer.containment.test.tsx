@@ -7,9 +7,6 @@ import {
   defaultImplementationsList,
   mountEntries, testEvaluator } from "../../../test/render-helpers";
 
-// Blast-radius edges around subscriptions and async seeds: failures must stay
-// on the element that carries them, and transient failures must clear.
-
 const errorSlot = {
   error: ({ error, elementKey }: { error: Error; elementKey?: string }) => (
     <div data-error-for={elementKey}>
@@ -29,9 +26,6 @@ describe("EntryRenderer — containment edges", () => {
       },
       {
         key: "reader",
-        // Reads the whole scope object — a valid expression whose dep
-        // ("scopes.root") is not a subscribable path. Must not throw in the
-        // subscription effect (which would latch the PARENT's boundary).
         component: "Box",
         props: { expr: "({ text: 'keys:' + Object.keys(scopes.root).length })" },
       },
@@ -56,8 +50,6 @@ describe("EntryRenderer — containment edges", () => {
         key: "widget",
         component: "Box",
         seed: [{ set: "scopes.root.rows", expr: "fetchRows()" }],
-        // Throws while rows is undefined — i.e. in the Suspense fallback,
-        // which renders the component against pre-seed state.
         props: { expr: "({ text: 'first:' + scopes.root.rows[0] })" },
       },
     ];
@@ -69,7 +61,6 @@ describe("EntryRenderer — containment edges", () => {
         fallbackComponents: errorSlot,
       }));
     });
-    // Pre-seed render failed and latched.
     await waitFor(() => {
       expect(container.textContent).toContain("widget failed:");
     });
@@ -77,8 +68,6 @@ describe("EntryRenderer — containment edges", () => {
     await act(async () => {
       release(["ready"]);
     });
-    // Seed settles → reset token flips back to the entry → fresh attempt
-    // against seeded state succeeds. No re-emission needed.
     await waitFor(() => {
       expect(container.textContent).toContain("first:ready");
     });
@@ -90,9 +79,6 @@ describe("EntryRenderer — containment edges", () => {
     const init = vi.fn(async () => {
       throw new Error("INIT_FAIL");
     });
-    // `b` and `c` are referenced up front, so the ROOT SET never changes as
-    // they stream in — only the entries map does. (Adding a new root entry
-    // would rebuild the synthetic root and legitimately re-attempt init.)
     const initialLines: ComponentEntry[] = [
       {
         key: "a",
@@ -111,9 +97,6 @@ describe("EntryRenderer — containment edges", () => {
     await waitFor(() => {
       expect(init).toHaveBeenCalledTimes(1);
     });
-    // Stream the children in — each tick swaps the store map. The synthetic
-    // root keeps its identity while the root set is unchanged, so the failed
-    // init must NOT retry per tick.
     const emit = async (...more: ComponentEntry[]) => {
       initialLines.push(...more);
       await act(async () => {

@@ -1,41 +1,33 @@
 import { dashTail, stripRootAnnotations } from "./describe";
 import {
 	type JSONSchema,
-	JSONSchemaToTs,
+	jsonSchemaToTs,
 	resolveRef,
 } from "./json-schema-to-ts";
 
-/**
- * A definition hoisted out of some schema's `$defs` / `definitions` and given
- * a name the prompt prints once.
- */
 type Entry = {
 	name: string;
 	node: unknown;
-	/** Its document's pointer→name map, so a self-reference renders as the name. */
+	// Pointer→name map of its document, so a self-reference renders as the name.
 	refs: Record<string, string>;
 };
 
 export type SharedTypes = {
-	/** Register one document's definitions; returns its pointer→name map for `namedRefs`. Pointers are document-local, hence per-document maps. */
+	// Pointers are document-local, hence a map per document.
 	add(jsonSchema: unknown): Record<string, string>;
-	/** One `- Name: <type>` line per hoisted definition, in registration order. */
 	lines(): string[];
 };
 
 const DEFS_KEYS = ["$defs", "definitions"] as const;
 
-/** JSON Pointer escaping — `~` and `/` inside a definition name. */
 const escapePointer = (key: string) =>
 	key.replace(/~/g, "~0").replace(/\//g, "~1");
 
-/** Identifier-safe name for a definition; an empty result falls back to a positional name. */
 const toTypeName = (key: string, ordinal: number): string => {
 	const cleaned = key.replace(/[^A-Za-z0-9_]/g, "");
 	return /^[A-Za-z_]/.test(cleaned) ? cleaned : `Type${ordinal}`;
 };
 
-/** Every `$ref` pointer that appears anywhere inside `node`. */
 const collectRefs = (node: unknown, out: Set<string>): void => {
 	if (node === null || typeof node !== "object") return;
 	if (Array.isArray(node)) {
@@ -48,7 +40,7 @@ const collectRefs = (node: unknown, out: Set<string>): void => {
 	}
 };
 
-/** Dedup identity. Byte-equal defs can `$ref` different targets, so each referenced pointer's resolved content is folded in. */
+// Byte-equal defs can `$ref` different targets, so the referenced content is folded in.
 const fingerprintNode = (
 	node: unknown,
 	doc: unknown,
@@ -68,7 +60,6 @@ const fingerprintNode = (
 	return `${base}|${parts.join("|")}`;
 };
 
-/** Does `node` reference `pointer`, directly or through other definitions? */
 const isSelfReferential = (
 	pointer: string,
 	node: unknown,
@@ -90,15 +81,10 @@ const isSelfReferential = (
 	return false;
 };
 
-/**
- * Collects every schema's `$defs` so each named type prints once and recursion
- * stays expressible (`type Node = { children?: Node[] }` instead of
- * `unknown[]`). Every definition is hoisted, not just shared ones.
- */
+// Every definition is hoisted, not just shared ones, so recursion stays expressible.
 export function collectSharedTypes(): SharedTypes {
 	const entries: Entry[] = [];
-	// name → fingerprint, so the same definition registered twice reuses its
-	// name and a DIFFERENT definition under the same name gets a fresh one.
+	// name → fingerprint: a different definition under a taken name gets a fresh one.
 	const takenNames = new Map<string, string>();
 
 	const add = (jsonSchema: unknown): Record<string, string> => {
@@ -106,9 +92,7 @@ export function collectSharedTypes(): SharedTypes {
 		if (jsonSchema === null || typeof jsonSchema !== "object") return refs;
 		const doc = jsonSchema as JSONSchema;
 
-		// A pure-`$ref` document keeps its payload inline — except a RECURSIVE
-		// target (top-level `z.lazy`), which must be hoisted or it degrades to
-		// `unknown[]`.
+		// A recursive root `$ref` (top-level `z.lazy`) must be hoisted or it degrades to `unknown[]`.
 		const rootRef = typeof doc.$ref === "string" ? doc.$ref : null;
 
 		for (const defsKey of DEFS_KEYS) {
@@ -121,8 +105,7 @@ export function collectSharedTypes(): SharedTypes {
 				}
 				const fingerprint = fingerprintNode(node, doc);
 
-				// Walk past names already spoken for by a DIFFERENT type; landing on
-				// one that already holds this same type means it is printed already.
+				// A name already holding this same type means it is printed already.
 				const base = toTypeName(key, entries.length + 1);
 				let name = base;
 				for (
@@ -143,10 +126,9 @@ export function collectSharedTypes(): SharedTypes {
 
 	const lines = (): string[] =>
 		entries.map((entry) => {
-			// Rendered from the NODE, not through its `$ref` — so the definition's
-			// own self-references resolve to its name instead of expanding.
+			// From the node, not through its `$ref`, so self-references resolve to the name.
 			const description = (entry.node as JSONSchema | null)?.description;
-			const body = JSONSchemaToTs(stripRootAnnotations(entry.node), {
+			const body = jsonSchemaToTs(stripRootAnnotations(entry.node), {
 				namedRefs: entry.refs,
 			});
 			return `- ${entry.name}: ${body}${dashTail(description)}`;

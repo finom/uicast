@@ -6,7 +6,6 @@ import type { ComponentEntry } from "@uicast/core";
 import { CALLBACK_DEBOUNCE_MS } from "@uicast/core/internal";
 import { mountEntries } from "../../../test/render-helpers";
 
-// A button whose click writes `q` at once and fetches debounced.
 const lines: ComponentEntry[] = [
   { key: "root", component: "Box", children: ["btn", "label"] },
   {
@@ -46,7 +45,6 @@ describe("EntryRenderer — debounced callback steps", () => {
 
   it("runs the steps before `debounce` at once and the rest once, after the quiet time, with the latest state", async () => {
     const { container, calls, btn } = setup();
-    // Each click lands before the next, as keystrokes do; the timer never elapses between them.
     for (let i = 0; i < 3; i++) {
       await act(async () => {
         fireEvent.click(btn);

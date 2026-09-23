@@ -1,19 +1,16 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
 import { useRef } from "react";
 import { KnobDef } from "./def";
 
-/**
- * Drag vertically to turn. The indicator line sweeps -135°..+135° across the
- * value range. `data-key={entry.key}` on the root keeps the demo's
- * hover-highlight working (line ⇄ element) — the universal catalog convention.
- */
+const SWEEP_DEG = 270;
+const FULL_RANGE_DRAG_PX = 150;
+
 export const KnobRenderer = createComponentImplementation({
   def: KnobDef,
-  render: ({ value = 50, min = 0, max = 100, label, onTurn }, { entry }) => {
+  render: ({ value, min, max, label, onTurn }, { entry }) => {
     const drag = useRef<{ startY: number; startVal: number } | null>(null);
     const range = max - min || 1;
-    const angle = -135 + ((value - min) / range) * 270;
+    const angle = -SWEEP_DEG / 2 + ((value - min) / range) * SWEEP_DEG;
 
     return (
       <div
@@ -37,9 +34,9 @@ export const KnobRenderer = createComponentImplementation({
             const dy = drag.current.startY - e.clientY;
             const next = Math.min(
               max,
-              Math.max(min, drag.current.startVal + (dy / 150) * range),
+              Math.max(min, drag.current.startVal + (dy / FULL_RANGE_DRAG_PX) * range),
             );
-            onTurn?.({ value: Math.round(next) });
+            onTurn({ value: Math.round(next) });
           }}
           onPointerUp={() => {
             drag.current = null;

@@ -24,16 +24,7 @@ import {
   updateSupplier,
 } from "./suppliers";
 
-export * from "./customers";
-export * from "./orders";
-export * from "./products";
-export * from "./stock-movements";
-export * from "./summaries";
-export * from "./suppliers";
-
-// The full set handed to the prompt assembler (getFunctionsPartialPrompt) so the
-// model can call these endpoints from a generated page. Page/entry endpoints are
-// intentionally excluded — the page system isn't the model's to mutate.
+// Page and entry endpoints are excluded: the page system is not the model's to mutate.
 export const domainTools: StandardToolV0[] = [
   listCustomers,
   getCustomer,

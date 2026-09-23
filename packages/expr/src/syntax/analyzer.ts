@@ -4,15 +4,12 @@ import { extractMemberReads } from "./analyze";
 import { parseExpression } from "./parse";
 import { validateFreeIdentifiers, validateNode } from "./validate";
 
-// The static half both evaluators share: parse, validate, and remember the verdict per source.
-
 export type ExpressionFacts = {
 	freeIds: readonly string[];
-	// Host functions this expression calls.
 	toolCalls: readonly string[];
 };
 
-// One parsed source. `compiled` is whatever the back end makes of it, once.
+// `compiled` is whatever the back end makes of it, once.
 export type Analysis<TCompiled> = ExpressionFacts & {
 	source: string;
 	ast: acorn.Expression;
@@ -20,7 +17,7 @@ export type Analysis<TCompiled> = ExpressionFacts & {
 	compiled?: TCompiled;
 };
 
-export type AnalyzerOptions = {
+type AnalyzerOptions = {
 	tools: Record<string, HostFunction>;
 	maxSourceLength: number;
 	maxCacheSize: number;
@@ -58,13 +55,12 @@ export class Analyzer<TCompiled> {
 		return entry;
 	}
 
-	// Every `<root>.X.Y` static path the expression reads.
 	memberReads(source: string, root: string): readonly string[] {
 		const entry = this.analyze(source);
 		entry.reads ??= new Map();
 		let paths = entry.reads.get(root);
 		if (paths === undefined) {
-			paths = Object.freeze(extractMemberReads(entry.ast, root)) as readonly string[];
+			paths = Object.freeze(extractMemberReads(entry.ast, root));
 			entry.reads.set(root, paths);
 		}
 		return paths;

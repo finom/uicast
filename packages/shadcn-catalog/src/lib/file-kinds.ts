@@ -1,6 +1,5 @@
 import z from "zod";
 
-// What FileUpload accepts. Each maps to one `accept` entry on the input.
 const FILE_KINDS = {
 	image: "image/*",
 	video: "video/*",
@@ -15,9 +14,8 @@ const FILE_KINDS = {
 	archive: ".zip,.tar,.gz",
 } as const;
 
-export type FileKind = keyof typeof FILE_KINDS;
+type FileKind = keyof typeof FILE_KINDS;
 
 export const fileKindSchema = z.enum(Object.keys(FILE_KINDS) as [FileKind, ...FileKind[]]).meta({ id: "FileKind" });
 
-// The `accept` attribute for a set of kinds.
 export const acceptAttribute = (kinds: readonly FileKind[]): string => kinds.map((k) => FILE_KINDS[k]).join(",");

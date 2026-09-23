@@ -10,7 +10,7 @@ import { GridImpl } from "./uicast-catalog/grid/impl";
 
 // Typography & Display
 import { HeadingImpl } from "./uicast-catalog/heading/impl";
-import { TextImpl } from "./uicast-catalog/text/impl";
+import { TypographyImpl } from "./uicast-catalog/typography/impl";
 import { BadgeImpl } from "./uicast-catalog/badge/impl";
 import { IconImpl } from "./uicast-catalog/icon/impl";
 import { TagImpl } from "./uicast-catalog/tag/impl";
@@ -62,19 +62,18 @@ import { DataGridImpl } from "./uicast-catalog/data-grid/impl";
 import { AvatarImpl } from "./uicast-catalog/avatar/impl";
 import { TooltipImpl } from "./uicast-catalog/tooltip/impl";
 import { ProgressBarImpl } from "./uicast-catalog/progress-bar/impl";
-import { ImageImpl } from "./uicast-catalog/image/impl";
+import { PictureImpl } from "./uicast-catalog/picture/impl";
 
 import { CalendarImpl } from "./uicast-catalog/calendar/impl";
 import { TimelineImpl } from "./uicast-catalog/timeline/impl";
 import { TreeViewImpl } from "./uicast-catalog/tree-view/impl";
 import { DescriptionListImpl } from "./uicast-catalog/description-list/impl";
 import { CodeBlockImpl } from "./uicast-catalog/code-block/impl";
-import { MarkdownViewerImpl } from "./uicast-catalog/markdown-viewer/impl";
 import { AvatarGroupImpl } from "./uicast-catalog/avatar-group/impl";
 import { CarouselImpl } from "./uicast-catalog/carousel/impl";
 import { CalloutImpl } from "./uicast-catalog/callout/impl";
 import { KBDImpl } from "./uicast-catalog/kbd/impl";
-import { HighlightImpl } from "./uicast-catalog/highlight/impl";
+import { HighlightedTextImpl } from "./uicast-catalog/highlighted-text/impl";
 import { RelativeTimeImpl } from "./uicast-catalog/relative-time/impl";
 import { TruncatedTextImpl } from "./uicast-catalog/truncated-text/impl";
 import { CopyButtonImpl } from "./uicast-catalog/copy-button/impl";
@@ -150,7 +149,7 @@ import { NotificationBadgeImpl } from "./uicast-catalog/notification-badge/impl"
 // Specialized / Business-Specific
 import { KanbanBoardImpl } from "./uicast-catalog/kanban-board/impl";
 import { VirtualListImpl } from "./uicast-catalog/virtual-list/impl";
-import { MapImpl } from "./uicast-catalog/map/impl";
+import { createLocationMapImplementation, LocationMapImpl } from "./uicast-catalog/location-map/impl";
 import { OrgChartImpl } from "./uicast-catalog/org-chart/impl";
 import { ChatThreadImpl } from "./uicast-catalog/chat-thread/impl";
 import { VideoPlayerImpl } from "./uicast-catalog/video-player/impl";
@@ -168,7 +167,7 @@ export {
   DrawerImpl,
   GridImpl,
   HeadingImpl,
-  TextImpl,
+  TypographyImpl,
   BadgeImpl,
   IconImpl,
   TagImpl,
@@ -210,7 +209,7 @@ export {
   AvatarImpl,
   TooltipImpl,
   ProgressBarImpl,
-  ImageImpl,
+  PictureImpl,
   TableImpl,
   TableHeaderImpl,
   TableBodyImpl,
@@ -254,12 +253,11 @@ export {
   TreeViewImpl,
   DescriptionListImpl,
   CodeBlockImpl,
-  MarkdownViewerImpl,
   AvatarGroupImpl,
   CarouselImpl,
   CalloutImpl,
   KBDImpl,
-  HighlightImpl,
+  HighlightedTextImpl,
   RelativeTimeImpl,
   TruncatedTextImpl,
   CopyButtonImpl,
@@ -280,7 +278,8 @@ export {
   NotificationBadgeImpl,
   KanbanBoardImpl,
   VirtualListImpl,
-  MapImpl,
+  LocationMapImpl,
+  createLocationMapImplementation,
   OrgChartImpl,
   ChatThreadImpl,
   VideoPlayerImpl,
@@ -302,7 +301,7 @@ export const impls = [
   GridImpl,
   // Typography & Display
   HeadingImpl,
-  TextImpl,
+  TypographyImpl,
   BadgeImpl,
   IconImpl,
   TagImpl,
@@ -349,18 +348,17 @@ export const impls = [
   AvatarImpl,
   TooltipImpl,
   ProgressBarImpl,
-  ImageImpl,
+  PictureImpl,
   CalendarImpl,
   TimelineImpl,
   TreeViewImpl,
   DescriptionListImpl,
   CodeBlockImpl,
-  MarkdownViewerImpl,
   AvatarGroupImpl,
   CarouselImpl,
   CalloutImpl,
   KBDImpl,
-  HighlightImpl,
+  HighlightedTextImpl,
   RelativeTimeImpl,
   TruncatedTextImpl,
   CopyButtonImpl,
@@ -427,7 +425,7 @@ export const impls = [
   // Specialized / Business-Specific
   KanbanBoardImpl,
   VirtualListImpl,
-  MapImpl,
+  LocationMapImpl,
   OrgChartImpl,
   ChatThreadImpl,
   VideoPlayerImpl,

@@ -17,7 +17,7 @@ export const CommandMenuImpl = createComponentImplementation({
   render: ({
     open,
     placeholder,
-    groups = [],
+    groups,
     onSelect,
     onOpenChange,
   }, { entry }) => {
@@ -25,7 +25,7 @@ export const CommandMenuImpl = createComponentImplementation({
       <span data-key={entry.key}>
         <CommandDialog
           open={open}
-          onOpenChange={(v: boolean) => onOpenChange({ open: v })}
+          onOpenChange={(v) => onOpenChange({ open: v })}
         >
           <Command>
             <CommandInput placeholder={placeholder} />

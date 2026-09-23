@@ -1,11 +1,7 @@
 import type { ComponentEntry } from "@uicast/core";
 
-/**
- * The palette-studio artifact. One `scopes.root.*` namespace holds the current
- * color (hex + h/s/l), alpha, and the saved swatches. ColorField and SwatchRail
- * both emit the *whole* color decomposition, so a single event restores every
- * channel; every callback also records itself in `scopes.root.lastEvt`.
- */
+// ColorField and SwatchRail emit the whole color, so one event sets every channel.
+// Every callback also records itself in `scopes.root.lastEvt`, which the "Last event" card prints.
 export const colorLines: ComponentEntry[] = [
   {
     key: "root",
@@ -26,7 +22,6 @@ export const colorLines: ComponentEntry[] = [
     children: ["intro", "top-row", "swatch-card", "controls", "readout-row"],
   },
 
-  // Intro
   {
     key: "intro",
     component: "FlexCol",
@@ -40,7 +35,7 @@ export const colorLines: ComponentEntry[] = [
   },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: {
       literal: {
         text:
@@ -50,7 +45,6 @@ export const colorLines: ComponentEntry[] = [
     },
   },
 
-  // Top row: color field + preview/alpha
   {
     key: "top-row",
     component: "Grid",
@@ -116,7 +110,6 @@ export const colorLines: ComponentEntry[] = [
     },
   },
 
-  // Swatches
   {
     key: "swatch-card",
     component: "Card",
@@ -143,7 +136,6 @@ export const colorLines: ComponentEntry[] = [
     },
   },
 
-  // Controls: host-function call, append, confirm-gated reset
   {
     key: "controls",
     component: "FlexRow",
@@ -203,7 +195,6 @@ export const colorLines: ComponentEntry[] = [
     },
   },
 
-  // Readouts: derived CSS string + the live "Last event" panel
   {
     key: "readout-row",
     component: "Grid",
@@ -218,7 +209,7 @@ export const colorLines: ComponentEntry[] = [
   },
   {
     key: "css-text",
-    component: "Text",
+    component: "Typography",
     props: {
       expr: "({ text: scopes.root.hex + '  ·  hsl(' + scopes.root.h + ' ' + scopes.root.s + '% ' + scopes.root.l + '%)  ·  alpha ' + scopes.root.alpha + '%', variant: 'muted' })",
     },
@@ -231,7 +222,7 @@ export const colorLines: ComponentEntry[] = [
   },
   {
     key: "evt-text",
-    component: "Text",
+    component: "Typography",
     props: {
       expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Pick a color or a swatch to see its event payload…', variant: 'muted' })",
     },

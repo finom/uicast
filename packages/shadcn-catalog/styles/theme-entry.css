@@ -1,15 +1,8 @@
-/*
- * Build input for `dist/theme.css` — the optional baseline for an app that has
- * not run `shadcn init`: Tailwind's preflight plus the canonical shadcn
- * palette. A project with its own tokens skips this file entirely.
- *
- * `theme(reference)` keeps preflight's own theme lookups as fallback-carrying
- * `var()`s, so this stays overridable too. No utilities are emitted here.
- */
+/* Build input for `dist/theme.css`: preflight and the canonical shadcn (neutral) palette, for an app without its own tokens. */
+/* `reference` keeps preflight's theme lookups as `var()`s with fallbacks, so they stay overridable. */
 @import "tailwindcss/theme" theme(reference);
 @import "tailwindcss/preflight";
 
-/* Canonical shadcn (neutral) light theme. */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);

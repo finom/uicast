@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
 import type { NextRequest } from "next/server";
 import { db } from "@/db";
-import { publicColumns } from "@/db/query";
-import { orders } from "@/db/schema";
+import { ownsRow, publicColumns } from "@/db/query";
+import { customers, orders, products } from "@/db/schema";
 import { orderUpdate } from "@/db/zod";
 import { idParam, json, ownerForRead, readValid, requireUser } from "@/lib/api";
 
@@ -29,6 +29,13 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
   if ("error" in body) return body.error;
   // Every field is optional — an empty patch would render UPDATE with no SET.
   if (Object.keys(body.data).length === 0) return json({ error: "No fields to update" }, 400);
+  const { customerId, productId } = body.data;
+  if (customerId !== undefined && !(await ownsRow(customers, customerId, auth.me.id))) {
+    return json({ error: "customerId does not exist" }, 400);
+  }
+  if (productId !== undefined && !(await ownsRow(products, productId, auth.me.id))) {
+    return json({ error: "productId does not exist" }, 400);
+  }
   const [row] = await db
     .update(orders)
     .set(body.data)

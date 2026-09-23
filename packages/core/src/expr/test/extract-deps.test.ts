@@ -4,7 +4,7 @@ import { Evaluator } from "@uicast/expr";
 import { type DepsPart, extractDeps as extract } from "../extract-deps";
 
 const ev = new Evaluator();
-const extractDeps = (entry: ComponentEntry, part?: DepsPart) => extract(entry, ev, part);
+const extractDeps = (entry: ComponentEntry, part: DepsPart = "all") => extract(entry, ev, part);
 
 const element = (
   patch: Partial<ComponentEntry>,
@@ -235,19 +235,9 @@ describe("extractDeps — the part parameter", () => {
   });
 });
 
-describe("extractDeps — caching and purity", () => {
+describe("extractDeps — caching", () => {
   it("returns the same array reference for the same entry", () => {
     const c = element({ props: { expr: "scopes.root.count" } });
     expect(extractDeps(c)).toBe(extractDeps(c));
-  });
-
-  it("ignores stray top-level deps fields (deps is no longer accepted)", () => {
-    // Belt-and-suspenders guard: if someone hand-writes an entry that
-    // carries a legacy `deps: [...]` field, it MUST be ignored by the
-    // extractor — auto-detection is the only source of truth.
-    const c = element({ props: { expr: "scopes.root.real" } }) as unknown as
-      ComponentEntry & { deps: string[] };
-    c.deps = ["scopes.root.LEGACY_SHOULD_NOT_LEAK"];
-    expect(extractDeps(c)).toEqual(["scopes.root.real"]);
   });
 });

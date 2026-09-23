@@ -1,4 +1,4 @@
-// Equality over JSON-shaped data: primitives, arrays, plain objects. A row window compares through its traps.
+// A row window compares through its traps.
 export const structurallyEqual = (a: unknown, b: unknown): boolean => {
 	if (Object.is(a, b)) return true;
 	if (typeof a !== "object" || typeof b !== "object" || a === null || b === null) return false;

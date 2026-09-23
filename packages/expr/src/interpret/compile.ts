@@ -1,30 +1,24 @@
 import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
 import type { Budget } from "../runtime/budget";
+import { chargeCompare, chargeNumber, chargeText } from "../runtime/coerce";
 import { callGlobal, GLOBAL_VALUES } from "../runtime/globals";
+import { lookupName } from "../runtime/lookup";
 import { callMember, construct, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
 import { childNodes, patternNames } from "../syntax/ast";
 
-// The AST is walked once into a tree of closures; evaluation is then nested calls, no per-node dispatch.
-// Operators and budget costs are resolved at compile time.
-
-// Lexical frame: value slots in binding order. Identifiers resolve to (depth, slot) at compile time.
+// Identifiers resolve to (depth, slot) at compile time.
 type Frame = {
 	values: unknown[];
 	parent: Frame | null;
 };
 
-// The names bound by each enclosing arrow, innermost last.
 type Lexical = readonly (readonly string[])[];
 
-const isBound = (name: string, lexical: Lexical): boolean => lexical.some((names) => names.includes(name));
-
-// What compilation needs besides the node: the enclosing arrows' names, and the host functions —
-// a call to one resolves here, not at run time.
 type Cx = { readonly lexical: Lexical; readonly tools: Record<string, HostFunction> };
 
-// Per-evaluation state. Contexts stay a list — one object spread per evaluation cost more than most expressions.
+// Contexts stay a list: one object spread per evaluation cost more than most expressions.
 export type Runtime = {
 	budget: Budget;
 	contexts: readonly Record<string, unknown>[];
@@ -35,44 +29,58 @@ export type Thunk = (frame: Frame | null, rt: Runtime) => unknown;
 // Marks a short-circuited optional chain, distinct from a real `undefined`.
 const SHORT: unique symbol = Symbol("short-circuit");
 
-// Node count of a subtree — what a closure body costs the budget when it runs.
+// What a closure body costs the budget when it runs.
 const nodeCount = (node: acorn.AnyNode): number => {
 	let total = 1;
 	for (const child of childNodes(node)) total += nodeCount(child);
 	return total;
 };
 
-// A name no arrow binds: the contexts, last one first, then the built-ins.
-// Host functions never get here — the validator allows them only as a callee, which is fused at compile time.
-const freeLookup = (name: string, rt: Runtime): unknown => {
-	const contexts = rt.contexts;
-	for (let i = contexts.length - 1; i >= 0; i--) {
-		if (Object.hasOwn(contexts[i], name)) return contexts[i][name];
-	}
-	if (Object.hasOwn(GLOBAL_VALUES, name)) return GLOBAL_VALUES[name];
-	throw new ExpressionError(`"${name}" is not available in expressions`, "unknown-reference");
-};
-
-// Compile an identifier to a direct slot read, or a context lookup if free.
-const compileIdentifier = (name: string, lexical: Lexical): Thunk => {
+// Where a parameter lives: how many frames up, and its slot there. Null for a free name.
+const slotOf = (name: string, lexical: Lexical): { depth: number; index: number } | null => {
 	for (let depth = 0; depth < lexical.length; depth++) {
-		const names = lexical[lexical.length - 1 - depth];
-		const index = names.lastIndexOf(name);
-		if (index === -1) continue;
-		if (depth === 0) return (frame) => (frame as Frame).values[index];
-		if (depth === 1) return (frame) => ((frame as Frame).parent as Frame).values[index];
-		return (frame) => {
-			let f = frame as Frame;
-			for (let d = 0; d < depth; d++) f = f.parent as Frame;
-			return f.values[index];
-		};
+		const index = lexical[lexical.length - 1 - depth].lastIndexOf(name);
+		if (index !== -1) return { depth, index };
 	}
-	return (_frame, rt) => freeLookup(name, rt);
+	return null;
 };
 
-// An object key: a written name, or a thunk for a computed one.
+const compileIdentifier = (name: string, lexical: Lexical): Thunk => {
+	const slot = slotOf(name, lexical);
+	// Host functions never get here: the validator allows them only as a callee, fused at compile time.
+	if (slot === null) return (_frame, rt) => lookupName(name, rt.contexts, GLOBAL_VALUES);
+	const { depth, index } = slot;
+	if (depth === 0) return (frame) => (frame as Frame).values[index];
+	if (depth === 1) return (frame) => ((frame as Frame).parent as Frame).values[index];
+	return (frame) => {
+		let f = frame as Frame;
+		for (let d = 0; d < depth; d++) f = f.parent as Frame;
+		return f.values[index];
+	};
+};
+
+// `row.status` on a callback's own parameter is the most common read there is, so it is one closure.
+const compileStaticChain = (base: string, keys: readonly string[], lexical: Lexical): Thunk => {
+	const slot = slotOf(base, lexical);
+	if (slot?.depth === 0 && keys.length === 1) {
+		const { index } = slot;
+		const [key] = keys;
+		return (frame) => getStaticMember((frame as Frame).values[index], key);
+	}
+	const root = compileIdentifier(base, lexical);
+	if (keys.length === 1) {
+		const [key] = keys;
+		return (frame, rt) => getStaticMember(root(frame, rt), key);
+	}
+	return (frame, rt) => {
+		let value = root(frame, rt);
+		for (let i = 0; i < keys.length; i++) value = getStaticMember(value, keys[i]);
+		return value;
+	};
+};
+
 const propertyKey = (prop: Pick<acorn.Property, "key" | "computed">, cx: Cx): string | Thunk => {
-	if (prop.computed) return compileNode(prop.key as acorn.Expression, cx);
+	if (prop.computed) return compileNode(prop.key, cx);
 	return prop.key.type === "Identifier" ? prop.key.name : String((prop.key as acorn.Literal).value);
 };
 
@@ -80,7 +88,7 @@ type Binder = (value: unknown, frame: Frame, rt: Runtime) => void;
 type PatternProp = { rest: Binder } | { key: string | Thunk; bind: Binder };
 type PatternElement = { rest: Binder } | { bind: Binder } | null;
 
-// A parameter pattern, compiled to the reads it performs. Binds into the in-flight frame, so a default sees earlier parameters.
+// Binds into the in-flight frame, so a default sees earlier parameters.
 const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 	switch (pattern.type) {
 		case "Identifier":
@@ -96,7 +104,7 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 			const props: PatternProp[] = pattern.properties.map((prop) =>
 				prop.type === "RestElement"
 					? { rest: compilePattern(prop.argument, cx) }
-					: { key: propertyKey(prop, cx), bind: compilePattern(prop.value as acorn.Pattern, cx) },
+					: { key: propertyKey(prop, cx), bind: compilePattern(prop.value, cx) },
 			);
 			return (value, frame, rt) => {
 				const taken: string[] = [];
@@ -116,16 +124,14 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 			};
 		}
 		case "ArrayPattern": {
-			const elements: PatternElement[] = pattern.elements.map((element) =>
-				element === null
-					? null
-					: element.type === "RestElement"
-						? { rest: compilePattern(element.argument, cx) }
-						: { bind: compilePattern(element, cx) },
-			);
+			const elements: PatternElement[] = pattern.elements.map((element) => {
+				if (element === null) return null;
+				if (element.type === "RestElement") return { rest: compilePattern(element.argument, cx) };
+				return { bind: compilePattern(element, cx) };
+			});
 			return (value, frame, rt) => {
 				if (!Array.isArray(value) && typeof value !== "string") {
-					throw new ExpressionError("Only arrays and strings can be destructured positionally", "runtime");
+					throw new ExpressionError("Only arrays and strings can be destructured positionally", "expression-runtime");
 				}
 				let items: unknown[];
 				if (typeof value === "string") {
@@ -139,6 +145,8 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 						const rest = items.slice(i);
 						rt.budget.array(rest.length);
 						element.rest(rest, frame, rt);
+					} else if (typeof items[i] === "function") {
+						throw new ExpressionError(`Item ${i} holds a function, which cannot be read in an expression`);
 					} else element.bind(items[i], frame, rt);
 				}
 			};
@@ -150,11 +158,20 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
 
 const HOLE: Thunk = () => undefined;
 
-// Evaluate a list left to right, flattening spreads; a hole is `undefined`.
+type ListThunk = (frame: Frame | null, rt: Runtime) => unknown[];
+
+// A hole is `undefined`.
 const compileList = (
 	items: readonly (acorn.Expression | acorn.SpreadElement | null)[],
 	cx: Cx,
-): ((frame: Frame | null, rt: Runtime) => unknown[]) => {
+): ListThunk => {
+	// Most argument lists are one plain expression or none.
+	if (items.length === 0) return () => [];
+	const [only] = items;
+	if (items.length === 1 && only !== null && only.type !== "SpreadElement") {
+		const thunk = compileNode(only, cx);
+		return (frame, rt) => [thunk(frame, rt)];
+	}
 	const parts = items.map((item) => ({
 		thunk: item === null ? HOLE : compileNode(item.type === "SpreadElement" ? item.argument : item, cx),
 		spread: item !== null && item.type === "SpreadElement",
@@ -172,44 +189,151 @@ const compileList = (
 
 type BinaryFn = (l: unknown, r: unknown, budget: Budget) => unknown;
 
-// `+` is the one polymorphic operator: string concatenation or numeric addition.
+// `+` is the one polymorphic operator: string concatenation or numeric addition. An array operand joins first.
 const plus: BinaryFn = (l, r, budget) => {
-	const out: unknown = (l as number) + (r as unknown as number);
+	if (typeof l === "object" || typeof r === "object") {
+		chargeText(l, budget);
+		chargeText(r, budget);
+	}
+	const out: unknown = (l as number) + (r as number);
 	if (typeof out === "string") budget.string(out.length);
 	return out;
 };
 
-const BINARY_FNS: Record<string, BinaryFn> = {
-	"+": plus,
-	"-": (l, r) => (l as number) - (r as number),
-	"*": (l, r) => (l as number) * (r as number),
-	"/": (l, r) => (l as number) / (r as number),
-	"%": (l, r) => (l as number) % (r as number),
-	"**": (l, r) => (l as number) ** (r as number),
-	// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `==` is the point
-	"==": (l, r) => l == r,
-	// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `!=` is the point
-	"!=": (l, r) => l != r,
-	"===": (l, r) => l === r,
-	"!==": (l, r) => l !== r,
-	"<": (l, r) => (l as number) < (r as number),
-	"<=": (l, r) => (l as number) <= (r as number),
-	">": (l, r) => (l as number) > (r as number),
-	">=": (l, r) => (l as number) >= (r as number),
+// A non-number operand is converted by the engine in time of its length, so it is charged first.
+const chargeNumbers = (l: unknown, r: unknown, budget: Budget): void => {
+	chargeNumber(l, budget);
+	chargeNumber(r, budget);
 };
 
-type UnaryFn = (v: unknown) => unknown;
+// Written out per operator: a shared wrapper would make one megamorphic call site of them all.
+export const BINARY_FNS: Record<string, BinaryFn> = {
+	"+": plus,
+	"-": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		return (l as number) - (r as number);
+	},
+	"*": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		return (l as number) * (r as number);
+	},
+	"/": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		return (l as number) / (r as number);
+	},
+	"%": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		return (l as number) % (r as number);
+	},
+	"**": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		return (l as number) ** (r as number);
+	},
+	// `x == null` converts nothing.
+	"==": (l, r, budget) => {
+		if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+		// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `==` is the point
+		return l == r;
+	},
+	"!=": (l, r, budget) => {
+		if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+		// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `!=` is the point
+		return l != r;
+	},
+	"===": (l, r) => l === r,
+	"!==": (l, r) => l !== r,
+	"<": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		return (l as number) < (r as number);
+	},
+	"<=": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		return (l as number) <= (r as number);
+	},
+	">": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		return (l as number) > (r as number);
+	},
+	">=": (l, r, budget) => {
+		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		return (l as number) >= (r as number);
+	},
+};
 
-const UNARY_FNS: Record<string, UnaryFn> = {
+// The common operators inline; one shared `fn(l, r)` call for every binary node costs a call and a megamorphic site.
+const binaryThunk = (op: string, left: Thunk, right: Thunk): Thunk => {
+	switch (op) {
+		case "===":
+			return (frame, rt) => left(frame, rt) === right(frame, rt);
+		case "!==":
+			return (frame, rt) => left(frame, rt) !== right(frame, rt);
+		case "<":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
+				return (l as number) < (r as number);
+			};
+		case "<=":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
+				return (l as number) <= (r as number);
+			};
+		case ">":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
+				return (l as number) > (r as number);
+			};
+		case ">=":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
+				return (l as number) >= (r as number);
+			};
+		case "-":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, rt.budget);
+				return (l as number) - (r as number);
+			};
+		case "*":
+			return (frame, rt) => {
+				const l = left(frame, rt);
+				const r = right(frame, rt);
+				if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, rt.budget);
+				return (l as number) * (r as number);
+			};
+		default: {
+			const fn = BINARY_FNS[op];
+			return (frame, rt) => fn(left(frame, rt), right(frame, rt), rt.budget);
+		}
+	}
+};
+
+type UnaryFn = (v: unknown, budget: Budget) => unknown;
+
+export const UNARY_FNS: Record<string, UnaryFn> = {
 	"!": (v) => !v,
-	"-": (v) => -(v as number),
-	"+": (v) => +(v as number),
+	"-": (v, budget) => {
+		if (typeof v !== "number") chargeNumber(v, budget);
+		return -(v as number);
+	},
+	"+": (v, budget) => {
+		if (typeof v !== "number") chargeNumber(v, budget);
+		return +(v as number);
+	},
 	typeof: typeOf,
 };
 
 export const compileAst = (ast: acorn.Expression, tools: Record<string, HostFunction>): Thunk => {
 	const body = compileNode(ast, { lexical: [], tools });
-	// The whole expression's straight-line work, charged once. What a callback body costs is charged again per invocation, where it belongs.
+	// Straight-line work charged once; a callback body is charged again per invocation.
 	const cost = nodeCount(ast);
 	return (frame, rt) => {
 		rt.budget.tick(cost);
@@ -238,8 +362,9 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 				const values = evalParts(frame, rt);
 				let out = quasis[0];
 				for (let i = 0; i < values.length; i++) {
-					// Plain JS stringification, "null" and "undefined" included — a friendlier blank would be a silent divergence; the document writes `?? ""`.
-					const piece = String(values[i]) + (quasis[i + 1] ?? "");
+					// "null" and "undefined" print as in JS.
+					chargeText(values[i], rt.budget);
+					const piece = String(values[i]) + quasis[i + 1];
 					rt.budget.growString(out.length + piece.length, piece.length);
 					out += piece;
 				}
@@ -256,7 +381,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 		}
 
 		case "MemberExpression": {
-			// Fused fast path: a plain `a.b.c` chain becomes one closure over a key array — the most common expression shape by far.
+			// A plain `a.b.c` chain is one closure over a key array: the most common shape by far.
 			if (!node.computed && !node.optional) {
 				const keys: string[] = [];
 				let base: acorn.AnyNode = node;
@@ -269,14 +394,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 					keys.unshift(base.property.name);
 					base = base.object;
 				}
-				if (base.type === "Identifier") {
-					const root = compileIdentifier(base.name, cx.lexical);
-					return (frame, rt) => {
-						let value = root(frame, rt);
-						for (let i = 0; i < keys.length; i++) value = getStaticMember(value, keys[i]);
-						return value;
-					};
-				}
+				if (base.type === "Identifier") return compileStaticChain(base.name, keys, cx.lexical);
 				const baseThunk = compileNode(base, cx);
 				return (frame, rt) => {
 					let value = baseThunk(frame, rt);
@@ -287,19 +405,19 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 			}
 
 			const object = compileNode(node.object, cx);
-			const optional = node.optional;
 
+			// Only `a?.b` gets here: the plain chain returned above.
 			if (!node.computed) {
-				const key = node.property.type === "Identifier" ? node.property.name : String((node.property as acorn.Literal).value);
+				const key = (node.property as acorn.Identifier).name;
 				return (frame, rt) => {
 					const o = object(frame, rt);
-					if (o === SHORT) return SHORT;
-					if (optional && (o === null || o === undefined)) return SHORT;
+					if (o === SHORT || o === null || o === undefined) return SHORT;
 					return getStaticMember(o, key);
 				};
 			}
 
 			const property = compileNode(node.property, cx);
+			const optional = node.optional;
 			return (frame, rt) => {
 				const o = object(frame, rt);
 				if (o === SHORT) return SHORT;
@@ -310,52 +428,45 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 
 		case "CallExpression": {
 			const evalArgs = compileList(node.arguments, cx);
-			const optional = node.optional;
 
-			// A method call: the receiver and the key stay together, so no method is ever produced as a standalone value that could be re-bound.
+			// Receiver and key stay together, so no method is ever a standalone value.
 			if (node.callee.type === "MemberExpression") {
 				const callee = node.callee;
 				const object = compileNode(callee.object, cx);
 				const keyThunk = callee.computed ? compileNode(callee.property, cx) : null;
-				const staticKey = callee.computed
-					? null
-					: callee.property.type === "Identifier"
-						? callee.property.name
-						: String((callee.property as acorn.Literal).value);
-				const shortCircuits = callee.optional || optional;
+				const staticKey = callee.computed ? null : (callee.property as acorn.Identifier).name;
+				const optional = callee.optional;
 
 				return (frame, rt) => {
 					const o = object(frame, rt);
 					if (o === SHORT) return SHORT;
-					if (shortCircuits && (o === null || o === undefined)) return SHORT;
+					if (optional && (o === null || o === undefined)) return SHORT;
 					const key = keyThunk ? keyThunk(frame, rt) : staticKey;
 					return callMember(o, key, evalArgs(frame, rt), rt.budget);
 				};
 			}
 
 			const calleeName = node.callee.type === "Identifier" ? node.callee.name : null;
-			// A host function: the validator allows it only here, with 0 or 1 argument, so the call binds now and the name never resolves at run time.
-			if (calleeName !== null && !isBound(calleeName, cx.lexical) && cx.tools[calleeName] !== undefined) {
+			// The validator allows a host function only here, so the call binds now.
+			if (calleeName !== null && slotOf(calleeName, cx.lexical) === null && cx.tools[calleeName] !== undefined) {
 				const fn = cx.tools[calleeName];
 				return (frame, rt) => fn(evalArgs(frame, rt)[0]);
 			}
-			const callee = compileNode(node.callee as acorn.Expression, cx);
+			// Only a callable global gets here: a function is never a value, so there is nothing else to call.
+			const callee = compileNode(node.callee, cx);
 			return (frame, rt) => {
 				const f = callee(frame, rt);
 				if (f === SHORT) return SHORT;
-				if (optional && (f === null || f === undefined)) return SHORT;
-				const args = evalArgs(frame, rt);
-				if (f instanceof Lambda) return f.call(args[0], args[1], args[2], args[3], args[4]);
-				if (f instanceof Namespace) return callGlobal(f.name, args, rt.budget);
+				if (f instanceof Namespace) return callGlobal(f.name, evalArgs(frame, rt), rt.budget);
 				throw new ExpressionError(
 					calleeName ? `"${calleeName}" is not a function` : "This expression is not callable",
-					"runtime",
+					"expression-runtime",
 				);
 			};
 		}
 
 		case "NewExpression": {
-			const callee = compileNode(node.callee as acorn.Expression, cx);
+			const callee = compileNode(node.callee, cx);
 			const evalArgs = compileList(node.arguments, cx);
 			return (frame, rt) => construct(callee(frame, rt), evalArgs(frame, rt), rt.budget);
 		}
@@ -363,17 +474,11 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 		case "UnaryExpression": {
 			const argument = compileNode(node.argument, cx);
 			const fn = UNARY_FNS[node.operator];
-			if (!fn) throw new ExpressionError(`The "${node.operator}" operator is not allowed`);
-			return (frame, rt) => fn(argument(frame, rt));
+			return (frame, rt) => fn(argument(frame, rt), rt.budget);
 		}
 
-		case "BinaryExpression": {
-			const left = compileNode(node.left as acorn.Expression, cx);
-			const right = compileNode(node.right, cx);
-			const fn = BINARY_FNS[node.operator];
-			if (!fn) throw new ExpressionError(`The "${node.operator}" operator is not allowed`);
-			return (frame, rt) => fn(left(frame, rt), right(frame, rt), rt.budget);
-		}
+		case "BinaryExpression":
+			return binaryThunk(node.operator, compileNode(node.left, cx), compileNode(node.right, cx));
 
 		case "LogicalExpression": {
 			const left = compileNode(node.left, cx);
@@ -414,7 +519,7 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 			const entries: Entry[] = node.properties.map((prop) =>
 				prop.type === "SpreadElement"
 					? { spread: true, value: compileNode(prop.argument, cx) }
-					: { spread: false, key: propertyKey(prop, cx), value: compileNode(prop.value as acorn.Expression, cx) },
+					: { spread: false, key: propertyKey(prop, cx), value: compileNode(prop.value, cx) },
 			);
 			return (frame, rt) => {
 				const out: Record<string, unknown> = {};
@@ -438,21 +543,17 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
 			const boundNames: string[] = [];
 			for (const param of params) patternNames(param, boundNames);
 			const inner: Cx = { lexical: [...cx.lexical, boundNames], tools: cx.tools };
-			const body = compileNode(node.body as acorn.Expression, inner);
-			// One invocation costs the whole arrow, parameters included — destructuring reads are membrane reads too.
+			const body = compileNode(node.body, inner);
+			// Destructuring reads are membrane reads too.
 			const cost = nodeCount(node);
-			// Charge and enter before binding: a default value can call back into the expression.
+			// Charged before binding: a default value is work too.
 			const run = (frame: Frame, rt: Runtime, bindParams?: () => void): unknown => {
-				const budget = rt.budget;
-				budget.tick(cost);
-				budget.enter();
+				rt.budget.tick(cost);
 				bindParams?.();
-				const out = body(frame, rt);
-				budget.depth--;
-				return out;
+				return body(frame, rt);
 			};
 
-			// Plain names — nearly every arrow — skip pattern binding: the call slots are the frame.
+			// Plain names skip pattern binding: the call slots are the frame.
 			if (params.every((p) => p.type === "Identifier")) {
 				switch (params.length) {
 					case 0:

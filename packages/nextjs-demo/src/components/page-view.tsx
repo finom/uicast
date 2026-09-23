@@ -5,21 +5,15 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { type ComponentEntry, streamJsonLines } from "@uicast/core";
-import { Evaluator } from "@uicast/expr";
-import { getErrorRecoveryPrompt, type RenderFailure } from "@uicast/core/prompt";
-import {
-  type ErrorComponentProps,
-  EntriesRenderer,
-  RendererProvider,
-} from "@uicast/react";
+import { type ComponentEntry, isComponentEntry, streamJsonLines } from "@uicast/core";
+import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { DocumentSkeleton } from "@uicast/shadcn-catalog/document-skeleton";
-import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
-import { RecoverableRenderError } from "@/components/recoverable-render-error";
 import { impls } from "@uicast/shadcn-catalog/all-impls";
+import { evaluator } from "@/lib/evaluator";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
-import { Profiler, type ProfilerOnRenderCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Profiler, type ProfilerOnRenderCallback, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { Card, CardContent, CardFooter } from "@uicast/shadcn-catalog/ui/card";
@@ -36,9 +30,9 @@ import { Label } from "@uicast/shadcn-catalog/ui/label";
 import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@uicast/shadcn-catalog/ui/tabs";
 import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
-import { CostInfo } from "@/components/cost-info";
-import { showToast } from "@/components/toaster";
-import { domainTools } from "@/tools";
+import { UsageLine } from "@/components/cost-info";
+import { useRendererDefaults } from "@/components/renderer-defaults";
+import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { setApiOwner, watchApiActivity } from "@/tools/http";
 
 // The skeleton comes down when a document's seeds have been quiet this long,
@@ -46,9 +40,6 @@ import { setApiOwner, watchApiActivity } from "@/tools/http";
 const SEED_QUIET_MS = 250;
 const SEED_START_MS = 400;
 const SEED_WAIT_MS = 8000;
-
-// One evaluator for the app: the host functions bind on it, and it holds the parse cache.
-const evaluator = new Evaluator({ functions: domainTools });
 
 // `?perf` logs every React commit of the generated tree to `window.__uicastPerf`, for measuring from the console.
 type PerfCommit = { at: number; phase: string; actual: number; base: number };
@@ -69,12 +60,8 @@ type PageMeta = {
 type ControlLine =
   | { type: "error"; error: string }
   | { type: "usage"; inputTokens: number; outputTokens: number; costUsd: number | null }
-  | { type: "done"; pageId: number; finishReason?: string };
+  | { type: "done"; finishReason: string };
 type GenerateLine = ComponentEntry | ControlLine;
-
-function isEntry(line: GenerateLine): line is ComponentEntry {
-  return "component" in line;
-}
 
 export function PageView({
   page: initialPage,
@@ -95,22 +82,17 @@ export function PageView({
   const [name, setName] = useState(initialPage.title);
   const [editOpen, setEditOpen] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
-  // Entries from completed runs; the current run's stream appends after these.
   const [history, setHistory] = useState(initialEntries);
-  // seq 0 is the auto-started initial run on a freshly created page; edit runs
-  // increment it. The server picks initial vs edit mode by the stored entries.
+  // The server picks initial vs edit mode by the stored entries.
   const [submission, setSubmission] = useState<{ prompt: string; seq: number } | null>(() =>
     !readonly && initialEntries.length === 0 && initialPage.prompt
       ? { prompt: initialPage.prompt, seq: 0 }
       : null,
   );
   const [promptOpen, setPromptOpen] = useState(false);
-  // The generated tree renders client-only: seeds fetch through the browser,
-  // so the server pass can only error and fall back — skip it instead.
+  // Seeds fetch through the browser, so the server pass is skipped.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  // The tree mounts empty and fills as its seeds return, so the skeleton stays
-  // up until they settle — a document with no seeds settles on the timeout.
   const [filled, setFilled] = useState(false);
   useEffect(() => {
     if (!mounted) return;
@@ -121,8 +103,7 @@ export function PageView({
         started = true;
         clearTimeout(quiet);
       } else if (started) {
-        // A dependent seed wave starts milliseconds after the one it reads
-        // from ends, so wait for quiet rather than for the first zero.
+        // A dependent seed wave starts milliseconds after the one it reads from, so wait for quiet.
         quiet = setTimeout(() => setFilled(true), SEED_QUIET_MS);
       }
     });
@@ -137,11 +118,9 @@ export function PageView({
       clearTimeout(giveUp);
     };
   }, [mounted]);
-  const perf = useMemo(() => mounted && new URLSearchParams(window.location.search).has("perf"), [mounted]);
+  const perf = mounted && new URLSearchParams(window.location.search).has("perf");
   const queryClient = useQueryClient();
 
-  // The generate endpoint's own assembly, so the viewer shows exactly what
-  // the endpoint sends.
   const systemPrompt = useMemo(() => (promptOpen ? buildPageSystemPrompt() : null), [promptOpen]);
 
   const {
@@ -154,10 +133,8 @@ export function PageView({
     retry: false,
     staleTime: Number.POSITIVE_INFINITY,
     queryFn: streamedQuery({
-      // Deliberately not consuming the abort signal: a signal-aware queryFn is
-      // auto-cancelled when its last observer unmounts, which double-fires the
-      // generation under StrictMode and kills it on navigation. Without it the
-      // run continues into the cache (and the DB) regardless.
+      // Not consuming the abort signal: a signal-aware queryFn is cancelled when its last observer unmounts, which
+      // double-fires the generation under StrictMode and kills it on navigation.
       streamFn: async () => {
         const res = await fetch("/api/generate", {
           method: "POST",
@@ -173,28 +150,25 @@ export function PageView({
   // ~4 chars per token — a rough gauge, labeled as such in the UI.
   const promptTokens = systemPrompt ? Math.round(systemPrompt.length / 4) : null;
 
-  const runEntries = (lines ?? []).filter(isEntry);
-  // Raw concatenation across runs — re-emitted keys are resolved by the
-  // renderer (replacement semantics); the Entries tab shows the raw lines.
+  const runEntries = (lines ?? []).filter(isComponentEntry);
+  // Re-emitted keys are resolved by the renderer; the Entries tab shows the raw lines.
   const entries = [...history, ...runEntries];
-  const controls = (lines ?? []).filter((line): line is ControlLine => !isEntry(line));
+  const controls = (lines ?? []).filter((line): line is ControlLine => !isComponentEntry(line));
   const finishReason = controls.find(
     (line): line is Extract<ControlLine, { type: "done" }> => line.type === "done",
   )?.finishReason;
-  const errorLine = controls.find((line) => line.type === "error");
-  // This run's bill, on top of the totals the page row was loaded with.
+  const errorLine = controls.find(
+    (line): line is Extract<ControlLine, { type: "error" }> => line.type === "error",
+  );
   const usageLine = controls.find(
     (line): line is Extract<ControlLine, { type: "usage" }> => line.type === "usage",
   );
   const totalIn = page.inputTokens + (usageLine?.inputTokens ?? 0);
   const totalOut = page.outputTokens + (usageLine?.outputTokens ?? 0);
   const totalCost = page.costUsd + (usageLine?.costUsd ?? 0);
-  const fmtTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
-  const streamError =
-    (errorLine?.type === "error" ? errorLine.error : undefined) ??
-    (queryError ? (queryError instanceof Error ? queryError.message : String(queryError)) : null);
+  const streamError = errorLine?.error ?? queryError?.message;
+  const runLabel = entries.length > 0 ? "Iterate" : "Generate";
 
-  // Rename is metadata-only: PATCH the page row, never touch the generator.
   const renameIfChanged = async () => {
     const title = name.trim();
     if (!title || title === page.title) return;
@@ -209,49 +183,25 @@ export function PageView({
     }
   };
 
-  const startEditRun = () => {
+  const submit = (prompt: string) => {
     // Fold the finished run into history before the query key changes.
     setHistory((prev) => [...prev, ...runEntries]);
-    setSubmission((prev) => ({ prompt: editPrompt.trim(), seq: (prev?.seq ?? 0) + 1 }));
+    setSubmission((prev) => ({ prompt, seq: (prev?.seq ?? 0) + 1 }));
+  };
+
+  const startEditRun = () => {
+    submit(editPrompt.trim());
     setEditPrompt("");
   };
 
-  // User-triggered error recovery: the error slot's Recover button reports the
-  // failed element back through the edit pipeline, and the model re-emits it
-  // corrected (partial replacement clears the error slot). Routed through a
-  // ref so `rendererDefaults` below stays referentially stable while the
-  // closure still sees the live run state.
-  const recoverRef = useRef<(failure: RenderFailure) => void>(() => {});
-  recoverRef.current = (failure) => {
+  const rendererDefaults = useRendererDefaults((failure) => {
     if (readonly) {
       showToast("Read-only copy — log in with OpenRouter to run recovery on your own pages.");
       return;
     }
     if (isFetching) return;
-    setHistory((prev) => [...prev, ...runEntries]);
-    setSubmission((prev) => ({
-      prompt: getErrorRecoveryPrompt({ failures: [failure] }),
-      seq: (prev?.seq ?? 0) + 1,
-    }));
-  };
-
-  const rendererDefaults = useMemo(
-    () => ({
-      confirm: ConfirmModal,
-      error: ({ error, elementKey }: ErrorComponentProps) => (
-        <RecoverableRenderError
-          error={error}
-          elementKey={elementKey}
-          onRecover={
-            elementKey
-              ? () => recoverRef.current({ key: elementKey, message: error.message })
-              : undefined
-          }
-        />
-      ),
-    }),
-    [],
-  );
+    submit(getErrorRecoveryPrompt({ failures: [failure] }));
+  });
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4 p-6">
@@ -341,12 +291,7 @@ export function PageView({
       </header>
 
       {(totalIn > 0 || totalOut > 0) && (
-        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <span>
-            {fmtTokens(totalIn)} tokens in · {fmtTokens(totalOut)} out · ≈${totalCost.toFixed(2)}
-          </span>
-          <CostInfo model={model} />
-        </p>
+        <UsageLine inputTokens={totalIn} outputTokens={totalOut} costUsd={totalCost} model={model} />
       )}
 
       {streamError && <p className="text-xs text-destructive">{streamError}</p>}
@@ -388,13 +333,13 @@ export function PageView({
               ) : (
                 <Sparkles data-icon="inline-start" />
               )}
-              {isFetching ? "Generating…" : entries.length > 0 ? "Iterate" : "Generate"}
+              {isFetching ? "Generating…" : runLabel}
             </Button>
           </CardFooter>
         </Card>
       )}
 
-      {entries.length > 0 && mounted ? (
+      {entries.length > 0 && mounted && (
         <Tabs defaultValue="preview">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -408,17 +353,9 @@ export function PageView({
                   the tree stays mounted underneath so its seeds run. */}
               {!filled && <DocumentSkeleton entries={entries} implementations={impls} />}
               <div className={filled ? undefined : "pointer-events-none absolute inset-0 overflow-hidden p-4 opacity-0"}>
-              {/* key: stable per page, so iterations stream into the mounted
-                  renderer (seeds and state preserved) instead of remounting —
-                  and the provider's shared root scope resets per page */}
+              {/* Stable per page, so iterations stream into the mounted renderer. */}
               <RendererProvider
-        onError={(error) => {
-          // Callback failures (a rejected write, a tool error) have no error
-          // slot — flash the server's own message instead.
-          if (error.reason === "host-function" || error.reason === "invalid-arguments") {
-            showToast(error.message.replace(/^[^:]*: */, ""));
-          }
-        }}
+                onError={toastCallbackFailure}
                 key={page.id}
                 implementations={impls}
                 evaluator={evaluator}
@@ -443,23 +380,21 @@ export function PageView({
             </ScrollArea>
           </TabsContent>
         </Tabs>
-      ) : entries.length > 0 ? (
-        // Server pass and first client render: the document's shape, drawn from
-        // the entries, so a reload is not a blank rectangle until hydration.
+      )}
+      {entries.length > 0 && !mounted && (
+        // Server pass and first client render, so a reload is not a blank rectangle until hydration.
         <div className="flex flex-col gap-2">
           <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
           <div className="overflow-x-auto rounded-md border p-4">
             <DocumentSkeleton entries={entries} implementations={impls} />
           </div>
         </div>
-      ) : (
-        mounted &&
-        !isFetching && (
-          <p className="text-sm text-muted-foreground">
-            This page has no generated content yet.
-            {!page.prompt && " Use Edit to describe what to generate."}
-          </p>
-        )
+      )}
+      {entries.length === 0 && mounted && !isFetching && (
+        <p className="text-sm text-muted-foreground">
+          This page has no generated content yet.
+          {!page.prompt && " Use Edit to describe what to generate."}
+        </p>
       )}
     </div>
   );

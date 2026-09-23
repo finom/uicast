@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
-import { useRef, useCallback } from "react";
+import { type PointerEvent, useRef } from "react";
 import { Button } from "../../components/ui/button";
 import { Eraser } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -21,50 +21,46 @@ export const SignaturePadImpl = createComponentImplementation({
   }, { entry }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawingRef = useRef(false);
+    const hasInkRef = useRef(false);
 
-    const getCtx = () => canvasRef.current?.getContext("2d") ?? null;
+    const pointOf = (e: PointerEvent<HTMLCanvasElement>): [number, number] => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      return [e.clientX - rect.left, e.clientY - rect.top];
+    };
 
-    const startDraw = useCallback(
-      (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (disabled) return;
-        isDrawingRef.current = true;
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext("2d");
-        if (!canvas || !ctx) return;
-        const rect = canvas.getBoundingClientRect();
-        ctx.beginPath();
-        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
-      },
-      [disabled],
-    );
+    const startDraw = (e: PointerEvent<HTMLCanvasElement>) => {
+      if (disabled) return;
+      isDrawingRef.current = true;
+      const ctx = e.currentTarget.getContext("2d");
+      if (!ctx) return;
+      ctx.beginPath();
+      ctx.moveTo(...pointOf(e));
+    };
 
-    const draw = useCallback(
-      (e: React.MouseEvent<HTMLCanvasElement>) => {
-        if (!isDrawingRef.current || disabled) return;
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext("2d");
-        if (!canvas || !ctx) return;
-        const rect = canvas.getBoundingClientRect();
-        ctx.strokeStyle = INKS[penColor];
-        ctx.lineWidth = 2;
-        ctx.lineCap = "round";
-        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-        ctx.stroke();
-      },
-      [disabled, penColor],
-    );
+    const draw = (e: PointerEvent<HTMLCanvasElement>) => {
+      if (!isDrawingRef.current || disabled) return;
+      const ctx = e.currentTarget.getContext("2d");
+      if (!ctx) return;
+      ctx.strokeStyle = INKS[penColor];
+      ctx.lineWidth = 2;
+      ctx.lineCap = "round";
+      ctx.lineTo(...pointOf(e));
+      ctx.stroke();
+      hasInkRef.current = true;
+    };
 
-    const endDraw = useCallback(() => {
+    const endDraw = () => {
+      if (!isDrawingRef.current) return;
       isDrawingRef.current = false;
-      onEnd({ isEmpty: false });
-    }, [onEnd]);
+      onEnd({ isEmpty: !hasInkRef.current });
+    };
 
     const clearCanvas = () => {
-      const ctx = getCtx();
-      if (ctx && canvasRef.current) {
-        ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        onClear();
-      }
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      canvas.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+      hasInkRef.current = false;
+      onClear();
     };
 
     return (
@@ -80,13 +76,13 @@ export const SignaturePadImpl = createComponentImplementation({
             width={width}
             height={height}
             className={cn(
-              "block cursor-crosshair rounded-t-md",
-              disabled && "cursor-default opacity-50",
+              "block cursor-crosshair touch-none rounded-t-md",
+              disabled && "cursor-default touch-auto opacity-50",
             )}
-            onMouseDown={startDraw}
-            onMouseMove={draw}
-            onMouseUp={endDraw}
-            onMouseLeave={endDraw}
+            onPointerDown={startDraw}
+            onPointerMove={draw}
+            onPointerUp={endDraw}
+            onPointerLeave={endDraw}
           />
           <div className="flex justify-end border-t p-1">
             <Button

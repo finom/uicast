@@ -4,13 +4,17 @@ import Link from "next/link";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { db } from "@/db";
 import { chats, pages, users } from "@/db/schema";
-import { getSessionUser, SYSTEM_SLUG } from "@/lib/auth";
+import { getSessionUser } from "@/lib/auth";
+import { SYSTEM_SLUG } from "@/lib/system-slug";
 
 export const dynamic = "force-dynamic";
 
-// Landing: the seed content for logged-out visitors, a recent feed of what
-// everyone built (all content is world-readable), and the login CTA.
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ login?: string | string[] }>;
+}) {
+  const { login } = await searchParams;
   const me = await getSessionUser();
   const [recentPages, recentChats] = await Promise.all([
     db
@@ -56,6 +60,11 @@ export default async function Home() {
             </Button>
           )}
         </div>
+        {login === "failed" && (
+          <p role="alert" className="text-xs text-destructive">
+            OpenRouter login failed or was cancelled. Try again.
+          </p>
+        )}
         {!me && (
           <p className="text-xs text-muted-foreground">
             No account here — OpenRouter authorizes a key, and generations bill your own

@@ -167,7 +167,7 @@ The builder appends the delta convention, and the model answers with the delta
 alone — here one line, reusing the key:
 
 ```jsonl
-{"key":"total","component":"Text","props":{"expr":"({ text: scopes.root.total, variant: 'large' })"}}
+{"key":"total","component":"Typography","props":{"expr":"({ text: scopes.root.total, variant: 'large' })"}}
 ```
 
 Every other key is untouched, and a successful `seed` on a re-emitted key does

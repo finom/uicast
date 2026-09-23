@@ -1,42 +1,29 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { VirtualListDef } from "./def";
+
+const OVERSCAN = 1;
 
 export const VirtualListImpl = createComponentImplementation({
   def: VirtualListDef,
   render: ({
-    items = [],
+    items,
     height,
     itemHeight,
     onItemClick,
   }, { entry }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
     const [scrollTop, setScrollTop] = useState(0);
 
     const totalHeight = items.length * itemHeight;
-    const visibleCount = Math.ceil(height / itemHeight) + 2;
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
+    const visibleCount = Math.ceil(height / itemHeight) + 2 * OVERSCAN;
+    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - OVERSCAN);
     const endIndex = Math.min(items.length, startIndex + visibleCount);
     const visibleItems = items.slice(startIndex, endIndex);
 
-    const handleScroll = useCallback(() => {
-      if (containerRef.current) {
-        setScrollTop(containerRef.current.scrollTop);
-      }
-    }, []);
-
-    useEffect(() => {
-      const el = containerRef.current;
-      if (el) {
-        el.addEventListener("scroll", handleScroll, { passive: true });
-        return () => el.removeEventListener("scroll", handleScroll);
-      }
-    }, [handleScroll]);
-
     return (
       <div
-        ref={containerRef}
+        onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
         className="overflow-auto rounded-md border"
         style={{ height }}
         data-key={entry.key}

@@ -5,8 +5,8 @@ import { cn } from "../../lib/utils";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DiffViewerDef } from "./def";
 
-// Real LCS line diffing via jsdiff, flattened to one row per line — an
-// inserted line can't cascade mismatches through the rest of the text.
+const MARKERS = { added: "+", removed: "-", unchanged: " " };
+
 function computeLineDiff(oldText: string, newText: string) {
   const result: {
     type: "unchanged" | "added" | "removed";
@@ -60,25 +60,21 @@ export const DiffViewerImpl = createComponentImplementation({
           <div className="border-b px-4 py-2 bg-muted text-xs font-medium">
             {oldTitle} → {newTitle}
           </div>
-          {diff.map((entry, i) => (
+          {diff.map((row, i) => (
             <div
               key={i}
               className={cn(
                 "px-4 py-0.5 border-b last:border-0",
-                entry.type === "added" &&
+                row.type === "added" &&
                   "bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-200",
-                entry.type === "removed" &&
+                row.type === "removed" &&
                   "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200",
               )}
             >
               <span className="inline-block w-6 text-muted-foreground select-none">
-                {entry.type === "added"
-                  ? "+"
-                  : entry.type === "removed"
-                    ? "-"
-                    : " "}
+                {MARKERS[row.type]}
               </span>
-              {entry.line}
+              {row.line}
             </div>
           ))}
           <ScrollBar orientation="horizontal" />
@@ -86,7 +82,6 @@ export const DiffViewerImpl = createComponentImplementation({
       );
     }
 
-    // Split mode
     const oldDiffs = diff.filter((d) => d.type !== "added");
     const newDiffs = diff.filter((d) => d.type !== "removed");
 
@@ -97,19 +92,19 @@ export const DiffViewerImpl = createComponentImplementation({
             <div className="border-b px-4 py-2 bg-muted text-xs font-medium">
               {oldTitle}
             </div>
-            {oldDiffs.map((entry, i) => (
+            {oldDiffs.map((row, i) => (
               <div
                 key={i}
                 className={cn(
                   "px-4 py-0.5 font-mono text-sm border-b last:border-0",
-                  entry.type === "removed" &&
+                  row.type === "removed" &&
                     "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200",
                 )}
               >
                 <span className="inline-block w-8 text-muted-foreground text-right mr-2 select-none text-xs">
-                  {entry.oldLineNum ?? ""}
+                  {row.oldLineNum}
                 </span>
-                {entry.line}
+                {row.line}
               </div>
             ))}
           </div>
@@ -117,19 +112,19 @@ export const DiffViewerImpl = createComponentImplementation({
             <div className="border-b px-4 py-2 bg-muted text-xs font-medium">
               {newTitle}
             </div>
-            {newDiffs.map((entry, i) => (
+            {newDiffs.map((row, i) => (
               <div
                 key={i}
                 className={cn(
                   "px-4 py-0.5 font-mono text-sm border-b last:border-0",
-                  entry.type === "added" &&
+                  row.type === "added" &&
                     "bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-200",
                 )}
               >
                 <span className="inline-block w-8 text-muted-foreground text-right mr-2 select-none text-xs">
-                  {entry.newLineNum ?? ""}
+                  {row.newLineNum}
                 </span>
-                {entry.line}
+                {row.line}
               </div>
             ))}
           </div>

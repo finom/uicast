@@ -1,40 +1,32 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
-import { useRef } from "react";
+import { type PointerEvent, useRef } from "react";
 import { hslToHex } from "../../colors";
 import { ColorFieldDef } from "./def";
 
-/** Two drag surfaces: the SL square (x = saturation, y = lightness, top = light) and a hue strip. */
+// x = saturation, y = lightness (top = light).
 export const ColorFieldRenderer = createComponentImplementation({
   def: ColorFieldDef,
-  render: ({ h = 220, s = 80, l = 55, onPick}, { entry }) => {
-    const sqRef = useRef<HTMLDivElement>(null);
+  render: ({ h, s, l, onPick }, { entry }) => {
     const sqDrag = useRef(false);
-    const hueRef = useRef<HTMLDivElement>(null);
     const hueDrag = useRef(false);
 
-    const pickSquare = (cx: number, cy: number) => {
-      const el = sqRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const ns = Math.round(Math.min(1, Math.max(0, (cx - r.left) / r.width)) * 100);
+    const pickSquare = (e: PointerEvent<HTMLDivElement>) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const ns = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 100);
       const nl = Math.round(
-        Math.min(1, Math.max(0, 1 - (cy - r.top) / r.height)) * 100,
+        Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height)) * 100,
       );
-      onPick?.({ hex: hslToHex(h, ns, nl), h, s: ns, l: nl });
+      onPick({ hex: hslToHex(h, ns, nl), h, s: ns, l: nl });
     };
-    const pickHue = (cx: number) => {
-      const el = hueRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const nh = Math.round(Math.min(1, Math.max(0, (cx - r.left) / r.width)) * 360);
-      onPick?.({ hex: hslToHex(nh, s, l), h: nh, s, l });
+    const pickHue = (e: PointerEvent<HTMLDivElement>) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const nh = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * 360);
+      onPick({ hex: hslToHex(nh, s, l), h: nh, s, l });
     };
 
     return (
       <div data-key={entry.key} className="flex select-none flex-col gap-3">
         <div
-          ref={sqRef}
           className="relative aspect-4/3 w-full cursor-crosshair overflow-hidden rounded-lg border border-border"
           style={{
             touchAction: "none",
@@ -43,10 +35,10 @@ export const ColorFieldRenderer = createComponentImplementation({
           onPointerDown={(e) => {
             sqDrag.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
-            pickSquare(e.clientX, e.clientY);
+            pickSquare(e);
           }}
           onPointerMove={(e) => {
-            if (sqDrag.current) pickSquare(e.clientX, e.clientY);
+            if (sqDrag.current) pickSquare(e);
           }}
           onPointerUp={() => {
             sqDrag.current = false;
@@ -62,7 +54,6 @@ export const ColorFieldRenderer = createComponentImplementation({
           />
         </div>
         <div
-          ref={hueRef}
           className="relative h-4 w-full cursor-ew-resize rounded-full border border-border"
           style={{
             touchAction: "none",
@@ -72,10 +63,10 @@ export const ColorFieldRenderer = createComponentImplementation({
           onPointerDown={(e) => {
             hueDrag.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
-            pickHue(e.clientX);
+            pickHue(e);
           }}
           onPointerMove={(e) => {
-            if (hueDrag.current) pickHue(e.clientX);
+            if (hueDrag.current) pickHue(e);
           }}
           onPointerUp={() => {
             hueDrag.current = false;

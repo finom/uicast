@@ -17,9 +17,9 @@ import { RadarChartDef } from "./def";
 export const RadarChartImpl = createComponentImplementation({
   def: RadarChartDef,
   render: ({
-    data = [],
+    data,
     dataKey,
-    valueKeys = [],
+    valueKeys,
     colors,
     height,
   }, { entry, loading }) => {

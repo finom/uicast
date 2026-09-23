@@ -2,7 +2,6 @@ import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { filterOperatorSchema } from "../../lib/filter-operators";
 
-// One condition. The same shape goes in as a prop and comes back on apply.
 const filterSchema = z
   .strictObject({
     field: z.string().meta({ description: "Which field the condition is on, by `name`." }),

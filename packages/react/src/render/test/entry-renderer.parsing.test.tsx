@@ -9,10 +9,6 @@ import {
   RendererProvider,
 } from "@uicast/react";
 
-// Props and `evt` are parsed through their schemas before they are handed on,
-// so an implementation receives the schema's OUTPUT — which is what its types
-// promise — rather than the raw evaluated value.
-
 const BadgeImpl = createComponentImplementation({
   def: createComponentDefinition({
     name: "Badge",
@@ -22,7 +18,6 @@ const BadgeImpl = createComponentImplementation({
       variant: z.enum(["default", "loud"]).default("default"),
     }),
   }),
-  // No `variant = "default"` here: the engine applies the schema's default.
   render: ({ text, variant}, { entry }) => (
     <span data-key={entry.key} data-variant={variant}>
       {text}
@@ -65,7 +60,6 @@ const NullPressImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.null() },
   }),
-  // A z.null() payload makes the handler a no-arg function — `evt` is `null`.
   render: ({ onPress}, { entry }) => (
     <button type="button" data-key={entry.key} onClick={() => onPress()}>
       press
@@ -98,7 +92,6 @@ describe("EntryRenderer — schema parsing", () => {
       <RendererProvider evaluator={testEvaluator} implementations={impls} onError={onError}>
         <EntriesRenderer
           entries={[
-            // `text` is required and missing — render never runs.
             { key: "b", component: "Badge", props: { literal: { variant: "loud" } } },
           ]}
         />
@@ -150,7 +143,6 @@ describe("EntryRenderer — schema parsing", () => {
     await act(async () => {
       fireEvent.click(getByText("press"));
     });
-    // `times` was never passed — the schema's default reached `evt`.
     await waitFor(() => expect(container.textContent).toContain("n=1"));
   });
 
@@ -179,8 +171,6 @@ describe("EntryRenderer — schema parsing", () => {
     await act(async () => {
       fireEvent.click(container.querySelector("[data-key='p']") as HTMLElement);
     });
-    // `onPress()` passes `undefined`; the engine retries the parse against
-    // `null` rather than rejecting the schema-declared "no data" call.
     await waitFor(() => expect(container.textContent).toContain("gotNull=true"));
     expect(onError).not.toHaveBeenCalled();
   });

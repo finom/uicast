@@ -1,10 +1,7 @@
+import { useEffect, useReducer } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { RelativeTimeDef } from "./def";
 
-// Largest-fitting unit, then the platform's locale-aware formatter.
-// `numeric: "auto"` yields phrasings like "yesterday", and both past and
-// future dates ("in 2 days") come out with correct pluralization — no
-// hand-rolled unit math.
 const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: 60, unit: "second" },
   { amount: 60, unit: "minute" },
@@ -14,6 +11,18 @@ const DIVISIONS: { amount: number; unit: Intl.RelativeTimeFormatUnit }[] = [
   { amount: 12, unit: "month" },
   { amount: Number.POSITIVE_INFINITY, unit: "year" },
 ];
+
+const SECOND_MS = 1000;
+const MINUTE_MS = 60 * SECOND_MS;
+const HOUR_MS = 60 * MINUTE_MS;
+
+// The text can change each second under a minute away, each minute under an hour, else each hour.
+function tickMs(date: Date): number {
+  const distance = Math.abs(date.getTime() - Date.now());
+  if (distance < MINUTE_MS) return SECOND_MS;
+  if (distance < HOUR_MS) return MINUTE_MS;
+  return HOUR_MS;
+}
 
 function formatRelativeTime(date: Date): string {
   const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: "auto" });
@@ -29,8 +38,14 @@ function formatRelativeTime(date: Date): string {
 
 export const RelativeTimeImpl = createComponentImplementation({
   def: RelativeTimeDef,
-  render: ({ date, prefix}, { entry }) => {
+  render: ({ date, prefix }, { entry }) => {
     const dateObj = new Date(date);
+    const [, tick] = useReducer((n: number) => n + 1, 0);
+    // No dependencies: each render schedules the next, at the delay its own distance allows.
+    useEffect(() => {
+      const timer = setTimeout(tick, tickMs(new Date(date)));
+      return () => clearTimeout(timer);
+    });
 
     return (
       <time

@@ -6,8 +6,11 @@
 
 - **Two written spellings of a prototype name got past the static backstop.** A substitution-free template-literal key (`` x[`constructor`] ``) and a destructuring key (`({ constructor: c }) => c`) reached the real prototype chain and could run code through `Function`. Both are refused up front now; the run-time-assembled name stays the documented residual. An object literal's key still defines an own property, as in JS.
 
+- **`validate()` refused less than `eval()`.** It ran only the shared checks; this package's own backstop (written prototype names) ran at compile. It compiles too now, so both refuse the same sources.
+
 ### Changed
 
+- The shared grammar's newer rules hold here too: an arrow only as a method's callback, and a host function's promise only as the whole result.
 - The static half — parse, validate, cache — is `@uicast/expr/internal`'s `Analyzer`, no longer a copy of the interpreter's.
 - **Binding moved into the compiled function.** The engine-compiled function looks its names up in the contexts itself, in one fixed-arity call, instead of the evaluator building an argument array and spreading it per evaluation. Short expressions run about twice as fast; `filter`/`map`/`reduce` over data now match bare `new Function`.
 

@@ -3,7 +3,7 @@ import {
   getFunctionsPartialPrompt,
 } from "@uicast/core/prompt";
 import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
-import { MiniExample, type SetupPart } from "../mini-example";
+import { type CodePart, MiniExample } from "../mini-example";
 import { OrdersLoader } from "./loader";
 import {
   ButtonDef,
@@ -20,7 +20,6 @@ import ReactMdx from "./react-equivalent.mdx";
 import RendererMdx from "./renderer.mdx";
 import orderEntries from "./entries.json";
 
-
 const PROMPT = [
   getComponentsPartialPrompt({
     definitions: [CardDef, HeadingDef, ButtonDef, ProductRowDef, EditDialogDef],
@@ -28,7 +27,7 @@ const PROMPT = [
   getFunctionsPartialPrompt({ functions: [listProducts, updateProduct] }),
 ].join("\n\n");
 
-const setup: SetupPart[] = [
+const setup: CodePart[] = [
   { name: "Same UI in React", file: "by hand", prov: "example", node: <ReactMdx /> },
   { name: "Definitions", file: "def.ts", prov: "you", node: <DefMdx /> },
   { name: "Implementations", file: "impl.tsx", prov: "you", node: <ImplMdx /> },

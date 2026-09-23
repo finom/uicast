@@ -2,7 +2,6 @@ import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { columnWidthSchema } from "../../lib/sizes";
 
-// One row: the host's own fields, with values a cell can render.
 const rowSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolean()]).nullable());
 
 export const DataGridDef = createComponentDefinition({

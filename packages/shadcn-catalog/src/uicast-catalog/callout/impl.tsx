@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { Alert, AlertTitle, AlertDescription } from "../../components/ui/alert";
 import {
@@ -12,7 +12,7 @@ import { CalloutDef } from "./def";
 
 export const CalloutImpl = createComponentImplementation({
   def: CalloutDef,
-  render: ({ variant, title, children}, { entry }) => {
+  render: ({ variant, title, children }, { entry }) => {
     const iconMap = {
       info: Info,
       tip: Lightbulb,
@@ -42,7 +42,7 @@ export const CalloutImpl = createComponentImplementation({
       </Alert>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => (
+  placeholder: ({ children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <Skeleton className="h-4 w-40" />
       {children}

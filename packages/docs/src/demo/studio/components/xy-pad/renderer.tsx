@@ -1,43 +1,37 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
-import { useRef } from "react";
+import { type PointerEvent, useRef } from "react";
 import { XYPadDef } from "./def";
 
-/** Drag anywhere on the pad; `y` is inverted so "up" = 1. */
 export const XYPadRenderer = createComponentImplementation({
   def: XYPadDef,
   render: ({
-    x = 0.5,
-    y = 0.5,
+    x,
+    y,
     xLabel,
     yLabel,
     onMove,
   }, { entry }) => {
-    const padRef = useRef<HTMLDivElement>(null);
     const dragging = useRef(false);
 
-    const emit = (clientX: number, clientY: number) => {
-      const el = padRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      const nx = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
-      const ny = Math.min(1, Math.max(0, 1 - (clientY - r.top) / r.height));
-      onMove?.({ x: Math.round(nx * 100) / 100, y: Math.round(ny * 100) / 100 });
+    const emit = (e: PointerEvent<HTMLDivElement>) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      const nx = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+      const ny = Math.min(1, Math.max(0, 1 - (e.clientY - r.top) / r.height));
+      onMove({ x: Math.round(nx * 100) / 100, y: Math.round(ny * 100) / 100 });
     };
 
     return (
       <div data-key={entry.key} className="flex select-none flex-col gap-2">
         <div
-          ref={padRef}
           className="relative aspect-square w-full cursor-crosshair overflow-hidden rounded-lg border border-border bg-linear-to-br from-muted/30 to-muted"
           style={{ touchAction: "none" }}
           onPointerDown={(e) => {
             dragging.current = true;
             e.currentTarget.setPointerCapture(e.pointerId);
-            emit(e.clientX, e.clientY);
+            emit(e);
           }}
           onPointerMove={(e) => {
-            if (dragging.current) emit(e.clientX, e.clientY);
+            if (dragging.current) emit(e);
           }}
           onPointerUp={() => {
             dragging.current = false;

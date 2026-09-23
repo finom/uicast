@@ -27,12 +27,9 @@ import {
 import { Streamdown } from "streamdown";
 import type { DemoConfig } from "@/demo/types";
 
-/**
- * "System prompt" header button + dialog: the prompt a host would send to the
- * model for this demo, assembled from the same partial builders a real host
- * uses — this demo's catalog defs and host functions included. Built lazily on
- * first open (the builders walk every def schema) and cached for the session.
- */
+const CHARS_PER_TOKEN = 4;
+
+// Built on first open (the builders walk every def schema) and kept for the session.
 export function SystemPromptDialog({ demo }: { demo: DemoConfig }) {
   const [prompt, setPrompt] = useState<string>();
 
@@ -67,7 +64,7 @@ export function SystemPromptDialog({ demo }: { demo: DemoConfig }) {
             What a host would send to the model for this demo — the shared
             partials plus this catalog and these functions.
             {prompt !== undefined &&
-              ` ≈${Math.round(prompt.length / 4).toLocaleString("en-US")} tokens.`}
+              ` ≈${Math.round(prompt.length / CHARS_PER_TOKEN).toLocaleString("en-US")} tokens.`}
           </DialogDescription>
         </DialogHeader>
         {/* min-w-0: a grid item's min-content width would otherwise let long

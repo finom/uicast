@@ -1,12 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * A bespoke website-only component (shared by the studio + color demos). It is
- * NOT in the shipped catalog — it exists to show that a demo can author its own
- * component whose event payload is whatever it needs. Here: a rotary knob whose
- * `onTurn` reports the new scalar value.
- */
 export const KnobDef = createComponentDefinition({
   name: "Knob",
   description:

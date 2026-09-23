@@ -70,7 +70,7 @@ inner scope, and an element there reads them all:
 
 ```jsonc
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
-{ "key": "lines",  "component": "Text", "each": "scopes.order.lines", "as": "line",
+{ "key": "lines",  "component": "Typography", "each": "scopes.order.lines", "as": "line",
   "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
 
@@ -143,12 +143,13 @@ field:
 { "expr": "scopes.root.count = 1" }                          // ❌ rejected: assignment
 ```
 
-**The same state must give the same result.** Expressions re-run whenever a path
-they read changes, so anything random or time-based renders inconsistently:
+**The same state must give the same result.** Expressions in `props`, `hidden`
+and `each` re-run whenever a path they read changes, so a random value there
+changes with every render. A step rolls once and stores it:
 
 ```jsonc
-{ "props": { "expr": "({ id: Math.random() })" } }        // ❌ different every render
-{ "seed": [{ "set": "scopes.root.id", "expr": "..." }] }  // ✅ compute once, read the stored value
+{ "props": { "expr": "({ text: Math.floor(Math.random() * 6) + 1 })" } }  // ❌ different every render
+{ "set": "scopes.root.dice", "expr": "Math.floor(Math.random() * 6) + 1" } // ✅ a step rolls once; props read scopes.root.dice
 ```
 
 ## Nothing runs on its own
@@ -168,8 +169,8 @@ Most render failures are one of these.
 
 ```jsonl
 {"key":"a","component":"Card","children":["b"]}    ✅ root
-{"key":"b","component":"Text"}                     ✅ referenced once
-{"key":"c","component":"Text"}                     ⚠️ second root — nobody references c
+{"key":"b","component":"Typography"}               ✅ referenced once
+{"key":"c","component":"Typography"}               ⚠️ second root — nobody references c
 ```
 
 Several roots will not crash — the renderer wraps them in a fragment — but one

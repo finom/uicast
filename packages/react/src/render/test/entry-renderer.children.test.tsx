@@ -32,10 +32,7 @@ describe("EntryRenderer — children", () => {
     expect(text.indexOf("second")).toBeLessThan(text.indexOf("third"));
   });
 
-  it("preserves props-supplied text when children is an empty array (eac4926 fix)", () => {
-    // If the renderer leaks an empty `children: []` past the guard, it would
-    // overwrite the `text` prop the renderer reads. The fix collapses empty
-    // children to null so the props-supplied content survives.
+  it("preserves props-supplied text when children is an empty array", () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",

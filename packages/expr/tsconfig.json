@@ -17,11 +17,6 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "paths": {
-      "@uicast/expr": [
-        "./src/index.ts"
-      ],
-    },
     "experimentalDecorators": true
   },
   "include": [

@@ -3,9 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-// Own file on purpose: React logs "Cannot update a component while rendering a
-// different component" once per component pair per React instance, so an
-// earlier test in the same file would consume it.
+// Own file: React warns "Cannot update a component while rendering…" once per component pair
+// per React instance, so an earlier test in the same file would swallow it.
 describe("EntryRenderer — a seed streamed in after its readers", () => {
   it("wakes them after its render, not during it", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});

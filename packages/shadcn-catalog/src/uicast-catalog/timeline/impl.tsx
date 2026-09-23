@@ -1,11 +1,11 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { cn } from "../../lib/utils";
 import { iconNode } from "../../lib/icon-node";
 import { TimelineDef } from "./def";
 
 export const TimelineImpl = createComponentImplementation({
   def: TimelineDef,
-  render: ({ items = [], onItemClick}, { entry }) => {
+  render: ({ items, onItemClick }, { entry }) => {
     const dotColors = {
       default: "bg-primary",
       success: "bg-green-500",
@@ -14,7 +14,7 @@ export const TimelineImpl = createComponentImplementation({
     };
 
     return (
-      <div className="space-y-0" data-key={entry.key}>
+      <div data-key={entry.key}>
         {items.map((item, i) => (
           <div
             key={i}
@@ -56,5 +56,5 @@ export const TimelineImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError } from "../index";
 
-// The Evaluator's own surface — the parts that are not the language itself:
-// what it refuses before parsing, what `compile` returns, and the parse cache.
-
 describe("what it refuses before parsing", () => {
 	const ev = new Evaluator();
 
@@ -21,7 +18,6 @@ describe("what it refuses before parsing", () => {
 		}
 	});
 
-	// Refused on length alone, before acorn runs, so oversized input costs nothing.
 	it("refuses a source past maxSourceLength", () => {
 		const small = new Evaluator({ maxSourceLength: 10 });
 		expect(small.eval("1 + 1")).toBe(2);
@@ -36,7 +32,6 @@ describe("what it refuses before parsing", () => {
 		}
 	});
 
-	// Parsed in expression position, so a bare `{ a: 1 }` is an object, not a block. The prompt's `({ … })` is a convention, not a parser need.
 	it("reads a bare object literal as an object", () => {
 		expect(ev.eval("{ a: 1 }")).toEqual({ a: 1 });
 		expect(ev.eval("({ a: 1 })")).toEqual({ a: 1 });
@@ -79,7 +74,6 @@ describe("the parse cache", () => {
 		const ev = new Evaluator({ maxCacheSize: 2 });
 		expect(ev.eval("1 + 1")).toBe(2);
 		expect(ev.eval("2 + 2")).toBe(4);
-		// Evicts the first, which must still evaluate correctly when re-parsed.
 		expect(ev.eval("3 + 3")).toBe(6);
 		expect(ev.eval("1 + 1")).toBe(2);
 	});

@@ -4,8 +4,6 @@ import { createProxyScope, type ComponentEntry } from "@uicast/core";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { defaultImplementationsList, testEvaluator } from "../../../test/render-helpers";
 
-// The point of <RendererProvider>: every <EntriesRenderer> under it shares ONE
-// `root` scope, so a write from one document is live in all of them.
 describe("RendererProvider — shared group store", () => {
   const seederLines: ComponentEntry[] = [
     {
@@ -58,7 +56,6 @@ describe("RendererProvider — shared group store", () => {
         <EntriesRenderer entries={reSeeder} />
       </RendererProvider>,
     );
-    // seed is default-mode: first writer wins, the late block reads 1, not 99.
     expect(container.textContent).toContain("late:1");
   });
 
@@ -101,8 +98,6 @@ describe("RendererProvider — shared group store", () => {
         props: { expr: "({ text: 'user:' + scopes.userCtx.name })" },
       },
     ];
-    // The host owns the proxy above the provider and injects it in `init`, so it
-    // is present before any entry evaluates — and the host can update it later.
     const userCtx = createProxyScope<{ name: string }>({ name: "Hopper" });
     const { container } = render(
       <RendererProvider evaluator={testEvaluator}

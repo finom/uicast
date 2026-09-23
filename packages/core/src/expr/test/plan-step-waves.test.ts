@@ -47,6 +47,20 @@ describe("planStepWaves", () => {
     expect(planStepWaves([write, bump])).toEqual([[write], [bump]]);
   });
 
+  it("finds currentValue in the parse: an escaped spelling reads it, a string does not", () => {
+    const write = { set: "scopes.root.count", literal: 1 };
+    const escaped = { set: "scopes.root.count", expr: "\\u0063urrentValue + 1" };
+    const quoted = { set: "scopes.root.count", expr: '"currentValue"' };
+    expect(planStepWaves([write, escaped])).toEqual([[write], [escaped]]);
+    expect(planStepWaves([write, quoted])).toEqual([[write, quoted]]);
+  });
+
+  it("classifies a step that does not parse, before any step runs", () => {
+    expect(() => planStepWaves([{ set: "scopes.root.a", expr: "1 +" }])).toThrow(
+      expect.objectContaining({ reason: "expression-syntax", fault: "document" }),
+    );
+  });
+
   it("isolates confirm steps as barriers", () => {
     const a = { set: "scopes.root.a", expr: "loadA()" };
     const del = { set: "scopes.root.r", expr: "del()", confirm: "Sure?" };

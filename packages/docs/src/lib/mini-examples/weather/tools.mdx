@@ -2,6 +2,8 @@
 import z from "zod";
 import { standardTool } from "standard-tool";
 
+const LATENCY_MS = 500;
+
 const TABLE: Record<string, { tempC: number; condition: string }> = {
   Amsterdam: { tempC: 14, condition: "Drizzle" },
   Tokyo: { tempC: 24, condition: "Clear" },
@@ -19,7 +21,7 @@ export const getWeather = standardTool({
     condition: z.string().meta({ description: "One-word sky condition" }),
   }),
   async execute({ city }) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, LATENCY_MS));
     return TABLE[city] ?? { tempC: 20, condition: "Unknown" };
   },
 });

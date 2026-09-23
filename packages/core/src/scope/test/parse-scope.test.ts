@@ -10,18 +10,8 @@ describe("parseScope", () => {
     expect(parseScope("scopes.root.user.name")).toEqual(["root", "user.name"]);
   });
 
-  it("accepts keys without the 'scopes.' prefix", () => {
-    expect(parseScope("root.count")).toEqual(["root", "count"]);
-  });
-
-  it("throws when no scope/leaf separator is present", () => {
-    expect(() => parseScope("noDots")).toThrow(/Invalid scope key/);
-  });
-
-  it("throws on a bare scope name with no leaf path", () => {
-    // "scopes.root" normalizes to just "root" — a whole-scope read, not a path
-    // into one. useReactiveDeps deliberately catches this throw for such reads.
-    expect(() => parseScope("scopes.root")).toThrow(/Invalid scope key/);
+  it("keeps the whole-scope marker as the leaf", () => {
+    expect(parseScope("scopes.root.*")).toEqual(["root", "*"]);
   });
 });
 
@@ -29,11 +19,9 @@ describe("depKey", () => {
   it("keeps the scope and the first field", () => {
     expect(depKey("scopes.root.user.name")).toBe("scopes.root.user");
     expect(depKey("scopes.root.count")).toBe("scopes.root.count");
-    expect(depKey("root.count")).toBe("scopes.root.count");
   });
 
   it("is every field of a bare scope", () => {
     expect(depKey("scopes.root")).toBe("scopes.root.*");
-    expect(depKey("scopes.")).toBeNull();
   });
 });

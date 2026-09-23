@@ -19,7 +19,7 @@ import { impls } from "@uicast/shadcn-catalog/all-impls";
 
 const evaluator = new Evaluator({ functions: hostFunctions });
 const entries = [
-  { key: "hello", component: "Text", props: { literal: { text: "Hello" } } },
+  { key: "hello", component: "Typography", props: { literal: { text: "Hello" } } },
 ];
 
 <RendererProvider implementations={impls} evaluator={evaluator}>
@@ -299,7 +299,7 @@ To allow more, pass an object or a predicate:
 
 | Field | Default | |
 | --- | --- | --- |
-| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x` |
+| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x`. `//host/a` and `\\host/a` name a host, so they are checked as absolute URLs |
 | `allowSameOrigin` | `true` | Absolute URLs on the page origin |
 | `hosts` | `[]` | Extra hosts over http/https; `*.example.com` matches subdomains only |
 | `allowDataImages` | `true` | `data:` raster images; `image/svg+xml` stays out regardless |
@@ -357,7 +357,7 @@ const init: InitFn = ({ scopes }) => {
 An entry reads it exactly like `root`:
 
 ```jsonc
-{ "key": "hello", "component": "Text",
+{ "key": "hello", "component": "Typography",
   "props": { "expr": "({ text: 'Hi ' + scopes.userCtx.name })" } }
 ```
 

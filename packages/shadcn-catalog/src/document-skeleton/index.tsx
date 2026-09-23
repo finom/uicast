@@ -3,8 +3,7 @@ import type { ComponentImplementation } from "@uicast/react";
 import { Fragment, type ReactElement } from "react";
 import { Skeleton } from "../components/ui/skeleton";
 
-// Every element is drawn by its own implementation's `placeholder`. Nothing is
-// evaluated, so this renders wherever the entries are — a server pass included.
+// Nothing is evaluated, so this renders wherever the entries are, a server pass included.
 
 // A list has no length yet; a few rows read as a list.
 const LIST_ROWS = 3;
@@ -35,15 +34,13 @@ function Node({
 
   // Always pass `children`: it is what tells a placeholder to draw its own tag.
   const placeholder = byName.get(entry.component)?.placeholder;
-  const self = placeholder
-    ? placeholder({ reason: "seeding", children: childEntries.length ? children : null })
-    : childEntries.length
-      ? <div className="flex flex-col gap-2">{children}</div>
-      : <Skeleton className="h-4 w-24" />;
+  let self: ReactElement;
+  if (placeholder) self = placeholder({ reason: "seeding", children: childEntries.length ? children : null });
+  else if (childEntries.length) self = <div className="flex flex-col gap-2">{children}</div>;
+  else self = <Skeleton className="h-4 w-24" />;
 
   if (!entry.each) return self;
-  // Repeat the element itself; wrapping it would put a div where the parent
-  // expects its own child, such as a row inside a table.
+  // Wrapping it would put a div where the parent expects its own child (a row inside a table).
   return (
     <>
       {Array.from({ length: LIST_ROWS }, (_, row) => (
@@ -53,19 +50,13 @@ function Node({
   );
 }
 
-/**
- * The document's shape while the renderer boots, drawn from the entries and the
- * same implementations the renderer uses. Throwaway markup: the real tree
- * replaces it, so nothing has to match.
- */
+// Throwaway markup: the real tree replaces it, so nothing has to match.
 export function DocumentSkeleton({
   entries,
   implementations,
-  className,
 }: {
   entries: ComponentEntry[];
   implementations: ComponentImplementation[];
-  className?: string;
 }): ReactElement | null {
   if (entries.length === 0) return null;
   const byKey = new Map(entries.map((entry) => [entry.key, entry]));
@@ -74,7 +65,7 @@ export function DocumentSkeleton({
   const roots = entries.filter((entry) => !referenced.has(entry.key));
 
   return (
-    <div aria-busy aria-hidden className={className}>
+    <div aria-busy aria-hidden>
       {roots.map((root) => (
         <Node key={root.key} entry={root} byKey={byKey} byName={byName} seen={new Set()} depth={0} />
       ))}

@@ -1,6 +1,5 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
-import { languageSchema } from "../../lib/languages";
 
 export const CodeEditorDef = createComponentDefinition({
   name: "CodeEditor",
@@ -9,9 +8,6 @@ export const CodeEditorDef = createComponentDefinition({
   props: z.strictObject({
     value: z.string().default("").meta({
       description: "The code content",
-    }),
-    language: languageSchema.default("javascript").meta({
-      description: "The language label. Metadata only — the content is not highlighted.",
     }),
     placeholder: z.string().default("Enter code...").meta({
       description: "Placeholder text",

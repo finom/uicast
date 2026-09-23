@@ -6,14 +6,12 @@ import { SankeyChartDef } from "./def";
 
 export const SankeyChartImpl = createComponentImplementation({
   def: SankeyChartDef,
-  render: ({ nodes = [], links = [], height}, { entry, loading }) => {
-    const sankeyData = { nodes, links };
-
+  render: ({ nodes, links, height }, { entry, loading }) => {
     return (
       <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
           <Sankey
-            data={sankeyData}
+            data={{ nodes, links }}
             nodePadding={30}
             nodeWidth={10}
             linkCurvature={0.5}

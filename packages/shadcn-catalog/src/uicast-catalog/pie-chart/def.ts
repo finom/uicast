@@ -17,7 +17,7 @@ export const PieChartDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of data objects with name and value" }),
-    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per series, in order." }),
+    colors: z.array(chartColorSchema).optional().meta({ description: "One colour per slice, in order." }),
     height: z
       .number().int().positive()
       .default(300)

@@ -8,7 +8,7 @@ export const NotificationBadgeDef = createComponentDefinition({
   props: z.strictObject({
     count: z.number().int().nonnegative().default(0).meta({
       description:
-        "Notification count. 0 hides the badge (or shows dot if showZero is true)",
+        "Notification count. 0 hides the badge unless showZero is true",
     }),
     max: z.number().int().min(1).default(99).meta({
       description: "Maximum displayed count (shows max+ for larger values)",

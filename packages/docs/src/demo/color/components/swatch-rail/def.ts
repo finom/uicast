@@ -1,11 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke color component: a row of saved swatches. Selecting one emits its
- * index plus the full color decomposition `{ index, hex, h, s, l }`, so the
- * callback can restore every channel at once.
- */
 export const SwatchRailDef = createComponentDefinition({
   name: "SwatchRail",
   description:

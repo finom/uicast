@@ -1,27 +1,16 @@
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
 import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
-import { MiniExample, type SetupPart } from "../mini-example";
+import { type CodePart, MiniExample } from "../mini-example";
 import { Counter } from "./renderer";
 import { CounterDef } from "./def";
 import DefMdx from "./def.mdx";
 import ImplMdx from "./impl.mdx";
 import RendererMdx from "./renderer.mdx";
-
-const ENTRY_DATA = [
-  {
-    key: "counter",
-    component: "Counter",
-    seed: [{ set: "scopes.root.count", literal: 0 }],
-    props: { expr: "({ count: scopes.root.count })" },
-    callbacks: {
-      onClick: [{ set: "scopes.root.count", expr: "currentValue + 1" }],
-    },
-  },
-];
+import counterEntries from "./entries.json";
 
 const PROMPT = getComponentsPartialPrompt({ definitions: [CounterDef] });
 
-const setup: SetupPart[] = [
+const setup: CodePart[] = [
   { name: "Definition", file: "def.ts", prov: "you", node: <DefMdx /> },
   { name: "Implementation", file: "impl.tsx", prov: "you", node: <ImplMdx /> },
   { name: "Partial prompt", prov: "gen", code: PROMPT, lang: "md" },
@@ -31,7 +20,7 @@ const setup: SetupPart[] = [
 export function CounterExample() {
   return (
     <MiniExample
-      entry={{ name: "Entries", prov: "llm", variants: entryVariants(ENTRY_DATA), defaultVariant: ENTRY_DEFAULT_VARIANT }}
+      entry={{ name: "Entries", prov: "llm", variants: entryVariants(counterEntries), defaultVariant: ENTRY_DEFAULT_VARIANT }}
       result={<Counter />}
       setup={setup}
     />

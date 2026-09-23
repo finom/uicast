@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -15,25 +15,24 @@ export const ResizablePanelImpl = createComponentImplementation({
     minSize,
     children,
   }, { entry }) => {
-    const childArray = Children.toArray(children);
-    const firstChild = childArray[0] ?? null;
-    const secondChild = childArray.slice(1);
+    const [first, ...rest] = Children.toArray(children);
 
+    // react-resizable-panels reads a bare number as pixels; the def gives percentages.
     return (
       <ResizablePanelGroup
         orientation={direction}
         className="min-h-50 rounded-lg border"
         data-key={entry.key}
       >
-        <ResizablePanel defaultSize={defaultSize} minSize={minSize}>
-          <div className="h-full overflow-auto">{firstChild}</div>
+        <ResizablePanel defaultSize={`${defaultSize}%`} minSize={`${minSize}%`}>
+          <div className="h-full overflow-auto">{first}</div>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={100 - defaultSize} minSize={minSize}>
-          <div className="h-full overflow-auto">{secondChild}</div>
+        <ResizablePanel defaultSize={`${100 - defaultSize}%`} minSize={`${minSize}%`}>
+          <div className="h-full overflow-auto">{rest}</div>
         </ResizablePanel>
       </ResizablePanelGroup>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

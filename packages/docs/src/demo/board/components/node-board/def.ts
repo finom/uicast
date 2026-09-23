@@ -1,12 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke board component with TWO custom events of different shapes:
- * `onMoveNode` is *spatial* ({ id, x, y }), `onConnect` is *relational*
- * ({ from, to }). One component, two payload shapes — both flowing through the
- * same declarative callback mechanism.
- */
 export const NodeBoardDef = createComponentDefinition({
   name: "NodeBoard",
   description:

@@ -17,13 +17,11 @@ import {
 
 describe("EntryRenderer — streaming / placeholders", () => {
 	it("renders a placeholder when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
-		// Root references a child entry by key that isn't in the elements map.
 		const lines: ComponentEntry[] = [
 			{
 				key: "root",
 				component: "Box",
 				children: ["pending"],
-				// No `pending` entry emitted yet — simulates a mid-stream state.
 			},
 		];
 		const { container } = mountEntries(lines, {
@@ -33,13 +31,10 @@ describe("EntryRenderer — streaming / placeholders", () => {
 		});
 		const ph = container.querySelector("[data-test-placeholder]");
 		expect(ph).not.toBeNull();
-		// An unstreamed child slot is "streaming", not "seeding".
 		expect(ph?.textContent).toBe("streaming");
 	});
 
 	it("uses the parent's per-component placeholder for an unstreamed child, over the global one", () => {
-		// A placeholder registered on the implementation fills that component's
-		// unstreamed child slots — it wins over `fallbackComponents.placeholder`.
 		const phBoxImpl = createComponentImplementation({
 			def: createComponentDefinition({
 				name: "PhBox",
@@ -78,21 +73,11 @@ describe("EntryRenderer — streaming / placeholders", () => {
 				children: ["pending"],
 			},
 		]);
-		// The default fallback renders nothing — `data-key` on root still exists,
-		// but no placeholder text appears.
 		expect(container.querySelector("[data-key='root']")).not.toBeNull();
 		expect(container.textContent ?? "").not.toContain("loading");
 	});
 });
 
-// As the LLM streams JSONLines, `<EntriesRenderer entries={lines}>` is re-rendered with
-// a growing `lines` array. Every already-mounted entry's `seed` must run
-// exactly once — even as later entries arrive — or stream-time UIs would
-// silently re-seed scopes and clobber user-set state. The invariant is held by
-// the per-entry seed attempt (`attemptRef` in useSeed) with stable React
-// keys per entry; these tests pin that contract against accidental refactors
-// (e.g. dropping the ref, swapping the keying strategy, or remounting on
-// elements-prop identity change).
 describe("EntryRenderer — streaming + seed", () => {
 	it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
 		let count = 0;
@@ -131,9 +116,6 @@ describe("EntryRenderer — streaming + seed", () => {
 
 		rerender(<RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
 
-		// A's seed still ran exactly once. The new sibling entry didn't
-		// remount A — React reconciled by stable `key`, the seed attempt record
-		// survived, and the seed block was skipped on the re-render.
 		expect(count).toBe(1);
 		expect(container.textContent).toContain("A");
 		expect(container.textContent).toContain("B");
@@ -162,7 +144,6 @@ describe("EntryRenderer — streaming + seed", () => {
 				component: "Box",
 				seed: [{ set: "scopes.root.tickRoot", expr: "track()" }],
 				children: ["child"],
-				// 'child' entry hasn't streamed yet — placeholder fills its slot.
 			},
 		];
 
@@ -183,8 +164,6 @@ describe("EntryRenderer — streaming + seed", () => {
 
 		rerender(<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
 
-		// Parent's seed still ran exactly once. The placeholder swapped out
-		// for the real child, but the parent wasn't remounted.
 		expect(count).toBe(1);
 		expect(container.querySelector("[data-test-placeholder]")).toBeNull();
 		expect(container.textContent).toContain("child-arrived");

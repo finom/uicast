@@ -1,11 +1,10 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
 import { hexToHsl } from "../../colors";
 import { SwatchRailDef } from "./def";
 
 export const SwatchRailRenderer = createComponentImplementation({
   def: SwatchRailDef,
-  render: ({ swatches = [], selected, onSelect}, { entry }) => {
+  render: ({ swatches, selected, onSelect }, { entry }) => {
     return (
       <div data-key={entry.key} className="flex flex-wrap gap-2">
         {swatches.map((hex, i) => {
@@ -16,7 +15,7 @@ export const SwatchRailRenderer = createComponentImplementation({
               type="button"
               aria-label={hex}
               aria-pressed={isSel}
-              onClick={() => onSelect?.({ index: i, hex, ...hexToHsl(hex) })}
+              onClick={() => onSelect({ index: i, hex, ...hexToHsl(hex) })}
               className={[
                 "size-9 rounded-md border-2 transition",
                 isSel

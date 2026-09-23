@@ -3,7 +3,6 @@ import { Evaluator, ExpressionError, type StandardToolV0 } from "@uicast/expr";
 import { CORPUS, SCOPES } from "../../../expr/src/test/corpus";
 import { PassthroughEvaluator } from "../index";
 
-// Both evaluators must agree on everything the language allows and refuse everything the shared grammar forbids.
 // The passthrough residual is pinned here, exactly as the README states it.
 
 const interpret = new Evaluator();
@@ -36,14 +35,16 @@ describe("the shared grammar is enforced by both", () => {
 		`await 1`,
 		`[3,1,2].sort()`,
 		`[1,2].reverse()`,
-		`"a".charAt(0)`,
-		`"a".concat("b")`,
-		`[1].concat([2])`,
-		`(1).toPrecision(2)`,
-		`"a".toLocaleLowerCase()`,
-		`String.fromCharCode(65)`,
-		`Array.of(1)`,
-		`Date.parse("x")`,
+		`"a".substr(0, 1)`,
+		`"a".search("a")`,
+		`[1].entries()`,
+		`new Map()`,
+		`[1].forEach(n => n)`,
+		`[1, , 2]`,
+		`(1).toLocaleString("de")`,
+		`String.raw({ raw: ["a"] })`,
+		`Object.assign({}, { a: 1 })`,
+		`Object.freeze({})`,
 		`encodeURI("a b")`,
 		// no statements, so no loops and nothing to put them in
 		`[1].map(() => { while (true) {} })`,
@@ -130,7 +131,6 @@ describe("a written prototype name in a destructuring key", () => {
 	it("binds nothing under interpret and is refused under passthrough", () => {
 		expect(interpret.eval(`[{}].map(({ constructor: c }) => c)`)).toEqual([undefined]);
 		expect(refuses(passthrough, `[{}].map(({ constructor: c }) => c)`)).toBe(true);
-		// The same key in an object literal defines an own property, in both.
 		expect(interpret.eval(`Object.keys({ constructor: 1 })`)).toEqual(["constructor"]);
 		expect(passthrough.eval(`Object.keys({ constructor: 1 })`)).toEqual(["constructor"]);
 	});
@@ -140,8 +140,8 @@ describe("the passthrough residual — known, documented, and deliberately not f
 	// A name built at run time is invisible to a static check; only the interpreter checks every read.
 	// Pinned: a case that stops throwing under interpret is a regression; one that starts throwing under passthrough must be understood.
 	it("reaches a method beyond the list through a run-time-assembled name", () => {
-		expect(refuses(interpret, `"abc"["char" + "At"](0)`)).toBe(true);
-		expect(passthrough.eval(`"abc"["char" + "At"](0)`)).toBe("a");
+		expect(refuses(interpret, `"abc"["sub" + "str"](1)`)).toBe(true);
+		expect(passthrough.eval(`"abc"["sub" + "str"](1)`)).toBe("bc");
 	});
 
 	it("reaches the prototype graph through a run-time-assembled name", () => {
@@ -160,7 +160,6 @@ describe("the passthrough residual — known, documented, and deliberately not f
 	it("but a function cannot leave, in either", () => {
 		for (const expr of [`({})["con" + "structor"]`, `[]["con" + "structor"]`, `[x => x]`]) {
 			expect(refuses(passthrough, expr), expr).toBe(true);
-			// the interpreter answers `undefined` for an absent own key, or refuses
 			try {
 				expect(interpret.eval(expr), expr).toBeUndefined();
 			} catch (err) {
@@ -180,7 +179,7 @@ describe("the passthrough residual — known, documented, and deliberately not f
 });
 
 describe("a runtime fault is a classified ExpressionError in both", () => {
-	for (const expr of [`scopes.nothing.x`, `(1).toFixed(101)`, `new Map([1])`, `JSON.parse("{")`]) {
+	for (const expr of [`scopes.nothing.x`, `(1).toFixed(101)`, `"a".repeat(-1)`, `JSON.parse("{")`]) {
 		it(expr, () => {
 			for (const ev of [interpret, passthrough]) {
 				try {
@@ -188,7 +187,7 @@ describe("a runtime fault is a classified ExpressionError in both", () => {
 					expect.fail(`${expr} did not throw`);
 				} catch (err) {
 					expect(ExpressionError.is(err), expr).toBe(true);
-					expect((err as ExpressionError).reason).toBe("runtime");
+					expect((err as ExpressionError).reason).toBe("expression-runtime");
 				}
 			}
 		});
@@ -198,7 +197,6 @@ describe("a runtime fault is a classified ExpressionError in both", () => {
 describe("host functions behave the same in both", () => {
 	const tool = (name: string, execute: StandardToolV0["execute"]): StandardToolV0 => ({ name, description: "", execute });
 	const functions = [
-		tool("getUser", async (input) => ({ id: (input as { id: number }).id, name: "Ada" })),
 		tool("double", (input) => (input as number) * 2),
 		tool("ping", () => "pong"),
 		tool("hostCall", async () => 1),

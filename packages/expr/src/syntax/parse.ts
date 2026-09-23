@@ -2,9 +2,8 @@ import * as acorn from "acorn";
 import { DEFAULT_MAX_SOURCE_LENGTH } from "../constants/limits";
 import { ExpressionError } from "../errors";
 
-// One parser for validation and evaluation — a second parser reading a construct differently would be a bypass.
-// The `void ( … )` wrapper forces expression context (`{…}` is an object literal)
-// and turns a smuggled `)` into a rejected multi-statement parse.
+// One parser for validation and evaluation. `void ( … )` forces expression context (`{…}` is an object literal)
+// and turns a smuggled `)` into a rejected multi-statement parse. The newline ends a trailing `//` comment.
 export const parseExpression = (
 	source: string,
 	maxLength: number = DEFAULT_MAX_SOURCE_LENGTH,
@@ -26,7 +25,7 @@ export const parseExpression = (
 
 	let program: acorn.Program;
 	try {
-		program = acorn.parse(`void (${trimmed})`, {
+		program = acorn.parse(`void (${trimmed}\n)`, {
 			ecmaVersion: 2022,
 			sourceType: "script",
 			// So `await x` parses and is refused by name, not as a syntax error.

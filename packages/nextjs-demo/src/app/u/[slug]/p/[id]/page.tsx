@@ -1,4 +1,3 @@
-import type { ComponentEntry } from "@uicast/core";
 import { and, asc, eq } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { db } from "@/db";
@@ -42,7 +41,7 @@ export default async function UserPage({
         outputTokens: row.page.outputTokens,
         costUsd: row.page.costUsd,
       }}
-      initialEntries={rows.map((r) => r.data as ComponentEntry)}
+      initialEntries={rows.map((r) => r.data)}
       ownerSlug={slug}
       readonly={me?.id !== row.page.userId}
       model={GENERATION_MODEL}

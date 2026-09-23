@@ -13,7 +13,6 @@ const STEPS = [
   },
 ];
 
-/** The three-step summary under the hero. One column on phones, three from `sm`. */
 export function Steps() {
   return (
     <div className="mb-12 grid gap-8 sm:grid-cols-3 sm:gap-6">

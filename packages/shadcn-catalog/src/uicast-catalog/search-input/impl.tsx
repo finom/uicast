@@ -18,7 +18,7 @@ export const SearchInputImpl = createComponentImplementation({
     onKeyDown,
     onKeyUp,
   }, { entry }) => {
-    const strValue = String(value ?? "");
+    const strValue = value ?? "";
     return (
       <div className="relative flex items-center" data-key={entry.key}>
         <Search className="absolute left-3 size-4 text-muted-foreground" />

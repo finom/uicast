@@ -7,8 +7,7 @@ import "./globals.css";
 
 export const metadata = { title: "Warehouse — uicast demo" };
 
-// Follows the OS color scheme. Runs before paint (no flash) and keeps
-// listening, so an OS-level switch rethemes the app live.
+// Runs before paint and keeps listening, so an OS-level switch rethemes the app live.
 const themeScript = `(() => {
   const m = matchMedia("(prefers-color-scheme: dark)");
   const apply = () => document.documentElement.classList.toggle("dark", m.matches);

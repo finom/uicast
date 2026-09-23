@@ -3,16 +3,23 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
 import { ALLOWED_GLOBALS } from "../constants/globals";
+import { DEFAULT_BUDGET } from "../constants/limits";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 
-// Every runnable example in README.md, run — and its language section checked against the tables. A README that lies is worse than one that is short.
+// Every runnable example in README.md, run.
 
 describe("README", () => {
 	it("the opening example", () => {
 		const rows = [{ stock: 1 }, { stock: 0 }, { stock: 4 }];
 		const ev = new Evaluator();
 		expect(ev.eval("rows.filter(r => r.stock > 0).length", { rows })).toBe(2);
-		expect(() => ev.eval('"abc"["char" + "At"](0)')).toThrow(/"charAt" is not an available method/);
+		expect(() => ev.eval('rows["pu" + "sh"]({ stock: 9 })', { rows })).toThrow(/"push" is not an available method on array/);
+	});
+
+	it("the callback examples", () => {
+		const ev = new Evaluator();
+		expect(ev.eval("Array.from({ length: 3 }, (_, i) => i)")).toEqual([0, 1, 2]);
+		expect(() => ev.eval("[x => x]")).toThrow(/only be written as a method's callback/);
 	});
 
 	it("the constructor options", () => {
@@ -38,7 +45,7 @@ describe("README", () => {
 		expect(out).toBe("$19.99");
 	});
 
-	it("the host-function example", () => {
+	it("the host-function example", async () => {
 		const users = [{ id: 7, name: "Ada" }];
 		const numberId = {
 			"~standard": {
@@ -58,13 +65,17 @@ describe("README", () => {
 					name: "getUser",
 					description: "Look up a user by id",
 					inputSchema: numberId,
-					execute: (input) => users.find((u) => u.id === (input as { id: number }).id),
+					execute: async (input) => users.find((u) => u.id === (input as { id: number }).id),
 				} as StandardToolV0,
 			],
 		});
 
-		expect(ev.eval("getUser({ id: 7 }).name")).toBe("Ada");
+		const user = await ev.eval("getUser({ id: 7 })");
+		expect(user).toEqual({ id: 7, name: "Ada" });
+		expect(ev.eval("user.name", { user })).toBe("Ada");
 		expect(() => ev.eval("getUser({ id: 'seven' })")).toThrow(/rejected its argument/);
+		expect(() => ev.eval("getUser({ id: 7 }).name")).toThrow(/must be the result itself/);
+		expect(() => ev.eval("ids.map(id => getUser({ id }))", { ids: [7] })).toThrow(/cannot be called inside a callback/);
 	});
 
 	it("a tool is refused anywhere but the callee, with 0 or 1 argument", () => {
@@ -77,13 +88,17 @@ describe("README", () => {
 
 	it("a function in a context is not callable — contexts are data", () => {
 		const ev = new Evaluator();
-		expect(() => ev.eval("f()", { f: () => 1 })).toThrow(/is not a function/);
+		expect(() => ev.eval("f()", { f: () => 1 })).toThrow(/holds a function/);
 	});
 
 	it("the exit gate example", () => {
 		const ev = new Evaluator();
-		expect(() => ev.eval("[x => x]")).toThrow(ExpressionError);
-		expect(() => ev.eval("scopes.fn", { scopes: { fn: () => 1 } })).toThrow(ExpressionError);
+		class User {
+			name = "Ada";
+		}
+		expect(() => ev.eval("user", { user: new User() })).toThrow(/The result contains a User, which is not plain data/);
+		expect(() => ev.eval("new Date(0)")).toThrow(/The result contains a Date, which is not plain data/);
+		expect(() => ev.eval("scopes.fn", { scopes: { fn: () => 1 } })).toThrow(/"fn" holds a function, which cannot be read/);
 	});
 
 	it("the divergences it lists", () => {
@@ -103,14 +118,13 @@ describe("the README's language section matches the tables", () => {
 		String: "string",
 		Number: "number",
 		Date: "Date",
-		Map: "Map",
 		Set: "Set",
-		"Intl formatter": "formatter",
 	};
 
 	it("lists every method of every receiver, and nothing else", () => {
 		const seen = new Set<string>();
-		for (const line of section.split("\n- ").slice(1)) {
+		const methods = section.slice(section.indexOf("**Methods.**"), section.indexOf("**Static.**"));
+		for (const line of methods.split("\n- ").slice(1)) {
 			const label = line.slice(0, line.indexOf(":"));
 			const key = RECEIVERS[label];
 			expect(key, `unknown receiver "${label}"`).toBeDefined();
@@ -130,6 +144,12 @@ describe("the README's language section matches the tables", () => {
 		for (const [ns, names] of listed) {
 			expect([...names].sort(), ns).toEqual([...NAMESPACE_METHOD_NAMES[ns]].sort());
 		}
+	});
+
+	it("gives the budget defaults", () => {
+		const budget = readme.slice(readme.indexOf("## Budget"), readme.indexOf("## Host functions"));
+		const listed = Object.fromEntries([...budget.matchAll(/^\| `(\w+)` \| (\d+) \|/gm)].map(([, name, value]) => [name, Number(value)]));
+		expect(listed).toEqual(DEFAULT_BUDGET);
 	});
 
 	it("lists every global, and nothing else", () => {

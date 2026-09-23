@@ -1,11 +1,11 @@
 import { noteSection } from "./note-section";
 
 export type ScopePromptOptions = {
-	/** `"page"` a complete page; `"widget"` one embedded widget; `"answer"` a compact conversational answer. */
+	// `"page"` a complete page; `"widget"` one embedded widget; `"answer"` a compact conversational answer.
 	kind: "page" | "widget" | "answer";
-	/** Soft size anchor, rendered as a hint ("around N elements"), not a quota. */
+	// Soft size anchor, rendered as a hint ("around N elements"), not a quota.
 	approxElements?: number;
-	/** Host-specific context, appended as this section's trailing `## Note`. */
+	// Host-specific context, appended as this section's trailing `## Note`.
 	note?: string;
 };
 
@@ -26,7 +26,6 @@ const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
 - Bind real data via host functions — the answer must show actual values, not placeholders.`,
 };
 
-/** The `# Scope` block — how much to build. Compose right after the common instructions. */
 export function getScopePartialPrompt({
 	kind,
 	approxElements,

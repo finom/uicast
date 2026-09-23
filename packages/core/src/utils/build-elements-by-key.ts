@@ -1,18 +1,12 @@
 import type { ComponentEntry } from "../types";
 
-/**
- * Collect all descendant keys of an entry (not including the entry itself)
- * by walking its children arrays recursively.
- */
 function collectDescendantKeys(
   id: string,
   map: Record<string, ComponentEntry>,
 ): Set<string> {
   const result = new Set<string>();
   const stack = [id];
-  while (stack.length > 0) {
-    const current = stack.pop();
-    if (current === undefined) break;
+  for (let current = stack.pop(); current !== undefined; current = stack.pop()) {
     const entry = map[current];
     if (entry?.children) {
       for (const childId of entry.children) {
@@ -26,24 +20,19 @@ function collectDescendantKeys(
   return result;
 }
 
-/**
- * Entries → elements-by-key map. A duplicate key replaces the old subtree,
- * keeping any old children the new `children` array still references — so one
- * re-emitted entry restructures without regenerating the tree.
- */
+// A re-emitted key replaces its subtree but keeps old children its new `children` array still names.
 export function buildElementsByKey(
   lines: ComponentEntry[],
 ): Record<string, ComponentEntry> {
-  const map: Record<string, ComponentEntry> = {};
+  // No prototype: keys are model-written, and `__proto__` or `toString` must be plain keys.
+  const map: Record<string, ComponentEntry> = Object.create(null);
 
   for (const line of lines) {
     if (map[line.key]) {
       const oldDescendants = collectDescendantKeys(line.key, map);
       const kept = new Set<string>();
       const stack = [...(line.children ?? [])];
-      while (stack.length > 0) {
-        const id = stack.pop();
-        if (id === undefined) break;
+      for (let id = stack.pop(); id !== undefined; id = stack.pop()) {
         if (kept.has(id) || !oldDescendants.has(id)) continue;
         kept.add(id);
         const entry = map[id];

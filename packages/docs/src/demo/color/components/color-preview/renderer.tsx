@@ -1,4 +1,3 @@
-"use client";
 import { createComponentImplementation } from "@uicast/react";
 import { ColorPreviewDef } from "./def";
 
@@ -7,7 +6,7 @@ const CHECKER =
 
 export const ColorPreviewRenderer = createComponentImplementation({
   def: ColorPreviewDef,
-  render: ({ hex = "#000000", alpha = 100, label}, { entry }) => {
+  render: ({ hex, alpha, label }, { entry }) => {
     return (
       <div
         data-key={entry.key}

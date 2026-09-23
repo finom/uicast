@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
 import { SidebarDef } from "./def";
@@ -14,22 +14,22 @@ import {
   TooltipTrigger,
 } from "../../components/ui/tooltip";
 
+const COLLAPSED_WIDTH = 64;
+
 export const SidebarImpl = createComponentImplementation({
   def: SidebarDef,
   render: ({
-    sections = [],
+    sections,
     collapsed,
     width,
     onNavigate,
     onToggleCollapse,
   }, { entry }) => {
     return (
-      <TooltipProvider delayDuration={0}>
+      <TooltipProvider>
         <div
-          className={cn(
-            "flex h-full flex-col border-r bg-background transition-all duration-200",
-          )}
-          style={{ width: collapsed ? 64 : width }}
+          className="flex h-full flex-col border-r bg-background transition-all duration-200"
+          style={{ width: collapsed ? COLLAPSED_WIDTH : width }}
           data-key={entry.key}
         >
           <div className="flex items-center justify-end p-2">
@@ -103,7 +103,7 @@ export const SidebarImpl = createComponentImplementation({
       </TooltipProvider>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => (
+  placeholder: ({ children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <Skeleton className="h-4 w-40" />
       {children}

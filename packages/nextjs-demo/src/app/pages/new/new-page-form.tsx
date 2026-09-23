@@ -69,7 +69,7 @@ export function NewPageForm() {
           </div>
           {create.isError && (
             <p className="text-xs text-destructive">
-              {create.error instanceof Error ? create.error.message : String(create.error)}
+              {create.error.message}
             </p>
           )}
         </CardContent>

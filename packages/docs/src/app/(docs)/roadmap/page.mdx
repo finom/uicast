@@ -13,11 +13,13 @@ Where **uicast** is headed.
   prompt contract can also still change between releases.
 </Callout>
 
-## Pure host functions in reactive sites
+## Pure host functions in reactive sites and callbacks
 
 An opt-in mark — `meta: { pure: true }` on the tool — declaring a host function
 synchronous, deterministic, and effect-free. Marked functions become callable
-in `props`, `hidden`, and `each`; unmarked ones stay rejected there.
+in `props`, `hidden`, and `each`, and inside a callback such as
+`rows.map(r => formatPrice({ value: r.price }))`; unmarked ones stay rejected
+there.
 
 ## Reusable expressions
 

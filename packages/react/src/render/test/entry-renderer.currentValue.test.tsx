@@ -3,10 +3,6 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-// `currentValue` is the value currently at an assignment's `set` path, bound
-// into the eval context of every set-bearing seed / callback step so an
-// expression can read-modify-write (`currentValue + 1`, `!currentValue`,
-// `[...currentValue, x]`) without re-reading the path.
 describe("EntryRenderer — currentValue", () => {
   it("binds currentValue in a callback for increments, re-read each click", async () => {
     const lines: ComponentEntry[] = [
@@ -35,7 +31,6 @@ describe("EntryRenderer — currentValue", () => {
     });
     await waitFor(() => expect(container.textContent).toContain("11"));
 
-    // A second click must read the *updated* value, not the mount-time one.
     await act(async () => {
       fireEvent.click(btn);
     });
@@ -131,7 +126,6 @@ describe("EntryRenderer — currentValue", () => {
     await act(async () => {
       fireEvent.click(btn);
     });
-    // 0 → (+1) → 1 → (+10) → 11: the second step sees the first step's write.
     await waitFor(() => expect(container.textContent).toContain("11"));
   });
 

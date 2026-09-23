@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const TruncatedTextDef = createComponentDefinition({
   name: "TruncatedText",
   description:
-    "Ellipsis text with expand/tooltip for overflow. Truncates long text with an option to expand or show full text on hover. Use TruncatedText for table cells, card descriptions, or any constrained text area.",
+    "Ellipsis text for overflow. Truncates long text to `maxLines` lines, with an optional Show more / Show less toggle. Use TruncatedText for table cells, card descriptions, or any constrained text area.",
   props: z.strictObject({
     text: z.string().meta({
       description: "The full text content",

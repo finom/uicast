@@ -7,18 +7,13 @@ type JSONSchemaType =
 	| "null"
 	| "integer";
 
-/** The draft-07/2020-12 keywords a Standard-Schema `toJSONSchema()` emits. Callers still narrow from `unknown` — a schema value can also be a boolean. */
 export interface JSONSchema {
-	$schema?:
-		| "https://json-schema.org/draft/2020-12/schema"
-		| "http://json-schema.org/draft-07/schema#";
 	type?: JSONSchemaType | JSONSchemaType[];
 	format?: string;
 	pattern?: string;
 	$ref?: string;
 	items?: boolean | JSONSchema;
 	prefixItems?: JSONSchema[];
-	additionalItems?: boolean | JSONSchema;
 	enum?: unknown[];
 	minimum?: number;
 	maximum?: number;
@@ -30,40 +25,42 @@ export interface JSONSchema {
 	uniqueItems?: boolean;
 	default?: unknown;
 	$id?: string;
-	title?: string;
 	description?: string;
 	properties?: { [key: string]: JSONSchema };
+	patternProperties?: { [pattern: string]: JSONSchema };
+	propertyNames?: JSONSchema;
 	required?: string[];
-	examples?: unknown[];
 	not?: JSONSchema;
 	$defs?: { [key: string]: JSONSchema };
 	definitions?: { [key: string]: JSONSchema };
 	additionalProperties?: boolean | JSONSchema;
+	unevaluatedProperties?: boolean | JSONSchema;
+	unevaluatedItems?: boolean | JSONSchema;
+	contains?: JSONSchema;
+	dependentSchemas?: { [key: string]: JSONSchema };
+	if?: JSONSchema;
+	then?: JSONSchema;
+	else?: JSONSchema;
 	anyOf?: JSONSchema[];
 	oneOf?: JSONSchema[];
 	allOf?: JSONSchema[];
 	const?: unknown;
-	example?: unknown;
-	// binary
-	contentEncoding?: string;
-	contentMediaType?: string;
 	minLength?: number;
 	maxLength?: number;
 }
 
-export type JSONSchemaToTsOptions = {
-	/** Render objects one property per line; the string is the caller's continuation indent. Omit for the single-line form. */
+export const isSchemaObject = (node: unknown): node is JSONSchema =>
+	typeof node === "object" && node !== null && !Array.isArray(node);
+
+type JSONSchemaToTsOptions = {
+	// The caller's continuation indent; omit for the single-line form.
 	multiline?: string;
-	/** Pointers rendered as a NAME instead of their expansion (`{ "#/$defs/Person": "Person" }`) — what makes a recursive schema expressible. */
+	// `{ "#/$defs/Person": "Person" }`: what makes a recursive schema expressible.
 	namedRefs?: Record<string, string>;
 };
 
-/**
- * JSON Schema → compact TypeScript type string. Pass the whole document so
- * `$ref`s resolve; recursion terminates (`unknown` at the back-edge) unless
- * the ref is named via `namedRefs`.
- */
-export function JSONSchemaToTs(
+// Pass the whole document so `$ref`s resolve; a cycle renders `unknown` unless the ref is in `namedRefs`.
+export function jsonSchemaToTs(
 	jsonSchema: unknown,
 	options?: JSONSchemaToTsOptions,
 ): string {
@@ -78,17 +75,14 @@ export function JSONSchemaToTs(
 	);
 }
 
-/** Multiline state: the caller's line prefix + current nesting depth. */
 type Multiline = { pad: string; depth: number } | null;
 
-/** Recursion state: the ref-resolution root, the in-flight refs (cycle guard), the pointer→name map. */
 type Ctx = {
 	root: unknown;
 	seen: Set<string>;
 	named: Record<string, string> | null;
 };
 
-/** Recursive worker; a node's description and constraints render as a trailing comment at every nesting level. */
 function toTs(
 	jsonSchema: unknown,
 	ctx: Ctx,
@@ -99,7 +93,7 @@ function toTs(
 	return note ? `${base} /* ${note} */` : base;
 }
 
-/** The comment text: the description, then the constraints. One line; a comment close inside it would truncate the type after it, so it is neutered. */
+// One line; a `*/` inside would end the comment early, so it is neutered.
 function annotation(jsonSchema: unknown): string {
 	if (jsonSchema === null || typeof jsonSchema !== "object") return "";
 	const schema = jsonSchema as JSONSchema;
@@ -113,7 +107,7 @@ function annotation(jsonSchema: unknown): string {
 		.replace(/\*\//g, "*");
 }
 
-/** What the type alone does not say — TS has no integer, no bound, no format. A `.int()` stamps ±MAX_SAFE_INTEGER, which is no constraint. */
+// A bare `.int()` stamps ±MAX_SAFE_INTEGER, which is no constraint.
 function constraints(schema: JSONSchema): string[] {
 	const out: string[] = [];
 	const types = Array.isArray(schema.type) ? schema.type : [schema.type];
@@ -139,7 +133,6 @@ function constraints(schema: JSONSchema): string[] {
 	return out;
 }
 
-/** Type rendering without the annotation pass (see `Ctx` for what travels). */
 function toTsBase(
 	jsonSchema: unknown,
 	ctx: Ctx,
@@ -147,24 +140,18 @@ function toTsBase(
 ): string {
 	if (jsonSchema === true) return "unknown";
 	if (jsonSchema === false) return "never";
-	if (jsonSchema === null || jsonSchema === undefined) return "unknown";
-	if (typeof jsonSchema !== "object") return "unknown";
+	if (jsonSchema === null || typeof jsonSchema !== "object") return "unknown";
 	const schema = jsonSchema as JSONSchema;
 
 	if (typeof schema.$ref === "string") {
-		// A hoisted definition renders as its name. This has to come before the
-		// cycle guard: a recursive type is exactly the case where inlining gives
-		// up and returns `unknown`, and a name is what lets it be stated.
+		// Before the cycle guard: a recursive type is exactly the case a name is for.
 		const named = ctx.named?.[schema.$ref];
 		if (named) return named;
-		if (ctx.seen.has(schema.$ref)) return "unknown"; // cycle back-edge
+		if (ctx.seen.has(schema.$ref)) return "unknown";
 		const target = resolveRef(schema.$ref, ctx.root);
 		if (target === undefined) return "unknown";
 		ctx.seen.add(schema.$ref);
-		// When the referencing node has its own annotation, it wins (it names
-		// the field's role at THIS use site) — render the target without its
-		// root annotation so the field isn't double-commented. The target's
-		// nested fields keep their own annotations either way.
+		// The referencing node's own annotation wins, so the target renders without its root annotation.
 		const resolved = annotation(schema)
 			? toTsBase(target, ctx, ml)
 			: toTs(target, ctx, ml);
@@ -193,8 +180,7 @@ function toTsBase(
 	if (schema.not) return "unknown";
 
 	if (Array.isArray(schema.type)) {
-		// The per-type variants render bare — the wrapper annotates the union
-		// as a whole; annotating each would stamp every member.
+		// The wrapper annotates the union as a whole.
 		const types = schema.type.map((t) => toTsBase({ ...schema, type: t }, ctx, ml));
 		return types.length ? `(${types.join(" | ")})` : "unknown";
 	}
@@ -221,7 +207,6 @@ function toTsBase(
 	return "unknown";
 }
 
-/** The object branch of `toTsBase`: properties, index signatures, layout. */
 function renderObject(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 	const props = schema.properties || {};
 	const required = schema.required || [];
@@ -242,8 +227,7 @@ function renderObject(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 		schema.additionalProperties &&
 		typeof schema.additionalProperties === "object"
 	) {
-		// Deliberately single-line even in multiline mode: the value type sits
-		// inside an index-signature wrapper, where one line reads best.
+		// Single-line even in multiline mode: it sits inside an index-signature wrapper.
 		additionalType = toTs(schema.additionalProperties, ctx);
 	}
 
@@ -258,8 +242,6 @@ function renderObject(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 
 	let result: string;
 	if (ml) {
-		// One property per line: fields one level deeper than this object's
-		// braces, the closing brace back at the object's own level.
 		const inner = ml.pad + "  ".repeat(ml.depth + 1);
 		const closing = ml.pad + "  ".repeat(ml.depth);
 		result = `{\n${inner}${propStrings.join(`;\n${inner}`)};\n${closing}}`;
@@ -272,10 +254,8 @@ function renderObject(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 	return result;
 }
 
-/** The array branch of `toTsBase`: tuples (both drafts) and plain item arrays. */
 function renderArray(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
-	// Tuple members are deliberately single-line even in multiline mode —
-	// a tuple reads as one bracketed row.
+	// Single-line even in multiline mode: a tuple reads as one row.
 	if (schema.prefixItems) {
 		const tupleTypes = schema.prefixItems.map((s) => toTs(s, ctx));
 		if (schema.items === false) return `[${tupleTypes.join(", ")}]`;
@@ -283,29 +263,12 @@ function renderArray(schema: JSONSchema, ctx: Ctx, ml: Multiline): string {
 		return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
 	}
 
-	if (schema.items !== undefined && schema.items !== null) {
-		if (Array.isArray(schema.items)) {
-			const tupleTypes = schema.items.map((s) => toTs(s, ctx));
-			if (schema.additionalItems === false) {
-				return `[${tupleTypes.join(", ")}]`;
-			}
-			const restType = schema.additionalItems
-				? toTs(schema.additionalItems, ctx)
-				: "unknown";
-			return `[${tupleTypes.join(", ")}, ...${restType}[]]`;
-		}
-		const itemTs = toTs(schema.items, ctx, ml);
-		// An item type ENDING in an annotation must be parenthesized —
-		// `string /* x */[]` reads as if the comment interrupts the type;
-		// `(string /* x */)[]` keeps the array suffix unambiguous. A comment
-		// safely inside braces (`{ a: string /* x */ }[]`) needs nothing.
-		return itemTs.endsWith("*/") ? `(${itemTs})[]` : `${itemTs}[]`;
-	}
-
-	return "unknown[]";
+	if (schema.items === undefined) return "unknown[]";
+	const itemTs = toTs(schema.items, ctx, ml);
+	// `string /* x */[]` reads as if the comment interrupts the type; parenthesized it does not.
+	return itemTs.endsWith("*/") ? `(${itemTs})[]` : `${itemTs}[]`;
 }
 
-/** Resolve a local pointer ref against the root; `undefined` for non-local or missing (rendered as `unknown`). */
 export function resolveRef(ref: string, root: unknown): unknown {
 	if (!ref.startsWith("#/")) return undefined;
 	const segments = ref

@@ -26,8 +26,8 @@ export const TrackPadImpl = createComponentImplementation({
               x: {x} · y: {y}
             </span>
             <span
-              className="pointer-events-none absolute size-1.5 rounded-full bg-foreground"
-              style={{ left: x - 3, top: y - 3 }}
+              className="pointer-events-none absolute size-1.5 -translate-1/2 rounded-full bg-foreground"
+              style={{ left: x, top: y }}
             />
           </>
         )}

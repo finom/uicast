@@ -1,19 +1,8 @@
 import type { CodeVariant } from "./mini-example";
 
-/**
- * The two ways to read the same document: **JSONLines** — what actually
- * streams, one entry per line — and **JSON**, the same entries pretty-printed
- * as an array so nesting is readable. JSONLines is listed first because it is
- * the wire format, but JSON opens selected (see `ENTRY_DEFAULT_VARIANT`): one
- * entry per line is dense to read cold, and the pretty-printed form is where a
- * newcomer can actually see the shape.
- *
- * Lives outside `mini-example.tsx` because that file is `"use client"`, and a
- * server component can't call a function exported from a client module.
- */
-// Width-aware pretty-printing: a node prints on one line when it fits, and
-// expands only when it doesn't — `JSON.stringify(…, null, 2)` would put every
-// `children` key on its own line and triple the block's height.
+// Not in `mini-example.tsx`: that file is `"use client"`, and a server component cannot call a function exported from it.
+
+// A node prints on one line when it fits; `JSON.stringify(…, null, 2)` would put every `children` key on its own line.
 const WIDTH = 64;
 
 function inline(value: unknown): string {
@@ -60,5 +49,5 @@ export function entryVariants(entries: unknown[]): CodeVariant[] {
   ];
 }
 
-/** Index of the variant `entryVariants` opens on — the pretty-printed JSON. */
+// The pretty-printed JSON.
 export const ENTRY_DEFAULT_VARIANT = 1;

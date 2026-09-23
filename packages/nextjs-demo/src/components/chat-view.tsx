@@ -8,13 +8,11 @@ import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { MessageSquare } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
-import { Evaluator } from "@uicast/expr";
-import { type ErrorComponentProps, RendererProvider } from "@uicast/react";
-import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
-import { CostInfo } from "@/components/cost-info";
-import { RecoverableRenderError } from "@/components/recoverable-render-error";
+import { RendererProvider } from "@uicast/react";
+import { type Usage, UsageLine } from "@/components/cost-info";
+import { useRendererDefaults } from "@/components/renderer-defaults";
 import { impls } from "@uicast/shadcn-catalog/all-impls";
 import { createFenceRenderer } from "@uicast/streamdown";
 import {
@@ -33,32 +31,25 @@ import {
   PromptInputTextarea,
   PromptInputTools,
 } from "@/components/ai-elements/prompt-input";
-import { showToast } from "@/components/toaster";
-import { domainTools } from "@/tools";
-
-// One evaluator for the app: the host functions bind on it, and it holds the parse cache.
-const evaluator = new Evaluator({ functions: domainTools });
+import { showToast, toastCallbackFailure } from "@/components/toaster";
+import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
 
-// Module scope: the renderer's component identity must stay stable across
-// streaming re-renders, or every update would remount the mounted UI blocks.
+// Module scope: a new component identity per render would remount every UI block.
 const uicastRenderer = createFenceRenderer({ showSourceToggle: true });
 
-// MessageResponse's default plugin set plus the ```uicast custom renderer —
-// passing `plugins` replaces the default, so the built-ins are recomposed.
+// Passing `plugins` replaces the default set, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
 
 export function ChatView({
   chatId,
   initialMessages,
-  replaceUrlOnFirstSend = false,
-  ownerSlug = null,
+  ownerSlug,
   readonly = false,
 }: {
   chatId: string;
-  initialMessages?: UIMessage[];
-  replaceUrlOnFirstSend?: boolean;
-  ownerSlug?: string | null;
+  initialMessages?: UIMessage<Usage>[];
+  ownerSlug: string;
   readonly?: boolean;
 }) {
   setApiOwner(ownerSlug);
@@ -68,46 +59,17 @@ export function ChatView({
   });
   const queryClient = useQueryClient();
 
-  // User-triggered error recovery: the error slot's Recover button reports the
-  // failed element as a chat message, and the model replies with a corrected
-  // fence. Refs keep `rendererDefaults` referentially stable (a new identity
-  // would remount every mounted UI block) while the handlers stay fresh.
-  const sendMessageRef = useRef(sendMessage);
-  sendMessageRef.current = sendMessage;
-  const statusRef = useRef(status);
-  statusRef.current = status;
-  const rendererDefaults = useMemo(
-    () => ({
-      confirm: ConfirmModal,
-      error: ({ error: renderError, elementKey }: ErrorComponentProps) => (
-        <RecoverableRenderError
-          error={renderError}
-          elementKey={elementKey}
-          onRecover={
-            elementKey
-              ? () => {
-                  if (readonly) {
-                    showToast("Read-only chat — log in with OpenRouter to run recovery in your own copy.");
-                    return;
-                  }
-                  if (statusRef.current === "streaming" || statusRef.current === "submitted")
-                    return;
-                  sendMessageRef.current({
-                    text: getErrorRecoveryPrompt({
-                      failures: [{ key: elementKey, message: renderError.message }],
-                    }),
-                  });
-                }
-              : undefined
-          }
-        />
-      ),
-    }),
-    [readonly],
-  );
+  const busy = status === "streaming" || status === "submitted";
+  const rendererDefaults = useRendererDefaults((failure) => {
+    if (readonly) {
+      showToast("Read-only chat — log in with OpenRouter to run recovery in your own copy.");
+      return;
+    }
+    if (busy) return;
+    sendMessage({ text: getErrorRecoveryPrompt({ failures: [failure] }) });
+  });
 
-  // The chat row is created (and titled) server-side on the first message —
-  // refresh the sidebar as soon as a run starts and again when it settles.
+  // The chat row is created server-side on the first message; refresh the sidebar when a run starts and when it settles.
   useEffect(() => {
     if (status === "streaming" || status === "ready") {
       queryClient.invalidateQueries({ queryKey: ["chats"] });
@@ -116,12 +78,11 @@ export function ChatView({
 
   const handleSubmit = (message: PromptInputMessage) => {
     // Enter mid-stream must not inject a second message into an active run.
-    if (statusRef.current === "streaming" || statusRef.current === "submitted") return;
+    if (busy) return;
     const text = message.text.trim();
     if (!text) return;
-    if (replaceUrlOnFirstSend && messages.length === 0) {
-      // Shallow URL swap: the stream must keep flowing into this mounted
-      // view, so no router navigation until the user leaves on their own.
+    if (messages.length === 0) {
+      // Shallow: a router navigation would stop the stream into this mounted view.
       window.history.replaceState(null, "", `/u/${ownerSlug}/c/${chatId}`);
     }
     sendMessage({ text });
@@ -129,13 +90,7 @@ export function ChatView({
 
   return (
     <RendererProvider
-        onError={(error) => {
-          // Callback failures (a rejected write, a tool error) have no error
-          // slot — flash the server's own message instead.
-          if (error.reason === "host-function" || error.reason === "invalid-arguments") {
-            showToast(error.message.replace(/^[^:]*: */, ""));
-          }
-        }}
+      onError={toastCallbackFailure}
       implementations={impls}
       evaluator={evaluator}
       fallbackComponents={rendererDefaults}
@@ -153,41 +108,22 @@ export function ChatView({
               messages.map((message) => (
                 <Message from={message.role} key={message.id}>
                   <MessageContent>
-                    {message.parts.map((part, index) =>
-                      part.type === "text" ? (
-                        message.role === "assistant" ? (
-                          <MessageResponse key={index} plugins={streamdownPlugins}>
-                            {part.text}
-                          </MessageResponse>
-                        ) : (
-                          <span className="whitespace-pre-wrap" key={index}>
-                            {part.text}
-                          </span>
-                        )
-                      ) : null,
-                    )}
-                  </MessageContent>
-                  {(() => {
-                    const meta = message.metadata as
-                      | {
-                          inputTokens?: number;
-                          outputTokens?: number;
-                          costUsd?: number | null;
-                          model?: string;
-                        }
-                      | undefined;
-                    if (!meta || meta.inputTokens === undefined) return null;
-                    const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n));
-                    return (
-                      <p className="mt-1 flex items-center justify-end gap-1.5 text-right text-[11px] text-muted-foreground">
-                        <span>
-                          {fmt(meta.inputTokens ?? 0)} in · {fmt(meta.outputTokens ?? 0)} out
-                          {typeof meta.costUsd === "number" ? ` · ≈$${meta.costUsd.toFixed(3)}` : ""}
+                    {message.parts.map((part, index) => {
+                      if (part.type !== "text") return null;
+                      return message.role === "assistant" ? (
+                        <MessageResponse key={index} plugins={streamdownPlugins}>
+                          {part.text}
+                        </MessageResponse>
+                      ) : (
+                        <span className="whitespace-pre-wrap" key={index}>
+                          {part.text}
                         </span>
-                        {meta.model ? <CostInfo model={meta.model} /> : null}
-                      </p>
-                    );
-                  })()}
+                      );
+                    })}
+                  </MessageContent>
+                  {message.metadata && (
+                    <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />
+                  )}
                 </Message>
               ))
             )}
@@ -200,7 +136,7 @@ export function ChatView({
 
           {readonly ? (
           <p className="rounded-md border px-3 py-2 text-center text-xs text-muted-foreground">
-            {ownerSlug ? `@${ownerSlug}'s chat — read-only. ` : "Read-only chat. "}
+            @{ownerSlug}'s chat — read-only.{" "}
             <a className="underline" href="/api/auth/login">
               Log in with OpenRouter
             </a>{" "}

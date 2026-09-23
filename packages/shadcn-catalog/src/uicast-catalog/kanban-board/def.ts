@@ -2,7 +2,7 @@ import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { chartColorSchema } from "../../lib/chart-colors";
 
-export const cardSchema = z.strictObject({
+const cardSchema = z.strictObject({
   id: z.string().meta({ description: "Card unique identifier (unique across the whole board)" }),
   title: z.string().meta({ description: "Card title" }),
   description: z
@@ -16,7 +16,7 @@ export const cardSchema = z.strictObject({
   tagColor: chartColorSchema.optional().meta({ description: "Tag background colour." }),
 });
 
-export const columnSchema = z.strictObject({
+const columnSchema = z.strictObject({
   id: z.string().meta({ description: "Column unique identifier" }),
   title: z.string().meta({ description: "Column header title" }),
   cards: z.array(cardSchema).meta({ description: "Array of cards in this column" }),

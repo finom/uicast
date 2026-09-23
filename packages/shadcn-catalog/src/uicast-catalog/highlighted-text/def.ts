@@ -1,10 +1,10 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
-export const HighlightDef = createComponentDefinition({
-  name: "Highlight",
+export const HighlightedTextDef = createComponentDefinition({
+  name: "HighlightedText",
   description:
-    "A text highlighting/search match marking component. Highlights specified text within content. Use Highlight for search result highlighting, keyword emphasis, or marking important text.",
+    "A text highlighting/search match marking component. Highlights specified text within content. Use HighlightedText for search result highlighting, keyword emphasis, or marking important text.",
   props: z.strictObject({
     text: z.string().meta({
       description: "The full text content",
@@ -16,7 +16,7 @@ export const HighlightDef = createComponentDefinition({
       .enum(["yellow", "green", "blue", "red"])
       .default("yellow")
       .meta({
-      description: "Highlight color: yellow, green, blue, red, or a CSS color",
+      description: "Highlight color: yellow, green, blue, or red",
     }),
     caseSensitive: z.boolean().default(false).meta({
       description: "Whether matching is case sensitive",

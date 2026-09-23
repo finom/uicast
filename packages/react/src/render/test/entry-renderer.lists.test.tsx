@@ -76,9 +76,6 @@ describe("EntryRenderer — lists", () => {
   });
 
   it("each expressions that read OTHER scope paths react too", () => {
-    // Bug-class regression: a list whose each references another path
-    // (e.g. a search filter) must subscribe to that path so typing into a
-    // search input re-renders the list.
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -147,8 +144,6 @@ describe("EntryRenderer — lists", () => {
     });
     expect(container.textContent).toContain("2:false");
 
-    // Replace the source array reversed — the flag must travel with id 1,
-    // not stay at position 0.
     act(() => {
       scopes.root.$set("items", [{ id: 2 }, { id: 1 }]);
     });
@@ -191,8 +186,6 @@ describe("EntryRenderer — lists", () => {
     });
     expect(container.textContent).toContain("b:false");
 
-    // Reverse the array — identity is the index, so the flag stays at
-    // position 0, now "b".
     act(() => {
       scopes.root.$set("items", ["b", "a"]);
     });
@@ -320,8 +313,6 @@ describe("EntryRenderer — lists", () => {
     await act(async () => {
       fireEvent.click(getByText("set5-1"));
     });
-    // 5 + 2 — the reduce ran in a later wave and saw the fresh qty. One wave
-    // would have read the pre-write value and produced 3.
     await waitFor(() => {
       expect(container.textContent).toContain("sum:7");
     });

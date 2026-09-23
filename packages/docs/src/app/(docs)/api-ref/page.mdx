@@ -8,7 +8,7 @@ configuration is needed.
 | [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders. No React. |
 | [`@uicast/expr`](#uicastexpr) | The expression evaluator: closed grammar, runtime membrane, budget. No uicast imports. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
-| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 129 ready components as def/impl pairs, over shadcn/ui. |
+| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | 128 ready components as def/impl pairs, over shadcn/ui. |
 | [`@uicast/streamdown`](#uicaststreamdown) | Renders `uicast` fences inside a Markdown chat reply. |
 
 ## `@uicast/core`
@@ -92,7 +92,7 @@ The React binding. Re-exports nothing from core — import from both.
 |---|---|
 | `<RendererProvider>` | Host side: implementations, the evaluator (with the host functions on it), fallback UI, and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
-| `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair. See [impl](/react/impl). |
+| `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair: `{ def, placeholder }`, to register. See [impl](/react/impl). |
 
 Types: `ComponentImplementation`, `RenderContext`, `RendererProviderProps`,
 `EntriesRendererProps`, `FallbackComponents`, `PlaceholderComponentProps`,
@@ -106,12 +106,13 @@ A ready catalog, and a demo of what one looks like. See
 | Entry point | What it holds |
 |---|---|
 | `@uicast/shadcn-catalog/all-defs` | `defs`, plus every definition by name (`CardDef`, `ButtonDef`, …) — pass to `getComponentsPartialPrompt`. |
-| `@uicast/shadcn-catalog/all-impls` | `impls`, plus every implementation by name — pass to `<RendererProvider>`. |
-| `@uicast/shadcn-catalog/essential-defs` | `defs` — 30 of the 129, enough to build a page. About a quarter of the prompt text. |
+| `@uicast/shadcn-catalog/all-impls` | `impls`, plus every implementation by name — pass to `<RendererProvider>`. `createLocationMapImplementation({ tileUrl, attribution })` builds `LocationMap` over another tile server (default: OpenStreetMap). |
+| `@uicast/shadcn-catalog/essential-defs` | `defs` — 30 of the 128, enough to build a page. About a quarter of the prompt text. |
 | `@uicast/shadcn-catalog/essential-impls` | `impls` — the matching implementations. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema` — the shared event payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
+| `@uicast/shadcn-catalog/document-skeleton` | `DocumentSkeleton({ entries, implementations })` — gray placeholders in the shape of a document's tree. Nothing is evaluated, so it renders anywhere, a server pass included, until the real tree replaces it. |
 | `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
-| `@uicast/shadcn-catalog/ui/*` | The 37 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
+| `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
 | `@uicast/shadcn-catalog/catalog.css` | Every utility the components use, with no palette — your `@theme` supplies all of it. |
 | `@uicast/shadcn-catalog/theme.css` | Optional baseline: preflight plus the shadcn palette. |
 
@@ -133,3 +134,5 @@ Types: `FenceRendererOptions`.
 | Export | Emits |
 |---|---|
 | `getFencePartialPrompt({ note? })` | The fence syntax and shared-state rules. |
+
+Types: `FencePromptOptions`.

@@ -2,26 +2,13 @@
 @import "tw-animate-css";
 @import "react-loading-skeleton/dist/skeleton.css";
 
-/*
- * Tailwind v4 auto-scans this package for class usage but stops at the package
- * boundary. The catalog (shadcn) components live in sibling packages, so without
- * these @source hints Tailwind never emits rules for classes like `bg-card`,
- * `text-muted-foreground`, or `border-input`, and every Card/Button/Table/etc.
- * renders unstyled. Paths are relative to this file.
- */
-@source "../../../core/src/**/*.{ts,tsx}";
+/* Tailwind scans this package only; the catalog's and Streamdown's classes live outside it. */
 @source "../../../shadcn-catalog/src/**/*.{ts,tsx}";
-/* Streamdown (the system-prompt dialog's Markdown view) styles itself with
-   Tailwind classes from inside node_modules — same story, same fix. */
 @source "../../../../node_modules/streamdown/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * State variants the catalog components style with (shadcn's Tailwind v4
- * shorthand set). Radix sets state either as `data-state="<x>"` or as a bare
- * boolean attribute depending on the primitive, so each variant matches both.
- */
+/* Radix sets state as `data-state="<x>"` or as a bare attribute, depending on the primitive; the state variants match both. */
 @custom-variant data-horizontal (&[data-orientation=horizontal]);
 @custom-variant data-vertical (&[data-orientation=vertical]);
 @custom-variant data-active (&:is([data-state=active], [data-active]));
@@ -37,8 +24,6 @@
 @custom-variant data-starting-style (&[data-starting-style]);
 @custom-variant data-ending-style (&[data-ending-style]);
 
-/* Tailwind-utility ↔ design-token bridge: `bg-primary`, `text-muted-foreground`,
-   `border-border`, the chart palette, etc. resolve through these. */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -159,9 +144,8 @@
   }
 }
 
-/* The demo player sizes itself to the viewport minus the navbar; the docs
-   footer under it would force the page to scroll. The player's <main> carries
-   data-demo-surface, and Nextra's footer sits inside a plain wrapper div. */
+/* The demo player fills the viewport below the navbar, so the docs footer would scroll the page.
+   Nextra's footer sits inside a plain wrapper div. */
 body:has(main[data-demo-surface]) div:has(> footer) {
   display: none;
 }

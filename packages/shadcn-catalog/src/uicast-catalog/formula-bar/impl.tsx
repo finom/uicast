@@ -7,15 +7,14 @@ import { FormulaBarDef } from "./def";
 export const FormulaBarImpl = createComponentImplementation({
   def: FormulaBarDef,
   render: ({
-    value: initialValue = "",
+    value: initialValue,
     placeholder,
     cellReference,
     disabled,
     onChange,
     onSubmit,
   }, { entry }) => {
-    // Local mirror of the `value` prop — a document change to the prop
-    // resyncs it; local edits win in between.
+    // A document change to the prop resyncs it; local edits win in between.
     const [value, setValue] = useState(initialValue);
     const lastPropValue = useRef(initialValue);
     if (lastPropValue.current !== initialValue) {

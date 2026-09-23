@@ -13,8 +13,6 @@ export const NotificationBadgeImpl = createComponentImplementation({
     showZero,
     children,
   }, { entry }) => {
-    // dot only changes presentation — a zero count stays hidden unless
-    // showZero asks for it.
     const shouldShow = count > 0 || showZero;
     const displayCount = count > max ? `${max}+` : String(count);
 

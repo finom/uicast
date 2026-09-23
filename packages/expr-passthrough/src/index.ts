@@ -10,14 +10,14 @@ import {
 	Analyzer,
 	assertData,
 	bindTools,
+	DEFAULT_MAX_CACHE_SIZE,
 	DEFAULT_MAX_SOURCE_LENGTH,
 	type HostFunction,
 } from "@uicast/expr/internal";
 import { canBind, compile, type Compiled } from "./compile";
 
 export type PassthroughEvaluatorOptions = {
-	// Host functions, callable by name. Fixed for the evaluator's lifetime — the parse cache depends on it.
-	// A name that shadows a built-in global replaces it.
+	// Fixed for the evaluator's lifetime: the parse cache depends on it. A name that shadows a global replaces it.
 	functions?: readonly StandardToolV0[];
 	// Parsed-expression cache size. Default 500.
 	maxCacheSize?: number;
@@ -25,10 +25,8 @@ export type PassthroughEvaluatorOptions = {
 	maxSourceLength?: number;
 };
 
-// The same language, checked by @uicast/expr's static passes, then handed to the engine through `new Function`.
-// No membrane, no budget, needs `unsafe-eval` — for expressions from an author you trust. Same methods as `Evaluator`.
+// No membrane, no budget, needs `unsafe-eval`: for expressions from an author you trust.
 export class PassthroughEvaluator implements ExpressionEvaluator {
-	// The host functions bound at construction, as given.
 	readonly functions: readonly StandardToolV0[];
 	readonly #tools: Record<string, HostFunction>;
 	readonly #analyzer: Analyzer<Compiled>;
@@ -41,7 +39,7 @@ export class PassthroughEvaluator implements ExpressionEvaluator {
 		this.#tools = bindTools(this.functions);
 		this.#analyzer = new Analyzer({
 			tools: this.#tools,
-			maxCacheSize: options.maxCacheSize ?? 500,
+			maxCacheSize: options.maxCacheSize ?? DEFAULT_MAX_CACHE_SIZE,
 			maxSourceLength: options.maxSourceLength ?? DEFAULT_MAX_SOURCE_LENGTH,
 		});
 		for (const { name } of this.functions) {
@@ -51,24 +49,24 @@ export class PassthroughEvaluator implements ExpressionEvaluator {
 		}
 	}
 
-	// Parse and check without running. Throws ExpressionError if invalid.
+	// Throws ExpressionError if invalid. Compiles too: the prototype-name check and the engine's own parse run there.
 	validate(source: string): ExpressionFacts {
-		const { freeIds, toolCalls } = this.#analyzer.analyze(source);
-		return { freeIds, toolCalls };
+		const entry = this.#analyzer.analyze(source);
+		entry.compiled ??= compile(entry, this.#tools);
+		return { freeIds: entry.freeIds, toolCalls: entry.toolCalls };
 	}
 
-	// Every `<root>.X.Y` static path the expression reads.
 	memberReads(source: string, root: string): readonly string[] {
 		return this.#analyzer.memberReads(source, root);
 	}
 
-	// Compile once, run many times. `TOut` asserts the result type (nothing checks it); `TIn` types the contexts.
+	// `TOut` asserts the result type (nothing checks it).
 	compile<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(source: string): (...contexts: TIn) => TOut {
 		const entry = this.#analyzer.analyze(source);
 		return (...contexts: TIn) => this.#run(entry, contexts) as TOut;
 	}
 
-	// Compile and run. Names resolve to host functions first, then the contexts last-to-first, then the platform globals.
+	// Names resolve to host functions first, then the contexts last-to-first, then the platform globals.
 	eval<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(source: string, ...contexts: TIn): TOut {
 		return this.#run(this.#analyzer.analyze(source), contexts) as TOut;
 	}
@@ -80,10 +78,10 @@ export class PassthroughEvaluator implements ExpressionEvaluator {
 			value = entry.compiled(contexts);
 		} catch (err) {
 			if (ExpressionError.is(err)) throw err;
-			throw new ExpressionError(err instanceof Error ? err.message : String(err), "runtime", err);
+			throw new ExpressionError(err instanceof Error ? err.message : String(err), "expression-runtime", err);
 		}
-		// The exit gate, same as the interpreter's: nothing but plain data leaves.
-		if (typeof value === "object" || typeof value === "function") assertData(value, "The result");
+		// The exit gate: nothing but plain data leaves.
+		if (typeof value === "object" || typeof value === "function") assertData(value, "The result", true);
 		return value;
 	}
 }

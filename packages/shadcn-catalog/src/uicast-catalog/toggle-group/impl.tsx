@@ -8,7 +8,7 @@ export const ToggleGroupImpl = createComponentImplementation({
   render: ({
     type,
     value,
-    items = [],
+    items,
     variant,
     size,
     disabled,

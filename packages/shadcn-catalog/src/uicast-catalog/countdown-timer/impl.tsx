@@ -34,7 +34,7 @@ export const CountdownTimerImpl = createComponentImplementation({
     useEffect(() => {
       const initial = calculateTimeLeft(target);
       if (initial.expired) {
-        // expired before arming: show the expired state, never fire onComplete
+        // Expired before arming: never fire onComplete.
         setTimeLeft(initial);
         return;
       }

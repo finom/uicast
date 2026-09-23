@@ -17,9 +17,9 @@ import { AreaChartDef } from "./def";
 export const AreaChartImpl = createComponentImplementation({
   def: AreaChartDef,
   render: ({
-    data = [],
+    data,
     xKey,
-    yKeys = [],
+    yKeys,
     colors,
     height,
     stacked,

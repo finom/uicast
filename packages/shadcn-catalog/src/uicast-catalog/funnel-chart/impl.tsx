@@ -7,13 +7,13 @@ import {
   Tooltip,
   LabelList,
   ResponsiveContainer,
-  Cell,
 } from "recharts";
+import { CHART_COLORS } from "../../lib/chart-colors";
 import { FunnelChartDef } from "./def";
 
 export const FunnelChartImpl = createComponentImplementation({
   def: FunnelChartDef,
-  render: ({ data = [], colors, height}, { entry, loading }) => {
+  render: ({ data, colors, height }, { entry, loading }) => {
     const defaultColors = [
       "#8884d8",
       "#83a6ed",
@@ -26,7 +26,7 @@ export const FunnelChartImpl = createComponentImplementation({
       "#ff7300",
       "#ff0000",
     ];
-    const stageColors = colors ?? defaultColors;
+    const stageColors = colors?.map((c) => CHART_COLORS[c]) ?? defaultColors;
     const dataWithFill = data.map((d, i) => ({
       ...d,
       fill: stageColors[i % stageColors.length],
@@ -39,13 +39,10 @@ export const FunnelChartImpl = createComponentImplementation({
             <Funnel dataKey="value" data={dataWithFill} isAnimationActive>
               <LabelList
                 position="right"
-                fill="#000"
+                fill="currentColor"
                 stroke="none"
                 dataKey="name"
               />
-              {dataWithFill.map((entry, i) => (
-                <Cell key={i} fill={entry.fill} />
-              ))}
             </Funnel>
           </RechartsFunnelChart>
         </ResponsiveContainer>

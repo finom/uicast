@@ -10,10 +10,11 @@ Every `expr` in a document is written by a model, and a document can be saved
 and replayed for other people. So an expression is untrusted input running in
 your users' browsers.
 
-`@uicast/expr` is what runs it. The expression language is a **subset of
-JavaScript**: the syntax models already write fluently, cut down to an
-allow-list of operators, globals and methods. Anything outside the subset is
-refused before it runs. The package parses an expression once with acorn and
+`@uicast/expr` is what runs it. The expression language is **JavaScript
+expressions over JSON data**: the syntax models already write fluently, with
+the standard methods of strings, numbers, arrays, dates and sets and a short
+list of globals, and without statements, mutation, regular expressions or
+function values. Anything outside it is refused before it runs. The package parses an expression once with acorn and
 interprets it itself; nothing reaches the engine's `eval`. It has no **uicast**
 dependency and works standalone.
 
@@ -50,14 +51,14 @@ const evaluator = new PassthroughEvaluator({ functions });
 The difference in guarantee comes down to one line of JavaScript:
 
 ```js
-"abc".charAt(0)            // refused by both — `charAt` is not in the language
-"abc"["char" + "At"](0)    // the same call — the name exists only at run time
+"abc".substr(1)            // refused by both — `substr` is not in the language
+"abc"["sub" + "str"](1)    // the same call — the name exists only at run time
 ```
 
 A validator sees written names; JavaScript resolves keys when it runs. Under
 `Evaluator` the call itself is the checkpoint, so both lines above are the same
 event and get the same rejection; under `PassthroughEvaluator` the second line
-runs and returns `"a"`. Three rules do most of the interpreter's work:
+runs and returns `"bc"`. Three rules do most of the interpreter's work:
 
 - **Plain objects are read by own property only.** Nothing walks a prototype
   chain, so `constructor`, `toString` and everything else inherited is simply
@@ -99,9 +100,9 @@ Every site, in one product search (`scopes.root.products` is seeded higher up):
   "seed": [{ "set": "scopes.root.query", "literal": "" }],
   "props": { "expr": "({ value: scopes.root.query })" },
   "callbacks": { "onChange": [{ "set": "scopes.root.query", "expr": "evt.value" }] } }
-{ "key": "empty", "component": "Text", "hidden": "scopes.root.products.length > 0",
+{ "key": "empty", "component": "Typography", "hidden": "scopes.root.products.length > 0",
   "props": { "literal": { "text": "No products" } } }
-{ "key": "rows", "component": "Text", "as": "row", "keyBy": "id",
+{ "key": "rows", "component": "Typography", "as": "row", "keyBy": "id",
   "each": "scopes.root.products.filter(p => p.name.includes(scopes.root.query))",
   "props": { "expr": "({ text: scopes.row.name })" } }
 ```
@@ -131,10 +132,10 @@ validation, in both evaluators.
 | --- | --- |
 | Values | numbers, strings, booleans, `null`, template literals |
 | Access | `a.b`, `a[b]`, `a?.b`, `a?.[b]` (optional *receiver*, not `a?.()`) |
-| Calls | methods, host functions, `new` for `Date` / `Map` / `Set` / `URL` / `Intl` formatters |
+| Calls | methods, host functions, `new` for `Date` / `Set` |
 | Operators | arithmetic, comparison, `===`/`==`, `&&`, `\|\|`, `??`, `!`, `-`, `+`, `typeof`, `? :` |
 | Literals | arrays and objects, with spread and computed keys |
-| Functions | arrow functions with an **expression body**, parameters may destructure |
+| Functions | arrow functions with an **expression body**, only as a method's callback; parameters may destructure |
 
 What is missing is deliberate:
 
@@ -147,8 +148,21 @@ What is missing is deliberate:
 - **Regular expressions.** Catastrophic backtracking runs where no budget can
   see it. `.includes()`, `.startsWith()`, `.split()`, `.replaceAll()` cover the
   real cases.
+- **Functions as values.** An arrow is written only where a method takes one
+  — `rows.map(r => r.name)` — never in an array, as a result, or called. So
+  nothing can store, return or call a function, and nothing recurses.
 - **`await`.** Host calls return promises and the runtime awaits them — the
-  expression never does.
+  expression never does. So a host call is the expression's result: the whole
+  of it, a branch of `?:`, or the right side of `??`, `||`, `&&`.
+  `getUser({ id }).name`, `[getUser(a), getUser(b)]` and
+  `ids.map(id => getUser({ id }))` are refused before any call runs.
+- **`Intl`, and a locale or options argument.** `toLocaleString()` and the
+  other locale methods use the viewer's locale. Currency, month names and
+  relative times are a component's job.
+- **`Map`, `forEach`, iterators.** Data arrives and leaves as JSON: an object
+  does a `Map`'s job, `[...set]` replaces an iterator, and a callback has no
+  effect for `forEach` to run it for. A `Date` or a `Set` is for computing
+  inside the expression; the result is plain data.
 - **`in`, bitwise operators, `x?.()`, `instanceof`, tagged templates, `this`.**
   None shapes a display value.
 
@@ -169,10 +183,10 @@ construction**: the only way to change state is a step's `set`, and
 `.reverse()` are not in the language — order with `.toSorted()`, reverse with
 `.toReversed()`, the standard non-mutating pair.
 
-They are also **stateless**: `Math.random` is absent and there is nothing to
-store a counter in. The one seam left open is the clock — `Date` is
-allow-listed, so `Date.now()` does not fail, it *drifts*. `props` re-evaluates
-on every render, so produce a timestamp once in `seed` and read it back:
+Two values change between runs: the clock and `Math.random()`. A reactive
+site re-evaluates whenever a path it reads changes, so a time computed there is
+as fresh as its last re-evaluation, and a random value changes with every
+render. Produce either one in a step and read it back:
 
 ```jsonc
 // ❌ a new timestamp every render pass
@@ -183,9 +197,9 @@ on every render, so produce a timestamp once in `seed` and read it back:
   "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
 ```
 
-The full list of methods and globals ships as a prompt partial,
-`getExpressionsPartialPrompt()`, filled from the evaluator's own tables so the
-two cannot drift.
+The prompt partial, `getExpressionsPartialPrompt()`, gives the model these
+rules and the globals, filled from the evaluator's own tables so the two
+cannot drift.
 
 <Callout type="default">
   Control flow was never the expression language's job. Sequencing lives in a
@@ -204,18 +218,25 @@ With no loop syntax and no recursion, exhausting the CPU takes a built-in
 method that iterates. Under `Evaluator` every such method is implemented inside
 the package, so every iteration passes the budget:
 
-- a **step counter**, charged per callback invocation by the body's
-  compile-time node count;
-- a **wall-clock deadline**, checked against a clock the expression cannot
-  read or move;
+- a **step counter** (1,000,000 by default), charged per callback invocation
+  by the body's node count, and per call by the call's work — a sort costs
+  about n·log n steps;
+- a **wall-clock deadline** (100 ms), checked against a clock the expression
+  cannot read or move;
 - **allocation caps**, so `"x".repeat(1e9)` is refused, not attempted;
-- a **callback depth cap** — self-application (`[f => f(f)]...`) is the one
-  recursion the grammar cannot forbid, and it stops here;
 - an **AST depth limit**, so nested source cannot overflow the compiler;
 - a **source-length limit** (1000 characters by default,
   `maxSourceLength`), checked before parsing — oversized input never reaches
   the parser. The prompt tells the model the limit, filled from the same
   constant.
+
+The step counter is the contract. Each operation's price follows its measured
+time, and a test holds every operation within 4× a plain step, so a long
+evaluation stops at the same step on any device. The clock is a backstop. In
+Chrome with the CPU slowed 6× (a mid-range phone), the step limit ends every
+long evaluation first. Slowed 12×, heavier operations such as locale
+formatting can reach the clock first. So can comparing two long strings,
+which runs at memory speed for one step.
 
 `PassthroughEvaluator` keeps only the AST depth and source-length limits; the
 engine runs real methods with no counter around them — part of the
@@ -231,7 +252,7 @@ A rejection is a classified
 | --- | --- |
 | `if (scopes.root.n) 1` | `expression-syntax` — a statement, not an expression |
 | `scopes.root.count = 1` | `guardrail-violation` — assignment is not in the language |
-| `"abc"["char" + "At"](0)` | `guardrail-violation` — checked at the call, computed or not |
+| `scopes.root.rows["so" + "rt"]()` | `guardrail-violation` — checked at the call, computed or not |
 | `fetchProducts()` | `unknown-reference` — a name nobody handed in |
 
 ## Performance
@@ -242,12 +263,12 @@ afterwards is nested function calls. Both evaluators against bare
 
 | expression | in a document | `Evaluator` | `PassthroughEvaluator` | bare `new Function` |
 | --- | --- | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~110 ns | ~33 ns | ~25 ns |
-| `scopes.root.user.name` | any scope read | ~140 ns | ~46 ns | ~27 ns |
-| template, two interpolations | a text prop | ~240 ns | ~58 ns | ~36 ns |
-| object literal from scope | every `props.expr` | ~270 ns | ~95 ns | ~26 ns |
-| `filter`, `map`, `reduce` over 1000 rows | a derived list | 40–110 µs | 0.8–2.2 µs | 0.8–2.2 µs |
-| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.8 ms | ~0.28 ms | ~0.07 ms |
+| `scopes.root.count > 0` | a `hidden` condition | ~80 ns | ~36 ns | ~22 ns |
+| `scopes.root.user.name` | any scope read | ~115 ns | ~46 ns | ~27 ns |
+| template, two interpolations | a text prop | ~225 ns | ~61 ns | ~32 ns |
+| object literal from scope | every `props.expr` | ~255 ns | ~99 ns | ~29 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–58 µs | 0.7–1.9 µs | 0.7–1.8 µs |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.73 ms | ~0.32 ms | ~0.06 ms |
 
 In `PassthroughEvaluator` the engine does the work, binding included: the
 compiled function looks its names up in the contexts itself, in one fixed-arity
@@ -256,12 +277,29 @@ before a result leaves — the object-literal row is that walk. Anything that
 loops over data runs at engine speed.
 
 The absolute numbers are what matter: the worst-case row — a 1000-row table,
-five expression sites per row, all re-evaluating at once — costs about a
+five expression sites per row, all re-evaluating at once — costs under a
 millisecond, while React and the DOM spend tens of milliseconds on the same
 update. The prompt bounds the load from the other side: `maxListItems` on
 `getCommonInstructionsPartialPrompt` (default 100) instructs the model to cap
 visible lists and page or filter past that. Heavy data work belongs in a host
 function. **Expressions shape display values; host functions compute.**
+
+At phone speed, whole events under `Evaluator` — every expression one event
+re-evaluates. Chrome on an M4 Pro, then with the CPU slowed 6× and 12×
+(DevTools throttling):
+
+| event | M4 Pro | 6× slower | 12× slower |
+| --- | --- | --- | --- |
+| 50-row table, 7 cells per row | 0.3 ms | 1.3 ms | 4.5 ms |
+| 100-row table, currency and date formatting per row | 0.4 ms | 2.5 ms | 5.1 ms |
+| dashboard over 1,000 orders: 3 KPIs, a chart, a 30-day series | 1.6 ms | 11 ms | 21 ms |
+| search keystroke over 1,000 orders | 1.1 ms | 7.1 ms | 16 ms |
+| the same over 10,000 orders | 9.8 ms | 60 ms | 123 ms |
+| kanban board, 300 cards | 0.2 ms | 3.5 ms | 3.5 ms |
+| join 1,000 orders to 200 customers with `find()` per order | 5.2 ms | 33 ms | 68 ms |
+
+A frame is 16 ms. Two kinds of work belong in a host function: the whole
+table in the browser, and a search per row.
 
 ## What it does not secure
 
@@ -270,9 +308,9 @@ host gave it: the contexts and the functions bound at construction. Nothing
 else is reachable, `window` and `fetch` included — the object-capability term
 is *no ambient authority*. Three things sit outside it:
 
-- **Host functions are capabilities.** `rows.map(r => deleteProduct(r.id))` is
-  a legal expression that deletes everything. Nothing escaped — the document
-  used something you granted it. Keep `functions` narrow and enforce
+- **Host functions are capabilities.** `rows.map(r => deleteProduct(r.id))`
+  deletes every row; only then is its result, an array of promises, refused.
+  Nothing escaped — the document used something you granted it. Keep `functions` narrow and enforce
   authorization on the server.
 - **Props that reach the DOM.** A URL a document controls is a destination the
   browser may fetch on render. The renderer's
@@ -302,7 +340,7 @@ Three suites verify the implementation:
 - **Against the other evaluator.** The parity suite in `@uicast/expr-passthrough`
   runs the same list a third time, through `PassthroughEvaluator`, checks that
   everything the grammar forbids fails in both, and pins the residual:
-  `"abc"["char" + "At"](0)` throws under `Evaluator` and returns `"a"` under
+  `"abc"["sub" + "str"](1)` throws under `Evaluator` and returns `"bc"` under
   `PassthroughEvaluator`. The limitation described on this page is verified by
   a test, not just stated.
 
@@ -319,6 +357,8 @@ Each control is pinned by a test file: `attacks.test.ts` (the adversarial
 corpus), `exit-gate.test.ts` (nothing but plain data leaves),
 `host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
 (null-prototype tables), `corpus.test.ts` (agreement with plain JavaScript),
+`baseline.test.ts` (the same corpus on an ES2022 engine, every newer built-in
+deleted), `prices.test.ts` (every operation within 4× a plain step's time),
 and the parity suite in `@uicast/expr-passthrough`.
 
 <Callout type="warning">

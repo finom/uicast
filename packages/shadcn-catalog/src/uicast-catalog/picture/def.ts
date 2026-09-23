@@ -3,10 +3,10 @@ import { createComponentDefinition } from "@uicast/core";
 import { mouseEventSchema } from "../../events/mouse";
 import { heightSchema, widthSchema } from "../../lib/sizes";
 
-export const ImageDef = createComponentDefinition({
-  name: "Image",
+export const PictureDef = createComponentDefinition({
+  name: "Picture",
   description:
-    "An image component for displaying pictures, photos, or illustrations. Renders an img element with configurable sizing and rounded corners. Use Image for product photos, user-uploaded images, hero banners, thumbnails, or any visual content.",
+    "An image component for displaying pictures, photos, or illustrations. Renders an img element with configurable sizing and rounded corners. Use Picture for product photos, user-uploaded images, hero banners, thumbnails, or any visual content.",
   props: z.strictObject({
     src: z.string().meta({
       format: "uri-reference",

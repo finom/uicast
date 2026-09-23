@@ -5,6 +5,7 @@ import { db } from "@/db";
 import { chatMessages, chats, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
 import { ChatView } from "@/components/chat-view";
+import type { Usage } from "@/components/cost-info";
 
 export const dynamic = "force-dynamic";
 
@@ -37,7 +38,7 @@ export default async function UserChat({
     role: r.role,
     parts: r.parts,
     metadata: r.metadata ?? undefined,
-  })) as UIMessage[];
+  })) as UIMessage<Usage>[];
 
   return (
     <ChatView

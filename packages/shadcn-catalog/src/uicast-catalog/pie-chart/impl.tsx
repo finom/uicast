@@ -9,20 +9,19 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { defaultChartColors } from "../../lib/chart-colors";
+import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { PieChartDef } from "./def";
 
 export const PieChartImpl = createComponentImplementation({
   def: PieChartDef,
   render: ({
-    data: rawData = [],
+    data,
     colors,
     height,
     donut,
     showLabels,
     centerLabel,
   }, { entry, loading }) => {
-    const data = rawData.map((d) => ({ ...d, value: Number(d.value) }));
     const defaultColors = [
       ...defaultChartColors,
       "#ffbb28",
@@ -30,7 +29,7 @@ export const PieChartImpl = createComponentImplementation({
       "#a4de6c",
       "#d0ed57",
     ];
-    const sliceColors = colors ?? defaultColors;
+    const sliceColors = colors?.map((c) => CHART_COLORS[c]) ?? defaultColors;
     return (
       <div className={cn("relative w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <ResponsiveContainer width="100%" height={height}>
@@ -45,8 +44,7 @@ export const PieChartImpl = createComponentImplementation({
               nameKey="name"
               label={
                 showLabels
-                  ? (((props: { name?: unknown; percent?: unknown }) =>
-                      `${String(props.name ?? "")} ${(Number(props.percent ?? 0) * 100).toFixed(0)}%`) as never)
+                  ? ({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`
                   : undefined
               }
             >

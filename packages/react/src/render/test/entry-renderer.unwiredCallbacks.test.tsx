@@ -5,8 +5,6 @@ import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation } from "@uicast/react";
 import { mountEntries } from "../../../test/render-helpers";
 
-// Calls a handler the entry never wired, with no optional-call guard: the def
-// declares it, so the implementation is entitled to call it.
 const probeImpl = createComponentImplementation({
   def: createComponentDefinition({
     name: "Probe",

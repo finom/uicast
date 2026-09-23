@@ -2,14 +2,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import type { ComponentEntry } from "@uicast/core";
-import { EntryModal } from "./entry-modal";
+import { EntryModal, type SelectedEntry } from "./entry-modal";
 
-/**
- * The left-hand pane: the raw JSONLines as they "emit", one entry per line —
- * exactly what the engine consumes. The newest line is highlighted and the
- * panel auto-scrolls as entries arrive. Clicking a line opens {@link EntryModal}
- * with that entry pretty-printed and syntax-highlighted.
- */
 export function StreamPanel({
   lines,
   hoveredKey,
@@ -20,12 +14,9 @@ export function StreamPanel({
   onHoverKey: (key: string | null) => void;
 }) {
   const boxRef = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState<{
-    entry: ComponentEntry;
-    index: number;
-  } | null>(null);
+  const [selected, setSelected] = useState<SelectedEntry | null>(null);
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: lines.length is the append signal; the array identity churns per render
+  // biome-ignore lint/correctness/useExhaustiveDependencies: lines.length is the append signal
   useEffect(() => {
     const el = boxRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -41,7 +32,6 @@ export function StreamPanel({
       ) : (
         lines.map((line, i) => (
           <Button
-            type="button"
             variant="ghost"
             key={`${line.key}-${i}`}
             onClick={() => setSelected({ entry: line, index: i })}
@@ -62,11 +52,7 @@ export function StreamPanel({
         ))
       )}
 
-      <EntryModal
-        entry={selected?.entry ?? null}
-        index={selected?.index ?? null}
-        onClose={() => setSelected(null)}
-      />
+      <EntryModal selected={selected} onClose={() => setSelected(null)} />
     </div>
   );
 }

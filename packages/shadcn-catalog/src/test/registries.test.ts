@@ -1,17 +1,14 @@
 import { readdirSync } from "node:fs";
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { defs } from "../all-defs";
 import { impls } from "../all-impls";
 import { defs as essentialDefs } from "../essential-defs";
 import { impls as essentialImpls } from "../essential-impls";
 
-// The four registries are hand-maintained mirrors of src/uicast-catalog/. Nothing
-// else guards them against drift: a pair left out of one, or a def without an
-// impl, would fail only at runtime in a consumer.
+// The registries are hand-maintained; a pair missing from one fails only in a consumer.
 
-const catalogDir = resolve(dirname(fileURLToPath(import.meta.url)), "../uicast-catalog");
+const catalogDir = resolve(import.meta.dirname, "../uicast-catalog");
 
 describe("catalog registries", () => {
   it("every def name is unique", () => {
@@ -24,7 +21,7 @@ describe("catalog registries", () => {
     const implNames = new Set(impls.map((impl) => impl.def.name));
     expect([...implNames].filter((n) => !defNames.has(n))).toEqual([]);
     expect([...defNames].filter((n) => !implNames.has(n))).toEqual([]);
-    expect(implNames.size).toBe(defNames.size);
+    expect(impls.length).toBe(defs.length);
   });
 
   it("the essential registries are a subset of the full ones, paired 1:1", () => {

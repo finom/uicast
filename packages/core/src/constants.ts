@@ -1,5 +1,5 @@
-// Quiet time before a debounced callback step runs. The prompt tells the model the same number.
+// The prompt tells the model this number too.
 export const CALLBACK_DEBOUNCE_MS = 300;
 
-// The names uicast itself binds into every expression. A host function may not take one — it would shadow the context silently.
+// A host function may not take one of these: it would shadow the context.
 export const CONTEXT_NAMES: ReadonlySet<string> = new Set(["scopes", "evt", "currentValue"]);

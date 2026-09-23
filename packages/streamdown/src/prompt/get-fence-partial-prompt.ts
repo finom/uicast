@@ -1,11 +1,10 @@
-import { noteSection } from "./note-section";
+import { noteSection } from "@uicast/core/internal";
 
 export type FencePromptOptions = {
-	/** Host-specific context, appended as a trailing `## Note`. */
+	// Host-specific context, appended as a trailing `## Note`.
 	note?: string;
 };
 
-/** The `# Emitting UI` block for chat surfaces: entries ride in ```uicast fences. Compose after the core partials. */
 export function getFencePartialPrompt({ note }: FencePromptOptions = {}): string {
 	const fence = `# Emitting UI
 

@@ -1,11 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke color component (display-only — no callbacks). It purely *reflects*
- * scope: a swatch over a checkerboard so the alpha channel is visible. Proves
- * the other half of the loop — events write scope, reactive props read it back.
- */
 export const ColorPreviewDef = createComponentDefinition({
   name: "ColorPreview",
   description:

@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Fragment } from "react";
 import {
   Breadcrumb,
@@ -12,7 +12,7 @@ import { BreadcrumbDef } from "./def";
 
 export const BreadcrumbImpl = createComponentImplementation({
   def: BreadcrumbDef,
-  render: ({ items = [], onNavigate}, { entry }) => {
+  render: ({ items, onNavigate }, { entry }) => {
     return (
       <Breadcrumb data-key={entry.key}>
         <BreadcrumbList>
@@ -20,8 +20,7 @@ export const BreadcrumbImpl = createComponentImplementation({
             const isLast = i === items.length - 1;
             const isActive = item.active ?? isLast;
             return (
-              // The separator renders its own <li>, so it must sit beside the
-              // item in the <ol> — nesting it inside would put li inside li.
+              // The separator renders its own <li>; nesting it would put li inside li.
               <Fragment key={i}>
                 {i > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem>
@@ -47,5 +46,5 @@ export const BreadcrumbImpl = createComponentImplementation({
       </Breadcrumb>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

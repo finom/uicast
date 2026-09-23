@@ -1,12 +1,11 @@
-// A subset of the catalog: enough to build a page, no more. The prompt a host
-// assembles from these is about a quarter the size of the whole catalog's.
+// Enough to build a page; its prompt is about a quarter of the whole catalog's.
 
 import { CardDef } from "./uicast-catalog/card/def";
 import { FlexRowDef } from "./uicast-catalog/flex-row/def";
 import { FlexColDef } from "./uicast-catalog/flex-col/def";
 import { GridDef } from "./uicast-catalog/grid/def";
 import { HeadingDef } from "./uicast-catalog/heading/def";
-import { TextDef } from "./uicast-catalog/text/def";
+import { TypographyDef } from "./uicast-catalog/typography/def";
 import { BadgeDef } from "./uicast-catalog/badge/def";
 import { StatDef } from "./uicast-catalog/stat/def";
 import { TableDef } from "./uicast-catalog/table/def";
@@ -38,7 +37,7 @@ export const defs = [
   FlexColDef,
   GridDef,
   HeadingDef,
-  TextDef,
+  TypographyDef,
   BadgeDef,
   StatDef,
   TableDef,

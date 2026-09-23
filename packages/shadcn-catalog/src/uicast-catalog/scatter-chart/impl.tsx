@@ -16,10 +16,10 @@ import { CHART_COLORS } from "../../lib/chart-colors";
 export const ScatterChartImpl = createComponentImplementation({
   def: ScatterChartDef,
   render: ({
-    data = [],
+    data,
     xKey,
     yKey,
-    nameKey,
+    name,
     color,
     height,
   }, { entry, loading }) => {
@@ -31,7 +31,7 @@ export const ScatterChartImpl = createComponentImplementation({
             <XAxis dataKey={xKey} type="number" name={xKey} />
             <YAxis dataKey={yKey} type="number" name={yKey} />
             <Tooltip cursor={{ strokeDasharray: "3 3" }} />
-            <Scatter isAnimationActive={false} name={nameKey ?? "Data"} data={data} fill={CHART_COLORS[color]} />
+            <Scatter isAnimationActive={false} name={name ?? "Data"} data={data} fill={CHART_COLORS[color]} />
           </RechartsScatterChart>
         </ResponsiveContainer>
       </div>

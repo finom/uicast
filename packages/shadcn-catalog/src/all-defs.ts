@@ -10,7 +10,7 @@ import { GridDef } from "./uicast-catalog/grid/def";
 
 // Typography & Display
 import { HeadingDef } from "./uicast-catalog/heading/def";
-import { TextDef } from "./uicast-catalog/text/def";
+import { TypographyDef } from "./uicast-catalog/typography/def";
 import { BadgeDef } from "./uicast-catalog/badge/def";
 import { IconDef } from "./uicast-catalog/icon/def";
 import { TagDef } from "./uicast-catalog/tag/def";
@@ -62,19 +62,18 @@ import { DataGridDef } from "./uicast-catalog/data-grid/def";
 import { AvatarDef } from "./uicast-catalog/avatar/def";
 import { TooltipDef } from "./uicast-catalog/tooltip/def";
 import { ProgressBarDef } from "./uicast-catalog/progress-bar/def";
-import { ImageDef } from "./uicast-catalog/image/def";
+import { PictureDef } from "./uicast-catalog/picture/def";
 
 import { CalendarDef } from "./uicast-catalog/calendar/def";
 import { TimelineDef } from "./uicast-catalog/timeline/def";
 import { TreeViewDef } from "./uicast-catalog/tree-view/def";
 import { DescriptionListDef } from "./uicast-catalog/description-list/def";
 import { CodeBlockDef } from "./uicast-catalog/code-block/def";
-import { MarkdownViewerDef } from "./uicast-catalog/markdown-viewer/def";
 import { AvatarGroupDef } from "./uicast-catalog/avatar-group/def";
 import { CarouselDef } from "./uicast-catalog/carousel/def";
 import { CalloutDef } from "./uicast-catalog/callout/def";
 import { KBDDef } from "./uicast-catalog/kbd/def";
-import { HighlightDef } from "./uicast-catalog/highlight/def";
+import { HighlightedTextDef } from "./uicast-catalog/highlighted-text/def";
 import { RelativeTimeDef } from "./uicast-catalog/relative-time/def";
 import { TruncatedTextDef } from "./uicast-catalog/truncated-text/def";
 import { CopyButtonDef } from "./uicast-catalog/copy-button/def";
@@ -150,7 +149,7 @@ import { NotificationBadgeDef } from "./uicast-catalog/notification-badge/def";
 // Specialized / Business-Specific
 import { KanbanBoardDef } from "./uicast-catalog/kanban-board/def";
 import { VirtualListDef } from "./uicast-catalog/virtual-list/def";
-import { MapDef } from "./uicast-catalog/map/def";
+import { LocationMapDef } from "./uicast-catalog/location-map/def";
 import { OrgChartDef } from "./uicast-catalog/org-chart/def";
 import { ChatThreadDef } from "./uicast-catalog/chat-thread/def";
 import { VideoPlayerDef } from "./uicast-catalog/video-player/def";
@@ -168,7 +167,7 @@ export {
   DrawerDef,
   GridDef,
   HeadingDef,
-  TextDef,
+  TypographyDef,
   BadgeDef,
   IconDef,
   TagDef,
@@ -210,7 +209,7 @@ export {
   AvatarDef,
   TooltipDef,
   ProgressBarDef,
-  ImageDef,
+  PictureDef,
   TableDef,
   TableHeaderDef,
   TableBodyDef,
@@ -254,12 +253,11 @@ export {
   TreeViewDef,
   DescriptionListDef,
   CodeBlockDef,
-  MarkdownViewerDef,
   AvatarGroupDef,
   CarouselDef,
   CalloutDef,
   KBDDef,
-  HighlightDef,
+  HighlightedTextDef,
   RelativeTimeDef,
   TruncatedTextDef,
   CopyButtonDef,
@@ -280,7 +278,7 @@ export {
   NotificationBadgeDef,
   KanbanBoardDef,
   VirtualListDef,
-  MapDef,
+  LocationMapDef,
   OrgChartDef,
   ChatThreadDef,
   VideoPlayerDef,
@@ -302,7 +300,7 @@ export const defs = [
   GridDef,
   // Typography & Display
   HeadingDef,
-  TextDef,
+  TypographyDef,
   BadgeDef,
   IconDef,
   TagDef,
@@ -349,18 +347,17 @@ export const defs = [
   AvatarDef,
   TooltipDef,
   ProgressBarDef,
-  ImageDef,
+  PictureDef,
   CalendarDef,
   TimelineDef,
   TreeViewDef,
   DescriptionListDef,
   CodeBlockDef,
-  MarkdownViewerDef,
   AvatarGroupDef,
   CarouselDef,
   CalloutDef,
   KBDDef,
-  HighlightDef,
+  HighlightedTextDef,
   RelativeTimeDef,
   TruncatedTextDef,
   CopyButtonDef,
@@ -427,7 +424,7 @@ export const defs = [
   // Specialized / Business-Specific
   KanbanBoardDef,
   VirtualListDef,
-  MapDef,
+  LocationMapDef,
   OrgChartDef,
   ChatThreadDef,
   VideoPlayerDef,

@@ -8,7 +8,6 @@ import { getSessionUser, getUserBySlug } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-// A user's public index: their pages and chats, readable by anyone.
 export default async function UserIndex({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const user = await getUserBySlug(slug);

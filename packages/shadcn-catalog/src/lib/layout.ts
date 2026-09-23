@@ -10,7 +10,6 @@ export const GAP: Record<string, string> = {
   "8": "gap-8",
 };
 
-// Responsive: stacks on phones, declared count from sm/md up.
 export const COLUMNS: Record<string, string> = {
   "1": "grid-cols-1",
   "2": "grid-cols-1 sm:grid-cols-2",
@@ -20,7 +19,7 @@ export const COLUMNS: Record<string, string> = {
   "6": "grid-cols-2 md:grid-cols-3 lg:grid-cols-6",
 };
 
-// Union of what the defs allow: only FlexRow declares `baseline`.
+// Only FlexRow declares `baseline`.
 export const ALIGN: Record<string, string> = {
   start: "items-start",
   center: "items-center",

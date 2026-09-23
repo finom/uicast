@@ -12,22 +12,22 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { defaultChartColors } from "../../lib/chart-colors";
+import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { ComboChartDef } from "./def";
 
 export const ComboChartImpl = createComponentImplementation({
   def: ComboChartDef,
   render: ({
-    data = [],
+    data,
     xKey,
-    barKeys = [],
-    lineKeys = [],
+    barKeys,
+    lineKeys,
     barColors,
     lineColors,
     height,
   }, { entry, loading }) => {
-    const bColors = barColors ?? defaultChartColors.slice(0, 3);
-    const lColors = lineColors ?? defaultChartColors.slice(3);
+    const bColors = barColors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors.slice(0, 3);
+    const lColors = lineColors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors.slice(3);
 
     return (
       <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>

@@ -21,7 +21,7 @@ is everything around it, and that is what this skill covers.
 | --- | --- |
 | `@uicast/core` | Engine, framework-free: entry types, expression guardrail, reactive scopes, prompt builders (`@uicast/core/prompt`). |
 | `@uicast/react` | React binding: `<RendererProvider>`, `<EntriesRenderer>`, `createComponentImplementation`. |
-| `@uicast/shadcn-catalog` | 129 ready components as definition/implementation pairs over shadcn/Radix, or 30 from its `essential-defs` / `essential-impls`. Optional — you can ship only your own. |
+| `@uicast/shadcn-catalog` | 128 ready components as definition/implementation pairs over shadcn/Radix, or 30 from its `essential-defs` / `essential-impls`. Optional — you can ship only your own. |
 | `@uicast/streamdown` | Chat surface: renders ```uicast fences inside Markdown replies via Streamdown. Only for chat hosts. |
 
 ```bash
@@ -190,7 +190,7 @@ import "@uicast/shadcn-catalog/catalog.css";
   alike), so replacing a catalog component means filtering its name out of BOTH
   arrays first, then appending yours.
 - **Start smaller**: `essential-defs` and `essential-impls` export the same two
-  names from 30 of the 129 components — layout, text, the table family, the
+  names from 30 of the 128 components — layout, text, the table family, the
   common form controls, three charts. About a quarter of the prompt text, and a
   smaller set to choose from. Swapping is one import line.
 - `@uicast/shadcn-catalog/fallback-components` exports `ConfirmModal` and

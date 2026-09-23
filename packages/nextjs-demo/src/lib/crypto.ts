@@ -1,7 +1,6 @@
 import { createCipheriv, createDecipheriv, hkdfSync, randomBytes } from "node:crypto";
 
-// AES-256-GCM for stored OpenRouter keys. The data key derives from APP_SECRET
-// via HKDF, so rotating the secret invalidates every stored key at once.
+// The data key derives from APP_SECRET via HKDF, so rotating the secret invalidates every stored key.
 
 function dataKey(): Buffer {
   const secret = process.env.APP_SECRET;

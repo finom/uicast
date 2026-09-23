@@ -13,8 +13,7 @@ export const CodeEditorImpl = createComponentImplementation({
     showLineNumbers,
     onChange,
   }, { entry }) => {
-    const lines = value.split("\n");
-    const lineCount = Math.max(lines.length, 1);
+    const lineCount = value.split("\n").length;
 
     return (
       <div
@@ -41,10 +40,7 @@ export const CodeEditorImpl = createComponentImplementation({
           placeholder={placeholder}
           disabled={disabled}
           onChange={(e) => onChange({ value: e.target.value })}
-          className={cn(
-            "flex-1 resize-none bg-transparent p-3 leading-6 focus:outline-none",
-            "text-foreground placeholder:text-muted-foreground",
-          )}
+          className="flex-1 resize-none bg-transparent p-3 leading-6 focus:outline-none text-foreground placeholder:text-muted-foreground"
           style={{ minHeight }}
           spellCheck={false}
         />

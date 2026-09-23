@@ -1,11 +1,11 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
 import { pickMouseEvent } from "../../events/mouse";
-import { ImageDef } from "./def";
+import { PictureDef } from "./def";
 import { height as toHeight, width as toWidth } from "../../lib/sizes";
 
-export const ImageImpl = createComponentImplementation({
-  def: ImageDef,
+export const PictureImpl = createComponentImplementation({
+  def: PictureDef,
   render: ({
     src,
     alt,

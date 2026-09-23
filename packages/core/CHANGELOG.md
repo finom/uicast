@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- **`budget-exceeded` reason.** An expression that ran past its step, time or allocation budget was reported as `guardrail-violation`; it has its own reason now, fault `document`.
+- **`invalid-entry` reason**, fault `document`: a field of the line has the wrong type — a `seed` that is not an array of steps, a callback that is not one, `hidden` written as `{ "expr": … }`, a list without `as`. `entryShapeError` in `@uicast/core/internal` checks every field but `key` and `component` and names the wrong one. `isComponentEntry` still checks only what the element table needs, so such a line reaches the renderer and is classified there.
+
 ### Changed
+
+- **`EntryErrorReason` includes the evaluator's `ExpressionErrorReason`.** A reason from `@uicast/expr` passes through unchanged; nothing maps one onto the other.
+- `@uicast/core/internal` drops `depKey`, `findSetAddressFault`, `SetAddressFault`, `checkUrl`, `UrlCheck`, `UrlViolation` and `ForwardTarget`; nothing outside core used them.
+- `$emitter.on` handlers take no argument; nothing read the `{ field, value, oldValue }` payload.
+- `ReactiveProxy` defaults to `Record<string, unknown>`, so `scopes.root.x` reads and writes type-check in `init` without a cast.
+- `extractDeps` requires its `part` argument.
 
 - **Breaking: the public entry is only what a host writes against.** `checkUrl`, `findUrlViolations`, `schemaHasUrlFormat`, `UrlCheck`, `UrlViolation`, `isComponentListEntry` and `CALLBACK_DEBOUNCE_MS` moved to `@uicast/core/internal`. `UrlPolicy` stays public — a host declares it. The index is the document format, the definition factory, the scope and stream helpers, and `EntryError`.
 - **A scope is one shallow proxy; a `set` names one field.** `createProxyScope` no longer wraps nested objects: everything under a field is plain data, a write replaces the field and emits it, and `$set(field, value)` takes a field, not a path. Subscriptions are per field — a write to `scopes.root.user` wakes a reader of `scopes.root.user.name` — so `extractDeps` returns `scopes.<scope>.<field>` keys and `planStepWaves` compares them. The `set` address grammar is `scopes.<scope>.<field>`, checked by `parseSetAddress` / `findEntrySetAddressFault` (replacing `validate-set-path`); anything deeper, a number, a missing `scopes.` prefix, a prototype name or one of the runtime's row fields is a `guardrail-violation` at mount.
@@ -23,8 +34,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A `set` path without the `scopes.` prefix was invisible to wave planning** — reads come back prefixed, writes were compared as written, and a reader could land in the same wave as its writer. Both sides are normalised.
 - Tool names are screened against the array's contents right before they are bound, not once per array identity — an array mutated after first use no longer binds unscreened. Identifier validity and duplicates are the evaluator's own checks now; core keeps only the `scopes` / `evt` / `currentValue` and global-collision rules.
 - The recovery prompt's description of a `guardrail-violation` names the budget, so a step, time, or allocation refusal is no longer described to the model as a syntax error.
+- **The expressions prompt gives rules, not a method list.** The language is the standard methods of strings, numbers, arrays, dates and sets, minus what the rules leave out: mutation, iterators, `forEach`, regular expressions, locale arguments. A few idioms show the common shapes. An arrow is written only as a method's callback; the result and a host function's argument are plain data. §9 says a host function call is the expression's result — the whole of it, a branch of `?:`, or the right side of `??`, `||`, `&&`: the model reads its result in a later step, and fetches many ids through one call.
+- **The determinism rule is uicast's, not the language's.** A reactive expression gives the same result for the same state; a random value comes from a step (`Math.floor(Math.random() * 6) + 1` in a `set`), and a time computed in a prop is as fresh as its last re-evaluation.
 - A function's call signature no longer wraps an intersection or union input in a second pair of parentheses: `listOrders(Window & { … })`, not `listOrders((Window & { … }))`.
 - Compiled to ES2022.
+
+### Fixed
+
+- **A URL prop could load from any host through backslashes.** `\\evil.tld/x`, `/\evil.tld/x` and `\/evil.tld/x` passed the URL policy as relative, but the browser's URL parser reads `\` as `/` and fetched them from `evil.tld`: a document could send scope data to any host on render. A value with no scheme that starts with two slashes or backslashes, in any mix and with tabs or newlines between them, names a host, as it does for the browser; that host is now checked like any absolute URL. An explicit `origin` written with a trailing slash now matches its origin.
+- **Some declared URL props were never checked.** `findUrlViolations` stopped at a fixed depth and passed everything below it, so an `OrgChart` avatar six levels down loaded from any host. It followed one `$ref` hop and never a root self-reference (`#`, which a top-level `z.lazy` emits), and skipped tuples (`prefixItems`) and records (`additionalProperties`, `patternProperties`, keys under `propertyNames`). `schemaHasUrlFormat` stopped at depth 12, so a component whose URL props all sat deeper skipped the check. Both now follow every `$ref` chain and every applicator but `not`, with no depth limit; each value is walked once per schema node, so recursive schemas and cyclic values end.
+- **Breaking:** `buildElementsByKey` returns an object with no prototype. Its keys are model-written: an entry keyed `__proto__` replaced the map's prototype and never rendered, and a child named `toString` resolved to `Object.prototype.toString`. Use `Object.hasOwn(map, key)`, not `map.hasOwnProperty(key)`.
+- **A seed or callback step that does not parse fails classified.** `planStepWaves` let a raw `ExpressionError` through, which the React binding filed as `implementation` (a seed) or `unknown` (a callback). It is an `EntryError` with the evaluator's reason now (`expression-syntax` for a step that does not parse), fault `document`, so the repair loop sees it.
+- `planStepWaves` finds `currentValue` in the parse, not in the text: an escaped spelling now waits for the earlier write, and a string or property named `currentValue` no longer splits a wave.
+- **A component whose props are not one object showed the model no props.** A union, an intersection (`.and()`) or a record printed no `Props:`; it prints as one type now (`Props: { kind: "circle"; radius: number } | { kind: "square"; side: number }`), and a root `$ref` lists the fields of the object it names.
+- `getComponentsPartialPrompt` with no visible definition and `getFunctionsPartialPrompt` with no function printed their headings over nothing. They print only the `note`, if there is one.
+- `createComponentDefinition` refuses a `children` field in every branch of union or intersection props and payloads, not only in a plain object.
 
 ### Added
 

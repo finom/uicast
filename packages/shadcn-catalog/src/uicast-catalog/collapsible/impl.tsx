@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -10,7 +10,7 @@ import { CollapsibleDef } from "./def";
 
 export const CollapsibleImpl = createComponentImplementation({
   def: CollapsibleDef,
-  render: ({ open, title, children, onOpenChange}, { entry }) => {
+  render: ({ open, title, children, onOpenChange }, { entry }) => {
     return (
       <Collapsible
         open={open}
@@ -31,5 +31,5 @@ export const CollapsibleImpl = createComponentImplementation({
       </Collapsible>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

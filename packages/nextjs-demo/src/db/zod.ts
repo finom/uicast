@@ -1,11 +1,8 @@
 import { z } from "zod";
 import { MOVEMENT_REASONS, ORDER_STATUSES } from "./schema";
 
-// Zod companions for the Drizzle tables. `.meta({ description })` says what a
-// field is; the validators say the rest, and the prompt prints both. A row
-// schema's `.meta({ id })` makes it one shared type in the prompt.
+// `.meta({ description })` says what a field is; the validators say the rest. `.meta({ id })` makes a shared type in the prompt.
 
-// ---- suppliers ----
 export const supplierInsert = z.object({
   name: z.string().meta({ description: "Supplier company name." }),
   email: z.string().meta({ description: "Contact email for purchase orders." }),
@@ -17,7 +14,6 @@ export const supplierOutput = supplierInsert.extend({
   id: z.number().int().meta({ description: "Supplier id." }),
 }).meta({ id: "Supplier" });
 
-// ---- stock movements ----
 export const movementInsert = z.object({
   productId: z.number().int().meta({ description: "Product the stock moves for." }),
   qty: z
@@ -32,7 +28,6 @@ export const movementOutput = movementInsert.extend({
   createdAt: z.string().meta({ description: "ISO timestamp of the movement." }),
 }).meta({ id: "StockMovement" });
 
-// ---- products ----
 export const productInsert = z.object({
   supplierId: z.number().int().meta({ description: "Id of the supplier this product is ordered from." }),
   name: z.string().meta({ description: "Product name." }),
@@ -46,7 +41,6 @@ export const productOutput = productInsert.extend({
   id: z.number().int().meta({ description: "Product id." }),
 }).meta({ id: "Product" });
 
-// ---- customers ----
 export const customerInsert = z.object({
   name: z.string().meta({ description: "Customer's full name." }),
   company: z.string().meta({ description: "Company the customer belongs to." }),
@@ -58,7 +52,6 @@ export const customerOutput = customerInsert.extend({
   createdAt: z.string().meta({ description: "ISO timestamp the customer was created." }),
 }).meta({ id: "Customer" });
 
-// ---- orders ----
 export const orderInsert = z.object({
   customerId: z.number().int().meta({ description: "ID of the customer who placed the order." }),
   productId: z.number().int().meta({ description: "ID of the product ordered." }),
@@ -75,8 +68,8 @@ export const orderOutput = orderInsert.extend({
   createdAt: z.string().meta({ description: "ISO timestamp the order was created." }),
 }).meta({ id: "Order" });
 
-// ---- list windows: one schema reads the tool call (numbers) and the route's query string (strings) ----
-export const listWindow = z
+// One schema reads the tool call (numbers) and the route's query string (strings).
+const listWindow = z
   .object({
     limit: z.coerce.number().int().min(1).max(200).default(50).meta({ description: "Rows to return." }),
     offset: z.coerce.number().int().min(0).default(0).meta({ description: "Rows to skip." }),
@@ -147,7 +140,6 @@ export const orderListRow = orderOutput
   .extend({ customerName: z.string().meta({ description: "The customer's current name." }) })
   .meta({ id: "OrderListRow" });
 
-// A window's result: the rows, the count over the same filters, and the window applied.
 export const pageOf = <T extends z.ZodType>(row: T) =>
   z.object({
     items: z.array(row),
@@ -156,7 +148,6 @@ export const pageOf = <T extends z.ZodType>(row: T) =>
     offset: z.number().int().meta({ description: "Rows skipped." }),
   });
 
-// ---- summaries ----
 export const salesSummaryInput = z.object({
   days: z.coerce.number().int().min(1).max(365).default(30).meta({ description: "The last N days." }),
 });
@@ -195,14 +186,14 @@ export const stockSummary = z.object({
     .meta({ description: "Per supplier, largest value first; a supplier with no products is absent." }),
 });
 
-// ---- pages (no tools; route validation only) ----
+// Pages have no tools: route validation only.
 export const pageInsert = z.object({
   title: z.string().min(1),
   prompt: z.string().nullish(),
 });
 export const pageUpdate = pageInsert.partial();
 
-// ---- id inputs, picked from the outputs so descriptions stay single-source ----
+// Picked from the outputs, so each description has one source.
 export const productIdInput = productOutput.pick({ id: true });
 export const customerIdInput = customerOutput.pick({ id: true });
 export const orderIdInput = orderOutput.pick({ id: true });

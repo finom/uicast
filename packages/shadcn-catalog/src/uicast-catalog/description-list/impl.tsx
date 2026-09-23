@@ -1,11 +1,12 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { cn, busy } from "../../lib/utils";
+import { COLUMNS } from "../../lib/layout";
 import { DescriptionListDef } from "./def";
 
 export const DescriptionListImpl = createComponentImplementation({
   def: DescriptionListDef,
   render: ({
-    items = [],
+    items,
     layout,
     columns,
   }, { entry, loading }) => {
@@ -13,9 +14,7 @@ export const DescriptionListImpl = createComponentImplementation({
       <dl
         className={cn(
           "grid gap-4",
-          columns === "1" && "grid-cols-1",
-          columns === "2" && "grid-cols-1 sm:grid-cols-2",
-          columns === "3" && "grid-cols-1 sm:grid-cols-2 md:grid-cols-3",
+          COLUMNS[columns],
           busy(loading),
         )}
         aria-busy={loading || undefined}
@@ -24,11 +23,9 @@ export const DescriptionListImpl = createComponentImplementation({
         {items.map((item, i) => (
           <div
             key={i}
-            className={cn(
-              layout === "horizontal"
-                ? "flex items-baseline justify-between gap-4"
-                : "space-y-1",
-            )}
+            className={
+              layout === "horizontal" ? "flex items-baseline justify-between gap-4" : "space-y-1"
+            }
           >
             <dt className="text-sm font-medium text-muted-foreground">
               {item.label}
@@ -39,5 +36,5 @@ export const DescriptionListImpl = createComponentImplementation({
       </dl>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

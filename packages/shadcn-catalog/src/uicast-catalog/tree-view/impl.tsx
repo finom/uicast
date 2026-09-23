@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Skeleton } from "../../components/ui/skeleton";
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import {
   Collapsible,
   CollapsibleTrigger,
@@ -16,7 +16,7 @@ function TreeNodeComponent({
   depth,
   path,
   expandedMap,
-  toggleExpand,
+  setExpanded,
   onSelect,
   onToggle,
 }: {
@@ -24,41 +24,37 @@ function TreeNodeComponent({
   depth: number;
   path: string[];
   expandedMap: Record<string, boolean>;
-  toggleExpand: (key: string, expanded: boolean) => void;
-  onSelect?: (args: { label: string; path: string[] }) => Promise<void>;
-  onToggle?: (args: { label: string; expanded: boolean }) => Promise<void>;
+  setExpanded: (key: string, expanded: boolean) => void;
+  onSelect: (args: { label: string; path: string[] }) => Promise<void>;
+  onToggle: (args: { label: string; expanded: boolean }) => Promise<void>;
 }) {
   const key = path.join("/");
   const isExpanded = expandedMap[key] ?? node.expanded ?? false;
-  const hasChildren = node.children && node.children.length > 0;
+  const children = node.children ?? [];
 
-  if (!hasChildren) {
-    return (
-      <div
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-accent cursor-pointer"
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        onClick={() => onSelect?.({ label: node.label, path })}
-      >
-        <span className="w-5" />
-        {iconNode(node.icon, "size-4 shrink-0")}
-        <span>{node.label}</span>
-      </div>
-    );
-  }
+  const row = (lead: ReactNode) => (
+    <div
+      className="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-accent cursor-pointer"
+      style={{ paddingLeft: `${depth * 16 + 8}px` }}
+      onClick={() => onSelect({ label: node.label, path })}
+    >
+      {lead}
+      {iconNode(node.icon, "size-4 shrink-0")}
+      <span>{node.label}</span>
+    </div>
+  );
+
+  if (children.length === 0) return row(<span className="w-5" />);
 
   return (
     <Collapsible
       open={isExpanded}
       onOpenChange={(open) => {
-        toggleExpand(key, isExpanded);
-        onToggle?.({ label: node.label, expanded: open });
+        setExpanded(key, open);
+        onToggle({ label: node.label, expanded: open });
       }}
     >
-      <div
-        className="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-accent cursor-pointer"
-        style={{ paddingLeft: `${depth * 16 + 8}px` }}
-        onClick={() => onSelect?.({ label: node.label, path })}
-      >
+      {row(
         <CollapsibleTrigger asChild>
           <Button
             variant="ghost"
@@ -72,19 +68,17 @@ function TreeNodeComponent({
               <ChevronRight className="size-4" />
             )}
           </Button>
-        </CollapsibleTrigger>
-        {iconNode(node.icon, "size-4 shrink-0")}
-        <span>{node.label}</span>
-      </div>
+        </CollapsibleTrigger>,
+      )}
       <CollapsibleContent>
-        {(node.children ?? []).map((child, i) => (
+        {children.map((child, i) => (
           <TreeNodeComponent
             key={i}
             node={child}
             depth={depth + 1}
             path={[...path, child.label]}
             expandedMap={expandedMap}
-            toggleExpand={toggleExpand}
+            setExpanded={setExpanded}
             onSelect={onSelect}
             onToggle={onToggle}
           />
@@ -96,13 +90,10 @@ function TreeNodeComponent({
 
 export const TreeViewImpl = createComponentImplementation({
   def: TreeViewDef,
-  render: ({ items = [], onSelect, onToggle}, { entry }) => {
+  render: ({ items, onSelect, onToggle }, { entry }) => {
     const [expandedMap, setExpandedMap] = useState<Record<string, boolean>>({});
-
-    // `expanded` is the effective state (map entry or the node's own prop), so
-    // the first toggle of a node the document opened works too
-    const toggleExpand = (key: string, expanded: boolean) => {
-      setExpandedMap((prev) => ({ ...prev, [key]: !expanded }));
+    const setExpanded = (key: string, expanded: boolean) => {
+      setExpandedMap((prev) => ({ ...prev, [key]: expanded }));
     };
 
     return (
@@ -110,11 +101,11 @@ export const TreeViewImpl = createComponentImplementation({
         {items.map((item, i) => (
           <TreeNodeComponent
             key={i}
-            node={item as TreeNode}
+            node={item}
             depth={0}
             path={[item.label]}
             expandedMap={expandedMap}
-            toggleExpand={toggleExpand}
+            setExpanded={setExpanded}
             onSelect={onSelect}
             onToggle={onToggle}
           />

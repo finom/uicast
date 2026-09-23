@@ -39,7 +39,7 @@ describe("streamJsonLines — non-JSON noise", () => {
       "```json\n",
       "Here are the entries:\n",
       '{"key":"a","component":"C"}\n',
-      '{"key":"b","compo\n', // the model cut the line short
+      '{"key":"b","compo\n',
       "```\n",
     ];
     expect(await collect(chunks(parts))).toEqual([

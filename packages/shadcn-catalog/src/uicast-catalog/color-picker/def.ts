@@ -1,6 +1,8 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
+export const HEX_COLOR = /^#[0-9a-f]{6}$/i;
+
 export const ColorPickerDef = createComponentDefinition({
   name: "ColorPicker",
   description:
@@ -8,7 +10,7 @@ export const ColorPickerDef = createComponentDefinition({
   props: z.strictObject({
     value: z
       .string()
-      .regex(/^#[0-9a-f]{6}$/i)
+      .regex(HEX_COLOR)
       .default("#000000")
       .meta({
       description: "The current color as a hex string, e.g. '#ff5500'",
@@ -21,7 +23,7 @@ export const ColorPickerDef = createComponentDefinition({
     onChange: z.strictObject({
       value: z
         .string()
-        .regex(/^#[0-9a-f]{6}$/i)
+        .regex(HEX_COLOR)
         .meta({
         description: "The newly selected color as a hex string",
       }),

@@ -1,7 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 
-// Recursive: reports are nodes, to any depth. The explicit type is what `z.lazy` needs to infer.
+// The explicit type is what `z.lazy` needs.
 export type OrgNode = {
   name: string;
   title?: string;

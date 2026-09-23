@@ -4,6 +4,13 @@ import { z } from "zod";
 import { getFunctionsPartialPrompt } from "../get-functions-partial-prompt";
 
 describe("getFunctionsPartialPrompt", () => {
+	it("prints no heading without functions, only the note", () => {
+		expect(getFunctionsPartialPrompt({ functions: [] })).toBe("");
+		expect(getFunctionsPartialPrompt({ functions: [], note: "Data is static." })).toBe(
+			"## Note\n\nData is static.",
+		);
+	});
+
 	it("renders no-schema tools inline", () => {
 		const ping = standardTool({
 			name: "ping",

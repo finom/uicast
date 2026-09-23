@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Button } from "../../components/ui/button";
+import { buttonVariants } from "../../components/ui/button";
 import { cn } from "../../lib/utils";
 import { ExternalLink } from "lucide-react";
 import { LinkDef } from "./def";
@@ -14,29 +14,26 @@ export const LinkImpl = createComponentImplementation({
     size,
     underline,
     external,
-    disabled,
-    onClick,
   }, { entry }) => {
     return (
-      <Button
-        variant="link"
-        size={size === "lg" ? "lg" : size === "sm" ? "sm" : "default"}
+      <a
+        href={href}
+        target={external ? "_blank" : undefined}
+        rel={external ? "noopener noreferrer" : undefined}
         className={cn(
+          buttonVariants({ variant: "link", size }),
           "inline-flex items-center gap-1",
-          variant === "default" && "text-primary",
           variant === "muted" && "text-muted-foreground",
           variant === "destructive" && "text-destructive",
+          size === "lg" && "text-base",
           underline === "always" && "underline",
-          underline === "hover" && "hover:underline no-underline",
-          underline === "none" && "no-underline",
+          underline === "none" && "hover:no-underline",
         )}
-        disabled={disabled}
-        onClick={() => onClick({ href })}
         data-key={entry.key}
       >
         {children ?? text}
         {external && <ExternalLink className="size-3" />}
-      </Button>
+      </a>
     );
   },
 });

@@ -29,7 +29,6 @@ describe("binding", () => {
 	});
 
 	it("every identifier is a parameter, so a name the walker missed is undefined, not a global", () => {
-		// compile() with no bindings at all: nothing the source names resolves to anything
 		const run = (source: string) =>
 			compile({ source, ast: parseExpression(source), freeIds: [], toolCalls: [] }, {})([]);
 		expect(run("typeof fetch")).toBe("undefined");
@@ -54,7 +53,6 @@ describe("construction", () => {
 		const tool = (name: string) => ({ name, description: "", execute: () => 1 });
 		for (const name of ["static", "let", "eval", "package"]) {
 			expect(() => new PassthroughEvaluator({ functions: [tool(name)] }), name).toThrow(/strict mode/);
-			// the interpreter has no such constraint
 			expect(new Evaluator({ functions: [tool(name)] }).eval(`${name}()`)).toBe(1);
 		}
 	});

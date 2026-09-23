@@ -48,8 +48,6 @@ describe("EntryRenderer — errors", () => {
     const { container, emit } = mountEntries(lines);
     expect(container.textContent).toContain("Unknown component: Bocks");
 
-    // Partial replacement with the corrected name — fresh entry identity
-    // resets the boundary, and the element renders for real.
     emit({
       key: "root",
       component: "Box",
@@ -103,8 +101,6 @@ describe("EntryRenderer — errors", () => {
   });
 
   it("ErrorBoundary contains throws inside a renderer (siblings keep rendering)", () => {
-    // Silence the expected error noise from React's dev-mode logger so the
-    // test output stays clean. We're explicitly exercising an error path.
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => {});
@@ -126,16 +122,11 @@ describe("EntryRenderer — errors", () => {
       },
     ];
     const { container } = mountEntries(lines);
-    // The thrower is wrapped in <ErrorBoundary>, so the parent + sibling
-    // entries still render.
     expect(container.textContent).toContain("sibling-survives");
     consoleError.mockRestore();
   });
 });
 
-// The contract bans host functions (and `await`) in reactive sites — they
-// re-evaluate on every state change. The engine throws a classified error
-// instead of letting the Promise leak into render as a truthy object.
 describe("EntryRenderer — host function call in a reactive site", () => {
   const functions: StandardToolV0[] = [
     { name: "loadThing", description: "", execute: async () => "value" },

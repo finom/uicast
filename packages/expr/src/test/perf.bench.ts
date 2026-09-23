@@ -2,8 +2,6 @@ import { bench, describe } from "vitest";
 import { Evaluator, type StandardToolV0 } from "../index";
 import { BUDGET, cases, rows, scopes, WAVE_EXPRS } from "./bench-cases";
 
-// Interpreter against the JS engine on the shapes real documents use. The claim: evaluation is not on the critical path — React and the DOM are.
-
 const interpret = new Evaluator(BUDGET);
 
 const waveInterpret = WAVE_EXPRS.map((e) => interpret.compile(e));
@@ -38,7 +36,6 @@ for (const [label, expr] of cases) {
 	});
 }
 
-// Host calls grew work in the redesign (input and output cross a schema), so both are measured, with and without schemas.
 const identity = (input: unknown) => input;
 const numberSchema = {
 	"~standard": {

@@ -16,7 +16,7 @@ export const WaterfallChartDef = createComponentDefinition({
             .meta({ description: "Value (positive or negative)" }),
           isTotal: z.boolean().optional().meta({
             description:
-              "Whether this bar represents a total (starts from zero)",
+              "Whether this bar shows the running total so far, from zero. Its value is ignored.",
           }),
         }),
       )

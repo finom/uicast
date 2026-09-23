@@ -1,8 +1,10 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { Button } from "../../components/ui/button";
-import { ICONS } from "../../lib/icons";
+import { iconNode } from "../../lib/icon-node";
 import { IconButtonDef } from "./def";
+
+const SIZES = { sm: "size-8", default: "size-9", lg: "size-10" } as const;
 
 export const IconButtonImpl = createComponentImplementation({
   def: IconButtonDef,
@@ -14,7 +16,6 @@ export const IconButtonImpl = createComponentImplementation({
     tooltip,
     onClick,
   }, { entry }) => {
-    const IconComponent = ICONS[icon];
     return (
       <Button
         variant={variant}
@@ -23,11 +24,9 @@ export const IconButtonImpl = createComponentImplementation({
         title={tooltip}
         onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={entry.key}
-        className={
-          size === "sm" ? "size-8" : size === "lg" ? "size-10" : "size-9"
-        }
+        className={SIZES[size]}
       >
-        <IconComponent className="size-4" />
+        {iconNode(icon, "size-4")}
       </Button>
     );
   },

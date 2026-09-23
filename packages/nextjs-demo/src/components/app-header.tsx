@@ -22,7 +22,7 @@ export async function AppHeader() {
       </Link>
       <div className="ml-auto flex items-center gap-2">
         <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
-          <a href="https://uicast.dev" target="_blank" rel="noreferrer">
+          <a href="https://github.com/finom/uicast" target="_blank" rel="noreferrer">
             Built with uicast
           </a>
         </Button>

@@ -23,7 +23,8 @@ what stays your job, and where to report what we got wrong.
 
 - **Host functions are capabilities.** An expression can only use what you
   gave it: the scopes and the functions you bound. `rows.map(r => deleteRow(r.id))`
-  is a legal expression; nothing escaped — the document used a tool you granted.
+  deletes every row before its result is refused; nothing escaped — the
+  document used a tool you granted.
   Keep `functions` narrow and enforce authorization on the server.
 - **Scope data must be plain.** Inject JSON-shaped values only; a tool's
   `outputSchema` gives you that by construction.

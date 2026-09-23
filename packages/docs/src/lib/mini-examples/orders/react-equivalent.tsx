@@ -1,4 +1,3 @@
-// The same UI, written by hand in React.
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

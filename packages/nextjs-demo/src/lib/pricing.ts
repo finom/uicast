@@ -1,16 +1,15 @@
 import { GENERATION_MODEL } from "./openrouter";
 
-// Per-token USD prices for the generation model, from OpenRouter's own model
-// listing — so the estimate uses the exact rates OpenRouter bills, whatever
-// the model. Cached for an hour; a fetch failure means "no price", never a
-// made-up number.
+// Rates from OpenRouter's own model listing; a fetch failure means "no price", never a made-up number.
 
 type Pricing = { promptUsd: number; completionUsd: number };
+
+const PRICING_TTL_MS = 3_600_000;
 
 let cached: { at: number; pricing: Pricing | null } | undefined;
 
 export async function getModelPricing(): Promise<Pricing | null> {
-  if (cached && Date.now() - cached.at < 3_600_000) return cached.pricing;
+  if (cached && Date.now() - cached.at < PRICING_TTL_MS) return cached.pricing;
   try {
     const res = await fetch("https://openrouter.ai/api/v1/models", {
       headers: { accept: "application/json" },

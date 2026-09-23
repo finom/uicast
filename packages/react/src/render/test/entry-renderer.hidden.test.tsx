@@ -3,9 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
 import { mountEntries } from "../../../test/render-helpers";
 
-// `Activity mode="hidden"` keeps the node mounted and sets an inline
-// `display: none !important` on its host children — `style.display` is the
-// observable signal, in happy-dom as in the browser.
+// `Activity mode="hidden"` keeps the node mounted and sets `display: none` on its host children.
 describe("EntryRenderer — hidden", () => {
   it("hides the entry when hidden evaluates truthy", () => {
     const lines: ComponentEntry[] = [
@@ -49,7 +47,6 @@ describe("EntryRenderer — hidden", () => {
     act(() => {
       scopes.root.$set("hidden", true);
     });
-    // Still mounted — Activity hides, it does not unmount.
     expect(container.querySelector("[data-key='panel']")).toBe(panel);
     expect(panel.style.display).toBe("none");
 

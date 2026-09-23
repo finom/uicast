@@ -1,19 +1,46 @@
-// Every cap the language enforces, in one place.
-
-// Longest accepted source, in characters. The real corpus tops out around 140; anything near this belongs in a host function.
+// The corpus tops out around 140 characters; anything near this belongs in a host function.
 export const DEFAULT_MAX_SOURCE_LENGTH = 1000;
 
-// Deepest AST the validator and the compilers walk — a nested expression cannot blow their stack.
+export const DEFAULT_MAX_CACHE_SIZE = 500;
+
+// A nested expression cannot blow the validator's or a compiler's stack.
 export const MAX_AST_DEPTH = 100;
 
-// Arrow parameters — the interpreter's call slots. The method tables pass at most four (`reduce`).
+// The interpreter's call slots; the method tables pass at most four (`reduce`).
 export const MAX_ARROW_PARAMS = 5;
 
-// Nested callback invocations before `budget-exceeded`. Self-application is the one recursion the grammar
-// cannot forbid, and it blows the stack before the step budget reacts.
-export const MAX_CALLBACK_DEPTH = 64;
+// Characters the engine scans or copies for one step.
+export const CHARS_PER_STEP = 64;
 
-// `.flat()` depth, so a pathologically nested host value cannot overflow the stack.
+// Characters the engine rewrites or builds one by one for one step: case, normalization, JSON, parsing.
+export const TEXT_CHARS_PER_STEP = 4;
+
+// Allocating is time too: a new string costs a step per 2^10 characters, a new array a step per 2^3 items.
+export const STRING_ALLOCATION_SHIFT = 10;
+export const ARRAY_ALLOCATION_SHIFT = 3;
+
+// Steps an operation costs beyond its written nodes: its time over a plain step's, as
+// test/prices.test.ts measures it. So the step limit, not the clock, ends a long evaluation on any device.
+export const PRICES = Object.freeze({
+	// Any method or global function call, before its own work.
+	call: 2,
+	// A `new`, before its own work.
+	construct: 4,
+	// A number formatted or two strings compared through a locale.
+	locale: 32,
+	// A date formatted through a locale.
+	dateLocale: 128,
+	// A date turned into text, or read from text (plus a step per character).
+	dateText: 64,
+	// A value hashed into a Set, or looked up in one.
+	hash: 4,
+	// A number added by Math.sumPrecise, or rounded by Math.f16round.
+	exactNumber: 8,
+	// A JSON.parse or JSON.stringify call, before its size.
+	json: 32,
+});
+
+// A pathologically nested host value cannot overflow the stack.
 export const MAX_FLAT_DEPTH = 32;
 
 // Deepest value the exit gate walks before refusing it.
@@ -28,8 +55,7 @@ export type BudgetOptions = {
 	maxStringLength?: number;
 	// Longest array any operation may produce. Default 100_000.
 	maxArrayLength?: number;
-	// Total characters + elements one evaluation may allocate across all operations. Default 10_000_000.
-	// Per-op caps don't compose, so the total is bounded too.
+	// Total across all operations. Default 10_000_000; per-op caps don't compose.
 	maxTotalAllocation?: number;
 };
 

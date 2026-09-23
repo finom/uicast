@@ -1,11 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke studio component: a 2-D control surface. Its `onMove` carries a
- * *spatial* payload `{ x, y }` — the kind of event a generic form catalog can't
- * produce, but the one `callbacks` mechanism handles it like any other.
- */
 export const XYPadDef = createComponentDefinition({
   name: "XYPad",
   description:

@@ -17,9 +17,9 @@ import { BarChartDef } from "./def";
 export const BarChartImpl = createComponentImplementation({
   def: BarChartDef,
   render: ({
-    data = [],
+    data,
     xKey,
-    yKeys = [],
+    yKeys,
     colors,
     height,
     stacked,

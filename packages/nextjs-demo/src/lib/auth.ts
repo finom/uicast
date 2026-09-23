@@ -4,15 +4,12 @@ import { cookies } from "next/headers";
 import { db } from "@/db";
 import { sessions, users, type User } from "@/db/schema";
 import { insertStarterData } from "@/db/starter-data";
+import { SYSTEM_SLUG } from "@/lib/system-slug";
 
-// Identity is our own session cookie: OpenRouter's PKCE flow returns a key but
-// no user id, so a fresh browser + login = a fresh user with empty content.
+// OpenRouter's PKCE flow returns a key but no user id, so identity is our own session cookie.
 
 const SESSION_COOKIE = "sid";
 const SESSION_TTL_MS = 90 * 86_400_000;
-
-/** The seed user owning the public demo content. */
-export const SYSTEM_SLUG = "uicast";
 
 const ADJECTIVES = [
   "amber", "brisk", "cedar", "dapper", "ember", "fjord", "gentle", "hazel",
@@ -34,7 +31,7 @@ async function uniqueSlug(): Promise<string> {
   for (let i = 0; i < 20; i++) {
     const slug = randomSlug();
     const [taken] = await db.select({ id: users.id }).from(users).where(eq(users.slug, slug));
-    if (!taken && slug !== SYSTEM_SLUG) return slug;
+    if (!taken) return slug;
   }
   return `user-${randomBytes(6).toString("base64url")}`;
 }
@@ -73,7 +70,6 @@ export async function clearSession(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
-/** The signed-in user, or null. */
 export async function getSessionUser(): Promise<User | null> {
   const sid = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!sid) return null;
@@ -95,16 +91,12 @@ export async function getUserBySlug(slug: string): Promise<User | null> {
   return user ?? null;
 }
 
-/**
- * Whose data a read serves: the `u` slug when given, else the session user,
- * else the seed user. Everything is world-readable; this only picks the copy.
- */
 export async function resolveOwner(url: URL): Promise<User | null> {
   const slug = url.searchParams.get("u");
   if (slug) return getUserBySlug(slug);
   return (await getSessionUser()) ?? getUserBySlug(SYSTEM_SLUG);
 }
 
-/** 401 body for a mutating route hit without a session — worded for the error slot. */
+// Worded for the error slot.
 export const READONLY_ERROR =
   "You're viewing the demo data. Log in with OpenRouter to get your own copy and make changes.";

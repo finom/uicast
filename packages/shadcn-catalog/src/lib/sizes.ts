@@ -1,14 +1,14 @@
 import z from "zod";
 
-// Layout sizes a document may name, so no prop takes a raw CSS length.
+// No prop takes a raw CSS length.
 const WIDTHS = { xs: "4rem", sm: "8rem", md: "12rem", lg: "16rem", xl: "24rem", full: "100%", auto: "auto" } as const;
 const HEIGHTS = { xs: "1rem", sm: "2rem", md: "4rem", lg: "8rem", xl: "16rem", full: "100%", auto: "auto" } as const;
-// Table columns are narrower than page-level boxes and never "auto" — an unset width already means auto.
+// Never "auto": an unset column width already means auto.
 const COLUMN_WIDTHS = { xs: "4rem", sm: "6rem", md: "8rem", lg: "12rem", xl: "16rem" } as const;
 
-export type WidthName = keyof typeof WIDTHS;
-export type HeightName = keyof typeof HEIGHTS;
-export type ColumnWidthName = keyof typeof COLUMN_WIDTHS;
+type WidthName = keyof typeof WIDTHS;
+type HeightName = keyof typeof HEIGHTS;
+type ColumnWidthName = keyof typeof COLUMN_WIDTHS;
 
 export const width = (name: WidthName): string => WIDTHS[name];
 export const height = (name: HeightName): string => HEIGHTS[name];

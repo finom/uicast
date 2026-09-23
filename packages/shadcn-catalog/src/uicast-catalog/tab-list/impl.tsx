@@ -5,7 +5,7 @@ import { TabListDef } from "./def";
 
 export const TabListImpl = createComponentImplementation({
   def: TabListDef,
-  render: ({ children}, { entry }) => {
+  render: ({ children }, { entry }) => {
     return <TabsList data-key={entry.key}>{children}</TabsList>;
   },
   placeholder: () => (

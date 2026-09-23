@@ -1,9 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Card, CardContent, CardHeader } from "../../components/ui/card";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { Check, Copy } from "lucide-react";
+import { useCopy } from "../../lib/use-copy";
 import { CodeBlockDef } from "./def";
 
 export const CodeBlockImpl = createComponentImplementation({
@@ -15,18 +15,16 @@ export const CodeBlockImpl = createComponentImplementation({
     showCopyButton,
     onCopy,
   }, { entry }) => {
-    const [copied, setCopied] = useState(false);
+    const { copied, copy } = useCopy();
     const lines = code.split("\n");
 
     const handleCopy = async () => {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
+      await copy(code);
       onCopy();
-      setTimeout(() => setCopied(false), 2000);
     };
 
     return (
-      <Card className="group relative bg-muted" data-key={entry.key}>
+      <Card className="bg-muted" data-key={entry.key}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b px-4 py-2">
           <span className="text-xs font-medium text-muted-foreground">
             {language}

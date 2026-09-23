@@ -1,11 +1,6 @@
 import { createComponentDefinition } from "@uicast/core";
 import z from "zod";
 
-/**
- * Bespoke color component: a saturation × lightness field plus a hue strip. Its
- * `onPick` carries a *structured, multi-channel* payload — `{ hex, h, s, l }` all
- * at once — the clearest proof that `evt` is whatever the component decides.
- */
 export const ColorFieldDef = createComponentDefinition({
   name: "ColorField",
   description:

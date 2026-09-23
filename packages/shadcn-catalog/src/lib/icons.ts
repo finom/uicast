@@ -12,9 +12,7 @@ import {
 	Zap,
 } from "lucide-react";
 
-// The icons a document may name. Named imports, never `import *`: a namespace import plus a run-time key
-// defeats tree-shaking and ships all ~1800 lucide icons (175 KB gzipped) to every consumer.
-// Grouped by what a generated UI asks for. Adding one is cheap (~100 B gzipped); the enum below is the contract.
+// Named imports, never `import *`: a namespace import plus a run-time key ships all ~1800 lucide icons.
 export const ICONS = {
 	// Row & record actions
 	Archive, Check, Copy, Download, ExternalLink, Pencil, Plus, Printer, Save, Send, Share2, Trash2, Undo2, Upload, X,
@@ -40,8 +38,7 @@ export const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-// The zod enum needs a non-empty tuple; the assertion is safe because ICONS is a literal.
-export const ICON_NAMES = Object.keys(ICONS).sort() as [IconName, ...IconName[]];
+const ICON_NAMES = Object.keys(ICONS).sort() as [IconName, ...IconName[]];
 
-// `id` hoists this into the prompt's shared types, so the ~100 members are listed once, not at every icon prop.
+// `id` hoists the ~100 members into the prompt's shared types, listed once.
 export const iconNameSchema = z.enum(ICON_NAMES).meta({ id: "IconName" });

@@ -1,24 +1,16 @@
 import { EntryError } from "../entry-error";
 import { PROTOTYPE_KEYS, RESERVED_ROW_FIELDS } from "./parse-set-address";
 
-type EventHandler<T = unknown> = (payload: T) => void;
-
-interface ChangePayload<T = unknown> {
-  field: string;
-  value: T;
-  oldValue: T;
-}
-
 interface Emitter {
   // Subscribe to one field; `"*"` receives every emit. Returns unsubscribe.
-  on(field: string, handler: EventHandler<ChangePayload>): () => void;
-  emit(field: string, payload: ChangePayload): void;
-  // Emit count. A subscriber attaching after render compares this to what it saw while rendering — advanced means a write landed unheard, so re-read.
+  on(field: string, handler: () => void): () => void;
+  emit(field: string): void;
+  // A subscriber attaching after render compares this to what it saw while rendering; advanced means a write landed unheard.
   readonly version: number;
 }
 
 function createEmitter(): Emitter {
-  const events = new Map<string, Set<EventHandler<ChangePayload>>>();
+  const events = new Map<string, Set<() => void>>();
   let version = 0;
 
   return {
@@ -33,21 +25,17 @@ function createEmitter(): Emitter {
       return () => events.get(field)?.delete(handler);
     },
 
-    emit(field, payload) {
+    emit(field) {
       version++;
-      events.get(field)?.forEach((fn) => {
-        fn(payload);
-      });
-      events.get("*")?.forEach((fn) => {
-        fn(payload);
-      });
+      for (const fn of events.get(field) ?? []) fn();
+      for (const fn of events.get("*") ?? []) fn();
     },
   };
 }
 
 type SetOptions = { default?: boolean };
 
-type ReactiveProxy<T extends object = object> = T & {
+type ReactiveProxy<T extends object = Record<string, unknown>> = T & {
   $emitter: Emitter;
   // `default: true` writes only when the field is still undefined (first writer wins).
   $set: (field: string, value: unknown, options?: SetOptions) => void;
@@ -56,7 +44,6 @@ type ReactiveProxy<T extends object = object> = T & {
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === "object";
 
-// A field is one name: prototype keys would land on the prototype chain, a dot would be a path.
 function assertField(field: string): void {
   if (PROTOTYPE_KEYS.has(field)) {
     throw new EntryError(`Cannot set "${field}": it reaches the prototype chain.`, {
@@ -71,7 +58,6 @@ function assertField(field: string): void {
   }
 }
 
-// One scope over its own bag. Reads are plain; a write replaces one field and emits it.
 function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> {
   const emitter = createEmitter();
   const fields = bag as Record<string, unknown>;
@@ -82,7 +68,7 @@ function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> 
     if (options?.default && oldValue !== undefined) return;
     if (Object.is(oldValue, value)) return;
     fields[field] = value;
-    emitter.emit(field, { field, value, oldValue });
+    emitter.emit(field);
   };
 
   return new Proxy(bag, {
@@ -121,7 +107,7 @@ const holds = (value: unknown, element: unknown): boolean => {
 
 const forwardTargetsByProxy = new WeakMap<ReactiveProxy, () => ForwardTarget[]>();
 
-// Every window onto one element, so a write through one wakes the others (two lists over one array).
+// A write through one window wakes the others (two lists over one array).
 const windowsByElement = new WeakMap<object, Set<Emitter>>();
 
 // The fields, in the scopes a row can see, that hold its element by identity. Empty for a root-kind scope.
@@ -130,8 +116,7 @@ const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] =>
 
 const ENGINE_DESCRIPTOR = { writable: false, enumerable: true, configurable: true };
 
-// A window onto one element of the array a list iterates. A write changes the element in place,
-// then emits on the row and on every field holding the element; a nested row's emit climbs the same way.
+// A write changes the element in place, then emits on the row and on every field holding the element.
 function createRowScope(): RowScope {
   const emitter = createEmitter();
   let element: unknown;
@@ -156,15 +141,14 @@ function createRowScope(): RowScope {
 
   emitter.on("*", () => {
     for (const t of findTargets()) {
-      t.scope.$emitter.emit(t.field, { field: t.field, value: undefined, oldValue: undefined });
+      t.scope.$emitter.emit(t.field);
     }
   });
 
   const engineField = (prop: string): unknown => {
     if (prop === "$index") return index;
     if (prop === "$id") return id;
-    if (prop === "$value") return isObject(element) ? undefined : element;
-    return undefined;
+    return element;
   };
   const isEngineField = (prop: string): boolean =>
     RESERVED_ROW_FIELDS.has(prop) && (prop !== "$value" || !isObject(element));
@@ -199,10 +183,9 @@ function createRowScope(): RowScope {
         cause: err,
       });
     }
-    const payload = { field, value, oldValue };
-    emitter.emit(field, payload);
+    emitter.emit(field);
     for (const other of windowsByElement.get(element) ?? []) {
-      if (other !== emitter) other.emit(field, payload);
+      if (other !== emitter) other.emit(field);
     }
   };
 
@@ -270,15 +253,4 @@ function createRowScope(): RowScope {
   };
 }
 
-export {
-  createProxyScope,
-  createRowScope,
-  createEmitter,
-  getForwardTargets,
-  type Emitter,
-  type ChangePayload,
-  type EventHandler,
-  type ReactiveProxy,
-  type RowScope,
-  type ForwardTarget,
-};
+export { createProxyScope, createRowScope, getForwardTargets, type ReactiveProxy, type RowScope };

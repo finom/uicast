@@ -1,6 +1,6 @@
 import z from "zod";
 
-// Key labels Kbd renders. One spelling per key: a model given "Cmd", "⌘" and "Meta" would mix them.
+// One spelling per key: a model given "Cmd", "⌘" and "Meta" would mix them.
 const KEY_NAMES = [
 	"Cmd", "Ctrl", "Alt", "Shift", "Enter", "Tab", "Esc", "Space", "Backspace", "Delete",
 	"Up", "Down", "Left", "Right", "PageUp", "PageDown", "Home", "End",

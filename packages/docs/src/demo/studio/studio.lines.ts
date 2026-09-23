@@ -1,12 +1,6 @@
 import type { ComponentEntry } from "@uicast/core";
 
-/**
- * The groovebox artifact — the JSONLines a model would stream to build the synth
- * demo, hand-authored as a typed `ComponentEntry[]`. Everything reactive lives in
- * one `scopes.root.*` namespace; every bespoke component's callback writes the
- * event payload to `scopes.root.lastEvt` (alongside its real effect) so the
- * "Last event" panel can show each payload shape verbatim.
- */
+// Every callback also records itself in `scopes.root.lastEvt`, which the "Last event" card prints.
 export const studioLines: ComponentEntry[] = [
   {
     key: "root",
@@ -31,7 +25,6 @@ export const studioLines: ComponentEntry[] = [
     children: ["intro", "top-row", "seq-card", "controls", "readout-row"],
   },
 
-  // Intro
   {
     key: "intro",
     component: "FlexCol",
@@ -45,7 +38,7 @@ export const studioLines: ComponentEntry[] = [
   },
   {
     key: "subtitle",
-    component: "Text",
+    component: "Typography",
     props: {
       literal: {
         text:
@@ -55,7 +48,6 @@ export const studioLines: ComponentEntry[] = [
     },
   },
 
-  // Top row: XY pad + knobs
   {
     key: "top-row",
     component: "Grid",
@@ -140,7 +132,6 @@ export const studioLines: ComponentEntry[] = [
     },
   },
 
-  // Step sequencer
   {
     key: "seq-card",
     component: "Card",
@@ -167,7 +158,6 @@ export const studioLines: ComponentEntry[] = [
     },
   },
 
-  // Controls: a host-function call + a confirm-gated reset
   {
     key: "controls",
     component: "FlexRow",
@@ -210,7 +200,6 @@ export const studioLines: ComponentEntry[] = [
     },
   },
 
-  // Readouts: derived filter state + the live "Last event" panel
   {
     key: "readout-row",
     component: "Grid",
@@ -232,7 +221,7 @@ export const studioLines: ComponentEntry[] = [
   },
   {
     key: "evt-text",
-    component: "Text",
+    component: "Typography",
     props: {
       expr: "({ text: scopes.root.lastEvt ? JSON.stringify(scopes.root.lastEvt) : 'Interact with a control to see its event payload…', variant: 'muted' })",
     },

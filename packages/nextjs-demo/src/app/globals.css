@@ -1,16 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-/* `prose` styles for the catalog's markdown-viewer and rich-text-editor. */
-@plugin "@tailwindcss/typography";
 
-/*
- * Tailwind v4 auto-scans this package but stops at the package boundary. The
- * shadcn catalog components live in a sibling package, so without these @source
- * hints Tailwind never emits rules for classes like `bg-card`, `bg-sidebar`, or
- * `text-muted-foreground`, and every catalog component renders unstyled. Paths
- * are relative to this file.
- */
-@source "../../../core/src/**/*.{ts,tsx}";
+/* Tailwind scans this package only; the catalog's and Streamdown's classes live outside it. */
 @source "../../../shadcn-catalog/src/**/*.{ts,tsx}";
 @source "../../../../node_modules/streamdown/dist/index.js";
 

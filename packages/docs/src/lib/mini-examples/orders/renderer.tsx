@@ -26,8 +26,7 @@ const implementations = [
 const functions = [listProducts, updateProduct];
 const evaluator = new Evaluator({ functions });
 
-// Answers every `confirm` step in every document; without it the engine falls
-// back to window.confirm.
+// Without it the engine falls back to window.confirm.
 const fallbackComponents = {
   confirm: ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) =>
     open ? (

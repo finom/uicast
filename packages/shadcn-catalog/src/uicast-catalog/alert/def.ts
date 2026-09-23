@@ -15,7 +15,7 @@ export const AlertDef = createComponentDefinition({
       .default("info")
       .meta({
         description:
-          "The alert type determining icon and color: info (blue), success (green), warning (yellow), error (red/destructive)",
+          "The alert type determining the icon; error is also shown in red (destructive)",
       }),
   }),
 });

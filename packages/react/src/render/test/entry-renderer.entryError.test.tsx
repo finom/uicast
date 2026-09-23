@@ -12,9 +12,6 @@ import {
   defaultImplementationsList,
   mountEntries, testEvaluator } from "../../../test/render-helpers";
 
-// Classification end-to-end: every failure reaching the error slot or onError
-// is an EntryError whose reason was tagged at the throw site.
-
 const collect = () => {
   const seen: EntryError[] = [];
   return { seen, onError: (err: EntryError) => seen.push(err) };
@@ -45,10 +42,7 @@ describe("EntryRenderer — EntryError classification", () => {
       render: ({ value }) => <div>{value.toUpperCase()}</div>,
     });
     const { seen, onError } = collect();
-    const lines: ComponentEntry[] = [
-      // No props at all — `value` is required, and the render crashes on it.
-      { key: "root", component: "Strict" },
-    ];
+    const lines: ComponentEntry[] = [{ key: "root", component: "Strict" }];
     mountEntries(lines, {
       implementations: { Strict: strictImpl },
       onError,
@@ -103,12 +97,11 @@ describe("EntryRenderer — EntryError classification", () => {
     expect(seen[0].reason).toBe("host-function");
     expect(seen[0].fault).toBe("environment");
     expect(seen[0].elementKey).toBe("btn");
-    // The callback failure is contained — the button is still there.
     expect(container.querySelector("button")).not.toBeNull();
     consoleError.mockRestore();
   });
 
-  it("reports a failing host `init` as `host-init` through the Renderer prop", async () => {
+  it("reports a failing host `init` as `host-init`", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { seen, onError } = collect();
     const lines: ComponentEntry[] = [
@@ -137,12 +130,41 @@ describe("EntryRenderer — EntryError classification", () => {
       },
     ];
     const { container } = mountEntries(lines, { onError });
-    // Rejected off the entry's static strings — no click needed.
     expect(seen).toHaveLength(1);
     expect(seen[0].reason).toBe("guardrail-violation");
     expect(seen[0].fault).toBe("document");
     expect(seen[0].elementKey).toBe("grid");
     expect(container.textContent).toContain("is not an address");
+    consoleError.mockRestore();
+  });
+
+  it("refuses a malformed line at mount as `invalid-entry`, in its own slot", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { seen, onError } = collect();
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["bad", "ok"] },
+      JSON.parse('{"key":"bad","component":"Box","seed":"oops"}'),
+      { key: "ok", component: "Box", props: { literal: { text: "fine" } } },
+    ];
+    const { container, emit } = mountEntries(lines, { onError });
+    expect(seen).toHaveLength(1);
+    expect(seen[0].reason).toBe("invalid-entry");
+    expect(seen[0].fault).toBe("document");
+    expect(seen[0].elementKey).toBe("bad");
+    expect(container.textContent).toContain('"seed" must be an array of steps');
+    expect(container.textContent).toContain("fine");
+    emit({ key: "bad", component: "Box", props: { literal: { text: "fixed" } } });
+    expect(container.textContent).toContain("fixed");
+    consoleError.mockRestore();
+  });
+
+  it("refuses a callback that is not a step array at mount, not on click", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const { seen, onError } = collect();
+    mountEntries([JSON.parse('{"key":"btn","component":"Button","callbacks":{"onClick":"oops"}}')], { onError });
+    expect(seen).toHaveLength(1);
+    expect(seen[0].reason).toBe("invalid-entry");
+    expect(seen[0].message).toContain('"callbacks.onClick" must be an array of steps');
     consoleError.mockRestore();
   });
 

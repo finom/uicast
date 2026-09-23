@@ -2,17 +2,12 @@ import { type StandardToolV0, standardTool } from "standard-tool";
 import { z } from "zod";
 import { db, type Product } from "./db";
 
-// The host functions expressions call, bound on the demo's evaluator. Built with `standardTool()`.
-// Each `execute` closes over the Dexie singleton — a browser database in place of a remote one.
-
-// IndexedDB is near-instant; a small simulated round-trip makes the async
-// `seed` (Suspense) loading state actually visible in the demo, the way a
-// real network-backed data source would behave. Writes stay instant.
+// IndexedDB is near-instant; the delay makes the async `seed` loading state visible. Writes stay instant.
 const NETWORK_MS = 300;
 const simulateLatency = () =>
   new Promise<void>((resolve) => setTimeout(resolve, NETWORK_MS));
 
-// Draft shape for create/update. The form supplies every field and the number inputs emit numbers, so plain schemas keep the inferred input type exact.
+// The form supplies every field and the number inputs emit numbers, so plain schemas keep the input type exact.
 const ProductDraft = z.object({
   name: z.string(),
   sku: z.string(),
@@ -21,10 +16,7 @@ const ProductDraft = z.object({
   price: z.number(),
 });
 
-// Full row as stored — what every read/write returns. Mirrors `Product`.
 const ProductOutput = ProductDraft.extend({ id: z.number() });
-
-// ---- reads (used as async `seed`) -------------------------------------
 
 const listProducts = standardTool({
   name: "listProducts",
@@ -53,8 +45,6 @@ const getCategoryBreakdown = standardTool({
     );
   },
 });
-
-// ---- writes (used in `callbacks`) -----------------------------------------
 
 const createProduct = standardTool({
   name: "createProduct",
@@ -90,7 +80,6 @@ const deleteProduct = standardTool({
   },
 });
 
-// Bound as `new Evaluator({ functions: inventoryFunctions })` for the demo's renderer, and rendered into its prompt.
 export const inventoryFunctions: StandardToolV0[] = [
   listProducts,
   getCategoryBreakdown,

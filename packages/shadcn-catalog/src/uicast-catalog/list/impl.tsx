@@ -1,4 +1,4 @@
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { ListDef } from "./def";
 
 export const ListImpl = createComponentImplementation({
@@ -16,12 +16,12 @@ export const ListImpl = createComponentImplementation({
     const Tag = ordered ? "ol" : "ul";
     return (
       <Tag
-        className={`${styleMap[styleType]} pl-5 space-y-1 text-sm *:list-item`}
+        className={`${styleMap[styleType ?? (ordered ? "decimal" : "disc")]} pl-5 space-y-1 text-sm *:list-item`}
         data-key={entry.key}
       >
         {children}
       </Tag>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { JSONSchemaToTs } from "../json-schema-to-ts";
+import { jsonSchemaToTs } from "../json-schema-to-ts";
 import { collectSharedTypes } from "../shared-types";
 
 const person = {
@@ -21,7 +21,7 @@ describe("collectSharedTypes", () => {
 		const shared = collectSharedTypes();
 		const refs = shared.add(doc);
 
-		expect(JSONSchemaToTs(doc, { namedRefs: refs })).toBe(
+		expect(jsonSchemaToTs(doc, { namedRefs: refs })).toBe(
 			"{ owner?: Person; reviewer?: Person }",
 		);
 		expect(shared.lines()).toEqual(["- Person: { id: string; name?: string }"]);
@@ -41,14 +41,13 @@ describe("collectSharedTypes", () => {
 			$defs: { Node: node },
 		};
 
-		// Inlined, the cycle guard swallows the shape one level down.
-		expect(JSONSchemaToTs(doc)).toBe(
+		expect(jsonSchemaToTs(doc)).toBe(
 			"{ root?: { name?: string; children?: unknown[] } }",
 		);
 
 		const shared = collectSharedTypes();
 		const refs = shared.add(doc);
-		expect(JSONSchemaToTs(doc, { namedRefs: refs })).toBe("{ root?: Node }");
+		expect(jsonSchemaToTs(doc, { namedRefs: refs })).toBe("{ root?: Node }");
 		expect(shared.lines()).toEqual([
 			"- Node: { name?: string; children?: Node[] }",
 		]);
@@ -110,8 +109,6 @@ describe("collectSharedTypes", () => {
 	});
 
 	it("hoists a self-referential root ref, keeping the recursion expressible", () => {
-		// The shape a top-level `z.lazy` emits. Skipping it (like the plain
-		// self-ref below) would degrade the recursion to `unknown[]`.
 		const shared = collectSharedTypes();
 		const doc = {
 			$ref: "#/$defs/Node",
@@ -128,13 +125,10 @@ describe("collectSharedTypes", () => {
 
 		expect(refs["#/$defs/Node"]).toBe("Node");
 		expect(shared.lines()).toEqual(["- Node: { children?: Node[] }"]);
-		expect(JSONSchemaToTs(doc, { namedRefs: refs })).toBe("Node");
+		expect(jsonSchemaToTs(doc, { namedRefs: refs })).toBe("Node");
 	});
 
 	it("does not dedupe textually identical defs whose refs resolve differently", () => {
-		// Both documents carry an identical-looking List def, but each List's
-		// `$ref` points at that document's own Item — a string list vs a number
-		// list. Deduping them would print a wrong type for one document.
 		const shared = collectSharedTypes();
 		const list = { type: "array", items: { $ref: "#/$defs/Item" } };
 		const refsA = shared.add({
@@ -155,15 +149,13 @@ describe("collectSharedTypes", () => {
 	});
 
 	it("leaves a document that is only a self-ref alone", () => {
-		// Hoisting here would render the whole schema as the bare word `Wrapper`
-		// and move the payload out of the site that needs it.
 		const shared = collectSharedTypes();
 		const doc = { $ref: "#/$defs/Wrapper", $defs: { Wrapper: person } };
 		const refs = shared.add(doc);
 
 		expect(refs).toEqual({});
 		expect(shared.lines()).toEqual([]);
-		expect(JSONSchemaToTs(doc, { namedRefs: refs })).toBe(
+		expect(jsonSchemaToTs(doc, { namedRefs: refs })).toBe(
 			"{ id: string; name?: string }",
 		);
 	});

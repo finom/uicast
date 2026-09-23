@@ -50,8 +50,6 @@ describe("EntryRenderer — scopes", () => {
     });
     expect(container.textContent).toContain("first");
 
-    // Write to a sibling path; the renderer shouldn't re-render because the
-    // entry doesn't read `b`.
     act(() => {
       scopes.root.$set("b", "still-ignored");
     });
@@ -59,8 +57,6 @@ describe("EntryRenderer — scopes", () => {
   });
 
   it("wakes a deeper-path reader when an ancestor path is replaced", () => {
-    // Regression: a stat reading `products.length` must update when a
-    // callback replaces `products` wholesale (mutate-then-refetch pattern).
     const lines: ComponentEntry[] = [
       {
         key: "root",

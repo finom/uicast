@@ -4,9 +4,6 @@ import { createComponentDefinition } from "../../def/create-component-definition
 import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
 
 describe("getComponentsPartialPrompt — duplicate names", () => {
-	// A flat `ComponentDefinition[]` (the catalog registry shape) carries no
-	// name-uniqueness of its own; this builder — the one place every def is
-	// consumed by name — imposes it as a fail-fast throw.
 	it("throws on a duplicate component name", () => {
 		const A = createComponentDefinition({
 			name: "Dup",
@@ -23,11 +20,6 @@ describe("getComponentsPartialPrompt — duplicate names", () => {
 		);
 	});
 });
-
-// The `hidden` flag exists so host-only components (like RootFragment, the
-// synthetic wrapper used by `Renderer`'s `init` prop) can be registered
-// without being advertised to the LLM. The filter in
-// `getComponentsPartialPrompt` is the enforcement point.
 
 describe("getComponentsPartialPrompt — hidden filter", () => {
 	it("includes visible defs", () => {
@@ -56,17 +48,9 @@ describe("getComponentsPartialPrompt — hidden filter", () => {
 		const out = getComponentsPartialPrompt({ definitions: [Visible, Hidden] });
 		expect(out).toContain("Visible");
 		expect(out).not.toContain("Hidden");
-		// The component name should also not appear in the "# Component
-		// Details" detail section — guard against a future regression where
-		// the names-list filter and the details-list filter diverge.
 		expect(out).not.toContain("host-only");
 	});
 });
-
-// A handler shared across many components (e.g. onClick) would otherwise inline
-// its full payload type on every component entry. Passing it as a common event
-// hoists it into a single "# Common Events" block; each component references it
-// by its JSON Schema `$id` instead of re-describing the payload.
 
 describe("getComponentsPartialPrompt — common events", () => {
 	const onClick = z
@@ -86,20 +70,15 @@ describe("getComponentsPartialPrompt — common events", () => {
 			props: z.object({}),
 			callbacks: { onClick },
 		});
-		// No `commonEvents` argument — the `$id` on the callback is the signal.
 		const out = getComponentsPartialPrompt({ definitions: [A, B] });
 
 		expect(out).toContain("# Common Events");
 		expect(out).toContain("- MouseEvent — fires on click");
 		expect(out).toContain("onClick(evt: MouseEvent)");
-		// The payload's fields render once (in the common block), not on every
-		// component that wires the handler — that's the whole point.
 		expect(out.split("- x: number").length - 1).toBe(1);
 	});
 
 	it("hoists a `$id` payload even when only one component uses it", () => {
-		// Consistent with `# Shared Types`: a `$id` is a named concept, hoisted
-		// regardless of usage count.
 		const A = createComponentDefinition({
 			name: "A",
 			description: "a",
@@ -146,11 +125,6 @@ describe("getComponentsPartialPrompt — common events", () => {
 	});
 });
 
-// A callback whose payload schema is `z.null()` carries no event data. Rather
-// than advertise `(evt: null)` — which reads as "pass null" — the builder
-// renders it as a no-arg handler, matching the `CallbacksToFunctions` type that
-// makes the implementation's `onClick()` take no argument.
-
 describe("getComponentsPartialPrompt — null callback payload", () => {
 	it("renders a null-payload callback as a no-arg handler", () => {
 		const A = createComponentDefinition({
@@ -164,12 +138,6 @@ describe("getComponentsPartialPrompt — null callback payload", () => {
 		expect(out).not.toContain("onPress(evt");
 	});
 });
-
-// Every description the author writes should reach the prompt: a component's
-// own description, each prop's, each event handler's, and each option of a typed
-// event's payload. Props and event handlers render as described sub-lists; a
-// typed event's options sit one level deeper, the way props do. The first test
-// pins the whole block byte-for-byte (it's the spec the docs page mirrors).
 
 describe("getComponentsPartialPrompt — descriptions on props, handlers, options", () => {
 	it("surfaces the component, prop, and handler descriptions in one block", () => {
@@ -224,8 +192,6 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 	});
 
 	it("prints a schema default the way TypeScript writes one", () => {
-		// The engine applies the default before `render` sees the prop, so it is
-		// what the model gets by omitting the field — worth telling it.
 		const A = createComponentDefinition({
 			name: "A",
 			description: "a",
@@ -274,5 +240,53 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 			note: "Prefer Card over raw FlexCol.",
 		});
 		expect(out.endsWith("## Note\n\nPrefer Card over raw FlexCol.")).toBe(true);
+	});
+});
+
+describe("getComponentsPartialPrompt — props that are not one object", () => {
+	it("prints a union or an intersection as one type", () => {
+		const Shape = createComponentDefinition({
+			name: "Shape",
+			description: "A shape.",
+			props: z.union([
+				z.object({ kind: z.literal("circle"), radius: z.number() }),
+				z.object({ kind: z.literal("square"), side: z.number() }),
+			]),
+		});
+		const Both = createComponentDefinition({
+			name: "Both",
+			description: "Both.",
+			props: z.object({ a: z.string() }).and(z.object({ b: z.number().optional() })),
+		});
+		const out = getComponentsPartialPrompt({ definitions: [Shape, Both] });
+		expect(out).toContain(
+			'- Shape — A shape.\n  Props: { kind: "circle"; radius: number } | { kind: "square"; side: number }',
+		);
+		expect(out).toContain("- Both — Both.\n  Props: { a: string } & { b?: number }");
+	});
+
+	it("lists the fields of the object a root `$ref` names", () => {
+		type Node = { name: string; kids?: Node[] };
+		const node: z.ZodType<Node> = z
+			.lazy(() => z.object({ name: z.string(), kids: z.array(node).optional() }))
+			.meta({ id: "Node" });
+		const Tree = createComponentDefinition({
+			name: "Tree",
+			description: "A tree.",
+			props: node.meta({ description: "The root node." }),
+		});
+		const out = getComponentsPartialPrompt({ definitions: [Tree] });
+		expect(out).toContain("  Props:\n    - name: string\n    - kids?: Node[]");
+		expect(out).toContain("# Shared Types\n\n- Node: { name: string; kids?: Node[] }");
+	});
+});
+
+describe("getComponentsPartialPrompt — nothing to list", () => {
+	it("prints no heading without a visible definition, only the note", () => {
+		const Hidden = createComponentDefinition({ name: "Hidden", description: "host-only", hidden: true });
+		expect(getComponentsPartialPrompt({ definitions: [] })).toBe("");
+		expect(getComponentsPartialPrompt({ definitions: [Hidden], note: "No UI here." })).toBe(
+			"## Note\n\nNo UI here.",
+		);
 	});
 });

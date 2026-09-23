@@ -17,9 +17,9 @@ import { LineChartDef } from "./def";
 export const LineChartImpl = createComponentImplementation({
   def: LineChartDef,
   render: ({
-    data = [],
+    data,
     xKey,
-    yKeys = [],
+    yKeys,
     colors,
     height,
     curved,

@@ -1,6 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
 import { useState } from "react";
-import { cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
 import { TruncatedTextDef } from "./def";
 
@@ -17,14 +16,14 @@ export const TruncatedTextImpl = createComponentImplementation({
     return (
       <div data-key={entry.key}>
         <p
-          className={cn("text-sm", !expanded && "overflow-hidden")}
+          className="text-sm"
           style={
             expanded
               ? undefined
               : {
                   display: "-webkit-box",
                   WebkitLineClamp: maxLines,
-                  WebkitBoxOrient: "vertical" as const,
+                  WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }
           }

@@ -4,21 +4,18 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { createComponentImplementation, type PlaceholderComponentProps } from "@uicast/react";
+import { createComponentImplementation } from "@uicast/react";
 import { Accordion } from "../../components/ui/accordion";
 import { AccordionDef } from "./def";
 
-export interface AccordionContextValue {
+interface AccordionContextValue {
   type: "single" | "multiple";
   collapsible: boolean;
   openKey: string;
-  // Functional updates required: two sibling effects can settle the slot in
-  // one commit, and a plain set from a stale closure would clobber the winner.
   setOpenKey: Dispatch<SetStateAction<string>>;
 }
 
-// consumed by AccordionItem; under type="single" items coordinate through it
-// so that opening one closes the others
+// Under type="single", opening one item closes the others through this.
 export const AccordionContext = createContext<AccordionContextValue | null>(
   null,
 );
@@ -30,7 +27,7 @@ export const AccordionImpl = createComponentImplementation({
     collapsible,
     children,
   }, { entry }) => {
-    // key of the open item under type="single"; "" means all closed
+    // "" means all closed.
     const [openKey, setOpenKey] = useState("");
 
     return (
@@ -47,5 +44,5 @@ export const AccordionImpl = createComponentImplementation({
       </AccordionContext.Provider>
     );
   },
-  placeholder: ({ children }: PlaceholderComponentProps) => <div className="flex flex-col gap-2">{children}</div>,
+  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
 });

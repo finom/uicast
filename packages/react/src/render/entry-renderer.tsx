@@ -1,25 +1,27 @@
-"use client";
-import React, { Activity, memo, Suspense, use, useEffect, useMemo, useRef, type ReactNode } from "react";
-import { EntryError } from "@uicast/core";
+import { Activity, memo, Suspense, use, useEffect, useMemo, useRef, type ReactElement, type ReactNode } from "react";
+import { type ComponentListEntry, EntryError } from "@uicast/core";
 import {
   isComponentListEntry,
+  entryShapeError,
   evaluate,
   findEntrySetAddressFault,
   setAddressError,
 } from "@uicast/core/internal";
+import { engineOf } from "../impl/engine";
 import { structurallyEqual } from "../impl/structural-equal";
 import { useConfirm } from "../providers/confirm";
 import { ErrorBoundary } from "../providers/error-boundary";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { useElement } from "../store/elements-store";
-import type { Debouncers, InitFn, PlaceholderComponentProps, Scopes } from "../types";
+import { refusePromise } from "../refuse-promise";
+import type { Debouncers, InitFn, PlaceholderComponentProps, RenderContext, Scopes } from "../types";
 import { useReactiveDeps } from "./use-reactive-deps";
 import { useSeed } from "./use-seed";
 import { useItemScopes } from "./use-item-scopes";
 
 type PlaceholderComponent = (
   props: PlaceholderComponentProps,
-) => React.ReactElement | null;
+) => ReactElement | null;
 
 const NullPlaceholder: PlaceholderComponent = () => null;
 
@@ -29,14 +31,12 @@ function SuspendUntil({
 }: {
   promise: Promise<void>;
   children: ReactNode;
-}): React.ReactElement {
+}): ReactElement {
   use(promise);
   return <>{children}</>;
 }
 
-// Rethrows a seed failure during render, inside the element's own error
-// boundary — the deterministic route to the `error` slot (a rejected Suspense
-// promise doesn't reliably reach a boundary through `use()`).
+// A rejected Suspense promise does not reliably reach a boundary through `use()`, so the seed error is rethrown in render.
 function ThrowError({ error }: { error: unknown }): never {
   throw error;
 }
@@ -46,16 +46,13 @@ const NO_CALLBACKS: Record<string, (evt: unknown) => Promise<void>> = {};
 type EntryRendererProps = {
   elementKey: string;
   scopes: Scopes;
-  // Set only on the synthetic RootFragment mount, so `init` fires once and
-  // descendants never re-fire it.
+  // Set only on the synthetic RootFragment, so `init` fires once.
   init?: InitFn;
-  // Shown while this node's entry hasn't streamed in; the parent passes its own
-  // placeholder so the slot looks unchanged.
+  // The parent's own placeholder, so the slot looks unchanged.
   fallback?: PlaceholderComponent;
   // Keys of every ancestor — a repeat means the children reference in a cycle.
   ancestors?: ReadonlySet<string>;
-  // Set when rendering an element once per list item: render it normally instead
-  // of dispatching back to ListEntryRenderer (which would recurse forever).
+  // Rendering once per list item; without it the element would dispatch back to ListEntryRenderer forever.
   asListItem?: boolean;
 };
 
@@ -66,7 +63,7 @@ const EntryRendererInner = ({
   fallback,
   asListItem = false,
   ancestors,
-}: EntryRendererProps): React.ReactElement => {
+}: EntryRendererProps): ReactElement => {
   if (ancestors?.has(elementKey)) {
     throw new EntryError(`"${elementKey}" is its own ancestor — the children form a cycle`, {
       reason: "guardrail-violation",
@@ -74,28 +71,24 @@ const EntryRendererInner = ({
     });
   }
   const lineage = useMemo(() => new Set([...(ancestors ?? []), elementKey]), [ancestors, elementKey]);
-  // This node's element only — re-renders when this key changes, not a sibling.
   const element = useElement(elementKey);
   const { implementations, fallbackComponents, evaluator, urlPolicy, onError } = useRendererRegistry();
   const confirm = useConfirm();
 
-  // A list entry reached as a child slot iterates its items; reached per-item
-  // (`asListItem`) it renders as a normal component in the item scope.
+  // A malformed line fails in its own slot, and none of its fields is read.
+  const shapeError = useMemo(() => (element ? entryShapeError(element) : null), [element]);
+
+  // Reached per item (`asListItem`), a list entry renders as a normal component in the item scope.
   const isListContainer = !!element && isComponentListEntry(element) && !asListItem;
 
   const impl = element ? implementations[element.component] : undefined;
-  // Whether this pass renders the real component (vs. placeholder / list / unknown).
+  const engine = impl ? engineOf(impl) : undefined;
   const willRender = !!element && !isListContainer && !!impl;
-  // One-shot seed+init runs on the element's OWN pass: the container pass for a
-  // list (per the contract, `each` state may be initialized by a seed on the
-  // list element itself), the normal pass otherwise. Never per item — that
-  // would run an element's seed once per row.
-  const seedEnabled = !asListItem && (isListContainer || willRender);
+  // Seed and init run on the element's own pass, never per item.
+  const seedEnabled = !asListItem && !shapeError && (isListContainer || willRender);
 
-  // The container pass skips subscribing (ListEntryRenderer owns the list's
-  // deps); an item pass subscribes to props + hidden only — the container
-  // already re-renders every row when `each` changes.
-  useReactiveDeps(element, scopes, isListContainer ? "skip" : asListItem ? "render" : "all");
+  // The container pass leaves the list's deps to ListEntryRenderer.
+  useReactiveDeps(isListContainer || shapeError ? undefined : element, scopes, "render");
   const { pending, error: seedError } = useSeed({
     element,
     scopes,
@@ -104,21 +97,19 @@ const EntryRendererInner = ({
     enabled: seedEnabled,
   });
 
-  // Props and `hidden` evaluate every pass. A fault is thrown below, inside
-  // this element's own boundary, so the hook order never changes.
+  // A fault is thrown below, inside this element's own boundary, so the hook order never changes.
   let props: unknown = null;
   let hidden: unknown = false;
   let loading: unknown = false;
   let fault: unknown = null;
-  if (element && impl && !isListContainer) {
+  if (element && engine && !isListContainer && !shapeError) {
     try {
-      ({ props, hidden, loading } = impl.evaluate(element, scopes, evaluator, urlPolicy));
+      ({ props, hidden, loading } = engine.evaluate(element, scopes, evaluator, urlPolicy));
     } catch (err) {
       fault = err;
     }
   }
-  // Same data → same object, so a state change that left this element's
-  // props untouched does not reach `Render`.
+  // Same data, same object, so `Render` skips a state change that left these props untouched.
   const prevProps = useRef(props);
   if (structurallyEqual(prevProps.current, props)) props = prevProps.current;
   else prevProps.current = props;
@@ -126,17 +117,17 @@ const EntryRendererInner = ({
   // Pending debounced runs outlive a handler rebuild, not the element.
   const debouncers = useRef<Debouncers>(new Map());
   useEffect(() => {
-    const pending = debouncers.current;
+    const runs = debouncers.current;
     return () => {
-      for (const run of pending.values()) run.cancel();
+      for (const run of runs.values()) run.cancel();
     };
   }, []);
   const callbacks = useMemo(
     () =>
-      element && impl && !isListContainer
-        ? impl.callbacks(element, scopes, confirm, evaluator, onError, debouncers.current)
+      element && engine && !isListContainer && !shapeError
+        ? engine.callbacks(element, scopes, confirm, evaluator, onError, debouncers.current)
         : NO_CALLBACKS,
-    [element, impl, isListContainer, scopes, confirm, evaluator, onError],
+    [element, engine, isListContainer, shapeError, scopes, confirm, evaluator, onError],
   );
 
   const isLoading = Boolean(loading);
@@ -145,12 +136,12 @@ const EntryRendererInner = ({
     [element, isLoading, scopes],
   );
 
-  const Fallback = fallback ?? fallbackComponents?.placeholder ?? NullPlaceholder;
+  const Fallback = fallback ?? NullPlaceholder;
   const Placeholder =
     impl?.placeholder ?? fallbackComponents?.placeholder ?? NullPlaceholder;
 
   // Stable across this node's own re-renders, so the impl's props memo holds.
-  const childKeys = element?.children;
+  const childKeys = shapeError ? undefined : element?.children;
   const children = useMemo(
     () =>
       childKeys?.length
@@ -167,17 +158,15 @@ const EntryRendererInner = ({
     [childKeys, scopes, Placeholder, lineage],
   );
 
-  // Not streamed yet — show the placeholder. The slot stays mounted; `useElement`
-  // wakes it when the entry arrives.
+  // The slot stays mounted; `useElement` wakes it when the entry arrives.
   if (!element) {
     return <Fallback reason="streaming" />;
   }
 
-  // A bad `set` address is rejected off the entry's static strings at first
-  // render, so the fault surfaces while the model is still streaming — not
-  // when a customer first fires the callback.
-  const invalidSet = findEntrySetAddressFault(element);
-  if (invalidSet) {
+  // Checked at first render, so the fault surfaces while the model is still streaming.
+  const invalidSet = shapeError ? null : findEntrySetAddressFault(element);
+  const lineError = invalidSet ? setAddressError(invalidSet.set, invalidSet.fault, elementKey) : shapeError;
+  if (lineError) {
     return (
       <ErrorBoundary
         errorComponent={fallbackComponents?.error}
@@ -185,18 +174,23 @@ const EntryRendererInner = ({
         resetToken={element}
         onError={onError}
       >
-        <ThrowError
-          error={setAddressError(invalidSet.set, invalidSet.fault, elementKey)}
-        />
+        <ThrowError error={lineError} />
       </ErrorBoundary>
     );
   }
 
+  const afterSeed = (content: ReactNode, whileSeeding: ReactNode): ReactNode => {
+    if (seedError) return <ThrowError error={seedError} />;
+    if (!pending) return content;
+    return (
+      <Suspense fallback={whileSeeding}>
+        <SuspendUntil promise={pending}>{content}</SuspendUntil>
+      </Suspense>
+    );
+  };
+
   if (isListContainer) {
-    // ListEntryRenderer evaluates `each` in its own render — boundary here so a
-    // bad list expression latches the list slot, not the parent's subtree. An
-    // async seed on the list element gates the iteration behind Suspense, so
-    // `each` first evaluates against seeded state.
+    // A boundary here, so a bad list expression latches the list slot, not the parent's subtree.
     return (
       <ErrorBoundary
         errorComponent={fallbackComponents?.error}
@@ -204,26 +198,16 @@ const EntryRendererInner = ({
         resetToken={pending ?? element}
         onError={onError}
       >
-        {seedError ? (
-          <ThrowError error={seedError} />
-        ) : pending ? (
-          <Suspense fallback={<Fallback reason="seeding" />}>
-            <SuspendUntil promise={pending}>
-              <ListEntryRenderer elementKey={elementKey} scopes={scopes} ancestors={ancestors} />
-            </SuspendUntil>
-          </Suspense>
-        ) : (
-          <ListEntryRenderer elementKey={elementKey} scopes={scopes} ancestors={ancestors} />
+        {afterSeed(
+          <ListEntryRenderer list={element} scopes={scopes} ancestors={ancestors} />,
+          <Fallback reason="seeding" />,
         )}
       </ErrorBoundary>
     );
   }
 
-  if (!impl) {
-    // An unknown component name is a document fault, routed through the same
-    // boundary as any other failure: it reaches the error slot and onError,
-    // and a re-emission with a real component name (fresh entry identity →
-    // reset token) recovers it like any corrected element.
+  if (!impl || !engine) {
+    // Routed through the boundary, so a re-emission with a real name recovers it.
     return (
       <ErrorBoundary
         errorComponent={fallbackComponents?.error}
@@ -243,17 +227,18 @@ const EntryRendererInner = ({
     );
   }
 
-  const { Render } = impl;
+  const { Render } = engine;
   const rendered = (slot: ReactNode) => {
     const result = (
       <Render
         {...(props as object)}
         {...callbacks}
         {...(slot ? { children: slot } : {})}
-        __context={context ?? { entry: element, loading: isLoading, scopes }}
+        __context={context as RenderContext}
       />
     );
-    return element.hidden ? <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity> : result;
+    if (!element.hidden) return result;
+    return <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity>;
   };
   const content = fault !== null ? <ThrowError error={fault} /> : rendered(children);
 
@@ -262,22 +247,12 @@ const EntryRendererInner = ({
     <ErrorBoundary
       errorComponent={fallbackComponents?.error}
       elementKey={elementKey}
-      // While an async seed is in flight the token is the batch promise: if the
-      // fallback throws against pre-seed state, the latch clears when the seed
-      // settles (the ref nulls → token flips back to the entry object).
+      // While an async seed is in flight the token is the batch promise, so the latch clears when the seed settles.
       resetToken={pending ?? element}
       onError={onError}
       reason="implementation"
     >
-      {seedError ? (
-        <ThrowError error={seedError} />
-      ) : pending ? (
-        <Suspense fallback={fault !== null ? <ThrowError error={fault} /> : rendered(<Placeholder reason="seeding" />)}>
-          <SuspendUntil promise={pending}>{content}</SuspendUntil>
-        </Suspense>
-      ) : (
-        content
-      )}
+      {afterSeed(content, fault !== null ? <ThrowError error={fault} /> : rendered(<Placeholder reason="seeding" />))}
     </ErrorBoundary>
   );
 };
@@ -285,57 +260,34 @@ const EntryRendererInner = ({
 export const EntryRenderer = memo(EntryRendererInner);
 
 const ListEntryRendererInner = ({
-  elementKey,
+  list,
   scopes,
   ancestors,
 }: {
-  elementKey: string;
+  list: ComponentListEntry;
   scopes: Scopes;
   ancestors?: ReadonlySet<string>;
-}): React.ReactElement | null => {
-  const element = useElement(elementKey);
+}): ReactElement => {
   const { evaluator } = useRendererRegistry();
-  useReactiveDeps(element, scopes, "each");
+  useReactiveDeps(list, scopes, "each");
 
-  const list = element && isComponentListEntry(element) ? element : null;
-  const rawItems = list ? evaluate({ expr: list.each }, { scopes }, evaluator) : [];
-  if (rawItems instanceof Promise) {
-    rawItems.catch(() => {});
-    // The contract bans host functions (and `await`) in reactive sites; a
-    // Promise here would otherwise fail as a vague "not an array".
-    throw new EntryError(
-      `"each" of ${elementKey} evaluated to a Promise — host functions and await are not allowed in props/hidden/loading/each; move the call to seed or a callback step`,
-      { reason: "guardrail-violation", elementKey },
-    );
-  }
-  if (list && rawItems != null && !Array.isArray(rawItems)) {
-    // Contract violation: `each` must yield an array. Throwing here lands in
-    // the list slot's own boundary (this component renders inside it).
-    throw new EntryError(
-      `List "each" must evaluate to an array, got ${typeof rawItems}: ${list.each}`,
-      { reason: "invalid-list", elementKey },
-    );
-  }
-  const items = (rawItems as unknown[] | null | undefined) ?? [];
-  const rows = useItemScopes(scopes, list, items);
-
-  if (!element) return null;
-
-  if (!list) {
-    // A key that mounted as a list became a non-list element — throw into the
-    // list slot's boundary, same route as any other failure.
-    throw new EntryError(`Element is not a list: ${elementKey}`, {
+  const rawItems = evaluate({ expr: list.each }, { scopes }, evaluator);
+  refusePromise(rawItems, "each", list.key);
+  const items = rawItems ?? [];
+  if (!Array.isArray(items)) {
+    throw new EntryError(`List "each" must evaluate to an array, got ${typeof items}: ${list.each}`, {
       reason: "invalid-list",
-      elementKey,
+      elementKey: list.key,
     });
   }
+  const rows = useItemScopes(scopes, list, items);
 
   return (
     <>
       {rows.map(({ itemId, itemScopes }) => (
         <EntryRenderer
-          key={`${elementKey}-item-${itemId}`}
-          elementKey={elementKey}
+          key={`${list.key}-item-${itemId}`}
+          elementKey={list.key}
           scopes={itemScopes}
           asListItem
           ancestors={ancestors}
@@ -345,4 +297,4 @@ const ListEntryRendererInner = ({
   );
 };
 
-export const ListEntryRenderer = memo(ListEntryRendererInner);
+const ListEntryRenderer = memo(ListEntryRendererInner);

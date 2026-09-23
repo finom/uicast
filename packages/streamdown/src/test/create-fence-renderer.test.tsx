@@ -12,7 +12,6 @@ import {
 import { createFenceRenderer } from "../create-fence-renderer";
 import { FENCE_LANGUAGE } from "../parse-fence-code";
 
-// Minimal local harness — one Box impl, wired the way a real catalog component is.
 const boxDef = createComponentDefinition({
 	name: "Box",
 	description: "A plain div with optional text",
@@ -172,12 +171,9 @@ describe("createFenceRenderer — FenceBlock", () => {
 		expect(callsAfterMount).toBeGreaterThan(0);
 		expect(container.textContent).toContain("Render error");
 
-		// The unchanged line keeps its entry object, so the latched boundary never
-		// resets — a fresh object per re-parse would retry the seed every tick.
 		rerender(at(`${bad}\n${more.slice(0, 11)}`));
 		rerender(at(`${bad}\n${more}`));
 		expect(calls).toBe(callsAfterMount);
-		// The per-element boundary keeps the sibling alive.
 		expect(container.textContent).toContain("extra");
 		consoleError.mockRestore();
 	});
@@ -263,7 +259,6 @@ describe("createFenceRenderer — source toggle", () => {
 
 		fireEvent.click(getByText("Source"));
 		expect(container.querySelector("pre")?.textContent).toBe(code);
-		// The rendered tree is hidden, not unmounted.
 		const hiddenBlock = container.querySelector("div[hidden]");
 		expect(hiddenBlock?.textContent).toContain("seeded 1");
 
@@ -302,13 +297,10 @@ describe("createFenceRenderer — client-only gate", () => {
 			</Host>
 		);
 
-		// The server pass: the mount gate holds the Renderer back entirely.
 		const html = renderToString(at());
 		expect(calls).toBe(0);
 		expect(html).not.toContain("seeded");
 
-		// The client pass: the mount effect flips the gate, entries render, the
-		// seed runs once.
 		const { container } = render(at());
 		expect(calls).toBe(1);
 		expect(container.textContent).toContain("seeded 1");

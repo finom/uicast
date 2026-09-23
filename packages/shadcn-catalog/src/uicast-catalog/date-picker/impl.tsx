@@ -4,7 +4,7 @@ import { DatePickerDef } from "./def";
 
 export const DatePickerImpl = createComponentImplementation({
   def: DatePickerDef,
-  render: ({ value, min, max, disabled, onChange}, { entry }) => {
+  render: ({ value, min, max, disabled, onChange }, { entry }) => {
     return (
       <Input
         type="date"
@@ -12,7 +12,10 @@ export const DatePickerImpl = createComponentImplementation({
         min={min}
         max={max}
         disabled={disabled}
-        onChange={(e) => onChange({ value: e.target.value })}
+        onChange={(e) => {
+          // A cleared or partly typed date reads as "", which the payload schema refuses.
+          if (e.target.value) onChange({ value: e.target.value });
+        }}
         data-key={entry.key}
       />
     );

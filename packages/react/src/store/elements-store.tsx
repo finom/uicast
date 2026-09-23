@@ -1,4 +1,3 @@
-"use client";
 import {
   createContext,
   useCallback,
@@ -22,7 +21,7 @@ export function createElementsStore(
 
   return {
     get(key) {
-      return map[key];
+      return Object.hasOwn(map, key) ? map[key] : undefined;
     },
     subscribe(key, listener) {
       let set = listeners.get(key);
@@ -42,13 +41,11 @@ export function createElementsStore(
       const prev = map;
       if (prev === next) return;
       map = next;
-      const seen = new Set<string>();
       for (const key in next) {
-        seen.add(key);
         if (prev[key] !== next[key]) notify(listeners, key);
       }
       for (const key in prev) {
-        if (!seen.has(key)) notify(listeners, key);
+        if (!Object.hasOwn(next, key)) notify(listeners, key);
       }
     },
   };
@@ -58,7 +55,7 @@ const ElementsStoreContext = createContext<ElementsStore | null>(null);
 
 export const ElementsStoreProvider = ElementsStoreContext.Provider;
 
-export function useElementsStore(): ElementsStore {
+function useElementsStore(): ElementsStore {
   const store = useContext(ElementsStoreContext);
   if (!store) {
     throw new Error(
@@ -68,8 +65,7 @@ export function useElementsStore(): ElementsStore {
   return store;
 }
 
-// Subscribe to one element by key. Re-renders only when that key's identity
-// changes, independent of any parent re-render.
+// Re-renders only when that key's identity changes.
 export function useElement(elementKey: string): ComponentEntry | undefined {
   const store = useElementsStore();
   const subscribe = useCallback(

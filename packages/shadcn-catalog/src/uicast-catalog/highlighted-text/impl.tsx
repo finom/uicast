@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { HighlightDef } from "./def";
+import { HighlightedTextDef } from "./def";
 
 const BACKGROUNDS = {
   yellow: "bg-yellow-200 dark:bg-yellow-800/50",
@@ -8,8 +8,8 @@ const BACKGROUNDS = {
   red: "bg-red-200 dark:bg-red-800/50",
 } as const;
 
-export const HighlightImpl = createComponentImplementation({
-  def: HighlightDef,
+export const HighlightedTextImpl = createComponentImplementation({
+  def: HighlightedTextDef,
   render: ({
     text,
     highlight,
@@ -25,8 +25,6 @@ export const HighlightImpl = createComponentImplementation({
     const regex = new RegExp(`(${escapedHighlight})`, flags);
     const parts = text.split(regex);
 
-    const bgClass = BACKGROUNDS[color];
-
     return (
       <span data-key={entry.key}>
         {parts.map((part, i) => {
@@ -36,7 +34,7 @@ export const HighlightImpl = createComponentImplementation({
           return isMatch ? (
             <mark
               key={i}
-              className={`${bgClass} px-0.5 rounded-sm`}
+              className={`${BACKGROUNDS[color]} px-0.5 rounded-sm`}
             >
               {part}
             </mark>

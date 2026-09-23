@@ -57,7 +57,7 @@ window onto the element in the array, plus three fields of the runtime's own.
 { "key": "orders", "component": "Card",
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "children": ["order-title"] }
-{ "key": "order-title", "component": "Text",
+{ "key": "order-title", "component": "Typography",
   "props": { "expr": "({ text: (scopes.order.$index + 1) + '. ' + scopes.order.customer + ' #' + scopes.order.$id })" } }
 ```
 
@@ -79,12 +79,12 @@ it silently shadows:
 // ❌ the inner `as` overwrites the outer. Inside a line, `scopes.item` IS the
 //   line, and the order it belongs to is unreachable.
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "item", "children": ["lines"] }
-{ "key": "lines", "component": "Text", "each": "scopes.item.lines", "as": "item",
+{ "key": "lines", "component": "Typography", "each": "scopes.item.lines", "as": "item",
   "props": { "expr": "({ text: scopes.item.sku })" } }
 
 // ✅ distinct names stack — a line sees root, order and line at once.
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
-{ "key": "lines", "component": "Text", "each": "scopes.order.lines", "as": "line",
+{ "key": "lines", "component": "Typography", "each": "scopes.order.lines", "as": "line",
   "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
 
@@ -150,7 +150,7 @@ A `seed` is **first-writer-wins**: it assigns only if the field is still
 ```jsonc
 { "key": "panel", "component": "Card", "seed": [{ "set": "scopes.root.sort", "literal": "name" }],
   "children": ["label"] }
-{ "key": "label", "component": "Text", "seed": [{ "set": "scopes.root.sort", "literal": "price" }],
+{ "key": "label", "component": "Typography", "seed": [{ "set": "scopes.root.sort", "literal": "price" }],
   "props": { "expr": "({ text: scopes.root.sort })" } }
 ```
 

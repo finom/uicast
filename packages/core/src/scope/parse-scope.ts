@@ -1,21 +1,13 @@
-// Split a read path into `[scopeName, path]`, stripping a leading `"scopes."`: `parseScope("scopes.root.user.name")` → `["root", "user.name"]`.
-export const parseScope = (key: string) => {
-  const normalizedKey = key.startsWith("scopes.") ? key.slice(7) : key;
+const PREFIX = "scopes.";
 
-  const dotIndex = normalizedKey.indexOf(".");
-  if (dotIndex === -1) {
-    throw new Error(`Invalid scope key: ${key}`);
-  }
-  return [
-    normalizedKey.slice(0, dotIndex),
-    normalizedKey.slice(dotIndex + 1),
-  ] as [string, string];
+// "scopes.root.user.name" → ["root", "user.name"]
+export const parseScope = (key: string): [string, string] => {
+  const dot = key.indexOf(".", PREFIX.length);
+  return [key.slice(PREFIX.length, dot), key.slice(dot + 1)];
 };
 
-// The dependency a read path subscribes to: its scope and first field, `scopes.root.user.name` → `scopes.root.user`.
-// A bare scope (`Object.keys(scopes.root)`) reads every field: `scopes.root.*`.
-export const depKey = (path: string): string | null => {
-  const parts = (path.startsWith("scopes.") ? path.slice(7) : path).split(".");
-  if (!parts[0]) return null;
-  return parts.length >= 2 && parts[1] ? `scopes.${parts[0]}.${parts[1]}` : `scopes.${parts[0]}.*`;
+// "scopes.root.user.name" → "scopes.root.user"; a bare scope reads every field: "scopes.root.*".
+export const depKey = (path: string): string => {
+  const [scope, field] = path.slice(PREFIX.length).split(".");
+  return field ? `scopes.${scope}.${field}` : `scopes.${scope}.*`;
 };

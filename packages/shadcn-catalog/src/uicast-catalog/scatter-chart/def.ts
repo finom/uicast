@@ -20,9 +20,7 @@ export const ScatterChartDef = createComponentDefinition({
       }),
     xKey: z.string().meta({ description: "The key for x-axis values" }),
     yKey: z.string().meta({ description: "The key for y-axis values" }),
-    nameKey: chartColorSchema
-            .optional()
-            .meta({ description: "Optional key for point labels." }),
+    name: z.string().optional().meta({ description: "Series name, shown in the tooltip." }),
     color: chartColorSchema.default("violet").meta({ description: "Dot color." }),
     height: z
       .number().int().positive()

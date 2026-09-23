@@ -9,7 +9,7 @@ import { AvatarDef } from "./def";
 
 export const AvatarImpl = createComponentImplementation({
   def: AvatarDef,
-  render: ({ src, fallback, size, onClick}, { entry }) => {
+  render: ({ src, fallback, size, onClick }, { entry }) => {
     const sizeMap: Record<string, string> = {
       sm: "size-8",
       md: "size-10",

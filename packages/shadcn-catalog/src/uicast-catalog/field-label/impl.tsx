@@ -4,9 +4,9 @@ import { FieldLabelDef } from "./def";
 
 export const FieldLabelImpl = createComponentImplementation({
   def: FieldLabelDef,
-  render: ({ text, children, htmlFor}, { entry }) => {
+  render: ({ text, children }, { entry }) => {
     return (
-      <Label htmlFor={htmlFor} data-key={entry.key}>
+      <Label data-key={entry.key}>
         {children ?? text}
       </Label>
     );

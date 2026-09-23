@@ -37,20 +37,18 @@ const operatorsByType: Record<string, { value: Filter["operator"]; label: string
   ],
 };
 
+const INPUT_TYPES = { text: "text", number: "number", date: "date", select: "text" } as const;
+
 export const FilterBuilderImpl = createComponentImplementation({
   def: FilterBuilderDef,
   render: ({
-    fields = [],
+    fields,
     filters: initialFilters,
     onApply,
   }, { entry }) => {
-    const seedFilters = (): Filter[] =>
-      initialFilters ?? [
-        { field: fields[0]?.name ?? "", operator: "equals", value: "" },
-      ];
-    // Local mirror of the `filters` prop. Props re-evaluate with a fresh
-    // identity every render, so the mirror resyncs by content — local edits
-    // win in between.
+    const blankFilter = (field = fields[0]?.name ?? ""): Filter => ({ field, operator: "equals", value: "" });
+    const seedFilters = (): Filter[] => initialFilters ?? [blankFilter()];
+    // Props re-evaluate with a fresh identity every render, so the mirror resyncs by content; local edits win in between.
     const propsKey = JSON.stringify(initialFilters);
     const [filters, setFilters] = useState<Filter[]>(seedFilters);
     const lastPropsKey = useRef(propsKey);
@@ -60,10 +58,7 @@ export const FilterBuilderImpl = createComponentImplementation({
     }
 
     const addFilter = () => {
-      setFilters([
-        ...filters,
-        { field: fields[0]?.name ?? "", operator: "equals", value: "" },
-      ]);
+      setFilters([...filters, blankFilter()]);
     };
 
     const removeFilter = (index: number) => {
@@ -76,20 +71,17 @@ export const FilterBuilderImpl = createComponentImplementation({
       value: string,
     ) => {
       const updated = [...filters];
-      updated[index] = { ...updated[index], [key]: value };
+      // A new field voids the operator and value chosen for the old one.
+      updated[index] = key === "field" ? blankFilter(value) : { ...updated[index], [key]: value };
       setFilters(updated);
-    };
-
-    const getFieldType = (fieldName: string) => {
-      return fields.find((f) => f.name === fieldName)?.type ?? "text";
     };
 
     return (
       <div className="space-y-3" data-key={entry.key}>
         {filters.map((filter, i) => {
-          const fieldType = getFieldType(filter.field);
-          const operators = operatorsByType[fieldType] ?? operatorsByType.text;
           const fieldDef = fields.find((f) => f.name === filter.field);
+          const fieldType = fieldDef?.type ?? "text";
+          const operators = operatorsByType[fieldType];
 
           return (
             <div key={i} className="flex items-center gap-2">
@@ -143,13 +135,7 @@ export const FilterBuilderImpl = createComponentImplementation({
                 </Select>
               ) : (
                 <Input
-                  type={
-                    fieldType === "number"
-                      ? "number"
-                      : fieldType === "date"
-                        ? "date"
-                        : "text"
-                  }
+                  type={INPUT_TYPES[fieldType]}
                   value={filter.value}
                   onChange={(e) => updateFilter(i, "value", e.target.value)}
                   placeholder="Value..."

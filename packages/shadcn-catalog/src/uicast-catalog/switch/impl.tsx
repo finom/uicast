@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { Switch as ShadcnSwitch } from "../../components/ui/switch";
 import { SwitchDef } from "./def";
@@ -10,9 +11,8 @@ export const SwitchImpl = createComponentImplementation({
     label,
     onChange,
   }, { entry }) => {
-    // entry.key is unique per element, so ids stay unique when several
-    // switches (even with the same label) render in one document.
-    const id = `switch-${entry.key}`;
+    // Per instance, not `entry.key`: list items share one entry key.
+    const id = useId();
     return (
       <div className="flex items-center gap-2" data-key={entry.key}>
         <ShadcnSwitch

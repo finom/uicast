@@ -1,6 +1,6 @@
 import z from "zod";
 
-// The languages CodeBlock and CodeEditor label. Nothing is highlighted, so this is the label vocabulary, not a parser list.
+// Nothing is highlighted; this is the label vocabulary.
 const LANGUAGES = [
 	"bash", "c", "cpp", "csharp", "css", "diff", "docker", "go", "graphql", "html", "ini", "java",
 	"javascript", "json", "jsx", "kotlin", "lua", "makefile", "markdown", "nginx", "php", "plaintext",

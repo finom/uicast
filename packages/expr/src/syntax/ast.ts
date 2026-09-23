@@ -1,8 +1,6 @@
 import type * as acorn from "acorn";
 
-// One child walk for every pass over the AST — the analysis, the validator and both compilers.
-
-export const isNode = (value: unknown): value is acorn.AnyNode =>
+const isNode = (value: unknown): value is acorn.AnyNode =>
 	typeof value === "object" && value !== null && typeof (value as acorn.AnyNode).type === "string";
 
 export const childNodes = function* (node: acorn.AnyNode): Generator<acorn.AnyNode> {
@@ -17,8 +15,8 @@ export const childNodes = function* (node: acorn.AnyNode): Generator<acorn.AnyNo
 	}
 };
 
-// The names a parameter pattern binds, in binding order — the compiler's slots are positional, so its binders push in this order.
-export const patternNames = (pattern: acorn.AnyNode | null | undefined, out: string[]): void => {
+// Binding order: the compiler's slots are positional.
+export const patternNames = (pattern: acorn.AnyNode | null, out: string[]): void => {
 	if (!pattern) return;
 	switch (pattern.type) {
 		case "Identifier":

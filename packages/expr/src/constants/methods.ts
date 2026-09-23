@@ -1,54 +1,71 @@
-// The methods an expression can call, by receiver — the whole allow-list, as data.
+import { nullProto } from "./globals";
+
 // runtime/methods.ts implements exactly these; constants.test.ts holds the two equal.
 
-const names = (list: string[]): ReadonlySet<string> => new Set(list);
-
 export const METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>>> = Object.freeze({
-	array: names([
-		"map", "filter", "forEach", "reduce", "reduceRight",
+	array: new Set([
+		"map", "filter", "reduce", "reduceRight",
 		"find", "findIndex", "findLast", "findLastIndex", "some", "every",
-		"slice", "join", "includes", "indexOf", "lastIndexOf", "at", "flat", "flatMap",
-		"toSorted", "toReversed", "toString", "toLocaleString", "valueOf",
+		"slice", "concat", "join", "includes", "indexOf", "lastIndexOf", "at", "flat", "flatMap",
+		"toSorted", "toReversed", "toSpliced", "with", "toString", "toLocaleString", "valueOf",
 	]),
-	string: names([
-		"at", "startsWith", "endsWith", "includes", "indexOf", "lastIndexOf",
-		"slice", "substring", "split", "replace", "replaceAll", "repeat", "padStart", "padEnd",
-		"toLowerCase", "toUpperCase", "trim", "trimStart", "trimEnd", "normalize", "localeCompare",
-		"toString", "toLocaleString", "valueOf",
+	string: new Set([
+		"at", "charAt", "charCodeAt", "codePointAt", "startsWith", "endsWith", "includes", "indexOf", "lastIndexOf",
+		"slice", "substring", "concat", "split", "replace", "replaceAll", "repeat", "padStart", "padEnd",
+		"toLowerCase", "toUpperCase", "toLocaleLowerCase", "toLocaleUpperCase", "trim", "trimStart", "trimEnd",
+		"normalize", "isWellFormed", "toWellFormed", "localeCompare", "toString", "toLocaleString", "valueOf",
 	]),
-	number: names(["toFixed", "toString", "toLocaleString", "valueOf"]),
-	Date: names([
+	number: new Set(["toFixed", "toExponential", "toPrecision", "toString", "toLocaleString", "valueOf"]),
+	Date: new Set([
 		"getTime", "getFullYear", "getMonth", "getDate", "getDay", "getHours",
 		"getMinutes", "getSeconds", "getMilliseconds", "getTimezoneOffset",
 		"getUTCFullYear", "getUTCMonth", "getUTCDate", "getUTCDay", "getUTCHours",
-		"getUTCMinutes", "getUTCSeconds",
-		"toISOString", "toJSON", "toDateString", "toTimeString",
+		"getUTCMinutes", "getUTCSeconds", "getUTCMilliseconds",
+		"toISOString", "toJSON", "toUTCString", "toDateString", "toTimeString",
 		"toLocaleDateString", "toLocaleTimeString", "toLocaleString", "toString", "valueOf",
 	]),
-	Map: names(["get", "has", "keys", "values", "entries"]),
-	Set: names(["has", "values"]),
-	formatter: names(["format"]),
+	Set: new Set([
+		"has", "union", "intersection", "difference", "symmetricDifference", "isSubsetOf", "isSupersetOf", "isDisjointFrom",
+	]),
 });
 
-// Static functions per namespace. Read by the validator from a written name, so null-prototype.
-export const NAMESPACE_METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>>> = Object.freeze(
-	Object.assign(Object.create(null) as Record<string, ReadonlySet<string>>, {
-		Math: names([
-			"abs", "ceil", "floor", "round", "trunc", "sign", "sqrt", "cbrt",
-			"pow", "min", "max", "hypot", "log", "log2", "log10", "log1p",
-			"exp", "expm1", "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
-			"sinh", "cosh", "tanh", "fround", "clz32", "imul",
-		]),
-		JSON: names(["parse", "stringify"]),
-		Object: names(["keys", "values", "entries", "fromEntries"]),
-		Array: names(["isArray", "from"]),
-		Number: names(["isInteger", "isFinite", "isNaN", "isSafeInteger", "parseFloat", "parseInt"]),
-		Date: names(["now", "UTC"]),
-	}),
-);
+// Read by the validator from a written name, so null-prototype.
+export const NAMESPACE_METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>>> = nullProto({
+	Math: new Set([
+		"abs", "ceil", "floor", "round", "trunc", "sign", "sqrt", "cbrt",
+		"pow", "min", "max", "hypot", "log", "log2", "log10", "log1p",
+		"exp", "expm1", "sin", "cos", "tan", "asin", "acos", "atan", "atan2",
+		"sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "fround", "f16round", "clz32", "imul", "sumPrecise", "random",
+	]),
+	JSON: new Set(["parse", "stringify"]),
+	Object: new Set(["keys", "values", "entries", "fromEntries", "groupBy", "hasOwn", "is"]),
+	Array: new Set(["isArray", "from", "of"]),
+	Number: new Set(["isInteger", "isFinite", "isNaN", "isSafeInteger", "parseFloat", "parseInt"]),
+	String: new Set(["fromCharCode", "fromCodePoint"]),
+	Date: new Set(["now", "parse", "UTC"]),
+});
 
-// Every callable method name. The validator refuses a written call outside it, so both back ends refuse the same set.
+// The validator refuses a written call outside it, so both back ends refuse the same set.
 export const ALLOWED_METHOD_NAMES: ReadonlySet<string> = new Set([
 	...Object.values(METHOD_NAMES).flatMap((set) => [...set]),
 	...Object.values(NAMESPACE_METHOD_NAMES).flatMap((set) => [...set]),
 ]);
+
+// The one argument of each method that takes a function. An arrow is written there or nowhere,
+// so a function is never a value: nothing can store, return or call one, and nothing recurses.
+export const CALLBACK_ARGUMENT: Readonly<Record<string, number>> = nullProto({
+	map: 0, filter: 0, reduce: 0, reduceRight: 0,
+	find: 0, findIndex: 0, findLast: 0, findLastIndex: 0, some: 0, every: 0, flatMap: 0, toSorted: 0,
+	from: 1, groupBy: 1,
+});
+
+// Locale methods format and compare in the viewer's locale, so they take no locale or options argument.
+export const LOCALE_METHOD_ARITY: Readonly<Record<string, number>> = nullProto({
+	toLocaleString: 0, toLocaleDateString: 0, toLocaleTimeString: 0,
+	toLocaleLowerCase: 0, toLocaleUpperCase: 0, localeCompare: 1,
+});
+
+export const localeArgumentsMessage = (name: string): string =>
+	LOCALE_METHOD_ARITY[name] === 0
+		? `".${name}()" takes no arguments: it uses the viewer's locale. Currency, month names and relative times are a component's job`
+		: `".${name}()" takes only the string to compare with: it uses the viewer's locale`;

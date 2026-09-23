@@ -3,11 +3,8 @@ import { HeadingDef } from "./def";
 
 export const HeadingImpl = createComponentImplementation({
   def: HeadingDef,
-  render: ({ level, text, children}, { entry }) => {
-    const Tag = `h${level}` as keyof Pick<
-      React.JSX.IntrinsicElements,
-      "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
-    >;
+  render: ({ level, text, children }, { entry }) => {
+    const Tag = `h${level}` as const;
     const sizes: Record<string, string> = {
       "1": "text-4xl font-extrabold tracking-tight",
       "2": "text-3xl font-semibold tracking-tight",

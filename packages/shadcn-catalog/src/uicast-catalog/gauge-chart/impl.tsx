@@ -22,19 +22,16 @@ export const GaugeChartImpl = createComponentImplementation({
     const cx = 100;
     const cy = 100;
 
-    // Semicircle, left to right
     const bgPath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
 
     const endAngle = Math.PI - (angle * Math.PI) / 180;
     const endX = cx + radius * Math.cos(endAngle);
     const endY = cy - radius * Math.sin(endAngle);
-    const largeArc = angle > 180 ? 1 : 0;
-    const valuePath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 ${largeArc} 1 ${endX} ${endY}`;
+    const valuePath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${endX} ${endY}`;
 
     return (
       <div className={cn("flex flex-col items-center", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
         <svg width="200" height={height} viewBox="0 0 200 120" aria-hidden="true">
-          {/* Background arc */}
           <path
             d={bgPath}
             fill="none"
@@ -42,7 +39,6 @@ export const GaugeChartImpl = createComponentImplementation({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
-          {/* Value arc */}
           <path
             d={valuePath}
             fill="none"
@@ -50,14 +46,12 @@ export const GaugeChartImpl = createComponentImplementation({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
           />
-          {/* Center value text */}
           <text
             x={cx}
             y={cy - 10}
             textAnchor="middle"
             className="text-2xl font-bold"
             fill="currentColor"
-            fontSize="24"
           >
             {value}
           </text>

@@ -1,15 +1,5 @@
-/*
- * Build input for `dist/catalog.css` — not published itself. Tailwind compiles
- * this into the utility rules the catalog's own components use, and nothing else:
- *
- *   - `theme(reference)` resolves theme variable *names* without emitting a
- *     `:root` block, so the bundle carries no palette and every declaration
- *     stays an indirection the consumer's `@theme` overrides.
- *   - the `@theme inline` bridge has to be here. Without it `bg-card` and
- *     friends are unknown utilities and drop out of the output silently.
- *   - tw-animate-css supplies `animate-in` / `slide-in-from-*`, which the
- *     Radix-backed components use throughout.
- */
+/* Build input for `dist/catalog.css`: the utilities the catalog's components use, and no palette. */
+/* `reference` emits no `:root` block: theme values stay variables the consumer's `@theme` can override. */
 @import "tailwindcss/theme" theme(reference);
 @import "tailwindcss/utilities";
 @import "tw-animate-css";
@@ -32,6 +22,7 @@
 @custom-variant data-starting-style (&[data-starting-style]);
 @custom-variant data-ending-style (&[data-ending-style]);
 
+/* Without this bridge, `bg-card` and the like are unknown utilities and drop out of the output silently. */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
