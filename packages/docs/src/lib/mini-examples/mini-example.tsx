@@ -1,6 +1,6 @@
 "use client";
 import { ChevronRight } from "lucide-react";
-import { type MouseEvent, type ReactNode, useState } from "react";
+import { type MouseEvent, type ReactNode, useEffect, useState } from "react";
 
 const PROV = {
   you: "you provide",
@@ -170,6 +170,9 @@ export function MiniExample({
   setup: CodePart[];
 }) {
   const [tip, setTip] = useState<Tip | null>(null);
+  // The result runs its document, so it renders in the browser only.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // Delegated: the keys are highlighter output, not React nodes.
   const onOver = (event: MouseEvent<HTMLElement>) => {
@@ -211,7 +214,7 @@ export function MiniExample({
               <span className="mx-name">Result</span>
             </span>
           </div>
-          <div className="mx-live-body">{result}</div>
+          <div className="mx-live-body">{mounted ? result : null}</div>
         </div>
       </div>
 

@@ -23,6 +23,7 @@ const meta: MetaRecord = {
       index: "Component implementation",
       renderer: "Provider & Renderer",
       "reference-catalog": "Reference catalog",
+      ssr: "Server rendering",
     },
   },
   events: "Event handling",

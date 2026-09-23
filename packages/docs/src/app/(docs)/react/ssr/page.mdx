@@ -1,0 +1,69 @@
+---
+title: Server rendering
+---
+
+# Server rendering
+
+**uicast** renders a document in the browser. `<EntriesRenderer>` runs seeds as
+it renders, so in a server pass it would evaluate expressions and call host
+functions on the server. Render it after the component mounts, and use the
+server pass for a skeleton only. [Streamdown](/streamdown) blocks wait for the
+browser on their own; its [`ssr`](/streamdown#ssr) option turns that off.
+
+## Document skeleton
+
+What the server can draw is the document's shape. `DocumentSkeleton`, from the
+[reference catalog](/react/reference-catalog), never executes the document: it
+runs no expressions, calls no host functions and creates no scopes. It reads
+the entries and draws each element's `placeholder`, so it renders in a server
+pass. Show it until the component mounts:
+
+```tsx filename="app/pages/[id]/document.tsx"
+"use client";
+import type { ComponentEntry } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { DocumentSkeleton } from "@uicast/shadcn-catalog";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { useEffect, useState } from "react";
+import { tools } from "@/tools";
+
+const evaluator = new Evaluator({ functions: tools });
+const impls = Object.values(catalogImpls);
+
+export function Document({ entries }: { entries: ComponentEntry[] }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <DocumentSkeleton entries={entries} implementations={impls} />;
+  return (
+    <RendererProvider implementations={impls} evaluator={evaluator}>
+      <EntriesRenderer entries={entries} />
+    </RendererProvider>
+  );
+}
+```
+
+The page loads the stored entries on the server, so the first HTML already has
+the document's shape:
+
+```tsx filename="app/pages/[id]/page.tsx"
+import { Document } from "./document";
+
+export default async function Page({ params }: PageProps<"/pages/[id]">) {
+  const { id } = await params;
+  return <Document entries={await loadEntries(id)} />;
+}
+```
+
+How the skeleton draws:
+
+- Each element renders its implementation's `placeholder` with its children
+  inside. Without a `placeholder`: a column of the children, or a bar.
+- A list (`each`) draws three items: its length comes from an expression.
+- Props are not read, and nothing has to match the real tree: the renderer
+  replaces it.
+
+With a catalog of your own, copy
+[`document-skeleton`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/document-skeleton):
+it needs only the entries and each implementation's `placeholder`.

@@ -8,7 +8,8 @@ fallback UI, and one shared reactive store for everything beneath it.
 
 `<EntriesRenderer>` is the **mount point**: give it [entries](/entry) and it
 renders them, evaluating every expression against that store and re-rendering as
-state changes.
+state changes. In a server pass it does the same on the server; see
+[Server rendering](/react/ssr).
 
 ## Mounting a document
 

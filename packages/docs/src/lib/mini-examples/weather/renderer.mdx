@@ -1,5 +1,4 @@
 ```tsx localpath="packages/docs/src/lib/mini-examples/weather/renderer.tsx"
-import { useEffect, useState } from "react";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { WeatherCardImpl } from "./impl";
@@ -10,10 +9,6 @@ const implementations = [WeatherCardImpl];
 const evaluator = new Evaluator({ functions: [getWeather] });
 
 export function Weather() {
-  // The async seed cannot resolve during SSR, so this mounts client-side only.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
-  if (!mounted) return null;
   return (
     <RendererProvider implementations={implementations} evaluator={evaluator}>
       <EntriesRenderer entries={weatherEntries} />
