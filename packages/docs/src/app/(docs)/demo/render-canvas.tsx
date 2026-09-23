@@ -5,7 +5,7 @@ import { Evaluator } from "@uicast/expr";
 import {
   ConfirmModal,
   RenderError,
-} from "@uicast/shadcn-catalog/fallback-components";
+} from "@uicast/shadcn-catalog";
 import type { ComponentEntry } from "@uicast/core";
 import {
   type ComponentImplementation,

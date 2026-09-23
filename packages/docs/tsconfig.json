@@ -44,8 +44,8 @@
       "@uicast/react": [
         "../react/src/index.ts"
       ],
-      "@uicast/shadcn-catalog/all-impls": ["../shadcn-catalog/src/all-impls.ts"],
-      "@uicast/shadcn-catalog/fallback-components": ["../shadcn-catalog/src/fallback-components/index.ts"],
+      "@uicast/shadcn-catalog": ["../shadcn-catalog/src/index.ts"],
+      "@uicast/shadcn-catalog/all/impls": ["../shadcn-catalog/src/all/impls.ts"],
       "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
     }
   },

@@ -11,59 +11,47 @@ npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @ui
 ```
 
 ```ts
-import { defs } from "@uicast/shadcn-catalog/all-defs";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 ```
 
-`defs` goes to `getComponentsPartialPrompt`, `impls` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
+Each module exports its components by name and nothing else. `Object.values(catalogDefs)` goes to `getComponentsPartialPrompt`, `Object.values(catalogImpls)` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
 
-For a smaller prompt, import the same two names from `essential-defs` and `essential-impls` instead — 30 components, about a quarter of the prompt text. See [Essentials](#essentials).
+For a smaller prompt, take some groups instead — `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays` — or `essential`: 30 components, about a quarter of the prompt text. See [Essentials](#essentials).
 
 ## Entry points
 
 | Import | What it is |
 | --- | --- |
-| `@uicast/shadcn-catalog/all-defs` | `defs` — every component's definition, for the prompt. |
-| `@uicast/shadcn-catalog/all-impls` | `impls` — every component's React implementation, for the renderer. `createLocationMapImplementation` — see [Map tiles](#map-tiles). |
-| `@uicast/shadcn-catalog/essential-defs` | `defs` — the 30 essential definitions. |
-| `@uicast/shadcn-catalog/essential-impls` | `impls` — their implementations. |
+| `@uicast/shadcn-catalog/all/defs` | Every component's definition, for the prompt. |
+| `@uicast/shadcn-catalog/all/impls` | Every component's React implementation, for the renderer. |
+| `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | One group: `layout`, `content`, `data`, `charts`, `forms`, `navigation` or `overlays`. |
+| `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | The 30 essential components. |
 | `@uicast/shadcn-catalog/events` | The shared event schemas a definition's `callbacks` reuse. |
-| `@uicast/shadcn-catalog/fallback-components` | `ConfirmModal` — the renderer's confirm slot. |
-| `@uicast/shadcn-catalog/document-skeleton` | `DocumentSkeleton` — a document's shape before it renders. |
+| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError` — the renderer's confirm and error slots. `DocumentSkeleton` — a document's shape before it renders. |
 | `@uicast/shadcn-catalog/ui/*` | The underlying shadcn components, if you need one directly. |
 
 ## Essentials
 
-The full catalog is 87,000 characters of prompt. Most generated pages use a fraction of it, and a model choosing between 128 components spends attention on the choice. `essential-defs` and `essential-impls` export the same `defs` and `impls` names from a curated 30, at about a quarter the prompt text:
+The full catalog is 87,000 characters of prompt. Most generated pages use a fraction of it, and a model choosing between 128 components spends attention on the choice. `essential/defs` and `essential/impls` hold a curated 30, at about a quarter the prompt text:
 
 | Group | Components |
 | --- | --- |
-| Layout | `Card` `FlexRow` `FlexCol` `Grid` |
-| Text | `Heading` `Typography` `Badge` `Stat` |
-| Table | `Table` `TableHeader` `TableBody` `TableRow` `TableHead` `TableCell` |
-| Form | `Input` `NumberInput` `Select` `Checkbox` `Switch` `SearchInput` `Button` `IconButton` |
-| Charts | `BarChart` `LineChart` `PieChart` |
-| Other | `Alert` `EmptyState` `Modal` `DescriptionList` `Pagination` |
+| `layout` | `Card` `FlexRow` `FlexCol` `Grid` |
+| `content` | `Heading` `Typography` `Badge` `Stat` `Alert` `EmptyState` `DescriptionList` |
+| `data` | `Table` `TableHeader` `TableBody` `TableRow` `TableHead` `TableCell` |
+| `charts` | `BarChart` `LineChart` `PieChart` |
+| `forms` | `Input` `NumberInput` `Select` `Checkbox` `Switch` `SearchInput` `Button` `IconButton` |
+| `navigation` | `Pagination` |
+| `overlays` | `Modal` |
 
-Swapping between them is one import — the exported names are the same. Add to either with `[...defs, MyDef]`.
+Swapping is one import path. Add your own with `[...Object.values(catalogDefs), MyDef]`.
 
 ## Map tiles
 
-`LocationMap` draws raster map tiles and credits their source in the corner. By default they come from OpenStreetMap's tile server, whose [usage policy](https://operations.osmfoundation.org/policies/tiles/) forbids heavy use without permission. To use another tile server, build the implementation yourself and swap it in:
+`LocationMap` draws raster map tiles from OpenStreetMap's tile server, whose [usage policy](https://operations.osmfoundation.org/policies/tiles/) forbids heavy use without permission, and credits them in the corner. To use another tile server, copy `src/uicast-catalog/location-map/` into your own catalog and change the tile URL.
 
-```ts
-import { createLocationMapImplementation, impls } from "@uicast/shadcn-catalog/all-impls";
-
-const implementations = [
-  ...impls.filter((impl) => impl.def.name !== "LocationMap"),
-  createLocationMapImplementation({
-    tileUrl: "https://tiles.example.com/{z}/{x}/{y}.png",
-    attribution: "© Example Maps, © OpenStreetMap contributors",
-  }),
-];
-```
-
-The tile URL comes from your code, not the document, so the renderer's `urlPolicy` does not check it; a Content-Security-Policy needs the tile host in `img-src`. The document sets the center and zoom, so the tile server sees which area a page shows.
+The tile URL comes from the implementation, not the document, so the renderer's `urlPolicy` does not check it; a Content-Security-Policy needs the tile host in `img-src`. The document sets the center and zoom, so the tile server sees which area a page shows.
 
 ## Document skeleton
 

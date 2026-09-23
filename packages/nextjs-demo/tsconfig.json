@@ -22,10 +22,9 @@
       "@uicast/core/internal": ["../core/src/internal.ts"],
       "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
       "@uicast/react": ["../react/src/index.ts"],
-      "@uicast/shadcn-catalog/all-defs": ["../shadcn-catalog/src/all-defs.ts"],
-      "@uicast/shadcn-catalog/all-impls": ["../shadcn-catalog/src/all-impls.ts"],
-      "@uicast/shadcn-catalog/document-skeleton": ["../shadcn-catalog/src/document-skeleton/index.tsx"],
-      "@uicast/shadcn-catalog/fallback-components": ["../shadcn-catalog/src/fallback-components/index.ts"],
+      "@uicast/shadcn-catalog": ["../shadcn-catalog/src/index.ts"],
+      "@uicast/shadcn-catalog/all/defs": ["../shadcn-catalog/src/all/defs.ts"],
+      "@uicast/shadcn-catalog/all/impls": ["../shadcn-catalog/src/all/impls.ts"],
       "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"],
       "@uicast/streamdown": ["../streamdown/src/index.ts"],
       "@uicast/streamdown/prompt": ["../streamdown/src/prompt/index.ts"]

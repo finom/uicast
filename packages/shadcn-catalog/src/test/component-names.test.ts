@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { defs } from "../all-defs";
+import { groupDefs } from "./groups";
 
 // Every global the TypeScript lib files declare: ES built-ins (`Map`) and DOM globals (`Image`, `Text`).
 const readGlobalNames = (): Set<string> => {
@@ -22,6 +22,6 @@ describe("component names", () => {
     const globals = readGlobalNames();
     // A lib layout the pattern no longer matches must fail, not pass on an empty set.
     expect(globals.has("Map")).toBe(true);
-    expect(defs.map((def) => def.name).filter((name) => globals.has(name))).toEqual([]);
+    expect(groupDefs.map((def) => def.name).filter((name) => globals.has(name))).toEqual([]);
   });
 });

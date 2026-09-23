@@ -13,7 +13,7 @@ import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { RendererProvider } from "@uicast/react";
 import { type Usage, UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { createFenceRenderer } from "@uicast/streamdown";
 import {
   Conversation,
@@ -34,6 +34,8 @@ import {
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
+
+const impls = Object.values(catalogImpls);
 
 // Module scope: a new component identity per render would remount every UI block.
 const uicastRenderer = createFenceRenderer({ showSourceToggle: true });

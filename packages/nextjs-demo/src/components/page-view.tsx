@@ -8,8 +8,8 @@ import {
 import { type ComponentEntry, isComponentEntry, streamJsonLines } from "@uicast/core";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { DocumentSkeleton } from "@uicast/shadcn-catalog/document-skeleton";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import { DocumentSkeleton } from "@uicast/shadcn-catalog";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { evaluator } from "@/lib/evaluator";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
@@ -34,6 +34,8 @@ import { UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { setApiOwner, watchApiActivity } from "@/tools/http";
+
+const impls = Object.values(catalogImpls);
 
 // The skeleton comes down when a document's seeds have been quiet this long,
 // or on one of the two caps: nothing ever started, or something is hanging.

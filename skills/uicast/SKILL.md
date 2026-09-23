@@ -21,7 +21,7 @@ is everything around it, and that is what this skill covers.
 | --- | --- |
 | `@uicast/core` | Engine, framework-free: entry types, expression guardrail, reactive scopes, prompt builders (`@uicast/core/prompt`). |
 | `@uicast/react` | React binding: `<RendererProvider>`, `<EntriesRenderer>`, `createComponentImplementation`. |
-| `@uicast/shadcn-catalog` | 128 ready components as definition/implementation pairs over shadcn/Radix, or 30 from its `essential-defs` / `essential-impls`. Optional — you can ship only your own. |
+| `@uicast/shadcn-catalog` | 128 ready components as definition/implementation pairs over shadcn/Radix: all of them (`all/defs`, `all/impls`), one group (`charts/defs`, …), or 30 from `essential/defs` / `essential/impls`. Optional — you can ship only your own. |
 | `@uicast/streamdown` | Chat surface: renders ```uicast fences inside Markdown replies via Streamdown. Only for chat hosts. |
 
 ```bash
@@ -164,20 +164,21 @@ src/uicast-catalog/
 ├── stat-card/
 │   ├── def.ts        # createComponentDefinition — no React imports
 │   └── impl.tsx      # createComponentImplementation, imports ./def
-├── all-defs.ts       # export const defs = [StatCardDef, ...]
-└── all-impls.ts      # export const impls = [StatCardImpl, ...]
+├── defs.ts           # export { StatCardDef } from "./stat-card/def"; ...
+└── impls.ts          # export { StatCardImpl } from "./stat-card/impl"; ...
 ```
 
-`all-defs.ts` feeds `getComponentsPartialPrompt` (and can be imported
-server-side — it must stay React-free); `all-impls.ts` feeds
-`<RendererProvider>`.
+`defs.ts` feeds `getComponentsPartialPrompt` as `Object.values` of `import * as` (and can be imported server-side — it must stay React-free); `impls.ts` feeds `<RendererProvider>` the same way. Export components only: anything else in the module lands in `Object.values`.
 
 ## Using the shadcn catalog
 
 ```tsx
-import { defs } from "@uicast/shadcn-catalog/all-defs";
-import { impls } from "@uicast/shadcn-catalog/all-impls";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import "@uicast/shadcn-catalog/catalog.css";
+
+const defs = Object.values(catalogDefs);
+const impls = Object.values(catalogImpls);
 ```
 
 - `catalog.css` (always) ships every utility the components use but **no
@@ -189,12 +190,8 @@ import "@uicast/shadcn-catalog/catalog.css";
 - **Override**: duplicate names throw (in the provider and in the prompt builder
   alike), so replacing a catalog component means filtering its name out of BOTH
   arrays first, then appending yours.
-- **Start smaller**: `essential-defs` and `essential-impls` export the same two
-  names from 30 of the 128 components — layout, text, the table family, the
-  common form controls, three charts. About a quarter of the prompt text, and a
-  smaller set to choose from. Swapping is one import line.
-- `@uicast/shadcn-catalog/fallback-components` exports `ConfirmModal` and
-  `RenderError` for the provider's `fallbackComponents` slots.
+- **Start smaller**: import groups instead — `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each as `<group>/defs` and `<group>/impls` — or `essential/defs` and `essential/impls`: 30 of the 128 components (layout, text, the table family, the common form controls, three charts), about a quarter of the prompt text. Swapping is one import path.
+- The package root, `@uicast/shadcn-catalog`, exports `ConfirmModal` and `RenderError` for the provider's `fallbackComponents` slots.
 
 ## 3. Host functions
 
@@ -447,7 +444,7 @@ before they arrive show the placeholder.
 
 **Persistence**: the document IS the JSONL — store lines as they arrive, replay
 them into `<EntriesRenderer>` to restore the page. On that replay the tree is
-empty until the seeds resolve; `@uicast/shadcn-catalog/document-skeleton`
+empty until the seeds resolve; `DocumentSkeleton` from `@uicast/shadcn-catalog`
 draws the page's shape from the stored entries in the meantime, evaluating
 nothing. A re-emitted key replaces its
 old subtree at render time; compact storage the same way with

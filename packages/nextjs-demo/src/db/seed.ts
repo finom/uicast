@@ -1,5 +1,5 @@
 import type { ComponentEntry, ValueSource } from "@uicast/core";
-import { defs } from "@uicast/shadcn-catalog/all-defs";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
 import { and, eq, notInArray } from "drizzle-orm";
 import { db } from "./index";
 import { chats, componentEntries, pages, users } from "./schema";
@@ -11,7 +11,7 @@ import { SYSTEM_SLUG } from "@/lib/system-slug";
 // An existing account keeps its row ids (pages by title, chats by id), so shared links survive a reseed.
 // `--fresh` recreates the account and its domain data.
 
-const DEFS = new Map(defs.map((def) => [def.name, def]));
+const DEFS = new Map(Object.values(catalogDefs).map((def) => [def.name, def]));
 
 // §1 tree, §4 scope names, §6 lists.
 function validateStructure(where: string, entries: ComponentEntry[]): void {

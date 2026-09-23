@@ -10,33 +10,85 @@
   },
   "type": "module",
   "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./events": {
       "types": "./dist/events/index.d.ts",
       "default": "./dist/events/index.js"
     },
-    "./all-defs": {
-      "types": "./dist/all-defs.d.ts",
-      "default": "./dist/all-defs.js"
+    "./all/defs": {
+      "types": "./dist/all/defs.d.ts",
+      "default": "./dist/all/defs.js"
     },
-    "./essential-defs": {
-      "types": "./dist/essential-defs.d.ts",
-      "default": "./dist/essential-defs.js"
+    "./all/impls": {
+      "types": "./dist/all/impls.d.ts",
+      "default": "./dist/all/impls.js"
     },
-    "./all-impls": {
-      "types": "./dist/all-impls.d.ts",
-      "default": "./dist/all-impls.js"
+    "./layout/defs": {
+      "types": "./dist/layout/defs.d.ts",
+      "default": "./dist/layout/defs.js"
     },
-    "./essential-impls": {
-      "types": "./dist/essential-impls.d.ts",
-      "default": "./dist/essential-impls.js"
+    "./layout/impls": {
+      "types": "./dist/layout/impls.d.ts",
+      "default": "./dist/layout/impls.js"
     },
-    "./document-skeleton": {
-      "types": "./dist/document-skeleton/index.d.ts",
-      "default": "./dist/document-skeleton/index.js"
+    "./content/defs": {
+      "types": "./dist/content/defs.d.ts",
+      "default": "./dist/content/defs.js"
     },
-    "./fallback-components": {
-      "types": "./dist/fallback-components/index.d.ts",
-      "default": "./dist/fallback-components/index.js"
+    "./content/impls": {
+      "types": "./dist/content/impls.d.ts",
+      "default": "./dist/content/impls.js"
+    },
+    "./data/defs": {
+      "types": "./dist/data/defs.d.ts",
+      "default": "./dist/data/defs.js"
+    },
+    "./data/impls": {
+      "types": "./dist/data/impls.d.ts",
+      "default": "./dist/data/impls.js"
+    },
+    "./charts/defs": {
+      "types": "./dist/charts/defs.d.ts",
+      "default": "./dist/charts/defs.js"
+    },
+    "./charts/impls": {
+      "types": "./dist/charts/impls.d.ts",
+      "default": "./dist/charts/impls.js"
+    },
+    "./forms/defs": {
+      "types": "./dist/forms/defs.d.ts",
+      "default": "./dist/forms/defs.js"
+    },
+    "./forms/impls": {
+      "types": "./dist/forms/impls.d.ts",
+      "default": "./dist/forms/impls.js"
+    },
+    "./navigation/defs": {
+      "types": "./dist/navigation/defs.d.ts",
+      "default": "./dist/navigation/defs.js"
+    },
+    "./navigation/impls": {
+      "types": "./dist/navigation/impls.d.ts",
+      "default": "./dist/navigation/impls.js"
+    },
+    "./overlays/defs": {
+      "types": "./dist/overlays/defs.d.ts",
+      "default": "./dist/overlays/defs.js"
+    },
+    "./overlays/impls": {
+      "types": "./dist/overlays/impls.d.ts",
+      "default": "./dist/overlays/impls.js"
+    },
+    "./essential/defs": {
+      "types": "./dist/essential/defs.d.ts",
+      "default": "./dist/essential/defs.js"
+    },
+    "./essential/impls": {
+      "types": "./dist/essential/impls.d.ts",
+      "default": "./dist/essential/impls.js"
     },
     "./ui/*": {
       "types": "./dist/components/ui/*.d.ts",

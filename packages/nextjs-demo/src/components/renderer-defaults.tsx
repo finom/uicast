@@ -3,7 +3,7 @@
 import { useMemo, useRef } from "react";
 import type { RenderFailure } from "@uicast/core/prompt";
 import type { ErrorComponentProps, FallbackComponents } from "@uicast/react";
-import { ConfirmModal } from "@uicast/shadcn-catalog/fallback-components";
+import { ConfirmModal } from "@uicast/shadcn-catalog";
 import { RecoverableRenderError } from "@/components/recoverable-render-error";
 
 // One identity for the component's life: a new one would remount every UI block. The ref keeps `onRecover` current.

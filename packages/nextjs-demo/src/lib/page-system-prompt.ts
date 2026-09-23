@@ -5,7 +5,7 @@ import {
   getExpressionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import { defs } from "@uicast/shadcn-catalog/all-defs";
+import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
 import { domainTools } from "@/tools";
 
 // Shared with the page view's prompt viewer, so the viewer shows exactly what the endpoint sends.
@@ -14,7 +14,7 @@ export function buildPageSystemPrompt() {
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind: "page" }),
     getComponentsPartialPrompt({
-      definitions: defs,
+      definitions: Object.values(catalogDefs),
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
     getExpressionsPartialPrompt(),

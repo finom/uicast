@@ -1,0 +1,32 @@
+// Enough to build a page; its prompt is about a quarter of the whole catalog's.
+
+export { AlertImpl } from "../uicast-catalog/alert/impl";
+export { BadgeImpl } from "../uicast-catalog/badge/impl";
+export { BarChartImpl } from "../uicast-catalog/bar-chart/impl";
+export { ButtonImpl } from "../uicast-catalog/button/impl";
+export { CardImpl } from "../uicast-catalog/card/impl";
+export { CheckboxImpl } from "../uicast-catalog/checkbox/impl";
+export { DescriptionListImpl } from "../uicast-catalog/description-list/impl";
+export { EmptyStateImpl } from "../uicast-catalog/empty-state/impl";
+export { FlexColImpl } from "../uicast-catalog/flex-col/impl";
+export { FlexRowImpl } from "../uicast-catalog/flex-row/impl";
+export { GridImpl } from "../uicast-catalog/grid/impl";
+export { HeadingImpl } from "../uicast-catalog/heading/impl";
+export { IconButtonImpl } from "../uicast-catalog/icon-button/impl";
+export { InputImpl } from "../uicast-catalog/input/impl";
+export { LineChartImpl } from "../uicast-catalog/line-chart/impl";
+export { ModalImpl } from "../uicast-catalog/modal/impl";
+export { NumberInputImpl } from "../uicast-catalog/number-input/impl";
+export { PaginationImpl } from "../uicast-catalog/pagination/impl";
+export { PieChartImpl } from "../uicast-catalog/pie-chart/impl";
+export { SearchInputImpl } from "../uicast-catalog/search-input/impl";
+export { SelectImpl } from "../uicast-catalog/select/impl";
+export { StatImpl } from "../uicast-catalog/stat/impl";
+export { SwitchImpl } from "../uicast-catalog/switch/impl";
+export { TableImpl } from "../uicast-catalog/table/impl";
+export { TableBodyImpl } from "../uicast-catalog/table-body/impl";
+export { TableCellImpl } from "../uicast-catalog/table-cell/impl";
+export { TableHeadImpl } from "../uicast-catalog/table-head/impl";
+export { TableHeaderImpl } from "../uicast-catalog/table-header/impl";
+export { TableRowImpl } from "../uicast-catalog/table-row/impl";
+export { TypographyImpl } from "../uicast-catalog/typography/impl";

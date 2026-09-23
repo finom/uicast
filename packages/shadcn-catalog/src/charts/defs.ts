@@ -1,0 +1,16 @@
+export { AreaChartDef } from "../uicast-catalog/area-chart/def";
+export { BarChartDef } from "../uicast-catalog/bar-chart/def";
+export { BubbleChartDef } from "../uicast-catalog/bubble-chart/def";
+export { ComboChartDef } from "../uicast-catalog/combo-chart/def";
+export { FunnelChartDef } from "../uicast-catalog/funnel-chart/def";
+export { GanttChartDef } from "../uicast-catalog/gantt-chart/def";
+export { GaugeChartDef } from "../uicast-catalog/gauge-chart/def";
+export { HeatmapDef } from "../uicast-catalog/heatmap/def";
+export { LineChartDef } from "../uicast-catalog/line-chart/def";
+export { PieChartDef } from "../uicast-catalog/pie-chart/def";
+export { RadarChartDef } from "../uicast-catalog/radar-chart/def";
+export { SankeyChartDef } from "../uicast-catalog/sankey-chart/def";
+export { ScatterChartDef } from "../uicast-catalog/scatter-chart/def";
+export { SparklineDef } from "../uicast-catalog/sparkline/def";
+export { TreemapChartDef } from "../uicast-catalog/treemap-chart/def";
+export { WaterfallChartDef } from "../uicast-catalog/waterfall-chart/def";
