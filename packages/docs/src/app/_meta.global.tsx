@@ -20,7 +20,7 @@ const meta: MetaRecord = {
   react: {
     title: "React",
     items: {
-      impl: "Component implementation",
+      index: "Component implementation",
       renderer: "Provider & Renderer",
       "reference-catalog": "Reference catalog",
     },
@@ -33,8 +33,7 @@ const meta: MetaRecord = {
   entry: {
     title: "Component Entry Format",
     items: {
-      index: "Overview",
-      fields: "Entry fields",
+      index: "Entry fields",
       "value-sources": "Value Sources",
       state: "State & Scopes",
       reactivity: "Reactivity & Dependencies",

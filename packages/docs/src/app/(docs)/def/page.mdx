@@ -3,9 +3,9 @@
 A catalog component is a **pair**: `def.ts` is the half the model reads,
 `impl.tsx` the half React runs (React today; a definition is
 framework-agnostic, and another binding would pair it with its own
-implementation). An [entry](/entry/fields)'s
-[`component`](/entry/fields#component), [`props`](/entry/fields#props), and
-[`callbacks`](/entry/fields#callbacks) all point into the definition — it is the
+implementation). An [entry](/entry)'s
+[`component`](/entry#component), [`props`](/entry#props), and
+[`callbacks`](/entry#callbacks) all point into the definition — it is the
 contract saying a component exists, what props it takes, and what events it
 sends. Everything the model knows about a component comes from here.
 
@@ -48,7 +48,7 @@ export const BadgeDef = createComponentDefinition({
 
 ## `name`
 The exact string the model writes in an entry's
-[`component`](/entry/fields#component) field — **PascalCase**, unique across the
+[`component`](/entry#component) field — **PascalCase**, unique across the
 catalog. The renderer maps it to the implementation; the prompt builder lists it
 under `# Available Components`. Two defs sharing a name throw
 `Duplicate component name: "Badge"`.
@@ -74,9 +74,9 @@ and the model is left guessing which variant a paid order wants.
 `.default("neutral")` marks `variant` optional for the model, prints as `=
 "neutral"` so the model knows what omitting it gives, and supplies that value
 when an entry does omit it — props are parsed through this schema before
-[`render`](/react/impl) sees them, so the implementation just reads `variant`.
+[`render`](/react) sees them, so the implementation just reads `variant`.
 
-An entry's [`props`](/entry/fields#props) then has to produce that shape:
+An entry's [`props`](/entry#props) then has to produce that shape:
 
 ```jsonc
 { "key": "order-status", "component": "Badge",
@@ -91,11 +91,11 @@ throughout.
 **Never `children`.** That name is the entry field listing child element keys, so
 a def declaring it as a prop throws on creation. Name the prop for what it holds
 — `text`, `title`, `label`. Nested elements still reach the implementation as
-React `children` — see [`impl.tsx`](/react/impl).
+React `children` — see [`impl.tsx`](/react).
 
 ## `callbacks` — event payloads
 An optional map of event name to payload schema. Each declares the shape of
-`evt` inside that callback's [steps](/entry/fields#callbacks) — the exact fields
+`evt` inside that callback's [steps](/entry#callbacks) — the exact fields
 available when the model writes `{ "expr": "evt.value" }`.
 
 ```ts
@@ -219,4 +219,4 @@ Register only the def and the model emits a `Badge` that lands in the
 [`error` slot](/error-recovery) as `reason: "unknown-component"`; register only
 the impl and the model was never told the component exists.
 
-The [`impl.tsx` half](/react/impl) is next.
+The [`impl.tsx` half](/react) is next.

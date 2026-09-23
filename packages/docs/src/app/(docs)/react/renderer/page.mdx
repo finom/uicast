@@ -3,7 +3,7 @@
 Two pieces, both from `@uicast/react`.
 
 `<RendererProvider>` is the **host side**: your
-[implementations](/react/impl), your [host functions](/expr/functions), the engine's
+[implementations](/react), your [host functions](/expr/functions), the engine's
 fallback UI, and one shared reactive store for everything beneath it.
 
 `<EntriesRenderer>` is the **mount point**: give it [entries](/entry) and it
@@ -57,7 +57,7 @@ Every `<EntriesRenderer>` under the same provider renders against the **same
   "props": { "expr": "({ label: 'Orders', value: scopes.root.orderCount })" } }
 ```
 
-The Stat shows `1`, not `0`: [`seed`](/entry/fields#seed) is first-writer-wins,
+The Stat shows `1`, not `0`: [`seed`](/entry#seed) is first-writer-wins,
 so the second block's seed leaves what the first wrote. Click the button and it
 shows `2`.
 
@@ -70,7 +70,7 @@ To isolate documents instead, give each its own provider.
 
 ## `RendererProvider` props
 
-- **`implementations`** — the [`ComponentImplementation`](/react/impl) array,
+- **`implementations`** — the [`ComponentImplementation`](/react) array,
   partner to the def [registration](/def#registration). A duplicate `name`
   throws. To replace a catalog component, filter its name out of both arrays
   rather than appending over it.
@@ -115,8 +115,8 @@ const functions = [listRows, deleteRow]; //                 ✅ module scope
 ### `functions` — callable from `seed` and `callbacks`
 
 Host functions appear in expressions as **bare identifiers**, called as
-`name(input)`, and only in [`seed`](/entry/fields#seed) and
-[`callbacks`](/entry/fields#callbacks):
+`name(input)`, and only in [`seed`](/entry#seed) and
+[`callbacks`](/entry#callbacks):
 
 ```jsonc
 { "key": "grid", "component": "DataGrid",
@@ -144,7 +144,7 @@ model names. Three:
 
 | Slot | Rendered when | Default if omitted |
 |---|---|---|
-| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry/fields#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending element stays empty |
+| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending element stays empty |
 | `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
 | `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | bare inline-styled `div` |
 
@@ -376,7 +376,7 @@ Nothing checks that the note and the object agree. Keep them in step yourself.
 
 ## Where to go next
 
-- [Component implementation](/react/impl) — the `implementations` you pass in.
-- [Component Entry Format](/entry) — the `entries` the renderer mounts.
+- [Component implementation](/react) — the `implementations` you pass in.
+- [Entry fields](/entry) — the `entries` the renderer mounts.
 - [The expression evaluator](/expr) — what runs inside an entry.
 - [Custom evaluator](/expr/custom-expr) — running expressions with `new Function`.

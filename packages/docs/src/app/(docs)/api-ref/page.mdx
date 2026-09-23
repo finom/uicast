@@ -21,7 +21,7 @@ The engine, framework-agnostic. See [Core concepts](/concepts).
 |---|---|
 | `createComponentDefinition(def)` | Builds a [component definition](/def). |
 | `createProxyScope(initial?)` | One reactive [scope](/entry/state): a shallow proxy over a bag of fields that emits the field on write. |
-| `buildElementsByKey(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry/fields#partial-replacement). |
+| `buildElementsByKey(entries)` | Folds an entry array into a `key → entry` map, applying [partial replacement](/entry#partial-replacement). |
 | `streamJsonLines<T>(source)` | Async generator over a byte or string stream, yielding each parseable JSON line and skipping prose and partial lines. |
 | `isComponentEntry(value)` | Runtime guard: is this parsed JSON an entry? |
 | `EntryError` | The classified failure every fault arrives as. See [Error recovery](/error-recovery). |
@@ -81,7 +81,7 @@ The React binding. Re-exports nothing from core — import from both.
 |---|---|
 | `<RendererProvider>` | Host side: implementations, the evaluator (with the host functions on it), fallback UI, and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
-| `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair: `{ def, placeholder }`, to register. See [impl](/react/impl). |
+| `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair: `{ def, placeholder }`, to register. See [impl](/react). |
 
 Types: `ComponentImplementation`, `RenderContext`, `RendererProviderProps`,
 `EntriesRendererProps`, `FallbackComponents`, `PlaceholderComponentProps`,

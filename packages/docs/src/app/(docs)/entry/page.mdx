@@ -1,5 +1,4 @@
-
-# Component Entry Format
+# Entry fields
 
 A **uicast** document is a stream of JSONLines, and each line is one **component
 entry**: a flat JSON object describing one element. It names the `component`,
@@ -23,5 +22,277 @@ Each of those fields, used once:
 repeats one `Typography` per task, `empty-note` disappears once tasks exist,
 and `refresh` refetches on click.
 
-[Entry fields](/entry/fields) is the reference for every key an entry can
-carry.
+`key` and `component` are required; everything else is optional.
+
+```ts
+interface ComponentEntry {
+  key: string;          // unique id — required
+  component: string;    // catalog component name — required
+  props?: ValueSource;  // the props object
+  hidden?: Expression;  // truthy → hidden
+  loading?: Expression; // truthy → busy
+  children?: string[];  // child keys, in render order
+  seed?: ValueSourceAssignment[];  // initial state, once at mount
+  callbacks?: Record<string, CallbackValueSourceAssignment[]>;  // event → steps
+  each?: Expression;    // array to iterate — its presence marks a list
+  as?: string;          // per-item scope name
+  keyBy?: string;      // per-item identity field
+}
+```
+
+A `props` value is a [value source](/entry/value-sources), every `expr` is a
+[JavaScript expression](/expr), and the paths they read and write
+live in [state & scopes](/entry/state).
+
+## Structure
+
+### `key`
+**Required.** A unique id, in **kebab-case** (`"user-card"`, never `"userCard"`).
+The tree is assembled by key reference, and
+[partial replacement](#partial-replacement) keys off it: re-emit a line with the
+same `key` and that subtree is swapped in place.
+
+```jsonc
+{ "key": "user-card", "component": "Card" }
+```
+
+### `component`
+**Required.** The catalog name, looked up in the renderer's registry by exact
+match:
+
+```jsonc
+{ "key": "user-card",  "component": "Card" }      // ✅ in the catalog
+{ "key": "user-panel", "component": "UserCard" }  // ❌ Unknown component: UserCard
+```
+
+The second line never mounts. It renders its [error slot](/error-recovery), and
+the rest of the document is unaffected.
+
+### `children`
+The child lines' `key`s, in render order. Absent or empty means a leaf:
+
+```jsonl
+{"key":"row","component":"FlexRow","children":["name","email"]}
+{"key":"name","component":"Typography","props":{"literal":{"text":"Ada Lovelace"}}}
+{"key":"email","component":"Typography","props":{"literal":{"text":"ada@example.com"}}}
+```
+
+Three lines, one row. `name` and `email` are top-level lines that `row` names by
+key, never nested inside it. `row` is the **root**, since no `children` array
+mentions it.
+
+`children` is only this field — a [definition](/def) may not take it as a prop.
+Text content goes in a prop named for what it holds, `text` above.
+
+## Value and state
+
+### `props`
+A [value source](/entry/value-sources) evaluating to the props object:
+`{ "literal": … }` for a static one, `{ "expr": "…" }` to compute it (wrap an
+object literal in parens).
+
+`props` is a **reactive site** — the engine subscribes to every path the
+expression reads. See [Reactivity](/entry/reactivity).
+
+```jsonc
+{ "props": { "expr": "({ text: scopes.root.title })" } }
+{ "props": { "literal": { "variant": "outline" } } }
+```
+
+Props that fail the [definition](/def)'s schema raise `invalid-props` in the
+element's error slot before render runs.
+
+### `hidden`
+A bare [JavaScript expression](/expr), with no `literal` form, that
+hides the line while truthy. Reactive, like `props`.
+
+```jsonl
+{ "key": "details-switch", "component": "Switch",
+  "seed": [{ "set": "scopes.root.showDetails", "literal": false }],
+  "props": { "expr": "({ checked: scopes.root.showDetails, label: 'Details' })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.showDetails", "expr": "evt.checked" }] } }
+{ "key": "details-note", "component": "Textarea", "hidden": "!scopes.root.showDetails",
+  "seed": [{ "set": "scopes.root.draft", "literal": "" }],
+  "props": { "expr": "({ value: scopes.root.draft })" },
+  "callbacks": { "onChange": [{ "set": "scopes.root.draft", "expr": "evt.value" }] } }
+```
+
+`hidden` does not unmount the element. It wraps the subtree in React's
+[`<Activity>`](https://react.dev/reference/react/Activity) and hides it there.
+
+### `loading`
+
+A bare expression, evaluated like `hidden`. While truthy the element renders as
+busy: data components (tables, cards, stats, charts) dim their current content
+and stay in place; controls ignore it. Drive it from the callback that
+refetches:
+
+```jsonc
+{ "key": "rows", "component": "Table", "loading": "scopes.root.busy", "children": ["head", "body"] }
+{ "key": "search", "component": "SearchInput", "callbacks": { "onChange": [
+  { "set": "scopes.root.q", "expr": "evt.value" },
+  { "set": "scopes.root.busy", "literal": true, "debounce": true },
+  { "set": "scopes.root.rows", "expr": "listRows({ q: scopes.root.q })" },
+  { "set": "scopes.root.busy", "literal": false }
+] } }
+```
+
+The host call is a barrier, so the flag clears once the rows have landed. A
+first load through `seed` shows the [placeholder](/react/renderer) instead;
+`loading` is for refreshes. The React binding hands it to the implementation as
+[`context.loading`](/react#the-render-function).
+
+### `seed`
+An array of [assignments](/entry/value-sources#valuesourceassignment) that
+**initialize scope paths once**, when the line first mounts.
+
+```jsonc
+{ "seed": [{ "set": "scopes.root.users", "expr": "getUsers()" }] }
+```
+
+- **Runs once, on success.** Re-renders never re-run it, and a line kept alive
+  through partial replacement is not re-seeded. A seed that *failed* never
+  landed, so a corrected re-emission seeds normally.
+- **Seed state, not derivations.** Seed the values that change later — form
+  fields, selections, fetched lists. A value *computed from* other state goes
+  in `props` / `hidden` / `each` instead: `seed` runs once, so it would freeze
+  at its mount-time answer.
+- **Dependent seeds work.** Steps run in [dependency waves](/entry/reactivity):
+
+  ```jsonc
+  { "seed": [
+    { "set": "scopes.root.tz",       "literal": "UTC" },
+    { "set": "scopes.root.users",    "expr": "getUsers()" },
+    { "set": "scopes.root.selected", "expr": "scopes.root.users[0].id" }
+  ] }
+  ```
+
+  `tz` and `users` are independent and run in parallel. `selected` reads what
+  `users` writes, so it waits — including for the async `getUsers()`. See
+  [lifecycle](/entry/state#lifecycle).
+
+### `callbacks`
+A map of event name to an ordered list of steps, run when the component fires
+that event. Each step is an
+[callback step](/entry/value-sources#callbackvaluesourceassignment): an assignment, optionally
+confirmed or debounced.
+
+```jsonc
+{ "callbacks": {
+  "onChange": [
+    { "set": "scopes.root.q", "expr": "evt.value" },
+    { "set": "scopes.root.results", "expr": "searchTasks({ q: scopes.root.q })" }
+  ]
+} }
+```
+
+- **Steps run in [dependency order](/entry/reactivity)**: a step reading a path
+  an earlier one wrote waits for that write; independent pure steps run in
+  parallel; a [host-function](/expr/functions) step is a barrier, alone in its wave.
+- **`evt`** is the event payload, shaped by the component's callback
+  [definition](/def).
+- **`currentValue`** is bound to the value currently at the step's `set` path,
+  and **`confirm`** gates a step behind a Yes/No prompt:
+
+  ```jsonc
+  { "callbacks": {
+    "onClick": [
+      { "set": "scopes.root.expanded", "expr": "!currentValue" },
+      { "confirm": "Delete this task?", "expr": "deleteTask({ id: scopes.task.id })" }
+    ]
+  } }
+  ```
+
+  `!currentValue` flips `scopes.root.expanded` without naming the path twice. The
+  delete step has no `set`, so it runs purely for its effect, and answering No
+  skips it and every step after it.
+
+## List fields
+
+A line is a **list** if it carries `each`, and its `component` then renders once
+per item. There is no list container — the parent that names the list supplies
+it:
+
+```jsonl
+{"key":"task-table","component":"Table","children":["task-body"]}
+{"key":"task-body","component":"TableBody","children":["task-row"]}
+{"key":"task-row","component":"TableRow","each":"scopes.root.tasks","as":"task","keyBy":"id","children":["task-num","task-title"]}
+{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.$index + 1 })"}}
+{"key":"task-title","component":"TableCell","props":{"expr":"({ text: scopes.task.title })"}}
+```
+
+Three tasks give one `<tbody>` with three `<tr>`s. The list's `children` repeat
+with it, and each copy reads its own row's `scopes.task`.
+
+The per-item state these create lives in
+[item scopes](/entry/state#item-scopes).
+
+### `each`
+A bare [expression](/expr) returning the array to repeat over.
+Reactive: writing a path it reads re-runs the list.
+
+```jsonc
+{ "each": "scopes.root.orders" }                                   // a state array
+{ "each": "scopes.root.orders.filter(o => o.status === 'open')" }  // derived — still re-runs on every write to orders
+```
+
+An `each` evaluating to `undefined` renders zero rows, not an error.
+
+### `as`
+The scope name each item is exposed under, on the list entry and its whole
+subtree. `scopes.<as>` is the item itself — `scopes.<as>.title` reads its
+`title` — plus `$index` and `$id` (from [`keyBy`](#keyby)); a primitive item
+is read as `$value`. See [State &amp; Scopes](/entry/state#item-scopes).
+
+Scope names are one flat namespace, so it **must be globally unique**. Reuse it
+in a nested list and the inner one replaces the outer:
+
+```jsonc
+{ "key": "order-row", "each": "scopes.root.orders", "as": "row", "children": ["line-item"] }
+{ "key": "line-item", "each": "scopes.row.lines", "as": "row" }
+// ❌ inside line-item, scopes.row is the line — the order it belongs to is unreachable
+```
+
+### `keyBy`
+How to derive `scopes.<as>.id`, the stable identity per item:
+
+```jsonc
+{ "each": "scopes.root.tasks", "as": "task", "keyBy": "id" }  // { id: 7 } → 7; an item with no `id` falls back to its index
+{ "each": "scopes.root.tasks", "as": "task" }                 // no keyBy → ids 0, 1, 2 …
+```
+
+**Give object items a stable key.** Without one, in-place edits shift rows and
+lose their per-item state.
+
+## Partial replacement
+
+Re-emitting an entry whose `key` exists **replaces it and its subtree in place**.
+This is the only patch verb, and what makes mid-stream corrections and
+[edit turns](/prompt#edit-and-recovery-turns) work.
+
+The new entry's `children` decides what survives. Already streamed:
+
+```jsonl
+{"key":"task-card","component":"Card","children":["task-rows","refresh"]}
+{"key":"task-rows","component":"Typography","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
+{"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}}}
+```
+
+Later in the same stream:
+
+```jsonl
+{"key":"task-card","component":"Card","children":["refresh","task-rows","empty-note"]}
+{"key":"empty-note","component":"Typography","props":{"literal":{"text":"No tasks yet"}}}
+```
+
+`refresh` and `task-rows` are never re-emitted. The new `children` reference them
+by key, so they survive with their subtrees, reordered. `empty-note` is the one
+new line. Leave a key out of `children` and it is dropped — omission is the
+delete.
+
+State seeded **above** the replaced subtree is untouched, and `seed` on the
+re-emitted entry does not re-run, so state the user changed survives the
+correction.
+
+This is for fixing or restructuring emitted UI, not for ongoing updates — those
+flow through [`set`](/entry/state).

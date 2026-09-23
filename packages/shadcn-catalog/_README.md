@@ -79,7 +79,7 @@ Every rule uses a CSS variable (`background-color: var(--card)`), so your own th
 
 ## Documentation
 
-[github.com/finom/uicast](https://github.com/finom/uicast) — the [component definition](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/react/impl/page.mdx) pages cover writing your own pairs.
+[github.com/finom/uicast](https://github.com/finom/uicast) — the [component definition](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/react/page.mdx) pages cover writing your own pairs.
 
 ## License
 

@@ -22,7 +22,7 @@ npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadc
 The packages are beta, under the `beta` dist-tag.
 
 To use your own components instead, write a [definition](/def) and an
-[implementation](/react/impl) for each, and register those.
+[implementation](/react) for each, and register those.
 
 The catalog ships its own stylesheet, so there is no Tailwind config to write:
 
@@ -209,13 +209,13 @@ export default function Home() {
 The model writes parents before children, so the page fills in from the top.
 A child that has not arrived yet shows the `placeholder` component — there is
 **no built-in one**, so an unset slot stays empty. Finished parts are never
-rebuilt, and a [`seed`](/entry/fields#seed) that already fetched does not fetch
+rebuilt, and a [`seed`](/entry#seed) that already fetched does not fetch
 again.
 
 ## Where to go next
 
 - [Concepts](/concepts) — the element model, expressions, and scopes.
-- [Component definition](/def) and [Component implementation](/react/impl) —
+- [Component definition](/def) and [Component implementation](/react) —
   replacing the catalog with your own design system.
 - [Host functions](/expr/functions) — changing data, confirmation, refetching.
 - [Streaming](/streaming) — saving entries as they stream.

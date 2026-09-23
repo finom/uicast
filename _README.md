@@ -122,7 +122,7 @@ The docs site is `packages/docs` (`npm run dev` there). It is not published yet.
 
 - [Concepts](packages/docs/src/app/%28docs%29/concepts/page.mdx) — the vocabulary: document, entry, element, scope, expression, step.
 - [The expression evaluator](packages/docs/src/app/%28docs%29/expr/page.mdx) — the language, the budgets, the threat model.
-- [Component definition](packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](packages/docs/src/app/%28docs%29/react/impl/page.mdx) — what the model reads and what React renders.
+- [Component definition](packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](packages/docs/src/app/%28docs%29/react/page.mdx) — what the model reads and what React renders.
 - [Host functions](packages/docs/src/app/%28docs%29/functions/page.mdx), [Event handling](packages/docs/src/app/%28docs%29/events/page.mdx), [Assembling the prompt](packages/docs/src/app/%28docs%29/prompt/page.mdx).
 - [Component Entry Format](packages/docs/src/app/%28docs%29/entry/page.mdx) — every field, value sources, state and scopes, reactivity.
 - [Security model](packages/docs/src/app/%28docs%29/security/page.mdx) and [SECURITY.md](SECURITY.md).

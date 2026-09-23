@@ -12,7 +12,7 @@ CallbackValueSourceAssignment = ValueSource & { set?, confirm?, debounce? }  // 
 A callback step may **drop `set`** and run purely for its effect; a `seed` step
 never can.
 
-[Entry fields](/entry/fields) covers which field takes which form.
+[Entry fields](/entry) covers which field takes which form.
 
 ## ValueSource
 
@@ -42,8 +42,8 @@ is rejected; edit a row through its scope or replace the array
 **`currentValue`** is whatever sits at the `set` path now — the value about to
 be replaced. It makes an assignment a read-modify-write without naming the path
 twice. `set` is what defines it, so in a bare
-[`props`](/entry/fields#props), [`hidden`](/entry/fields#hidden), or
-[`each`](/entry/fields#each) expression it does not exist:
+[`props`](/entry#props), [`hidden`](/entry#hidden), or
+[`each`](/entry#each) expression it does not exist:
 
 ```jsonc
 // ❌ no `set` here — throws: "currentValue" is not available in expressions

@@ -55,8 +55,8 @@ input schema rejecting the arguments is the document's fault —
 `invalid-arguments`, which the [recovery loop](/error-recovery) can feed back
 to the model. Anything else is a `host-function` failure: the host's problem,
 not the document's. Both reach [`onError`](/react/renderer). A failed
-[`seed`](/entry/fields#seed) also shows the [`error` slot](/react/renderer). In
-a [`callback`](/entry/fields#callbacks), the steps after the failed one do not
+[`seed`](/entry#seed) also shows the [`error` slot](/react/renderer). In
+a [`callback`](/entry#callbacks), the steps after the failed one do not
 run, and writes that already happened stay.
 
 ## Wiring into the renderer
@@ -128,7 +128,7 @@ Your `execute` can be sync or async, but a call always returns a Promise —
 only be called where the engine awaits the result, which is the two effectful
 sites:
 
-- **[`seed`](/entry/fields#seed)** — load data on mount. The element shows its
+- **[`seed`](/entry#seed)** — load data on mount. The element shows its
   [placeholder](/react/renderer) until every async seed resolves:
 
   ```jsonl
@@ -136,7 +136,7 @@ sites:
     "seed": [{ "set": "scopes.root.rows", "expr": "listProducts()" }] }
   ```
 
-- **[`callbacks`](/entry/fields#callbacks)** — change something on an event. The
+- **[`callbacks`](/entry#callbacks)** — change something on an event. The
   result is written to the step's `set` path:
 
   ```jsonl
@@ -328,5 +328,5 @@ the tree is one level deep.
 ## Where to go next
 
 - [Renderer](/react/renderer) — the `functions` prop and the rest of the mount setup.
-- [Entry fields](/entry/fields) — `seed` and `callbacks`, where functions are called.
+- [Entry fields](/entry) — `seed` and `callbacks`, where functions are called.
 - [The expression evaluator](/expr) — the language the calls are written in, and the purity rule.

@@ -28,7 +28,7 @@ copy or a hand-built object throws at `<RendererProvider>`.
 `render` receives two arguments. The first is **typed against the def**:
 
 - **props** — inferred from the def's `props` schema, already **resolved**: the
-  engine evaluates the entry's [`props`](/entry/fields#props) value source
+  engine evaluates the entry's [`props`](/entry#props) value source
   against state, parses the result through that schema, and hands you its
   output. You never see an expression, and every `.default()` is already
   applied.
@@ -42,7 +42,7 @@ copy or a hand-built object throws at `<RendererProvider>`.
   An implementation is a plain function of its props. It holds no engine state.
 - **callbacks** — one `(payload) => Promise<void>` per key in the def's
   `callbacks`, always present even if the entry wired none. Calling one runs that
-  entry's [callback steps](/entry/fields#callbacks) with `evt` bound to your
+  entry's [callback steps](/entry#callbacks) with `evt` bound to your
   payload, parsed through the same schema.
 - **`children`** — the rendered child elements, present only when the entry has a
   `children` array. It is never a prop — a def declaring one
@@ -55,7 +55,7 @@ a callback:
   key, yours to use or ignore; the engine never reads it back. The shadcn
   catalog puts it on the outermost node as `data-key`, which a "click an
   element to revise it" tool can use.
-- **`loading`** — the entry's [`loading`](/entry/fields#loading) expression,
+- **`loading`** — the entry's [`loading`](/entry#loading) expression,
   evaluated. Components that show data render busy while it is true: the
   catalog dims the current content in place (`aria-busy`) on tables, cards,
   stats and charts. Controls ignore it.

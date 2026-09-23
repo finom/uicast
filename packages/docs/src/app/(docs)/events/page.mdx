@@ -1,8 +1,8 @@
 # Event handling
 
 An event is where all three parts of a component meet. The [definition](/def)
-names what it carries, the [implementation](/react/impl) fires it, and the
-[entry](/entry/fields#callbacks) decides what happens. One object, `evt`, runs
+names what it carries, the [implementation](/react) fires it, and the
+[entry](/entry#callbacks) decides what happens. One object, `evt`, runs
 through all three. This page follows a single event across them.
 
 ## The same event in three places
@@ -96,7 +96,7 @@ component. It:
    expression reads it.
 
 Every callback the def declares is callable, whether or not the entry wired it.
-An unwired one is a no-op, so [implementations](/react/impl) never guard.
+An unwired one is a no-op, so [implementations](/react) never guard.
 
 ## Common patterns
 
@@ -142,7 +142,7 @@ The field updates on every keystroke; the request goes out once, 300 ms after
 the last one.
 
 **Busy while refreshing** — a flag around the fetch drives the table's
-[`loading`](/entry/fields#loading):
+[`loading`](/entry#loading):
 
 ```jsonc
 { "key": "rows", "component": "Table", "loading": "scopes.root.busy", "children": ["head", "body"] }

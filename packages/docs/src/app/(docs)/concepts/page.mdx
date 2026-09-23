@@ -60,7 +60,7 @@ So with three products in state, one entry produces three elements:
 State is a flat set of named reactive containers. This document has two:
 
 - **`scopes.root`** — one per app, shared by every element. Here it holds
-  `products`, put there by the [`seed`](/entry/fields#seed) on line 1.
+  `products`, put there by the [`seed`](/entry#seed) on line 1.
 - **`scopes.product`** — one per row, created by the list's `as`. It is the
   product itself: line 4 reads `scopes.product.name`.
 
@@ -218,10 +218,10 @@ separately, and an entry sets them as separate fields.
 | Term | Meaning |
 | --- | --- |
 | **uicast document** | One complete UI: a flat set of entries forming a tree with one **root** — the entry no other entry lists in `children`, derived structurally rather than flagged. Streamed as JSONLines, one entry per line. |
-| **entry** | One line of that stream: the JSON describing a single node. You author entries; the node that mounts from one is its **element**. See [Component Entry Format](/entry). |
-| **list** | An entry that repeats, marked by [`each`](/entry/fields) (the collection) with `as` naming the per-item scope. Each repetition is an **item**, read as `scopes.<as>.item`, `.index`, `.id`. |
+| **entry** | One line of that stream: the JSON describing a single node. You author entries; the node that mounts from one is its **element**. See [Entry fields](/entry). |
+| **list** | An entry that repeats, marked by [`each`](/entry) (the collection) with `as` naming the per-item scope. Each repetition is an **item**, read as `scopes.<as>.item`, `.index`, `.id`. |
 | **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
 | **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar compiled to a closure tree, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
-| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react/impl). |
+| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react). |
 | **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/expr/functions). |

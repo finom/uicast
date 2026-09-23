@@ -47,9 +47,9 @@ to the [`<RendererProvider>`](/react/renderer), not to one document, so every
 document under one provider shares it. On a chat surface that is what lets
 [blocks](/streamdown) share live state.
 
-## Row scopes
+## Item scopes
 
-A [list](/entry/fields#list-fields) renders its `component` once per item and
+A [list](/entry#list-fields) renders its `component` once per item and
 gives **each item its own scope**, named by `as`. That scope *is* the item: a
 window onto the element in the array, plus three fields of the runtime's own.
 
