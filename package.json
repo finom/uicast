@@ -40,7 +40,7 @@
     "build": "set -e; for P in expr core react shadcn-catalog streamdown; do npm run build --prefix ./packages/$P; done"
   },
   "dependencies": {
-    "@ai-sdk/openai-compatible": "^3.0.41",
+    "@ai-sdk/openai-compatible": "^3.0.53",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
@@ -51,37 +51,37 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "diff": "^9.0.0",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^1.47.0",
     "pg": "^8.13.1",
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react-day-picker": "^10.0.1",
-    "react-resizable-panels": "^4.10.0",
+    "react-resizable-panels": "^4.12.4",
     "recharts": "^3.8.1",
-    "standard-tool": "^0.1.0",
+    "standard-tool": "^0.1.1",
     "streamdown": "^2.5.0",
-    "tailwind-merge": "^3.5.0",
-    "zod": "~4.3.6"
+    "tailwind-merge": "^3.7.0",
+    "zod": "~4.6.5"
   },
   "peerDependencies": {
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
+    "@biomejs/biome": "^2.5.14",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.0",
-    "@types/node": "^26.2.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.1.0",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitest/coverage-v8": "^5.0.1",
     "glob": "^13.0.6",
-    "happy-dom": "^20.9.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "tsc-alias": "^1.9.2",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.0"
+    "happy-dom": "^20.14.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "tsc-alias": "^1.9.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.1"
   },
   "overrides": {
     "nextra": {
