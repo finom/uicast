@@ -216,9 +216,14 @@ const inventoryEntries: ComponentEntry[] = [
     each: "scopes.root.moves.items",
     as: "pmov",
     keyBy: "id",
-    props: {
-      expr: "({ text: scopes.pmov.createdAt.slice(0, 10) + ' · ' + (scopes.pmov.qty > 0 ? '+' : '') + scopes.pmov.qty + ' ' + scopes.pmov.reason, variant: 'small', as: 'div' })",
-    },
+    props: { literal: { variant: "small", as: "div" } },
+    children: ["pmov-date", "pmov-text"],
+  },
+  { key: "pmov-date", component: "DateTime", props: { expr: "({ value: scopes.pmov.createdAt })" } },
+  {
+    key: "pmov-text",
+    component: "Typography",
+    props: { expr: "({ text: ' · ' + (scopes.pmov.qty > 0 ? '+' : '') + scopes.pmov.qty + ' ' + scopes.pmov.reason, variant: 'small' })" },
   },
   {
     key: "pager",
@@ -306,7 +311,7 @@ const salesEntries: ComponentEntry[] = [
       { set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 8 })" },
       { set: "scopes.root.customers", expr: "listCustomers({ limit: 200 })" },
       { set: "scopes.root.busy", literal: true },
-      { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" },
+      { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" },
       { set: "scopes.root.busy", literal: false },
     ],
     children: ["title", "subtitle", "stats", "charts-row", "filters", "table-card", "pager"],
@@ -363,13 +368,13 @@ const salesEntries: ComponentEntry[] = [
     props: {
       expr: "({ value: scopes.root.status, options: [{ label: 'All statuses', value: 'all' }, { label: 'Pending', value: 'pending' }, { label: 'Paid', value: 'paid' }, { label: 'Shipped', value: 'shipped' }, { label: 'Delivered', value: 'delivered' }, { label: 'Cancelled', value: 'cancelled' }] })",
     },
-    callbacks: { onChange: [{ set: "scopes.root.status", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" }, { set: "scopes.root.busy", literal: false }] },
+    callbacks: { onChange: [{ set: "scopes.root.status", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
   {
     key: "days",
     component: "Radio",
     props: { expr: "({ value: scopes.root.days, orientation: 'horizontal', options: [{ label: '7 days', value: '7' }, { label: '30 days', value: '30' }, { label: '90 days', value: '90' }, { label: 'All time', value: 'all' }] })" },
-    callbacks: { onChange: [{ set: "scopes.root.days", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" }, { set: "scopes.root.busy", literal: false }] },
+    callbacks: { onChange: [{ set: "scopes.root.days", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
   {
     key: "customer-filter",
@@ -377,13 +382,13 @@ const salesEntries: ComponentEntry[] = [
     props: {
       expr: "({ value: scopes.root.customerId, placeholder: 'Any customer', searchPlaceholder: 'Find a customer…', options: [{ label: 'Any customer', value: 'all' }, ...scopes.root.customers.items.map(c => ({ label: c.name + ' — ' + c.company, value: String(c.id) }))] })",
     },
-    callbacks: { onChange: [{ set: "scopes.root.customerId", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" }, { set: "scopes.root.busy", literal: false }] },
+    callbacks: { onChange: [{ set: "scopes.root.customerId", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
   {
     key: "sort",
     component: "Select",
     props: { expr: "({ value: scopes.root.sortKey, options: [{ label: 'Newest first', value: 'newest' }, { label: 'Oldest first', value: 'oldest' }, { label: 'Largest first', value: 'total' }] })" },
-    callbacks: { onChange: [{ set: "scopes.root.sortKey", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" }, { set: "scopes.root.busy", literal: false }] },
+    callbacks: { onChange: [{ set: "scopes.root.sortKey", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
   { key: "table-card", component: "Card", props: { literal: { title: "Orders" } }, children: ["table"] },
   { key: "table", component: "Table", loading: "scopes.root.busy", children: ["thead", "tbody"] },
@@ -416,7 +421,8 @@ const salesEntries: ComponentEntry[] = [
     callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$id]: evt.checked })" }] },
   },
   { key: "c-id", component: "TableCell", props: { expr: "({ text: String(scopes.ord.id) })" } },
-  { key: "c-date", component: "TableCell", props: { expr: "({ text: scopes.ord.createdAt.slice(0, 10) })" } },
+  { key: "c-date", component: "TableCell", children: ["c-date-value"] },
+  { key: "c-date-value", component: "DateTime", props: { expr: "({ value: scopes.ord.createdAt })" } },
   { key: "c-cust", component: "TableCell", props: { expr: "({ text: scopes.ord.customerName })" } },
   { key: "c-prod", component: "TableCell", props: { expr: "({ text: scopes.ord.qty + '× ' + scopes.ord.productName })" } },
   { key: "c-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.ord.total.toFixed(2) })" } },
@@ -440,7 +446,7 @@ const salesEntries: ComponentEntry[] = [
       onClick: [
         { expr: "updateOrder({ id: scopes.ord.id, status: scopes.ord.status === 'pending' ? 'paid' : scopes.ord.status === 'paid' ? 'shipped' : 'delivered' })" },
         { set: "scopes.root.busy", literal: true },
-        { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" },
+        { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" },
         { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
         { set: "scopes.root.busy", literal: false },
       ],
@@ -455,7 +461,7 @@ const salesEntries: ComponentEntry[] = [
       onClick: [
         { expr: "updateOrder({ id: scopes.ord.id, status: 'cancelled' })", confirm: "Cancel this order? The customer will not be charged." },
         { set: "scopes.root.busy", literal: true },
-        { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" },
+        { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" },
         { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
         { set: "scopes.root.week", expr: "getSalesSummary({ days: 7 })" },
         { set: "scopes.root.busy", literal: false },
@@ -483,7 +489,7 @@ const salesEntries: ComponentEntry[] = [
     component: "Pagination",
     props: { expr: "({ currentPage: scopes.root.page, totalPages: Math.max(1, Math.ceil(scopes.root.orders.total / 50)) })" },
     hidden: "scopes.root.orders.total <= 50",
-    callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), from: scopes.root.days === 'all' ? undefined : new Date(scopes.root.now - Number(scopes.root.days) * 86400000).toISOString().slice(0, 10) })" }, { set: "scopes.root.busy", literal: false }] },
+    callbacks: { onPageChange: [{ set: "scopes.root.page", expr: "evt.page" }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
 ];
 
@@ -634,7 +640,7 @@ const customersEntries: ComponentEntry[] = [
     key: "d-spark",
     component: "Sparkline",
     props: {
-      expr: "({ data: [5, 4, 3, 2, 1, 0].map(k => scopes.root.history.items.filter(o => o.status !== 'cancelled' && Math.floor((scopes.root.now - new Date(o.createdAt).getTime()) / (30 * 86400000)) === k).reduce((s, o) => s + o.total, 0)), width: 200, height: 32, filled: true })",
+      expr: "({ data: [5, 4, 3, 2, 1, 0].map(k => scopes.root.history.items.filter(o => o.status !== 'cancelled' && Math.floor((scopes.root.now - Date.parse(o.createdAt)) / (30 * 86400000)) === k).reduce((s, o) => s + o.total, 0)), width: 200, height: 32, filled: true })",
     },
   },
   { key: "d-edit", component: "FlexRow", props: { literal: { gap: "2", align: "end", wrap: true } }, children: ["e-name", "e-company", "e-email", "e-save", "e-delete"] },
@@ -697,7 +703,8 @@ const customersEntries: ComponentEntry[] = [
     keyBy: "id",
     children: ["dc-date", "dc-prod", "dc-total", "dc-status"],
   },
-  { key: "dc-date", component: "TableCell", props: { expr: "({ text: scopes.dord.createdAt.slice(0, 10) })" } },
+  { key: "dc-date", component: "TableCell", children: ["dc-date-value"] },
+  { key: "dc-date-value", component: "DateTime", props: { expr: "({ value: scopes.dord.createdAt })" } },
   { key: "dc-prod", component: "TableCell", props: { expr: "({ text: scopes.dord.qty + '× ' + scopes.dord.productName })" } },
   { key: "dc-total", component: "TableCell", props: { expr: "({ text: '$' + scopes.dord.total.toFixed(2) })" } },
   { key: "dc-status", component: "TableCell", props: { expr: "({ text: scopes.dord.status })" } },
@@ -903,7 +910,7 @@ const agingFence = j([
   { key: "age-c2", component: "TableCell", props: { expr: "({ text: scopes.po.customerName })" } },
   { key: "age-c3", component: "TableCell", props: { expr: "({ text: '$' + scopes.po.total.toFixed(2) })" } },
   { key: "age-c4", component: "TableCell", children: ["age-badge"] },
-  { key: "age-badge", component: "Badge", props: { expr: "({ text: Math.round((scopes.root.now - new Date(scopes.po.createdAt).getTime()) / 86400000) + ' days', variant: (scopes.root.now - new Date(scopes.po.createdAt).getTime()) / 86400000 >= 3 ? 'destructive' : 'secondary' })" } },
+  { key: "age-badge", component: "Badge", props: { expr: "({ text: Math.round((scopes.root.now - Date.parse(scopes.po.createdAt)) / 86400000) + ' days', variant: (scopes.root.now - Date.parse(scopes.po.createdAt)) / 86400000 >= 3 ? 'destructive' : 'secondary' })" } },
   { key: "age-c5", component: "TableCell", children: ["age-pay"] },
   { key: "age-pay", component: "Button", props: { literal: { text: "Mark paid", variant: "outline", size: "sm" } }, callbacks: { onClick: [
     { expr: "updateOrder({ id: scopes.po.id, status: 'paid' })" },

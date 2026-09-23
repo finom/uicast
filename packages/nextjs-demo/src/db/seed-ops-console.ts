@@ -152,7 +152,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     key: "heat",
     component: "Heatmap",
     props: {
-      expr: "({ rows: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], cols: ['W-4', 'W-3', 'W-2', 'W-1', 'W-0'], data: scopes.root.sales.byDay.map(d => ({ row: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][new Date(d.date).getDay()], col: 'W-' + Math.floor((scopes.root.now - new Date(d.date).getTime()) / (7 * 86400000)), value: d.orders })) })",
+      expr: "({ rows: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], cols: ['W-4', 'W-3', 'W-2', 'W-1', 'W-0'], data: scopes.root.sales.byDay.map(d => ({ row: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][(Math.floor(Date.parse(d.date) / 86400000) + 4) % 7], col: 'W-' + Math.floor((scopes.root.now - Date.parse(d.date)) / (7 * 86400000)), value: d.orders })) })",
     },
   },
 
@@ -386,8 +386,15 @@ export const opsConsoleEntries: ComponentEntry[] = [
     each: "scopes.root.moves.items.slice(0, 5)",
     as: "pmov",
     keyBy: "id",
+    props: { literal: { variant: "small", as: "div" } },
+    children: ["pmov-date", "pmov-text"],
+  },
+  { key: "pmov-date", component: "DateTime", props: { expr: "({ value: scopes.pmov.createdAt })" } },
+  {
+    key: "pmov-text",
+    component: "Typography",
     props: {
-      expr: "({ text: scopes.pmov.createdAt.slice(0, 10) + ' · ' + (scopes.pmov.qty > 0 ? '+' : '') + scopes.pmov.qty + ' ' + scopes.pmov.reason + (scopes.pmov.note ? ' — ' + scopes.pmov.note : ''), variant: 'small', as: 'div' })",
+      expr: "({ text: ' · ' + (scopes.pmov.qty > 0 ? '+' : '') + scopes.pmov.qty + ' ' + scopes.pmov.reason + (scopes.pmov.note ? ' — ' + scopes.pmov.note : ''), variant: 'small' })",
     },
   },
   {
@@ -467,13 +474,14 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$id]: evt.checked })" }] },
   },
   { key: "oc-id", component: "TableCell", props: { expr: "({ text: '#' + scopes.ord.id })" } },
-  { key: "oc-date", component: "TableCell", props: { expr: "({ text: scopes.ord.createdAt.slice(0, 10) })" } },
+  { key: "oc-date", component: "TableCell", children: ["oc-date-value"] },
+  { key: "oc-date-value", component: "DateTime", props: { expr: "({ value: scopes.ord.createdAt })" } },
   { key: "oc-age", component: "TableCell", children: ["age-badge"] },
   {
     key: "age-badge",
     component: "Badge",
     props: {
-      expr: "({ text: Math.round((scopes.root.now - new Date(scopes.ord.createdAt).getTime()) / 86400000) + 'd', variant: scopes.ord.status === 'pending' && scopes.root.now - new Date(scopes.ord.createdAt).getTime() > 3 * 86400000 ? 'destructive' : 'outline' })",
+      expr: "({ text: Math.round((scopes.root.now - Date.parse(scopes.ord.createdAt)) / 86400000) + 'd', variant: scopes.ord.status === 'pending' && scopes.root.now - Date.parse(scopes.ord.createdAt) > 3 * 86400000 ? 'destructive' : 'outline' })",
     },
   },
   { key: "oc-cust", component: "TableCell", children: ["ord-cust"] },
@@ -572,7 +580,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
     keyBy: "id",
     children: ["mc-date", "mc-prod", "mc-qty", "mc-reason", "mc-note"],
   },
-  { key: "mc-date", component: "TableCell", props: { expr: "({ text: scopes.mov.createdAt.slice(0, 10) })" } },
+  { key: "mc-date", component: "TableCell", children: ["mc-date-value"] },
+  { key: "mc-date-value", component: "DateTime", props: { expr: "({ value: scopes.mov.createdAt })" } },
   { key: "mc-prod", component: "TableCell", children: ["mov-prod"] },
   { key: "mov-prod", component: "HighlightedText", props: { expr: "({ text: scopes.mov.productName, highlight: scopes.root.q })" } },
   { key: "mc-qty", component: "TableCell", children: ["mov-qty"] },

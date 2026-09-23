@@ -134,6 +134,7 @@ export const orderListInput = listWindow.and(
     productId: z.coerce.number().int().optional().meta({ description: "Only this product." }),
     minTotal: z.coerce.number().optional().meta({ description: "Only orders with at least this total." }),
     from: z.iso.date().optional().meta({ description: "Only orders on or after this day." }),
+    days: z.coerce.number().int().positive().optional().meta({ description: "Only orders from the last this many days." }),
   }),
 );
 export const orderListRow = orderOutput

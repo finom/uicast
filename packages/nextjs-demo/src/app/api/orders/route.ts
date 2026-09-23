@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if ("error" in read) return read.error;
   const input = readQuery(req, orderListInput);
   if ("error" in input) return input.error;
-  const { limit, offset, sort, order, q, status, customerId, productId, minTotal, from } = input.data;
+  const { limit, offset, sort, order, q, status, customerId, productId, minTotal, from, days } = input.data;
   const dir = order === "asc" ? asc : desc;
   const where = and(
     eq(orders.userId, read.owner.id),
@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
     productId !== undefined ? eq(orders.productId, productId) : undefined,
     minTotal !== undefined ? gte(orders.total, minTotal) : undefined,
     from ? gte(orders.createdAt, new Date(from)) : undefined,
+    days !== undefined ? gte(orders.createdAt, new Date(Date.now() - days * 86_400_000)) : undefined,
   );
   const [items, [{ total }]] = await Promise.all([
     db
