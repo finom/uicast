@@ -74,7 +74,7 @@ import { CarouselImpl } from "./uicast-catalog/carousel/impl";
 import { CalloutImpl } from "./uicast-catalog/callout/impl";
 import { KBDImpl } from "./uicast-catalog/kbd/impl";
 import { HighlightedTextImpl } from "./uicast-catalog/highlighted-text/impl";
-import { RelativeTimeImpl } from "./uicast-catalog/relative-time/impl";
+import { DateTimeImpl } from "./uicast-catalog/date-time/impl";
 import { TruncatedTextImpl } from "./uicast-catalog/truncated-text/impl";
 import { CopyButtonImpl } from "./uicast-catalog/copy-button/impl";
 import { QRCodeImpl } from "./uicast-catalog/qr-code/impl";
@@ -258,7 +258,7 @@ export {
   CalloutImpl,
   KBDImpl,
   HighlightedTextImpl,
-  RelativeTimeImpl,
+  DateTimeImpl,
   TruncatedTextImpl,
   CopyButtonImpl,
   QRCodeImpl,
@@ -359,7 +359,7 @@ export const impls = [
   CalloutImpl,
   KBDImpl,
   HighlightedTextImpl,
-  RelativeTimeImpl,
+  DateTimeImpl,
   TruncatedTextImpl,
   CopyButtonImpl,
   QRCodeImpl,

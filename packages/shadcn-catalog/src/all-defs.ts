@@ -74,7 +74,7 @@ import { CarouselDef } from "./uicast-catalog/carousel/def";
 import { CalloutDef } from "./uicast-catalog/callout/def";
 import { KBDDef } from "./uicast-catalog/kbd/def";
 import { HighlightedTextDef } from "./uicast-catalog/highlighted-text/def";
-import { RelativeTimeDef } from "./uicast-catalog/relative-time/def";
+import { DateTimeDef } from "./uicast-catalog/date-time/def";
 import { TruncatedTextDef } from "./uicast-catalog/truncated-text/def";
 import { CopyButtonDef } from "./uicast-catalog/copy-button/def";
 import { QRCodeDef } from "./uicast-catalog/qr-code/def";
@@ -258,7 +258,7 @@ export {
   CalloutDef,
   KBDDef,
   HighlightedTextDef,
-  RelativeTimeDef,
+  DateTimeDef,
   TruncatedTextDef,
   CopyButtonDef,
   QRCodeDef,
@@ -358,7 +358,7 @@ export const defs = [
   CalloutDef,
   KBDDef,
   HighlightedTextDef,
-  RelativeTimeDef,
+  DateTimeDef,
   TruncatedTextDef,
   CopyButtonDef,
   QRCodeDef,
