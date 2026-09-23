@@ -1,15 +1,15 @@
 const STEPS = [
   {
     title: "Define components, functions",
-    body: "Your design system and your endpoints, each behind a schema. Together they are the model's menu — a closed set it cannot step outside.",
+    body: "Your design system and your endpoints, each behind a schema: the closed set the model builds from.",
   },
   {
     title: "AI generates",
-    body: "One JSON object per line, streamed. Derived values, visibility and event handling are short JavaScript expressions, checked before they run.",
+    body: "Derived values, visibility and events are short JavaScript expressions, checked before they run.",
   },
   {
     title: "Get an app, logic included",
-    body: "Every line mounts as it lands. Clicks fire callbacks, callbacks call your functions and write reactive state — everything reading it updates.",
+    body: "Elements mount as they arrive. Clicks run callbacks that call your functions and write reactive state.",
   },
 ];
 

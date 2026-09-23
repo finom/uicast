@@ -1,9 +1,8 @@
 # Component implementation
 
-A component is a **pair**: a [definition](/def) the model reads, and an
-implementation React runs. The def says what the component is; the impl decides
-what it renders — a wrapper over a component from your design system, or plain
-markup.
+A component is a **pair**: a [definition](/def) the model reads and an
+implementation React runs. The implementation decides what renders: a component
+from your design system, or plain markup.
 
 ```tsx filename="src/uicast-catalog/badge/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
@@ -18,50 +17,41 @@ export const BadgeImpl = createComponentImplementation({
 });
 ```
 
-`createComponentImplementation` comes from `@uicast/react`. It takes the `def`
-and a `render` function and returns the implementation you register:
-`{ def, placeholder }`. The renderer accepts only objects this function made; a
-copy or a hand-built object throws at `<RendererProvider>`.
+`createComponentImplementation` takes the `def` and a `render` function and
+returns `{ def, placeholder }`, the object you register. The renderer accepts
+only objects this function made; a copy or a hand-built object throws at
+`<RendererProvider>`.
 
 ## The render function
 
-`render` receives two arguments. The first is **typed against the def**:
+`render` gets two arguments. The first is typed from the def:
 
-- **props** — inferred from the def's `props` schema, already **resolved**: the
-  engine evaluates the entry's [`props`](/entry#props) value source
-  against state, parses the result through that schema, and hands you its
-  output. You never see an expression, and every `.default()` is already
-  applied.
+- **props**, already resolved: the engine evaluates the entry's
+  [`props`](/entry#props) and parses the result through the def's schema, so
+  every `.default()` is applied.
 
   ```jsonc
   { "key": "total", "component": "Typography", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
   // render receives { text: "Open: 3" }
   // …and is called again with "Open: 4" the moment something writes scopes.root.open
   ```
+- **callbacks**, one `(payload) => Promise<void>` per key in the def's
+  `callbacks`, present even if the entry wired none. Calling one parses the
+  payload through its schema and runs the entry's
+  [callback steps](/entry#callbacks) with it as `evt`.
+- **`children`**, the rendered child elements, present only when the entry has
+  a `children` array. It is never a prop
+  ([a def declaring one throws](/def#props--the-contract-with-the-model)).
 
-  An implementation is a plain function of its props. It holds no engine state.
-- **callbacks** — one `(payload) => Promise<void>` per key in the def's
-  `callbacks`, always present even if the entry wired none. Calling one runs that
-  entry's [callback steps](/entry#callbacks) with `evt` bound to your
-  payload, parsed through the same schema.
-- **`children`** — the rendered child elements, present only when the entry has a
-  `children` array. It is never a prop — a def declaring one
-  [throws](/def#props--the-contract-with-the-model).
+The second is the **render context**:
 
-The second argument is the **render context**, everything that is not a prop or
-a callback:
-
-- **`entry`** — the document line being rendered. `entry.key` is the element's
-  key, yours to use or ignore; the engine never reads it back. The shadcn
-  catalog puts it on the outermost node as `data-key`, which a "click an
-  element to revise it" tool can use.
-- **`loading`** — the entry's [`loading`](/entry#loading) expression,
-  evaluated. Components that show data render busy while it is true: the
-  catalog dims the current content in place (`aria-busy`) on tables, cards,
-  stats and charts. Controls ignore it.
-- **`scopes`** — the scopes the entry's expressions read (`scopes.root`, and
-  the item scope of an enclosing list). Read-only from here; state changes go
-  through callbacks.
+- **`entry`**, the entry being rendered. `entry.key` is yours to use; the engine
+  never reads it back.
+- **`loading`**, the entry's [`loading`](/entry#loading) expression, evaluated.
+  A component that shows data renders busy while it is true; controls ignore it.
+- **`scopes`**, the scopes the entry's expressions read: `scopes.root` and the
+  item scope of an enclosing list. Read-only here; state changes go through
+  callbacks.
 
 ```tsx filename="src/uicast-catalog/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({
@@ -79,31 +69,22 @@ export const SearchInputImpl = createComponentImplementation({
 });
 ```
 
-`onChange({ value: … })` passes exactly the shape the def declared, which is why
-the model's `evt.value` resolves. A React event object is not a payload, so
-narrow it to the declared fields yourself — the `onKeyDown` handler builds
-`{ key, repeat }` by hand, one entry per field in the
-[common-event schema](/def#callbacks--event-payloads).
+Build each payload from the React event by hand, with exactly the fields its
+[schema](/def#callbacks--event-payloads) declares.
 
 ## Placeholder
 
 An optional `placeholder` fills a component's **content** while something is
-still missing. Two cases, both inside an already-mounted parent:
+missing. It gets a `reason`:
 
-- a child entry has not streamed in yet — the **parent's** placeholder fills the
-  empty slot, since the missing child has no implementation to ask;
-- the element's own `seed` is still running, when it calls an async host
-  function.
+- `"streaming"`: a child entry has not arrived yet. The **parent's** placeholder
+  fills the slot, since the child's component is not known yet.
+- `"seeding"`: the element's own `seed` is waiting on an async host function.
 
-The placeholder is passed `{ reason: "streaming" | "seeding" }` — the two cases
-above — so one function can draw a different loader for each.
-
-A placeholder is also passed `children` — the drawn children of the element —
-which can be used to build a document skeleton.
-
-(A pending group [`init`](/react/renderer#init--preload-state-for-the-group)
-suspends whole documents behind the global `fallbackComponents.placeholder`
-only — per-component placeholders play no part there.)
+It may also get `children`, the element's drawn children, for building a
+document skeleton. A pending group
+[`init`](/react/renderer#init--preload-state-for-the-group) shows only the
+global `fallbackComponents.placeholder`.
 
 ```tsx filename="src/uicast-catalog/card/impl.tsx"
 export const CardImpl = createComponentImplementation({
@@ -125,40 +106,37 @@ export const CardImpl = createComponentImplementation({
   "props": { "expr": "({ data: scopes.root.sales, xKey: 'month', yKeys: ['total'] })" } }
 ```
 
-`BarChartImpl`'s own placeholder shows in neither case. A per-implementation
-`placeholder` beats the global
-[`fallbackComponents.placeholder`](/react/renderer); with neither, the pending
+`BarChartImpl`'s placeholder shows in neither case. An implementation's
+`placeholder` overrides the global
+[`fallbackComponents.placeholder`](/react/renderer); with neither, a pending
 element renders nothing.
 
 ## Registration
 
-Collect every implementation into the array passed to
-`<RendererProvider evaluator={evaluator} implementations={...}>`. That is the partner to the def's
-[definitions array](/def#registration): defs drive the prompt, implementations
-drive rendering. Adding a component means updating both.
+Pass every implementation to `<RendererProvider implementations={...}>`; the
+[definitions](/def#registration) go to the prompt. Adding a component means
+updating both.
 
 ## Props the document controls
 
-Every prop value comes from a document a model wrote, and the implementation
-is the last code to touch it before the DOM. The [evaluator](/expr) has
-already checked the expression; what it cannot check is what your JSX does
-with the result. Three rules keep a catalog safe:
+Every prop comes from a document a model wrote, and the implementation is the
+last code between it and the DOM. The [evaluator](/expr) checks the expression,
+not what your JSX does with the result. Three rules:
 
-- **URLs go through declared URL props.** Never render a plain string prop
-  into `src`, `href`, or `poster`. Declare the prop as a URL in the
+- **URLs go through declared URL props.** Never render a plain string prop into
+  `src`, `href` or `poster`. Declare the prop as a URL in the
   [definition](/def) (`z.url()`), and the renderer's
-  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load)
-  gates it before your `render` ever runs. An implementation that builds a
-  URL from an ordinary string prop bypasses that gate entirely.
+  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) checks
+  it before `render` runs. A URL built from an ordinary string prop skips that
+  check.
 - **No document strings in script-capable sinks.** `dangerouslySetInnerHTML`,
-  `<style>` text, `srcDoc`, and `on*` attribute strings can carry script — and
-  a raw CSS string can exfiltrate via `url(...)`. Style *objects* with fixed
-  keys are fine (`style={{ width: props.width }}`); handing the document a
-  whole CSS or HTML string is not.
-- **Event payloads are plain fields, never the event.** Pass a picked object
-  (`onClick(pickMouseEvent(e))` — the catalog's own pattern), not the React
-  event. The membrane refuses live objects as a backstop, but the contract is
-  yours: everything entering a document's scope is plain, JSON-shaped data.
+  `<style>` text, `srcDoc` and `on*` attribute strings can carry script, and a
+  raw CSS string can send data out through `url(...)`. A style object with
+  fixed keys is fine (`style={{ width: props.width }}`); a whole CSS or HTML
+  string from the document is not.
+- **Event payloads are plain fields, never the event.** The membrane refuses
+  live objects as a backstop, but the contract is yours: everything that enters
+  a scope is plain, JSON-shaped data.
 
-The shipped catalog follows all three. If you build your own, these rules are
-what makes the [security model](/security) hold end to end.
+The reference catalog follows all three. The [security model](/security) holds
+end to end only if your own implementations do too.

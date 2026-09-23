@@ -2,26 +2,23 @@ import { Callout } from "nextra/components";
 
 # Roadmap
 
-Where **uicast** is headed.
-
 <Callout type="warning">
-  **uicast** is an early-stage framework in beta — use it at your own risk.
-  Model-written expressions run in the browser through an
-  [interpreter with a closed grammar and a runtime membrane](/expr), not
-  the JavaScript engine — a real language boundary, though host functions and
-  what you inject into scope stay your responsibility. The entry format and the
-  prompt contract can also still change between releases.
+  **uicast** is in beta; use it at your own risk. The entry format and the
+  prompt contract can still change between releases. Model-written expressions
+  run on an [interpreter with a closed grammar and a runtime membrane](/expr),
+  not the JavaScript engine; host functions and what you inject into scope stay
+  your responsibility.
 </Callout>
 
 ## Pure host functions in reactive sites and callbacks
 
-An opt-in mark — `meta: { pure: true }` on the tool — declaring a host function
-synchronous, deterministic, and effect-free. Marked functions become callable
-in `props`, `hidden`, and `each`, and inside a callback such as
-`rows.map(r => slugify(r.title))`; unmarked ones stay rejected there, as
+An opt-in `meta: { pure: true }` on a tool marks the host function as
+synchronous, deterministic and effect-free. Marked functions become callable in
+`props`, `hidden`, `loading` and `each`, and inside a callback such as
+`rows.map(r => slugify(r.title))`. Unmarked ones stay rejected there, as
 `rows.map(r => deleteRow(r.id))` is today.
 
 ## Reusable expressions
 
-A document names an expression once and refers to it from every seed and step
-that needs it. Today the same fetch is repeated in full at every call site.
+A document names an expression once and refers to it from any seed or step.
+Today the same fetch is repeated in full at every call site.

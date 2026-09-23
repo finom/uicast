@@ -6,25 +6,20 @@ import { Callout } from "nextra/components";
 
 # The expression evaluator
 
-Every `expr` in a document is written by a model, and a document can be saved
-and replayed for other people. So an expression is untrusted input running in
-your users' browsers.
+A model writes every `expr`, and a saved document replays in other people's
+browsers, so an expression is untrusted input. `@uicast/expr` runs it.
 
-`@uicast/expr` is what runs it. The expression language is **JavaScript
-expressions over JSON data**: the syntax models already write fluently, with
-the standard methods of strings, numbers and arrays and a short list of
-globals, and without statements, `new`, mutation, regular expressions or
-function values. Anything outside it is refused before it runs. The package parses an expression once with acorn and
-interprets it itself; nothing reaches the engine's `eval`. It has no **uicast**
-dependency and works standalone.
+The language is **JavaScript expressions over JSON data**: the standard
+methods of strings, numbers and arrays and a short list of globals, without
+statements, `new`, mutation, regular expressions or function values. The
+package has no **uicast** dependency.
 
 ## How an expression runs
 
-`Evaluator` compiles the AST to a tree of closures and evaluates it itself.
-Every property read and every call is checked as it happens, under a CPU and
-allocation [budget](#budgets). The package never hands source to the
-JavaScript engine, so it runs under a strict Content-Security-Policy — no
-`unsafe-eval`.
+`Evaluator` parses an expression once with acorn and runs it itself, checking
+every property read and every call under a CPU and allocation
+[budget](#budgets). No source reaches the JavaScript engine, so a strict
+Content-Security-Policy without `unsafe-eval` works.
 
 ```tsx
 import { Evaluator } from "@uicast/expr";
@@ -34,29 +29,24 @@ const evaluator = new Evaluator({ functions });
 <RendererProvider evaluator={evaluator} /> // the React binding
 ```
 
-A subclass can run expressions with `new Function` instead, for speed: see
-[Custom evaluator](/expr/custom-expr).
-
-Checking at run time matters because of one line of JavaScript:
+The checks happen at run time, because a name can be built while the
+expression runs:
 
 ```js
 "abc".substr(1)            // refused — `substr` is not in the language
 "abc"["sub" + "str"](1)    // the same call — the name exists only at run time
 ```
 
-A validator sees written names; JavaScript resolves keys when it runs. Under
-`Evaluator` the call itself is the checkpoint, so both lines above are the same
-event and get the same rejection. Three rules do most of the interpreter's
-work:
+Under `Evaluator` the call itself is checked, so both lines are refused. Three
+rules do most of the work:
 
-- **Plain objects are read by own property only.** Nothing walks a prototype
-  chain, so `constructor`, `toString` and everything else inherited is simply
-  absent — `({}).constructor` is `undefined` — without naming any of them.
+- **Own properties only.** Nothing inherited is readable, so
+  `({}).constructor` is `undefined`. No deny-list is needed.
 - **Only data is readable.** Objects, arrays, primitives, a short list of
-  built-ins. A class instance, a DOM node, or a function fails on the first hop
-  — a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
-- **Methods are invoked, never handed around.** `rows.map(f)` works; `rows.map`
-  as a value is an error, so nothing can be re-bound.
+  built-ins. A class instance, a DOM node or a function fails on the first
+  read, so a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
+- **Methods are called, never passed around.** `rows.map` as a value is an
+  error.
 
 ## Where expressions appear
 
@@ -74,25 +64,22 @@ Every site, in one product search (`scopes.root.products` is seeded higher up):
   "props": { "expr": "({ text: scopes.row.name })" } }
 ```
 
-`props` is a [value source](/entry/value-sources): `expr` computes the props
-object, `literal` is taken as-is. `hidden` and `each` are **bare strings**, not
-value sources.
+`props` is a [value source](/entry/value-sources); `hidden`, `loading` and
+`each` are bare strings. Inside `callbacks`, an expression also sees `evt`. A `set` step
+also sees [`currentValue`](/entry/value-sources#valuesourceassignment), the
+value at that path now.
 
-Inside `callbacks`, an expression also sees `evt`. Only `seed` and `callbacks`
-may call host [`functions`](/expr/functions) — the two sites where an async result
-is awaited; a host call in `props`, `hidden`, or `each` is rejected into the
-error slot. A `set` step also sees
-[`currentValue`](/entry/value-sources#valuesourceassignment) — whatever is at
-that path now.
+Only `seed` and `callbacks` await a result, so only they may call host
+[`functions`](/expr/functions). A host call in `props`, `hidden`, `loading` or `each` is
+rejected into the error slot.
 
-Reading a scope path in `props`, `hidden`, or `each` subscribes the element to
-it — dependencies are extracted from the expression text, never declared. How
-that works, and why paths must be written out literally, is on
-[Reactivity &amp; Dependencies](/entry/reactivity).
+A scope path read in `props`, `hidden`, `loading` or `each` subscribes the element to it.
+Paths are read from the expression text, not declared, so write them out
+literally: see [Reactivity &amp; Dependencies](/entry/reactivity).
 
 ## The language
 
-The grammar is a closed allow-list of AST node types: anything not on it fails
+The grammar is a closed allow-list of AST node types; anything else fails
 validation.
 
 | | |
@@ -104,41 +91,37 @@ validation.
 | Literals | arrays and objects, with spread and computed keys |
 | Functions | arrow functions with an **expression body**, only as a method's callback; parameters may destructure |
 
-What is missing is deliberate:
+Left out on purpose:
 
-- **All statements and declarations.** No `const` / `let` / `var`, no loops,
-  no `try`, no blocks, no `function` keyword — a runaway loop is not blocked,
-  it is unwritable, and with nothing named, nothing can refer to itself to
-  recurse.
-- **Assignment, `++`, `delete`.** Expressions are pure structurally, not by
-  convention.
-- **Regular expressions.** Catastrophic backtracking runs where no budget can
-  see it. `.includes()`, `.startsWith()`, `.split()`, `.replaceAll()` cover the
-  real cases.
-- **Functions as values.** An arrow is written only where a method takes one
-  — `rows.map(r => r.name)` — never in an array, as a result, or called. So
-  nothing can store, return or call a function, and nothing recurses. A global
-  that takes one argument can stand in for the arrow: `rows.filter(Boolean)`.
-- **`await`.** Host calls return promises and the runtime awaits them — the
-  expression never does. So a host call is the expression's result: the whole
-  of it, a branch of `?:`, or the right side of `??`, `||`, `&&`.
-  `getUser({ id }).name`, `[getUser(a), getUser(b)]` and
-  `ids.map(id => getUser({ id }))` are refused before any call runs.
-- **`Intl`.** The locale methods take its locale and options, as in
-  JavaScript: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`.
+- **Statements and declarations.** No `const`/`let`/`var`, loops, `try`,
+  blocks or `function`. A runaway loop cannot be written, and with nothing
+  named, nothing can recurse.
+- **Assignment, `++`, `delete`, mutating methods.** Expressions are **pure by
+  construction**: only a step's `set` changes state. Use `.toSorted()` and
+  `.toReversed()` instead of `.sort()` and `.reverse()`.
+- **Regular expressions.** Catastrophic backtracking runs outside the budget.
+  Use `.includes()`, `.startsWith()`, `.split()` or `.replaceAll()`.
+- **Functions as values.** An arrow is only a method's callback, as in
+  `rows.map(r => r.name)`: never stored, returned or called. A global that
+  takes one argument can replace it: `rows.filter(Boolean)`.
+- **`await`.** The runtime awaits a host call, so the call must be the result:
+  the whole expression, a branch of `?:`, or the right side of `??`, `||`,
+  `&&`. `getUser({ id }).name` and `ids.map(id => getUser({ id }))` are
+  refused before any call runs.
+- **`Intl`.** The locale methods still take a locale and options:
+  `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`.
 - **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
-  an ISO string, or a timestamp from `Date.parse(text)` or `Date.now()`.
-  Formatting a date belongs in a component: see
-  [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time).
-  `Object.keys(Object.groupBy(rows, r => r.tag))` lists the distinct tags, and
-  an object does a `Map`'s job.
-- **`forEach`, iterators.** A callback has no effect for `forEach` to run it
-  for, and a function is never a value.
+  an ISO string or a timestamp from `Date.parse(text)` or `Date.now()`; format
+  it in a component (see
+  [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time)).
+  An object does a `Map`'s job, and
+  `Object.keys(Object.groupBy(rows, r => r.tag))` lists distinct tags.
+- **`forEach`, iterators.** Callbacks have no effects, and functions are not
+  values.
 - **`in`, bitwise operators, `x?.()`, `instanceof`, tagged templates, `this`.**
   None shapes a display value.
 
-The single-expression rule holds all the way down — a callback body is one
-expression too, never a block:
+A callback body is one expression too, never a block:
 
 ```js
 // ✅ a ternary inside the callback
@@ -148,17 +131,9 @@ scopes.root.rows.map(r => r.status === "paid" ? "green" : "red")
 scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green" } })
 ```
 
-With no assignment and no mutating method, expressions are **pure by
-construction**: the only way to change state is a step's `set`, and
-`scopes.root.hits = 1` does not even parse. The mutating `.sort()` and
-`.reverse()` are not in the language — order with `.toSorted()`, reverse with
-`.toReversed()`, the standard non-mutating pair.
-
-They are also **stateless**: `Math.random` is absent (a random value comes
-from a host function), and there is nothing to store a counter in. The one
-seam left open is the clock — `Date` is allow-listed, so `Date.now()` does not
-fail, it *drifts*. A reactive site re-evaluates whenever a path it reads
-changes, so produce a timestamp once in a step and read it back:
+Expressions are also **stateless**: no `Math.random` (a random value comes
+from a host function) and nowhere to keep a counter. `Date.now()` changes on
+every re-evaluation, so take it once in a step and read it back:
 
 ```jsonc
 // ❌ a new timestamp every render pass
@@ -169,52 +144,40 @@ changes, so produce a timestamp once in a step and read it back:
   "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
 ```
 
-The prompt partial, `getExpressionsPartialPrompt()`, gives the model these
-rules and the globals, filled from the evaluator's own tables so the two
-cannot drift.
+`getExpressionsPartialPrompt()` gives the model these rules and the globals,
+filled from the evaluator's own tables.
 
 <Callout type="default">
-  Control flow was never the expression language's job. Sequencing lives in a
-  callback's ordered steps, iteration in `each`, conditionals in `hidden` — the
-  document format already owns all three.
+  Control flow lives in the document, not in expressions: sequencing in a
+  callback's ordered steps, iteration in `each`, conditionals in `hidden`.
 </Callout>
 
 ## Budgets
 
-Every expression stops. Each step, each millisecond and each new string or
-array spends from a fixed budget, and evaluation throws when the budget is
-spent. Proof assistants call this *fuel*; Ethereum calls it *gas*. Stopping
-comes from the budget, not the grammar.
+Every expression stops: evaluation throws when the budget runs out. Only
+built-in methods iterate, and `Evaluator` implements each one, so every
+iteration is charged:
 
-With no loop syntax and no recursion, exhausting the CPU takes a built-in
-method that iterates. Under `Evaluator` every such method is implemented inside
-the package, so every iteration passes the budget:
-
-- a **step counter** (1,000,000 by default), charged per callback invocation
-  by the body's node count, and per call by the call's work — a sort costs
-  about n·log n steps;
-- a **wall-clock deadline** (100 ms), checked against a clock the expression
-  cannot read or move;
+- a **step counter** (1,000,000 by default): a callback invocation costs its
+  body's node count, a call costs its work (a sort about n·log n steps);
+- a **wall-clock deadline** (100 ms), on a clock the expression cannot read or
+  move;
 - **allocation caps**, so `"x".repeat(1e9)` is refused, not attempted;
 - an **AST depth limit**, so nested source cannot overflow the compiler;
-- a **source-length limit** (1000 characters by default,
-  `maxSourceLength`), checked before parsing — oversized input never reaches
-  the parser. The prompt tells the model the limit, filled from the same
-  constant.
+- a **source-length limit** (`maxSourceLength`, 1000 characters by default),
+  checked before parsing. The prompt states it to the model.
 
-The step counter is the contract. Each operation's price follows its measured
-time, and a test holds every operation within 4× a plain step, so a long
-evaluation stops at the same step on any device. The clock is a backstop. In
-Chrome with the CPU slowed 6× (a mid-range phone), the step limit ends every
-long evaluation first. Slowed 12×, heavier operations such as locale
-formatting can reach the clock first. So can comparing two long strings,
-which runs at memory speed for one step.
+The step counter is the contract. Each operation is priced by its measured
+time, and a test keeps each within 4× a plain step, so a long evaluation stops
+at the same step on any device. The clock is a backstop: in Chrome at 6× CPU
+slowdown (a mid-range phone) the step limit still fires first; at 12×, locale
+formatting or comparing two long strings can reach the clock first.
 
 ## When an expression is rejected
 
 A rejection is a classified
-[`EntryError`](/error-recovery#classification-entryerror-and-onerror) — a
-**document** fault, contained to the element's error slot like any other:
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror), a
+**document** fault shown in the element's error slot:
 
 | expression | reason |
 | --- | --- |
@@ -225,9 +188,7 @@ A rejection is a classified
 
 ## Performance
 
-The walk happens once, at compile time, and produces closures — evaluation
-afterwards is nested function calls. Measured with
-`npx vitest bench --run --root packages/expr`:
+Measured with `npx vitest bench --run --root packages/expr`:
 
 | expression | in a document | `Evaluator` |
 | --- | --- | --- |
@@ -238,20 +199,13 @@ afterwards is nested function calls. Measured with
 | `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–63 µs |
 | re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms |
 
-The same expressions run through the engine are on
-[Custom evaluator](/expr/custom-expr#a-faster-evaluator).
+The prompt bounds the load: `maxListItems` on
+`getCommonInstructionsPartialPrompt` (default 100) tells the model to cap
+visible lists and page or filter past that. **Expressions shape display
+values; host functions compute.**
 
-The absolute numbers are what matter: the worst-case row — a 1000-row table,
-five expression sites per row, all re-evaluating at once — costs under a
-millisecond, while React and the DOM spend tens of milliseconds on the same
-update. The prompt bounds the load from the other side: `maxListItems` on
-`getCommonInstructionsPartialPrompt` (default 100) instructs the model to cap
-visible lists and page or filter past that. Heavy data work belongs in a host
-function. **Expressions shape display values; host functions compute.**
-
-At phone speed, whole events under `Evaluator` — every expression one event
-re-evaluates. Chrome on an M4 Pro, then with the CPU slowed 6× and 12×
-(DevTools throttling):
+Whole events (every expression one event re-evaluates) in Chrome on an M4 Pro,
+then with the CPU slowed 6× and 12×:
 
 | event | M4 Pro | 6× slower | 12× slower |
 | --- | --- | --- | --- |
@@ -268,70 +222,49 @@ table in the browser, and a search per row.
 
 ## What it does not secure
 
-The interpreter secures the language. An expression can only use what the
-host gave it: the contexts and the functions bound at construction. Nothing
-else is reachable, `window` and `fetch` included — the object-capability term
-is *no ambient authority*. Three things sit outside it:
+An expression reaches only the contexts and the functions bound at
+construction; `window`, `fetch` and everything else are out of reach. The
+interpreter secures the language, not these:
 
-- **Host functions are capabilities.** `rows.map(r => deleteProduct(r.id))`
-  deletes every row; only then is its result, an array of promises, refused.
-  Nothing escaped — the document used something you granted it. Keep `functions` narrow and enforce
-  authorization on the server.
-- **Props that reach the DOM.** A URL a document controls is a destination the
-  browser may fetch on render. The renderer's
-  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) gates those props.
-- **What you put into scope.** The membrane refuses non-data values, but the
-  cleanest guarantee is tools declaring an `outputSchema`, so what crosses into
-  an expression is parsed data by construction.
+- **Host functions are capabilities.** A callback can call any function you
+  bound, with any input its schema accepts: `deleteProduct({ id: 42 })` deletes
+  product 42. Keep `functions` narrow and authorize on the server.
+- **Props that reach the DOM.** The browser may fetch a URL a document
+  controls on render. The renderer's
+  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) gates
+  those props.
+- **What you put into scope.** The membrane refuses non-data values; tools
+  with an `outputSchema` pass only parsed data.
 
-The full picture — including the
-[catalog-authoring contract](/react#props-the-document-controls) — is on
-the [Security model](/security) page.
+More, including the
+[catalog-authoring contract](/react#props-the-document-controls), is on
+[Security model](/security).
 
 ## Verification
 
-Three suites verify the implementation:
+`@uicast/expr` has one runtime dependency (acorn) and no `new Function`. Every
+rule is an allow-list held as data in `src/constants/`, and a test keeps the
+runtime tables and the README's language section equal to it.
 
-- **Against JavaScript.** We keep a list of test expressions. Each one runs
-  in `Evaluator` and as plain JavaScript, and both must return the same value
-  or both must throw — *differential testing*. The likely bug in a
-  hand-written evaluator is not an escape; it is returning something slightly
-  different from what real JavaScript returns (`"" == 0`, `-0`, coercion
-  order). This suite exists to catch exactly that.
-- **Against known attacks.** The tests keep a collection of real escape
-  techniques — reading `constructor` through a computed key, polluting
-  `Object.prototype`, allocation bombs, recursion tricks, a live object placed
-  in scope — and assert that none reaches anything.
-- **Through the engine.** The same list runs through the subclass on
-  [Custom evaluator](/expr/custom-expr) and must agree with plain JavaScript; every
-  refusal of the language holds there too. What that subclass gives up is
-  pinned as well: `"abc"["sub" + "str"](1)` throws under `Evaluator` and
-  returns `"bc"` through the engine. The limit described there is verified by a
-  test, not just stated.
-
-## Reviewing the package
-
-One runtime dependency (acorn) and no `new Function` anywhere in the package:
-the engine runs an expression only in a subclass you write
-([Custom evaluator](/expr/custom-expr)). Every rule is an allow-list held as data in `src/constants/` — grammar,
-globals, methods per receiver, caps — and the interpreter carries no deny-list:
-nothing inherited is readable, so no name has to be refused by name. A test
-holds the runtime tables equal to the constants, and the README's language
-section equal to both.
-
-Each control is pinned by a test file: `attacks.test.ts` (the adversarial
-corpus), `exit-gate.test.ts` (nothing but plain data leaves),
-`host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
-(null-prototype tables), `corpus.test.ts` (agreement with plain JavaScript),
-`baseline.test.ts` (the same corpus on an ES2022 engine, every newer built-in
-deleted), `prices.test.ts` (every operation within 4× a plain step's time),
-and `hooks.test.ts` (the same corpus through the engine).
+- **Against JavaScript.** `corpus.test.ts` runs each expression in `Evaluator`
+  and as plain JavaScript; both must return the same value or both throw
+  (*differential testing*). The likely bug is not an escape but a drift from
+  JavaScript (`"" == 0`, `-0`, coercion order). `baseline.test.ts` repeats the
+  corpus on an ES2022 engine with newer built-ins deleted.
+- **Against known attacks.** `attacks.test.ts` asserts that known escapes
+  reach nothing: `constructor` through a computed key, prototype pollution,
+  allocation bombs, recursion tricks, a live object in scope.
+- **Through the engine.** `hooks.test.ts` runs the corpus through a
+  `new Function` subclass and pins what it gives up:
+  `"abc"["sub" + "str"](1)` returns `"bc"`.
+- **Other controls.** `exit-gate.test.ts` (only plain data leaves),
+  `host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
+  (null-prototype tables), `prices.test.ts` (step prices).
 
 <Callout type="warning">
-  Any evaluator of untrusted expressions can carry implementation bugs, and
-  this one is no exception. The risk is bounded — a grammar small enough to
-  review, tested differentially and adversarially — not eliminated. The claim
-  is precise: `Evaluator` closes the computed-key class outright and needs no
-  `unsafe-eval`; a [custom evaluator](/expr/custom-expr) that runs expressions
-  through the engine gives that up by choice.
+  Any evaluator of untrusted expressions can have implementation bugs. A
+  grammar small enough to review, tested differentially and adversarially,
+  bounds that risk; it does not remove it. `Evaluator` closes the computed-key
+  class and needs no `unsafe-eval`; a [custom evaluator](/expr/custom-expr)
+  that runs expressions through the engine gives up both.
 </Callout>

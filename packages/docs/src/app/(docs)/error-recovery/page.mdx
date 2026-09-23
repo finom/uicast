@@ -1,35 +1,26 @@
 # Error recovery
 
-Generation is probabilistic. Even a strong model sometimes emits a broken
-expression — a blocked global, a function that does not exist, state that
-nothing ever set.
-
-Two layers answer that. **Containment** boxes a failure into the element that
-carries it, so one bad line never takes down the page. **Recovery** gets a
-corrected element in place, and all three ways of doing it land through
-[partial replacement](/entry#key): re-emit a `key` and that element is
-replaced, its error cleared, its render retried. They differ only in who notices
-the failure and who asks for the fix.
+A model sometimes emits a broken expression. **Containment** keeps the failure
+inside its element. **Recovery** swaps in a corrected element by re-emitting its
+`key` ([partial replacement](/entry#key)), which clears the error and retries
+the render. The three ways to recover differ in who notices the failure and who
+asks for the fix.
 
 ## Containment: the error slot
 
 Every element renders inside its own error boundary. If its `props`, `hidden`,
-`each`, or `seed` throws — or the implementation throws — only that element is
-replaced by the `error` slot. Parents and siblings keep working.
+`loading`, `each` or `seed` throws, or its implementation does, only that element is
+replaced by the `error` slot.
 
-A failed `seed` is contained the same way, and a corrected re-emit retries it
-safely: seed writes are [first-writer-wins](/entry/state#lifecycle), so the
-retry fills only paths still unset. A seed that already succeeded never re-runs.
-
-The error slot is a placeholder for a fix, and every fix starts with the same
-question: whose mistake was this?
+A corrected re-emit retries a failed `seed`, filling only paths still unset
+([first-writer-wins](/entry/state#lifecycle)). A seed that succeeded never
+re-runs.
 
 ## Classification: EntryError and onError
 
-Recovery only helps when the *model* made the mistake — re-emitting an element
-because your server returned a 500 fixes nothing. So every failure is a
-classified **`EntryError`** from `@uicast/core`, tagged at the throw site by
-whose code raised it, never by inspecting messages:
+Re-emitting helps only when the model made the mistake, not when your server
+returned a 500. So every failure is an **`EntryError`** from `@uicast/core`,
+classified by whose code raised it:
 
 ```ts
 class EntryError extends Error {
@@ -42,32 +33,29 @@ class EntryError extends Error {
 }
 ```
 
-Test with **`EntryError.is(err)`**, not `instanceof`.
-
 | `reason` | Meaning | `fault` |
 |---|---|---|
 | `expression-syntax` | the expression doesn't parse | `document` |
 | `guardrail-violation` | the expression uses blocked syntax or APIs, or a `set` is not `scopes.<scope>.<field>` | `document` |
 | `budget-exceeded` | the expression ran past its step, time or allocation budget | `document` |
 | `unknown-reference` | an unregistered function, global, or scope path | `document` |
-| `invalid-entry` | a field of the line has the wrong type, like a `seed` that is not an array of steps | `document` |
+| `invalid-entry` | a field has the wrong type, like a `seed` that is not an array | `document` |
 | `unknown-component` | the `component` name has no implementation | `document` |
 | `invalid-list` | `each` didn't evaluate to an array | `document` |
 | `invalid-props` | the evaluated props **fail** the def's schema, before render runs | `document` |
 | `invalid-arguments` | a host function rejected the document's arguments | `document` |
-| `host-function` | a host function threw or rejected while executing | `environment` |
+| `host-function` | a host function threw or rejected | `environment` |
 | `host-init` | the host `init` callback threw or rejected | `environment` |
 | `implementation` | the render threw on props the def's schema **accepts** | `environment` |
 | `expression-runtime` | a valid expression threw at runtime (a read through `null`) | `unknown` |
 | `unknown` | escaped from an uninstrumented path | `unknown` |
 
-`fault` is the verdict. `document` means the model wrote the bug and a
-re-emission can fix it. `environment` means host code failed and re-emitting
-cannot help. `unknown` means it is genuinely ambiguous.
+`fault` is the verdict: `document` means the model wrote the bug and a
+re-emission can fix it; `environment` means host code failed; `unknown` could be
+either.
 
-The same object reaches the `error` slot and the provider's **`onError`**, which
-is called once per failure — including callback failures, which render no
-slot:
+The same object reaches the `error` slot and the provider's **`onError`**,
+called once per failure, including callback failures, which render no slot:
 
 ```tsx
 <RendererProvider
@@ -87,8 +75,7 @@ slot:
 
 ## 1. Self-correction
 
-The model notices its own mistake and re-emits the element in the same output.
-No host involvement, no extra turn:
+The model re-emits a broken element later in the same output:
 
 ```jsonl
 {"key":"card","component":"Card","props":{"expr":"({ title: window.title })"},"children":["kpi"]}
@@ -96,22 +83,18 @@ No host involvement, no extra turn:
 {"key":"card","component":"Card","props":{"literal":{"title":"Inventory"}},"children":["kpi"]}
 ```
 
-Line 1 fails with `unknown-reference` and renders the error slot. Line 3 is the
-fix: same `key`, corrected props, and a `children` array still naming `kpi`, so
-that child survives untouched. The slot unmounts on its own.
+Line 1 fails with `unknown-reference`. Line 3 fixes it: same `key`, and
+`children` still names `kpi`, so that child survives untouched.
 
-The [prompt](/prompt) tells the model to use this sparingly: correct a mistake
-once, and do not retry repeatedly. A replacement line is just another line, so it works anywhere
-in the stream, or in a later turn.
+The [prompt](/prompt) tells the model to correct a mistake once, not to retry
+repeatedly. A replacement line also works in a later turn.
 
 ## 2. User-triggered recovery
 
-The runtime catches what the model never sees: an expression that parsed but
-threw on real data, a host function that rejected, state in a different shape.
-Here the user sends it back, with one click.
-
-The `error` slot gets the failure; the host wires a **Recover** button that
-reports it as a new turn. `getErrorRecoveryPrompt` formats the report:
+The model never sees run-time failures, such as an expression that throws on
+real data or a host function that rejects. Here the host's `error` slot offers a
+**Recover** button that sends the failure back as a new turn, formatted by
+`getErrorRecoveryPrompt`:
 
 ```ts
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
@@ -137,12 +120,10 @@ The generated UI hit runtime errors:
 Diagnose each failure and emit a corrected version of the failed element, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another element sets up (e.g. a `seed` elsewhere), correct that element as well.
 ```
 
-The `reason` annotation tells the model the failure class, not just the
-message. An `environment` fault gets none — host failures are not the model's
-to fix.
+`reason` adds the failure class to the line. An `environment` fault gets none,
+as it is not the model's to fix.
 
-The built-in error components only display the error. The Recover button is host
-UI, since only the host knows how to reach its model:
+The Recover button is host UI, since only the host knows how to reach its model:
 
 ```tsx
 import type { ErrorComponentProps } from "@uicast/react";
@@ -172,16 +153,13 @@ const fallbackComponents = {
 ```
 
 `sendRecoveryTurn` is host code: on a page it starts an edit run, in a chat it
-calls `sendMessage`. Both halves of the classification work here — `reason` picks
-the copy, `fault` decides whether to offer Recover at all. Offer it for every
-fault but `environment`; an `unknown` one is worth a single attempt.
+calls `sendMessage`. Offer Recover for every fault but `environment`; an
+`unknown` one is worth a single attempt.
 
 ## 3. Self-healing
 
-The host notices and asks for the fix, with no human involved. This is what
-`onError` is for: every classified failure reaches it, and `fault` says which
-ones a re-emission can fix. Wire `"document"` faults into the same recovery turn
-the button sends:
+With no person involved, `onError` sends each `"document"` fault as the same
+recovery turn:
 
 ```tsx
 <RendererProvider
@@ -203,14 +181,11 @@ the button sends:
 </RendererProvider>
 ```
 
-Same `sendRecoveryTurn` as above; only the caller differs. The gate is stricter
-though: the button offers `unknown` faults to a human's judgment; an automatic
-loop feeds back only what is provably the model's.
+The gate is stricter than the button's: an automatic loop sends back only what
+is provably the model's.
 
-The error slot keeps showing while the turn is running, and unmounts when the
-corrected line lands. A callback failure never had a slot — the corrected element
-just replaces the broken one.
+The error slot stays until the corrected line lands.
 
 **Budget the retries.** Cap attempts per `elementKey` at one or two. Past the
-cap, leave the Recover button in place, so self-healing falls back to
-user-triggered recovery rather than looping.
+cap, leave the Recover button in place, so self-healing falls back to the user
+instead of looping.

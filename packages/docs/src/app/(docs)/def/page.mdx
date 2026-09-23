@@ -1,13 +1,9 @@
 # Component definition
 
-A catalog component is a **pair**: `def.ts` is the half the model reads,
-`impl.tsx` the half React runs (React today; a definition is
-framework-agnostic, and another binding would pair it with its own
-implementation). An [entry](/entry)'s
-[`component`](/entry#component), [`props`](/entry#props), and
-[`callbacks`](/entry#callbacks) all point into the definition — it is the
-contract saying a component exists, what props it takes, and what events it
-sends. Everything the model knows about a component comes from here.
+A catalog component is a **pair**: `def.ts`, a framework-agnostic definition
+the model reads, and [`impl.tsx`](/react), the React code that renders it. The
+definition is all the model knows about a component: that it exists, its props
+and its events. An [entry](/entry) points into it.
 
 ```ts
 interface ComponentDefinition {
@@ -19,13 +15,11 @@ interface ComponentDefinition {
 }
 ```
 
-`props` and every callback must be a `StandardSchemaV1 & StandardJSONSchemaV1`
-(from [`@standard-schema/spec`](https://standardschema.dev), aliased
-`CombinedSpec` in core): a runtime validator that also converts to JSON Schema.
-The JSON Schema is printed into the prompt as a TypeScript-like signature. The
-implementation receives the actual type, inferred from the same schema.
-
-Zod 4.2+, Valibot and ArkType all qualify; the examples use Zod.
+`props` and each callback are
+[`@standard-schema/spec`](https://standardschema.dev) schemas that also convert
+to JSON Schema (`CombinedSpec` in `@uicast/core`): Zod 4.2+, Valibot or
+ArkType (the examples use Zod). The prompt prints the JSON Schema as a
+TypeScript-like signature; the implementation gets the inferred type.
 
 ```ts filename="src/uicast-catalog/badge/def.ts"
 import z from "zod";
@@ -47,20 +41,17 @@ export const BadgeDef = createComponentDefinition({
 ```
 
 ## `name`
-The exact string the model writes in an entry's
-[`component`](/entry#component) field — **PascalCase**, unique across the
-catalog. The renderer maps it to the implementation; the prompt builder lists it
-under `# Available Components`. Two defs sharing a name throw
+What the model writes in an entry's [`component`](/entry#component) field.
+PascalCase and unique in the catalog: two defs sharing a name throw
 `Duplicate component name: "Badge"`.
 
 ## `description`
-The model's whole briefing on the component: it reads this to decide *when* to
-use it, and the text lands word for word on the `- Badge — …` line below.
+The model reads it to decide when to use the component. It is printed word for
+word on the `- Badge — …` line below.
 
 ## `props` — the contract with the model
-Whatever you put in the schema, the model sees. Omit it for a component that
-takes none, like a layout wrapper. `getComponentsPartialPrompt` turns the def
-above into:
+The model sees whatever the schema holds. Omit `props` for a component that
+takes none. `getComponentsPartialPrompt` turns the def above into:
 
 ```
 - Badge — A small status indicator badge for labels, counts, or tags. Use it for status (active, pending), categories, counts, or any short label.
@@ -69,34 +60,29 @@ above into:
     - variant?: "neutral" | "info" | "warning" | "danger" = "neutral" — Visual style: neutral, info, warning, danger
 ```
 
-Describe **every** field with `.meta` — an undescribed one prints as a bare type,
-and the model is left guessing which variant a paid order wants.
-`.default("neutral")` marks `variant` optional for the model, prints as `=
-"neutral"` so the model knows what omitting it gives, and supplies that value
-when an entry does omit it — props are parsed through this schema before
-[`render`](/react) sees them, so the implementation just reads `variant`.
+Describe every field with `.meta`, or it prints as a bare type.
+`.default("neutral")` makes `variant` optional and prints as `= "neutral"`.
+Props are parsed through the schema before [`render`](/react) sees them, so an
+omitted `variant` arrives as `"neutral"`.
 
-An entry's [`props`](/entry#props) then has to produce that shape:
+An entry's [`props`](/entry#props) must produce that shape:
 
 ```jsonc
 { "key": "order-status", "component": "Badge",
   "props": { "expr": "({ text: scopes.root.order.status, variant: scopes.root.order.status === 'paid' ? 'neutral' : 'danger' })" } }
 ```
 
-Use `z.strictObject`: a prop the model invented fails the element into its
-error slot instead of being silently dropped — visible and correctable, the
-same way a wrong-typed prop already fails. The shipped catalog is strict
-throughout.
+Use `z.strictObject`, so a prop the model invented fails the element into its
+error slot instead of being dropped silently.
 
-**Never `children`.** That name is the entry field listing child element keys, so
-a def declaring it as a prop throws on creation. Name the prop for what it holds
-— `text`, `title`, `label`. Nested elements still reach the implementation as
-React `children` — see [`impl.tsx`](/react).
+**Never a `children` prop.** It is the entry field that lists child keys, so
+declaring it throws on creation. Name the prop for what it holds (`text`,
+`title`, `label`); nested elements reach the [implementation](/react) as React
+`children`.
 
 ## `callbacks` — event payloads
-An optional map of event name to payload schema. Each declares the shape of
-`evt` inside that callback's [steps](/entry#callbacks) — the exact fields
-available when the model writes `{ "expr": "evt.value" }`.
+An optional map from event name to payload schema: the shape of `evt` in that
+callback's [steps](/entry#callbacks).
 
 ```ts
 createComponentDefinition({
@@ -111,7 +97,8 @@ createComponentDefinition({
 });
 ```
 
-With `keyboardEventSchema` registered as a common event, that block renders as:
+With `keyboardEventSchema` as a [shared event](#shared-events), the prompt
+prints:
 
 ```
   Event handlers:
@@ -121,7 +108,7 @@ With `keyboardEventSchema` registered as a common event, that block renders as:
     - onKeyDown(evt: KeyboardEvent)
 ```
 
-That block is the only reason the model can write this:
+The model can then write:
 
 ```jsonc
 { "key": "search", "component": "SearchInput",
@@ -129,23 +116,18 @@ That block is the only reason the model can write this:
   "callbacks": { "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }] } }
 ```
 
-A callback carrying nothing is **`z.null()`**, which prints as a no-argument
-call:
+A callback with no payload is `z.null()`, printed as a call with no argument:
 
 ```
   Event handlers:
     - onPress() — Fires when pressed
 ```
 
-
-The implementation follows the same schema —
-`render: ({ onPress }) => <button onClick={() => onPress()}>Press</button>`.
-Every declared callback is callable even if no entry wired it; an unwired
-handler is a no-op, so implementations never guard.
+The implementation calls it as `onPress()`.
 
 ### Shared events
-`onClick` fires from a dozen components, and its payload would print on each of
-them. Write it once, with a JSON Schema `$id`:
+A payload many components fire, like `onClick`'s, would print under each one.
+A JSON Schema `$id` prints it once:
 
 ```ts
 // src/uicast-catalog/events/keyboard.ts
@@ -163,9 +145,8 @@ createComponentDefinition({
 });
 ```
 
-The `$id` is the whole signal — `getComponentsPartialPrompt` finds it on the
-callback and hoists the payload automatically, nothing else to pass. The fields
-now print once, and each handler is one line — `onKeyDown(evt: KeyboardEvent)`:
+`getComponentsPartialPrompt` finds the `$id` on its own, and each handler
+becomes one line, `onKeyDown(evt: KeyboardEvent)`:
 
 ```
 # Common Events
@@ -175,12 +156,10 @@ now print once, and each handler is one line — `onKeyDown(evt: KeyboardEvent)`
   - repeat: boolean — Whether the key is auto-repeating
 ```
 
-A payload with no `$id` prints inline under every handler instead. Two callbacks
-naming the same `$id` with different payloads throw at assembly — a shared `$id`
-must mean one shape.
+A payload without a `$id` prints inline under each handler. Two different
+payloads with the same `$id` throw at prompt assembly.
 
-The implementation still owes that exact payload, since a React event object is
-not it:
+The implementation still passes that exact payload, not the React event:
 
 ```tsx
 createComponentImplementation({
@@ -192,13 +171,12 @@ createComponentImplementation({
 ```
 
 ## `hidden` — keep a def out of the prompt
-`hidden: true` keeps a def out of the prompt while leaving it in the renderer's
-registry: an entry naming it still mounts, but the model is never told it
-exists. The engine's own RootFragment uses it.
+`hidden: true` keeps a def out of the prompt; an entry that names it still
+renders.
 
 ## Registration
-A definition does nothing until it is registered twice: once for the prompt,
-once for the renderer.
+Register each component twice: the def for the prompt, the impl for the
+renderer.
 
 ```tsx
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
@@ -215,8 +193,6 @@ getComponentsPartialPrompt({ definitions: [...Object.values(layoutDefs), BadgeDe
 </RendererProvider>;
 ```
 
-Register only the def and the model emits a `Badge` that lands in the
-[`error` slot](/error-recovery) as `reason: "unknown-component"`; register only
-the impl and the model was never told the component exists.
-
-The [`impl.tsx` half](/react) is next.
+With only the def, the model emits a `Badge` that renders the
+[`error` slot](/error-recovery) with `reason: "unknown-component"`. With only
+the impl, the model never learns the component exists.

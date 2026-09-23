@@ -1,20 +1,19 @@
 # Event handling
 
-An event is where all three parts of a component meet. The [definition](/def)
-names what it carries, the [implementation](/react) fires it, and the
-[entry](/entry#callbacks) decides what happens. One object, `evt`, runs
-through all three. This page follows a single event across them.
+The [definition](/def) declares an event's payload, the
+[implementation](/react) fires it, and the [entry](/entry#callbacks) says what
+happens, with the payload as `evt`.
 
 ## The same event in three places
 
-`onChange` on a search box, in the def, the impl, and the entry:
+`onChange` on a search box:
 
 ```ts filename="def.ts"
 createComponentDefinition({
   // …
   // the payload schema: what `evt` will carry
   callbacks: {
-    onChange: z.object({
+    onChange: z.strictObject({
       value: z.string().meta({ description: "The current search value" }),
     }),
     onKeyDown: keyboardEventSchema,
@@ -48,14 +47,12 @@ In the prompt:
     - onKeyDown(evt: KeyboardEvent)
 ```
 
-`onKeyDown` costs one line because `keyboardEventSchema` is a **common event**:
-a payload printed once for the whole catalog instead of re-inlined on every
-component that fires it. Giving the schema a `$id` is all it takes — declaring
-one is covered in [Shared events](/def#shared-events).
+`onKeyDown` is one line because its schema has a `$id`, which prints the payload
+once for the whole catalog; see [Shared events](/def#shared-events).
 
 ## Following one keystroke
 
-The same search box, with a two-step reaction:
+The same search box, with two steps:
 
 ```jsonc
 { "callbacks": { "onChange": [
@@ -66,58 +63,52 @@ The same search box, with a two-step reaction:
 
 A user types `abc`:
 
-1. The input's React `onChange` fires; the impl calls `onChange({ value: "abc" })`.
-2. The engine binds `evt = { value: "abc" }` and plans the `onChange` steps into
+1. The impl calls `onChange({ value: "abc" })`.
+2. The engine binds `evt = { value: "abc" }` and plans the steps into
    [dependency waves](/entry/reactivity).
 3. Step one writes `scopes.root.q = "abc"`.
-4. Step two **reads** `q`, so it waits for that write, then calls the host search
-   function and writes its result to `scopes.root.results`.
-5. Every `props` / `each` expression that reads `q` or `results` re-evaluates and
-   re-renders — the results list updates itself.
-
-The component knew none of this. It emitted a payload; the entry described the
-consequence.
+4. Step two reads `q`, so it waits for that write, then writes the result of
+   `searchTasks` to `scopes.root.results`.
+5. Every `props` or `each` expression that reads `q` or `results` re-evaluates.
 
 ## What the engine does with a callback
 
-When the impl calls a callback, the **engine** runs the entry's steps, not the
-component. It:
+The engine, not the component, runs the entry's steps. It:
 
-1. binds the impl's payload as `evt`;
-2. runs the steps in **[dependency waves](/entry/reactivity#effectful-sites-ordering)**
-   — host-function steps are barriers, so mutations never race;
-3. evaluates each `expr` against `evt`, `scopes`, the host functions, and
-   `currentValue`, then writes the result to the step's `set` path;
-4. asks first if a step carries a `confirm`; on cancel, that step **and every one
-   after it** are skipped;
-5. from a step carrying `debounce`, waits for 300 ms of quiet and runs the rest
-   once, for the latest call;
+1. binds the payload as `evt`;
+2. runs the steps in [dependency waves](/entry/reactivity#effectful-sites-ordering);
+   a step that calls a host function is a barrier, so mutations never race;
+3. evaluates each `expr` with `evt`, `scopes`, the host functions and
+   `currentValue`, and writes the result to the step's `set` path;
+4. if a step has a `confirm`, asks first; on cancel, that step and every one
+   after it are skipped;
+5. from a step with `debounce` on, waits for 300 ms of quiet, then runs the
+   rest once, for the latest call;
 6. yields for a tick between waves, so a write lands before a dependent
    expression reads it.
 
-Every callback the def declares is callable, whether or not the entry wired it.
-An unwired one is a no-op, so [implementations](/react) never guard.
+A callback the entry did not wire does nothing, so
+[implementations](/react) never check.
 
 ## Common patterns
 
-**Side-effect step** — no `set`, so the result is discarded:
+**Side-effect step**: no `set`, so the result is dropped:
 
 ```jsonc
 { "expr": "track({ event: 'search' })" }
 ```
 
-**Read-modify-write** — `currentValue` is what the `set` path holds before this
-write, so the path is named once:
+**Read-modify-write**: `currentValue` is what the `set` path holds before the
+write:
 
 ```jsonc
 { "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" }
 ```
 
-`scopes.root.tags` was seeded to `[]`, so each event appends to what is already
-there.
+With `scopes.root.tags` seeded to `[]`, each event appends to it.
 
-**Confirm before damage** — [`confirm`](/entry/value-sources#callbackvaluesourceassignment)
-is a sibling key on the step:
+**Confirm first**: [`confirm`](/entry/value-sources#callbackvaluesourceassignment)
+is a key on the step:
 
 ```jsonc
 { "callbacks": { "onClick": [
@@ -126,10 +117,10 @@ is a sibling key on the step:
 ] } }
 ```
 
-Gating the first step is enough — decline, and the refetch never runs either.
+On decline, the refetch does not run either.
 
-**Search as you type** — [`debounce`](/entry/value-sources#callbackvaluesourceassignment) on the
-fetch, not on the write:
+**Search as you type**: [`debounce`](/entry/value-sources#callbackvaluesourceassignment)
+on the fetch, not on the write:
 
 ```jsonc
 { "callbacks": { "onChange": [
@@ -141,7 +132,7 @@ fetch, not on the write:
 The field updates on every keystroke; the request goes out once, 300 ms after
 the last one.
 
-**Busy while refreshing** — a flag around the fetch drives the table's
+**Busy while refreshing**: a flag around the fetch drives the table's
 [`loading`](/entry#loading):
 
 ```jsonc
@@ -154,4 +145,4 @@ the last one.
 ] } }
 ```
 
-The host call is a barrier, so the last step runs after the rows landed.
+The host call is a barrier, so `busy` turns `false` only after the rows land.

@@ -1,6 +1,6 @@
 ---
 name: uicast
-description: "Integrate uicast — LLM-generated UIs rendered live from streamed JSONLines — into an app. Use when asked to \"add generative UI\", \"let the LLM build the interface\", \"render AI-generated components\", \"set up uicast\", \"make the chatbot answer with real UI\", \"stream UI from the model\", or any phrasing of \"the AI should produce working screens, not code\". Covers the developer-side setup end to end: component definitions and implementations, host functions, prompt assembly, mounting the renderer, host state and extra scopes, streaming on a page surface or a chat surface (Streamdown fences), and error handling. Framework-agnostic — Next.js appears only as one example host. Does not cover authoring uicast documents by hand: the entry format is the generation model's contract, delivered by the assembled prompt at runtime. Self-contained — do not fetch external docs; if a step looks wrong, that is a skill bug — surface it."
+description: "Integrate uicast — LLM-generated UIs rendered live — into an app. Use when asked to \"add generative UI\", \"let the LLM build the interface\", \"render AI-generated components\", \"set up uicast\", \"make the chatbot answer with real UI\", \"stream UI from the model\", or any phrasing of \"the AI should produce working screens, not code\". Covers the developer-side setup end to end: component definitions and implementations, host functions, prompt assembly, mounting the renderer, host state and extra scopes, streaming on a page surface or a chat surface (Streamdown fences), and error handling. Framework-agnostic — Next.js appears only as one example host. Does not cover authoring uicast documents by hand: the entry format is the generation model's contract, delivered by the assembled prompt at runtime. Self-contained — do not fetch external docs; if a step looks wrong, that is a skill bug — surface it."
 license: MIT
 metadata:
   author: uicast
@@ -9,11 +9,7 @@ metadata:
 
 # uicast integration
 
-uicast renders a UI from JSONLines the LLM streams: one JSON object per line, each
-line one element referencing a registered component. The host owns the components,
-the state seam, and the prompt; the model only fills a page with them. You never
-author those lines — the assembled prompt teaches the model the format. Your job
-is everything around it, and that is what this skill covers.
+uicast renders a UI from entries the LLM streams, each one element referencing a registered component. The host owns the components, the state seam, and the prompt; the model only fills a page with them. You never author those entries — the assembled prompt teaches the model the format. Your job is everything around it, and that is what this skill covers.
 
 ## Packages
 

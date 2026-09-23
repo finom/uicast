@@ -1,14 +1,12 @@
 # Host functions
 
-A document is just data — on its own it reaches no API. **Host functions** are
-the bridge: functions you supply, called by name from
-[expressions](/expr) (alongside `scopes` and `evt`), sync or async.
+A document reaches no API on its own. **Host functions** are functions you
+supply, called by name from [expressions](/expr). Each is a
+[`standard-tool`](https://standard-tool.js.org/) (`StandardToolV0`).
 
-Each is a [`standard-tool`](https://standard-tool.js.org/) (`StandardToolV0`): a
-`name`, a `description` the model reads to call it, and optional
-`StandardSchemaV1 & StandardJSONSchemaV1` input/output schemas. `execute` runs
-where the renderer runs — the browser, with the React binding — so reach your
-data over HTTP; a database client would ship its credentials to the client.
+`execute` runs where the renderer runs (the browser, with the React binding),
+so reach your data over HTTP: a database client would ship its credentials to
+the client.
 
 ## Anatomy of a host function
 
@@ -29,39 +27,33 @@ const suggestPalette = standardTool({
 });
 ```
 
-The fields:
-
-- **`name`** — what the model writes in an expression (`suggestPalette(...)`).
-  Must be a valid JS identifier.
-- **`description`** — what it does; the model reads it to decide when to call.
-- **`title`** *(optional)* — a human label (`"Suggest palette"`), printed just
-  before the description. The model can reuse it for a button or heading.
-- **`inputSchema`** *(optional)* — describes the single input argument. It
-  validates at call time and becomes the signature in the prompt. Omit it for a
-  zero-argument function.
-- **`outputSchema`** *(optional)* — the same for the return value. Omitting it
-  means *undeclared*, not *returns nothing*. See
+- **`name`**: what the model calls, a valid JS identifier.
+- **`description`**: what it does; the model reads it to decide when to call.
+- **`title`** *(optional)*: a human label printed before the description. The
+  model can reuse it for a button or heading.
+- **`inputSchema`** *(optional)*: the single argument, validated on each call
+  and printed as the signature in the prompt. Omit it for no argument.
+- **`outputSchema`** *(optional)*: the same for the return value. Omitted
+  means *undeclared*, not *returns nothing*: see
   [Undeclared returns](#undeclared-returns).
-- **`execute(input)`** — your logic, async or not. `standardTool` wraps it in an
-  `async` function either way, and the engine awaits the result before writing
-  it. See [Errors](#errors).
+- **`execute(input)`**: your logic, sync or async. See [Errors](#errors).
 
-Zod 4.2+, Valibot, and ArkType all qualify.
+Schemas are `StandardSchemaV1 & StandardJSONSchemaV1`: Zod 4.2+, Valibot and
+ArkType qualify.
 
 ### Errors
 
-An error thrown from `execute` is caught by the engine and classified. Your
-input schema rejecting the arguments is the document's fault —
-`invalid-arguments`, which the [recovery loop](/error-recovery) can feed back
-to the model. Anything else is a `host-function` failure: the host's problem,
-not the document's. Both reach [`onError`](/react/renderer). A failed
-[`seed`](/entry#seed) also shows the [`error` slot](/react/renderer). In
-a [`callback`](/entry#callbacks), the steps after the failed one do not
-run, and writes that already happened stay.
+A failed call is classified. Arguments your input schema rejects are
+`invalid-arguments`, a document fault the [recovery loop](/error-recovery) can
+feed back to the model. Anything else is a `host-function` failure, the
+host's. Both reach [`onError`](/react/renderer); a failed
+[`seed`](/entry#seed) also shows the [`error` slot](/react/renderer). In a
+[`callback`](/entry#callbacks), later steps do not run, and earlier writes
+stay.
 
 ## Wiring into the renderer
 
-Collect your tools into an array, bind them on the evaluator, and pass it to
+Bind your tools on the evaluator and pass it to
 [`<RendererProvider evaluator={...}>`](/react/renderer#evaluator--the-expression-evaluator):
 
 ```tsx
@@ -86,33 +78,30 @@ const impls = Object.values(catalogImpls);
 </RendererProvider>;
 ```
 
-Create the evaluator **once** (a module constant). It holds the parse cache,
+Create the evaluator **once**, as a module constant. It holds the parse cache,
 and a new instance per render re-renders the whole tree.
 
 ## How the model calls them
 
-Each tool is in scope under its `name` and takes **one argument**, whatever
-`inputSchema` declares — or none, when there is no schema. An object schema
-means an object:
+Each tool is in scope under its `name` and takes **one argument**: what
+`inputSchema` declares, or none without a schema. An object schema means an
+object:
 
 ```js
 deleteProduct({ id: scopes.row.id })   // ✅ inputSchema: z.object({ id: … })
 deleteProduct(scopes.row.id)           // ❌ same tool, wrong shape
 ```
 
-A scalar schema is fine too: with `inputSchema: z.string()` the call is
-`deleteProduct(scopes.row.id)`, and the prompt prints
-`deleteProduct(string)`. An object gives each field a name and a description the
-model can read, which is why the catalog's tools use one.
+A scalar schema works too: with `inputSchema: z.string()` the call is
+`deleteProduct(scopes.row.id)`. An object gives each field a name and a
+description the model can read.
 
-A function whose fields are all optional is still called with an object, or
-with nothing: `listProducts()` passes `undefined`, which a bare `z.object`
-rejects. Declare the input as `schema.optional()` when the zero-argument form
-should be valid; the prompt prints it the same way.
+`listProducts()` passes `undefined`, which a bare `z.object` rejects even when
+every field is optional. Declare the input as `schema.optional()` to allow the
+zero-argument call.
 
-Functions are merged into the expression context **last**, so a tool named
-`scopes`, `evt`, or `currentValue` would shadow the engine's own bindings. Those
-three are refused at prompt assembly, as are duplicate names:
+A tool named `scopes`, `evt` or `currentValue` would shadow the engine's own
+bindings, so prompt assembly refuses those names, and duplicates:
 
 ```ts
 standardTool({ name: "scopes", /* … */ });        // ❌ Host function name "scopes" is reserved
@@ -123,12 +112,10 @@ standardTool({ name: "listOrders", /* … */ });     // ✅ anything else is fin
 
 ## Where they run: `seed` and `callbacks`
 
-Your `execute` can be sync or async, but a call always returns a Promise —
-`standardTool` wraps it in an `async` function either way. So a function can
-only be called where the engine awaits the result, which is the two effectful
-sites:
+`standardTool` wraps `execute` in an `async` function, so a call always
+returns a Promise. It can only be called where the engine awaits it:
 
-- **[`seed`](/entry#seed)** — load data on mount. The element shows its
+- **[`seed`](/entry#seed)**: load data on mount. The element shows its
   [placeholder](/react/renderer) until every async seed resolves:
 
   ```jsonl
@@ -136,7 +123,7 @@ sites:
     "seed": [{ "set": "scopes.root.rows", "expr": "listProducts()" }] }
   ```
 
-- **[`callbacks`](/entry#callbacks)** — change something on an event. The
+- **[`callbacks`](/entry#callbacks)**: change something on an event. The
   result is written to the step's `set` path:
 
   ```jsonl
@@ -146,15 +133,14 @@ sites:
     ] } }
   ```
 
-Not in `props`, `hidden`, or `each`. Those run synchronously on every render,
-so the engine rejects a host call there as a classified error in the element's
-error slot. The rule: **derived values in `props`, effects in `seed` and
-`callbacks`.**
+`props`, `hidden`, `loading` and `each` run synchronously on every render, so a host call
+there goes to the element's error slot. **Derived values in `props`, effects
+in `seed` and `callbacks`.**
 
 ### Mutate, then re-fetch
 
-A mutation returns only what it changed, so the usual shape is to call it, then
-re-read in the next step:
+A mutation returns only what it changed, so call it, then re-read in the next
+step:
 
 ```jsonl
 { "key": "del", "component": "Button",
@@ -164,14 +150,14 @@ re-read in the next step:
   ] } }
 ```
 
-Step one has no `set` — it runs for its effect alone. A host-function step is a
-barrier, so the re-fetch waits for the delete, and `confirm` gates both. Step
-ordering in full: [Reactivity](/entry/reactivity#effectful-sites-ordering).
+Step one has no `set`: it runs for its effect. A host-function step is a
+barrier, so the re-fetch waits for the delete, and `confirm` gates both.
+Ordering in full: [Reactivity](/entry/reactivity#effectful-sites-ordering).
 
 ### Windows and aggregates
 
-A function that can return a lot should take a window, and the schema is where
-the model learns it:
+A function that can return a lot should take a window, declared in its
+schema:
 
 ```ts
 standardTool({
@@ -190,20 +176,16 @@ standardTool({
 });
 ```
 
-The prompt renders the bounds and defaults next to each field, and its rules
-tell the model to ask for the slice it renders, to refetch from the callback
-that changes the page or a filter, and never to filter or sort a fetched slice
-in an expression. Return the count with the rows: a pager needs
-`Math.ceil(total / limit)`, and a reduce over one page cannot produce it. A
-function that returns rows alone still pages, with `Pagination`'s `hasNext`
-(`rows.length === limit`) in place of `totalPages`. Other totals belong in a
-function of their own: `getSalesSummary({ days })` returning a count and a sum
-is read as data.
+The prompt prints each field's bounds and defaults, and tells the model to
+fetch only the slice it renders, to refetch when the page or a filter changes,
+and never to filter or sort a fetched slice in an expression. Return the total
+with the rows: a pager needs `Math.ceil(total / limit)`. Put other totals in a
+function of their own, such as `getSalesSummary({ days })`.
 
 ## Advertising to the model
 
-The model can only call a function it was told about.
-`@uicast/core/prompt` exports `getFunctionsPartialPrompt`:
+`getFunctionsPartialPrompt` from `@uicast/core/prompt` tells the model about
+your functions:
 
 ```ts
 import { getFunctionsPartialPrompt } from "@uicast/core/prompt";
@@ -244,25 +226,19 @@ listProducts, deleteProduct
   }) => unknown: Delete a product by id.
 ```
 
-One bullet per tool: `name(params) => output: title — description`. A tool
-without a `title` prints `name(params) => output: description`. An object type
-is printed over several lines, one field per line, and a field's
-`.meta({ description })` becomes a comment next to it, followed by what the
-type alone does not say: `integer`, bounds (`≥ 1, ≤ 200`), lengths, a
-`format`, a `default`. The model sees `limit?: number /* integer, ≥ 1, ≤ 200,
-default 50 */` and calls within it. A tool with no `inputSchema` prints empty
-parens; one with no `outputSchema` prints `=> unknown`.
+A `title` prints before the description:
+`name(params) => output: title — description`. A field's comment carries its
+`.meta({ description })`, then what the type alone does not say: `integer`,
+bounds, lengths, a `format`, a `default`, as in
+`limit?: number /* integer, ≥ 1, ≤ 200, default 50 */`.
 
-Never declare a schema for "nothing" — `z.void()` has no JSON Schema form and
+Never declare a schema for "nothing": `z.void()` has no JSON Schema form and
 throws.
-
-A type shared by two functions prints once under `# Shared Types` — see
-[Shared types](#shared-types).
 
 ## Undeclared returns
 
 `=> unknown` means **nobody published this shape**. The prompt tells the model
-it may call the function for its effect, but must not read fields off the
+it may call the function for its effect but must not read fields off the
 result:
 
 ```jsonc
@@ -282,15 +258,14 @@ result:
 A step with **no `set`** is legal only in `callbacks`, so a function returning
 `unknown` has no place in a `seed`.
 
-`outputSchema` matters more here than in ordinary tool calling. A chat model
-sees the response before reasoning about it. Here the model writes
-`scopes.root.products[0].name` into an expression that runs later, against data
-it never sees.
+`outputSchema` matters more here than in ordinary tool calling: the model
+writes `scopes.root.products[0].name` into an expression that runs later, on
+data it never sees.
 
 ## Shared types
 
-A named schema is printed once as a type and referenced by name everywhere it is
-used. In Zod that is `.meta({ id })`:
+A schema with an id prints once, as a type, and is referenced by name
+everywhere else. In Zod, that is `.meta({ id })`:
 
 ```ts
 const Person = z
@@ -315,18 +290,15 @@ const Person = z
 - Node: { name?: string; children?: Node[] } — A folder or file.
 ```
 
-Without the `.meta({ id })`, `Person` is inlined at both sites instead.
+Without `.meta({ id })`, `Person` is inlined at both sites. A **recursive**
+type needs a name: inlined, its self-reference stops at the cycle guard and
+prints `unknown[]`, which says the tree is one level deep.
 
-[Components](/def) hoist their own types into a separate `# Shared Types` block;
-nothing crosses between the two.
-
-This does two things. A type used by ten functions is printed once instead of
-ten times. And a **recursive** type becomes possible to express at all: inlined,
-its self-reference stops at the cycle guard and prints `unknown[]`, which says
-the tree is one level deep.
+[Components](/def) hoist their own types into a separate `# Shared Types`
+block; nothing crosses between the two.
 
 ## Where to go next
 
-- [Renderer](/react/renderer) — the `functions` prop and the rest of the mount setup.
+- [Renderer](/react/renderer) — the evaluator and the rest of the mount setup.
 - [Entry fields](/entry) — `seed` and `callbacks`, where functions are called.
-- [The expression evaluator](/expr) — the language the calls are written in, and the purity rule.
+- [The expression evaluator](/expr) — the language the calls are written in.

@@ -11,10 +11,9 @@ import { studioPrompt } from "@/demo/studio/studio.prompt";
 
 # Demos
 
-Each demo replays a JSONLines document through the engine entry by entry —
-the same code path a streamed model response takes. The components are real
-catalog implementations, the host functions run against live data, and the
-finished app is interactive.
+Each demo replays a document entry by entry, on the same code path as a
+streamed model response. The components are real implementations, the host
+functions run against live data, and the finished app is interactive.
 
 ## Inventory
 
@@ -27,8 +26,7 @@ finished app is interactive.
   />
 </Cards>
 
-A CRUD dashboard streamed entry-by-entry, backed by a live in-browser
-database. The prompt behind it:
+A CRUD dashboard over a live in-browser database. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{inventoryPrompt}</blockquote>
 
@@ -43,8 +41,8 @@ database. The prompt behind it:
   />
 </Cards>
 
-A beat studio built from bespoke XY-pad, knob, and step-sequencer components —
-every interaction a custom event. The prompt behind it:
+A beat studio from custom XY-pad, knob and step-sequencer components. Every
+interaction is a custom event. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{studioPrompt}</blockquote>
 
@@ -59,8 +57,8 @@ every interaction a custom event. The prompt behind it:
   />
 </Cards>
 
-A color picker from bespoke field, swatch, and preview components — picking
-emits a structured `{ hex, h, s, l }` payload. The prompt behind it:
+A color picker from custom field, swatch and preview components. Picking emits
+a `{ hex, h, s, l }` payload. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{colorPrompt}</blockquote>
 
@@ -75,8 +73,7 @@ emits a structured `{ hex, h, s, l }` payload. The prompt behind it:
   />
 </Cards>
 
-A node canvas from one bespoke component — dragging emits a spatial
-`{ id, x, y }`, wiring two nodes emits a relational `{ from, to }`. The prompt
-behind it:
+A node canvas from one custom component. Dragging emits `{ id, x, y }`; wiring
+two nodes emits `{ from, to }`. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{boardPrompt}</blockquote>

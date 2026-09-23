@@ -1,18 +1,18 @@
 # State & Scopes
 
 All state lives in **scopes**: a flat namespace of reactive containers that
-expressions read and `set` assignments write. An expression sees one variable,
-`scopes`, and addresses state by scope name and field:
+expressions read and `set` writes. An expression addresses state by scope name
+and field:
 
 ```
 scopes.<scopeName>.<field>     // e.g. scopes.root.searchTerm
 ```
 
-## What a scope actually is
+## What a scope is
 
-Every scope is a `createProxyScope` object from [`@uicast/core`](/api-ref#uicastcore):
-one shallow JavaScript `Proxy` over a bag of fields, no state library
-underneath. Everything under a field is plain data.
+Every scope is a `createProxyScope` object from
+[`@uicast/core`](/api-ref#uicastcore): one shallow `Proxy` over a set of fields,
+with no state library underneath. Everything under a field is plain data.
 
 ```ts
 const root = createProxyScope<{ count: number; user?: { name: string } }>({ count: 0 });
@@ -25,15 +25,14 @@ root.$$set("count", 0, { default: true });   // no-op — writes only if unset
 root.user.name = "Hopper";                  // ❌ a plain write into plain data — nobody hears it
 ```
 
-A write replaces one field and emits it. There is no deep write: to change
-part of an object, write the object. `default: true` is what a
-[`seed`](#lifecycle) step uses so two entries seeding one field do not
-overwrite each other.
+A write replaces one field and emits it. There is no deep write: to change part
+of an object, write the object. A [`seed`](#lifecycle) step writes with
+`default: true`, so two entries seeding one field do not overwrite each other.
 
 ## The root scope
 
-`scopes.root` is always present, and is the only app-wide scope. Search terms,
-the active tab, which modal is open — all here:
+`scopes.root` is always present and is the only app-wide scope: search terms,
+the active tab, which modal is open.
 
 ```jsonc
 { "key": "search", "component": "SearchInput",
@@ -44,14 +43,14 @@ the active tab, which modal is open — all here:
 
 Every other scope belongs to a list item or comes from the host. `root` belongs
 to the [`<RendererProvider>`](/react/renderer), not to one document, so every
-document under one provider shares it. On a chat surface that is what lets
-[blocks](/streamdown) share live state.
+document under one provider shares it. That is how chat [blocks](/streamdown)
+share live state.
 
 ## Item scopes
 
-A [list](/entry#list-fields) renders its `component` once per item and
-gives **each item its own scope**, named by `as`. That scope *is* the item: a
-window onto the element in the array, plus three fields of the runtime's own.
+A [list](/entry#list-fields) gives **each item its own scope**, named by `as`.
+That scope *is* the item, a window onto the element in the array, plus three
+read-only fields of the runtime's own.
 
 ```jsonc
 { "key": "orders", "component": "Card",
@@ -61,19 +60,15 @@ window onto the element in the array, plus three fields of the runtime's own.
   "props": { "expr": "({ text: (scopes.order.$$index + 1) + '. ' + scopes.order.customer + ' #' + scopes.order.$$id })" } }
 ```
 
-Over `[{ id: "a1", customer: "Ada" }, { id: "b2", customer: "Grace" }]` that is
-`1. Ada #a1` then `2. Grace #b2`. `customer` is the element's own field;
-`$$index` is the row's zero-based position in the `each` result, `$$id` the key
-`keyBy` picked (the index when there is no `keyBy`). When the array holds
-strings or numbers, the value is `$$value`. The three `$$` names are read-only.
+`$$index` is the zero-based position in the `each` result, and `$$id` the key
+`keyBy` picked (the index without `keyBy`). When the array holds strings or
+numbers, the item is `$$value`.
 
 **A write goes into the array.** `set: "scopes.order.status"` changes that
-element inside `scopes.root.orders`, in place, and wakes everything reading the
-array — totals, filters, the list. Two lists over one array are two windows onto
-the same elements: an edit in one shows in the other.
+element inside `scopes.root.orders` and wakes everything reading the array.
 
-**Scopes stack**, so names must be globally unique. Reusing one does not error —
-it silently shadows:
+**Scopes stack**, so names must be globally unique. A reused name does not
+error; it silently shadows:
 
 ```jsonc
 // ❌ the inner `as` overwrites the outer. Inside a line, `scopes.item` IS the
@@ -88,16 +83,16 @@ it silently shadows:
   "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
 
-Two things a row cannot do. It cannot write when its `each` built new objects
+A row cannot write when its `each` built new objects
 (`orders.map(o => ({ ...o, total }))`): the element is in no scope field, so the
 write is refused as `unknown-reference`. Keep `each` on the data, or a `filter`
-/ `toSorted` of it, and derive in `props`. And a row of primitives cannot be
-written at all — replace the array.
+/ `toSorted` of it, and derive in `props`. A row of primitives cannot be written
+at all; replace the array.
 
 ## Per-row state
 
-A row scope holds the row's data. State that is *about* a row but is not data —
-expanded, selected — lives at root, keyed by `$$id`:
+State *about* a row that is not its data, such as expanded or selected, lives at
+root, keyed by `$$id`:
 
 ```jsonc
 { "key": "page", "component": "Card",
@@ -111,21 +106,17 @@ expanded, selected — lives at root, keyed by `$$id`:
     "expr": "scopes.root.orders.reduce((m, o) => ({ ...m, [o.id]: true }), {})" }] } }
 ```
 
-One write to the map wakes every row that reads it. Only the rows whose props
-actually changed re-render: the renderer compares an element's evaluated props
-with the last ones structurally and skips the implementation when they are
-equal.
+One write to the map wakes every row, but only rows whose evaluated props
+changed re-render.
 
 ## Reading and writing
 
-- **Reads** are plain property access inside an [expression](/expr), any depth:
-  `scopes.root.count`, `scopes.order.total`, `scopes.root.user.address.city`.
-- **Writes happen only through `set`**, on a `seed` or `callbacks`
-  [assignment](/entry/value-sources). `seed` initializes a field at mount;
-  `callbacks` update it on an event.
+- **Reads** are property access at any depth: `scopes.root.count`,
+  `scopes.order.total`, `scopes.root.user.address.city`.
+- **Writes happen only through `set`**, in a `seed` step at mount or a
+  `callbacks` step on an event. See [assignments](/entry/value-sources).
 
-A `set` address is a scope name, a dot, a field name. Never a number, never
-deeper — the set of valid addresses is a regular language, `scopes.<scope>.<field>`:
+A `set` address is `scopes.<scope>.<field>`: never deeper, never a number.
 
 ```jsonc
 { "set": "scopes.root.rows", "expr": "listRows()" }                                    // ✅ a field
@@ -134,15 +125,13 @@ deeper — the set of valid addresses is a regular language, `scopes.<scope>.<fi
 { "set": "scopes.root.rows.0.qty", "literal": 3 }                                      // ❌ rejected — a number
 ```
 
-A write wakes every reader of that field, at whatever depth the reader goes:
-writing `filters` wakes a reader of `filters.status`. See
-[Reactivity &amp; Dependencies](/entry/reactivity).
+A write wakes every reader of the field, at any depth: writing `filters` wakes a
+reader of `filters.status`. See [Reactivity](/entry/reactivity).
 
 ## Lifecycle
 
-A `seed` initializes a field when its element mounts, and it then persists for the
-life of the page — through re-renders, and while the element is `hidden`. A field
-that was never seeded reads back as `undefined`.
+A seeded field persists for the life of the page, through re-renders and while
+its element is `hidden`. A field never seeded reads as `undefined`.
 
 A `seed` is **first-writer-wins**: it assigns only if the field is still
 `undefined`.
@@ -154,20 +143,16 @@ A `seed` is **first-writer-wins**: it assigns only if the field is still
   "props": { "expr": "({ text: scopes.root.sort })" } }
 ```
 
-Renders `name`. `panel` seeds before `label` mounts, so `label`'s seed finds the
-field defined and writes nothing — a no-op, not an error. The same `set` in a
-`callbacks` step would write `price`. This is also why a value the user changed
-survives a re-mount instead of snapping back.
+Renders `name`: `panel` seeds before `label` mounts, so `label`'s seed is a
+no-op, not an error. The same `set` in a `callbacks` step would write `price`.
+This is also why a value the user changed survives a re-mount.
 
-State can also come from the host:
+The host can also supply state.
 [`<RendererProvider evaluator={evaluator} init>`](/react/renderer#init--preload-state-for-the-group)
 preloads `scopes.root` once, before any entry evaluates, and can
-[expose extra named scopes](/react/renderer#extra-named-scopes)
-(read as `scopes.userCtx.name`) — proxies the host keeps and can update later.
+[expose extra named scopes](/react/renderer#extra-named-scopes) (read as
+`scopes.userCtx.name`): proxies the host keeps and can update later.
 
-Declare any extra scope to the model too —
-`getCommonInstructionsPartialPrompt({ note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro')." })`
-appends it as a `## Note` right under the prompt's `# Expression Context`
-section, so the
-"invent no other scope" rule stays consistent with your setup. The note is all
-the model ever sees of the scope, so spell out its shape in it.
+Declare each extra scope in the `note` of `getCommonInstructionsPartialPrompt`,
+which lands as a `## Note` under the prompt's `# Expression Context`. The note
+is all the model sees of the scope, so spell out its shape.

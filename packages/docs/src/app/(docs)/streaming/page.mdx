@@ -1,17 +1,15 @@
 # Streaming
 
 A document arrives one line at a time, and each line mounts as soon as it is
-complete. Two hops carry it: a route that runs the model and relays its output,
-and a component that reads that response into a growing array.
-
-Both are wired here with the [AI SDK](https://ai-sdk.dev) and
+complete. Below, a route relays the model's output with the
+[AI SDK](https://ai-sdk.dev), and a page reads it into a growing array with
 [TanStack Query](https://tanstack.com/query).
 
 ## The route
 
-The AI SDK's [`streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text)
-gives you the output as a stream of text, which is already JSONLines. Relaying it
-is one call to `createTextStreamResponse`:
+[`streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text)
+returns the output as a text stream, and `createTextStreamResponse` relays it
+as is:
 
 ```ts filename="app/api/generate/route.ts"
 import { createTextStreamResponse, streamText } from "ai";
@@ -35,8 +33,8 @@ export async function POST(req: Request) {
 
 ### Persisting as it streams
 
-To keep a page after the request, read the stream on the way past. Entries are
-stored as each line completes, not when the generation ends:
+To keep a page, read the stream on the way through and store each entry as its
+line completes:
 
 ```ts
 async function* lines() {
@@ -58,18 +56,17 @@ return createTextStreamResponse({
 });
 ```
 
-`isComponentEntry` keeps a non-entry out of the table. `streamJsonLines<T>` does
-not validate — `<T>` is your assertion, like `res.json() as T` — so it yields
-every line that parsed. The guard checks that `key` and `component` are strings
-and that `children`, if present, is an array (a string `children` would be
-iterated letter by letter, one phantom child each).
+`streamJsonLines<T>` yields every line that parses; `<T>` is an assertion, like
+`res.json() as T`, not a check. `isComponentEntry` keeps non-entries out of the
+table: `key` and `component` must be strings, and `children`, if present, an
+array.
 
 ## The page
 
 TanStack Query's
 [`streamedQuery`](https://tanstack.com/query/latest/docs/reference/streamedQuery)
-takes an `AsyncIterable` and appends each value to the cached array, re-rendering
-per chunk — what the reader yields, and what the renderer wants:
+appends each value of an `AsyncIterable` to the cached array and re-renders per
+chunk:
 
 ```tsx
 "use client";
@@ -108,8 +105,8 @@ const { data: entries = [], isFetching } = useQuery({
 </RendererProvider>;
 ```
 
-`data` is the entries received so far. It grows line by line while `isFetching`
-stays `true`, so that is your spinner — no separate loading state.
+`data` holds the entries received so far. `isFetching` stays `true` until the
+stream ends, so use it for the spinner.
 
 ## The half-arrived tree
 
@@ -119,21 +116,20 @@ stays `true`, so that is your spinner — no separate loading state.
 {"key":"panel","component":"Card","props":{"literal":{"title":"Orders"}},"seed":[{"set":"scopes.root.open","expr":"countOpen()"}],"children":["stat"]}
 ```
 
-The Card is on screen under its "Orders" title, with
-[`fallbackComponents.placeholder`](/react/renderer) standing in for `stat`. With
-no placeholder registered, that slot renders nothing. The next line lands:
+The Card shows its "Orders" title, with
+[`fallbackComponents.placeholder`](/react/renderer) standing in for `stat`, or
+nothing if no placeholder is registered. The next line lands:
 
 ```jsonl
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
 ```
 
-The placeholder swaps for the Stat. `countOpen()` does not run again — a
-[`seed`](/entry#seed) runs once and does not re-fire once it has set its
-path. A growing array reveals the tree, it does not rebuild it. A document cut
-off at any line is still a valid document — the format is *prefix-closed*.
+The Stat replaces the placeholder, and `countOpen()` does not run again: a
+[`seed`](/entry#seed) runs once. The tree is revealed, not rebuilt, and a
+document cut off at any line is still a valid document.
 
 ## Where to go next
 
-- [Renderer](/react/renderer) — mounting the entries you just streamed.
+- [Renderer](/react/renderer) — mounting the entries.
 - [Core](/api-ref#uicastcore) — `streamJsonLines`' signature and tolerance rules.
 - [Getting started](/getting-started) — the whole loop, end to end.

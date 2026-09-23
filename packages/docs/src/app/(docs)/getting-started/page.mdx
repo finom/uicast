@@ -1,8 +1,8 @@
 # Getting started
 
-Type a prompt, get a working UI — composed from components you register and data
-you expose. This guide uses the ready-made shadcn catalog, so there are no
-components to write first.
+Type a prompt, get a working UI built from components you register and data you
+expose. This guide uses the shadcn reference catalog, so there are no components
+to write first.
 
 ## 1. Install
 
@@ -10,19 +10,15 @@ components to write first.
 npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool ai @tanstack/react-query zod
 ```
 
-- **`@uicast/shadcn-catalog`** — 128 components built on shadcn/ui, each with
-  the definition the model reads.
+- **`@uicast/shadcn-catalog`** — a reference catalog of 128 shadcn/ui
+  components, each with the definition the model reads.
 - **`@uicast/core`** — the engine and the [prompt builders](/prompt).
 - **`@uicast/react`** — the renderer.
-- **`@uicast/expr`** — the [expression evaluator](/expr). The renderer runs every
-  document on the one you create with your host functions.
+- **`@uicast/expr`** — the [expression evaluator](/expr).
 - **`standard-tool`**, **`ai`**, **`@tanstack/react-query`** — host functions,
   the model call, the streaming query.
 
 The packages are beta, under the `beta` dist-tag.
-
-To use your own components instead, write a [definition](/def) and an
-[implementation](/react) for each, and register those.
 
 The catalog ships its own stylesheet, so there is no Tailwind config to write:
 
@@ -32,17 +28,16 @@ The catalog ships its own stylesheet, so there is no Tailwind config to write:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-Every rule uses a CSS variable (`background-color: var(--card)`), so your own
-theme restyles the catalog just like it restyles your components.
+Every rule uses a CSS variable (`background-color: var(--card)`), so your theme
+restyles the catalog too.
 
 ## 2. Expose your data
 
-The catalog gives the model components. **Host functions** give it your backend
-— one [`standard-tool`](https://standard-tool.js.org/) per function it may call.
-
-Both files below import this one: the route reads the schemas, the page runs the
-functions. `execute` runs in the **browser**, so fetch over HTTP — a database
-client here would ship your credentials to the client bundle.
+**Host functions** give the model your backend: one
+[`standard-tool`](https://standard-tool.js.org/) per function it may call. The
+route reads their schemas, and the page runs them. `execute` runs in the
+**browser**, so fetch over HTTP: a database client here would ship your
+credentials to the client bundle.
 
 ```ts filename="src/tools/list-orders.ts"
 import z from "zod";
@@ -79,16 +74,16 @@ import { listOrders } from "./list-orders";
 export const tools = [listOrders];
 ```
 
-`inputSchema` is what lets the model paginate and filter on its own; it is
-checked before `execute` runs. `outputSchema` is how the model knows it can write
-`scopes.root.orders[0].customer`. Every `description` reaches the model word for
-word. See [Host functions](/expr/functions).
+`inputSchema` lets the model paginate and filter, and is checked before
+`execute` runs. `outputSchema` tells the model the shape of the result. Every
+`description` reaches the model word for word. See
+[Host functions](/expr/functions).
 
 ## 3. Generate on the server
 
-The prompt is built from the same catalog and functions the page uses, so the
-two cannot go out of sync. The model already writes JSONLines, so the route passes its
-text straight through — each line goes out as soon as it is complete:
+The prompt is built from the same catalog and functions the page uses. The route
+passes the model's text straight through, so each line goes out as soon as it
+is complete:
 
 ```ts filename="app/api/generate/route.ts"
 import { createTextStreamResponse, streamText } from "ai";
@@ -124,8 +119,7 @@ export async function POST(req: Request) {
 }
 ```
 
-Order matters: the expressions block refers to the functions listed after it.
-See [Assembling the prompt](/prompt).
+Keep this order; [Assembling the prompt](/prompt#order) explains it.
 
 ## 4. Render on the page
 
@@ -206,16 +200,14 @@ export default function Home() {
 
 > Show this week's orders, with refund buttons.
 
-The model writes parents before children, so the page fills in from the top.
-A child that has not arrived yet shows the `placeholder` component — there is
-**no built-in one**, so an unset slot stays empty. Finished parts are never
-rebuilt, and a [`seed`](/entry#seed) that already fetched does not fetch
-again.
+The page fills in from the top, parents before children. A child that has not
+arrived shows `placeholder`, which has no default. Finished parts are never
+rebuilt, and a [`seed`](/entry#seed) that already fetched does not fetch again.
 
 ## Where to go next
 
-- [Concepts](/concepts) — the element model, expressions, and scopes.
-- [Component definition](/def) and [Component implementation](/react) —
-  replacing the catalog with your own design system.
+- [Concepts](/concepts) — the element model, expressions and scopes.
+- [Component definition](/def) and [Component implementation](/react) — your
+  own components instead of the catalog.
 - [Host functions](/expr/functions) — changing data, confirmation, refetching.
 - [Streaming](/streaming) — saving entries as they stream.

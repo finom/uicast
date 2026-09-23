@@ -227,7 +227,7 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
             className="flex h-full min-h-0 flex-col"
           >
             <div className="shrink-0 border-b border-border px-4 py-2 text-xs font-medium tracking-wide text-muted-foreground">
-              STREAMED JSONLINES
+              STREAMED ENTRIES
             </div>
             <StreamPanel
               lines={revealed}

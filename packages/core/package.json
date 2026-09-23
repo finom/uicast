@@ -1,7 +1,7 @@
 {
   "name": "@uicast/core",
   "version": "0.0.1-beta.2",
-  "description": "LLM-generated UIs from a stream of JSONLines \u2014 the framework-agnostic uicast engine: entry format, guarded expressions (allow-list, not a sandbox), reactive scopes, and prompt builders.",
+  "description": "The framework-agnostic engine of uicast, the expression-driven generative UI framework: entry format, guarded expressions (allow-list, not a sandbox), reactive scopes, and prompt builders.",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
   "keywords": [
     "generative-ui",
     "llm",
-    "jsonlines",
     "streaming",
     "ui",
     "agent",

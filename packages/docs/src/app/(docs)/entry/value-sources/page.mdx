@@ -1,7 +1,7 @@
 # Value Sources
 
-A **value source** is how an entry expresses one value: static, or computed from
-a JavaScript expression. Three forms:
+A **value source** gives an entry one value: static, or computed by a
+JavaScript expression. Three forms:
 
 ```ts
 ValueSource                  = { expr } | { literal }                       // props
@@ -9,27 +9,23 @@ ValueSourceAssignment        = ValueSource & { set }                        // s
 CallbackValueSourceAssignment = ValueSource & { set?, confirm?, debounce? }  // callback steps
 ```
 
-A callback step may **drop `set`** and run purely for its effect; a `seed` step
-never can.
-
-[Entry fields](/entry) covers which field takes which form.
+A callback step may **drop `set`** and run only for its effect; a `seed` step
+cannot. [Entry fields](/entry) covers which field takes which form.
 
 ## ValueSource
 
-A value, given one of two ways.
+`expr` takes any [JavaScript expression](/expr).
 
 ```jsonc
 { "literal": "Hello" }           // any JSON value, used as-is
 { "expr": "scopes.root.title" }  // a JavaScript expression, evaluated against the scopes
 ```
 
-`expr` takes any [JavaScript expression](/expr).
-
 ## ValueSourceAssignment
 
-A `ValueSource` plus a `set`: evaluate, then **write the field** `set` names,
-`scopes.<scope>.<field>`. Never deeper, never a number — `scopes.root.rows.0.qty`
-is rejected; edit a row through its scope or replace the array
+A `ValueSource` plus `set`: evaluate, then **write the field** `set` names,
+`scopes.<scope>.<field>`. Never deeper, never a number: `scopes.root.rows.0.qty`
+is rejected. Edit a row through its scope, or replace the array
 ([why](/entry/state#reading-and-writing)).
 
 ```jsonc
@@ -39,20 +35,18 @@ is rejected; edit a row through its scope or replace the array
 { "set": "scopes.root.open", "expr": "!currentValue" }      // unset → undefined → true
 ```
 
-**`currentValue`** is whatever sits at the `set` path now — the value about to
-be replaced. It makes an assignment a read-modify-write without naming the path
-twice. `set` is what defines it, so in a bare
-[`props`](/entry#props), [`hidden`](/entry#hidden), or
-[`each`](/entry#each) expression it does not exist:
+**`currentValue`** is the value now at the `set` path, the one about to be
+replaced, so a read-modify-write never names the path twice. Only `set` defines
+it, so a bare [`props`](/entry#props), [`hidden`](/entry#hidden),
+[`loading`](/entry#loading) or [`each`](/entry#each) expression cannot use it:
 
 ```jsonc
 // ❌ no `set` here — throws: "currentValue" is not available in expressions
 { "hidden": "!currentValue" }
 ```
 
-How the write lands depends on the site. A `callbacks` step overwrites. A `seed`
-step is **first-writer-wins**: it assigns only if the path is still
-`undefined`:
+A `callbacks` step overwrites. A `seed` step is **first-writer-wins**: it
+assigns only if the path is still `undefined`:
 
 ```jsonc
 { "key": "filters", "component": "Card", "children": ["status-input"],
@@ -62,14 +56,12 @@ step is **first-writer-wins**: it assigns only if the path is still
   "props": { "expr": "({ value: scopes.root.status })" } }
 ```
 
-The input renders `open`. The parent seeds before the child mounts, so the
-child's write is a silent no-op — two entries seeding one path never clobber
-each other (see [state](/entry/state#lifecycle)). The same `set` in a
-`callbacks` step would write `all`.
+The input renders `open`: the parent seeds first, so the child's seed is a
+silent no-op. See [lifecycle](/entry/state#lifecycle).
 
 ## CallbackValueSourceAssignment
 
-`confirm` gates the step behind a confirmation message.
+`confirm` gates the step behind a confirmation message:
 
 ```jsonc
 { // …
@@ -80,14 +72,14 @@ each other (see [state](/entry/state#lifecycle)). The same `set` in a
   ] } }
 ```
 
-No `set` on the first step, so the delete's return value is discarded. Decline
-the prompt and neither step runs. A confirmed step is also an
+The first step has no `set`, so the delete's return value is discarded.
+Declining runs neither step. A confirmed step is also an
 [ordering barrier](/entry/reactivity): everything before it settles first, and
 nothing after it starts until it passes.
 
-`debounce` delays the step, and every step after it, until the callback has
-been quiet for 300 ms. A newer call replaces the pending run, so only the last
-one fires, with its own `evt`. The steps before it run at once.
+`debounce` delays the step, and every step after it, until the callback has been
+quiet for 300 ms. A newer call replaces the pending run, so only the last one
+fires, with its own `evt`. Steps before it run at once.
 
 ```jsonc
 { // …
@@ -98,5 +90,5 @@ one fires, with its own `evt`. The steps before it run at once.
   ] } }
 ```
 
-The input stays live: `q` is written on every keystroke, the search runs once
-typing pauses. Unmounting the element cancels a pending run.
+`q` is written on every keystroke; the search runs once typing pauses.
+Unmounting the element cancels a pending run.

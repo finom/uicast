@@ -1,9 +1,7 @@
 # Streamdown plugin
 
-`@uicast/streamdown` puts generated UI inside a Markdown chat reply. In the
-raw-JSONL setup from [Streaming](/streaming) the whole output is entries. On a
-chat surface the reply is Markdown, and the entries sit inside a fenced code
-block tagged `uicast`:
+`@uicast/streamdown` puts generated UI inside a Markdown chat reply. The entries
+sit in a fenced code block tagged `uicast`:
 
 ````md
 Here's this month's revenue at a glance:
@@ -17,13 +15,9 @@ The stat is live — it recomputes from the database on every view.
 ````
 
 [Streamdown](https://streamdown.ai/) (2.5+) renders Markdown as it streams and
-lets a plugin claim a fence language. This package is that plugin: `uicast`
-blocks mount as an [`<EntriesRenderer>`](/react/renderer) under your chat's
-`<RendererProvider>`, and every other fence stays highlighted code.
-
-The language token does all the routing, so the
-[fence prompt partial](/prompt#chat-surfaces) tells the model to use `uicast`
-and no other token.
+lets a plugin claim a fence language. This plugin mounts `uicast` blocks as an
+[`<EntriesRenderer>`](/react/renderer) under your chat's `<RendererProvider>`.
+Every other fence stays highlighted code.
 
 ```bash
 npm install @uicast/streamdown@beta streamdown
@@ -44,10 +38,9 @@ type FenceRendererOptions = {
 };
 ```
 
-Implementations, the evaluator, and fallback UI all come from the
-[`<RendererProvider>`](/react/renderer) around your conversation. The entries
-come from the fence: each completed line mounts immediately, and a partial last
-line waits for its newline.
+Implementations, the evaluator and fallback UI come from the
+[`<RendererProvider>`](/react/renderer) around the conversation. Each completed
+line in the fence mounts at once; a partial last line waits for its newline.
 
 ```tsx
 import { Streamdown } from "streamdown";
@@ -75,7 +68,7 @@ export function Chat({ replies }: { replies: string[] }) {
 ```
 
 **The conversation is one app.** Every block under one `<RendererProvider>`
-shares the same `root` scope. The fence at the top of this page seeds
+shares the `root` scope. The fence at the top of this page seeds
 `scopes.root.orders`; a later reply writes the same path:
 
 ```jsonl
@@ -83,32 +76,30 @@ shares the same `root` scope. The fence at the top of this page seeds
 ```
 
 Click Refresh and the `Stat` in the earlier block updates. Both fences name an
-element `root` — keys are per-fence, only state is shared.
+element `root`: keys are per fence, only state is shared.
 
-**Every block seeds everything it reads**, even when an earlier block already
-seeded it. That repeat is deliberate: it is what lets any block be saved as a
-standalone page.
+**Every block seeds everything it reads**, even what an earlier block already
+seeded. Seeds are first-writer-wins, so the repeat writes nothing, and any block
+can be saved as a standalone page.
 
-**Blocks render after hydration**, so a server-rendered chat page shows an empty
+**Blocks render after hydration**: a server-rendered chat page shows an empty
 fence until the browser takes over, unless [`ssr`](#ssr) is on.
 
 ## `showSourceToggle`
 
-With `showSourceToggle: true`, each block gets a **Rendered / Source** switcher.
-The block stays mounted while Source is shown, so switching back does not reset
-its state. Off by default — a development aid, not something end users need.
+A development aid. The block stays mounted while Source shows, so switching
+back keeps its state.
 
 ## `ssr`
 
-With `ssr: true`, blocks also render in a server pass: their seeds run and host
-functions are called on the server, so those must work there. Off by default.
+With `ssr: true`, seeds run and host functions are called in the server pass,
+so those functions must work on the server.
 
 ## Wrappers that forward `plugins`
 
-Chat kits that wrap Streamdown — e.g. AI Elements' response component — usually
-apply their own default plugin set and spread your props over it. Passing
-`plugins` there **replaces** the defaults, so recompose them alongside the
-fence renderer:
+Chat kits that wrap Streamdown, such as AI Elements' response component, usually
+spread your props over their default plugins, so passing `plugins` **replaces**
+them. Pass the defaults along with the fence renderer:
 
 ```tsx
 const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
@@ -118,14 +109,14 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 
 ## The prompt side
 
-Rendering is half the contract; the model also has to know to emit the fence.
-`@uicast/streamdown/prompt` exports `getFencePartialPrompt()`, which teaches the
-fence syntax and the shared-state rules: one `root` scope across every block,
-first-writer-wins seeding, and partial replacement only within a fence. Compose
-it after the core partials — see [Assembling the prompt](/prompt).
+`getFencePartialPrompt()` from `@uicast/streamdown/prompt` teaches the model the
+[fence](/prompt#chat-surfaces) and the rules above. Partial replacement works
+only within one fence. Compose it after the core partials; see
+[Assembling the prompt](/prompt).
 
 ## Where to go next
 
-- [Assembling the prompt](/prompt) — the system prompt that makes the model emit the fence.
+- [Assembling the prompt](/prompt) — the system prompt that makes the model emit
+  the fence.
 - [Renderer](/react/renderer) — the `<RendererProvider>` the fences render under.
-- [Streaming](/streaming) — the raw-JSONL path this plugin inverts.
+- [Streaming](/streaming) — the raw-JSONL path, without Markdown.

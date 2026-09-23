@@ -1,27 +1,27 @@
 # Agent skill
 
-**uicast** ships an [Agent Skill](https://agentskills.io) — one
-[`SKILL.md`](https://github.com/finom/uicast/tree/main/skills/uicast) covering
-the whole developer-side setup: definitions and implementations, host
-functions, prompt assembly, mounting, streaming on both surfaces, error
-handling. Only your side of the contract — the entry format the model emits
-comes from the [assembled prompt](/prompt) at runtime, not from the skill.
+**uicast** ships an [Agent Skill](https://agentskills.io): one
+[`SKILL.md`](https://github.com/finom/uicast/tree/main/skills/uicast) for the
+developer side — definitions and implementations, host functions, prompt
+assembly, mounting, page and chat streaming, error handling. The entry format
+the model emits is not in it; that comes from the [assembled prompt](/prompt) at
+run time.
 
 ## Install
 
-The [skills CLI](https://skills.sh) detects which agents you use and installs
-the skill into each one's own skills directory:
+The [skills CLI](https://skills.sh) detects the agents you use and installs the
+skill for each:
 
 ```sh
 npx skills add finom/uicast
 ```
 
-It supports Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Copilot, and
-most other clients. To install by hand instead, put the
+It supports Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Copilot and most
+other clients. To install by hand, copy the
 [`skills/uicast`](https://github.com/finom/uicast/tree/main/skills/uicast)
-folder wherever your client discovers skills — each client's path is behind
-the "Setup instructions" link on the
-[client showcase](https://agentskills.io/clients).
+folder to where your client looks for skills; the
+[client showcase](https://agentskills.io/clients) links each client's setup
+instructions.
 
-Nothing in the skill is client-specific, and it reads fine as a plain
-integration guide — pasting it into an agent with no skill support works too.
+Nothing in it is client-specific; any agent can read it as a plain integration
+guide.

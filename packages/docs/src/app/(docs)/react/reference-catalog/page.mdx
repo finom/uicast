@@ -5,10 +5,10 @@ title: Reference catalog
 # Reference catalog
 
 `@uicast/shadcn-catalog` is a reference catalog: 128 components over
-shadcn/Radix, each a definition/implementation pair in its own directory under
+shadcn/Radix, each a def/impl pair in its own directory under
 [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog).
-**uicast** does not need it; a host can ship only its own components. Use it as
-it is, take some of its groups, or copy its layout for your own catalog.
+**uicast** does not need it. Use it as is, take some of its groups, or copy its
+layout for your own catalog.
 
 ## Install
 
@@ -22,10 +22,10 @@ Import its stylesheet once, in your global CSS:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-`catalog.css` holds every utility the components use and no palette: each rule
-reads a CSS variable (`var(--card)`), so your theme restyles the catalog. An app
-with no shadcn setup of its own imports `theme.css` first, for preflight and the
-shadcn palette:
+`catalog.css` holds the utilities the components use and no palette: each rule
+reads a CSS variable (`var(--card)`), so your theme applies. An app without its
+own shadcn setup imports `theme.css` first, for preflight and the shadcn
+palette:
 
 ```css
 @import "@uicast/shadcn-catalog/theme.css";
@@ -47,12 +47,12 @@ and `@uicast/shadcn-catalog/<group>/impls` for the renderer.
 | `forms` | 35 | field, input, select, date picker, file upload, button |
 | `navigation` | 7 | sidebar, navigation menu, command menu, breadcrumb, pagination |
 | `overlays` | 7 | modal, confirm dialog, drawer, popover, tooltip, dropdown menu |
-| `essential` | 30 | picked from the groups: enough to build a page, at about a quarter of the whole catalog's prompt |
+| `essential` | 30 | picked from the groups: enough for a page, at about a quarter of the full catalog's prompt |
 
 ## How a host uses it
 
-A module exports its components by name and nothing else, so `import * as`
-gives the whole group. The prompt gets the definitions:
+A module exports only its components, by name, so `import * as` gives the whole
+group. The prompt gets the definitions:
 
 ```ts
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";

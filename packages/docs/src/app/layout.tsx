@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     template: "%s — uicast",
   },
   description:
-    "The open engine that renders streamed JSONLines into a live UI, plus its shadcn component catalog.",
+    "The expression-driven generative UI framework.",
 };
 
 // suppressHydrationWarning lets next-themes set the `class` on <html>. Nextra's <Head> injects the CSS vars its chrome

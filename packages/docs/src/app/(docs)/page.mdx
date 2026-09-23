@@ -18,26 +18,33 @@ import { WeatherExample } from "@/lib/mini-examples/weather";
 </div>
 
 **uicast is a UI framework whose language is written by models, not people.**
-It gives a language model what JSX gives a developer — components, state,
-events. The difference: JSX is designed to be easy for a person to maintain,
-**uicast** to be reliable for a model to generate.
-
-The model writes one JSON object per line. The engine places each line in the
-tree and wires it to a reactive state store, and the result is a working
-front-end app. The lines are just data, so there is no build or deploy step per
-page.
+It gives a model what JSX gives a developer — components, state, events — but
+is built to be reliable to generate rather than easy to maintain. The model's
+output is data: the engine turns it into a working front-end app, with no build
+or deploy step per page.
 
 <CounterExample />
 
-What makes **uicast** different is **expressions**.
+What makes **uicast** different is **expressions**: computed values, visibility
+and event handling are JavaScript, run by a [closed-grammar interpreter](/expr).
+Structured generation offers a fixed set of bindings and operators instead, so a
+new computation needs new host code.
 
-Structured generation renders safely as it streams, but the logic wiring its
-components is a closed vocabulary — a fixed set of bindings, conditions, and
-format operators, so a genuinely new computation means new host code. **uicast**
-makes that logic open-ended JavaScript instead: computed values, visibility, and
-event handling are expressions, run by a
-[closed-grammar interpreter](/expr) — JavaScript's shape, without the
-JavaScript engine.
+| Approach | Predictability | Expressiveness | Safety |
+| --- | --- | --- | --- |
+| Raw code generation | low | unlimited | low |
+| **uicast** | high | high | high |
+| Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
+
+## Is it safe?
+
+Expressions run on an [interpreter](/expr) for a **fraction of JavaScript**: a
+closed grammar, an allow-list of methods and globals, a check on every property
+read, and a CPU and allocation budget. By default nothing reaches `eval` or
+`new Function`, so a **uicast** app runs under a strict Content-Security-Policy,
+without `unsafe-eval`. The interpreter secures the language, not what you plug
+into it: host functions are capabilities you grant, and scope data is only as
+safe as what you put there.
 
 ```js
 // scopes.root.orders === [{ total: 2 }, { total: 3 }]
@@ -50,33 +57,10 @@ document.cookie                                      // ❌ throws — so do "wi
                                                      //    "localStorage", "eval", …
 ```
 
-| Approach | Predictability | Expressiveness | Safety |
-| --- | --- | --- | --- |
-| Raw code generation | low | unlimited | low |
-| **uicast** | high | high | high |
-| Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
-
-## Is it safe?
-
-By default, expressions never reach `eval` or `new Function`. They run on an
-[interpreter](/expr) built for a **fraction of JavaScript**: a closed
-grammar, an allow-list of methods and globals, a check on every property read,
-and a CPU and allocation budget. The JavaScript engine never executes generated
-text, so a **uicast** app runs under a strict Content-Security-Policy — no
-`unsafe-eval`.
-
-Need more speed? A [custom evaluator](/expr/custom-expr) runs expressions with
-`new Function` after the same checks — several times faster, and only for
-documents from a trusted author: your own pipeline, an admin, never a stranger.
-
-The interpreter secures the language, not what you plug into it — host functions
-are capabilities you grant, and scope data is only as safe as what you put
-there. [The expression evaluator](/expr) covers the full threat model.
-
 ## The model works from a developer's brief
 
-The model never starts from a blank page. It gets the brief you would give a new
-front-end developer — the components and the endpoints, generated from your code:
+The model gets the brief you would give a new front-end developer: your
+components and your endpoints, generated from your code.
 
 ```md
 # Available Components
@@ -106,47 +90,38 @@ listOrders, refundOrder
 
 > Show this week's orders, with refund buttons.
 
-Both lists are fixed: the **catalog** is your design system, so the model picks
-a component and never invents one; the **functions** are your endpoints, each a
-[`standard-tool`](https://standard-tool.js.org/), and it can call nothing else.
-Every description is one you already wrote on a prop or schema field, passed
-through word for word. A developer with this brief writes JSX; the model writes
-**uicast** entries — see [Assembling the prompt](/prompt).
+Both lists are closed: the model picks components from your **catalog** and
+calls only your **functions**, each a
+[`standard-tool`](https://standard-tool.js.org/). The descriptions are the ones
+you wrote on props and schema fields. See [Assembling the prompt](/prompt).
 
 ## Events carry declared payloads
 
-An event can carry data. The square below sends the pointer position as an
-`onMove` payload; the entry writes it to state, and the props read it back. No
-host function is involved.
-
-Inside a callback, **`evt` is that payload** — the only way to read what the
-user just did. It is not React's `SyntheticEvent`; its shape is whatever the
-[definition](/def) declares, so `onMove` here means `evt.x` and `evt.y` are
-numbers.
+An event can carry data. The square below sends the pointer position with
+`onMove`; the entry writes it to state, and the props read it back. Inside a
+callback, **`evt` is the payload**, shaped by the [definition](/def): here
+`evt.x` and `evt.y` are numbers. It is not React's `SyntheticEvent`.
 
 <TrackerExample />
 
 ## Expressions call host functions
 
-Expressions can call **host functions** — the functions you register with the
-renderer, and how a document reaches a backend. Each is a
-[`standard-tool`](https://standard-tool.js.org/): a name, a description,
-schemas, and `execute`.
+Expressions can call **host functions**: the functions you register, each a
+[`standard-tool`](https://standard-tool.js.org/) with a name, a description,
+schemas and `execute`. They are how a document reaches your backend.
 
-`getWeather` below is **async**, about 500 ms. Picking a city runs a two-step
-callback: the first stores the city, the second calls
-`getWeather({ city: scopes.root.city })` and reads the path the first just
-wrote, so the runtime orders them. The engine waits for the async result before
-writing it to state.
+`getWeather` below is async (about 500 ms). Picking a city runs two steps: the
+first stores the city, the second calls `getWeather({ city: scopes.root.city })`.
+The second reads what the first wrote, so they run in order, and the result is
+written to state when it arrives.
 
 <WeatherExample />
 
 ## Chat replies carry live UI
 
-A model's Markdown reply can stream a working app inline, not just static text.
-The [Streamdown](/streamdown) plugin renders any `uicast` fenced block as a live
-[`<EntriesRenderer>`](/react/renderer) inside the streamed Markdown, leaving
-every other fence as highlighted code:
+The [Streamdown](/streamdown) plugin renders each `uicast` fenced block in a
+Markdown reply as a live [`<EntriesRenderer>`](/react/renderer). Other fences
+stay highlighted code:
 
 ````md
 Here are this week's orders:
@@ -158,17 +133,14 @@ Here are this week's orders:
 Want me to refund any of them?
 ````
 
-The whole chat runs under one [`<RendererProvider>`](/react/renderer), so every
-widget streamed into it shares the same `root` scope and can share state. Yet
-each fenced block is a complete document on its own — lift one out and it renders
-standalone, so a widget the user likes can be saved as its own view. See the
-[Streamdown plugin](/streamdown).
+The chat runs under one [`<RendererProvider>`](/react/renderer), so all blocks
+share the `root` scope. Each block is still a complete document: lift one out
+and it renders on its own, for example as a saved page.
 
 ## Next steps
 
-- [Getting started](/getting-started) — install the packages and render your
-  first document.
-- [Concepts](/concepts) — the model, expressions, and scopes.
+- [Getting started](/getting-started) — install and render your first document.
+- [Concepts](/concepts) — the model, expressions and scopes.
 - [Component definition](/def) and [Component implementation](/react) —
   build your own components.
 - [Streaming](/streaming) — stream entries from a route and render them as they

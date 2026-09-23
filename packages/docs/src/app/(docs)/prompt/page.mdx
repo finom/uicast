@@ -1,20 +1,16 @@
 # Assembling the prompt
 
-The system prompt teaches five things: the output contract, how ambitious to be,
-the expression language, the component menu, and the host functions. Each ships
-as a **prompt-partial builder** — a self-contained block — from one of three
-packages, and there is no assembler: your app composes them, since scope,
-components, and functions depend on what you register.
+The system prompt is built from **prompt-partial builders**, one block each.
+There is no assembler: your app joins the blocks, since scope, components and
+functions depend on what you register.
 
-Advertise what you mount: the definitions must match the implementations, and
-the functions must match the array on `<RendererProvider>`. Build both from the
-same values and they cannot drift.
+Advertise what you mount: build the prompt from the same definitions and
+functions the page uses, so the two cannot drift.
 
 ## The convention
 
-Every builder returns a block starting with its own `#` heading, with no leading
-or trailing blank lines. Assembly is a join, and the join owns the
-separators:
+Each block starts with its own `#` heading and has no blank lines around it, so
+assembly is a join:
 
 ```ts
 const system = [...parts].filter(Boolean).join("\n\n");
@@ -24,19 +20,18 @@ const system = [...parts].filter(Boolean).join("\n\n");
 
 | Builder | Package | Emits |
 | --- | --- | --- |
-| `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | The output contract — JSONL entries, keys and children, partial replacement — and the expression context: `scopes` / `evt` / `currentValue` and the host-function calling rule. |
+| `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | The output contract (JSONL entries, keys, children, partial replacement) and the expression context (`scopes`, `evt`, `currentValue`, how to call host functions). |
 | `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
 | `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
 | `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/expr/functions). |
 | `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/security#what-stays-your-job) rules. |
-| `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat-surface fence convention — see [Chat surfaces](#chat-surfaces). |
+| `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat fence convention; see [Chat surfaces](#chat-surfaces). |
 
-Every builder also takes **`note?`** — host-specific context rendered as that
-section's trailing `## Note`, verbatim. Use the section it belongs to: an extra
-scope you [inject](/react/renderer#extra-named-scopes) goes on
-`getCommonInstructionsPartialPrompt` (it lands under `# Expression Context`), a
-catalog convention on `getComponentsPartialPrompt`, a data caveat on
-`getFunctionsPartialPrompt`.
+Every builder also takes **`note?`**: host-specific text, added verbatim as the
+section's trailing `## Note`. Put it on the section it belongs to: an
+[injected scope](/react/renderer#extra-named-scopes) on
+`getCommonInstructionsPartialPrompt`, a catalog convention on
+`getComponentsPartialPrompt`, a data caveat on `getFunctionsPartialPrompt`.
 
 **Components** serializes the [defs](/def) you register:
 
@@ -44,7 +39,7 @@ catalog convention on `getComponentsPartialPrompt`, a data caveat on
 const StatDef = createComponentDefinition({
   name: "Stat",
   description: "A KPI display.",
-  props: z.object({
+  props: z.strictObject({
     label: z.string().meta({ description: "The metric label" }),
   }),
 });
@@ -64,12 +59,10 @@ Stat
     - label: string — The metric label
 ```
 
-**Scope** says what a response *is*. `kind: "page"` asks for a complete page and
-reads a terse request as the full version of it. `"widget"` is one embeddable
-piece; `"answer"` is the compact UI that answers a question in conversation.
-
-`getScopePartialPrompt({ kind: "answer", approxElements: 10 })` emits the rules
-for that kind, then the size hint:
+**Scope** says what a response *is*: `"page"` a complete page, even for a terse
+request; `"widget"` one embeddable piece; `"answer"` a compact UI that answers a
+question in a conversation.
+`getScopePartialPrompt({ kind: "answer", approxElements: 10 })` emits:
 
 ```
 - Use the fewest elements that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
@@ -78,46 +71,43 @@ for that kind, then the size hint:
 A typical response on this surface is around 10 elements (JSONL lines) — treat this as a hint about ambition, not a quota.
 ```
 
-**Expressions** carries the standing
-[safety instruction](/security#what-stays-your-job), so every assembly ships it
-without the host adding anything. Its allow-list line is a slot in the authored
-`EXPRESSIONS.md`:
+**Expressions** always includes the
+[safety instruction](/security#what-stays-your-job). Its globals line is a
+template slot:
 
 ```
 - Available globals (use ONLY these — referencing any other global is rejected before the expression runs, not silently `undefined`): 🔴ALLOWED_GLOBALS🔴.
 ```
 
-`getExpressionsPartialPrompt()` fills that token from the same `ALLOWED_GLOBALS`
-table [Evaluator](/expr) checks against, so the two cannot go out of sync. A
-test holds the rest of the section to the same standard: no method it advertises
-is one the evaluator would refuse.
+It is filled from the list the [Evaluator](/expr) checks against. A test fails
+if the section advertises a method the evaluator refuses.
 
-**Functions** renders the tool array. Its signature format,
-[undeclared returns](/expr/functions#undeclared-returns), and
+**Functions** renders the tool array. Its format,
+[undeclared returns](/expr/functions#undeclared-returns) and
 [shared types](/expr/functions#shared-types) are covered in
 [Host functions](/expr/functions).
 
 ## Order
 
-The contract comes first, since everything else refines it; the rest follow in
-the order the sections reference each other. In that order the headings are:
+The contract comes first; the rest follow in the order they reference each
+other. The headings each block emits:
 
 | Builder | Package | Headings it emits |
 | --- | --- | --- |
 | `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | `# Overview`, `# Output Format`, `# Rules`, `# Expression Context` |
 | `getScopePartialPrompt()` | `@uicast/core/prompt` | `# Scope` |
 | `getComponentsPartialPrompt()` | `@uicast/core/prompt` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted) |
-| `getFunctionsPartialPrompt()` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when there is something to hoist) |
+| `getFunctionsPartialPrompt()` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when hoisted) |
 | `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | `# JavaScript Expressions` |
 | `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | `# Emitting UI` |
 
 ## Chat surfaces
 
-On a chat surface the reply is Markdown, and the entries sit inside a
-` ```uicast ` fence, rendered by the [Streamdown plugin](/streamdown).
-`@uicast/streamdown/prompt` ships the matching `getFencePartialPrompt()`: the
-fence syntax plus the conversation's [shared-state rules](/streamdown). Compose
-it last. A raw-JSONL surface skips it.
+On a chat surface the reply is Markdown, with entries inside a ` ```uicast `
+fence that the [Streamdown plugin](/streamdown) renders.
+`getFencePartialPrompt()` teaches the fence and the conversation's
+[shared-state rules](/streamdown). Compose it last; a raw-JSONL surface skips
+it.
 
 ## A complete assembly
 
@@ -150,11 +140,10 @@ partial.
 
 ## Edit and recovery turns
 
-Two builders are not system-prompt partials. They produce **user-turn message
-content**.
+Two builders produce **user-turn messages**, not system-prompt partials.
 
 `getEditRequestPrompt({ request, missingKeys? })` drives edits. The host replays
-the stored JSONL as an assistant turn, then sends this as the next user turn:
+the stored entries as an assistant turn, then sends this as the next user turn:
 
 ```ts
 const messages = [
@@ -164,25 +153,25 @@ const messages = [
 ```
 
 The builder appends the delta convention, and the model answers with the delta
-alone — here one line, reusing the key:
+alone, here one line reusing the key:
 
 ```jsonl
 {"key":"total","component":"Typography","props":{"expr":"({ text: scopes.root.total, variant: 'large' })"}}
 ```
 
-Every other key is untouched, and a successful `seed` on a re-emitted key does
-not re-run — new state belongs on a new key. `missingKeys` lists keys the stored
-tree references but never received, the tail of a truncated generation, so the
-model emits them fresh instead of keeping them by reference.
+Other keys are untouched. A re-emitted key's `seed` does not re-run if it
+already succeeded, and a seed never overwrites existing state: new state goes on
+a fresh path or is written from a callback. `missingKeys` lists keys
+the stored tree references but never received, as after a truncated
+generation, so the model emits them.
 
-`getErrorRecoveryPrompt({ failures })` reports runtime failures back so the model
-re-emits those elements corrected. On a page it goes through the edit pipeline
-above; in a chat it is a plain user message. See
-[Error recovery](/error-recovery).
+`getErrorRecoveryPrompt({ failures })` reports runtime failures so the model
+re-emits the broken elements: on a page through the edit pipeline above, in a
+chat as a plain user message. See [Error recovery](/error-recovery).
 
 ## Where to go next
 
-- [Component definition](/def) — where the advertised component menu comes from.
-- [Host functions](/expr/functions) — the function block's format, in detail.
+- [Component definition](/def) — where the component menu comes from.
+- [Host functions](/expr/functions) — the function block's format.
 - [The expression evaluator](/expr) — the language the expressions block teaches.
-- [Streamdown plugin](/streamdown) — the render side of the fence contract.
+- [Streamdown plugin](/streamdown) — the render side of the fence.

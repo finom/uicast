@@ -7,46 +7,44 @@ import { Callout } from "nextra/components";
 # Security model
 
 A **uicast** document is untrusted input: a model wrote it, and a saved document
-replays in other people's browsers. This page says what the framework defends,
-what stays your job, and where to report what we got wrong.
+replays in other people's browsers.
 
 ## What the framework defends
 
 | Surface | Defense |
 | --- | --- |
-| Expressions | The [evaluator](/expr): closed grammar, own-property reads and allow-listed calls through a membrane, a CPU/time/allocation budget, no `new Function` in the package — so no CSP `unsafe-eval`. A property name assembled at run time is checked at the read, closing the class a static check cannot. |
-| State writes | A `set` address is a scope name, a dot, a field name — never a number, never deeper; the set of valid addresses is a regular language. Prototype names and the runtime's `$$id` / `$$index` / `$$value` are refused, so `Object.prototype` stays untouched. |
-| URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin, and raster `data:` images by default. |
-| Failures | Every rejection is a classified [`EntryError`](/error-recovery) contained to the element's error slot — one bad element does not take the page down. |
+| Expressions | The [evaluator](/expr): closed grammar, own-property reads and allow-listed calls through a membrane, a CPU/time/allocation budget, and no `new Function` in the package, so no CSP `unsafe-eval`. A property name built at run time is checked at the read. |
+| State writes | A `set` address is `scopes.<scope>.<field>`: never a number, never deeper. Prototype names and the runtime's `$$id` / `$$index` / `$$value` are refused, so `Object.prototype` stays untouched. |
+| URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin and raster `data:` images by default. |
+| Failures | Every rejection is a classified [`EntryError`](/error-recovery), contained to that element's error slot. |
 
 ## What stays your job
 
-- **Host functions are capabilities.** An expression can only use what you
-  gave it: the scopes and the functions you bound. Keep `functions` narrow and
-  enforce authorization on the server.
+- **Host functions are capabilities.** An expression can use only the scopes
+  and functions you gave it. Keep `functions` narrow and authorize on the
+  server.
 - **Scope data must be plain.** Inject JSON-shaped values only; a tool's
-  `outputSchema` gives you that by construction.
+  `outputSchema` ensures that.
 - **Catalog implementations follow the
-  [authoring contract](/react#props-the-document-controls)** — URLs
-  through declared props, no document strings in script-capable sinks, picked
-  event payloads.
-- **A custom evaluator is a choice.** A subclass that runs expressions with
-  `new Function` trades the run-time checks for speed; only for documents from
-  a trusted author — see [Custom evaluator](/expr/custom-expr).
+  [authoring contract](/react#props-the-document-controls)**: URLs through
+  declared props, no document strings in script-capable sinks, picked event
+  payloads.
+- **A custom evaluator is for trusted documents only.** An `Evaluator`
+  subclass that sets `toFunction` runs expressions with `new Function`, with no
+  membrane and no budget. See [Custom evaluator](/expr/custom-expr).
 - **The prompt helps; the evaluator decides.** The prompt tells the model to
-  treat data as data and to refuse hostile requests. That makes bad output
-  rare. The evaluator is what stops it.
+  treat data as data and to refuse hostile requests, which makes bad output
+  rare.
 
 ## Reporting
 
-Use GitHub's private vulnerability reporting on the
-[repository](https://github.com/finom/uicast) (Security → Report a
-vulnerability) — see [SECURITY.md](https://github.com/finom/uicast/blob/main/SECURITY.md)
-for scope and expectations. Evaluator escapes, membrane bypasses, prototype
-pollution, and `urlPolicy` bypasses are all in scope.
+Report privately on the [repository](https://github.com/finom/uicast):
+Security → Report a vulnerability.
+[SECURITY.md](https://github.com/finom/uicast/blob/main/SECURITY.md) lists what
+is in scope.
 
 <Callout type="warning">
-  Like any evaluator of untrusted input, this one can contain implementation
-  bugs. A small reviewable grammar and the [test suites](/expr#verification)
-  bound that risk; nothing eliminates it.
+  Like any evaluator of untrusted input, this one can have bugs. A small grammar
+  and the [test suites](/expr#verification) reduce that risk; nothing removes
+  it.
 </Callout>

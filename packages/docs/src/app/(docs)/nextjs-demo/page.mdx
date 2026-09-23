@@ -1,21 +1,15 @@
 # Next.js demo
 
-`packages/nextjs-demo` is a small back office over five tables in Postgres
-(Neon in production, docker-compose locally): suppliers, products, customers,
-orders and a stock ledger.
-It has some hand-written UI — a sidebar, a chat panel, the shell — but not one
-component for the screens. Every table, form and detail view is generated.
+`packages/nextjs-demo` is a small back office over five Postgres tables (Neon
+in production, docker-compose locally): suppliers, products, customers, orders
+and a stock ledger. The shell (sidebar, chat panel) is hand-written; every
+table, form and detail view is generated. **uicast** calls this the
+**front-end-less pattern**.
 
-It is also multi-user and public: everything anyone builds is world-readable,
-writes are owner-only. Log in with OpenRouter (OAuth PKCE — the key is yours,
-generation bills your own credits) and you get a private copy of the demo data
-plus your own pages and chats under `/u/<your-slug>`. Logged out, you browse
-the seed account's content and everyone's recent pages, read-only.
-
-It shows the **front-end-less pattern** — **uicast**'s name for an app with no
-hand-written screens. There is a data model, an HTTP API over it, tools describing that API,
-and a component catalog. The screens are generated per request, so nobody writes
-the table, the form, the filter bar, or the wiring between them.
+It is multi-user: everything is world-readable, and only the owner can write.
+Log in with OpenRouter (OAuth PKCE; generation bills your own credits) to get a
+private copy of the demo data and your own pages and chats under
+`/u/<your-slug>`.
 
 ## Install and run
 
@@ -27,12 +21,10 @@ npm run db:seed -w @uicast/nextjs-demo
 npm run dev -w @uicast/nextjs-demo
 ```
 
-Copy `packages/nextjs-demo/.env.example` to `.env.local`: `DATABASE_URL`
-(docker default works as-is; point it at a Neon pooled string in production),
-`APP_SECRET` (encrypts stored OpenRouter keys — `openssl rand -base64 32`),
-and optionally `OPENROUTER_MODEL` and `AI_MAX_OUTPUT_TOKENS`. There is no
-site-wide model key: each user logs in with OpenRouter and generations run on
-their own key.
+Copy `packages/nextjs-demo/.env.example` to `.env.local`. `DATABASE_URL` works
+as is with docker (use a Neon pooled string in production), and `APP_SECRET`
+encrypts stored OpenRouter keys (`openssl rand -base64 32`). `OPENROUTER_MODEL`
+and `AI_MAX_OUTPUT_TOKENS` are optional. There is no site-wide model key.
 
 Then **Create page** for a full generated page, or **New chat** for answers that
 render as live UI:
@@ -43,10 +35,6 @@ render as live UI:
 - `Help me clear the pending queue`
 - `Which products are running low, and who supplies them?`
 
-The generated UIs are fully working: forms validate and submit, buttons mutate
-the database through the domain tools, destructive actions ask for confirmation,
-and every widget bound to the same state moves together.
-
 ## What you still write
 
 | You write | The model writes |
@@ -56,12 +44,10 @@ and every widget bound to the same state moves together.
 | The **tools** — a typed description of that API. | The calls themselves, inside expressions. |
 | The **catalog** — your design system as [def/impl pairs](/def). | The composition: what goes in what, with which props. |
 
-Everything on the left you would have written anyway.
-
 ## The tools are your own API
 
-A tool is not a second backend. Each is a few lines over the same REST endpoint
-a hand-written front end would have called:
+Each tool is a few lines over the REST endpoint a hand-written front end would
+call:
 
 ```ts filename="src/tools/products.ts"
 export const listProducts = standardTool({
@@ -73,22 +59,15 @@ export const listProducts = standardTool({
 });
 ```
 
-The schemas live in `src/db/zod.ts`. The route validates its query string with
-the same `productListInput`, so the input the model reads and the input the API
-checks are one declaration. A list tool takes filters, a sort and a window, and
-returns one page of rows with the total.
-
-Twenty-four of these cover the demo: `list` / `get` / `create` / `update` /
-`delete` for **suppliers**, **products**, **customers** and **orders**, `list` /
-`create` for the **stock ledger** (a movement adjusts the product's stock in the
-same transaction), and two summaries, sales and stock. That is everything the
-model is given.
+The route validates its query string with the same `productListInput` (from
+`src/db/zod.ts`), so the model and the API share one declaration. List tools
+take filters, a sort and a window, and return one page of rows with the total.
 
 ## The model gets the domain, not the platform
 
-The demo's database also holds `users`, `sessions`, `pages`,
-`component_entries`, `chats` and `chat_messages` — the app's own tables. They have endpoints, and are deliberately
-**left out** of the tool set:
+The app's own tables (`users`, `sessions`, `pages`, `component_entries`,
+`chats`, `chat_messages`) have endpoints too, but are **left out** of the tool
+set:
 
 ```ts filename="src/tools/index.ts"
 // Page and entry endpoints are excluded: the page system is not the model's to mutate.
@@ -103,21 +82,16 @@ export const domainTools: StandardToolV0[] = [
 ```
 
 A generated page can create an order. It cannot create a page, edit another
-page's entries, or read the chat history — not because a rule forbids it, but
-because those functions were never handed to it. The tool list is the
-boundary — and ownership is the second one: the same tools called from someone
-else's page read that owner's data and are refused writes by the server.
+page's entries or read the chat history: it was never given those functions.
+Ownership is a second boundary: on someone else's page, the same tools read
+that owner's data and the server refuses writes.
 
 ## A saved page is rows, not code
 
 Generation streams [entries](/entry) into `component_entries`, one row per line,
-keyed by page. Serving that page later is a query and a mount — no build step,
-no deploy, no file written. Editing it is another generation appended to the
-same page, using [partial replacement](/entry#key) to re-emit only the
-keys that changed.
-
-The demo carries the same amount of front-end code whether it has three pages
-or three hundred: none.
+keyed by page. Serving the page later is a query and a mount, with no build or
+deploy. An edit is another generation on the same page that re-emits only the
+changed keys ([partial replacement](/entry#key)).
 
 ## Layout
 
@@ -134,23 +108,17 @@ packages/nextjs-demo
 └── src/app/u/[slug]     a user's public index, pages and chats
 ```
 
-Postgres through Drizzle and `pg` — one connection string for the local
-docker-compose database and for Neon. Every domain row carries a `userId`;
-reads take the owner from the URL (`?u=<slug>`), writes take it from the
-session, and that difference is the whole read-only mechanism.
+Every domain row carries a `userId`: reads take the owner from the URL
+(`?u=<slug>`), writes from the session, and that difference is the whole
+read-only mechanism.
 
-Generation is streamed to the browser as described in
-[Streaming](/streaming), with the prompt assembled from `defs` and
-`domainTools` — see [Assembling the prompt](/prompt).
+Generation streams as described in [Streaming](/streaming), with the prompt
+assembled from `defs` and `domainTools` (see [Assembling the prompt](/prompt)).
 
 ## Where the pattern stops
 
-It is a pattern, not a law. A screen with a hard visual contract — a marketing
-page, a print-precise invoice, a chart with hand-tuned axes — is faster to write
-than to describe, and nothing here prevents writing it. The pattern pays off on
-the long tail: the fortieth admin view, the one-off report, the filter somebody
-needs on Tuesday.
-
-The lever is the catalog. A generated screen can only be as good as the
-components it is composing, which is why [component definitions](/def) are where
-the effort goes once the API exists.
+A screen with a strict visual contract, such as a marketing page, a print-exact
+invoice or a chart with hand-tuned axes, is faster to write than to describe,
+and nothing here prevents writing it. A generated screen is only as good as the
+components it composes, so once the API exists, the effort goes into
+[component definitions](/def).

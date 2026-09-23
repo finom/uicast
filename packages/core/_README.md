@@ -1,8 +1,6 @@
 # uicast
 
-LLM-generated UIs rendered from a stream of JSONLines, composed from a
-pre-built component catalog — with real client-side logic written by the model
-as guarded JavaScript expressions — an allow-listed evaluator, not a sandbox.
+LLM-generated UIs composed from a pre-built component catalog — with real client-side logic written by the model as guarded JavaScript expressions — an allow-listed evaluator, not a sandbox.
 
 This package is the **framework-agnostic engine**: the component entry format,
 the Evaluator expression guardrail, reactive proxy scopes, classified errors

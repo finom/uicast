@@ -1,7 +1,7 @@
 import Image from "next/image";
 
 const ALT =
-  "A pipeline: your components and functions merge into one prompt, a model streams entries as JSON lines, and the entries render into a complete app built from those same components.";
+  "A pipeline: your components and functions merge into one prompt, a model streams entries, and the entries render into a complete app built from those same components.";
 
 // An <img>-loaded SVG cannot inherit page colors, so the theme swap is by class.
 export function HeroIllustration() {
