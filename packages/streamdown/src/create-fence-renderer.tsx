@@ -7,6 +7,8 @@ import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
 
 export type FenceRendererOptions = {
   showSourceToggle?: boolean;
+  // Render blocks in a server pass too: their seeds run and host functions are called on the server.
+  ssr?: boolean;
 };
 
 // Chat hosts often wrap blocks in overflow:hidden; 1px keeps focus rings from being clipped.
@@ -45,17 +47,17 @@ function toggleButtonStyle(active: boolean): CSSProperties {
 
 // Call once per option set and reuse: a fresh component type per render remounts every block.
 export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
-  const { showSourceToggle } = options;
+  const { showSourceToggle, ssr } = options;
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
     const cacheRef = useRef<Map<string, ComponentEntry> | null>(null);
     if (!cacheRef.current) cacheRef.current = new Map();
     const cache = cacheRef.current;
     const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
     const [view, setView] = useState<"rendered" | "source">("rendered");
-    // Tools fetch with browser-relative URLs, so nothing runs during SSR.
+    // Tools usually fetch browser-relative URLs, so nothing runs in a server pass unless `ssr` is set.
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
-    const rendered = mounted ? <EntriesRenderer entries={entries} /> : null;
+    const rendered = mounted || ssr ? <EntriesRenderer entries={entries} /> : null;
     // No toggle row above nothing; a finished garbage-only fence still gets the Source view.
     if (!showSourceToggle || (entries.length === 0 && isIncomplete)) {
       return <div style={blockStyle}>{rendered}</div>;

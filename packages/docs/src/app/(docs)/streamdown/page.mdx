@@ -39,6 +39,8 @@ function createFenceRenderer(options?: FenceRendererOptions): CustomRenderer;
 type FenceRendererOptions = {
   /** Show a Rendered/Source switcher above each block. Default false. */
   showSourceToggle?: boolean;
+  /** Render blocks in a server pass too. Default false. */
+  ssr?: boolean;
 };
 ```
 
@@ -87,14 +89,19 @@ element `root` — keys are per-fence, only state is shared.
 seeded it. That repeat is deliberate: it is what lets any block be saved as a
 standalone page.
 
-**Blocks render after hydration, never during SSR**, so a server-rendered chat
-page shows an empty fence until the browser takes over.
+**Blocks render after hydration**, so a server-rendered chat page shows an empty
+fence until the browser takes over, unless [`ssr`](#ssr) is on.
 
 ## `showSourceToggle`
 
 With `showSourceToggle: true`, each block gets a **Rendered / Source** switcher.
 The block stays mounted while Source is shown, so switching back does not reset
 its state. Off by default — a development aid, not something end users need.
+
+## `ssr`
+
+With `ssr: true`, blocks also render in a server pass: their seeds run and host
+functions are called on the server, so those must work there. Off by default.
 
 ## Wrappers that forward `plugins`
 

@@ -9,7 +9,7 @@ import {
 	createComponentImplementation,
 	RendererProvider,
 } from "@uicast/react";
-import { createFenceRenderer } from "../create-fence-renderer";
+import { createFenceRenderer, type FenceRendererOptions } from "../create-fence-renderer";
 import { FENCE_LANGUAGE } from "../parse-fence-code";
 
 const boxDef = createComponentDefinition({
@@ -271,16 +271,16 @@ describe("createFenceRenderer — source toggle", () => {
 });
 
 describe("createFenceRenderer — client-only gate", () => {
-	it("renders no entries and runs no seeds during SSR; the client mount seeds once", () => {
-		const Fence = createFenceRenderer().component;
-		let calls = 0;
+	function setup(options?: FenceRendererOptions) {
+		const Fence = createFenceRenderer(options).component;
+		const counter = { calls: 0 };
 		const functions: StandardToolV0[] = [
 			{
 				name: "track",
 				description: "",
 				execute() {
-					calls += 1;
-					return calls;
+					counter.calls += 1;
+					return counter.calls;
 				},
 			},
 		];
@@ -296,13 +296,26 @@ describe("createFenceRenderer — client-only gate", () => {
 				<Fence code={code} isIncomplete={false} language={FENCE_LANGUAGE} />
 			</Host>
 		);
+		return { counter, at };
+	}
+
+	it("renders no entries and runs no seeds during SSR; the client mount seeds once", () => {
+		const { counter, at } = setup();
 
 		const html = renderToString(at());
-		expect(calls).toBe(0);
+		expect(counter.calls).toBe(0);
 		expect(html).not.toContain("seeded");
 
 		const { container } = render(at());
-		expect(calls).toBe(1);
+		expect(counter.calls).toBe(1);
 		expect(container.textContent).toContain("seeded 1");
+	});
+
+	it("with `ssr: true`, renders and seeds in the server pass", () => {
+		const { counter, at } = setup({ ssr: true });
+
+		const html = renderToString(at());
+		expect(counter.calls).toBe(1);
+		expect(html).toContain("seeded 1");
 	});
 });
