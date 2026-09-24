@@ -17,26 +17,28 @@ export const BadgeImpl = createComponentImplementation({
 });
 ```
 
-`createComponentImplementation` takes the `def` and a `render` function and
-returns `{ def, skeleton }`, the object you register. The renderer accepts
-only objects this function made; a copy or a hand-built object throws at
-`<RendererProvider>`.
+`createComponentImplementation` returns the implementation to pass to
+[`<RendererProvider>`](/react/renderer). An optional third field,
+[`skeleton`](#skeleton), draws the component while it waits for data or
+children.
 
 ## The render function
 
-`render` gets two arguments. The first is typed from the def:
+`render` gets two arguments. The first is one object, typed from the def, with
+every prop, every callback and `children` side by side
+(`{ text, variant, onClick, children }{:ts}`):
 
-- **props**, already resolved: the engine evaluates the entry's
+- **Each prop**, already resolved: the engine evaluates the entry's
   [`props`](/entry#props) and parses the result through the def's schema, so
-  every `.default()` is applied.
+  every `.default(){:ts}` is applied.
 
   ```jsonc
   { "key": "total", "component": "Typography", "props": { "expr": "({ text: 'Open: ' + scopes.root.open })" } }
   // render receives { text: "Open: 3" }
   // …and is called again with "Open: 4" the moment something writes scopes.root.open
   ```
-- **callbacks**, one `(payload) => Promise<void>` per key in the def's
-  `callbacks`, present even if the entry wired none. Calling one parses the
+- **Each callback**, a `(payload) => Promise<void>{:ts}` under its key in the
+  def's `callbacks`, present even if the entry wired none. Calling one parses the
   payload through its schema and runs the entry's
   [callback steps](/entry#callbacks) with it as `evt`.
 - **`children`**, the rendered child elements, present only when the entry has
@@ -45,12 +47,12 @@ only objects this function made; a copy or a hand-built object throws at
 
 The second is the **render context**:
 
-- **`entry`**, the entry being rendered. `entry.key` is yours to use; the engine
-  never reads it back.
+- **`entry`**, the entry being rendered, unevaluated.
 - **`loading`**, the entry's [`loading`](/entry#loading) expression, evaluated.
-  A component that shows data renders busy while it is true; controls ignore it.
+  What to show while it is `true{:ts}` is up to the implementation, such as a
+  busy state.
 - **`scopes`**, the scopes the entry's expressions read: `scopes.root` and the
-  item scope of an enclosing list. Read-only here; state changes go through
+  item scope of an enclosing list. It is for debugging; state changes go through
   callbacks.
 
 ```tsx filename="src/uicast-catalog/search-input/impl.tsx"
@@ -75,19 +77,19 @@ Build each payload from the React event by hand, with exactly the fields its
 ## Skeleton
 
 An optional `skeleton` draws a component while something is missing. It gets
-the `entry` and a `reason`:
+four props: `reason`, `entry`, `knownProps` and `children`. `reason` says what
+is missing:
 
-- `"streaming"`: a child entry has not arrived yet. The **parent's** skeleton
+- `"streaming"{:ts}`: a child entry has not arrived yet. The **parent's** skeleton
   fills the slot, with the parent's `entry`, since the child's component is not
   known yet. It gets no `children`.
-- `"seeding"`: the element's own `seed` is waiting on an async host function.
+- `"seeding"{:ts}`: the element's own `seed` is waiting on an async host function.
   The element and everything under it draw as skeletons, as
   [`DocumentSkeleton`](/react/ssr#document-skeleton) draws them: each skeleton
   gets `children` (its children's skeletons, or `null`) and draws its own tag,
   a list draws three items, and an element under it with `hidden` is left out.
-  A pending group
-  [`init`](/react/renderer#init--preload-state-for-the-group) draws the whole
-  document this way.
+  While [`init`](/react/renderer#init--preload-state-for-the-group) loads, the
+  whole document draws this way.
 
 `knownProps` holds the props that need no evaluation, a literal or none,
 checked by the definition with its defaults filled in, as `render`'s are. It is
@@ -127,24 +129,21 @@ updating both.
 
 ## Props the document controls
 
-Every prop comes from a document a model wrote, and the implementation is the
-last code between it and the DOM. The [evaluator](/expr) checks the expression,
-not what your JSX does with the result. Three rules:
+A model wrote every prop your implementation gets. The [evaluator](/expr) checks
+expressions, not what your JSX does with their results. Follow three rules:
 
-- **URLs go through declared URL props.** Never render a plain string prop into
-  `src`, `href` or `poster`. Declare the prop as a URL in the
-  [definition](/def) (`z.url()`), and the renderer's
+- **Put URLs only in URL props.** Declare the prop as a URL in the
+  [definition](/def) (`z.url(){:ts}`), and
   [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) checks
-  it before `render` runs. A URL built from an ordinary string prop skips that
-  check.
-- **No document strings in script-capable sinks.** `dangerouslySetInnerHTML`,
-  `<style>` text, `srcDoc` and `on*` attribute strings can carry script, and a
-  raw CSS string can send data out through `url(...)`. A style object with
-  fixed keys is fine (`style={{ width: props.width }}`); a whole CSS or HTML
-  string from the document is not.
-- **Event payloads are plain fields, never the event.** The membrane refuses
-  live objects as a backstop, but the contract is yours: everything that enters
-  a scope is plain, JSON-shaped data.
+  it before `render` runs. A plain string prop in `src`, `href` or `poster` is
+  checked by nothing.
+- **Never put document text where it can run.** `dangerouslySetInnerHTML`,
+  `<style>` contents, `srcDoc` and `on*` attributes can run script. A CSS string
+  can leak data through `url(...){:css}`. A style object with fixed keys is fine:
+  `style={{ width: props.width }}{:tsx}`. A whole CSS or HTML string from the
+  document is not.
+- **Send plain data from callbacks, never the event.** Everything that goes into
+  a scope must be JSON-shaped.
 
-The reference catalog follows all three. The [security model](/security) holds
-end to end only if your own implementations do too.
+The [reference catalog](/react/reference-catalog) follows all three. The
+[security model](/security) holds only if your implementations do too.

@@ -91,7 +91,7 @@ back keeps its state.
 
 ## `ssr`
 
-With `ssr: true`, seeds run and host functions are called in the server pass,
+With `ssr: true{:ts}`, seeds run and host functions are called in the server pass,
 so those functions must work on the server; see
 [Server rendering](/react/ssr#two-sets-of-tools).
 
@@ -109,7 +109,7 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 
 ## The prompt side
 
-`getFencePartialPrompt()` from `@uicast/streamdown/prompt` teaches the model the
+`getFencePartialPrompt(){:ts}` from `@uicast/streamdown/prompt` teaches the model the
 [fence](/prompt#chat-surfaces) and the rules above. Partial replacement works
 only within one fence. Compose it after the core partials; see
 [Assembling the prompt](/prompt).

@@ -35,8 +35,8 @@ interface ComponentEntry {
 ## Structure
 
 ### `key`
-**Required.** A unique id, in **kebab-case** (`"user-card"`, never
-`"userCard"`). Parents name children by it, and re-emitting a `key`
+**Required.** A unique id, in **kebab-case** (`"user-card"{:ts}`, never
+`"userCard"{:ts}`). Parents name children by it, and re-emitting a `key`
 [replaces that subtree](#partial-replacement) in place.
 
 ```jsonc
@@ -146,7 +146,7 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
   ```
 
   `tz` and `users` run in parallel. `selected` reads what `users` writes, so it
-  waits for `getUsers()`. See [lifecycle](/entry/state#lifecycle).
+  waits for `getUsers(){:ts}`. See [lifecycle](/entry/state#lifecycle).
 
 ### `callbacks`
 A map from event name to an ordered list of

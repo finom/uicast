@@ -58,7 +58,7 @@ interaction is a custom event. Its prompt:
 </Cards>
 
 A color picker from custom field, swatch and preview components. Picking emits
-a `{ hex, h, s, l }` payload. Its prompt:
+a `{ hex, h, s, l }{:ts}` payload. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{colorPrompt}</blockquote>
 
@@ -73,7 +73,7 @@ a `{ hex, h, s, l }` payload. Its prompt:
   />
 </Cards>
 
-A node canvas from one custom component. Dragging emits `{ id, x, y }`; wiring
-two nodes emits `{ from, to }`. Its prompt:
+A node canvas from one custom component. Dragging emits `{ id, x, y }{:ts}`; wiring
+two nodes emits `{ from, to }{:ts}`. Its prompt:
 
 <blockquote className="mt-4 whitespace-pre-wrap border-s-2 border-gray-300 ps-4 text-gray-600 italic dark:border-gray-700 dark:text-gray-400">{boardPrompt}</blockquote>

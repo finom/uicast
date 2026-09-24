@@ -41,7 +41,7 @@ Under `Evaluator` the call itself is checked, so both lines are refused. Three
 rules do most of the work:
 
 - **Own properties only.** Nothing inherited is readable, so
-  `({}).constructor` is `undefined`. No deny-list is needed.
+  `({}).constructor{:ts}` is `undefined`. No deny-list is needed.
 - **Only data is readable.** Objects, arrays, primitives, a short list of
   built-ins. A class instance, a DOM node or a function fails on the first
   read, so a real `MouseEvent` in scope cannot leak `evt.target.ownerDocument`.
@@ -85,7 +85,7 @@ validation.
 | | |
 | --- | --- |
 | Values | numbers, strings, booleans, `null`, template literals |
-| Access | `a.b`, `a[b]`, `a?.b`, `a?.[b]` (optional *receiver*, not `a?.()`) |
+| Access | `a.b`, `a[b]{:ts}`, `a?.b{:ts}`, `a?.[b]{:ts}` (optional *receiver*, not `a?.(){:ts}`) |
 | Calls | methods, host functions |
 | Operators | arithmetic, comparison, `===`/`==`, `&&`, `\|\|`, `??`, `!`, `-`, `+`, `typeof`, `? :` |
 | Literals | arrays and objects, with spread and computed keys |
@@ -97,28 +97,28 @@ Left out on purpose:
   blocks or `function`. A runaway loop cannot be written, and with nothing
   named, nothing can recurse.
 - **Assignment, `++`, `delete`, mutating methods.** Expressions are **pure by
-  construction**: only a step's `set` changes state. Use `.toSorted()` and
-  `.toReversed()` instead of `.sort()` and `.reverse()`.
+  construction**: only a step's `set` changes state. Use `.toSorted(){:ts}` and
+  `.toReversed(){:ts}` instead of `.sort(){:ts}` and `.reverse(){:ts}`.
 - **Regular expressions.** Catastrophic backtracking runs outside the budget.
-  Use `.includes()`, `.startsWith()`, `.split()` or `.replaceAll()`.
+  Use `.includes(){:ts}`, `.startsWith(){:ts}`, `.split(){:ts}` or `.replaceAll(){:ts}`.
 - **Functions as values.** An arrow is only a method's callback, as in
-  `rows.map(r => r.name)`: never stored, returned or called. A global that
-  takes one argument can replace it: `rows.filter(Boolean)`.
+  `rows.map(r => r.name){:ts}`: never stored, returned or called. A global that
+  takes one argument can replace it: `rows.filter(Boolean){:ts}`.
 - **`await`.** The runtime awaits a host call, so the call must be the result:
   the whole expression, a branch of `?:`, or the right side of `??`, `||`,
-  `&&`. `getUser({ id }).name` and `ids.map(id => getUser({ id }))` are
+  `&&`. `getUser({ id }).name{:ts}` and `ids.map(id => getUser({ id })){:ts}` are
   refused before any call runs.
 - **`Intl`.** The locale methods still take a locale and options:
-  `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`.
+  `price.toLocaleString(undefined, { style: "currency", currency: "USD" }){:ts}`.
 - **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
-  an ISO string or a timestamp from `Date.parse(text)` or `Date.now()`; format
+  an ISO string or a timestamp from `Date.parse(text){:ts}` or `Date.now(){:ts}`; format
   it in a component (see
   [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time)).
   An object does a `Map`'s job, and
-  `Object.keys(Object.groupBy(rows, r => r.tag))` lists distinct tags.
+  `Object.keys(Object.groupBy(rows, r => r.tag)){:ts}` lists distinct tags.
 - **`forEach`, iterators.** Callbacks have no effects, and functions are not
   values.
-- **`in`, bitwise operators, `x?.()`, `instanceof`, tagged templates, `this`.**
+- **`in`, bitwise operators, `x?.(){:ts}`, `instanceof`, tagged templates, `this`.**
   None shapes a display value.
 
 A callback body is one expression too, never a block:
@@ -132,7 +132,7 @@ scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green" } })
 ```
 
 Expressions are also **stateless**: no `Math.random` (a random value comes
-from a host function) and nowhere to keep a counter. `Date.now()` changes on
+from a host function) and nowhere to keep a counter. `Date.now(){:ts}` changes on
 every re-evaluation, so take it once in a step and read it back:
 
 ```jsonc
@@ -144,7 +144,7 @@ every re-evaluation, so take it once in a step and read it back:
   "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
 ```
 
-`getExpressionsPartialPrompt()` gives the model these rules and the globals,
+`getExpressionsPartialPrompt(){:ts}` gives the model these rules and the globals,
 filled from the evaluator's own tables.
 
 <Callout type="default">
@@ -162,7 +162,7 @@ iteration is charged:
   body's node count, a call costs its work (a sort about n·log n steps);
 - a **wall-clock deadline** (100 ms), on a clock the expression cannot read or
   move;
-- **allocation caps**, so `"x".repeat(1e9)` is refused, not attempted;
+- **allocation caps**, so `"x".repeat(1e9){:ts}` is refused, not attempted;
 - an **AST depth limit**, so nested source cannot overflow the compiler;
 - a **source-length limit** (`maxSourceLength`, 1000 characters by default),
   checked before parsing. The prompt states it to the model.
@@ -181,18 +181,18 @@ A rejection is a classified
 
 | expression | reason |
 | --- | --- |
-| `if (scopes.root.n) 1` | `expression-syntax` — a statement, not an expression |
-| `scopes.root.count = 1` | `guardrail-violation` — assignment is not in the language |
-| `scopes.root.rows["so" + "rt"]()` | `guardrail-violation` — checked at the call, computed or not |
-| `fetchProducts()` | `unknown-reference` — a name nobody handed in |
+| `if (scopes.root.n) 1{:ts}` | `expression-syntax` — a statement, not an expression |
+| `scopes.root.count = 1{:ts}` | `guardrail-violation` — assignment is not in the language |
+| `scopes.root.rows["so" + "rt"](){:ts}` | `guardrail-violation` — checked at the call, computed or not |
+| `fetchProducts(){:ts}` | `unknown-reference` — a name nobody handed in |
 
 ## Performance
 
-Measured with `npx vitest bench --run --root packages/expr`:
+Measured with `npx vitest bench --run --root packages/expr{:bash}`:
 
 | expression | in a document | `Evaluator` |
 | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~80 ns |
+| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~80 ns |
 | `scopes.root.user.name` | any scope read | ~115 ns |
 | template, two interpolations | a text prop | ~255 ns |
 | object literal from scope | every `props.expr` | ~260 ns |
@@ -215,7 +215,7 @@ then with the CPU slowed 6× and 12×:
 | search keystroke over 1,000 orders | 1.1 ms | 7.1 ms | 16 ms |
 | the same over 10,000 orders | 9.8 ms | 60 ms | 123 ms |
 | kanban board, 300 cards | 0.2 ms | 3.5 ms | 3.5 ms |
-| join 1,000 orders to 200 customers with `find()` per order | 5.2 ms | 33 ms | 68 ms |
+| join 1,000 orders to 200 customers with `find(){:ts}` per order | 5.2 ms | 33 ms | 68 ms |
 
 A frame is 16 ms. Two kinds of work belong in a host function: the whole
 table in the browser, and a search per row.
@@ -227,7 +227,7 @@ construction; `window`, `fetch` and everything else are out of reach. The
 interpreter secures the language, not these:
 
 - **Host functions are capabilities.** A callback can call any function you
-  bound, with any input its schema accepts: `deleteProduct({ id: 42 })` deletes
+  bound, with any input its schema accepts: `deleteProduct({ id: 42 }){:ts}` deletes
   product 42. Keep `functions` narrow and authorize on the server.
 - **Props that reach the DOM.** The browser may fetch a URL a document
   controls on render. The renderer's
@@ -249,14 +249,14 @@ runtime tables and the README's language section equal to it.
 - **Against JavaScript.** `corpus.test.ts` runs each expression in `Evaluator`
   and as plain JavaScript; both must return the same value or both throw
   (*differential testing*). The likely bug is not an escape but a drift from
-  JavaScript (`"" == 0`, `-0`, coercion order). `baseline.test.ts` repeats the
+  JavaScript (`"" == 0{:ts}`, `-0{:ts}`, coercion order). `baseline.test.ts` repeats the
   corpus on an ES2022 engine with newer built-ins deleted.
 - **Against known attacks.** `attacks.test.ts` asserts that known escapes
   reach nothing: `constructor` through a computed key, prototype pollution,
   allocation bombs, recursion tricks, a live object in scope.
 - **Through the engine.** `hooks.test.ts` runs the corpus through a
   `new Function` subclass and pins what it gives up:
-  `"abc"["sub" + "str"](1)` returns `"bc"`.
+  `"abc"["sub" + "str"](1){:ts}` returns `"bc"{:ts}`.
 - **Other controls.** `exit-gate.test.ts` (only plain data leaves),
   `host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
   (null-prototype tables), `prices.test.ts` (step prices).
@@ -265,6 +265,5 @@ runtime tables and the README's language section equal to it.
   Any evaluator of untrusted expressions can have implementation bugs. A
   grammar small enough to review, tested differentially and adversarially,
   bounds that risk; it does not remove it. `Evaluator` closes the computed-key
-  class and needs no `unsafe-eval`; a [custom evaluator](/expr/custom-expr)
-  that runs expressions through the engine gives up both.
+  class and needs no `unsafe-eval`.
 </Callout>

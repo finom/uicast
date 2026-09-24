@@ -18,11 +18,11 @@ See [Core concepts](/concepts).
 
 | Export | What it does |
 |---|---|
-| `createComponentDefinition(def)` | Builds a [component definition](/def). |
-| `createProxyScope(initial?)` | One reactive [scope](/entry/state): a shallow proxy over its fields. A write emits the field. |
-| `buildElementsByKey(entries)` | Folds entries into a `key → entry` map, applying [partial replacement](/entry#partial-replacement). |
-| `streamJsonLines<T>(source)` | Async generator over a byte or string stream. Yields each line that parses as JSON; skips prose and partial lines. |
-| `isComponentEntry(value)` | Runtime guard: is this parsed JSON an entry? |
+| `createComponentDefinition(def){:ts}` | Builds a [component definition](/def). |
+| `createProxyScope(initial?){:ts}` | One reactive [scope](/entry/state): a shallow proxy over its fields. A write emits the field. |
+| `buildElementsByKey(entries){:ts}` | Folds entries into a `key → entry` map, applying [partial replacement](/entry#partial-replacement). |
+| `streamJsonLines<T>(source){:ts}` | Async generator over a byte or string stream. Yields each line that parses as JSON; skips prose and partial lines. |
+| `isComponentEntry(value){:ts}` | Runtime guard: is this parsed JSON an entry? |
 | `EntryError` | The classified error every fault arrives as. See [Error recovery](/error-recovery). |
 
 Types: `ComponentEntry`, `ComponentListEntry`, `ComponentDefinition`,
@@ -40,13 +40,13 @@ The [prompt-partial builders](/prompt). Each takes one options object.
 
 | Export | Emits |
 |---|---|
-| `getCommonInstructionsPartialPrompt({ maxListItems?, note? })` | The output contract (entries, keys, partial replacement) and the names an [expression](/expr) can see: `scopes`, `evt`, `currentValue`. The language itself is `getExpressionsPartialPrompt()`; use both. |
-| `getScopePartialPrompt({ kind, approxElements?, note? })` | How much to build on this surface. |
-| `getComponentsPartialPrompt({ definitions, note? })` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events`. |
-| `getExpressionsPartialPrompt({ maxLength?, note? })` | The `# JavaScript Expressions` block: syntax, methods, globals and the length limit, filled from [`@uicast/expr`](#uicastexpr)'s own tables. |
-| `getFunctionsPartialPrompt({ functions, note? })` | Call signatures, from your [host functions](/expr/functions). |
-| `getEditRequestPrompt({ request, missingKeys? })` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |
-| `getErrorRecoveryPrompt({ failures })` | A user-turn message naming the elements that failed. |
+| `getCommonInstructionsPartialPrompt({ maxListItems?, note? }){:ts}` | The output contract (entries, keys, partial replacement) and the names an [expression](/expr) can see: `scopes`, `evt`, `currentValue`. The language itself is `getExpressionsPartialPrompt(){:ts}`; use both. |
+| `getScopePartialPrompt({ kind, approxElements?, note? }){:ts}` | How much to build on this surface. |
+| `getComponentsPartialPrompt({ definitions, urlPolicy?, note? }){:ts}` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events`. With a URL prop listed, `# URL Props` says what [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) loads; pass the renderer's. |
+| `getExpressionsPartialPrompt({ maxLength?, note? }){:ts}` | The `# JavaScript Expressions` block: syntax, methods, globals and the length limit, filled from [`@uicast/expr`](#uicastexpr)'s own tables. |
+| `getFunctionsPartialPrompt({ functions, note? }){:ts}` | Call signatures, from your [host functions](/expr/functions). |
+| `getEditRequestPrompt({ request, missingKeys? }){:ts}` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |
+| `getErrorRecoveryPrompt({ failures }){:ts}` | A user-turn message naming the elements that failed. |
 
 Types: one options type per builder (`ComponentsPromptOptions`,
 `ScopePromptOptions`, …) and `RenderFailure`. `note?` is host text, rendered
@@ -79,7 +79,7 @@ Re-exports nothing from core — import from both.
 | `<RendererProvider>` | Holds the implementations, the evaluator (with host functions bound), fallback UI and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
 | `<DocumentSkeleton entries>` | The document's shape from the entries alone, drawn with the provider's implementations and `fallbackComponents.defaultSkeleton`. Evaluates nothing, so it renders in a server pass. See [Server rendering](/react/ssr#document-skeleton). |
-| `createComponentImplementation({ def, render, skeleton? })` | The React half of a component pair: `{ def, skeleton }`, to register. See [impl](/react). |
+| `createComponentImplementation({ def, render, skeleton? }){:ts}` | The React half of a component pair: `{ def, skeleton }{:ts}`, to register. See [impl](/react). |
 
 Types: `ComponentImplementation`, `RenderContext`, `RendererProviderProps`,
 `EntriesRendererProps`, `FallbackComponents`, `SkeletonComponentProps`,
@@ -95,7 +95,7 @@ A reference catalog, usable as is. See
 | `@uicast/shadcn-catalog/all/defs` | Every definition by name (`CardDef`, `ButtonDef`, …), and all of them as one array, `defs`, for `getComponentsPartialPrompt`. |
 | `@uicast/shadcn-catalog/all/impls` | Every implementation by name (`CardImpl`, …), and all of them as one array, `impls`, for `<RendererProvider>`. |
 | `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | The same, one group each: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`. See [Reference catalog](/react/reference-catalog#groups). |
-| `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | 30 of the 128, enough to build a page, at about a quarter of the prompt text. |
+| `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | 30 common components from every group. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema`: shared payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
 | `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
 | `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
@@ -110,7 +110,7 @@ See [Streamdown plugin](/streamdown).
 
 | Export | What it does |
 |---|---|
-| `createFenceRenderer(options?)` | The Streamdown renderer for `uicast` fences. Call once and reuse. |
+| `createFenceRenderer(options?){:ts}` | The Streamdown renderer for `uicast` fences. Call once and reuse. |
 
 Types: `FenceRendererOptions`.
 
@@ -118,6 +118,6 @@ Types: `FenceRendererOptions`.
 
 | Export | Emits |
 |---|---|
-| `getFencePartialPrompt({ note? })` | The fence syntax and shared-state rules. |
+| `getFencePartialPrompt({ note? }){:ts}` | The fence syntax and shared-state rules. |
 
 Types: `FencePromptOptions`.

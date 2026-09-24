@@ -10,7 +10,7 @@ the client.
 
 ## Anatomy of a host function
 
-Build one with `standardTool({...})`:
+Build one with `standardTool({...}){:ts}`:
 
 ```tsx
 import { standardTool } from "standard-tool";
@@ -36,9 +36,9 @@ const suggestPalette = standardTool({
 - **`outputSchema`** *(optional)*: the same for the return value. Omitted
   means *undeclared*, not *returns nothing*: see
   [Undeclared returns](#undeclared-returns).
-- **`execute(input)`**: your logic, sync or async. See [Errors](#errors).
+- **`execute(input){:ts}`**: your logic, sync or async. See [Errors](#errors).
 
-Schemas are `StandardSchemaV1 & StandardJSONSchemaV1`: Zod 4.2+, Valibot and
+Schemas are `StandardSchemaV1 & StandardJSONSchemaV1{:ts}`: Zod 4.2+, Valibot and
 ArkType qualify.
 
 ### Errors
@@ -91,12 +91,12 @@ deleteProduct({ id: scopes.row.id })   // ✅ inputSchema: z.object({ id: … })
 deleteProduct(scopes.row.id)           // ❌ same tool, wrong shape
 ```
 
-A scalar schema works too: with `inputSchema: z.string()` the call is
-`deleteProduct(scopes.row.id)`. An object gives each field a name and a
+A scalar schema works too: with `inputSchema: z.string(){:ts}` the call is
+`deleteProduct(scopes.row.id){:ts}`. An object gives each field a name and a
 description the model can read.
 
-`listProducts()` passes `undefined`, which a bare `z.object` rejects even when
-every field is optional. Declare the input as `schema.optional()` to allow the
+`listProducts(){:ts}` passes `undefined`, which a bare `z.object` rejects even when
+every field is optional. Declare the input as `schema.optional(){:ts}` to allow the
 zero-argument call.
 
 A tool named `scopes`, `evt` or `currentValue` would shadow the engine's own
@@ -178,8 +178,8 @@ standardTool({
 The prompt prints each field's bounds and defaults, and tells the model to
 fetch only the slice it renders, to refetch when the page or a filter changes,
 and never to filter or sort a fetched slice in an expression. Return the total
-with the rows: a pager needs `Math.ceil(total / limit)`. Put other totals in a
-function of their own, such as `getSalesSummary({ days })`.
+with the rows: a pager needs `Math.ceil(total / limit){:ts}`. Put other totals in a
+function of their own, such as `getSalesSummary({ days }){:ts}`.
 
 ## Advertising to the model
 
@@ -227,11 +227,11 @@ listProducts, deleteProduct
 
 A `title` prints before the description:
 `name(params) => output: title — description`. A field's comment carries its
-`.meta({ description })`, then what the type alone does not say: `integer`,
+`.meta({ description }){:ts}`, then what the type alone does not say: `integer`,
 bounds, lengths, a `format`, a `default`, as in
-`limit?: number /* integer, ≥ 1, ≤ 200, default 50 */`.
+`limit?: number /* integer, ≥ 1, ≤ 200, default 50 */{:ts}`.
 
-Never declare a schema for "nothing": `z.void()` has no JSON Schema form and
+Never declare a schema for "nothing": `z.void(){:ts}` has no JSON Schema form and
 throws.
 
 ## Undeclared returns
@@ -258,13 +258,13 @@ A step with **no `set`** is legal only in `callbacks`, so a function returning
 `unknown` has no place in a `seed`.
 
 `outputSchema` matters more here than in ordinary tool calling: the model
-writes `scopes.root.products[0].name` into an expression that runs later, on
+writes `scopes.root.products[0].name{:ts}` into an expression that runs later, on
 data it never sees.
 
 ## Shared types
 
 A schema with an id prints once, as a type, and is referenced by name
-everywhere else. In Zod, that is `.meta({ id })`:
+everywhere else. In Zod, that is `.meta({ id }){:ts}`:
 
 ```ts
 const Person = z
@@ -289,7 +289,7 @@ const Person = z
 - Node: { name?: string; children?: Node[] } — A folder or file.
 ```
 
-Without `.meta({ id })`, `Person` is inlined at both sites. A **recursive**
+Without `.meta({ id }){:ts}`, `Person` is inlined at both sites. A **recursive**
 type needs a name: inlined, its self-reference stops at the cycle guard and
 prints `unknown[]`, which says the tree is one level deep.
 

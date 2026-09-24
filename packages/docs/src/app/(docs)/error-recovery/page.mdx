@@ -129,26 +129,29 @@ The Recover button is host UI, since only the host knows how to reach its model:
 import type { ErrorComponentProps } from "@uicast/react";
 
 const fallbackComponents = {
-  error: ({ error, elementKey }: ErrorComponentProps) => (
-    <div role="alert">
-      {error.reason === "host-function"
-        ? "Couldn't reach the server."
-        : error.message}
-      {error.fault !== "environment" && elementKey && (
-        <button
-          onClick={() =>
-            sendRecoveryTurn({
-              key: elementKey,
-              message: error.message,
-              reason: error.reason,
-            })
-          }
-        >
-          Recover
-        </button>
-      )}
-    </div>
-  ),
+  error: ({ error }: ErrorComponentProps) => {
+    const key = error.elementKey;
+    return (
+      <div role="alert">
+        {error.reason === "host-function"
+          ? "Couldn't reach the server."
+          : error.message}
+        {error.fault !== "environment" && key && (
+          <button
+            onClick={() =>
+              sendRecoveryTurn({
+                key,
+                message: error.message,
+                reason: error.reason,
+              })
+            }
+          >
+            Recover
+          </button>
+        )}
+      </div>
+    );
+  },
 };
 ```
 
@@ -158,7 +161,7 @@ calls `sendMessage`. Offer Recover for every fault but `environment`; an
 
 ## 3. Self-healing
 
-With no person involved, `onError` sends each `"document"` fault as the same
+With no person involved, `onError` sends each `"document"{:ts}` fault as the same
 recovery turn:
 
 ```tsx

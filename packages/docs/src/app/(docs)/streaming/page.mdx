@@ -56,7 +56,7 @@ return createTextStreamResponse({
 ```
 
 `streamJsonLines<T>` yields every line that parses; `<T>` is an assertion, like
-`res.json() as T`, not a check. `isComponentEntry` keeps non-entries out of the
+`res.json() as T{:ts}`, not a check. `isComponentEntry` keeps non-entries out of the
 table: `key` and `component` must be strings, and `children`, if present, an
 array.
 
@@ -104,7 +104,7 @@ const { data: entries = [], isFetching } = useQuery({
 </RendererProvider>;
 ```
 
-`data` holds the entries received so far. `isFetching` stays `true` until the
+`data` holds the entries received so far. `isFetching` stays `true{:ts}` until the
 stream ends, so use it for the spinner.
 
 ## The half-arrived tree
@@ -115,7 +115,7 @@ stream ends, so use it for the spinner.
 {"key":"panel","component":"Card","props":{"literal":{"title":"Orders"}},"seed":[{"set":"scopes.root.open","expr":"countOpen()"}],"children":["stat"]}
 ```
 
-While `countOpen()` runs, the panel draws its [`skeleton`](/react#skeleton).
+While `countOpen(){:ts}` runs, the panel draws its [`skeleton`](/react#skeleton).
 Then the Card shows its "Orders" title, with the Card's skeleton standing in for
 `stat`: without one, `fallbackComponents.defaultSkeleton`, or nothing. The next
 line lands:
@@ -124,7 +124,7 @@ line lands:
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
 ```
 
-The Stat replaces the skeleton, and `countOpen()` does not run again: a
+The Stat replaces the skeleton, and `countOpen(){:ts}` does not run again: a
 [`seed`](/entry#seed) runs once. The tree is revealed, not rebuilt, and a
 document cut off at any line is still a valid document.
 

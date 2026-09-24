@@ -63,10 +63,10 @@ The same search box, with two steps:
 
 A user types `abc`:
 
-1. The impl calls `onChange({ value: "abc" })`.
-2. The engine binds `evt = { value: "abc" }` and plans the steps into
+1. The impl calls `onChange({ value: "abc" }){:ts}`.
+2. The engine binds `evt = { value: "abc" }{:ts}` and plans the steps into
    [dependency waves](/entry/reactivity).
-3. Step one writes `scopes.root.q = "abc"`.
+3. Step one writes `scopes.root.q = "abc"{:ts}`.
 4. Step two reads `q`, so it waits for that write, then writes the result of
    `searchTasks` to `scopes.root.results`.
 5. Every `props` or `each` expression that reads `q` or `results` re-evaluates.
@@ -105,7 +105,7 @@ write:
 { "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" }
 ```
 
-With `scopes.root.tags` seeded to `[]`, each event appends to it.
+With `scopes.root.tags` seeded to `[]{:ts}`, each event appends to it.
 
 **Confirm first**: [`confirm`](/entry/value-sources#callbackvaluesourceassignment)
 is a key on the step:
@@ -145,4 +145,4 @@ the last one.
 ] } }
 ```
 
-The host call is a barrier, so `busy` turns `false` only after the rows land.
+The host call is a barrier, so `busy` turns `false{:ts}` only after the rows land.

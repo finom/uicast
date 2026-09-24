@@ -61,9 +61,9 @@ takes none. `getComponentsPartialPrompt` turns the def above into:
 ```
 
 Describe every field with `.meta`, or it prints as a bare type.
-`.default("neutral")` makes `variant` optional and prints as `= "neutral"`.
+`.default("neutral"){:ts}` makes `variant` optional and prints as `= "neutral"`.
 Props are parsed through the schema before [`render`](/react) sees them, so an
-omitted `variant` arrives as `"neutral"`.
+omitted `variant` arrives as `"neutral"{:ts}`.
 
 An entry's [`props`](/entry#props) must produce that shape:
 
@@ -116,14 +116,14 @@ The model can then write:
   "callbacks": { "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }] } }
 ```
 
-A callback with no payload is `z.null()`, printed as a call with no argument:
+A callback with no payload is `z.null(){:ts}`, printed as a call with no argument:
 
 ```
   Event handlers:
     - onPress() — Fires when pressed
 ```
 
-The implementation calls it as `onPress()`.
+The implementation calls it as `onPress(){:ts}`.
 
 ### Shared events
 A payload many components fire, like `onClick`'s, would print under each one.
@@ -146,7 +146,7 @@ createComponentDefinition({
 ```
 
 `getComponentsPartialPrompt` finds the `$id` on its own, and each handler
-becomes one line, `onKeyDown(evt: KeyboardEvent)`:
+becomes one line, `onKeyDown(evt: KeyboardEvent){:ts}`:
 
 ```
 # Common Events
@@ -171,7 +171,7 @@ createComponentImplementation({
 ```
 
 ## `hidden` — keep a def out of the prompt
-`hidden: true` keeps a def out of the prompt; an entry that names it still
+`hidden: true{:ts}` keeps a def out of the prompt; an entry that names it still
 renders.
 
 ## Registration
@@ -194,5 +194,5 @@ getComponentsPartialPrompt({ definitions: [...defs, BadgeDef] });
 ```
 
 With only the def, the model emits a `Badge` that renders the
-[`error` slot](/error-recovery) with `reason: "unknown-component"`. With only
+[`error` slot](/error-recovery) with `reason: "unknown-component"{:ts}`. With only
 the impl, the model never learns the component exists.

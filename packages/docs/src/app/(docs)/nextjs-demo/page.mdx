@@ -23,7 +23,7 @@ npm run dev -w @uicast/nextjs-demo
 
 Copy `packages/nextjs-demo/.env.example` to `.env.local`. `DATABASE_URL` works
 as is with docker (use a Neon pooled string in production), and `APP_SECRET`
-encrypts stored OpenRouter keys (`openssl rand -base64 32`). `OPENROUTER_MODEL`
+encrypts stored OpenRouter keys (`openssl rand -base64 32{:bash}`). `OPENROUTER_MODEL`
 and `AI_MAX_OUTPUT_TOKENS` are optional. There is no site-wide model key.
 
 Then **Create page** for a full generated page, or **New chat** for answers that

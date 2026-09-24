@@ -111,7 +111,7 @@ Expressions can call **host functions**: the functions you register, each a
 schemas and `execute`. They are how a document reaches your backend.
 
 `getWeather` below is async (about 500 ms). Picking a city runs two steps: the
-first stores the city, the second calls `getWeather({ city: scopes.root.city })`.
+first stores the city, the second calls `getWeather({ city: scopes.root.city }){:ts}`.
 The second reads what the first wrote, so they run in order, and the result is
 written to state when it arrives.
 

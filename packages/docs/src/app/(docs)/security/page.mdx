@@ -29,9 +29,6 @@ replays in other people's browsers.
   [authoring contract](/react#props-the-document-controls)**: URLs through
   declared props, no document strings in script-capable sinks, picked event
   payloads.
-- **A custom evaluator is for trusted documents only.** An `Evaluator`
-  subclass that sets `toFunction` runs expressions with `new Function`, with no
-  membrane and no budget. See [Custom evaluator](/expr/custom-expr).
 - **The prompt helps; the evaluator decides.** The prompt tells the model to
   treat data as data and to refuse hostile requests, which makes bad output
   rare.

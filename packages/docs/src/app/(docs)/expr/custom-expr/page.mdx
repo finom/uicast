@@ -50,11 +50,11 @@ const evaluator = new FunctionEvaluator({ functions });
 expression and gets the arguments `new Function` takes. Steps 1, 2 and 4 stay;
 the engine runs step 3.
 
-Same expressions, measured with `npx vitest bench --run --root packages/expr`:
+Same expressions, measured with `npx vitest bench --run --root packages/expr{:bash}`:
 
 | expression | in a document | `Evaluator` | `FunctionEvaluator` |
 | --- | --- | --- | --- |
-| `scopes.root.count > 0` | a `hidden` condition | ~80 ns | ~29 ns |
+| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~80 ns | ~29 ns |
 | `scopes.root.user.name` | any scope read | ~115 ns | ~38 ns |
 | template, two interpolations | a text prop | ~255 ns | ~56 ns |
 | object literal from scope | every `props.expr` | ~260 ns | ~93 ns |
@@ -64,10 +64,10 @@ Same expressions, measured with `npx vitest bench --run --root packages/expr`:
 What it costs:
 
 - **No budget.** Nothing meters the engine; the `budget` option does nothing.
-  `"x".repeat(1e9)` runs.
+  `"x".repeat(1e9){:ts}` runs.
 - **No check at run time.** A name built at run time reaches whatever it names.
-  `"abc"["sub" + "str"](1)` returns `"bc"`, and
-  `[({}).constructor.constructor][0]("…")()` reaches `Function`, which runs
+  `"abc"["sub" + "str"](1){:ts}` returns `"bc"{:ts}`, and
+  `[({}).constructor.constructor][0]("…")(){:ts}` reaches `Function`, which runs
   any code.
 - **`unsafe-eval`.** The page's Content-Security-Policy must allow it.
 

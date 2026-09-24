@@ -20,12 +20,12 @@ const system = [...parts].filter(Boolean).join("\n\n");
 
 | Builder | Package | Emits |
 | --- | --- | --- |
-| `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | The output contract (JSONL entries, keys, children, partial replacement) and the expression context (`scopes`, `evt`, `currentValue`, how to call host functions). |
-| `getScopePartialPrompt({ kind, approxElements? })` | `@uicast/core/prompt` | How much to build on this surface. |
-| `getComponentsPartialPrompt({ definitions })` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
-| `getFunctionsPartialPrompt({ functions })` | `@uicast/core/prompt` | Names and signatures, from your [tools](/expr/functions). |
-| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/security#what-stays-your-job) rules. |
-| `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | The chat fence convention; see [Chat surfaces](#chat-surfaces). |
+| `getCommonInstructionsPartialPrompt(){:ts}` | `@uicast/core/prompt` | The output contract (JSONL entries, keys, children, partial replacement) and the expression context (`scopes`, `evt`, `currentValue`, how to call host functions). |
+| `getScopePartialPrompt({ kind, approxElements? }){:ts}` | `@uicast/core/prompt` | How much to build on this surface. |
+| `getComponentsPartialPrompt({ definitions }){:ts}` | `@uicast/core/prompt` | The component menu, serialized from your [definitions](/def). |
+| `getFunctionsPartialPrompt({ functions }){:ts}` | `@uicast/core/prompt` | Names and signatures, from your [tools](/expr/functions). |
+| `getExpressionsPartialPrompt(){:ts}` | `@uicast/core/prompt` | The `expr` syntax, the available methods and globals, and the [safety](/security#what-stays-your-job) rules. |
+| `getFencePartialPrompt(){:ts}` | `@uicast/streamdown/prompt` | The chat fence convention; see [Chat surfaces](#chat-surfaces). |
 
 Every builder also takes **`note?`**: host-specific text, added verbatim as the
 section's trailing `## Note`. Put it on the section it belongs to: an
@@ -45,7 +45,7 @@ const StatDef = createComponentDefinition({
 });
 ```
 
-`getComponentsPartialPrompt({ definitions: [StatDef] })` returns:
+`getComponentsPartialPrompt({ definitions: [StatDef] }){:ts}` returns:
 
 ```
 # Available Components
@@ -59,10 +59,10 @@ Stat
     - label: string — The metric label
 ```
 
-**Scope** says what a response *is*: `"page"` a complete page, even for a terse
-request; `"widget"` one embeddable piece; `"answer"` a compact UI that answers a
+**Scope** says what a response *is*: `"page"{:ts}` a complete page, even for a terse
+request; `"widget"{:ts}` one embeddable piece; `"answer"{:ts}` a compact UI that answers a
 question in a conversation.
-`getScopePartialPrompt({ kind: "answer", approxElements: 10 })` emits:
+`getScopePartialPrompt({ kind: "answer", approxElements: 10 }){:ts}` emits:
 
 ```
 - Use the fewest elements that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
@@ -94,18 +94,18 @@ other. The headings each block emits:
 
 | Builder | Package | Headings it emits |
 | --- | --- | --- |
-| `getCommonInstructionsPartialPrompt()` | `@uicast/core/prompt` | `# Overview`, `# Output Format`, `# Rules`, `# Expression Context` |
-| `getScopePartialPrompt()` | `@uicast/core/prompt` | `# Scope` |
-| `getComponentsPartialPrompt()` | `@uicast/core/prompt` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted) |
-| `getFunctionsPartialPrompt()` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when hoisted) |
-| `getExpressionsPartialPrompt()` | `@uicast/core/prompt` | `# JavaScript Expressions` |
-| `getFencePartialPrompt()` | `@uicast/streamdown/prompt` | `# Emitting UI` |
+| `getCommonInstructionsPartialPrompt(){:ts}` | `@uicast/core/prompt` | `# Overview`, `# Output Format`, `# Rules`, `# Expression Context` |
+| `getScopePartialPrompt(){:ts}` | `@uicast/core/prompt` | `# Scope` |
+| `getComponentsPartialPrompt(){:ts}` | `@uicast/core/prompt` | `# Available Components`, `# Common Events` (only when hoisted), `# Component Details`, `# Shared Types` (only when hoisted), `# URL Props` (only with a URL prop) |
+| `getFunctionsPartialPrompt(){:ts}` | `@uicast/core/prompt` | `# Available Functions`, `# Function Details`, `# Shared Types` (only when hoisted) |
+| `getExpressionsPartialPrompt(){:ts}` | `@uicast/core/prompt` | `# JavaScript Expressions` |
+| `getFencePartialPrompt(){:ts}` | `@uicast/streamdown/prompt` | `# Emitting UI` |
 
 ## Chat surfaces
 
 On a chat surface the reply is Markdown, with entries inside a ` ```uicast `
 fence that the [Streamdown plugin](/streamdown) renders.
-`getFencePartialPrompt()` teaches the fence and the conversation's
+`getFencePartialPrompt(){:ts}` teaches the fence and the conversation's
 [shared-state rules](/streamdown). Compose it last; a raw-JSONL surface skips
 it.
 
@@ -135,14 +135,14 @@ const system = [
 ].join("\n\n");
 ```
 
-A page-builder surface is the same stack with `kind: "page"` and no fence
+A page-builder surface is the same stack with `kind: "page"{:ts}` and no fence
 partial.
 
 ## Edit and recovery turns
 
 Two builders produce **user-turn messages**, not system-prompt partials.
 
-`getEditRequestPrompt({ request, missingKeys? })` drives edits. The host replays
+`getEditRequestPrompt({ request, missingKeys? }){:ts}` drives edits. The host replays
 the stored entries as an assistant turn, then sends this as the next user turn:
 
 ```ts
@@ -165,7 +165,7 @@ a fresh path or is written from a callback. `missingKeys` lists keys
 the stored tree references but never received, as after a truncated
 generation, so the model emits them.
 
-`getErrorRecoveryPrompt({ failures })` reports runtime failures so the model
+`getErrorRecoveryPrompt({ failures }){:ts}` reports runtime failures so the model
 re-emits the broken elements: on a page through the edit pipeline above, in a
 chat as a plain user message. See [Error recovery](/error-recovery).
 

@@ -121,8 +121,15 @@ export const getCustomer = standardTool({
 ```
 
 The server set holds only what a seed reads. Callbacks run only in the browser,
-so a function that changes data, such as `deleteCustomer`, stays out of the
-server set, and no code a server render reaches can change the database:
+so a function that changes data, such as `deleteCustomer`, is in the browser set
+and stays out of the server set. No code a server render reaches can change the
+database:
+
+```ts filename="src/tools/client/index.ts"
+import { deleteCustomer, getCustomer, listCustomers } from "./customers";
+
+export const tools = [getCustomer, listCustomers, deleteCustomer];
+```
 
 ```ts filename="src/tools/server/index.ts"
 import { getCustomer, listCustomers } from "./customers";
@@ -131,12 +138,14 @@ import { getCustomer, listCustomers } from "./customers";
 export const tools = [getCustomer, listCustomers];
 ```
 
-A seed that calls a function the server set leaves out fails there, like any
-[failed seed](#errors), and the browser renders it. Build the prompt from the
-contracts, so it lists every function.
+Leaving a function out of the server set is safe. A seed that calls it fails on
+the server, so its element goes out as a skeleton and the browser renders it.
+The prompt still lists every function: build it from the contracts, not from the
+server set.
 
-A server tool runs in the page's request, so it acts for whoever your routes
-would: give it that identity.
+A server tool reads the database directly, without your API routes and their
+auth checks. Do the checks in the tool: give it the user from the page's
+request, and return only what that user may see.
 
 ### One import, two bundles
 
@@ -182,24 +191,48 @@ export function Document({ entries }: { entries: ComponentEntry[] }) {
 }
 ```
 
-In Next.js, a `"use server"` module does not work here: calling a server
-function while rendering throws.
-
 ### What a server pass does
 
-- A streaming render (`renderToReadableStream`, the Next.js App Router) sends
-  the [skeleton](/react#skeleton) of each element whose async seed is loading,
-  then the finished element once its seeds resolve. `prerender` waits for all of them. `renderToString` cannot wait: an
-  element with an async seed ships its skeleton and renders in the browser.
-- Scopes do not reach the browser. The page keeps the server HTML while the
-  browser runs every seed again, so each seeded host function is called twice
-  per page load, once on each side.
-- Callbacks run only in the browser.
+Each element with an async seed renders inside its own `<Suspense>`, with its
+[skeleton](/react#skeleton) as the fallback. React can send a page's HTML in
+parts as it renders: the Next.js App Router does, and so does any server that
+renders with React's `renderToPipeableStream` or `renderToReadableStream`. One
+response then carries:
+
+1. The whole page, with a skeleton in place of each element whose seed is
+   loading.
+2. Then each of those elements, as its seed resolves. A small script React adds
+   puts it in place of its skeleton.
+
+For a page with two cards whose seeds take 300 ms and 900 ms:
+
+```text
+0 ms     the page, with a skeleton for each card
+300 ms   the first card replaces its skeleton
+900 ms   the second card replaces its skeleton; the response ends
+```
+
+An element inside another element with an async seed starts loading only after
+its parent renders, so it arrives after its parent.
+
+A server that sends the HTML in one piece cannot wait for seeds: the skeletons
+go out, and those elements load in the browser.
+
+Two more things to know:
+
+- **Seeds run twice.** The server does not send scope values to the browser, so
+  the browser runs every seed again. A host function that a seed calls runs
+  once on the server and once in the browser on each page load. The skeleton
+  does not come back: React keeps the server HTML on screen until the browser's
+  seed resolves, then hydrates the element. If the data changed in between, the
+  element shows the browser's data.
+- **Callbacks run only in the browser.**
 
 ### Errors
 
-A seed that fails on the server sends its skeleton, and `onError` reports
-it; the browser renders the element again.
+A seed that fails on the server sends its skeleton, and the `onError` you pass
+to [`<RendererProvider>`](/react/renderer#rendererprovider-props) reports it,
+on the server. The browser then renders the element again.
 
 Any other error in a server pass fails more than its element: the server runs
 no error boundaries, so an unknown component, props that fail their schema or

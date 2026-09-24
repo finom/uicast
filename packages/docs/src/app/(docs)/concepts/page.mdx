@@ -15,7 +15,7 @@ concept on this page is in it.
 ## The tree is built from keys
 
 Nothing is nested in the file. `card` lists
-`["title","refresh","rows","total","editor"]`, so those five are its children:
+`["title","refresh","rows","total","editor"]{:ts}`, so those five are its children:
 
 ```
 card ─┬─ title
@@ -47,9 +47,9 @@ Three products in state, three elements from one entry:
 
 | `scopes.product` | `scopes.product.$$index` | rendered |
 |---|---|---|
-| `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }` | `0` | Espresso Beans · $15 × 1 |
-| `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }` | `1` | Pour-Over Kettle · $23 × 4 |
-| `{ id: 10, name: "Ceramic Mug", price: 14, qty: 2 }` | `2` | Ceramic Mug · $14 × 2 |
+| `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }{:ts}` | `0{:ts}` | Espresso Beans · $15 × 1 |
+| `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }{:ts}` | `1{:ts}` | Pour-Over Kettle · $23 × 4 |
+| `{ id: 10, name: "Ceramic Mug", price: 14, qty: 2 }{:ts}` | `2{:ts}` | Ceramic Mug · $14 × 2 |
 
 
 ## State lives in scopes
@@ -92,7 +92,7 @@ the product **inside `scopes.root.products`**, and the total recomputes. The
 edit dialog's Save replaces the whole array instead; everything reading it
 re-renders.
 
-Both edits then call `updateProduct(...)`, a [host function](/expr/functions)
+Both edits then call `updateProduct(...){:ts}`, a [host function](/expr/functions)
 that persists the change. Save's first step carries a
 [`confirm`](/entry/value-sources#callbackvaluesourceassignment); declining skips
 it and every step after. The host's
@@ -179,7 +179,7 @@ reuses its parent's `as` hides the parent's item:
 **Reactive expressions are synchronous.** `props`, `hidden`, `loading` and `each` cannot
 call host functions; the engine rejects the call into the element's error slot.
 Call them from `seed` and `callbacks`, where the engine awaits the result:
-`listProducts()`, never `await listProducts()`.
+`listProducts(){:ts}`, never `await listProducts(){:ts}`.
 
 **Re-sending a key is an update, not an error.** The element is replaced in
 place, which is how [edit turns](/prompt) work:
@@ -202,7 +202,7 @@ excludes event handlers, which definitions and entries declare separately as
 | **list** | An entry that repeats, marked by [`each`](/entry) (the collection) with `as` naming the per-item scope. Each repetition is an **item**: `scopes.<as>` is the item itself, plus `$$index` and `$$id`. |
 | **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
 | **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar, every read checked at run time, no `new Function`. |
-| **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |
+| **value source** | How a value is produced: `{ "literal": … }{:ts}` verbatim, or `{ "expr": … }{:ts}` evaluated. See [Value Sources](/entry/value-sources). |
 | **step** | One item of a `seed` or a callback: a value source, optionally with a `set` path to write it to. A step that reads what another writes runs after it. See [Entry fields](/entry#callbacks). |
-| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react). |
-| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1` schemas, `execute`. See [Host functions](/expr/functions). |
+| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react). |
+| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas, `execute`. See [Host functions](/expr/functions). |

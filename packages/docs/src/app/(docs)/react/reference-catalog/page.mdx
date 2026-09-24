@@ -2,13 +2,15 @@
 title: Reference catalog
 ---
 
+import { GroupNames, GroupSize } from "@/components/catalog-groups";
+
 # Reference catalog
 
-`@uicast/shadcn-catalog` is a reference catalog: 128 components over
+`@uicast/shadcn-catalog` is a reference catalog: <GroupSize group="all" /> components over
 shadcn/Radix, each a def/impl pair in its own directory under
 [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog).
-**uicast** does not need it. Use it as is, take some of its groups, or copy its
-layout for your own catalog.
+You can register the whole catalog, only some of its [groups](#groups), or
+follow its layout, one directory per component, to build your own.
 
 ## Install
 
@@ -23,7 +25,7 @@ Import its stylesheet once, in your global CSS:
 ```
 
 `catalog.css` holds the utilities the components use and no palette: each rule
-reads a CSS variable (`var(--card)`), so your theme applies. An app without its
+reads a CSS variable (`var(--card){:css}`), so your theme applies. An app without its
 own shadcn setup imports `theme.css` first, for preflight and the shadcn
 palette:
 
@@ -37,17 +39,24 @@ palette:
 Each group is two modules: `@uicast/shadcn-catalog/<group>/defs` for the prompt
 and `@uicast/shadcn-catalog/<group>/impls` for the renderer.
 
-| group | components | for example |
+Two groups draw from the whole catalog:
+
+| group | count | components |
 | --- | --- | --- |
-| `all` | 128 | every group below |
-| `layout` | 17 | card, grid, flex row and column, tabs, accordion |
-| `content` | 35 | heading, typography, badge, avatar, timeline, alert, map |
-| `data` | 11 | table, data grid, virtual list, kanban board, org chart |
-| `charts` | 16 | bar, line, pie, area, scatter, funnel, sankey |
-| `forms` | 35 | field, input, select, date picker, file upload, button |
-| `navigation` | 7 | sidebar, navigation menu, command menu, breadcrumb, pagination |
-| `overlays` | 7 | modal, confirm dialog, drawer, popover, tooltip, dropdown menu |
-| `essential` | 30 | picked from the groups: enough for a page, at about a quarter of the full catalog's prompt |
+| `all` | <GroupSize group="all" /> | <GroupNames group="all">every component</GroupNames> |
+| `essential` | <GroupSize group="essential" /> | <GroupNames group="essential">common components from every group</GroupNames> |
+
+The rest split it by kind:
+
+| group | count | components |
+| --- | --- | --- |
+| `layout` | <GroupSize group="layout" /> | <GroupNames group="layout">card, grid, flex row and column, tabs, accordion</GroupNames> |
+| `content` | <GroupSize group="content" /> | <GroupNames group="content">heading, typography, badge, avatar, timeline, alert, map</GroupNames> |
+| `data` | <GroupSize group="data" /> | <GroupNames group="data">table, data grid, virtual list, kanban board, org chart</GroupNames> |
+| `charts` | <GroupSize group="charts" /> | <GroupNames group="charts">bar, line, pie, area, scatter, funnel, sankey</GroupNames> |
+| `forms` | <GroupSize group="forms" /> | <GroupNames group="forms">field, input, select, date picker, file upload, button</GroupNames> |
+| `navigation` | <GroupSize group="navigation" /> | <GroupNames group="navigation">sidebar, navigation menu, command menu, breadcrumb, pagination</GroupNames> |
+| `overlays` | <GroupSize group="overlays" /> | <GroupNames group="overlays">modal, confirm dialog, drawer, popover, tooltip, dropdown menu</GroupNames> |
 
 ## How a host uses it
 

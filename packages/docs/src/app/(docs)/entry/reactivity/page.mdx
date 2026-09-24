@@ -23,7 +23,7 @@ index inside it:
 { "set": "scopes.root.products.0.name", "literal": "Renamed" }  // ❌ rejected — not an address
 ```
 
-**A row write is a write to its array.** `set: "scopes.row.qty"` changes the
+**A row write is a write to its array.** `set: "scopes.row.qty"{:ts}` changes the
 element in place and emits on every field holding it, so everything reading
 `scopes.root.products` re-renders. In a nested list the write climbs to the
 outermost array: a `line` edit wakes `scopes.order.lines`, which wakes
