@@ -95,13 +95,13 @@ import {
   getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
-import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { tools } from "@/tools";
 
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
-  getComponentsPartialPrompt({ definitions: Object.values(catalogDefs) }),
+  getComponentsPartialPrompt({ definitions: defs }),
   getFunctionsPartialPrompt({ functions: tools }),
   getExpressionsPartialPrompt(),
 ].join("\n\n");
@@ -137,14 +137,13 @@ import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { ConfirmModal } from "@uicast/shadcn-catalog";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 import { useState } from "react";
 import { tools } from "@/tools";
 
 // Once, at module scope: the host functions bind on it, and it holds the parse cache.
 const evaluator = new Evaluator({ functions: tools });
-const impls = Object.values(catalogImpls);
 
 const fallbackComponents = {
   confirm: ConfirmModal,

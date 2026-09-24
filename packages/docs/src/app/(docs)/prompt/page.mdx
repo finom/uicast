@@ -122,14 +122,14 @@ import {
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
-import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { tools } from "./tools";
 
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "answer" }),
   getExpressionsPartialPrompt(),
-  getComponentsPartialPrompt({ definitions: Object.values(catalogDefs) }),
+  getComponentsPartialPrompt({ definitions: defs }),
   getFunctionsPartialPrompt({ functions: tools }),
   getFencePartialPrompt(),
 ].join("\n\n");

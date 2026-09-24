@@ -25,12 +25,11 @@ server pass. It takes the implementations and the fallback UI from the nearest
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { useEffect, useState } from "react";
 import { tools } from "@/tools";
 
 const evaluator = new Evaluator({ functions: tools });
-const impls = Object.values(catalogImpls);
 
 export function Document({ entries }: { entries: ComponentEntry[] }) {
   const [mounted, setMounted] = useState(false);
@@ -166,12 +165,11 @@ stays the same:
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { Suspense } from "react";
 import { tools } from "#tools";
 
 const evaluator = new Evaluator({ functions: tools });
-const impls = Object.values(catalogImpls);
 
 export function Document({ entries }: { entries: ComponentEntry[] }) {
   return (

@@ -1,4 +1,4 @@
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
@@ -10,5 +10,5 @@ export const boardDemo: DemoConfig = {
   ...demoManifest.board,
   lines: boardLines,
   functions: boardFunctions,
-  catalog: [...Object.values(catalogImpls), NodeBoardRenderer],
+  catalog: [...impls, NodeBoardRenderer],
 };

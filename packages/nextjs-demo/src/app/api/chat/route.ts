@@ -7,7 +7,7 @@ import {
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
-import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind: "answer" }),
     getComponentsPartialPrompt({
-      definitions: Object.values(catalogDefs),
+      definitions: defs,
     }),
     getFunctionsPartialPrompt({ functions: domainTools }),
     getExpressionsPartialPrompt(),

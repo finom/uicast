@@ -1,35 +1,112 @@
-export { ButtonImpl } from "../uicast-catalog/button/impl";
-export { ButtonGroupImpl } from "../uicast-catalog/button-group/impl";
-export { CheckboxImpl } from "../uicast-catalog/checkbox/impl";
-export { CodeEditorImpl } from "../uicast-catalog/code-editor/impl";
-export { ColorPickerImpl } from "../uicast-catalog/color-picker/impl";
-export { ComboboxImpl } from "../uicast-catalog/combobox/impl";
-export { CopyButtonImpl } from "../uicast-catalog/copy-button/impl";
-export { CronBuilderImpl } from "../uicast-catalog/cron-builder/impl";
-export { CurrencyInputImpl } from "../uicast-catalog/currency-input/impl";
-export { DatePickerImpl } from "../uicast-catalog/date-picker/impl";
-export { FieldImpl } from "../uicast-catalog/field/impl";
-export { FieldDescriptionImpl } from "../uicast-catalog/field-description/impl";
-export { FieldLabelImpl } from "../uicast-catalog/field-label/impl";
-export { FileUploadImpl } from "../uicast-catalog/file-upload/impl";
-export { FilterBuilderImpl } from "../uicast-catalog/filter-builder/impl";
-export { FormulaBarImpl } from "../uicast-catalog/formula-bar/impl";
-export { IconButtonImpl } from "../uicast-catalog/icon-button/impl";
-export { InputImpl } from "../uicast-catalog/input/impl";
-export { MaskedInputImpl } from "../uicast-catalog/masked-input/impl";
-export { MultiSelectImpl } from "../uicast-catalog/multi-select/impl";
-export { NumberInputImpl } from "../uicast-catalog/number-input/impl";
-export { PhoneInputImpl } from "../uicast-catalog/phone-input/impl";
-export { PinInputImpl } from "../uicast-catalog/pin-input/impl";
-export { RadioImpl } from "../uicast-catalog/radio/impl";
-export { RangeSliderImpl } from "../uicast-catalog/range-slider/impl";
-export { RatingImpl } from "../uicast-catalog/rating/impl";
-export { SearchInputImpl } from "../uicast-catalog/search-input/impl";
-export { SelectImpl } from "../uicast-catalog/select/impl";
-export { SignaturePadImpl } from "../uicast-catalog/signature-pad/impl";
-export { SliderImpl } from "../uicast-catalog/slider/impl";
-export { SwitchImpl } from "../uicast-catalog/switch/impl";
-export { TagInputImpl } from "../uicast-catalog/tag-input/impl";
-export { TextareaImpl } from "../uicast-catalog/textarea/impl";
-export { TimePickerImpl } from "../uicast-catalog/time-picker/impl";
-export { ToggleGroupImpl } from "../uicast-catalog/toggle-group/impl";
+import type { ComponentImplementation } from "@uicast/react";
+import { ButtonImpl } from "../uicast-catalog/button/impl";
+import { ButtonGroupImpl } from "../uicast-catalog/button-group/impl";
+import { CheckboxImpl } from "../uicast-catalog/checkbox/impl";
+import { CodeEditorImpl } from "../uicast-catalog/code-editor/impl";
+import { ColorPickerImpl } from "../uicast-catalog/color-picker/impl";
+import { ComboboxImpl } from "../uicast-catalog/combobox/impl";
+import { CopyButtonImpl } from "../uicast-catalog/copy-button/impl";
+import { CronBuilderImpl } from "../uicast-catalog/cron-builder/impl";
+import { CurrencyInputImpl } from "../uicast-catalog/currency-input/impl";
+import { DatePickerImpl } from "../uicast-catalog/date-picker/impl";
+import { FieldImpl } from "../uicast-catalog/field/impl";
+import { FieldDescriptionImpl } from "../uicast-catalog/field-description/impl";
+import { FieldLabelImpl } from "../uicast-catalog/field-label/impl";
+import { FileUploadImpl } from "../uicast-catalog/file-upload/impl";
+import { FilterBuilderImpl } from "../uicast-catalog/filter-builder/impl";
+import { FormulaBarImpl } from "../uicast-catalog/formula-bar/impl";
+import { IconButtonImpl } from "../uicast-catalog/icon-button/impl";
+import { InputImpl } from "../uicast-catalog/input/impl";
+import { MaskedInputImpl } from "../uicast-catalog/masked-input/impl";
+import { MultiSelectImpl } from "../uicast-catalog/multi-select/impl";
+import { NumberInputImpl } from "../uicast-catalog/number-input/impl";
+import { PhoneInputImpl } from "../uicast-catalog/phone-input/impl";
+import { PinInputImpl } from "../uicast-catalog/pin-input/impl";
+import { RadioImpl } from "../uicast-catalog/radio/impl";
+import { RangeSliderImpl } from "../uicast-catalog/range-slider/impl";
+import { RatingImpl } from "../uicast-catalog/rating/impl";
+import { SearchInputImpl } from "../uicast-catalog/search-input/impl";
+import { SelectImpl } from "../uicast-catalog/select/impl";
+import { SignaturePadImpl } from "../uicast-catalog/signature-pad/impl";
+import { SliderImpl } from "../uicast-catalog/slider/impl";
+import { SwitchImpl } from "../uicast-catalog/switch/impl";
+import { TagInputImpl } from "../uicast-catalog/tag-input/impl";
+import { TextareaImpl } from "../uicast-catalog/textarea/impl";
+import { TimePickerImpl } from "../uicast-catalog/time-picker/impl";
+import { ToggleGroupImpl } from "../uicast-catalog/toggle-group/impl";
+
+export {
+  ButtonImpl,
+  ButtonGroupImpl,
+  CheckboxImpl,
+  CodeEditorImpl,
+  ColorPickerImpl,
+  ComboboxImpl,
+  CopyButtonImpl,
+  CronBuilderImpl,
+  CurrencyInputImpl,
+  DatePickerImpl,
+  FieldImpl,
+  FieldDescriptionImpl,
+  FieldLabelImpl,
+  FileUploadImpl,
+  FilterBuilderImpl,
+  FormulaBarImpl,
+  IconButtonImpl,
+  InputImpl,
+  MaskedInputImpl,
+  MultiSelectImpl,
+  NumberInputImpl,
+  PhoneInputImpl,
+  PinInputImpl,
+  RadioImpl,
+  RangeSliderImpl,
+  RatingImpl,
+  SearchInputImpl,
+  SelectImpl,
+  SignaturePadImpl,
+  SliderImpl,
+  SwitchImpl,
+  TagInputImpl,
+  TextareaImpl,
+  TimePickerImpl,
+  ToggleGroupImpl,
+};
+
+export const impls: ComponentImplementation[] = [
+  ButtonImpl,
+  ButtonGroupImpl,
+  CheckboxImpl,
+  CodeEditorImpl,
+  ColorPickerImpl,
+  ComboboxImpl,
+  CopyButtonImpl,
+  CronBuilderImpl,
+  CurrencyInputImpl,
+  DatePickerImpl,
+  FieldImpl,
+  FieldDescriptionImpl,
+  FieldLabelImpl,
+  FileUploadImpl,
+  FilterBuilderImpl,
+  FormulaBarImpl,
+  IconButtonImpl,
+  InputImpl,
+  MaskedInputImpl,
+  MultiSelectImpl,
+  NumberInputImpl,
+  PhoneInputImpl,
+  PinInputImpl,
+  RadioImpl,
+  RangeSliderImpl,
+  RatingImpl,
+  SearchInputImpl,
+  SelectImpl,
+  SignaturePadImpl,
+  SliderImpl,
+  SwitchImpl,
+  TagInputImpl,
+  TextareaImpl,
+  TimePickerImpl,
+  ToggleGroupImpl,
+];

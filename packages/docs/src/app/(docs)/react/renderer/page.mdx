@@ -11,10 +11,9 @@ as state changes. In a server pass it does the same on the server; see
 ```tsx
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 
 const evaluator = new Evaluator({ functions: hostFunctions });
-const impls = Object.values(catalogImpls);
 const entries = [
   { key: "hello", component: "Typography", props: { literal: { text: "Hello" } } },
 ];

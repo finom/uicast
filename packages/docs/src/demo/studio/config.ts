@@ -1,4 +1,4 @@
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
@@ -13,7 +13,7 @@ export const studioDemo: DemoConfig = {
   lines: studioLines,
   functions: studioFunctions,
   catalog: [
-    ...Object.values(catalogImpls),
+    ...impls,
     XYPadRenderer,
     KnobRenderer,
     StepSequencerRenderer,

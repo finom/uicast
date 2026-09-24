@@ -8,7 +8,7 @@ import {
 import { type ComponentEntry, isComponentEntry, streamJsonLines } from "@uicast/core";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { evaluator } from "@/lib/evaluator";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
@@ -33,8 +33,6 @@ import { UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { setApiOwner } from "@/tools/http";
-
-const impls = Object.values(catalogImpls);
 
 // `?perf` logs every React commit of the generated tree to `window.__uicastPerf`, for measuring from the console.
 type PerfCommit = { at: number; phase: string; actual: number; base: number };

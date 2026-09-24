@@ -92,8 +92,8 @@ A reference catalog, usable as is. See
 
 | Entry point | What it holds |
 |---|---|
-| `@uicast/shadcn-catalog/all/defs` | Every definition by name (`CardDef`, `ButtonDef`, …), nothing else. Pass `Object.values` of `import * as` to `getComponentsPartialPrompt`. |
-| `@uicast/shadcn-catalog/all/impls` | Every implementation by name (`CardImpl`, …), nothing else. Pass `Object.values` of `import * as` to `<RendererProvider>`. |
+| `@uicast/shadcn-catalog/all/defs` | Every definition by name (`CardDef`, `ButtonDef`, …), and all of them as one array, `defs`, for `getComponentsPartialPrompt`. |
+| `@uicast/shadcn-catalog/all/impls` | Every implementation by name (`CardImpl`, …), and all of them as one array, `impls`, for `<RendererProvider>`. |
 | `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | The same, one group each: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`. See [Reference catalog](/react/reference-catalog#groups). |
 | `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | 30 of the 128, enough to build a page, at about a quarter of the prompt text. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema`: shared payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |

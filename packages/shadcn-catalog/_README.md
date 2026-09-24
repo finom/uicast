@@ -11,11 +11,11 @@ npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @ui
 ```
 
 ```ts
-import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { defs } from "@uicast/shadcn-catalog/all/defs";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 ```
 
-Each module exports its components by name and nothing else. `Object.values(catalogDefs)` goes to `getComponentsPartialPrompt`, `Object.values(catalogImpls)` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
+Each module exports its components by name, and all of them as one array: `defs` goes to `getComponentsPartialPrompt`, `impls` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
 
 For a smaller prompt, take some groups instead — `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays` — or `essential`: 30 components, about a quarter of the prompt text. See [Essentials](#essentials).
 
@@ -45,7 +45,7 @@ The full catalog is 87,000 characters of prompt. Most generated pages use a frac
 | `navigation` | `Pagination` |
 | `overlays` | `Modal` |
 
-Swapping is one import path. Add your own with `[...Object.values(catalogDefs), MyDef]`.
+Swapping is one import path. Add your own with `[...defs, MyDef]`.
 
 ## Map tiles
 

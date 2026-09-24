@@ -51,22 +51,20 @@ and `@uicast/shadcn-catalog/<group>/impls` for the renderer.
 
 ## How a host uses it
 
-A module exports only its components, by name, so `import * as` gives the whole
-group. The prompt gets the definitions:
+Each module exports its components by name, and all of them as one array:
+`defs` or `impls`. The prompt gets the definitions:
 
 ```ts
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
-import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
+import { defs } from "@uicast/shadcn-catalog/all/defs";
 
-getComponentsPartialPrompt({ definitions: Object.values(catalogDefs) });
+getComponentsPartialPrompt({ definitions: defs });
 ```
 
 The renderer gets the matching implementations:
 
 ```tsx
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
-
-const impls = Object.values(catalogImpls);
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 
 <RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
@@ -80,8 +78,8 @@ The `defs` modules import no React, so the prompt can be built on the server.
 Spread the groups you want, the same way on both sides:
 
 ```ts
-import * as layoutDefs from "@uicast/shadcn-catalog/layout/defs";
-import * as chartDefs from "@uicast/shadcn-catalog/charts/defs";
+import * as layout from "@uicast/shadcn-catalog/layout/defs";
+import * as charts from "@uicast/shadcn-catalog/charts/defs";
 
-const definitions = [...Object.values(layoutDefs), ...Object.values(chartDefs)];
+const definitions = [...layout.defs, ...charts.defs];
 ```

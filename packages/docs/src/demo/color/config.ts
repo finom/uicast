@@ -1,4 +1,4 @@
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { KnobRenderer } from "../components/knob/renderer";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
@@ -14,7 +14,7 @@ export const colorDemo: DemoConfig = {
   lines: colorLines,
   functions: colorFunctions,
   catalog: [
-    ...Object.values(catalogImpls),
+    ...impls,
     ColorFieldRenderer,
     SwatchRailRenderer,
     ColorPreviewRenderer,

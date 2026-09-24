@@ -1,17 +1,58 @@
-export { AccordionDef } from "../uicast-catalog/accordion/def";
-export { AccordionItemDef } from "../uicast-catalog/accordion-item/def";
-export { AspectRatioDef } from "../uicast-catalog/aspect-ratio/def";
-export { CardDef } from "../uicast-catalog/card/def";
-export { CollapsibleDef } from "../uicast-catalog/collapsible/def";
-export { ContainerDef } from "../uicast-catalog/container/def";
-export { DividerDef } from "../uicast-catalog/divider/def";
-export { FlexColDef } from "../uicast-catalog/flex-col/def";
-export { FlexRowDef } from "../uicast-catalog/flex-row/def";
-export { GridDef } from "../uicast-catalog/grid/def";
-export { ResizablePanelDef } from "../uicast-catalog/resizable-panel/def";
-export { ScrollAreaDef } from "../uicast-catalog/scroll-area/def";
-export { StickyHeaderDef } from "../uicast-catalog/sticky-header/def";
-export { TabContentDef } from "../uicast-catalog/tab-content/def";
-export { TabListDef } from "../uicast-catalog/tab-list/def";
-export { TabTriggerDef } from "../uicast-catalog/tab-trigger/def";
-export { TabsDef } from "../uicast-catalog/tabs/def";
+import type { ComponentDefinition } from "@uicast/core";
+import { AccordionDef } from "../uicast-catalog/accordion/def";
+import { AccordionItemDef } from "../uicast-catalog/accordion-item/def";
+import { AspectRatioDef } from "../uicast-catalog/aspect-ratio/def";
+import { CardDef } from "../uicast-catalog/card/def";
+import { CollapsibleDef } from "../uicast-catalog/collapsible/def";
+import { ContainerDef } from "../uicast-catalog/container/def";
+import { DividerDef } from "../uicast-catalog/divider/def";
+import { FlexColDef } from "../uicast-catalog/flex-col/def";
+import { FlexRowDef } from "../uicast-catalog/flex-row/def";
+import { GridDef } from "../uicast-catalog/grid/def";
+import { ResizablePanelDef } from "../uicast-catalog/resizable-panel/def";
+import { ScrollAreaDef } from "../uicast-catalog/scroll-area/def";
+import { StickyHeaderDef } from "../uicast-catalog/sticky-header/def";
+import { TabContentDef } from "../uicast-catalog/tab-content/def";
+import { TabListDef } from "../uicast-catalog/tab-list/def";
+import { TabTriggerDef } from "../uicast-catalog/tab-trigger/def";
+import { TabsDef } from "../uicast-catalog/tabs/def";
+
+export {
+  AccordionDef,
+  AccordionItemDef,
+  AspectRatioDef,
+  CardDef,
+  CollapsibleDef,
+  ContainerDef,
+  DividerDef,
+  FlexColDef,
+  FlexRowDef,
+  GridDef,
+  ResizablePanelDef,
+  ScrollAreaDef,
+  StickyHeaderDef,
+  TabContentDef,
+  TabListDef,
+  TabTriggerDef,
+  TabsDef,
+};
+
+export const defs: ComponentDefinition[] = [
+  AccordionDef,
+  AccordionItemDef,
+  AspectRatioDef,
+  CardDef,
+  CollapsibleDef,
+  ContainerDef,
+  DividerDef,
+  FlexColDef,
+  FlexRowDef,
+  GridDef,
+  ResizablePanelDef,
+  ScrollAreaDef,
+  StickyHeaderDef,
+  TabContentDef,
+  TabListDef,
+  TabTriggerDef,
+  TabsDef,
+];

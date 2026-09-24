@@ -181,14 +181,14 @@ renderer.
 ```tsx
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import * as layoutDefs from "@uicast/shadcn-catalog/layout/defs";
-import * as layoutImpls from "@uicast/shadcn-catalog/layout/impls";
+import { defs } from "@uicast/shadcn-catalog/layout/defs";
+import { impls } from "@uicast/shadcn-catalog/layout/impls";
 import { BadgeDef } from "./badge/def";
 import { BadgeImpl } from "./badge/impl";
 
-getComponentsPartialPrompt({ definitions: [...Object.values(layoutDefs), BadgeDef] });
+getComponentsPartialPrompt({ definitions: [...defs, BadgeDef] });
 
-<RendererProvider evaluator={evaluator} implementations={[...Object.values(layoutImpls), BadgeImpl]}>
+<RendererProvider evaluator={evaluator} implementations={[...impls, BadgeImpl]}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```

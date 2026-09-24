@@ -1,11 +1,11 @@
 import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import * as allDefs from "../all/defs";
-import * as allImpls from "../all/impls";
-import * as essentialDefs from "../essential/defs";
-import * as essentialImpls from "../essential/impls";
-import { groupDefs, groups } from "./groups";
+import { defs as allDefs } from "../all/defs";
+import { impls as allImpls } from "../all/impls";
+import { defs as essentialDefs } from "../essential/defs";
+import { impls as essentialImpls } from "../essential/impls";
+import { groupDefs, groups, modules } from "./groups";
 
 // The registries are hand-maintained; a pair missing from one fails only in a consumer.
 
@@ -23,14 +23,21 @@ describe("catalog registries", () => {
     expect(implNames(group.impls)).toEqual(defNames(group.defs));
   });
 
+  it.each(Object.entries(modules))("%s: the array holds every named export, once", (_, module) => {
+    const { defs, impls, ...named } = module;
+    const array = (defs ?? impls) as unknown[];
+    expect(new Set(array)).toEqual(new Set(Object.values(named)));
+    expect(array).toHaveLength(Object.values(named).length);
+  });
+
   it("all holds every group, paired 1:1", () => {
-    expect(defNames(Object.values(allDefs))).toEqual(defNames(groupDefs));
-    expect(implNames(Object.values(allImpls))).toEqual(defNames(groupDefs));
+    expect(defNames(allDefs)).toEqual(defNames(groupDefs));
+    expect(implNames(allImpls)).toEqual(defNames(groupDefs));
   });
 
   it("the essential registries come from the groups, paired 1:1", () => {
-    const names = defNames(Object.values(essentialDefs));
-    expect(implNames(Object.values(essentialImpls))).toEqual(names);
+    const names = defNames(essentialDefs);
+    expect(implNames(essentialImpls)).toEqual(names);
     expect(new Set(names).size).toBe(names.length);
     const all = new Set(groupDefs.map((def) => def.name));
     expect(names.filter((name) => !all.has(name))).toEqual([]);

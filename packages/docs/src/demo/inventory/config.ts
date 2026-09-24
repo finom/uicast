@@ -1,4 +1,4 @@
-import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { resetInventory, seedIfEmpty } from "./seed";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
@@ -10,7 +10,7 @@ export const inventoryDemo: DemoConfig = {
   ...demoManifest.inventory,
   lines: inventoryLines,
   functions: inventoryFunctions,
-  catalog: Object.values(catalogImpls),
+  catalog: impls,
   onPlay: seedIfEmpty,
   onReplay: resetInventory,
 };

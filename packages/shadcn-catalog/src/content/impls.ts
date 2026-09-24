@@ -1,35 +1,112 @@
-export { AlertImpl } from "../uicast-catalog/alert/impl";
-export { AvatarImpl } from "../uicast-catalog/avatar/impl";
-export { AvatarGroupImpl } from "../uicast-catalog/avatar-group/impl";
-export { BadgeImpl } from "../uicast-catalog/badge/impl";
-export { BannerImpl } from "../uicast-catalog/banner/impl";
-export { CalendarImpl } from "../uicast-catalog/calendar/impl";
-export { CalloutImpl } from "../uicast-catalog/callout/impl";
-export { CarouselImpl } from "../uicast-catalog/carousel/impl";
-export { ChatThreadImpl } from "../uicast-catalog/chat-thread/impl";
-export { CodeBlockImpl } from "../uicast-catalog/code-block/impl";
-export { CountdownTimerImpl } from "../uicast-catalog/countdown-timer/impl";
-export { DateTimeImpl } from "../uicast-catalog/date-time/impl";
-export { DescriptionListImpl } from "../uicast-catalog/description-list/impl";
-export { DiffViewerImpl } from "../uicast-catalog/diff-viewer/impl";
-export { EmptyStateImpl } from "../uicast-catalog/empty-state/impl";
-export { HeadingImpl } from "../uicast-catalog/heading/impl";
-export { HighlightedTextImpl } from "../uicast-catalog/highlighted-text/impl";
-export { IconImpl } from "../uicast-catalog/icon/impl";
-export { KBDImpl } from "../uicast-catalog/kbd/impl";
-export { ListImpl } from "../uicast-catalog/list/impl";
-export { LocationMapImpl } from "../uicast-catalog/location-map/impl";
-export { NotificationBadgeImpl } from "../uicast-catalog/notification-badge/impl";
-export { PictureImpl } from "../uicast-catalog/picture/impl";
-export { ProgressBarImpl } from "../uicast-catalog/progress-bar/impl";
-export { QRCodeImpl } from "../uicast-catalog/qr-code/impl";
-export { SkeletonImpl } from "../uicast-catalog/skeleton/impl";
-export { SpinnerImpl } from "../uicast-catalog/spinner/impl";
-export { StatImpl } from "../uicast-catalog/stat/impl";
-export { TagImpl } from "../uicast-catalog/tag/impl";
-export { TimelineImpl } from "../uicast-catalog/timeline/impl";
-export { ToastImpl } from "../uicast-catalog/toast/impl";
-export { TreeViewImpl } from "../uicast-catalog/tree-view/impl";
-export { TruncatedTextImpl } from "../uicast-catalog/truncated-text/impl";
-export { TypographyImpl } from "../uicast-catalog/typography/impl";
-export { VideoPlayerImpl } from "../uicast-catalog/video-player/impl";
+import type { ComponentImplementation } from "@uicast/react";
+import { AlertImpl } from "../uicast-catalog/alert/impl";
+import { AvatarImpl } from "../uicast-catalog/avatar/impl";
+import { AvatarGroupImpl } from "../uicast-catalog/avatar-group/impl";
+import { BadgeImpl } from "../uicast-catalog/badge/impl";
+import { BannerImpl } from "../uicast-catalog/banner/impl";
+import { CalendarImpl } from "../uicast-catalog/calendar/impl";
+import { CalloutImpl } from "../uicast-catalog/callout/impl";
+import { CarouselImpl } from "../uicast-catalog/carousel/impl";
+import { ChatThreadImpl } from "../uicast-catalog/chat-thread/impl";
+import { CodeBlockImpl } from "../uicast-catalog/code-block/impl";
+import { CountdownTimerImpl } from "../uicast-catalog/countdown-timer/impl";
+import { DateTimeImpl } from "../uicast-catalog/date-time/impl";
+import { DescriptionListImpl } from "../uicast-catalog/description-list/impl";
+import { DiffViewerImpl } from "../uicast-catalog/diff-viewer/impl";
+import { EmptyStateImpl } from "../uicast-catalog/empty-state/impl";
+import { HeadingImpl } from "../uicast-catalog/heading/impl";
+import { HighlightedTextImpl } from "../uicast-catalog/highlighted-text/impl";
+import { IconImpl } from "../uicast-catalog/icon/impl";
+import { KBDImpl } from "../uicast-catalog/kbd/impl";
+import { ListImpl } from "../uicast-catalog/list/impl";
+import { LocationMapImpl } from "../uicast-catalog/location-map/impl";
+import { NotificationBadgeImpl } from "../uicast-catalog/notification-badge/impl";
+import { PictureImpl } from "../uicast-catalog/picture/impl";
+import { ProgressBarImpl } from "../uicast-catalog/progress-bar/impl";
+import { QRCodeImpl } from "../uicast-catalog/qr-code/impl";
+import { SkeletonImpl } from "../uicast-catalog/skeleton/impl";
+import { SpinnerImpl } from "../uicast-catalog/spinner/impl";
+import { StatImpl } from "../uicast-catalog/stat/impl";
+import { TagImpl } from "../uicast-catalog/tag/impl";
+import { TimelineImpl } from "../uicast-catalog/timeline/impl";
+import { ToastImpl } from "../uicast-catalog/toast/impl";
+import { TreeViewImpl } from "../uicast-catalog/tree-view/impl";
+import { TruncatedTextImpl } from "../uicast-catalog/truncated-text/impl";
+import { TypographyImpl } from "../uicast-catalog/typography/impl";
+import { VideoPlayerImpl } from "../uicast-catalog/video-player/impl";
+
+export {
+  AlertImpl,
+  AvatarImpl,
+  AvatarGroupImpl,
+  BadgeImpl,
+  BannerImpl,
+  CalendarImpl,
+  CalloutImpl,
+  CarouselImpl,
+  ChatThreadImpl,
+  CodeBlockImpl,
+  CountdownTimerImpl,
+  DateTimeImpl,
+  DescriptionListImpl,
+  DiffViewerImpl,
+  EmptyStateImpl,
+  HeadingImpl,
+  HighlightedTextImpl,
+  IconImpl,
+  KBDImpl,
+  ListImpl,
+  LocationMapImpl,
+  NotificationBadgeImpl,
+  PictureImpl,
+  ProgressBarImpl,
+  QRCodeImpl,
+  SkeletonImpl,
+  SpinnerImpl,
+  StatImpl,
+  TagImpl,
+  TimelineImpl,
+  ToastImpl,
+  TreeViewImpl,
+  TruncatedTextImpl,
+  TypographyImpl,
+  VideoPlayerImpl,
+};
+
+export const impls: ComponentImplementation[] = [
+  AlertImpl,
+  AvatarImpl,
+  AvatarGroupImpl,
+  BadgeImpl,
+  BannerImpl,
+  CalendarImpl,
+  CalloutImpl,
+  CarouselImpl,
+  ChatThreadImpl,
+  CodeBlockImpl,
+  CountdownTimerImpl,
+  DateTimeImpl,
+  DescriptionListImpl,
+  DiffViewerImpl,
+  EmptyStateImpl,
+  HeadingImpl,
+  HighlightedTextImpl,
+  IconImpl,
+  KBDImpl,
+  ListImpl,
+  LocationMapImpl,
+  NotificationBadgeImpl,
+  PictureImpl,
+  ProgressBarImpl,
+  QRCodeImpl,
+  SkeletonImpl,
+  SpinnerImpl,
+  StatImpl,
+  TagImpl,
+  TimelineImpl,
+  ToastImpl,
+  TreeViewImpl,
+  TruncatedTextImpl,
+  TypographyImpl,
+  VideoPlayerImpl,
+];
