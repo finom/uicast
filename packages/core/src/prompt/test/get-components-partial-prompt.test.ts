@@ -290,3 +290,52 @@ describe("getComponentsPartialPrompt — nothing to list", () => {
 		);
 	});
 });
+
+describe("getComponentsPartialPrompt — URL props", () => {
+	const LinkDef = createComponentDefinition({
+		name: "Link",
+		description: "A link",
+		props: z.object({ href: z.url() }),
+	});
+	const TextDef = createComponentDefinition({
+		name: "Text",
+		description: "Text",
+		props: z.object({ text: z.string() }),
+	});
+
+	it("lists what the renderer's defaults load when no policy is given", () => {
+		const out = getComponentsPartialPrompt({ definitions: [LinkDef] });
+		expect(out).toContain(
+			"# URL Props\n\nA prop typed with a URL format (`format uri`, `format uri-reference`) must hold one of:\n" +
+				"- a relative URL: `/a`, `a/b`, `?q=1`, `#x`\n- an absolute URL on this site\n" +
+				"- a `mailto:`, `tel:` or `sms:` link\n- a `data:` image, not SVG\n\nAny other URL fails the element.",
+		);
+	});
+
+	it("follows the policy: its origin and hosts in, what it turns off out", () => {
+		const out = getComponentsPartialPrompt({
+			definitions: [LinkDef],
+			urlPolicy: {
+				allowRelative: false,
+				allowDataImages: false,
+				origin: "https://app.example.com",
+				hosts: ["cdn.example.com", "*.img.example.com"],
+			},
+		});
+		expect(out).toContain(
+			"- an absolute URL on `https://app.example.com`\n" +
+				"- an http or https URL on `cdn.example.com`, `*.img.example.com`\n" +
+				"- a `mailto:`, `tel:` or `sms:` link\n\nAny other URL fails the element.",
+		);
+		expect(out).not.toContain("relative URL");
+		expect(out).not.toContain("`data:`");
+	});
+
+	it("prints nothing for a predicate, which cannot be described", () => {
+		expect(getComponentsPartialPrompt({ definitions: [LinkDef], urlPolicy: () => true })).not.toContain("# URL Props");
+	});
+
+	it("prints nothing when no listed component has a URL prop", () => {
+		expect(getComponentsPartialPrompt({ definitions: [TextDef] })).not.toContain("# URL Props");
+	});
+});

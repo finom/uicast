@@ -20,6 +20,12 @@ export type UrlPolicy =
 
 type UrlCheck = { ok: true } | { ok: false; reason: string };
 
+// The defaults, in one place: the check applies them and the prompt describes them.
+export const resolveUrlPolicy = (policy: Exclude<UrlPolicy, (url: string) => boolean> = {}) => {
+	const { allowRelative = true, allowSameOrigin = true, hosts = [], allowDataImages = true, origin } = policy;
+	return { allowRelative, allowSameOrigin, hosts, allowDataImages, origin };
+};
+
 const OK: UrlCheck = { ok: true };
 
 // Never fetch on their own.
@@ -103,13 +109,7 @@ export const checkUrl = (value: string, policy?: UrlPolicy): UrlCheck => {
 			: { ok: false, reason: "rejected by the host's urlPolicy predicate" };
 	}
 
-	const {
-		allowRelative = true,
-		allowSameOrigin = true,
-		hosts = [],
-		allowDataImages = true,
-		origin: explicitOrigin,
-	} = policy ?? {};
+	const { allowRelative, allowSameOrigin, hosts, allowDataImages, origin: explicitOrigin } = resolveUrlPolicy(policy);
 	const scheme = SCHEME_RE.exec(url)?.[1]?.toLowerCase() ?? null;
 
 	if (scheme === null) {

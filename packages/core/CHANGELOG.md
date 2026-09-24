@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `getComponentsPartialPrompt({ urlPolicy })`: with a URL prop listed, a `# URL Props` section says which URLs the renderer loads, from the same policy (its defaults when omitted). A predicate prints nothing; describe it in `note`.
 - **`budget-exceeded` reason.** An expression that ran past its step, time or allocation budget was reported as `guardrail-violation`; it has its own reason now, fault `document`.
 - **`invalid-entry` reason**, fault `document`: a field of the line has the wrong type — a `seed` that is not an array of steps, a callback that is not one, `hidden` written as `{ "expr": … }`, a list without `as`. `entryShapeError` in `@uicast/core/internal` checks every field but `key` and `component` and names the wrong one. `isComponentEntry` still checks only what the element table needs, so such a line reaches the renderer and is classified there.
 

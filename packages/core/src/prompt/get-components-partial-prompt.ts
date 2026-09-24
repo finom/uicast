@@ -2,11 +2,14 @@ import { dashTail, stripRootAnnotations, unwrapParens } from "../prompt-utils/de
 import { isSchemaObject, type JSONSchema, jsonSchemaToTs, resolveRef } from "../prompt-utils/json-schema-to-ts";
 import { collectSharedTypes } from "../prompt-utils/shared-types";
 import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
+import { resolveUrlPolicy, schemaHasUrlFormat, type UrlPolicy } from "../security/url-policy";
 import type { ComponentDefinition } from "../types";
 import { noteSection } from "./note-section";
 
 export type ComponentsPromptOptions = {
 	definitions: ComponentDefinition[];
+	// The renderer's `urlPolicy`, so the model writes URLs the renderer loads. Omitted, the renderer's defaults.
+	urlPolicy?: UrlPolicy;
 	// Host-specific context, appended as this section's trailing `## Note`.
 	note?: string;
 };
@@ -42,8 +45,23 @@ const describeProps = (schema: JSONSchema, namedRefs: Record<string, string>): s
 	return fields.length ? ["  Props:", ...fields] : [];
 };
 
+// What a URL prop may hold. A predicate cannot be described, so it prints nothing: say it in `note`.
+const describeUrlProps = (policy: UrlPolicy | undefined): string => {
+	if (typeof policy === "function") return "";
+	const { allowRelative, allowSameOrigin, hosts, allowDataImages, origin } = resolveUrlPolicy(policy);
+	const allowed = [
+		allowRelative && "- a relative URL: `/a`, `a/b`, `?q=1`, `#x`",
+		allowSameOrigin && `- an absolute URL on ${origin ? `\`${origin}\`` : "this site"}`,
+		hosts.length > 0 && `- an http or https URL on ${hosts.map((host) => `\`${host}\``).join(", ")}`,
+		"- a `mailto:`, `tel:` or `sms:` link",
+		allowDataImages && "- a `data:` image, not SVG",
+	].filter(Boolean);
+	return `# URL Props\n\nA prop typed with a URL format (\`format uri\`, \`format uri-reference\`) must hold one of:\n${allowed.join("\n")}\n\nAny other URL fails the element.`;
+};
+
 export function getComponentsPartialPrompt({
 	definitions: defs,
+	urlPolicy,
 	note,
 }: ComponentsPromptOptions): string {
 	const seen = new Set<string>();
@@ -96,11 +114,13 @@ export function getComponentsPartialPrompt({
 		}
 	}
 
+	let hasUrlProps = false;
 	const detail = visible
 		.map(({ name, description, props, callbacks }) => {
 			const lines = [`- ${name} — ${description}`];
 
 			const propsJSONSchema = specToJSONSchema(props);
+			hasUrlProps ||= schemaHasUrlFormat(propsJSONSchema);
 			lines.push(...describeProps(propsJSONSchema, shared.add(propsJSONSchema)));
 
 			const callbackLines = Object.entries(callbacks || {}).flatMap(
@@ -133,6 +153,7 @@ export function getComponentsPartialPrompt({
 
 	// After `detail`, so every hoisted definition is in.
 	const sharedLines = shared.lines();
+	const urlSection = hasUrlProps ? describeUrlProps(urlPolicy) : "";
 
 	return [
 		(
@@ -145,7 +166,8 @@ export function getComponentsPartialPrompt({
 			detail +
 			(sharedLines.length
 				? `\n\n# Shared Types\n\n${sharedLines.join("\n")}`
-				: "")
+				: "") +
+			(urlSection ? `\n\n${urlSection}` : "")
 			// Assembly's `\n\n` join owns the separators.
 		).trim(),
 		noteSection(note),
