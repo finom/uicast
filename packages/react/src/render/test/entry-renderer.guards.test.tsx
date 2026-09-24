@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@uicast/react";
 import { describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
 import type { ComponentEntry, EntryError } from "@uicast/core";
@@ -5,9 +6,9 @@ import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { defaultImplementationsList, mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 const errorSlot = {
-  error: ({ error, elementKey }: { error: Error; elementKey?: string }) => (
-    <div data-error-for={elementKey}>
-      {elementKey} failed: {error.message}
+  error: ({ error }: ErrorComponentProps) => (
+    <div data-error-for={error.elementKey}>
+      {error.elementKey} failed: {error.message}
     </div>
   ),
 };

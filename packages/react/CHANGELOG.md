@@ -15,6 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- `Scopes` types `root` as always present, so `scopes.root` needs no check under `noUncheckedIndexedAccess`.
+- **Breaking: `ErrorComponentProps` has no `elementKey`.** Read `error.elementKey`: the element's error boundary sets it when the code that threw did not.
 - **Row scopes are the items.** `scopes.<as>.name` reads the element's field; `scopes.<as>.$$index`, `$$id` and `$$value` are the runtime's. `scopes.<as>.item` / `.index` / `.id` and `childScopes` are gone; per-row UI state lives at root keyed by `$$id`. A row write edits the element inside the source array in place and wakes the array's readers, through nested lists and across lists sharing an array. Rows with duplicate `keyBy` values no longer share a scope.
 - **Structural props memo.** An element's evaluated props are compared structurally with the last render's, and the implementation's `render` runs as a memoized component of its own, so it is not called again when nothing it receives changed. Callbacks and the children slot are stable across an element's own re-renders for the same reason. A throw from `render` reaches the element's boundary and is classified `implementation` there.
 - **`render(props, context)`.** An implementation's `render` takes a second argument, `{ entry, loading, scopes }`: the document line, the entry's evaluated `loading`, and the scopes it reads. `generatedKey` is gone from the props; use `context.entry.key`.

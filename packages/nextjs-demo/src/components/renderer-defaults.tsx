@@ -15,15 +15,15 @@ export function useRendererDefaults(onRecover: (failure: RenderFailure) => void)
     () => ({
       defaultSkeleton: () => <Skeleton className="h-4 w-24" />,
       confirm: ConfirmModal,
-      error: ({ error, elementKey }: ErrorComponentProps) => (
-        <RecoverableRenderError
-          error={error}
-          elementKey={elementKey}
-          onRecover={
-            elementKey ? () => recoverRef.current({ key: elementKey, message: error.message }) : undefined
-          }
-        />
-      ),
+      error: ({ error }: ErrorComponentProps) => {
+        const key = error.elementKey;
+        return (
+          <RecoverableRenderError
+            error={error}
+            onRecover={key ? () => recoverRef.current({ key, message: error.message }) : undefined}
+          />
+        );
+      },
     }),
     [],
   );

@@ -17,11 +17,11 @@ describe("EntryRenderer — errors", () => {
     const seen: EntryError[] = [];
     const { container } = mountEntries(lines, {
       fallbackComponents: {
-        error: ({ error, elementKey }) => {
+        error: ({ error }) => {
           seen.push(error);
           return (
             <div>
-              {elementKey} errored ({error.reason}): {error.message}
+              {error.elementKey} errored ({error.reason}): {error.message}
             </div>
           );
         },
@@ -89,9 +89,9 @@ describe("EntryRenderer — errors", () => {
     ];
     const { container } = mountEntries(lines, {
       fallbackComponents: {
-        error: ({ error, elementKey }) => (
+        error: ({ error }) => (
           <div>
-            {elementKey} failed: {error.message}
+            {error.elementKey} failed: {error.message}
           </div>
         ),
       },

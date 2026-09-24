@@ -8,12 +8,12 @@ import {
   buildElementsByKey,
   type ComponentEntry,
   type EntryError,
-  type ReactiveProxy,
 } from "@uicast/core";
 import {
   type ComponentImplementation,
   createComponentImplementation,
   type FallbackComponents,
+  type Scopes,
 } from "@uicast/react";
 import { EntryRenderer } from "@uicast/react/render/entry-renderer";
 import { RendererRegistryProvider } from "@uicast/react/store/renderer-registry";
@@ -109,7 +109,7 @@ type MountOptions = {
 
 export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}) {
   const elements = buildElementsByKey(lines);
-  const scopes: Record<string, ReactiveProxy> = {
+  const scopes: Scopes = {
     root: createProxyScope(options.rootScope ?? {}),
   };
   for (const [name, seed] of Object.entries(options.scopes ?? {})) {

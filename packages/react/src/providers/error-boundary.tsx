@@ -3,8 +3,8 @@ import { EntryError, type EntryErrorReason } from "@uicast/core";
 import type { ErrorComponentProps } from "../types";
 
 // Inline styles: no host CSS needed.
-const DefaultErrorComponent = ({ error, elementKey }: ErrorComponentProps) => (
-  <div style={{ color: "red" }} data-key={elementKey}>
+const DefaultErrorComponent = ({ error }: ErrorComponentProps) => (
+  <div style={{ color: "red" }} data-key={error.elementKey}>
     Render error: {error.message}
   </div>
 );
@@ -63,7 +63,7 @@ export class ErrorBoundary extends Component<
     if (this.state.caught === null) return this.props.children;
     const error = this.classify(this.state.caught);
 
-    const { errorComponent: ErrorComponent = DefaultErrorComponent, elementKey } = this.props;
-    return <ErrorComponent error={error} elementKey={elementKey} />;
+    const { errorComponent: ErrorComponent = DefaultErrorComponent } = this.props;
+    return <ErrorComponent error={error} />;
   }
 }

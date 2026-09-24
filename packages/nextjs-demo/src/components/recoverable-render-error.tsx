@@ -8,12 +8,11 @@ import { Button } from "@uicast/shadcn-catalog/ui/button";
 // host code failing is not the model's to fix.
 export function RecoverableRenderError({
   error,
-  elementKey,
   onRecover,
 }: ErrorComponentProps & { onRecover?: () => void }) {
   const recoverable = error.fault !== "environment";
   return (
-    <Alert variant="destructive" data-key={elementKey}>
+    <Alert variant="destructive" data-key={error.elementKey}>
       <AlertTitle>Render error</AlertTitle>
       <AlertDescription>
         {error.message}

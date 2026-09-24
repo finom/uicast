@@ -74,10 +74,8 @@ export type ConfirmComponentProps = {
   onCancel: () => void;
 };
 
-// `elementKey` is set when engine-rendered.
 export type ErrorComponentProps = {
   error: EntryError;
-  elementKey?: string;
 };
 
 // `confirm` omitted: `window.confirm`.
@@ -96,7 +94,7 @@ export type RendererRegistry = {
 };
 
 // `root`, the scopes `init` attached, and one per active list `as` name.
-export type Scopes = Record<string, ReactiveProxy>;
+export type Scopes = { root: ReactiveProxy } & Record<string, ReactiveProxy>;
 
 // `scopes` is the live proxy tree: assigning `scopes.root.x = …` emits like a `seed` write.
 export type InitContext = {

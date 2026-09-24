@@ -212,9 +212,9 @@ describe("EntryRenderer — lists", () => {
       rootScope: { n: 42, items: ["first-item", "second-item"] },
       onError: (error) => seen.push(error),
       fallbackComponents: {
-        error: ({ error, elementKey }) => (
+        error: ({ error }) => (
           <div>
-            {elementKey} failed: {error.message}
+            {error.elementKey} failed: {error.message}
           </div>
         ),
       },
