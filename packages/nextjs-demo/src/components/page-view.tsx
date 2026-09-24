@@ -1,16 +1,12 @@
 "use client";
 
-import {
-  experimental_streamedQuery as streamedQuery,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { experimental_streamedQuery as streamedQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { type ComponentEntry, isComponentEntry, streamJsonLines } from "@uicast/core";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { evaluator } from "@/lib/evaluator";
-import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
+import { buildSystemPrompt } from "@/lib/system-prompt";
 import { FileText, LoaderCircle, MessageSquareText, Pencil, ScrollText, Sparkles } from "lucide-react";
 import { Profiler, type ProfilerOnRenderCallback, useEffect, useMemo, useState } from "react";
 import { Streamdown } from "streamdown";
@@ -57,17 +53,13 @@ type ControlLine =
   | { type: "done"; finishReason: string };
 type GenerateLine = ComponentEntry | ControlLine;
 
-export function PageView({
-  page: initialPage,
-  initialEntries,
-  ownerSlug,
-  readonly,
-}: {
-  page: PageMeta;
-  initialEntries: ComponentEntry[];
-  ownerSlug: string;
-  readonly: boolean;
-}) {
+// `block!`: Radix lays the viewport's content out as a table, which stops long lines from wrapping.
+const SCROLL_BOX = "rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!";
+const RAW_TEXT = "whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs";
+
+type PageViewProps = { page: PageMeta; initialEntries: ComponentEntry[]; ownerSlug: string; readonly: boolean };
+
+export function PageView({ page: initialPage, initialEntries, ownerSlug, readonly }: PageViewProps) {
   // Reads inside the generated UI serve the page owner's data.
   setApiOwner(ownerSlug);
   const [page, setPage] = useState(initialPage);
@@ -88,13 +80,9 @@ export function PageView({
   const perf = mounted && new URLSearchParams(window.location.search).has("perf");
   const queryClient = useQueryClient();
 
-  const systemPrompt = useMemo(() => (promptOpen ? buildPageSystemPrompt() : null), [promptOpen]);
+  const systemPrompt = useMemo(() => (promptOpen ? buildSystemPrompt("page") : null), [promptOpen]);
 
-  const {
-    data: lines,
-    error: queryError,
-    isFetching,
-  } = useQuery({
+  const { data: lines = [], error: queryError, isFetching } = useQuery({
     queryKey: ["generate", page.id, submission?.seq],
     enabled: submission !== null,
     retry: false,
@@ -117,24 +105,18 @@ export function PageView({
   // ~4 chars per token — a rough gauge, labeled as such in the UI.
   const promptTokens = systemPrompt ? Math.round(systemPrompt.length / 4) : null;
 
-  const runEntries = (lines ?? []).filter(isComponentEntry);
+  const runEntries = lines.filter(isComponentEntry);
   // Re-emitted keys are resolved by the renderer; the Entries tab shows the raw lines.
   const entries = [...history, ...runEntries];
-  const controls = (lines ?? []).filter((line): line is ControlLine => !isComponentEntry(line));
-  const finishReason = controls.find(
-    (line): line is Extract<ControlLine, { type: "done" }> => line.type === "done",
-  )?.finishReason;
-  const errorLine = controls.find(
-    (line): line is Extract<ControlLine, { type: "error" }> => line.type === "error",
-  );
-  const usageLine = controls.find(
-    (line): line is Extract<ControlLine, { type: "usage" }> => line.type === "usage",
-  );
+  const control = <T extends ControlLine["type"]>(type: T) =>
+    lines.find((line): line is Extract<ControlLine, { type: T }> => !isComponentEntry(line) && line.type === type);
+  const finishReason = control("done")?.finishReason;
+  const usageLine = control("usage");
   const totalIn = page.inputTokens + (usageLine?.inputTokens ?? 0);
   const totalOut = page.outputTokens + (usageLine?.outputTokens ?? 0);
   const totalCost = page.costUsd + (usageLine?.costUsd ?? 0);
   const model = usageLine?.model ?? page.model;
-  const streamError = errorLine?.error ?? queryError?.message;
+  const streamError = control("error")?.error ?? queryError?.message;
   const runLabel = entries.length > 0 ? "Iterate" : "Generate";
 
   const renameIfChanged = async () => {
@@ -210,12 +192,9 @@ export function PageView({
             <DialogContent className="overflow-hidden sm:max-w-3xl">
               <DialogHeader>
                 <DialogTitle>System prompt</DialogTitle>
-                <DialogDescription>
-                  What the generate endpoint sends to the model.
-                </DialogDescription>
+                <DialogDescription>What the generate endpoint sends to the model.</DialogDescription>
               </DialogHeader>
-              {/* min-w-0: a grid item's min-content width would otherwise let long
-                  code lines stretch the dialog past its max-width. */}
+              {/* min-w-0: a grid item's min-content width would let long code lines stretch the dialog past its max-width. */}
               <Tabs defaultValue="markdown" className="min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <TabsList>
@@ -223,23 +202,19 @@ export function PageView({
                     <TabsTrigger value="raw">Raw</TabsTrigger>
                   </TabsList>
                   {promptTokens !== null && (
-                    <p className="text-xs text-muted-foreground">
-                      ≈{promptTokens.toLocaleString("en-US")} tokens
-                    </p>
+                    <p className="text-xs text-muted-foreground">≈{promptTokens.toLocaleString("en-US")} tokens</p>
                   )}
                 </div>
                 <TabsContent value="markdown">
-                  <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
+                  <ScrollArea className={`h-[60svh] ${SCROLL_BOX}`}>
                     <div className="wrap-break-word p-3 text-[13px] leading-relaxed [&_:not(pre)>code]:break-all [&_:not(pre)>code]:whitespace-pre-wrap [&_code]:text-xs [&_h1]:mt-4 [&_h1]:mb-2 [&_h1]:text-lg [&_h1]:font-semibold [&_h2]:mt-3 [&_h2]:mb-1 [&_h2]:text-base [&_h2]:font-semibold [&_h3]:mt-2 [&_h3]:mb-1 [&_h3]:text-sm [&_h3]:font-semibold [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5 [&_pre]:overflow-x-auto [&_pre]:text-xs">
                       <Streamdown>{systemPrompt ?? ""}</Streamdown>
                     </div>
                   </ScrollArea>
                 </TabsContent>
                 <TabsContent value="raw">
-                  <ScrollArea className="h-[60svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
-                    <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
-                      {systemPrompt}
-                    </div>
+                  <ScrollArea className={`h-[60svh] ${SCROLL_BOX}`}>
+                    <div className={RAW_TEXT}>{systemPrompt}</div>
                   </ScrollArea>
                 </TabsContent>
               </Tabs>
@@ -313,8 +288,7 @@ export function PageView({
             <TabsTrigger value="preview">Preview</TabsTrigger>
             <TabsTrigger value="entries">Entries ({entries.length})</TabsTrigger>
           </TabsList>
-          {/* forceMount: unmounting the renderer on tab switch would re-run
-              seeds and wipe the generated page's state */}
+          {/* forceMount: unmounting the renderer on tab switch would re-run seeds and wipe the generated page's state. */}
           <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
             <div className="overflow-x-auto rounded-md border p-4">
               {/* Stable per page, so iterations stream into the mounted renderer. */}
@@ -338,10 +312,8 @@ export function PageView({
             </div>
           </TabsContent>
           <TabsContent value="entries">
-            <ScrollArea className="max-h-[70svh] rounded-md border bg-muted/30 [&_[data-slot=scroll-area-viewport]>div]:block!">
-              <div className="whitespace-pre-wrap wrap-break-word p-3 font-mono text-xs">
-                {entries.map((entry) => JSON.stringify(entry)).join("\n")}
-              </div>
+            <ScrollArea className={`max-h-[70svh] ${SCROLL_BOX}`}>
+              <div className={RAW_TEXT}>{entries.map((entry) => JSON.stringify(entry)).join("\n")}</div>
             </ScrollArea>
           </TabsContent>
         </Tabs>

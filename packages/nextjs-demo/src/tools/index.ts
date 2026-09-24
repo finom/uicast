@@ -1,28 +1,10 @@
 import type { StandardToolV0 } from "standard-tool";
-import {
-  createCustomer,
-  deleteCustomer,
-  getCustomer,
-  listCustomers,
-  updateCustomer,
-} from "./customers";
+import { createCustomer, deleteCustomer, getCustomer, listCustomers, updateCustomer } from "./customers";
 import { createOrder, deleteOrder, getOrder, listOrders, updateOrder } from "./orders";
-import {
-  createProduct,
-  deleteProduct,
-  getProduct,
-  listProducts,
-  updateProduct,
-} from "./products";
+import { createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
 import { createStockMovement, listStockMovements } from "./stock-movements";
 import { getSalesSummary, getStockSummary } from "./summaries";
-import {
-  createSupplier,
-  deleteSupplier,
-  getSupplier,
-  listSuppliers,
-  updateSupplier,
-} from "./suppliers";
+import { createSupplier, deleteSupplier, getSupplier, listSuppliers, updateSupplier } from "./suppliers";
 
 // Page and entry endpoints are excluded: the page system is not the model's to mutate.
 export const domainTools: StandardToolV0[] = [

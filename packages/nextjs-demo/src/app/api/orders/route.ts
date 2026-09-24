@@ -50,9 +50,6 @@ export async function POST(req: NextRequest) {
   if (!(await ownsRow(products, body.data.productId, auth.me.id))) {
     return json({ error: "productId does not exist" }, 400);
   }
-  const [row] = await db
-    .insert(orders)
-    .values({ ...body.data, userId: auth.me.id })
-    .returning(COLS);
+  const [row] = await db.insert(orders).values({ ...body.data, userId: auth.me.id }).returning(COLS);
   return json(row, 201);
 }

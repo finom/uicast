@@ -25,9 +25,7 @@ export async function idParam(params: Promise<{ id: string }>) {
 }
 
 // `?u=` slug, else the session user, else the seed user.
-export async function ownerForRead(
-  req: Request,
-): Promise<{ owner: User } | { error: Response }> {
+export async function ownerForRead(req: Request): Promise<{ owner: User } | { error: Response }> {
   const owner = await resolveOwner(new URL(req.url));
   if (!owner) return { error: json({ error: "Unknown user" }, 404) };
   return { owner };

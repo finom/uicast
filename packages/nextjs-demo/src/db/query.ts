@@ -16,9 +16,6 @@ export const sumOf = (expr: SQLWrapper) =>
 
 // FKs are global, so a referenced row must also be checked as the caller's own.
 export async function ownsRow(table: typeof customers | typeof products | typeof suppliers, id: number, userId: string) {
-  const [row] = await db
-    .select({ id: table.id })
-    .from(table)
-    .where(and(eq(table.id, id), eq(table.userId, userId)));
+  const [row] = await db.select({ id: table.id }).from(table).where(and(eq(table.id, id), eq(table.userId, userId)));
   return row !== undefined;
 }

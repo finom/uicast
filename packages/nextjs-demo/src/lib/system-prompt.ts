@@ -1,22 +1,20 @@
 import {
   getCommonInstructionsPartialPrompt,
   getComponentsPartialPrompt,
-  getFunctionsPartialPrompt,
   getExpressionsPartialPrompt,
+  getFunctionsPartialPrompt,
   getScopePartialPrompt,
 } from "@uicast/core/prompt";
 import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { domainTools } from "@/tools";
 
-// Shared with the page view's prompt viewer, so the viewer shows exactly what the endpoint sends.
-export function buildPageSystemPrompt() {
-  return [
+// The page view's prompt viewer builds it too, so it shows exactly what the endpoint sends.
+export const buildSystemPrompt = (kind: "page" | "answer", ...extra: string[]) =>
+  [
     getCommonInstructionsPartialPrompt(),
-    getScopePartialPrompt({ kind: "page" }),
-    getComponentsPartialPrompt({
-      definitions: defs,
-    }),
+    getScopePartialPrompt({ kind }),
+    getComponentsPartialPrompt({ definitions: defs }),
     getFunctionsPartialPrompt({ functions: domainTools }),
     getExpressionsPartialPrompt(),
+    ...extra,
   ].join("\n\n");
-}

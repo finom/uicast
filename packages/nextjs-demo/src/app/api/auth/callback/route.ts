@@ -2,12 +2,7 @@ import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import {
-  createSession,
-  createUser,
-  getSessionUser,
-  setSessionCookie,
-} from "@/lib/auth";
+import { createSession, createUser, getSessionUser, setSessionCookie } from "@/lib/auth";
 import { encryptSecret } from "@/lib/crypto";
 
 // PKCE step 2: the code and the verifier are exchanged for the key.

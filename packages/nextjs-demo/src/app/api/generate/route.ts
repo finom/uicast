@@ -7,7 +7,7 @@ import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
 import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
-import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
+import { buildSystemPrompt } from "@/lib/system-prompt";
 import { computeCostUsd, getModelPricing } from "@/lib/pricing";
 
 export const maxDuration = 300;
@@ -51,9 +51,7 @@ export async function POST(req: Request) {
   const storedByKey = buildElementsByKey(rows.map((row) => row.data));
   const missingKeys = [
     ...new Set(
-      Object.values(storedByKey)
-        .flatMap((entry) => entry.children ?? [])
-        .filter((key) => !storedByKey[key]),
+      Object.values(storedByKey).flatMap((entry) => entry.children ?? []).filter((key) => !storedByKey[key]),
     ),
   ];
   const messages: ModelMessage[] = rows.length
@@ -64,7 +62,7 @@ export async function POST(req: Request) {
       ]
     : [{ role: "user", content: `Page title: ${page.title}\n\n${prompt}` }];
 
-  const system = buildPageSystemPrompt();
+  const system = buildSystemPrompt("page");
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream<Uint8Array>({

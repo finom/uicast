@@ -8,10 +8,6 @@ export async function GET(req: NextRequest) {
   const read = await ownerForRead(req);
   if ("error" in read) return read.error;
   return json(
-    await db
-      .select()
-      .from(chats)
-      .where(eq(chats.userId, read.owner.id))
-      .orderBy(desc(chats.createdAt)),
+    await db.select().from(chats).where(eq(chats.userId, read.owner.id)).orderBy(desc(chats.createdAt)),
   );
 }

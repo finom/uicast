@@ -14,10 +14,7 @@ export async function GET(req: NextRequest, { params }: Ctx) {
   const read = await ownerForRead(req);
   if ("error" in read) return read.error;
   const id = await idParam(params);
-  const [row] = await db
-    .select(COLS)
-    .from(orders)
-    .where(and(eq(orders.id, id), eq(orders.userId, read.owner.id)));
+  const [row] = await db.select(COLS).from(orders).where(and(eq(orders.id, id), eq(orders.userId, read.owner.id)));
   return row ? json(row) : json({ error: "Not found" }, 404);
 }
 

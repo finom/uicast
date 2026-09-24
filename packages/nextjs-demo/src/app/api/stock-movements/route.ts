@@ -52,21 +52,10 @@ export async function POST(req: NextRequest) {
       .for("update");
     if (!product) return { error: json({ error: "productId does not exist" }, 400) };
     if (product.stock + qty < 0) {
-      return {
-        error: json(
-          { error: `Only ${product.stock} in stock — cannot remove ${Math.abs(qty)}` },
-          409,
-        ),
-      };
+      return { error: json({ error: `Only ${product.stock} in stock — cannot remove ${Math.abs(qty)}` }, 409) };
     }
-    await tx
-      .update(products)
-      .set({ stock: sql`${products.stock} + ${qty}` })
-      .where(eq(products.id, productId));
-    const [row] = await tx
-      .insert(stockMovements)
-      .values({ ...body.data, userId: auth.me.id })
-      .returning(COLS);
+    await tx.update(products).set({ stock: sql`${products.stock} + ${qty}` }).where(eq(products.id, productId));
+    const [row] = await tx.insert(stockMovements).values({ ...body.data, userId: auth.me.id }).returning(COLS);
     return { row };
   });
   if ("error" in result) return result.error;

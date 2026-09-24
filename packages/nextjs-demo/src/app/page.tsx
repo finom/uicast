@@ -2,6 +2,7 @@ import { desc, eq } from "drizzle-orm";
 import { FileText, MessageSquare, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
+import { LinkGrid } from "@/components/link-grid";
 import { db } from "@/db";
 import { chats, pages, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
@@ -9,11 +10,7 @@ import { SYSTEM_SLUG } from "@/lib/system-slug";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ login?: string | string[] }>;
-}) {
+export default async function Home({ searchParams }: { searchParams: Promise<{ login?: string | string[] }> }) {
   const { login } = await searchParams;
   const me = await getSessionUser();
   const [recentPages, recentChats] = await Promise.all([
@@ -77,42 +74,27 @@ export default async function Home({
         )}
       </section>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Recent pages</h2>
-        {recentPages.length === 0 && (
-          <p className="text-sm text-muted-foreground">Nothing here yet — seed the database.</p>
-        )}
-        <div className="grid gap-2 sm:grid-cols-2">
-          {recentPages.map((page) => (
-            <Link
-              key={page.id}
-              href={`/u/${page.slug}/p/${page.seedId ?? page.id}`}
-              className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/50"
-            >
-              <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{page.title}</span>
-              <span className="ml-auto shrink-0 text-xs text-muted-foreground">@{page.slug}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-medium text-muted-foreground">Recent chats</h2>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {recentChats.map((chat) => (
-            <Link
-              key={chat.id}
-              href={`/u/${chat.slug}/c/${chat.id}`}
-              className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/50"
-            >
-              <MessageSquare className="size-4 shrink-0 text-muted-foreground" />
-              <span className="truncate">{chat.title}</span>
-              <span className="ml-auto shrink-0 text-xs text-muted-foreground">@{chat.slug}</span>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <LinkGrid
+        title="Recent pages"
+        icon={FileText}
+        empty="Nothing here yet — seed the database."
+        items={recentPages.map((page) => ({
+          key: page.id,
+          href: `/u/${page.slug}/p/${page.seedId ?? page.id}`,
+          title: page.title,
+          owner: page.slug,
+        }))}
+      />
+      <LinkGrid
+        title="Recent chats"
+        icon={MessageSquare}
+        items={recentChats.map((chat) => ({
+          key: chat.id,
+          href: `/u/${chat.slug}/c/${chat.id}`,
+          title: chat.title,
+          owner: chat.slug,
+        }))}
+      />
     </div>
   );
 }

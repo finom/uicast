@@ -50,9 +50,7 @@ export async function DELETE(_req: NextRequest, { params }: Ctx) {
     .select({ refs: count() })
     .from(orders)
     .where(and(eq(orders.productId, id), eq(orders.userId, auth.me.id)));
-  if (refs > 0) {
-    return json({ error: `Cannot delete: ${refs} order(s) reference this product` }, 409);
-  }
+  if (refs > 0) return json({ error: `Cannot delete: ${refs} order(s) reference this product` }, 409);
   const [row] = await db
     .delete(products)
     .where(and(eq(products.id, id), eq(products.userId, auth.me.id)))

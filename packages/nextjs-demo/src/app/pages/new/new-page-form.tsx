@@ -5,14 +5,7 @@ import { LoaderCircle, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@uicast/shadcn-catalog/ui/card";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@uicast/shadcn-catalog/ui/card";
 import { Input } from "@uicast/shadcn-catalog/ui/input";
 import { Label } from "@uicast/shadcn-catalog/ui/label";
 import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
@@ -39,6 +32,8 @@ export function NewPageForm() {
       router.push(`/u/${page.slug}/p/${page.id}`);
     },
   });
+  // Stays busy after success, until the navigation lands.
+  const busy = create.isPending || create.isSuccess;
 
   return (
     <div className="mx-auto max-w-2xl p-6">
@@ -67,24 +62,11 @@ export function NewPageForm() {
               className="min-h-40"
             />
           </div>
-          {create.isError && (
-            <p className="text-xs text-destructive">
-              {create.error.message}
-            </p>
-          )}
+          {create.isError && <p className="text-xs text-destructive">{create.error.message}</p>}
         </CardContent>
         <CardFooter className="justify-end">
-          <Button
-            disabled={
-              !name.trim() || !prompt.trim() || create.isPending || create.isSuccess
-            }
-            onClick={() => create.mutate()}
-          >
-            {create.isPending || create.isSuccess ? (
-              <LoaderCircle data-icon="inline-start" className="animate-spin" />
-            ) : (
-              <Sparkles data-icon="inline-start" />
-            )}
+          <Button disabled={!name.trim() || !prompt.trim() || busy} onClick={() => create.mutate()}>
+            {busy ? <LoaderCircle data-icon="inline-start" className="animate-spin" /> : <Sparkles data-icon="inline-start" />}
             Generate
           </Button>
         </CardFooter>

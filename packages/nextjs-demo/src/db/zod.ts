@@ -16,10 +16,7 @@ export const supplierOutput = supplierInsert.extend({
 
 export const movementInsert = z.object({
   productId: z.number().int().meta({ description: "Product the stock moves for." }),
-  qty: z
-    .number()
-    .int()
-    .meta({ description: "Quantity moved: positive receives stock, negative removes it." }),
+  qty: z.number().int().meta({ description: "Quantity moved: positive receives stock, negative removes it." }),
   reason: z.enum(MOVEMENT_REASONS).meta({ description: "Why the stock moved." }),
   note: z.string().nullish().meta({ description: "Optional free-form note." }),
 });

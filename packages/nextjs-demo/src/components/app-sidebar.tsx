@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { FileText, MessageSquare, Plus } from "lucide-react";
+import { FileText, type LucideIcon, MessageSquare, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
@@ -9,38 +9,67 @@ import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Separator } from "@uicast/shadcn-catalog/ui/separator";
 import type { SidebarData } from "@/lib/sidebar";
 import { SYSTEM_SLUG } from "@/lib/system-slug";
+import { cn } from "@/lib/utils";
 
-type SidebarPage = { id: number; seedId: string | null; title: string };
-type SidebarChat = { id: string; title: string };
+const getJson =
+  <T,>(url: string, fallback: T) =>
+  async (): Promise<T> => {
+    const res = await fetch(url);
+    return res.ok ? res.json() : fallback;
+  };
+
+type NavSectionProps = {
+  label: string;
+  empty: string;
+  icon: LucideIcon;
+  items?: { key: string | number; href: string; title: string }[];
+  className?: string;
+};
+
+function NavSection({ label, empty, icon: Icon, items, className }: NavSectionProps) {
+  const pathname = usePathname();
+  return (
+    <>
+      <p className={cn(className, "px-2 text-xs font-medium text-muted-foreground")}>{label}</p>
+      <nav className="flex flex-col gap-1">
+        {items?.length === 0 && <p className="px-2 py-4 text-center text-xs text-muted-foreground">{empty}</p>}
+        {items?.map(({ key, href, title }) => (
+          <Button
+            key={key}
+            asChild
+            variant={pathname === href ? "secondary" : "ghost"}
+            size="sm"
+            className="w-full justify-start"
+          >
+            <Link href={href}>
+              <Icon data-icon="inline-start" />
+              <span className="truncate">{title}</span>
+            </Link>
+          </Button>
+        ))}
+      </nav>
+    </>
+  );
+}
 
 // `initial` comes from the server pass, so the first HTML has the lists; the queries keep them current.
 export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; initial?: SidebarData }) {
-  const pathname = usePathname();
   const { data: me } = useQuery({
     queryKey: ["me"],
-    queryFn: async (): Promise<{ slug: string } | null> => {
-      const res = await fetch("/api/auth/me");
-      return res.ok ? res.json() : null;
-    },
+    queryFn: getJson<SidebarData["me"]>("/api/auth/me", null),
     initialData: initial?.me,
   });
-  const slug = me?.slug ?? SYSTEM_SLUG;
   const { data: pages } = useQuery({
     queryKey: ["pages"],
-    queryFn: async (): Promise<SidebarPage[]> => {
-      const res = await fetch("/api/pages");
-      return res.ok ? res.json() : [];
-    },
+    queryFn: getJson<SidebarData["pages"]>("/api/pages", []),
     initialData: initial?.pages,
   });
   const { data: chats } = useQuery({
     queryKey: ["chats"],
-    queryFn: async (): Promise<SidebarChat[]> => {
-      const res = await fetch("/api/chats");
-      return res.ok ? res.json() : [];
-    },
+    queryFn: getJson<SidebarData["chats"]>("/api/chats", []),
     initialData: initial?.chats,
   });
+  const slug = me?.slug ?? SYSTEM_SLUG;
 
   return (
     <aside className={`${mobile ? "flex w-full border-0" : "hidden w-64 border-r md:flex"} h-full shrink-0 flex-col gap-2 bg-sidebar p-2 text-sidebar-foreground`}>
@@ -61,59 +90,19 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
 
       <ScrollArea className="flex-1">
         <div className="flex flex-col gap-1 pr-2">
-          <p className="px-2 text-xs font-medium text-muted-foreground">Pages</p>
-          <nav className="flex flex-col gap-1">
-            {pages?.length === 0 && (
-              <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-                No pages yet. Create one to get started.
-              </p>
-            )}
-            {pages?.map((page) => {
-              const href = `/u/${slug}/p/${page.seedId ?? page.id}`;
-              const active = pathname === href;
-              return (
-                <Button
-                  key={page.id}
-                  asChild
-                  variant={active ? "secondary" : "ghost"}
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Link href={href}>
-                    <FileText data-icon="inline-start" />
-                    <span className="truncate">{page.title}</span>
-                  </Link>
-                </Button>
-              );
-            })}
-          </nav>
-
-          <p className="mt-3 px-2 text-xs font-medium text-muted-foreground">Chats</p>
-          <nav className="flex flex-col gap-1">
-            {chats?.length === 0 && (
-              <p className="px-2 py-4 text-center text-xs text-muted-foreground">
-                No chats yet. Start one to ask about your data.
-              </p>
-            )}
-            {chats?.map((chat) => {
-              const href = `/u/${slug}/c/${chat.id}`;
-              const active = pathname === href;
-              return (
-                <Button
-                  key={chat.id}
-                  asChild
-                  variant={active ? "secondary" : "ghost"}
-                  size="sm"
-                  className="w-full justify-start"
-                >
-                  <Link href={href}>
-                    <MessageSquare data-icon="inline-start" />
-                    <span className="truncate">{chat.title}</span>
-                  </Link>
-                </Button>
-              );
-            })}
-          </nav>
+          <NavSection
+            label="Pages"
+            empty="No pages yet. Create one to get started."
+            icon={FileText}
+            items={pages?.map((page) => ({ key: page.id, href: `/u/${slug}/p/${page.seedId ?? page.id}`, title: page.title }))}
+          />
+          <NavSection
+            label="Chats"
+            empty="No chats yet. Start one to ask about your data."
+            icon={MessageSquare}
+            items={chats?.map((chat) => ({ key: chat.id, href: `/u/${slug}/c/${chat.id}`, title: chat.title }))}
+            className="mt-3"
+          />
         </div>
       </ScrollArea>
     </aside>

@@ -23,11 +23,7 @@ export default async function UserChat({ params }: PageProps<"/u/[slug]/c/[id]">
     return <ChatView chatId={id} ownerSlug={slug} />;
   }
 
-  const rows = await db
-    .select()
-    .from(chatMessages)
-    .where(eq(chatMessages.chatId, id))
-    .orderBy(asc(chatMessages.id));
+  const rows = await db.select().from(chatMessages).where(eq(chatMessages.chatId, id)).orderBy(asc(chatMessages.id));
 
   const initialMessages = rows.map((r) => ({
     id: r.messageId,

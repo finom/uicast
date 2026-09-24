@@ -13,7 +13,7 @@ import { SYSTEM_SLUG } from "@/lib/system-slug";
 
 const DEFS = new Map(defs.map((def) => [def.name, def]));
 
-// §1 tree, §4 scope names, §6 lists.
+// The prompt's structure, scope and list rules, plus props and callbacks checked against the defs.
 function validateStructure(where: string, entries: ComponentEntry[]): void {
   const byKey = new Map(entries.map((e) => [e.key, e]));
   if (byKey.size !== entries.length) throw new Error(`[${where}] duplicate keys`);
@@ -78,19 +78,13 @@ function validateEntries(where: string, entries: ComponentEntry[]): void {
   }
 }
 
-
 function validateFences(): void {
   for (const chat of SEED_CHATS) {
     for (const turn of chat.turns) {
       const fences = turn.text.match(/```uicast\n([\s\S]*?)```/g) ?? [];
       for (const fence of fences) {
-        const lines = fence
-          .replace(/```uicast\n/, "")
-          .replace(/```$/, "")
-          .trim()
-          .split("\n");
-        const entries = lines.map((line) => JSON.parse(line) as ComponentEntry);
-        validateEntries(chat.title, entries);
+        const lines = fence.replace(/```uicast\n/, "").replace(/```$/, "").trim().split("\n");
+        validateEntries(chat.title, lines.map((line) => JSON.parse(line) as ComponentEntry));
       }
     }
   }

@@ -18,9 +18,6 @@ export async function POST(req: NextRequest) {
   if ("error" in auth) return auth.error;
   const body = await readValid(req, pageInsert);
   if ("error" in body) return body.error;
-  const [row] = await db
-    .insert(pages)
-    .values({ ...body.data, userId: auth.me.id })
-    .returning();
+  const [row] = await db.insert(pages).values({ ...body.data, userId: auth.me.id }).returning();
   return json({ ...row, slug: auth.me.slug }, 201);
 }

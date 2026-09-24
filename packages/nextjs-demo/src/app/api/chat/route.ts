@@ -1,13 +1,5 @@
 import { convertToModelMessages, createUIMessageStreamResponse, isTextUIPart, streamText, toUIMessageStream, type UIMessage } from "ai";
-import {
-  getCommonInstructionsPartialPrompt,
-  getComponentsPartialPrompt,
-  getFunctionsPartialPrompt,
-  getExpressionsPartialPrompt,
-  getScopePartialPrompt,
-} from "@uicast/core/prompt";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
-import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
@@ -15,7 +7,7 @@ import { db } from "@/db";
 import { requireUser } from "@/lib/api";
 import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
 import { computeCostUsd, getModelPricing } from "@/lib/pricing";
-import { domainTools } from "@/tools";
+import { buildSystemPrompt } from "@/lib/system-prompt";
 
 export const maxDuration = 300;
 
@@ -92,23 +84,12 @@ export async function POST(req: Request) {
   }
   await persistMessages(id, uiMessages);
 
-  const system = [
-    getCommonInstructionsPartialPrompt(),
-    getScopePartialPrompt({ kind: "answer" }),
-    getComponentsPartialPrompt({
-      definitions: defs,
-    }),
-    getFunctionsPartialPrompt({ functions: domainTools }),
-    getExpressionsPartialPrompt(),
-    getFencePartialPrompt(),
-  ].join("\n\n");
-
   // Prefetched so the metadata callback can price the finish synchronously.
   const pricing = await getModelPricing();
 
   const result = streamText({
     model,
-    system,
+    system: buildSystemPrompt("answer", getFencePartialPrompt()),
     messages: await convertToModelMessages(uiMessages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
   });

@@ -22,15 +22,7 @@ import {
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
-import {
-  PromptInput,
-  PromptInputBody,
-  type PromptInputMessage,
-  PromptInputFooter,
-  PromptInputSubmit,
-  PromptInputTextarea,
-  PromptInputTools,
-} from "@/components/ai-elements/prompt-input";
+import { PromptInput } from "@/components/ai-elements/prompt-input";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
@@ -41,22 +33,11 @@ const uicastRenderer = createFenceRenderer({ showSourceToggle: true });
 // Passing `plugins` replaces the default set, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
 
-export function ChatView({
-  chatId,
-  initialMessages,
-  ownerSlug,
-  readonly = false,
-}: {
-  chatId: string;
-  initialMessages?: UIMessage<Usage>[];
-  ownerSlug: string;
-  readonly?: boolean;
-}) {
+type ChatViewProps = { chatId: string; initialMessages?: UIMessage<Usage>[]; ownerSlug: string; readonly?: boolean };
+
+export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false }: ChatViewProps) {
   setApiOwner(ownerSlug);
-  const { messages, sendMessage, status, stop, error } = useChat({
-    id: chatId,
-    messages: initialMessages,
-  });
+  const { messages, sendMessage, status, stop, error } = useChat({ id: chatId, messages: initialMessages });
   const queryClient = useQueryClient();
 
   const busy = status === "streaming" || status === "submitted";
@@ -76,10 +57,10 @@ export function ChatView({
     }
   }, [status, queryClient]);
 
-  const handleSubmit = (message: PromptInputMessage) => {
+  const handleSubmit = (input: string) => {
     // Enter mid-stream must not inject a second message into an active run.
     if (busy) return;
-    const text = message.text.trim();
+    const text = input.trim();
     if (!text) return;
     if (messages.length === 0) {
       // Shallow: a router navigation would stop the stream into this mounted view.
@@ -135,23 +116,20 @@ export function ChatView({
           {error && <p className="pb-2 text-xs text-destructive">{error.message}</p>}
 
           {readonly ? (
-          <p className="rounded-md border px-3 py-2 text-center text-xs text-muted-foreground">
-            @{ownerSlug}'s chat — read-only.{" "}
-            <a className="underline" href="/api/auth/login">
-              Log in with OpenRouter
-            </a>{" "}
-            to start your own.
-          </p>
-        ) : (
-          <PromptInput onSubmit={handleSubmit}>
-            <PromptInputBody>
-              <PromptInputTextarea placeholder="e.g. How much did we earn this month?" />
-            </PromptInputBody>
-            <PromptInputFooter>
-              <PromptInputTools />
-              <PromptInputSubmit status={status} onStop={stop} />
-            </PromptInputFooter>
-            </PromptInput>
+            <p className="rounded-md border px-3 py-2 text-center text-xs text-muted-foreground">
+              @{ownerSlug}'s chat — read-only.{" "}
+              <a className="underline" href="/api/auth/login">
+                Log in with OpenRouter
+              </a>{" "}
+              to start your own.
+            </p>
+          ) : (
+            <PromptInput
+              placeholder="e.g. How much did we earn this month?"
+              status={status}
+              onStop={stop}
+              onSubmit={handleSubmit}
+            />
           )}
         </div>
       </div>
