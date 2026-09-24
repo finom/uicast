@@ -49,13 +49,17 @@ async function persistMessages(chatId: string, messages: UIMessage[]) {
   await db.transaction(async (tx) => {
     await tx.delete(chatMessages).where(eq(chatMessages.chatId, chatId));
     await tx.insert(chatMessages).values(
-      messages.map((message) => ({
-        chatId,
-        messageId: message.id,
-        role: message.role,
-        parts: message.parts,
-        metadata: message.metadata ?? null,
-      })),
+      messages.map((message) => {
+        const { model = null, ...usage } = (message.metadata ?? {}) as { model?: string | null };
+        return {
+          chatId,
+          messageId: message.id,
+          role: message.role,
+          parts: message.parts,
+          metadata: message.metadata ? usage : null,
+          model,
+        };
+      }),
     );
   });
 }

@@ -33,7 +33,7 @@ export default async function UserChat({ params }: PageProps<"/u/[slug]/c/[id]">
     id: r.messageId,
     role: r.role,
     parts: r.parts,
-    metadata: r.metadata ?? undefined,
+    metadata: r.metadata ? { ...(r.metadata as object), model: r.model } : undefined,
   })) as UIMessage<Usage>[];
 
   return (

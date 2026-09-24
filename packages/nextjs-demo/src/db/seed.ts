@@ -1,8 +1,8 @@
 import type { ComponentEntry, ValueSource } from "@uicast/core";
 import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
-import { and, eq, isNull, notInArray, or } from "drizzle-orm";
+import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db } from "./index";
-import { chats, componentEntries, pages, users } from "./schema";
+import { chatMessages, chats, componentEntries, pages, users } from "./schema";
 import { insertSeedChats, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData } from "./starter-data";
 import { evaluator } from "@/lib/evaluator";
@@ -127,6 +127,12 @@ async function updateSeedContent(userId: string): Promise<void> {
 async function main() {
   for (const page of SEED_PAGES) validateEntries(page.title, page.entries);
   validateFences();
+
+  // Every account's rows saved before `chat_messages.model` existed kept the model in `metadata`.
+  await db
+    .update(chatMessages)
+    .set({ model: sql`${chatMessages.metadata}->>'model'`, metadata: sql`${chatMessages.metadata} - 'model'` })
+    .where(sql`${chatMessages.metadata} ? 'model'`);
 
   const [existing] = await db.select().from(users).where(eq(users.slug, SYSTEM_SLUG));
   if (existing && !process.argv.includes("--fresh")) {

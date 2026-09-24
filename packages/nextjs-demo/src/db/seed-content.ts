@@ -1138,12 +1138,13 @@ export async function insertSeedChats(userId: string): Promise<void> {
     const { id } = chat;
     await db.insert(chats).values({ id, userId, title: chat.title });
     await db.insert(chatMessages).values(
-      chat.turns.map((turn, i) => ({
+      chat.turns.map(({ role, text, usage }, i) => ({
         chatId: id,
         messageId: `${id}-${i}`,
-        role: turn.role,
-        parts: [{ type: "text", text: turn.text }],
-        metadata: turn.usage ?? null,
+        role,
+        parts: [{ type: "text", text }],
+        metadata: usage ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, costUsd: usage.costUsd } : null,
+        model: usage?.model ?? null,
       })),
     );
   }

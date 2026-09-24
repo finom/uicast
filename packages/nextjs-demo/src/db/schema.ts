@@ -191,8 +191,10 @@ export const chatMessages = pgTable(
     messageId: text("message_id").notNull(),
     role: text("role", { enum: ["user", "assistant", "system"] }).notNull(),
     parts: jsonb("parts").notNull(),
-    // UIMessage.metadata: per-message usage and cost on assistant rows.
+    // UIMessage.metadata without `model`: per-message usage and cost on assistant rows.
     metadata: jsonb("metadata"),
+    // The model that wrote an assistant row.
+    model: text("model"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("chat_messages_chat_created").on(t.chatId, t.createdAt)],
