@@ -10,8 +10,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 30 of the 128 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
-- `<DocumentSkeleton entries implementations>`, from the package root, draws a document's shape before the renderer boots. It walks the entries and draws each element with that element's own `placeholder`, passing the drawn children down; a list is repeated a few times. It evaluates nothing and reads no props, so it renders on the server while the client tree mounts, and the real render replaces it.
-- A `placeholder` on 79 implementations, so `DocumentSkeleton` draws them. A placeholder given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
+- A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
+- Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card`, `Alert` and `Callout` draw the `title` in place of a bar. Without known props they draw as before.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
 

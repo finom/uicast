@@ -31,5 +31,5 @@ export const QRCodeImpl = createComponentImplementation({
       </CardContent>
     </Card>
   ),
-  placeholder: () => <Skeleton className="w-full" style={{ height: 160 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 160 }} />,
 });

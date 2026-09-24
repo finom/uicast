@@ -100,5 +100,5 @@ export const SignaturePadImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 160 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 160 }} />,
 });

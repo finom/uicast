@@ -13,6 +13,6 @@ export const TableHeadImpl = createComponentImplementation({
       </ShadcnTableHead>
     );
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? SKELETON_BAR : <ShadcnTableHead>{children ?? SKELETON_BAR}</ShadcnTableHead>,
 });

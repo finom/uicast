@@ -16,8 +16,7 @@ export const GridImpl = createComponentImplementation({
       </div>
     );
   },
-  // A placeholder has no props, so the definition's own defaults: three columns, gap 4.
-  placeholder: ({ children }) => (
-    <div className={`grid ${COLUMNS["3"]} ${GAP["4"]}`}>{children}</div>
+  skeleton: ({ knownProps, children }) => (
+    <div className={`grid ${COLUMNS[knownProps?.columns ?? "3"]} ${GAP[knownProps?.gap ?? "4"]}`}>{children}</div>
   ),
 });

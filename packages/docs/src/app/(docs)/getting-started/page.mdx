@@ -2,7 +2,8 @@
 
 Type a prompt, get a working UI built from components you register and data you
 expose. This guide uses the shadcn reference catalog, so there are no components
-to write first.
+to write first. The examples use Next.js; any React app with a server route
+works.
 
 ## 1. Install
 
@@ -97,8 +98,6 @@ import {
 import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
 import { tools } from "@/tools";
 
-export const maxDuration = 300;
-
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
@@ -110,7 +109,7 @@ const system = [
 export async function POST(req: Request) {
   const { prompt } = await req.json();
   // A bare model id resolves through the Vercel AI Gateway — set AI_GATEWAY_API_KEY.
-  const result = streamText({ model: "anthropic/claude-opus-5", system, prompt });
+  const result = streamText({ model: "anthropic/claude-opus-5.5", system, prompt });
 
   return createTextStreamResponse({
     stream: result.textStream,
@@ -149,7 +148,7 @@ const impls = Object.values(catalogImpls);
 
 const fallbackComponents = {
   confirm: ConfirmModal,
-  placeholder: () => <Skeleton className="h-4 w-24" />,
+  defaultSkeleton: () => <Skeleton className="h-4 w-24" />,
 };
 
 function Generated({ prompt }: { prompt: string }) {
@@ -201,8 +200,9 @@ export default function Home() {
 > Show this week's orders, with refund buttons.
 
 The page fills in from the top, parents before children. A child that has not
-arrived shows `placeholder`, which has no default. Finished parts are never
-rebuilt, and a [`seed`](/entry#seed) that already fetched does not fetch again.
+arrived shows its parent's [skeleton](/react#skeleton), or `defaultSkeleton`.
+Finished parts are never rebuilt, and a [`seed`](/entry#seed) that already
+fetched does not fetch again.
 
 ## Where to go next
 

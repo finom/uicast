@@ -71,10 +71,10 @@ describe("RendererProvider — implementations prop", () => {
     errorSpy.mockRestore();
   });
 
-  it("exposes only def and placeholder, and refuses an implementation it did not make", () => {
+  it("exposes only def and skeleton, and refuses an implementation it did not make", () => {
     const boxDef = createComponentDefinition({ name: "Box", description: "test box", props: z.object({}) });
     const made = createComponentImplementation({ def: boxDef, render: () => <span>made</span> });
-    expect(Object.keys(made).sort()).toEqual(["def", "placeholder"]);
+    expect(Object.keys(made).sort()).toEqual(["def", "skeleton"]);
 
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];

@@ -114,7 +114,7 @@ const windowsByElement = new WeakMap<object, Set<Emitter>>();
 const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] =>
   forwardTargetsByProxy.get(proxy)?.() ?? [];
 
-const ENGINE_DESCRIPTOR = { writable: false, enumerable: true, configurable: true };
+const ENGINE_DESCRIPTOR = { writable: false, enumerable: false, configurable: true };
 
 // A write changes the element in place, then emits on the row and on every field holding the element.
 function createRowScope(): RowScope {
@@ -203,13 +203,11 @@ function createRowScope(): RowScope {
         if (typeof prop !== "string") return false;
         return isEngineField(prop) || (isObject(element) && Object.hasOwn(element, prop));
       },
+      // The element's keys only, so a spread or `Object.keys` of the row copies the element without the runtime's fields.
       ownKeys() {
-        const keys = isObject(element)
+        return isObject(element)
           ? Reflect.ownKeys(element).filter((k) => typeof k !== "string" || !RESERVED_ROW_FIELDS.has(k))
           : [];
-        keys.push("$$index", "$$id");
-        if (!isObject(element)) keys.push("$$value");
-        return keys;
       },
       getOwnPropertyDescriptor(_, prop) {
         if (typeof prop !== "string") return undefined;

@@ -93,7 +93,7 @@ export const inventoryLines: ComponentEntry[] = [
     },
   },
 
-  // An async `seed` of its own: only this card shows its placeholder while the breakdown loads.
+  // An async `seed` of its own: only this card shows its skeleton while the breakdown loads.
   {
     key: "chart-card",
     component: "Card",

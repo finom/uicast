@@ -66,6 +66,7 @@ Where a listing reuses a type, it is written once under a `# Shared Types` headi
 - **`seed` is for user-mutable state and one-shot data fetches — NOT derived state.** Each entry runs once at mount and never recomputes. Use `seed` to:
   - Initialize a value the user will later change (a form field, a selection, a search term, a pagination cursor).
   - Fetch data from a host function on mount: `{ "set": "scopes.root.rows", "expr": "InvApi_getRows()" }`.
+- **A seed only reads.** Call a function that changes data (create, update, delete) only from a callback: a seed runs every time the element mounts.
 - **Do NOT use `seed` for a value computed from other state.** A filtered list, a sorted list, a paginated slice, a sum, a formatted string — anything that should change when its inputs change — belongs inline in a reactive site (`props.expr`, `hidden`, or `each`), where it recomputes automatically. Derived state in `seed` is a stale snapshot.
   - WRONG: `"seed": [{ "set": "scopes.root.filteredRows", "expr": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))" }]` then `"each": "scopes.root.filteredRows"`. The filter runs once at mount; typing into the search input does nothing.
   - CORRECT: Leave `filteredRows` out of state. Set `"each": "scopes.root.rows.filter(r => r.name.includes(scopes.root.searchTerm))"` directly on the list element. The runtime subscribes to both `rows` and `searchTerm`; the list updates as the user types.

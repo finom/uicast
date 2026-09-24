@@ -10,9 +10,10 @@ scopes.<scopeName>.<field>     // e.g. scopes.root.searchTerm
 
 ## What a scope is
 
-Every scope is a `createProxyScope` object from
-[`@uicast/core`](/api-ref#uicastcore): one shallow `Proxy` over a set of fields,
-with no state library underneath. Everything under a field is plain data.
+A scope is one shallow `Proxy` over a set of fields, with no state library
+underneath. Everything under a field is plain data. `root` and the scopes you
+add are [`createProxyScope`](/api-ref#uicastcore) objects; an item scope is the
+runtime's own ([below](#item-scopes)).
 
 ```ts
 const root = createProxyScope<{ count: number; user?: { name: string } }>({ count: 0 });
@@ -62,7 +63,9 @@ read-only fields of the runtime's own.
 
 `$$index` is the zero-based position in the `each` result, and `$$id` the key
 `keyBy` picked (the index without `keyBy`). When the array holds strings or
-numbers, the item is `$$value`.
+numbers, the item is `$$value`. The runtime computes all three on read. They
+are never stored on the item, and a copy of the row, such as
+`{ ...scopes.order }`, holds only the item's own fields.
 
 **A write goes into the array.** `set: "scopes.order.status"` changes that
 element inside `scopes.root.orders` and wakes everything reading the array.

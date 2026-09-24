@@ -78,10 +78,11 @@ Re-exports nothing from core — import from both.
 |---|---|
 | `<RendererProvider>` | Holds the implementations, the evaluator (with host functions bound), fallback UI and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
-| `createComponentImplementation({ def, render, placeholder? })` | The React half of a component pair: `{ def, placeholder }`, to register. See [impl](/react). |
+| `<DocumentSkeleton entries>` | The document's shape from the entries alone, drawn with the provider's implementations and `fallbackComponents.defaultSkeleton`. Evaluates nothing, so it renders in a server pass. See [Server rendering](/react/ssr#document-skeleton). |
+| `createComponentImplementation({ def, render, skeleton? })` | The React half of a component pair: `{ def, skeleton }`, to register. See [impl](/react). |
 
 Types: `ComponentImplementation`, `RenderContext`, `RendererProviderProps`,
-`EntriesRendererProps`, `FallbackComponents`, `PlaceholderComponentProps`,
+`EntriesRendererProps`, `FallbackComponents`, `SkeletonComponentProps`,
 `ConfirmComponentProps`, `ErrorComponentProps`, `InitFn`, `InitContext`, `Scopes`.
 
 ## `@uicast/shadcn-catalog`
@@ -96,7 +97,7 @@ A reference catalog, usable as is. See
 | `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | The same, one group each: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`. See [Reference catalog](/react/reference-catalog#groups). |
 | `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | 30 of the 128, enough to build a page, at about a quarter of the prompt text. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema`: shared payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
-| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). `DocumentSkeleton({ entries, implementations })`: gray placeholders in the shape of a document's tree. It evaluates nothing, so it renders anywhere, a server pass included. |
+| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
 | `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
 | `@uicast/shadcn-catalog/catalog.css` | Every utility the components use. No palette: your `@theme` supplies it. |
 | `@uicast/shadcn-catalog/theme.css` | Optional baseline: preflight plus the shadcn palette. |

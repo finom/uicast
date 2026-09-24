@@ -82,5 +82,5 @@ export const CarouselImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 240 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 240 }} />,
 });

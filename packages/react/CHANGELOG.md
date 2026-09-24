@@ -8,7 +8,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- `PlaceholderComponentProps.children`. The renderer never passes it, so a placeholder that receives children knows it is drawing the element itself and renders its own tag; without them it is filling a slot inside a real element. A skeleton pass over the entries uses this to draw a document before anything is evaluated.
+- `<DocumentSkeleton entries>` draws a document's shape from the entries alone, with the implementations and `fallbackComponents` of the nearest `<RendererProvider>`. An element with a `skeleton` draws it with its children inside, one without draws its children, and a leaf without draws `fallbackComponents.defaultSkeleton`; a list draws three items, and an element with `hidden` is left out, since its value is not known yet. It evaluates nothing, so it renders in a server pass, and it draws no markup of its own beyond an `aria-busy` wrapper.
+- `SkeletonComponentProps.children`. A skeleton that receives `children`, even `null`, draws the element itself and renders its own tag. Called without them, it fills the slot of a child that has not streamed in yet, inside the real parent.
+- `SkeletonComponentProps.entry`: the element's own entry, or the parent's when the skeleton fills a child's slot. Nothing in it is evaluated.
+- `SkeletonComponentProps.knownProps`: the element's props that need no evaluation, a literal or none, parsed by its definition with the defaults filled in and checked against `urlPolicy`, as `render`'s are. Absent when they come from an expression or fail those checks, and in a child's slot. An implementation's `skeleton` gets it typed from its definition.
 
 ### Changed
 
@@ -18,10 +21,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Debounced callback steps.** A step with `debounce: true` and the steps after it run after 300 ms of quiet, once, with the latest `evt`; a newer call of the same callback replaces the pending run, and unmounting the element cancels it. Steps before it run at once.
 - **One React component fewer per element.** The renderer evaluates an element's props and `hidden` and builds its callbacks itself, then renders the implementation's memoized `render` directly; the implementation no longer wraps it in a component of its own. About 10% fewer fibers on a large page.
 - `set` addresses are `scopes.<scope>.<field>` only; a deeper or numeric address, or one without the `scopes.` prefix, is rejected at mount.
-- **Breaking:** `ComponentImplementation` is `{ def, placeholder }`; `render` is gone from it. What the renderer runs an implementation with stays inside `@uicast/react`. `<RendererProvider>` throws for an implementation that `createComponentImplementation` did not make, including one made by a second copy of `@uicast/react`.
+- **Breaking: `placeholder` is `skeleton`.** An implementation's is `createComponentImplementation({ def, render, skeleton })`; the provider's, drawn where an implementation has none, is `fallbackComponents.defaultSkeleton`; their props type is `SkeletonComponentProps`. The name no longer collides with the `placeholder` prop of an input.
+- **While an async seed loads, an element draws the skeleton of its subtree**, as `DocumentSkeleton` draws that part: its `skeleton` with its children's inside, and three items for a list. Before, it rendered itself with its own skeleton in the children slot, and a container drew an empty box. Nothing is evaluated for the skeleton, so a prop that reads the loading data no longer fails before the data arrives. The element follows its own `hidden`; below it, an element with `hidden` is left out. An entry that streams in while it waits joins the skeleton.
+- **Breaking:** `ComponentImplementation` is `{ def, skeleton }`; `render` is gone from it. What the renderer runs an implementation with stays inside `@uicast/react`. `<RendererProvider>` throws for an implementation that `createComponentImplementation` did not make, including one made by a second copy of `@uicast/react`.
 
 ### Fixed
 
+- **A seed that fails in a server pass is reported.** The server renders an element once, so the failure was never rethrown: the HTML left the seeded field unset and no `onError` ran. The element now sends its skeleton, `onError` receives the error, and the browser renders the element again.
 - **`render` may use hooks again.** It was called inside `useMemo`, which skipped its hooks on a memo hit — React refused with "Do not call Hooks inside useMemo" and a fence or page whose implementation used `useState` could render nothing. Nineteen catalog implementations do.
 - **A list re-emitted with a new `as` name gives its rows the new scope.** The cached row scopes kept the old name, so a child reading `scopes.<newName>.x` failed with `Cannot read "x" of undefined`.
 - **A seed streamed in after its readers no longer sets state mid-render.** Its sync writes woke already-mounted subscribers during the seeding element's render (React: "Cannot update a component while rendering a different component"). While a seed or `init` runs, a wake is deferred to a microtask.

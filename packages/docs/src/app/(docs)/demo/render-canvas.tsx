@@ -16,7 +16,7 @@ import type { StandardToolV0 } from "standard-tool";
 
 // Sized in em to fit inline text and headings; `containerClassName` gives the inline wrapper a width inside flex parents
 // and hides its trailing <br>.
-const Placeholder = () => (
+const DefaultSkeleton = () => (
   <Skeleton
     height="1.25em"
     borderRadius="0.4em"
@@ -26,7 +26,7 @@ const Placeholder = () => (
   />
 );
 const DEFAULT_COMPONENTS = {
-  placeholder: Placeholder,
+  defaultSkeleton: DefaultSkeleton,
   confirm: ConfirmModal,
   error: RenderError,
 };

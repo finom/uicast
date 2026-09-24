@@ -6,32 +6,9 @@ export function setApiOwner(slug: string) {
   apiOwner = slug;
 }
 
-// The count of in-flight requests is how a freshly mounted document says it is still filling up.
-let inFlight = 0;
-const watchers = new Set<(inFlight: number) => void>();
-
-export function watchApiActivity(watcher: (inFlight: number) => void) {
-  watchers.add(watcher);
-  return () => void watchers.delete(watcher);
-}
-
-function track(delta: number) {
-  inFlight += delta;
-  for (const watcher of watchers) watcher(inFlight);
-}
-
 type ApiInit = { method?: string; body?: unknown; success?: string };
 
 export async function apiFetch(path: string, init?: ApiInit) {
-  track(1);
-  try {
-    return await request(path, init);
-  } finally {
-    track(-1);
-  }
-}
-
-async function request(path: string, init?: ApiInit) {
   const method = init?.method ?? "GET";
   let url = path;
   if (method === "GET" && apiOwner) url += `${path.includes("?") ? "&" : "?"}u=${encodeURIComponent(apiOwner)}`;

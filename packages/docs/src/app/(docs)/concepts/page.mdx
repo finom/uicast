@@ -26,8 +26,8 @@ card ─┬─ title
 ```
 
 `card` is the **root**: no line lists it as a child. A parent must stream
-before its children; until a child's line arrives, the renderer shows a
-placeholder.
+before its children; until a child's line arrives, the renderer shows the
+parent's [skeleton](/react#skeleton) in its place.
 
 ## One line, many elements: lists
 
@@ -199,7 +199,7 @@ excludes event handlers, which definitions and entries declare separately as
 | --- | --- |
 | **uicast document** | One complete UI: a flat set of entries forming a tree with one **root** — the entry no other entry lists in `children`, derived structurally rather than flagged. Streamed as JSONLines, one entry per line. |
 | **entry** | One line of that stream: the JSON describing a single node. The node that mounts from it is its **element**. See [Entry fields](/entry). |
-| **list** | An entry that repeats, marked by [`each`](/entry) (the collection) with `as` naming the per-item scope. Each repetition is an **item**, read as `scopes.<as>.item`, `.index`, `.id`. |
+| **list** | An entry that repeats, marked by [`each`](/entry) (the collection) with `as` naming the per-item scope. Each repetition is an **item**: `scopes.<as>` is the item itself, plus `$$index` and `$$id`. |
 | **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
 | **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }` verbatim, or `{ "expr": … }` evaluated. See [Value Sources](/entry/value-sources). |

@@ -15,8 +15,8 @@ import {
 	mountEntries,
 } from "../../../test/render-helpers";
 
-describe("EntryRenderer — streaming / placeholders", () => {
-	it("renders a placeholder when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
+describe("EntryRenderer — streaming / skeletons", () => {
+	it("renders the default skeleton when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
 		const lines: ComponentEntry[] = [
 			{
 				key: "root",
@@ -26,7 +26,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 		];
 		const { container } = mountEntries(lines, {
 			fallbackComponents: {
-				placeholder: ({ reason }) => <span data-test-placeholder>{reason}</span>,
+				defaultSkeleton: ({ reason }) => <span data-test-placeholder>{reason}</span>,
 			},
 		});
 		const ph = container.querySelector("[data-test-placeholder]");
@@ -34,17 +34,34 @@ describe("EntryRenderer — streaming / placeholders", () => {
 		expect(ph?.textContent).toBe("streaming");
 	});
 
-	it("uses the parent's per-component placeholder for an unstreamed child, over the global one", () => {
+	it("passes the parent's entry, and no known props, to the skeleton in a child's slot", () => {
+		const Row = createComponentImplementation({
+			def: createComponentDefinition({ name: "Row", description: "row", props: z.object({ gap: z.string() }) }),
+			render: ({ children }) => <div>{children}</div>,
+			skeleton: ({ entry, knownProps }) => (
+				<span data-test-placeholder>
+					{entry.key}:{knownProps ? "known" : "none"}
+				</span>
+			),
+		});
+		const { container } = mountEntries(
+			[{ key: "root", component: "Row", props: { literal: { gap: "4" } }, children: ["pending"] }],
+			{ implementations: { ...defaultImplementations, Row } },
+		);
+		expect(container.querySelector("[data-test-placeholder]")?.textContent).toBe("root:none");
+	});
+
+	it("uses the parent's skeleton for an unstreamed child, over the default skeleton", () => {
 		const phBoxImpl = createComponentImplementation({
 			def: createComponentDefinition({
 				name: "PhBox",
-				description: "A box with its own placeholder",
+				description: "A box with its own skeleton",
 				props: z.object({}),
 			}),
 			render: ({ children}, { entry }) => (
 				<div data-key={entry.key}>{children}</div>
 			),
-			placeholder: () => <span data-box-ph />,
+			skeleton: () => <span data-box-ph />,
 		});
 		const { container } = mountEntries(
 			[
@@ -57,7 +74,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 			{
 				implementations: { ...defaultImplementations, PhBox: phBoxImpl },
 				fallbackComponents: {
-					placeholder: () => <span data-global-ph />,
+					defaultSkeleton: () => <span data-global-ph />,
 				},
 			},
 		);
@@ -65,7 +82,7 @@ describe("EntryRenderer — streaming / placeholders", () => {
 		expect(container.querySelector("[data-global-ph]")).toBeNull();
 	});
 
-	it("falls back to null placeholder when none is provided", () => {
+	it("renders nothing when no skeleton is provided", () => {
 		const { container } = mountEntries([
 			{
 				key: "root",
@@ -121,7 +138,7 @@ describe("EntryRenderer — streaming + seed", () => {
 		expect(container.textContent).toContain("B");
 	});
 
-	it("does not re-run a parent's seed when a child entry streams in to fill a placeholder", () => {
+	it("does not re-run a parent's seed when a child entry streams in to fill its slot", () => {
 		let count = 0;
 		const functions: StandardToolV0[] = [
 			{
@@ -135,7 +152,7 @@ describe("EntryRenderer — streaming + seed", () => {
 		];
 		const evaluator = new Evaluator({ functions });
 		const fallbackComponents = {
-			placeholder: () => <span data-test-placeholder>pending</span>,
+			defaultSkeleton: () => <span data-test-placeholder>pending</span>,
 		};
 
 		const initial: ComponentEntry[] = [

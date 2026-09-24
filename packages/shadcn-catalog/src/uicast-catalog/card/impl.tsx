@@ -32,10 +32,10 @@ export const CardImpl = createComponentImplementation({
       </Card>
     );
   },
-  placeholder: ({ children }) => (
+  skeleton: ({ knownProps, children }) => (
     <Card className="min-w-0">
       <CardHeader>
-        <Skeleton className="h-4 w-40" />
+        {knownProps?.title ? <CardTitle>{knownProps.title}</CardTitle> : <Skeleton className="h-4 w-40" />}
       </CardHeader>
       <CardContent className="flex flex-col gap-3">{children}</CardContent>
     </Card>

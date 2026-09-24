@@ -10,6 +10,6 @@ export const TableCellImpl = createComponentImplementation({
       <ShadcnTableCell data-key={entry.key}>{children ?? text}</ShadcnTableCell>
     );
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? SKELETON_BAR : <ShadcnTableCell>{children ?? SKELETON_BAR}</ShadcnTableCell>,
 });

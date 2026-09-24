@@ -92,7 +92,7 @@ describe("EntryRenderer — document faults that must not crash", () => {
     ];
     const { container } = mountEntries(lines, {
       rootScope: { items: [{ n: 1 }] },
-      fallbackComponents: { ...errorSlot, placeholder: () => <span>pending</span> },
+      fallbackComponents: { ...errorSlot, defaultSkeleton: () => <span>pending</span> },
     });
     expect(container.textContent).toBe("read:undefined;id:0;pending");
   });

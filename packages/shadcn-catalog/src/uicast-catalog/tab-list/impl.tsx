@@ -8,7 +8,7 @@ export const TabListImpl = createComponentImplementation({
   render: ({ children }, { entry }) => {
     return <TabsList data-key={entry.key}>{children}</TabsList>;
   },
-  placeholder: () => (
+  skeleton: () => (
     <>
       <Skeleton style={{ width: 60, height: 20 }} />
       <Skeleton style={{ width: 60, height: 20 }} />

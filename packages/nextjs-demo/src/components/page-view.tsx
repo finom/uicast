@@ -7,8 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { type ComponentEntry, isComponentEntry, streamJsonLines } from "@uicast/core";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
-import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { DocumentSkeleton } from "@uicast/shadcn-catalog";
+import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
 import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { evaluator } from "@/lib/evaluator";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
@@ -33,15 +32,9 @@ import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
 import { UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
-import { setApiOwner, watchApiActivity } from "@/tools/http";
+import { setApiOwner } from "@/tools/http";
 
 const impls = Object.values(catalogImpls);
-
-// The skeleton comes down when a document's seeds have been quiet this long,
-// or on one of the two caps: nothing ever started, or something is hanging.
-const SEED_QUIET_MS = 250;
-const SEED_START_MS = 400;
-const SEED_WAIT_MS = 8000;
 
 // `?perf` logs every React commit of the generated tree to `window.__uicastPerf`, for measuring from the console.
 type PerfCommit = { at: number; phase: string; actual: number; base: number };
@@ -58,10 +51,11 @@ type PageMeta = {
   inputTokens: number;
   outputTokens: number;
   costUsd: number;
+  model: string | null;
 };
 type ControlLine =
   | { type: "error"; error: string }
-  | { type: "usage"; inputTokens: number; outputTokens: number; costUsd: number | null }
+  | { type: "usage"; inputTokens: number; outputTokens: number; costUsd: number | null; model: string }
   | { type: "done"; finishReason: string };
 type GenerateLine = ComponentEntry | ControlLine;
 
@@ -70,13 +64,11 @@ export function PageView({
   initialEntries,
   ownerSlug,
   readonly,
-  model,
 }: {
   page: PageMeta;
   initialEntries: ComponentEntry[];
   ownerSlug: string;
   readonly: boolean;
-  model: string;
 }) {
   // Reads inside the generated UI serve the page owner's data.
   setApiOwner(ownerSlug);
@@ -92,34 +84,9 @@ export function PageView({
       : null,
   );
   const [promptOpen, setPromptOpen] = useState(false);
-  // Seeds fetch through the browser, so the server pass is skipped.
+  // Seeds fetch through the browser, so the server pass draws only the skeleton.
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const [filled, setFilled] = useState(false);
-  useEffect(() => {
-    if (!mounted) return;
-    let started = false;
-    let quiet: ReturnType<typeof setTimeout> | undefined;
-    const stop = watchApiActivity((count) => {
-      if (count > 0) {
-        started = true;
-        clearTimeout(quiet);
-      } else if (started) {
-        // A dependent seed wave starts milliseconds after the one it reads from, so wait for quiet.
-        quiet = setTimeout(() => setFilled(true), SEED_QUIET_MS);
-      }
-    });
-    const noSeeds = setTimeout(() => {
-      if (!started) setFilled(true);
-    }, SEED_START_MS);
-    const giveUp = setTimeout(() => setFilled(true), SEED_WAIT_MS);
-    return () => {
-      stop();
-      clearTimeout(quiet);
-      clearTimeout(noSeeds);
-      clearTimeout(giveUp);
-    };
-  }, [mounted]);
   const perf = mounted && new URLSearchParams(window.location.search).has("perf");
   const queryClient = useQueryClient();
 
@@ -168,6 +135,7 @@ export function PageView({
   const totalIn = page.inputTokens + (usageLine?.inputTokens ?? 0);
   const totalOut = page.outputTokens + (usageLine?.outputTokens ?? 0);
   const totalCost = page.costUsd + (usageLine?.costUsd ?? 0);
+  const model = usageLine?.model ?? page.model;
   const streamError = errorLine?.error ?? queryError?.message;
   const runLabel = entries.length > 0 ? "Iterate" : "Generate";
 
@@ -341,7 +309,7 @@ export function PageView({
         </Card>
       )}
 
-      {entries.length > 0 && mounted && (
+      {entries.length > 0 && (
         <Tabs defaultValue="preview">
           <TabsList>
             <TabsTrigger value="preview">Preview</TabsTrigger>
@@ -350,11 +318,7 @@ export function PageView({
           {/* forceMount: unmounting the renderer on tab switch would re-run
               seeds and wipe the generated page's state */}
           <TabsContent value="preview" forceMount className="data-[state=inactive]:hidden">
-            <div className="relative overflow-x-auto rounded-md border p-4">
-              {/* The skeleton holds the height while the tree is still empty;
-                  the tree stays mounted underneath so its seeds run. */}
-              {!filled && <DocumentSkeleton entries={entries} implementations={impls} />}
-              <div className={filled ? undefined : "pointer-events-none absolute inset-0 overflow-hidden p-4 opacity-0"}>
+            <div className="overflow-x-auto rounded-md border p-4">
               {/* Stable per page, so iterations stream into the mounted renderer. */}
               <RendererProvider
                 onError={toastCallbackFailure}
@@ -363,7 +327,9 @@ export function PageView({
                 evaluator={evaluator}
                 fallbackComponents={rendererDefaults}
               >
-                {perf ? (
+                {!mounted ? (
+                  <DocumentSkeleton entries={entries} />
+                ) : perf ? (
                   <Profiler id="uicast" onRender={logCommit}>
                     <EntriesRenderer entries={entries} />
                   </Profiler>
@@ -371,7 +337,6 @@ export function PageView({
                   <EntriesRenderer entries={entries} />
                 )}
               </RendererProvider>
-              </div>
             </div>
           </TabsContent>
           <TabsContent value="entries">
@@ -382,15 +347,6 @@ export function PageView({
             </ScrollArea>
           </TabsContent>
         </Tabs>
-      )}
-      {entries.length > 0 && !mounted && (
-        // Server pass and first client render, so a reload is not a blank rectangle until hydration.
-        <div className="flex flex-col gap-2">
-          <div className="h-9 w-56 animate-pulse rounded-md bg-muted" />
-          <div className="overflow-x-auto rounded-md border p-4">
-            <DocumentSkeleton entries={entries} implementations={impls} />
-          </div>
-        </div>
       )}
       {entries.length === 0 && mounted && !isFetching && (
         <p className="text-sm text-muted-foreground">

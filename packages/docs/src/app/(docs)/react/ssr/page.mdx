@@ -4,26 +4,27 @@ title: Server rendering
 
 # Server rendering
 
-**uicast** renders a document in the browser. `<EntriesRenderer>` runs seeds as
-it renders, so in a server pass it would evaluate expressions and call host
-functions on the server. Render it after the component mounts, and use the
-server pass for a skeleton only. [Streamdown](/streamdown) blocks wait for the
-browser on their own; its [`ssr`](/streamdown#ssr) option turns that off.
+A document can go through a server pass in two ways:
+
+- **[Document skeleton](#document-skeleton).** The server draws only the
+  document's shape. The app renders in the browser, and nothing from the
+  document runs on the server.
+- **[Full render](#full-render).** The server runs the document, so the first
+  HTML has the data. Host functions come in two sets: the browser one calls
+  your API, and the server one, with only the reads, queries the database.
 
 ## Document skeleton
 
-What the server can draw is the document's shape. `DocumentSkeleton`, from the
-[reference catalog](/react/reference-catalog), never executes the document: it
-runs no expressions, calls no host functions and creates no scopes. It reads
-the entries and draws each element's `placeholder`, so it renders in a server
-pass. Show it until the component mounts:
+`DocumentSkeleton` draws the document's shape from the entries alone. It runs no
+expressions, calls no host functions and creates no scopes, so it renders in a
+server pass. It takes the implementations and the fallback UI from the nearest
+`<RendererProvider>`. Show it until the component mounts:
 
 ```tsx filename="app/pages/[id]/document.tsx"
 "use client";
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
-import { EntriesRenderer, RendererProvider } from "@uicast/react";
-import { DocumentSkeleton } from "@uicast/shadcn-catalog";
+import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
 import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
 import { useEffect, useState } from "react";
 import { tools } from "@/tools";
@@ -35,17 +36,16 @@ export function Document({ entries }: { entries: ComponentEntry[] }) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return <DocumentSkeleton entries={entries} implementations={impls} />;
   return (
     <RendererProvider implementations={impls} evaluator={evaluator}>
-      <EntriesRenderer entries={entries} />
+      {mounted ? <EntriesRenderer entries={entries} /> : <DocumentSkeleton entries={entries} />}
     </RendererProvider>
   );
 }
 ```
 
 The page loads the stored entries on the server, so the first HTML already has
-the document's shape:
+the document's shape. A Next.js page, for example:
 
 ```tsx filename="app/pages/[id]/page.tsx"
 import { Document } from "./document";
@@ -58,12 +58,153 @@ export default async function Page({ params }: PageProps<"/pages/[id]">) {
 
 How the skeleton draws:
 
-- Each element renders its implementation's `placeholder` with its children
-  inside. Without a `placeholder`: a column of the children, or a bar.
+- An element with a `skeleton` draws it, with its children inside.
+- An element without one draws only its children. With no children either, it
+  draws
+  [`fallbackComponents.defaultSkeleton`](/react/renderer#fallbackcomponents--the-engines-fallback-ui),
+  if set.
 - A list (`each`) draws three items: its length comes from an expression.
+- An element with `hidden` is left out, since its value is not known yet.
 - Props are not read, and nothing has to match the real tree: the renderer
   replaces it.
 
-With a catalog of your own, copy
-[`document-skeleton`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/document-skeleton):
-it needs only the entries and each implementation's `placeholder`.
+The renderer draws the same skeleton for an element while its async seed loads,
+from that element down.
+
+[Streamdown](/streamdown) blocks work this way unless their
+[`ssr`](/streamdown#ssr) option is on.
+
+## Full render
+
+`<EntriesRenderer>` renders wherever React renders it, the server included. A
+server pass runs the document: seeds, expressions and host functions.
+
+### Two sets of tools
+
+A server pass runs seeds, so it calls host functions too. Each side gets its
+own implementation of the same contract: the same name, description and
+schemas, a different `execute`. The server tools query the database; the
+browser tools call your routes, and the routes call the server tools, so the
+logic lives in one place.
+
+```ts filename="src/tools/contracts/customers.ts"
+// The contract, shared by both sides.
+export const getCustomer = {
+  name: "getCustomer",
+  description: "Get a single customer by id.",
+  inputSchema: z.object({ id: z.number().int() }),
+  outputSchema: customerSchema,
+};
+```
+
+```ts filename="src/tools/server/customers.ts"
+import { standardTool } from "standard-tool";
+import { db } from "@/db";
+import * as contract from "../contracts/customers";
+
+export const getCustomer = standardTool({
+  ...contract.getCustomer,
+  execute: async ({ id }) => {
+    const { rows } = await db.query("SELECT * FROM customers WHERE id = $1", [id]);
+    return rows[0];
+  },
+});
+```
+
+```ts filename="src/tools/client/customers.ts"
+import { standardTool } from "standard-tool";
+import * as contract from "../contracts/customers";
+
+export const getCustomer = standardTool({
+  ...contract.getCustomer,
+  execute: ({ id }) => fetch(`/api/customers/${id}`).then((res) => res.json()),
+});
+```
+
+The server set holds only what a seed reads. Callbacks run only in the browser,
+so a function that changes data, such as `deleteCustomer`, stays out of the
+server set, and no code a server render reaches can change the database:
+
+```ts filename="src/tools/server/index.ts"
+import { getCustomer, listCustomers } from "./customers";
+
+// deleteCustomer runs in a callback, so only the browser set has it.
+export const tools = [getCustomer, listCustomers];
+```
+
+A seed that calls a function the server set leaves out fails there, like any
+[failed seed](#errors), and the browser renders it. Build the prompt from the
+contracts, so it lists every function.
+
+A server tool runs in the page's request, so it acts for whoever your routes
+would: give it that identity.
+
+### One import, two bundles
+
+The component that renders the document runs in both passes, so it cannot
+import the server tools directly: they would ship to the browser. The `imports`
+field of `package.json` lets the bundler pick: the browser bundle takes the
+`browser` condition, and the server takes `default`. Next.js, Vite and esbuild
+all resolve it this way.
+
+```json filename="package.json"
+{
+  "imports": {
+    "#tools": {
+      "browser": "./src/tools/client/index.ts",
+      "default": "./src/tools/server/index.ts"
+    }
+  }
+}
+```
+
+The component imports `#tools` and keeps the skeleton as its fallback. The page
+stays the same:
+
+```tsx filename="app/pages/[id]/document.tsx"
+"use client";
+import type { ComponentEntry } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
+import { DocumentSkeleton, EntriesRenderer, RendererProvider } from "@uicast/react";
+import * as catalogImpls from "@uicast/shadcn-catalog/all/impls";
+import { Suspense } from "react";
+import { tools } from "#tools";
+
+const evaluator = new Evaluator({ functions: tools });
+const impls = Object.values(catalogImpls);
+
+export function Document({ entries }: { entries: ComponentEntry[] }) {
+  return (
+    <RendererProvider implementations={impls} evaluator={evaluator}>
+      <Suspense fallback={<DocumentSkeleton entries={entries} />}>
+        <EntriesRenderer entries={entries} />
+      </Suspense>
+    </RendererProvider>
+  );
+}
+```
+
+In Next.js, a `"use server"` module does not work here: calling a server
+function while rendering throws.
+
+### What a server pass does
+
+- A streaming render (`renderToReadableStream`, the Next.js App Router) sends
+  the [skeleton](/react#skeleton) of each element whose async seed is loading,
+  then the finished element once its seeds resolve. `prerender` waits for all of them. `renderToString` cannot wait: an
+  element with an async seed ships its skeleton and renders in the browser.
+- Scopes do not reach the browser. The page keeps the server HTML while the
+  browser runs every seed again, so each seeded host function is called twice
+  per page load, once on each side.
+- Callbacks run only in the browser.
+
+### Errors
+
+A seed that fails on the server sends its skeleton, and `onError` reports
+it; the browser renders the element again.
+
+Any other error in a server pass fails more than its element: the server runs
+no error boundaries, so an unknown component, props that fail their schema or
+an implementation's own throw stops the render up to the nearest `<Suspense>`.
+Without one, the page fails. With the `<Suspense>` above, the skeleton goes out
+instead, and the browser renders the document with each error in its own slot.

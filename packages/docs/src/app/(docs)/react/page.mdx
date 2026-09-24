@@ -18,7 +18,7 @@ export const BadgeImpl = createComponentImplementation({
 ```
 
 `createComponentImplementation` takes the `def` and a `render` function and
-returns `{ def, placeholder }`, the object you register. The renderer accepts
+returns `{ def, skeleton }`, the object you register. The renderer accepts
 only objects this function made; a copy or a hand-built object throws at
 `<RendererProvider>`.
 
@@ -72,44 +72,52 @@ export const SearchInputImpl = createComponentImplementation({
 Build each payload from the React event by hand, with exactly the fields its
 [schema](/def#callbacks--event-payloads) declares.
 
-## Placeholder
+## Skeleton
 
-An optional `placeholder` fills a component's **content** while something is
-missing. It gets a `reason`:
+An optional `skeleton` draws a component while something is missing. It gets
+the `entry` and a `reason`:
 
-- `"streaming"`: a child entry has not arrived yet. The **parent's** placeholder
-  fills the slot, since the child's component is not known yet.
+- `"streaming"`: a child entry has not arrived yet. The **parent's** skeleton
+  fills the slot, with the parent's `entry`, since the child's component is not
+  known yet. It gets no `children`.
 - `"seeding"`: the element's own `seed` is waiting on an async host function.
+  The element and everything under it draw as skeletons, as
+  [`DocumentSkeleton`](/react/ssr#document-skeleton) draws them: each skeleton
+  gets `children` (its children's skeletons, or `null`) and draws its own tag,
+  a list draws three items, and an element under it with `hidden` is left out.
+  A pending group
+  [`init`](/react/renderer#init--preload-state-for-the-group) draws the whole
+  document this way.
 
-It may also get `children`, the element's drawn children, for building a
-document skeleton. A pending group
-[`init`](/react/renderer#init--preload-state-for-the-group) shows only the
-global `fallbackComponents.placeholder`.
+`knownProps` holds the props that need no evaluation, a literal or none,
+checked by the definition with its defaults filled in, as `render`'s are. It is
+absent when the props come from an expression, and in a child's slot.
 
 ```tsx filename="src/uicast-catalog/card/impl.tsx"
 export const CardImpl = createComponentImplementation({
   def: CardDef,
   render: ({ title, children }) => <Card title={title}>{children}</Card>,
-  placeholder: () => <Skeleton className="h-40" />,
+  // With `children`, draw the Card itself; without, fill a slot inside a real one.
+  skeleton: ({ knownProps, children }) =>
+    children === undefined ? <Skeleton className="h-40" /> : <Card title={knownProps?.title}>{children}</Card>,
 });
 ```
 
 ```jsonc
-// while getSales() is in flight, CardImpl's placeholder replaces the Card's
-// children — the Card itself, "Sales" heading and all, is already on screen
+// while getSales() is in flight, the panel draws as CardImpl's skeleton,
+// titled "Sales" from its literal props, with BarChartImpl's inside
 { "key": "panel", "component": "Card", "props": { "literal": { "title": "Sales" } },
   "seed": [{ "set": "scopes.root.sales", "expr": "getSales()" }], "children": ["chart"] }
 
-// once the seed settles, a "chart" line that hasn't streamed in yet leaves an
-// empty slot — filled by CardImpl's placeholder again, since the gap is the parent's
+// once the seed settles, the Card renders; a "chart" line
+// that hasn't streamed in yet leaves a slot, filled by CardImpl's skeleton
+// without children, since the gap is the parent's
 { "key": "chart", "component": "BarChart",
   "props": { "expr": "({ data: scopes.root.sales, xKey: 'month', yKeys: ['total'] })" } }
 ```
 
-`BarChartImpl`'s placeholder shows in neither case. An implementation's
-`placeholder` overrides the global
-[`fallbackComponents.placeholder`](/react/renderer); with neither, a pending
-element renders nothing.
+With no `skeleton`, an element with children draws theirs, and anything else
+draws [`fallbackComponents.defaultSkeleton`](/react/renderer), or nothing.
 
 ## Registration
 

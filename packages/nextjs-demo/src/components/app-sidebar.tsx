@@ -7,12 +7,14 @@ import { usePathname } from "next/navigation";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Separator } from "@uicast/shadcn-catalog/ui/separator";
+import type { SidebarData } from "@/lib/sidebar";
 import { SYSTEM_SLUG } from "@/lib/system-slug";
 
-type SidebarPage = { id: number; title: string };
+type SidebarPage = { id: number; seedId: string | null; title: string };
 type SidebarChat = { id: string; title: string };
 
-export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
+// `initial` comes from the server pass, so the first HTML has the lists; the queries keep them current.
+export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; initial?: SidebarData }) {
   const pathname = usePathname();
   const { data: me } = useQuery({
     queryKey: ["me"],
@@ -20,6 +22,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
       const res = await fetch("/api/auth/me");
       return res.ok ? res.json() : null;
     },
+    initialData: initial?.me,
   });
   const slug = me?.slug ?? SYSTEM_SLUG;
   const { data: pages } = useQuery({
@@ -28,6 +31,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
       const res = await fetch("/api/pages");
       return res.ok ? res.json() : [];
     },
+    initialData: initial?.pages,
   });
   const { data: chats } = useQuery({
     queryKey: ["chats"],
@@ -35,6 +39,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
       const res = await fetch("/api/chats");
       return res.ok ? res.json() : [];
     },
+    initialData: initial?.chats,
   });
 
   return (
@@ -64,7 +69,7 @@ export function AppSidebar({ mobile = false }: { mobile?: boolean }) {
               </p>
             )}
             {pages?.map((page) => {
-              const href = `/u/${slug}/p/${page.id}`;
+              const href = `/u/${slug}/p/${page.seedId ?? page.id}`;
               const active = pathname === href;
               return (
                 <Button

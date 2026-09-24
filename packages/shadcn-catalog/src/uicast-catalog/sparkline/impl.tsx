@@ -58,5 +58,5 @@ export const SparklineImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 40 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 40 }} />,
 });

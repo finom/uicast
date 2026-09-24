@@ -126,7 +126,7 @@ there is refused, and the element shows its error slot (`guardrail-violation`):
 
 | Slot | Rendered when | Default |
 |---|---|---|
-| `placeholder` | a child has not streamed in, an async [`seed`](/entry#seed) is resolving, or an async `init` is pending (for the whole group) | nothing |
+| `defaultSkeleton` | where an implementation has no `skeleton`: in the slot of a child that has not streamed in; while an async [`seed`](/entry#seed) or `init` loads, and in [`DocumentSkeleton`](/react/ssr#document-skeleton), for an element with no children | nothing |
 | `confirm` | a callback step has `confirm:` | `window.confirm` |
 | `error` | any element-level failure: an implementation throws, an expression fails, an entry is misused as a list, or its `component` has no implementation | a plain inline-styled `div` |
 
@@ -142,7 +142,7 @@ import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
   evaluator={evaluator}
   implementations={impls}
   fallbackComponents={{
-    placeholder: () => <Skeleton className="h-8 w-full" />,
+    defaultSkeleton: () => <Skeleton className="h-8 w-full" />,
     confirm: ConfirmModal,
     error: RenderError,
   }}
@@ -154,11 +154,13 @@ import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 Their props types are exported from `@uicast/react`:
 
 ```ts
-type PlaceholderComponentProps = {
+type SkeletonComponentProps = {
   reason: "streaming" | "seeding";
   //       │             └─ the entry is here, its async `seed` / `init` is resolving
   //       └─ the entry has not streamed in yet
-  children?: ReactNode; // present when a caller such as a skeleton draws the element: render your own tag around them
+  entry: ComponentEntry; // the element's own, or the parent's in a child's slot; nothing in it is evaluated
+  knownProps?: Record<string, unknown>; // the props that need no evaluation (a literal or none), parsed and checked; absent in a child's slot
+  children?: ReactNode; // present when the skeleton draws the element itself: render your own tag around them
 };
 
 type ConfirmComponentProps = {
@@ -292,9 +294,8 @@ const init: InitFn = async ({ scopes }) => {
 </RendererProvider>;
 ```
 
-A returned Promise suspends the group, which shows the
-[`placeholder` slot](#fallbackcomponents--the-engines-fallback-ui) until it
-resolves.
+A returned Promise suspends the group, which draws the document's
+[skeleton](/react#skeleton) until it resolves.
 
 ### Extra named scopes
 

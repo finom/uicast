@@ -2,11 +2,13 @@ import type { ComponentEntry } from "@uicast/core";
 import { db } from "./index";
 import { chatMessages, chats } from "./schema";
 import { opsConsoleEntries } from "./seed-ops-console";
+import { slowSeedsEntries } from "./seed-slow-seeds";
 
 // The demo user's pages and chats. New accounts start empty.
 
-type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number };
-const SEED_MODEL = "anthropic/claude-opus-5";
+// What a generation cost, and the model that ran it.
+type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number; model: string };
+const OPUS_5 = "anthropic/claude-opus-5";
 
 const inventoryEntries: ComponentEntry[] = [
   {
@@ -764,34 +766,46 @@ const customersEntries: ComponentEntry[] = [
   },
 ];
 
-export const SEED_PAGES: { title: string; prompt: string; entries: ComponentEntry[]; usage: SeedUsage }[] = [
+// `seedId` is the page's URL id; `prompt` and `usage` are null for a page written by hand.
+export const SEED_PAGES: { seedId: string; title: string; prompt: string | null; entries: ComponentEntry[]; usage: SeedUsage | null }[] = [
   {
+    seedId: "seed-page-inventory",
     title: "Inventory & restock",
-    usage: { inputTokens: 37500, outputTokens: 4300, costUsd: 0.295 },
+    usage: { inputTokens: 37500, outputTokens: 4300, costUsd: 0.295, model: OPUS_5 },
     prompt:
       "I need one place to watch stock. Show me how much we have and what it's worth, which products are running low, and let me find any product fast. I want to fix a count from the table itself, peek at what moved recently, and book a delivery when it arrives.",
     entries: inventoryEntries,
   },
   {
+    seedId: "seed-page-sales",
     title: "Sales & revenue",
-    usage: { inputTokens: 36800, outputTokens: 3200, costUsd: 0.264 },
+    usage: { inputTokens: 36800, outputTokens: 3200, costUsd: 0.264, model: OPUS_5 },
     prompt:
       "Give me a sales page for Monday mornings: how much we made lately, the trend, who our best accounts are, and every order with its status. I should be able to narrow it down by status, period or customer, mark orders as paid or shipped, and cancel one with a warning first.",
     entries: salesEntries,
   },
   {
+    seedId: "seed-page-customers",
     title: "Customer 360",
-    usage: { inputTokens: 37300, outputTokens: 3900, costUsd: 0.284 },
+    usage: { inputTokens: 37300, outputTokens: 3900, costUsd: 0.284, model: OPUS_5 },
     prompt:
       "A customer page for the account team: who buys from us, how much each has spent, and their order history. Let me look someone up, fix their details, add a new account, and remove one if needed.",
     entries: customersEntries,
   },
   {
+    seedId: "seed-page-ops",
     title: "Operations console (big one)",
-    usage: { inputTokens: 39600, outputTokens: 15800, costUsd: 0.593 },
+    usage: { inputTokens: 39600, outputTokens: 15800, costUsd: 0.593, model: OPUS_5 },
     prompt:
       "Put the whole operation on one page: the numbers at the top, a few charts, our suppliers and what we buy from each, the full catalog where I can adjust stock and prices on the spot, all orders with their status, every customer, and the stock ledger. One search box should work across all of it.",
     entries: opsConsoleEntries,
+  },
+  {
+    seedId: "seed-page-slow",
+    title: "Slow seeds",
+    usage: null,
+    prompt: null,
+    entries: slowSeedsEntries,
   },
 ];
 
@@ -1025,7 +1039,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 36300, outputTokens: 620, costUsd: 0.197 },
+        usage: { inputTokens: 36300, outputTokens: 620, costUsd: 0.197, model: OPUS_5 },
         text: `Three products are at or below 20 units:\n\n\`\`\`uicast\n${lowStockFence}\n\`\`\`\n\nThe one to worry about is the **Birch Standing Desk** — Nordform Werk runs a 21-day lead time, so an order placed today lands right at the start of the push. The other two have a week or less of lead.`,
       },
       {
@@ -1034,7 +1048,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 37900, outputTokens: 540, costUsd: 0.203 },
+        usage: { inputTokens: 37900, outputTokens: 540, costUsd: 0.203, model: OPUS_5 },
         text: `Here's the bill, biggest line first:\n\n\`\`\`uicast\n${restockCostFence}\n\`\`\`\n\nTwo caveats: these are list prices, so the real POs should come in 30–45% lower at wholesale — and the desk line dominates because of its unit price, not its unit count.`,
       },
       {
@@ -1043,7 +1057,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 39600, outputTokens: 580, costUsd: 0.2125 },
+        usage: { inputTokens: 39600, outputTokens: 580, costUsd: 0.2125, model: OPUS_5 },
         text: `Grouped by supplier, slowest lead first:\n\n\`\`\`uicast\n${poPlanFence}\n\`\`\`\n\nSend **Nordform Werk today** — nothing else is time-critical. Once the goods arrive, log them with the *Receive stock* drawer on the Inventory page so the ledger stays reconciled.`,
       },
       {
@@ -1052,7 +1066,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 41100, outputTokens: 410, costUsd: 0.2157 },
+        usage: { inputTokens: 41100, outputTokens: 410, costUsd: 0.2157, model: OPUS_5 },
         text: `Here you go — adjust the count if the dock miscounted, then book it:\n\n\`\`\`uicast\n${receiveCardFence}\n\`\`\`\n\nThe stat above is live: it re-reads the product the moment the movement lands, so you'll see the stock jump when you click.`,
       },
     ],
@@ -1064,13 +1078,13 @@ export const SEED_CHATS: {
       { role: "user", text: "Morning. Give me the revenue picture for the standup." },
       {
         role: "assistant",
-        usage: { inputTokens: 36100, outputTokens: 480, costUsd: 0.1925 },
+        usage: { inputTokens: 36100, outputTokens: 480, costUsd: 0.1925, model: OPUS_5 },
         text: `Here's the headline view:\n\n\`\`\`uicast\n${revenueFence}\n\`\`\`\n\nDelivered orders carry most of the volume, and the open pipeline (pending + paid) is healthy. Nothing alarming in the mix.`,
       },
       { role: "user", text: "Who are our top three accounts right now?" },
       {
         role: "assistant",
-        usage: { inputTokens: 37500, outputTokens: 510, costUsd: 0.2003 },
+        usage: { inputTokens: 37500, outputTokens: 510, costUsd: 0.2003, model: OPUS_5 },
         text: `By lifetime spend, excluding cancellations:\n\n\`\`\`uicast\n${topCustomersFence}\n\`\`\`\n\nWorth noting the top account got there on furniture — high ticket, low frequency. A repeat order there moves the quarter more than five accessory sales.`,
       },
       {
@@ -1079,7 +1093,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 39000, outputTokens: 540, costUsd: 0.2085 },
+        usage: { inputTokens: 39000, outputTokens: 540, costUsd: 0.2085, model: OPUS_5 },
         text: `Current pending queue, oldest first — with the fix built in:\n\n\`\`\`uicast\n${agingFence}\n\`\`\`\n\nAnything in red has been waiting three days or more. The **Mark paid** buttons are live: click one and the row drops out of this queue, because the table re-reads the orders after the update.`,
       },
     ],
@@ -1094,7 +1108,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 35800, outputTokens: 830, costUsd: 0.1998 },
+        usage: { inputTokens: 35800, outputTokens: 830, costUsd: 0.1998, model: OPUS_5 },
         text: `It's a working app surface, not a rendering. Try it — the button opens a real form:\n\n\`\`\`uicast\n${addProductFence}\n\`\`\`\n\nThe drawer, the inputs, the supplier dropdown and the save all run against the same API as the rest of the app. Save something and watch the catalog list above pick it up.`,
       },
       {
@@ -1103,7 +1117,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 37600, outputTokens: 560, costUsd: 0.202 },
+        usage: { inputTokens: 37600, outputTokens: 560, costUsd: 0.202, model: OPUS_5 },
         text: `One click per row — each button books 25 units into the stock ledger and the badge updates in place:\n\n\`\`\`uicast\n${quickRestockFence}\n\`\`\`\n\nRows leave the list on their own once they cross 25 units, because the table re-reads the low-stock filter after every receive.`,
       },
       {
@@ -1112,7 +1126,7 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: { inputTokens: 39200, outputTokens: 520, costUsd: 0.209 },
+        usage: { inputTokens: 39200, outputTokens: 520, costUsd: 0.209, model: OPUS_5 },
         text: `Cancelling an order asks first — click one:\n\n\`\`\`uicast\n${guardedCancelFence}\n\`\`\`\n\nThe confirmation is part of the callback itself: decline it and nothing after it runs, accept it and the update lands and the queue re-reads.`,
       },
     ],
@@ -1129,7 +1143,7 @@ export async function insertSeedChats(userId: string): Promise<void> {
         messageId: `${id}-${i}`,
         role: turn.role,
         parts: [{ type: "text", text: turn.text }],
-        metadata: turn.usage ? { ...turn.usage, model: SEED_MODEL } : null,
+        metadata: turn.usage ?? null,
       })),
     );
   }

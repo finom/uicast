@@ -10,9 +10,12 @@ type SeedAttempt = {
   error: unknown;
 };
 
+// What a failed seed's gate resolves to.
+export type SeedFailure = { error: unknown };
+
 type SeedResult = {
-  // Never rejects: failures surface through `error`.
-  pending: Promise<void> | null;
+  // Never rejects: a failure resolves it with the error, and surfaces through `error` too.
+  pending: Promise<SeedFailure | undefined> | null;
   // Rethrown inside the element's own boundary, so a bad seed cannot latch the parent.
   error: unknown;
 };
@@ -37,7 +40,7 @@ export function useSeed({
 }): SeedResult {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const attemptRef = useRef<SeedAttempt | null>(null);
-  const pendingSeedRef = useRef<Promise<void> | null>(null);
+  const pendingSeedRef = useRef<Promise<SeedFailure | undefined> | null>(null);
 
   const attempt = attemptRef.current;
   const shouldSeed =
@@ -112,11 +115,15 @@ export function useSeed({
           forceRender();
         });
         // The gate must never reject: `use()` on a rejected promise does not reliably reach a boundary.
-        pendingSeedRef.current = batch.catch((err) => {
-          record.error = err;
-          pendingSeedRef.current = null;
-          forceRender();
-        });
+        pendingSeedRef.current = batch.then(
+          () => undefined,
+          (err) => {
+            record.error = err;
+            pendingSeedRef.current = null;
+            forceRender();
+            return { error: err };
+          },
+        );
       }
     } catch (err) {
       record.error = err;

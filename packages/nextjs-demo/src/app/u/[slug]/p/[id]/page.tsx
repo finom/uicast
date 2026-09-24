@@ -3,21 +3,18 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { componentEntries, pages, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
-import { GENERATION_MODEL } from "@/lib/openrouter";
 import { PageView } from "@/components/page-view";
 
 export const dynamic = "force-dynamic";
 
 export default async function UserPage({ params }: PageProps<"/u/[slug]/p/[id]">) {
-  const { slug, id: rawId } = await params;
-  const id = Number(rawId);
-  const [row] = Number.isNaN(id)
-    ? []
-    : await db
-        .select({ page: pages })
-        .from(pages)
-        .innerJoin(users, eq(pages.userId, users.id))
-        .where(and(eq(pages.id, id), eq(users.slug, slug)));
+  const { slug, id } = await params;
+  // A seeded page is addressed by its seed id, any other by its row id.
+  const [row] = await db
+    .select({ page: pages })
+    .from(pages)
+    .innerJoin(users, eq(pages.userId, users.id))
+    .where(and(/^\d+$/.test(id) ? eq(pages.id, Number(id)) : eq(pages.seedId, id), eq(users.slug, slug)));
   if (!row) notFound();
   const me = await getSessionUser();
 
@@ -36,11 +33,11 @@ export default async function UserPage({ params }: PageProps<"/u/[slug]/p/[id]">
         inputTokens: row.page.inputTokens,
         outputTokens: row.page.outputTokens,
         costUsd: row.page.costUsd,
+        model: row.page.model,
       }}
       initialEntries={rows.map((r) => r.data)}
       ownerSlug={slug}
       readonly={me?.id !== row.page.userId}
-      model={GENERATION_MODEL}
     />
   );
 }

@@ -1,5 +1,5 @@
 import { Activity, memo, Suspense, use, useEffect, useMemo, useRef, type ReactElement, type ReactNode } from "react";
-import { type ComponentListEntry, EntryError } from "@uicast/core";
+import { type ComponentListEntry, EntryError, type EntryErrorReason } from "@uicast/core";
 import {
   isComponentListEntry,
   entryShapeError,
@@ -13,26 +13,28 @@ import { useConfirm } from "../providers/confirm";
 import { ErrorBoundary } from "../providers/error-boundary";
 import { useRendererRegistry } from "../store/renderer-registry";
 import { useElement } from "../store/elements-store";
+import { SubtreeSkeleton } from "./document-skeleton";
 import { refusePromise } from "../refuse-promise";
-import type { Debouncers, InitFn, PlaceholderComponentProps, RenderContext, Scopes } from "../types";
+import type { Debouncers, InitFn, RenderContext, Scopes } from "../types";
 import { useReactiveDeps } from "./use-reactive-deps";
-import { useSeed } from "./use-seed";
+import { type SeedFailure, useSeed } from "./use-seed";
 import { useItemScopes } from "./use-item-scopes";
-
-type PlaceholderComponent = (
-  props: PlaceholderComponentProps,
-) => ReactElement | null;
-
-const NullPlaceholder: PlaceholderComponent = () => null;
 
 function SuspendUntil({
   promise,
+  onServerFailure,
   children,
 }: {
-  promise: Promise<void>;
+  promise: Promise<SeedFailure | undefined>;
+  onServerFailure: (error: unknown) => void;
   children: ReactNode;
 }): ReactElement {
-  use(promise);
+  const failure = use(promise);
+  // A server pass renders the parent once, so it never rethrows the failure; this throw sends the skeleton instead.
+  if (failure && typeof window === "undefined") {
+    onServerFailure(failure.error);
+    throw failure.error;
+  }
   return <>{children}</>;
 }
 
@@ -48,8 +50,8 @@ type EntryRendererProps = {
   scopes: Scopes;
   // Set only on the synthetic RootFragment, so `init` fires once.
   init?: InitFn;
-  // The parent's own placeholder, so the slot looks unchanged.
-  fallback?: PlaceholderComponent;
+  // The parent's own skeleton, so the slot looks unchanged.
+  fallback?: ReactNode;
   // Keys of every ancestor — a repeat means the children reference in a cycle.
   ancestors?: ReadonlySet<string>;
   // Rendering once per list item; without it the element would dispatch back to ListEntryRenderer forever.
@@ -136,9 +138,12 @@ const EntryRendererInner = ({
     [element, isLoading, scopes],
   );
 
-  const Fallback = fallback ?? NullPlaceholder;
-  const Placeholder =
-    impl?.placeholder ?? fallbackComponents?.placeholder ?? NullPlaceholder;
+  const Skeleton = impl?.skeleton ?? fallbackComponents?.defaultSkeleton;
+  // What each child's slot shows until that child's entry streams in.
+  const slotSkeleton = useMemo(
+    () => (Skeleton && element ? <Skeleton reason="streaming" entry={element} /> : null),
+    [Skeleton, element],
+  );
 
   // Stable across this node's own re-renders, so the impl's props memo holds.
   const childKeys = shapeError ? undefined : element?.children;
@@ -150,17 +155,17 @@ const EntryRendererInner = ({
               key={childKey}
               elementKey={childKey}
               scopes={scopes}
-              fallback={Placeholder}
+              fallback={slotSkeleton}
               ancestors={lineage}
             />
           ))
         : null,
-    [childKeys, scopes, Placeholder, lineage],
+    [childKeys, scopes, slotSkeleton, lineage],
   );
 
   // The slot stays mounted; `useElement` wakes it when the entry arrives.
   if (!element) {
-    return <Fallback reason="streaming" />;
+    return <>{fallback}</>;
   }
 
   // Checked at first render, so the fault surfaces while the model is still streaming.
@@ -179,12 +184,16 @@ const EntryRendererInner = ({
     );
   }
 
-  const afterSeed = (content: ReactNode, whileSeeding: ReactNode): ReactNode => {
+  // `reason` matches the element's boundary, so a server report classifies the error as the browser would.
+  const afterSeed = (content: ReactNode, whileSeeding: ReactNode, reason?: EntryErrorReason): ReactNode => {
     if (seedError) return <ThrowError error={seedError} />;
     if (!pending) return content;
+    const report = (error: unknown) => onError?.(EntryError.wrap(error, reason ?? "unknown", elementKey));
     return (
       <Suspense fallback={whileSeeding}>
-        <SuspendUntil promise={pending}>{content}</SuspendUntil>
+        <SuspendUntil promise={pending} onServerFailure={report}>
+          {content}
+        </SuspendUntil>
       </Suspense>
     );
   };
@@ -200,7 +209,7 @@ const EntryRendererInner = ({
       >
         {afterSeed(
           <ListEntryRenderer list={element} scopes={scopes} ancestors={ancestors} />,
-          <Fallback reason="seeding" />,
+          <SubtreeSkeleton elementKey={elementKey} />,
         )}
       </ErrorBoundary>
     );
@@ -252,7 +261,12 @@ const EntryRendererInner = ({
       onError={onError}
       reason="implementation"
     >
-      {afterSeed(content, fault !== null ? <ThrowError error={fault} /> : rendered(<Placeholder reason="seeding" />))}
+      {afterSeed(
+        content,
+        // Props may read the data still loading, so the skeleton never reads them.
+        hidden ? null : <SubtreeSkeleton elementKey={elementKey} visible />,
+        "implementation",
+      )}
     </ErrorBoundary>
   );
 };

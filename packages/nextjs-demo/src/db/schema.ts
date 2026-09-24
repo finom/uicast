@@ -8,6 +8,7 @@ import {
   serial,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -135,15 +136,19 @@ export const pages = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    // A seeded page's URL id, so its links survive a reseed.
+    seedId: text("seed_id"),
     title: text("title").notNull(),
     prompt: text("prompt"),
+    // The model of the latest generation run.
+    model: text("model"),
     // Accumulated across every generation run of this page.
     inputTokens: integer("input_tokens").notNull().default(0),
     outputTokens: integer("output_tokens").notNull().default(0),
     costUsd: real("cost_usd").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("pages_user").on(t.userId)],
+  (t) => [index("pages_user").on(t.userId), uniqueIndex("pages_user_seed").on(t.userId, t.seedId)],
 );
 
 export const componentEntries = pgTable(

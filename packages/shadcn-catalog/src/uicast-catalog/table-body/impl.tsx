@@ -8,6 +8,6 @@ export const TableBodyImpl = createComponentImplementation({
   render: ({ children }, { entry }) => {
     return <ShadcnTableBody data-key={entry.key}>{children}</ShadcnTableBody>;
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? SKELETON_ROWS : <ShadcnTableBody>{children ?? SKELETON_ROWS}</ShadcnTableBody>,
 });

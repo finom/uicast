@@ -25,6 +25,6 @@ export const TableRowImpl = createComponentImplementation({
       </ShadcnTableRow>
     );
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? CELLS : <ShadcnTableRow>{children ?? CELLS}</ShadcnTableRow>,
 });

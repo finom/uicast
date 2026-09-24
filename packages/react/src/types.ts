@@ -27,13 +27,15 @@ export type ComponentImplementation<
   TCallbacks extends Record<string, CombinedSpec> = Record<string, CombinedSpec>,
 > = {
   def: ComponentDefinition<TProps, TCallbacks>;
-  placeholder: ((props: PlaceholderComponentProps) => ReactElement) | null;
+  skeleton: ((props: SkeletonComponentProps) => ReactElement) | null;
 };
 
 // What the renderer runs an implementation with; not exported from the package.
 export type ImplementationEngine = {
   // Memoized: same props and context, no re-render.
   Render: ComponentType<Record<string, unknown> & { __context: RenderContext }>;
+  // Props that need no evaluation, checked as `evaluate` checks them; `undefined` when there are none to know.
+  knownProps: (entry: ComponentEntry, urlPolicy: UrlPolicy | undefined) => Record<string, unknown> | undefined;
   // Throws a classified EntryError on a document fault.
   evaluate: (
     entry: ComponentEntry,
@@ -53,9 +55,14 @@ export type ImplementationEngine = {
 };
 
 // `"streaming"`: entry not arrived; `"seeding"`: async seed or init still resolving.
-export type PlaceholderComponentProps = {
+export type SkeletonComponentProps<TProps = Record<string, unknown>> = {
   reason: "streaming" | "seeding";
-  // Present when the caller draws the element itself, so the placeholder renders its own tag.
+  // The element's own entry, or the parent's when the skeleton fills a child's slot. Nothing in it is evaluated.
+  entry: ComponentEntry;
+  // Props that need no evaluation (a literal, or none), parsed and checked as `render`'s are.
+  // Absent when they come from an expression or fail the checks, and in a child's slot.
+  knownProps?: TProps;
+  // Present when the caller draws the element itself, so the skeleton renders its own tag.
   children?: ReactNode;
 };
 
@@ -75,7 +82,7 @@ export type ErrorComponentProps = {
 
 // `confirm` omitted: `window.confirm`.
 export type FallbackComponents = {
-  placeholder?: (props: PlaceholderComponentProps) => ReactElement | null;
+  defaultSkeleton?: (props: SkeletonComponentProps) => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
   error?: (props: ErrorComponentProps) => ReactElement | null;
 };

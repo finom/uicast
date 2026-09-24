@@ -43,7 +43,7 @@ export const StatImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: () => (
+  skeleton: () => (
     <div className="flex min-w-0 flex-col gap-1">
       <Skeleton className="h-4 w-20" />
       <Skeleton className="h-9 w-28" />

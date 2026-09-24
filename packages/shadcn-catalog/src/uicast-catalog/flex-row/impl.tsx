@@ -24,5 +24,15 @@ export const FlexRowImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  skeleton: ({ knownProps, children }) => {
+    const { gap, align, justify, wrap, equalWidth } =
+      knownProps ?? { gap: "2", align: "center", justify: "start", wrap: false, equalWidth: false };
+    return (
+      <div
+        className={`flex flex-row ${GAP[gap]} ${ALIGN[align]} ${JUSTIFY[justify]} ${wrap ? "flex-wrap" : ""} ${equalWidth ? "*:flex-1 *:min-w-0" : ""}`}
+      >
+        {children}
+      </div>
+    );
+  },
 });

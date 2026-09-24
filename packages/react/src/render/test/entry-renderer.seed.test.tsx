@@ -99,7 +99,7 @@ describe("EntryRenderer — seed", () => {
     });
   });
 
-  it("shows the placeholder with reason 'seeding' while an async seed resolves", async () => {
+  it("shows the skeleton with reason 'seeding' while an async seed resolves", async () => {
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -124,7 +124,7 @@ describe("EntryRenderer — seed", () => {
           implementations={defaultImplementationsList}
           evaluator={evaluator}
           fallbackComponents={{
-            placeholder: ({ reason }) => <span data-ph>{reason}</span>,
+            defaultSkeleton: ({ reason }) => <span data-ph>{reason}</span>,
           }}
         >
           <EntriesRenderer entries={lines} />

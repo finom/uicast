@@ -1,6 +1,6 @@
 import type { ComponentEntry, ValueSource } from "@uicast/core";
 import * as catalogDefs from "@uicast/shadcn-catalog/all/defs";
-import { and, eq, notInArray } from "drizzle-orm";
+import { and, eq, isNull, notInArray, or } from "drizzle-orm";
 import { db } from "./index";
 import { chats, componentEntries, pages, users } from "./schema";
 import { insertSeedChats, SEED_CHATS, SEED_PAGES } from "./seed-content";
@@ -8,7 +8,7 @@ import { insertStarterData } from "./starter-data";
 import { evaluator } from "@/lib/evaluator";
 import { SYSTEM_SLUG } from "@/lib/system-slug";
 
-// An existing account keeps its row ids (pages by title, chats by id), so shared links survive a reseed.
+// An existing account keeps its rows (pages by seed id, chats by id), and every link uses those ids, so links survive a reseed.
 // `--fresh` recreates the account and its domain data.
 
 const DEFS = new Map(Object.values(catalogDefs).map((def) => [def.name, def]));
@@ -97,17 +97,27 @@ function validateFences(): void {
 }
 
 async function updateSeedContent(userId: string): Promise<void> {
-  const titles = SEED_PAGES.map((page) => page.title);
-  await db.delete(pages).where(and(eq(pages.userId, userId), notInArray(pages.title, titles)));
   for (const page of SEED_PAGES) {
-    const [existing] = await db.select({ id: pages.id }).from(pages).where(and(eq(pages.userId, userId), eq(pages.title, page.title)));
-    const values = { userId, title: page.title, prompt: page.prompt, ...page.usage };
+    // A row seeded before `seed_id` existed matches by title once, so its row id survives too.
+    const [existing] = await db
+      .select({ id: pages.id })
+      .from(pages)
+      .where(
+        and(
+          eq(pages.userId, userId),
+          or(eq(pages.seedId, page.seedId), and(isNull(pages.seedId), eq(pages.title, page.title))),
+        ),
+      );
+    const usage = page.usage ?? { inputTokens: 0, outputTokens: 0, costUsd: 0, model: null };
+    const values = { userId, seedId: page.seedId, title: page.title, prompt: page.prompt, ...usage };
     const [row] = existing
       ? await db.update(pages).set(values).where(eq(pages.id, existing.id)).returning()
       : await db.insert(pages).values(values).returning();
     await db.delete(componentEntries).where(eq(componentEntries.pageId, row.id));
     await db.insert(componentEntries).values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
   }
+  const seedIds = SEED_PAGES.map((page) => page.seedId);
+  await db.delete(pages).where(and(eq(pages.userId, userId), or(isNull(pages.seedId), notInArray(pages.seedId, seedIds))));
 
   // Chat ids are fixed strings, so a rewrite keeps every chat link.
   await db.delete(chats).where(eq(chats.userId, userId));

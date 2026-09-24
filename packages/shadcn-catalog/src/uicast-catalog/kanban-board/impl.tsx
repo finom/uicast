@@ -289,5 +289,5 @@ export const KanbanBoardImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 320 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 320 }} />,
 });

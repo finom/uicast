@@ -19,7 +19,7 @@ import type {
   ComponentImplementation,
   ConfirmFn,
   Debouncers,
-  PlaceholderComponentProps,
+  SkeletonComponentProps,
   RenderContext,
   Scopes,
 } from "../types";
@@ -69,7 +69,7 @@ export const createComponentImplementation = <
 >({
   def,
   render,
-  placeholder,
+  skeleton,
 }: {
   def: ComponentDefinition<TProps, TCallbacks>;
   render: (
@@ -77,7 +77,7 @@ export const createComponentImplementation = <
       CallbacksToFunctions<TCallbacks>,
     context: RenderContext,
   ) => ReactElement;
-  placeholder?: (props: PlaceholderComponentProps) => ReactElement;
+  skeleton?: (props: SkeletonComponentProps<StandardSchemaV1.InferOutput<TProps>>) => ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
   // `render` may call hooks, so it runs inside a component of its own.
   const Render = memo(({ __context, ...props }: Record<string, unknown> & { __context: RenderContext }) =>
@@ -99,16 +99,11 @@ export const createComponentImplementation = <
   };
 
   // The parsed output has every `.default()` applied; a schema failure is a document fault.
-  const evaluateProps = (
+  const checkProps = (
+    rawProps: unknown,
     entry: ComponentEntry,
-    scopes: Scopes,
-    evaluator: ExpressionEvaluator,
     urlPolicy: UrlPolicy | undefined,
   ): StandardSchemaV1.InferOutput<TProps> => {
-    const rawProps = entry.props
-      ? evaluate(entry.props, { scopes }, evaluator)
-      : {};
-    refusePromise(rawProps, "props", entry.key);
     const parsed = parseSpec(def.props, rawProps);
     if (!parsed.ok) {
       throw new EntryError(
@@ -129,6 +124,29 @@ export const createComponentImplementation = <
       }
     }
     return props;
+  };
+
+  const evaluateProps = (
+    entry: ComponentEntry,
+    scopes: Scopes,
+    evaluator: ExpressionEvaluator,
+    urlPolicy: UrlPolicy | undefined,
+  ): StandardSchemaV1.InferOutput<TProps> => {
+    const rawProps = entry.props
+      ? evaluate(entry.props, { scopes }, evaluator)
+      : {};
+    refusePromise(rawProps, "props", entry.key);
+    return checkProps(rawProps, entry, urlPolicy);
+  };
+
+  // A malformed `props` throws here too, and a skeleton then draws without them.
+  const knownProps = (entry: ComponentEntry, urlPolicy: UrlPolicy | undefined): Record<string, unknown> | undefined => {
+    try {
+      const source = entry.props ?? { literal: {} };
+      return "literal" in source ? (checkProps(source.literal, entry, urlPolicy) as Record<string, unknown>) : undefined;
+    } catch {
+      return undefined;
+    }
   };
 
   const evaluateFlag = (
@@ -193,9 +211,14 @@ export const createComponentImplementation = <
     ) as CallbacksToFunctions<TCallbacks>;
   };
 
-  const impl: ComponentImplementation<TProps, TCallbacks> = { def, placeholder: placeholder ?? null };
+  // Stored without the props type, so every implementation fits one registry.
+  const impl: ComponentImplementation<TProps, TCallbacks> = {
+    def,
+    skeleton: (skeleton ?? null) as ComponentImplementation["skeleton"],
+  };
   attachEngine(impl, {
     Render,
+    knownProps,
     evaluate: (entry, scopes, evaluator, urlPolicy) => ({
       props: evaluateProps(entry, scopes, evaluator, urlPolicy),
       hidden: evaluateFlag(entry, "hidden", scopes, evaluator),

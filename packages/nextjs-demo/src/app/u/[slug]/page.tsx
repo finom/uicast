@@ -36,7 +36,7 @@ export default async function UserIndex({ params }: PageProps<"/u/[slug]">) {
           {userPages.map((page) => (
             <Link
               key={page.id}
-              href={`/u/${slug}/p/${page.id}`}
+              href={`/u/${slug}/p/${page.seedId ?? page.id}`}
               className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/50"
             >
               <FileText className="size-4 shrink-0 text-muted-foreground" />

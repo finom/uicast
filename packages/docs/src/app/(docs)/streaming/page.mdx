@@ -1,7 +1,7 @@
 # Streaming
 
 A document arrives one line at a time, and each line mounts as soon as it is
-complete. Below, a route relays the model's output with the
+complete. Below, a Next.js route relays the model's output with the
 [AI SDK](https://ai-sdk.dev), and a page reads it into a growing array with
 [TanStack Query](https://tanstack.com/query).
 
@@ -14,15 +14,11 @@ as is:
 ```ts filename="app/api/generate/route.ts"
 import { createTextStreamResponse, streamText } from "ai";
 
-// A generation runs for minutes — give the handler room.
-export const runtime = "nodejs";
-export const maxDuration = 300;
-
 export async function POST(req: Request) {
   const { prompt } = await req.json();
 
   // A bare model id resolves through the Vercel AI Gateway (set AI_GATEWAY_API_KEY).
-  const result = streamText({ model: "anthropic/claude-opus-5", system, prompt });
+  const result = streamText({ model: "anthropic/claude-opus-5.5", system, prompt });
 
   return createTextStreamResponse({
     stream: result.textStream,
@@ -30,6 +26,9 @@ export async function POST(req: Request) {
   });
 }
 ```
+
+A generation can run for minutes. If your host limits how long a handler runs,
+raise the limit.
 
 ### Persisting as it streams
 
@@ -99,7 +98,7 @@ const { data: entries = [], isFetching } = useQuery({
 <RendererProvider
   implementations={impls}
   evaluator={evaluator}
-  fallbackComponents={{ placeholder: () => <Skeleton className="h-6 w-24" /> }}
+  fallbackComponents={{ defaultSkeleton: () => <Skeleton className="h-6 w-24" /> }}
 >
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
@@ -116,15 +115,16 @@ stream ends, so use it for the spinner.
 {"key":"panel","component":"Card","props":{"literal":{"title":"Orders"}},"seed":[{"set":"scopes.root.open","expr":"countOpen()"}],"children":["stat"]}
 ```
 
-The Card shows its "Orders" title, with
-[`fallbackComponents.placeholder`](/react/renderer) standing in for `stat`, or
-nothing if no placeholder is registered. The next line lands:
+While `countOpen()` runs, the panel draws its [`skeleton`](/react#skeleton).
+Then the Card shows its "Orders" title, with the Card's skeleton standing in for
+`stat`: without one, `fallbackComponents.defaultSkeleton`, or nothing. The next
+line lands:
 
 ```jsonl
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
 ```
 
-The Stat replaces the placeholder, and `countOpen()` does not run again: a
+The Stat replaces the skeleton, and `countOpen()` does not run again: a
 [`seed`](/entry#seed) runs once. The tree is revealed, not rebuilt, and a
 document cut off at any line is still a valid document.
 

@@ -39,5 +39,5 @@ export const PictureImpl = createComponentImplementation({
       />
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 200 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 200 }} />,
 });

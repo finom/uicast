@@ -28,10 +28,10 @@ describe("EntryRenderer — whole-scope reads", () => {
       },
     ];
     const { container, getByText } = mountEntries(lines, { rootScope: { items: [{ id: 1 }] } });
-    expect(container.textContent).toBe("id,$$index,$$id");
+    expect(container.textContent).toBe("id");
     await act(async () => {
-      fireEvent.click(getByText("id,$$index,$$id"));
+      fireEvent.click(getByText("id"));
     });
-    await waitFor(() => expect(container.textContent).toBe("id,extra,$$index,$$id"));
+    await waitFor(() => expect(container.textContent).toBe("id,extra"));
   });
 });

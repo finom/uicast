@@ -9,6 +9,6 @@ export const TableImpl = createComponentImplementation({
   render: ({ children }, { entry, loading }) => {
     return <ShadcnTable className={busy(loading)} aria-busy={loading || undefined} data-key={entry.key}>{children}</ShadcnTable>;
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? <TableBody>{SKELETON_ROWS}</TableBody> : <ShadcnTable>{children ?? <TableBody>{SKELETON_ROWS}</TableBody>}</ShadcnTable>,
 });

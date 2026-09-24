@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/toaster";
+import { loadSidebar } from "@/lib/sidebar";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -15,7 +16,8 @@ const themeScript = `(() => {
   m.addEventListener("change", apply);
 })();`;
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const sidebar = await loadSidebar();
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -27,7 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="flex h-svh flex-col">
             <AppHeader />
             <div className="flex flex-1 overflow-hidden">
-              <AppSidebar />
+              <AppSidebar initial={sidebar} />
               <main className="flex-1 overflow-auto">{children}</main>
             </div>
           </div>

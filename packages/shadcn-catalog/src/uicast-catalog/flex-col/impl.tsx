@@ -22,5 +22,8 @@ export const FlexColImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
+  skeleton: ({ knownProps, children }) => {
+    const { gap, align, justify } = knownProps ?? { gap: "2", align: "stretch", justify: "start" };
+    return <div className={`flex flex-col ${GAP[gap]} ${ALIGN[align]} ${JUSTIFY[justify]}`}>{children}</div>;
+  },
 });

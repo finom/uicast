@@ -28,7 +28,7 @@ For a smaller prompt, take some groups instead — `layout`, `content`, `data`, 
 | `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | One group: `layout`, `content`, `data`, `charts`, `forms`, `navigation` or `overlays`. |
 | `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | The 30 essential components. |
 | `@uicast/shadcn-catalog/events` | The shared event schemas a definition's `callbacks` reuse. |
-| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError` — the renderer's confirm and error slots. `DocumentSkeleton` — a document's shape before it renders. |
+| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError` — the renderer's confirm and error slots. |
 | `@uicast/shadcn-catalog/ui/*` | The underlying shadcn components, if you need one directly. |
 
 ## Essentials
@@ -52,18 +52,6 @@ Swapping is one import path. Add your own with `[...Object.values(catalogDefs), 
 `LocationMap` draws raster map tiles from OpenStreetMap's tile server, whose [usage policy](https://operations.osmfoundation.org/policies/tiles/) forbids heavy use without permission, and credits them in the corner. To use another tile server, copy `src/uicast-catalog/location-map/` into your own catalog and change the tile URL.
 
 The tile URL comes from the implementation, not the document, so the renderer's `urlPolicy` does not check it; a Content-Security-Policy needs the tile host in `img-src`. The document sets the center and zoom, so the tile server sees which area a page shows.
-
-## Document skeleton
-
-`<DocumentSkeleton entries>` draws the shape of a document from the entries alone: the tree from `children`, real text wherever a prop is a literal, a shimmer wherever a prop is an expression.
-
-It evaluates nothing — no expressions, no host functions, no scopes — so it runs anywhere the entries are, including a server render, while the client tree boots. The real render replaces it, and because nothing about it is load-bearing, nothing has to match.
-
-```tsx
-{mounted ? <EntriesRenderer entries={entries} /> : <DocumentSkeleton entries={entries} />}
-```
-
-Implementations play no part in it. Components that occupy area (cards, tables, charts, stats, grids) draw at their own shape; anything else falls back to a stack when it has children and a bar when it does not.
 
 ## Styles
 

@@ -102,17 +102,19 @@ describe("createRowScope", () => {
     expect("toString" in proxy).toBe(false);
   });
 
-  it("reports runtime fields as own enumerable data, so a spread sees them", () => {
+  it("keeps runtime fields out of enumeration, so a copy of the row is the element", () => {
     const { proxy } = row({ name: "Ada" }, 1, 7);
-    expect({ ...proxy }).toEqual({ name: "Ada", $$index: 1, $$id: 7 });
+    expect({ ...proxy }).toEqual({ name: "Ada" });
+    expect(Object.keys(proxy)).toEqual(["name"]);
+    expect(JSON.stringify(proxy)).toBe('{"name":"Ada"}');
     expect(Object.hasOwn(proxy, "$$id")).toBe(true);
-    expect(Object.getOwnPropertyDescriptor(proxy, "$$id")).toMatchObject({ writable: false, enumerable: true });
+    expect(Object.getOwnPropertyDescriptor(proxy, "$$id")).toMatchObject({ writable: false, enumerable: false });
   });
 
   it("a primitive element reads through $$value and refuses writes", () => {
     const { proxy } = row("blue", 0, 0);
     expect(proxy.$$value).toBe("blue");
-    expect({ ...proxy }).toEqual({ $$index: 0, $$id: 0, $$value: "blue" });
+    expect({ ...proxy }).toEqual({});
     expect(() => proxy.$$set("x", 1)).toThrow(/holds a string/);
     expect(row(null).proxy.$$value).toBeNull();
   });
@@ -227,7 +229,7 @@ describe("createRowScope", () => {
     const { proxy } = row([10, 20]);
     expect(proxy[0]).toBe(10);
     expect(proxy.length).toBe(2);
-    expect(Object.keys(proxy)).toEqual(["0", "1", "$$index", "$$id"]);
+    expect(Object.keys(proxy)).toEqual(["0", "1"]);
   });
 });
 

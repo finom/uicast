@@ -18,7 +18,7 @@ export default async function Home({
   const me = await getSessionUser();
   const [recentPages, recentChats] = await Promise.all([
     db
-      .select({ id: pages.id, title: pages.title, slug: users.slug })
+      .select({ id: pages.id, seedId: pages.seedId, title: pages.title, slug: users.slug })
       .from(pages)
       .innerJoin(users, eq(pages.userId, users.id))
       .orderBy(desc(pages.createdAt))
@@ -86,7 +86,7 @@ export default async function Home({
           {recentPages.map((page) => (
             <Link
               key={page.id}
-              href={`/u/${page.slug}/p/${page.id}`}
+              href={`/u/${page.slug}/p/${page.seedId ?? page.id}`}
               className="flex items-center gap-2 rounded-md border p-3 text-sm hover:bg-muted/50"
             >
               <FileText className="size-4 shrink-0 text-muted-foreground" />

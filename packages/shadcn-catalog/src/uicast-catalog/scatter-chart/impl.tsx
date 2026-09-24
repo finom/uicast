@@ -37,5 +37,5 @@ export const ScatterChartImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });

@@ -2,7 +2,7 @@ export type {
   ComponentImplementation,
   ConfirmComponentProps,
   ErrorComponentProps,
-  PlaceholderComponentProps,
+  SkeletonComponentProps,
   RenderContext,
   EntriesRendererProps,
   RendererProviderProps,
@@ -13,5 +13,6 @@ export type {
 } from "./types";
 
 export { createComponentImplementation } from "./impl/create-component-implementation";
+export { DocumentSkeleton } from "./render/document-skeleton";
 export { EntriesRenderer } from "./render/entries-renderer";
 export { RendererProvider } from "./store/renderer-provider";

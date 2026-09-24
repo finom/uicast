@@ -10,6 +10,6 @@ export const TableFooterImpl = createComponentImplementation({
       <ShadcnTableFooter data-key={entry.key}>{children}</ShadcnTableFooter>
     );
   },
-  placeholder: ({ children }) =>
+  skeleton: ({ children }) =>
     children === undefined ? SKELETON_ROW : <ShadcnTableFooter>{children ?? SKELETON_ROW}</ShadcnTableFooter>,
 });

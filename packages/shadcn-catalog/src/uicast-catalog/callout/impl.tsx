@@ -42,9 +42,9 @@ export const CalloutImpl = createComponentImplementation({
       </Alert>
     );
   },
-  placeholder: ({ children }) => (
+  skeleton: ({ knownProps, children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
-      <Skeleton className="h-4 w-40" />
+      {knownProps?.title ? <AlertTitle>{knownProps.title}</AlertTitle> : <Skeleton className="h-4 w-40" />}
       {children}
     </div>
   ),

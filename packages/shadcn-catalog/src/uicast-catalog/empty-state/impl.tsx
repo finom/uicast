@@ -29,7 +29,7 @@ export const EmptyStateImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }) => (
+  skeleton: ({ children }) => (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <Skeleton className="h-4 w-40" />
       {children}

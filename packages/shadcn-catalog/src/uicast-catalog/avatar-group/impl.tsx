@@ -44,5 +44,5 @@ export const AvatarGroupImpl = createComponentImplementation({
       </div>
     );
   },
-  placeholder: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  skeleton: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
 });

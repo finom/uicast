@@ -6,7 +6,7 @@ import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
-import { MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
+import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
 import { buildPageSystemPrompt } from "@/lib/page-system-prompt";
 import { computeCostUsd, getModelPricing } from "@/lib/pricing";
 
@@ -121,9 +121,10 @@ export async function POST(req: Request) {
               inputTokens: sql`${pages.inputTokens} + ${inputTokens}`,
               outputTokens: sql`${pages.outputTokens} + ${outputTokens}`,
               costUsd: sql`${pages.costUsd} + ${costUsd ?? 0}`,
+              model: GENERATION_MODEL,
             })
             .where(eq(pages.id, page.id));
-          send({ type: "usage", inputTokens, outputTokens, costUsd });
+          send({ type: "usage", inputTokens, outputTokens, costUsd, model: GENERATION_MODEL });
         } catch {}
 
         // "length" / "content-filter" here explains a stream that ends after only a few entries.

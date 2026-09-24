@@ -88,5 +88,5 @@ export const HeatmapImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  placeholder: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
 });
