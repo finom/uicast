@@ -2,8 +2,17 @@ import type * as acorn from "acorn";
 import { freeIdentifiers, memberReads } from "./ast";
 import { parseExpression } from "./parse";
 
+/**
+ * What `validate` reports about an expression, without running it.
+ *
+ * @example
+ * const { freeIds, toolCalls } = evaluator.validate("getUser({ id: scopes.root.userId })");
+ * // freeIds: ["getUser", "scopes"], toolCalls: ["getUser"]
+ */
 export type ExpressionFacts = {
+  /** Every outside name the source uses (context values, globals, host functions), in order of first use. */
   freeIds: readonly string[];
+  /** The host functions it calls, by name. */
   toolCalls: readonly string[];
 };
 

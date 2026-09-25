@@ -27,7 +27,7 @@ interface ComponentEntry {
   seed?: ValueSourceAssignment[];  // initial state, once at mount
   callbacks?: Record<string, CallbackValueSourceAssignment[]>;  // event → steps
   each?: Expression;    // array to iterate — its presence marks a list
-  as?: string;          // per-item scope name
+  as?: string;          // names the item's scopes
   keyBy?: string;      // per-item identity field
 }
 ```
@@ -188,12 +188,12 @@ There is no list container; the parent that names the list supplies it:
 {"key":"task-table","component":"Table","children":["task-body"]}
 {"key":"task-body","component":"TableBody","children":["task-row"]}
 {"key":"task-row","component":"TableRow","each":"scopes.root.tasks","as":"task","keyBy":"id","children":["task-num","task-title"]}
-{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.task.$$index + 1 })"}}
+{"key":"task-num","component":"TableCell","props":{"expr":"({ text: scopes.$task.index + 1 })"}}
 {"key":"task-title","component":"TableCell","props":{"expr":"({ text: scopes.task.title })"}}
 ```
 
 Three tasks give one `<tbody>` with three `<tr>`s. The list's `children` repeat
-with it, each copy reading its own `scopes.task`.
+with it, each copy reading its own `scopes.task` and `scopes.$task`.
 
 ### `each`
 A bare [expression](/expr) returning the array to repeat over. Reactive: a
@@ -217,9 +217,10 @@ Each card lists the lines of its own order.
 An `each` that evaluates to `undefined` renders zero rows, not an error.
 
 ### `as`
-The item's scope name, on the list entry and its whole subtree. `scopes.<as>` is
-the item itself, plus `$$index` and `$$id` (from [`keyBy`](#keyby)); a
-primitive item is read as `$$value`. See
+The name of each item's scopes, on the list entry and its whole subtree.
+`scopes.<as>` is the item itself. `scopes.$<as>` is the row: `index`, `id`
+(from [`keyBy`](#keyby)), `value` for a primitive item, and the row's
+[own state](/entry/state#per-row-state). So an `as` cannot start with `$`. See
 [State &amp; Scopes](/entry/state#item-scopes).
 
 `as` **must be a new scope name**: not `root`, and not the `as` of a list this
@@ -233,15 +234,15 @@ one sits inside. A reused name fails as `invalid-list` in the list's
 ```
 
 ### `keyBy`
-Where `$$id`, the stable identity per item, comes from:
+Where the row's `id`, the stable identity per item, comes from:
 
 ```jsonc
 { "each": "scopes.root.tasks", "as": "task", "keyBy": "id" }  // { id: 7 } → 7; an item with no `id` falls back to its index
 { "each": "scopes.root.tasks", "as": "task" }                 // no keyBy → ids 0, 1, 2 …
 ```
 
-**Give object items a stable key.** Without one, in-place edits shift rows and
-lose their per-item state.
+**Give object items a stable key.** Without one, the `id` is the index, so an
+insert or a reorder moves row state to another item.
 
 ## Partial replacement
 

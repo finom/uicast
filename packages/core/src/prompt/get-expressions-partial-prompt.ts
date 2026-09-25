@@ -2,14 +2,29 @@ import { ALLOWED_GLOBALS, DEFAULT_MAX_SOURCE_LENGTH } from "@uicast/expr/interna
 import { joinSections, noteSection } from "./format";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
 
+/**
+ * Options for `getExpressionsPartialPrompt`.
+ *
+ * @example
+ * const options: ExpressionsPromptOptions = { maxLength: 500 };
+ */
 export type ExpressionsPromptOptions = {
-  // The evaluator's `maxSourceLength`. Default 1000.
+  /** The evaluator's `maxSourceLength`: the longest expression, in characters. Default 1000. */
   maxLength?: number;
-  // Host-specific context, appended as a trailing `## Note`.
+  /** Your text, appended verbatim as a trailing `## Note`. */
   note?: string;
 };
 
-// The globals and length slots fill from @uicast/expr's own constants.
+/**
+ * The `# JavaScript Expressions` block: the language's rules, its globals and a few idioms. The globals and the
+ * default length come from `@uicast/expr` itself.
+ *
+ * @example
+ * getExpressionsPartialPrompt();
+ *
+ * @example
+ * getExpressionsPartialPrompt({ maxLength: 500 }); // with new Evaluator({ maxSourceLength: 500 })
+ */
 export function getExpressionsPartialPrompt({
   maxLength = DEFAULT_MAX_SOURCE_LENGTH,
   note,

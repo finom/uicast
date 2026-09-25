@@ -47,6 +47,24 @@ const propertyNames = (spec: CombinedSpec): string[] => {
   return [...names];
 };
 
+/**
+ * Builds a component definition, what the model reads about a component. Throws when `props` or a callback payload
+ * declares a `children` field: that name is reserved for child entries.
+ *
+ * @example
+ * export const BadgeDef = createComponentDefinition({
+ *   name: "Badge",
+ *   description: "A short status label.",
+ *   props: z.strictObject({ text: z.string().meta({ description: "The label" }) }),
+ * });
+ *
+ * @example
+ * createComponentDefinition({
+ *   name: "Button", description: "A clickable button.",
+ *   props: z.strictObject({ text: z.string() }),
+ *   callbacks: { onClick: z.null() }, // printed as onClick()
+ * });
+ */
 export const createComponentDefinition = <
   TProps extends CombinedSpec = typeof NO_PROPS,
   TCallbacks extends Record<string, CombinedSpec> = Record<string, never>,
@@ -57,6 +75,7 @@ export const createComponentDefinition = <
   callbacks,
   hidden,
 }: Omit<ComponentDefinition<TProps, TCallbacks>, "props"> & {
+  /** The props schema. Omit it for a component that takes none. */
   props?: TProps;
 }): ComponentDefinition<TProps, TCallbacks> => {
   if (propertyNames(props).includes(RESERVED_PROP)) {

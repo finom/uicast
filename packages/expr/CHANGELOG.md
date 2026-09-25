@@ -43,6 +43,7 @@ Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuil
 
 ### Added
 
+- A JSDoc comment with an example on every public export, shown on hover.
 - **`toFunction`, for a subclass that runs expressions through the engine.** `protected override toFunction(names, body) { return new Function(...names, body); }` — the same checks, name lookup, host-function calls and exit gate, then the engine runs the expression: no membrane, no budget, and it needs CSP `unsafe-eval`. For sources you trust.
 - **Methods newer than ES2022, implemented in the interpreter**, so an ES2022 engine gives the same answers: array `.toSpliced()` / `.with()`, string `.isWellFormed()` / `.toWellFormed()`, number `.toExponential()`, `Math.asinh()` / `acosh()` / `atanh()` / `f16round()` / `sumPrecise()`, `Object.groupBy()` / `hasOwn()` / `is()`, `String.fromCodePoint()`. The ES2023 array methods (`findLast`, `toSorted`, …) no longer come from the engine either. `baseline.test.ts` runs the corpus with every newer built-in deleted.
 - **A global that takes one argument can be passed as a callback**: `rows.filter(Boolean)`, `ids.map(Number)`. `parseInt`, which takes a radix, cannot, nor can `Math`, `Date` or the other namespaces; a written one fails validation.

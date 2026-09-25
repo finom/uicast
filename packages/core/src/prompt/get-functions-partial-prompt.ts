@@ -6,9 +6,16 @@ import { joinSections, noteSection, unwrapParens } from "./format";
 import { jsonSchemaToTs } from "./json-schema-to-ts";
 import { collectSharedTypes, type SharedTypes } from "./shared-types";
 
+/**
+ * Options for `getFunctionsPartialPrompt`.
+ *
+ * @example
+ * const options: FunctionsPromptOptions = { functions: tools, note: "Amounts are in cents." };
+ */
 export type FunctionsPromptOptions = {
+  /** Your host functions: the array the evaluator binds. An empty one adds nothing. */
   functions: StandardToolV0[];
-  // Host-specific context, appended as this section's trailing `## Note`.
+  /** Your text, appended verbatim as this section's trailing `## Note`. */
   note?: string;
 };
 
@@ -29,7 +36,14 @@ const schemaToTs = (schema: StandardToolV0["inputSchema"], fallback: string, sha
   return jsonSchemaToTs(jsonSchema, { multiline: "  ", namedRefs: shared.add(jsonSchema) });
 };
 
-// No `outputSchema` renders `=> unknown`: undeclared, not empty.
+/**
+ * The `# Available Functions` block: a call signature per host function, from its schemas. A tool with no
+ * `outputSchema` prints `=> unknown`: undeclared, not empty. Throws on a duplicate name, a name that is not an
+ * identifier, or a reserved one: `scopes`, `evt`, `currentValue` or a global such as `Math`.
+ *
+ * @example
+ * getFunctionsPartialPrompt({ functions: tools }); // the same array as new Evaluator({ functions: tools })
+ */
 export function getFunctionsPartialPrompt({ functions, note }: FunctionsPromptOptions): string {
   // A heading with nothing under it is dropped.
   if (functions.length === 0) return noteSection(note);

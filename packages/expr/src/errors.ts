@@ -1,3 +1,9 @@
+/**
+ * Why an expression was refused or failed.
+ *
+ * @example
+ * if (ExpressionError.is(err) && err.reason === "budget-exceeded") showTooSlow();
+ */
 export type ExpressionErrorReason =
   // Did not parse, or parsed as something other than one expression.
   | "expression-syntax"
@@ -16,17 +22,35 @@ export type ExpressionErrorReason =
 
 export const messageOf = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
+/**
+ * Every refusal and failure of an expression, with a `reason`.
+ *
+ * @example
+ * try {
+ *   evaluator.eval("fetch('/x')");
+ * } catch (err) {
+ *   if (ExpressionError.is(err)) console.warn(err.reason); // "unknown-reference"
+ * }
+ */
 export class ExpressionError extends Error {
-  // On the instance: `instanceof` fails when two copies of this package share a bundle.
+  /** Brand for `ExpressionError.is`: `instanceof` fails when two copies of this package share a bundle. */
   readonly uicastExpressionError = true;
+  /** Why it was refused or failed, e.g. `"guardrail-violation"`. */
   readonly reason: ExpressionErrorReason;
 
+  /** `reason` defaults to `"guardrail-violation"`; `cause` becomes the error's `cause`. */
   constructor(message: string, reason: ExpressionErrorReason = "guardrail-violation", cause?: unknown) {
     super(message, cause !== undefined ? { cause } : undefined);
     this.name = "ExpressionError";
     this.reason = reason;
   }
 
+  /**
+   * Whether `err` is an `ExpressionError`, from any copy of this package. Use it over `instanceof`.
+   *
+   * @example
+   * if (ExpressionError.is(err) && err.reason === "unknown-reference") console.warn(err.message);
+   */
   static is(err: unknown): err is ExpressionError {
     return (
       typeof err === "object" &&

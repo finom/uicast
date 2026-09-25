@@ -26,7 +26,17 @@ const RendererGroupContext = createContext<RendererGroup | null>(null);
 
 export const RendererRegistryProvider = RendererRegistryContext.Provider;
 
-// Shared scopes: every renderer beneath behaves as one app.
+/**
+ * Holds the implementations, the evaluator, the fallback UI and one shared `root` scope for every `<EntriesRenderer>`
+ * beneath it, so they behave as one app. Keep each prop's identity stable, or every element re-renders.
+ *
+ * @example
+ * const evaluator = new Evaluator({ functions: tools }); // module scope, created once
+ *
+ * <RendererProvider implementations={impls} evaluator={evaluator} fallbackComponents={fallbackComponents}>
+ *   <EntriesRenderer entries={entries} />
+ * </RendererProvider>;
+ */
 export function RendererProvider({
   implementations,
   fallbackComponents,

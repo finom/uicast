@@ -5,10 +5,13 @@ import type { Scopes } from "./types";
 export const requireScope = (scopes: Scopes, name: string, elementKey: string): ReactiveProxy => {
   const scope = Object.hasOwn(scopes, name) ? scopes[name] : undefined;
   if (scope) return scope;
-  throw new EntryError(`"scopes.${name}" does not exist — the scopes are "root" and each list's "as" name`, {
-    reason: "unknown-reference",
-    elementKey,
-  });
+  throw new EntryError(
+    `"scopes.${name}" does not exist — the scopes are "root" and, in a list's rows, "<as>" and "$<as>"`,
+    {
+      reason: "unknown-reference",
+      elementKey,
+    },
+  );
 };
 
 // A host function in a reactive site would leak a Promise into render as a truthy object.

@@ -23,10 +23,12 @@ index inside it:
 { "set": "scopes.root.products.0.name", "literal": "Renamed" }  // ❌ rejected — not an address
 ```
 
-**A row write is a write to its array.** `set: "scopes.row.qty"{:ts}` changes the
-element in place and emits on every field holding it, so everything reading
-`scopes.root.products` re-renders. In a nested list the write climbs to the
-outermost array: a `line` edit wakes `scopes.order.lines`, which wakes
+**A write to an item replaces it in its array.** `set: "scopes.row.qty"{:ts}`
+puts an edited copy of the item into a new `scopes.root.products`, so everything
+reading that array wakes. The list runs `each` again and keeps its other rows,
+whose items are the same objects. Only the edited row and readers whose result
+changed, such as a total, re-render. In a nested list the write climbs to the
+outermost array: a `line` edit sets a new `scopes.order.lines`, which sets a new
 `scopes.root.orders`.
 
 One expression can subscribe to several fields:

@@ -47,16 +47,23 @@ export const MAX_FLAT_DEPTH = 32;
 // Deepest value the exit gate walks before refusing it.
 export const MAX_DATA_DEPTH = 256;
 
+/**
+ * Limits for one evaluation. An evaluation that goes past one throws an `ExpressionError` with reason
+ * `budget-exceeded`.
+ *
+ * @example
+ * new Evaluator({ budget: { steps: 200_000, ms: 50 } });
+ */
 export type BudgetOptions = {
-  // Evaluation steps before `budget-exceeded`. Default 1_000_000.
+  /** Evaluation steps: each node is a step, and a call adds its work (a sort about n·log n). Default 1_000_000. */
   steps?: number;
-  // Wall-clock milliseconds before `budget-exceeded`. Default 100.
+  /** Wall-clock milliseconds, a backstop to `steps`. Default 100. */
   ms?: number;
-  // Longest string any operation may produce. Default 1_000_000.
+  /** Longest string any operation may produce. Default 1_000_000. */
   maxStringLength?: number;
-  // Longest array any operation may produce. Default 100_000.
+  /** Longest array any operation may produce. Default 100_000. */
   maxArrayLength?: number;
-  // Total across all operations. Default 10_000_000; per-op caps don't compose.
+  /** Characters and array items built in one evaluation, all operations together. Default 10_000_000. */
   maxTotalAllocation?: number;
 };
 

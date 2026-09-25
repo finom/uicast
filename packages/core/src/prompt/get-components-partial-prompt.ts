@@ -5,11 +5,18 @@ import { dashTail, joinSections, noteSection, stripRootAnnotations, unwrapParens
 import { jsonSchemaToTs } from "./json-schema-to-ts";
 import { collectSharedTypes } from "./shared-types";
 
+/**
+ * Options for `getComponentsPartialPrompt`.
+ *
+ * @example
+ * const options: ComponentsPromptOptions = { definitions: defs, urlPolicy };
+ */
 export type ComponentsPromptOptions = {
+  /** Your definitions: the same components the renderer has. One with `hidden: true` is left out. */
   definitions: ComponentDefinition[];
-  // The renderer's `urlPolicy`, so the model writes URLs the renderer loads. Omitted, the renderer's defaults.
+  /** The renderer's `urlPolicy`, so the model writes URLs the renderer loads. Omitted: the renderer's defaults. */
   urlPolicy?: UrlPolicy;
-  // Host-specific context, appended as this section's trailing `## Note`.
+  /** Your text, appended verbatim as this section's trailing `## Note`. */
   note?: string;
 };
 
@@ -76,6 +83,16 @@ const commonEvents = (defs: ComponentDefinition[]): Map<string, JSONSchema> => {
   return new Map([...events].map(([id, { schema }]) => [id, schema]));
 };
 
+/**
+ * The component menu, from your definitions. A payload with a `$id` prints once, under `## Common Events`; a URL
+ * prop adds `## URL Props`. Throws on a duplicate name, or on two different payloads with one `$id`.
+ *
+ * @example
+ * getComponentsPartialPrompt({ definitions: defs });
+ *
+ * @example
+ * getComponentsPartialPrompt({ definitions: [...defs, BadgeDef], urlPolicy: { hosts: ["cdn.example.com"] } });
+ */
 export function getComponentsPartialPrompt({ definitions: defs, urlPolicy, note }: ComponentsPromptOptions): string {
   const names = new Set<string>();
   for (const { name } of defs) {

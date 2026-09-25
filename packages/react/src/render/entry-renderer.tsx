@@ -244,8 +244,9 @@ const ListEntryRendererInner = ({
   useReactiveDeps(list, scopes, "each");
 
   // The rows would hide the scope of that name.
-  if (Object.hasOwn(scopes, list.as)) {
-    throw new EntryError(`List "as" must name a new scope, but "scopes.${list.as}" already exists here`, {
+  const taken = [list.as, `$${list.as}`].find((name) => Object.hasOwn(scopes, name));
+  if (taken) {
+    throw new EntryError(`List "as" must name a new scope, but "scopes.${taken}" already exists here`, {
       reason: "invalid-list",
       elementKey: list.key,
     });
@@ -260,7 +261,7 @@ const ListEntryRendererInner = ({
       elementKey: list.key,
     });
   }
-  const rows = useItemScopes(scopes, list, items);
+  const rows = useItemScopes(scopes, list, items, evaluator.memberReads(list.each, "scopes"));
 
   return (
     <>

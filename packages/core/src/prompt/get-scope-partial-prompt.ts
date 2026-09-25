@@ -1,11 +1,17 @@
 import { joinSections, noteSection } from "./format";
 
+/**
+ * Options for `getScopePartialPrompt`.
+ *
+ * @example
+ * const options: ScopePromptOptions = { kind: "answer", approxEntries: 10 };
+ */
 export type ScopePromptOptions = {
-  // `"page"` a complete page; `"widget"` one embedded widget; `"answer"` a compact conversational answer.
+  /** What to build: `"page"` a complete page, `"widget"` one embedded widget, `"answer"` a compact chat answer. */
   kind: "page" | "widget" | "answer";
-  // Soft size anchor, rendered as a hint ("around N entries"), not a quota.
+  /** A size hint, printed as "around N entries". Not a limit. */
   approxEntries?: number;
-  // Host-specific context, appended as this section's trailing `## Note`.
+  /** Your text, appended verbatim as this section's trailing `## Note`. */
   note?: string;
 };
 
@@ -26,6 +32,15 @@ const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
 - Bind real data via host functions — the answer must show actual values, not placeholders.`,
 };
 
+/**
+ * The `# Scope` block: what one response should be, a whole page, one widget or a chat answer.
+ *
+ * @example
+ * getScopePartialPrompt({ kind: "page" });
+ *
+ * @example
+ * getScopePartialPrompt({ kind: "answer", approxEntries: 10 });
+ */
 export function getScopePartialPrompt({ kind, approxEntries, note }: ScopePromptOptions): string {
   return joinSections(
     "# Scope",

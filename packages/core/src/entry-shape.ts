@@ -56,6 +56,8 @@ const shapeFault = (entry: RawEntry): string | null => {
     if (value !== undefined && typeof value !== "string") return expected(field, "a string", value);
   }
   if (entry.each !== undefined && entry.as === undefined) return 'A list needs "as": the name its rows are read under.';
+  if (typeof entry.as === "string" && entry.as.startsWith("$"))
+    return `"as": "${entry.as}" starts with "$", which marks a row's own scope, "scopes.$<as>".`;
   if (entry.children !== undefined) {
     if (!Array.isArray(entry.children)) return expected("children", "an array of element keys", entry.children);
     const i = entry.children.findIndex((child) => typeof child !== "string");

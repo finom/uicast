@@ -1,6 +1,17 @@
 import type { KeyboardEvent } from "react";
 import z from "zod";
 
+/**
+ * The payload of a key callback: `key`, `code`, the modifier flags and `repeat`. Its `$id`, `KeyboardEvent`, prints it
+ * once in the prompt, under `## Common Events`.
+ *
+ * @example
+ * createComponentDefinition({
+ *   name: "Search",
+ *   description: "A search box.",
+ *   callbacks: { onKeyDown: keyboardEventSchema }, // printed as onKeyDown(evt: KeyboardEvent)
+ * });
+ */
 export const keyboardEventSchema = z
   .object({
     key: z.string().meta({ description: 'The key value (e.g. "Enter", "a", "ArrowUp")' }),

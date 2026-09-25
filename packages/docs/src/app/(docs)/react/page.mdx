@@ -51,9 +51,9 @@ The second is the **render context**:
 - **`loading`**, the entry's [`loading`](/entry#loading) expression, evaluated.
   What to show while it is `true` is up to the implementation, such as a
   busy state.
-- **`scopes`**, the scopes the entry's expressions read: `scopes.root` and the
-  item scope of an enclosing list. It is for debugging; state changes go through
-  callbacks.
+- **`scopes`**, the scopes the entry's expressions read: `scopes.root` and,
+  inside a list, the item's two scopes. It is for debugging; state changes go
+  through callbacks.
 
 ```tsx filename="src/uicast-catalog/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({

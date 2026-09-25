@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- A JSDoc comment with an example on every public export, `/prompt` included, shown on hover.
 - `ssr` on `createFenceRenderer`: `true` renders blocks in a server pass too, so their seeds run and host functions are called on the server. Off by default: a block renders after hydration.
 - `getFencePartialPrompt({ note? })`: `note` appends host-specific context as the section's trailing `## Note`, matching every other **uicast** prompt partial.
 - `FencePromptOptions`, the options type of `getFencePartialPrompt`, is exported from `@uicast/streamdown/prompt`, as core exports its builders' option types.

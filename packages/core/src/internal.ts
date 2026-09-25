@@ -7,7 +7,14 @@ export { type DepsPart, extractDeps } from "./expr/extract-deps";
 export { planStepWaves } from "./expr/plan-step-waves";
 export { type JSONSchema, specToJSONSchema } from "./json-schema";
 export { noteSection } from "./prompt/format";
-export { createRowScope, getForwardTargets, type RowScope } from "./scope/create-proxy-scope";
+export {
+  countEmits,
+  createRowScope,
+  createRowState,
+  getForwardTargets,
+  type RowScope,
+  type RowState,
+} from "./scope/create-proxy-scope";
 export { parseScope } from "./scope/parse-scope";
 export { entrySetAddressError, parseSetAddress } from "./scope/parse-set-address";
 export { isComponentListEntry } from "./types";

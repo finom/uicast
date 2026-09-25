@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { EntryError } from "../../entry-error";
-import { createProxyScope, createRowScope, getForwardTargets } from "../create-proxy-scope";
+import { countEmits, createProxyScope, createRowScope, createRowState, getForwardTargets } from "../create-proxy-scope";
 
 describe("createProxyScope — reads", () => {
   it("reads fields as plain values, nested objects included", () => {
@@ -33,7 +33,7 @@ describe("createProxyScope — writes", () => {
     state.user.name = "Hopper";
     expect(state.user.name).toBe("Hopper");
     expect(spy).not.toHaveBeenCalled();
-    expect(state.$$emitter.version).toBe(0);
+    expect(countEmits(state)).toBe(0);
   });
 
   it("does not emit a same-value write", () => {
@@ -42,7 +42,7 @@ describe("createProxyScope — writes", () => {
     state.$$emitter.on("count", spy);
     state.count = 5;
     expect(spy).not.toHaveBeenCalled();
-    expect(state.$$emitter.version).toBe(0);
+    expect(countEmits(state)).toBe(0);
   });
 
   it("a field write wakes only that field's subscribers", () => {
@@ -74,96 +74,155 @@ describe("createProxyScope — writes", () => {
     expect(Object.getPrototypeOf(state)).toBe(Object.prototype);
   });
 
-  it("version counts real writes", () => {
+  it("countEmits counts real writes", () => {
     const state = createProxyScope<{ a: number; b: number }>({ a: 1, b: 1 });
     state.a = 2;
     state.b = 2;
-    expect(state.$$emitter.version).toBe(2);
+    expect(countEmits(state)).toBe(2);
   });
 });
 
 describe("createRowScope", () => {
-  // A row over `element`, held by `root.rows` so writes have somewhere to land.
-  const row = (element: unknown, index = 0, id: string | number = "a") => {
+  // A row over `element`, from a list whose `each` reads `root.rows`.
+  const row = (element: unknown) => {
+    const root = createProxyScope<Record<string, unknown>>({ rows: [element] });
     const scope = createRowScope();
-    scope.retarget(element, index, id);
-    scope.see({ root: createProxyScope({ rows: [element] }) });
-    return scope;
+    scope.retarget(element);
+    scope.see({ root }, ["scopes.root.rows"]);
+    return Object.assign(scope, { root });
   };
 
-  it("reads the element's fields and the runtime's", () => {
-    const { proxy } = row({ name: "Ada", qty: 2 }, 3, "a");
+  it("reads the element's fields and nothing else", () => {
+    const { proxy } = row({ name: "Ada", qty: 2 });
     expect(proxy.name).toBe("Ada");
-    expect(proxy.$$index).toBe(3);
-    expect(proxy.$$id).toBe("a");
-    expect(proxy.$$value).toBeUndefined();
+    expect(proxy.index).toBeUndefined();
     expect("name" in proxy).toBe(true);
-    expect("$$index" in proxy).toBe(true);
     expect("toString" in proxy).toBe(false);
   });
 
-  it("keeps runtime fields out of enumeration, so a copy of the row is the element", () => {
-    const { proxy } = row({ name: "Ada" }, 1, 7);
+  it("a copy of the row is the element", () => {
+    const { proxy } = row({ name: "Ada" });
     expect({ ...proxy }).toEqual({ name: "Ada" });
     expect(Object.keys(proxy)).toEqual(["name"]);
     expect(JSON.stringify(proxy)).toBe('{"name":"Ada"}');
-    expect(Object.hasOwn(proxy, "$$id")).toBe(true);
-    expect(Object.getOwnPropertyDescriptor(proxy, "$$id")).toMatchObject({ writable: false, enumerable: false });
   });
 
-  it("a primitive element reads through $$value and refuses writes", () => {
-    const { proxy } = row("blue", 0, 0);
-    expect(proxy.$$value).toBe("blue");
-    expect({ ...proxy }).toEqual({});
-    expect(() => proxy.$$set("x", 1)).toThrow(/holds a string/);
-    expect(row(null).proxy.$$value).toBeNull();
+  it("a primitive or array element has no writable fields", () => {
+    expect(() => row("blue").proxy.$$set("x", 1)).toThrow(/holds a string/);
+    expect(() => row([1]).proxy.$$set("x", 1)).toThrow(/holds an array/);
   });
 
-  it("writes the element in place and emits the field", () => {
+  it("a write puts a copy in a new source array, changes nothing in place, and emits", () => {
     const element = { qty: 1 };
     const scope = row(element);
+    const rows = scope.root.rows;
     const spy = vi.fn();
-    scope.proxy.$$emitter.on("qty", spy);
+    scope.proxy.$$emitter.on("qty", () => spy("qty"));
+    scope.root.$$emitter.on("rows", () => spy("rows"));
     scope.proxy.$$set("qty", 2);
-    expect(element.qty).toBe(2);
-    expect(spy).toHaveBeenCalledTimes(1);
+    expect(element.qty).toBe(1);
+    expect(rows).toEqual([{ qty: 1 }]);
+    expect(scope.root.rows).toEqual([{ qty: 2 }]);
+    expect(scope.proxy.qty).toBe(2);
+    expect(spy.mock.calls.flat()).toEqual(["rows", "qty"]);
     scope.proxy.qty = 3;
-    expect(element.qty).toBe(3);
+    expect(scope.root.rows).toEqual([{ qty: 3 }]);
   });
 
-  it("a write emits on every field holding the element, and a holding row forwards again", () => {
+  it("the row's own write already moved it; a new item from elsewhere moves it", () => {
+    const scope = row({ qty: 1 });
+    scope.proxy.$$set("qty", 2);
+    expect(scope.retarget((scope.root.rows as unknown[])[0])).toBe(false);
+    expect(scope.retarget({ qty: 9 })).toBe(true);
+    expect(scope.proxy.qty).toBe(9);
+  });
+
+  it("a frozen item is copied, never changed", () => {
+    const element = Object.freeze({ qty: 1 });
+    const scope = row(element);
+    scope.proxy.$$set("qty", 2);
+    expect(scope.root.rows).toEqual([{ qty: 2 }]);
+    expect(element.qty).toBe(1);
+  });
+
+  it("a nested write climbs: the line's copy lands in a new `order.lines`, the order's in a new `root.orders`", () => {
     const lineElement = { qty: 1 };
-    const orderElement = { lines: [lineElement] };
-    const root = createProxyScope({ orders: [orderElement], selected: [orderElement], other: [] });
+    const orderElement = { id: "A", lines: [lineElement, { qty: 5 }] };
+    const other = { id: "B", lines: [] };
+    const root = createProxyScope<Record<string, unknown>>({ orders: [orderElement, other] });
     const order = createRowScope();
-    order.retarget(orderElement, 0, 1);
-    order.see({ root });
+    order.retarget(orderElement);
+    order.see({ root }, ["scopes.root.orders"]);
     const line = createRowScope();
-    line.retarget(lineElement, 0, 0);
-    line.see({ root, order: order.proxy });
+    line.retarget(lineElement);
+    line.see({ root, order: order.proxy }, ["scopes.order.lines"]);
     const spy = vi.fn();
-    for (const field of ["orders", "selected", "other"]) root.$$emitter.on(field, () => spy(field));
+    root.$$emitter.on("orders", () => spy("orders"));
     order.proxy.$$emitter.on("lines", () => spy("lines"));
 
     line.proxy.$$set("qty", 2);
-    expect(spy.mock.calls.map((c) => c[0])).toEqual(["lines", "orders", "selected"]);
+    expect(root.orders).toEqual([{ id: "A", lines: [{ qty: 2 }, { qty: 5 }] }, other]);
+    expect((root.orders as unknown[])[1]).toBe(other);
+    expect(orderElement.lines[0]).toBe(lineElement);
+    expect(lineElement.qty).toBe(1);
+    expect(order.proxy.lines).toBe((root.orders as { lines: unknown }[])[0].lines);
+    expect(spy.mock.calls.flat()).toEqual(["orders", "lines"]);
     expect(getForwardTargets(line.proxy)).toEqual([{ scope: order.proxy, field: "lines" }]);
+    expect(getForwardTargets(order.proxy)).toEqual([{ scope: root, field: "orders" }]);
     expect(getForwardTargets(root)).toEqual([]);
   });
 
-  it("finds the element as a field value, in an array of arrays, among an object's values, and in an object of arrays", () => {
+  it("finds the item where `each` reads it: the field itself, a group of arrays, below a path, inside `flatMap`", () => {
     const element = { n: 1 };
-    const root = createProxyScope({ one: element, grid: [[element]], byId: { a: element }, byGroup: { g: [element] } });
-    const scope = createRowScope();
-    scope.retarget(element, 0, 0);
-    scope.see({ root });
-    expect(getForwardTargets(scope.proxy).map((t) => t.field)).toEqual(["one", "grid", "byId", "byGroup"]);
+    const cases: [Record<string, unknown>, string, (root: Record<string, unknown>) => unknown][] = [
+      [{ one: element }, "scopes.root.one", (r) => r.one],
+      [{ groups: { a: [], b: [element] } }, "scopes.root.groups", (r) => (r.groups as { b: unknown[] }).b[0]],
+      [{ data: { catalog: { items: [element] } } }, "scopes.root.data.catalog.items", (r) => r.data],
+      [{ orders: [{ lines: [element] }] }, "scopes.root.orders", (r) => r.orders],
+    ];
+    for (const [fields, read, pick] of cases) {
+      const root = createProxyScope<Record<string, unknown>>(fields);
+      const scope = createRowScope();
+      scope.retarget(element);
+      scope.see({ root }, [read]);
+      scope.proxy.$$set("n", 2);
+      expect(JSON.stringify(pick(root)), read).toContain('"n":2');
+      expect(element.n).toBe(1);
+    }
   });
 
-  it("refuses a write when no scope field holds the element, and after detach", () => {
+  it("finds the item at any depth, and a source that points back to itself ends the search", () => {
+    const element = { n: 1 };
+    const deep = createProxyScope<Record<string, unknown>>({ a: { b: { c: { d: { e: [element] } } } } });
+    const found = createRowScope();
+    found.retarget(element);
+    found.see({ root: deep }, ["scopes.root.a"]);
+    found.proxy.$$set("n", 2);
+    expect(JSON.stringify(deep.a)).toBe('{"b":{"c":{"d":{"e":[{"n":2}]}}}}');
+
+    const loop: Record<string, unknown> = { rows: [] };
+    loop.self = loop;
+    const cyclic = createRowScope();
+    cyclic.retarget({ n: 1 });
+    cyclic.see({ root: createProxyScope({ loop }) }, ["scopes.root.loop"]);
+    expect(() => cyclic.proxy.$$set("n", 2)).toThrow(/built a new object/);
+  });
+
+  it("skips what `each` reads that does not hold the item", () => {
+    const element = { n: 1 };
+    const root = createProxyScope<Record<string, unknown>>({ q: "x", rows: [element] });
+    const scope = createRowScope();
+    scope.retarget(element);
+    scope.see({ root }, ["scopes.root.q", "scopes.nope.rows", "scopes.root", "scopes.root.rows"]);
+    scope.proxy.$$set("n", 2);
+    expect(root.q).toBe("x");
+    expect(root.rows).toEqual([{ n: 2 }]);
+  });
+
+  it("refuses a write when nothing `each` reads holds the item, and after detach", () => {
     const orphan = createRowScope();
-    orphan.retarget({ qty: 1 }, 0, 0);
-    orphan.see({ root: createProxyScope({ rows: [{ qty: 1 }] }) });
+    orphan.retarget({ qty: 1 });
+    orphan.see({ root: createProxyScope({ rows: [{ qty: 1 }] }) }, ["scopes.root.rows"]);
     expect(() => orphan.proxy.$$set("qty", 2)).toThrow(/built a new object/);
 
     const dropped = row({ qty: 1 });
@@ -177,52 +236,37 @@ describe("createRowScope", () => {
     expect(dropped.proxy.qty).toBe(1);
   });
 
-  it("a write through one window wakes every other window onto the same element", () => {
-    const element = { n: 1 };
-    const root = createProxyScope({ items: [element] });
-    const a = createRowScope();
-    const b = createRowScope();
-    for (const w of [a, b]) {
-      w.retarget(element, 0, 0);
-      w.see({ root });
-    }
-    const spy = vi.fn();
-    b.proxy.$$emitter.on("n", spy);
-    a.proxy.$$set("n", 2);
-    expect(spy).toHaveBeenCalledOnce();
-    b.detach();
-    a.proxy.$$set("n", 3);
-    expect(spy).toHaveBeenCalledOnce();
+  it("two writes in a row build on each other", () => {
+    const scope = row({ a: 1, b: 1 });
+    scope.proxy.$$set("a", 2);
+    scope.proxy.$$set("b", 2);
+    expect(scope.root.rows).toEqual([{ a: 2, b: 2 }]);
   });
 
-  it("retarget is silent and re-points the window", () => {
+  it("replaces every copy of the item in the source", () => {
+    const element = { n: 1 };
+    const root = createProxyScope<Record<string, unknown>>({ rows: [element, element] });
+    const scope = createRowScope();
+    scope.retarget(element);
+    scope.see({ root }, ["scopes.root.rows"]);
+    scope.proxy.$$set("n", 2);
+    expect(root.rows).toEqual([{ n: 2 }, { n: 2 }]);
+  });
+
+  it("retarget is silent", () => {
     const scope = row({ qty: 1 });
     const spy = vi.fn();
     scope.proxy.$$emitter.on("*", spy);
-    scope.retarget({ qty: 9 }, 5, "z");
+    scope.retarget({ qty: 9 });
     expect(scope.proxy.qty).toBe(9);
-    expect(scope.proxy.$$index).toBe(5);
     expect(spy).not.toHaveBeenCalled();
   });
 
-  it("refuses the runtime's fields and prototype keys", () => {
+  it("refuses prototype keys; every other name is the element's", () => {
     const { proxy } = row({});
-    for (const field of ["$$id", "$$index", "$$value"]) {
-      expect(() => proxy.$$set(field, 1)).toThrow(/runtime owns/);
-    }
     expect(() => proxy.$$set("__proto__", {})).toThrow(/prototype chain/);
-    proxy.$$set("$draft", 1);
-    expect(proxy.$draft).toBe(1);
-  });
-
-  it("a frozen element fails classified", () => {
-    const { proxy } = row(Object.freeze({ qty: 1 }));
-    try {
-      proxy.$$set("qty", 2);
-      expect.unreachable();
-    } catch (err) {
-      expect(EntryError.is(err) && err.reason).toBe("expression-runtime");
-    }
+    proxy.$$set("index", 1);
+    expect(proxy.index).toBe(1);
   });
 
   it("an element that is an array reads by index and length", () => {
@@ -233,24 +277,80 @@ describe("createRowScope", () => {
   });
 });
 
+describe("createRowState", () => {
+  const state = (element: unknown, index = 0, id: string | number = "a") => {
+    const scope = createRowState();
+    scope.retarget(element, index, id);
+    return scope;
+  };
+
+  it("reads the runtime's index, id and value", () => {
+    const { proxy } = state({ name: "Ada" }, 3, "a");
+    expect(proxy.index).toBe(3);
+    expect(proxy.id).toBe("a");
+    expect(proxy.value).toBeUndefined();
+    expect(proxy.name).toBeUndefined();
+    expect(state("blue").proxy.value).toBe("blue");
+    expect(state(null).proxy.value).toBeNull();
+  });
+
+  it("keeps the runtime's fields out of a copy", () => {
+    const { proxy } = state({}, 1, 7);
+    expect({ ...proxy }).toEqual({});
+    proxy.$$set("open", true);
+    expect({ ...proxy }).toEqual({ open: true });
+    expect(Object.hasOwn(proxy, "id")).toBe(true);
+    expect(Object.getOwnPropertyDescriptor(proxy, "id")).toMatchObject({ writable: false, enumerable: false });
+  });
+
+  it("writes its own fields and emits them, and refuses the runtime's", () => {
+    const { proxy } = state({});
+    const spy = vi.fn();
+    proxy.$$emitter.on("open", spy);
+    proxy.$$set("open", true);
+    proxy.$$set("open", false, { default: true });
+    expect(proxy.open).toBe(true);
+    proxy.open = false;
+    expect(spy).toHaveBeenCalledTimes(2);
+    for (const field of ["index", "id", "value"]) {
+      try {
+        proxy.$$set(field, 1);
+        expect.unreachable();
+      } catch (err) {
+        expect(EntryError.is(err) && err.reason).toBe("guardrail-violation");
+      }
+    }
+    expect(() => proxy.$$set("__proto__", {})).toThrow(/prototype chain/);
+  });
+
+  it("retarget is silent", () => {
+    const scope = state({}, 0);
+    const spy = vi.fn();
+    scope.proxy.$$emitter.on("*", spy);
+    scope.retarget({}, 4, "b");
+    expect(scope.proxy.index).toBe(4);
+    expect(spy).not.toHaveBeenCalled();
+  });
+});
+
 describe("createProxyScope — $$emitter", () => {
-  it("emits to every handler of a field, and to '*'", () => {
-    const e = createProxyScope({}).$$emitter;
+  it("calls a field's handlers and every '*' handler", () => {
+    const scope = createProxyScope<Record<string, unknown>>({});
     const a = vi.fn();
     const any = vi.fn();
-    e.on("foo", a);
-    e.on("*", any);
-    e.emit("foo");
-    e.emit("bar");
+    scope.$$emitter.on("foo", a);
+    scope.$$emitter.on("*", any);
+    scope.foo = 1;
+    scope.bar = 1;
     expect(a).toHaveBeenCalledTimes(1);
     expect(any).toHaveBeenCalledTimes(2);
   });
 
   it("on() returns an unsubscribe function", () => {
-    const e = createProxyScope({}).$$emitter;
+    const scope = createProxyScope<Record<string, unknown>>({});
     const spy = vi.fn();
-    e.on("foo", spy)();
-    e.emit("foo");
+    scope.$$emitter.on("foo", spy)();
+    scope.foo = 1;
     expect(spy).not.toHaveBeenCalled();
   });
 });

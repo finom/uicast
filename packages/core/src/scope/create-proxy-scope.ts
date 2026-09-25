@@ -1,21 +1,22 @@
 import { EntryError } from "../entry-error";
-import { PROTOTYPE_KEYS, RESERVED_ROW_FIELDS } from "./parse-set-address";
+import { PROTOTYPE_KEYS, ROW_FIELDS } from "./parse-set-address";
 
 interface Emitter {
-  // Subscribe to one field; `"*"` receives every emit. Returns unsubscribe.
+  // Subscribes to one field, or to every field with `"*"`. Returns the unsubscribe function.
   on(field: string, handler: () => void): () => void;
+  // Calls the field's handlers, then the `"*"` ones.
   emit(field: string): void;
-  // A subscriber attaching after render compares this to what it saw while rendering; advanced means a write landed unheard.
-  readonly version: number;
+  // A subscriber attaching after render compares it to what it saw while rendering; higher means a write landed unheard.
+  readonly emits: number;
 }
 
 function createEmitter(): Emitter {
   const events = new Map<string, Set<() => void>>();
-  let version = 0;
+  let emits = 0;
 
   return {
-    get version() {
-      return version;
+    get emits() {
+      return emits;
     },
 
     on(field, handler) {
@@ -26,7 +27,7 @@ function createEmitter(): Emitter {
     },
 
     emit(field) {
-      version++;
+      emits++;
       for (const fn of events.get(field) ?? []) fn();
       for (const fn of events.get("*") ?? []) fn();
     },
@@ -35,13 +36,25 @@ function createEmitter(): Emitter {
 
 type SetOptions = { default?: boolean };
 
+/**
+ * A scope: its fields as plain properties, plus `$$emitter` and `$$set`. A write to a field emits it; a write inside
+ * a field's value changes plain data and emits nothing.
+ *
+ * @example
+ * const root: ReactiveProxy = createProxyScope();
+ * const off = root.$$emitter.on("user", () => console.log(root.user));
+ */
 type ReactiveProxy<T extends object = Record<string, unknown>> = T & {
-  $$emitter: Emitter;
-  // `default: true` writes only when the field is still undefined (first writer wins).
+  /** Field subscriptions, e.g. `scope.$$emitter.on("user", handler)`, which returns the unsubscribe function. */
+  $$emitter: Pick<Emitter, "on">;
+  /** Writes a field, like assignment. `{ default: true }` writes only while it is undefined (first writer wins). */
   $$set: (field: string, value: unknown, options?: SetOptions) => void;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object";
+
+// Every scope's emitter is `createEmitter`'s, so the count is there.
+const countEmits = (scope: ReactiveProxy): number => (scope.$$emitter as Emitter).emits;
 
 function assertField(field: string): void {
   if (PROTOTYPE_KEYS.has(field)) {
@@ -56,6 +69,18 @@ function assertField(field: string): void {
   }
 }
 
+/**
+ * Creates a reactive scope: a shallow proxy over `bag`. A write to a field emits it, so every element reading that
+ * field re-renders.
+ *
+ * @example
+ * const userCtx = createProxyScope({ name: "Hopper", plan: "pro" });
+ * const init: InitFn = ({ scopes }) => { scopes.userCtx = userCtx; }; // read as scopes.userCtx.name
+ *
+ * @example
+ * userCtx.plan = "free"; // emits "plan"
+ * userCtx.$$set("plan", "pro", { default: true }); // no-op: "plan" is set
+ */
 function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> {
   const emitter = createEmitter();
   const fields = bag as Record<string, unknown>;
@@ -87,103 +112,140 @@ type ForwardTarget = { scope: ReactiveProxy; field: string };
 
 type RowScope = {
   proxy: ReactiveProxy<Record<string, unknown>>;
-  // Silent: the container calls it during render.
-  retarget(element: unknown, index: number, id: string | number): void;
-  // The scopes whose fields may hold the element: root, host scopes, ancestor rows.
-  see(scopes: Record<string, ReactiveProxy>): void;
+  // Silent: the container calls it during render. False when the row's own write already moved it there.
+  retarget(element: unknown): boolean;
+  // The scopes the row sees and the paths its list's `each` reads: where a write finds the item.
+  see(scopes: Record<string, ReactiveProxy>, sources: readonly string[]): void;
   // The list dropped this row; a later write is a document mistake.
   detach(): void;
 };
 
-// Whether `value` is the element or holds it one level down: an array, an array of arrays, an object's values, an object of arrays.
-const holds = (value: unknown, element: unknown): boolean => {
-  if (value === element) return true;
-  const inArray = (v: unknown) => Array.isArray(v) && v.includes(element);
-  if (Array.isArray(value)) return value.includes(element) || value.some(inArray);
-  return isObject(element) && isObject(value) && Object.values(value).some((v) => v === element || inArray(v));
-};
+// Deeper than any result the evaluator lets out.
+const MAX_DATA_DEPTH = 256;
+
+// `value` with each part `swap` changes replaced, down to `depth` levels, copying what holds it; the same value when
+// nothing changes.
+function rebuild(value: unknown, swap: (part: unknown) => unknown, depth: number): unknown {
+  const swapped = swap(value);
+  if (swapped !== value || depth === 0 || !isObject(value)) return swapped;
+  if (Array.isArray(value)) {
+    let out: unknown[] | null = null;
+    for (let i = 0; i < value.length; i++) {
+      const next = rebuild(value[i], swap, depth - 1);
+      if (next === value[i]) continue;
+      out ??= [...value];
+      out[i] = next;
+    }
+    return out ?? value;
+  }
+  let out: Record<string, unknown> | null = null;
+  for (const [key, child] of Object.entries(value)) {
+    const next = rebuild(child, swap, depth - 1);
+    if (next === child) continue;
+    out ??= { ...value };
+    out[key] = next;
+  }
+  return out ?? value;
+}
+
+// How many levels below `value` the item first appears, or -1. Level by level, each object once, so a cycle ends.
+function levelOf(value: unknown, item: object): number {
+  if (value === item) return 0;
+  const seen = new WeakSet<object>();
+  let level = [value];
+  for (let depth = 1; level.length > 0; depth++) {
+    const next: unknown[] = [];
+    for (const node of level) {
+      if (!isObject(node) || seen.has(node)) continue;
+      seen.add(node);
+      for (const child of Array.isArray(node) ? node : Object.values(node)) {
+        if (child === item) return depth;
+        if (isObject(child)) next.push(child);
+      }
+    }
+    level = next;
+  }
+  return -1;
+}
+
+// Follows `path` down own keys, then replaces the item wherever it first appears below.
+function replaceAt(value: unknown, path: readonly string[], from: object, to: object): unknown {
+  if (path.length === 0) {
+    const depth = levelOf(value, from);
+    return depth === -1 ? value : rebuild(value, (part) => (part === from ? to : part), depth);
+  }
+  const [key, ...rest] = path;
+  if (!isObject(value) || !Object.hasOwn(value, key)) return value;
+  const next = replaceAt(value[key], rest, from, to);
+  if (next === value[key]) return value;
+  return Array.isArray(value) ? Object.assign([...value], { [key]: next }) : { ...value, [key]: next };
+}
 
 const forwardTargetsByProxy = new WeakMap<ReactiveProxy, () => ForwardTarget[]>();
 
-// A write through one window wakes the others (two lists over one array).
-const windowsByElement = new WeakMap<object, Set<Emitter>>();
+// A row window's current item.
+const itemOfWindow = new WeakMap<object, () => unknown>();
 
-// The fields, in the scopes a row can see, that hold its element by identity. Empty for a root-kind scope.
+// Every row window in `value` swapped for the item it shows now: a result holds the data, not a live view that a
+// later write changes behind the memo.
+const unwrapRows = (value: unknown): unknown =>
+  rebuild(value, (part) => (isObject(part) ? (itemOfWindow.get(part)?.() ?? part) : part), MAX_DATA_DEPTH);
+
+// The fields a row's write replaces: those its list's `each` reads. Empty for a root-kind scope.
 const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] => forwardTargetsByProxy.get(proxy)?.() ?? [];
 
 const ENGINE_DESCRIPTOR = { writable: false, enumerable: false, configurable: true };
 
-// A write changes the element in place, then emits on the row and on every field holding the element.
+// A write never changes the item: it puts a copy in the fields `each` reads. A field of an outer row is that row's
+// write, so a nested edit climbs to the outermost array.
 function createRowScope(): RowScope {
   const emitter = createEmitter();
   let element: unknown;
-  let index = 0;
-  let id: string | number = 0;
   let visible: Record<string, ReactiveProxy> = {};
+  let reads: readonly string[] = [];
   let detached = false;
 
-  const unregister = () => {
-    if (isObject(element)) windowsByElement.get(element)?.delete(emitter);
-  };
-
-  const findTargets = (): ForwardTarget[] => {
-    const out: ForwardTarget[] = [];
-    for (const scope of Object.values(visible)) {
-      for (const field of Object.keys(scope)) {
-        if (holds((scope as Record<string, unknown>)[field], element)) out.push({ scope, field });
-      }
+  // "scopes.root.data.items" → root's `data` field, then `items` below it. A bare scope names no field.
+  const sources = () => {
+    const out: { scope: ReactiveProxy; field: string; path: string[] }[] = [];
+    for (const read of reads) {
+      const [name, field, ...path] = read.split(".").slice(1);
+      const scope = Object.hasOwn(visible, name) ? visible[name] : undefined;
+      if (scope && field !== undefined && Object.hasOwn(scope, field)) out.push({ scope, field, path });
     }
     return out;
   };
 
-  emitter.on("*", () => {
-    for (const t of findTargets()) {
-      t.scope.$$emitter.emit(t.field);
-    }
-  });
-
-  const engineField = (prop: string): unknown => {
-    if (prop === "$$index") return index;
-    if (prop === "$$id") return id;
-    return element;
-  };
-  const isEngineField = (prop: string): boolean =>
-    RESERVED_ROW_FIELDS.has(prop) && (prop !== "$$value" || !isObject(element));
-
   const write = (field: string, value: unknown, options?: SetOptions): void => {
     assertField(field);
-    if (RESERVED_ROW_FIELDS.has(field)) {
-      throw new EntryError(`Cannot set "${field}": the runtime owns it.`, {
-        reason: "guardrail-violation",
-      });
-    }
-    if (!isObject(element)) {
+    if (!isObject(element) || Array.isArray(element)) {
+      const kind = element === null ? "null" : Array.isArray(element) ? "an array" : `a ${typeof element}`;
       throw new EntryError(
-        `Cannot set "${field}": this row holds a ${element === null ? "null" : typeof element}, not an object. Replace it through the array it came from.`,
+        `Cannot set "${field}": this row holds ${kind}, not an object. Replace it through the array it came from.`,
         { reason: "guardrail-violation" },
       );
     }
     const oldValue = element[field];
     if (options?.default && oldValue !== undefined) return;
     if (Object.is(oldValue, value)) return;
-    if (detached || findTargets().length === 0) {
+    const copy = { ...element, [field]: value };
+    // Two sources may share a field (`data.a`, `data.b`), so each builds on the last.
+    const next = new Map<ReactiveProxy, Map<string, unknown>>();
+    for (const { scope, field: name, path } of detached ? [] : sources()) {
+      const pending = next.get(scope);
+      const current = pending?.has(name) ? pending.get(name) : scope[name];
+      const replaced = replaceAt(current, path, element, copy);
+      if (replaced !== current) next.set(scope, (pending ?? new Map()).set(name, replaced));
+    }
+    if (next.size === 0) {
       throw new EntryError(
-        `Cannot set "${field}": this row's data is in no scope field — the row was removed, or "each" built a new object. Edit the array it came from.`,
+        `Cannot set "${field}": this item is in no field "each" reads — the row was removed, or "each" built a new object. Edit the array it came from.`,
         { reason: "unknown-reference" },
       );
     }
-    try {
-      element[field] = value;
-    } catch (err) {
-      throw new EntryError(`Cannot set "${field}": the row's data is not writable.`, {
-        reason: "expression-runtime",
-        cause: err,
-      });
-    }
+    for (const [scope, fields] of next) for (const [name, replaced] of fields) scope.$$set(name, replaced);
+    element = copy;
     emitter.emit(field);
-    for (const other of windowsByElement.get(element) ?? []) {
-      if (other !== emitter) other.emit(field);
-    }
   };
 
   const proxy = new Proxy(
@@ -193,23 +255,16 @@ function createRowScope(): RowScope {
         if (prop === "$$emitter") return emitter;
         if (prop === "$$set") return write;
         if (typeof prop !== "string") return undefined;
-        if (isEngineField(prop)) return engineField(prop);
         return isObject(element) ? element[prop] : undefined;
       },
       has(_, prop) {
-        if (typeof prop !== "string") return false;
-        return isEngineField(prop) || (isObject(element) && Object.hasOwn(element, prop));
+        return typeof prop === "string" && isObject(element) && Object.hasOwn(element, prop);
       },
-      // The element's keys only, so a spread or `Object.keys` of the row copies the element without the runtime's fields.
       ownKeys() {
-        return isObject(element)
-          ? Reflect.ownKeys(element).filter((k) => typeof k !== "string" || !RESERVED_ROW_FIELDS.has(k))
-          : [];
+        return isObject(element) ? Reflect.ownKeys(element) : [];
       },
       getOwnPropertyDescriptor(_, prop) {
-        if (typeof prop !== "string") return undefined;
-        if (isEngineField(prop)) return { ...ENGINE_DESCRIPTOR, value: engineField(prop) };
-        if (!isObject(element)) return undefined;
+        if (typeof prop !== "string" || !isObject(element)) return undefined;
         const desc = Object.getOwnPropertyDescriptor(element, prop);
         // The proxy target has no such property, so it must be reported configurable.
         return desc ? { ...desc, configurable: true } : undefined;
@@ -221,31 +276,80 @@ function createRowScope(): RowScope {
       },
     },
   ) as ReactiveProxy<Record<string, unknown>>;
-  forwardTargetsByProxy.set(proxy, findTargets);
+  forwardTargetsByProxy.set(proxy, () => sources().map(({ scope, field }) => ({ scope, field })));
+  itemOfWindow.set(proxy, () => element);
 
   return {
     proxy,
-    retarget(nextElement, nextIndex, nextId) {
-      if (nextElement !== element) {
-        unregister();
-        if (isObject(nextElement)) {
-          const windows = windowsByElement.get(nextElement) ?? new Set();
-          windows.add(emitter);
-          windowsByElement.set(nextElement, windows);
-        }
-      }
+    retarget(nextElement) {
+      const moved = nextElement !== element;
       element = nextElement;
-      index = nextIndex;
-      id = nextId;
+      return moved;
     },
-    see(scopes) {
+    see(scopes, eachReads) {
       visible = scopes;
+      reads = eachReads;
     },
     detach() {
       detached = true;
-      unregister();
     },
   };
 }
 
-export { createProxyScope, createRowScope, getForwardTargets, type ReactiveProxy, type RowScope };
+type RowState = {
+  proxy: ReactiveProxy<Record<string, unknown>>;
+  // Silent: the container calls it during render.
+  retarget(element: unknown, index: number, id: string | number): void;
+};
+
+// `scopes.$<as>`: the runtime's read-only `index`, `id` and `value`, then whatever the row's steps set.
+function createRowState(): RowState {
+  const scope = createProxyScope<Record<string, unknown>>(Object.create(null));
+  let runtime: Record<string, unknown> = {};
+
+  const write = (field: string, value: unknown, options?: SetOptions): void => {
+    if (ROW_FIELDS.has(field)) {
+      throw new EntryError(`Cannot set "${field}": the runtime owns it.`, { reason: "guardrail-violation" });
+    }
+    scope.$$set(field, value, options);
+  };
+
+  const proxy = new Proxy(scope, {
+    get(target, prop, receiver) {
+      if (prop === "$$set") return write;
+      if (typeof prop === "string" && ROW_FIELDS.has(prop)) return runtime[prop];
+      return Reflect.get(target, prop, receiver);
+    },
+    has(target, prop) {
+      return (typeof prop === "string" && ROW_FIELDS.has(prop)) || Reflect.has(target, prop);
+    },
+    getOwnPropertyDescriptor(target, prop) {
+      if (typeof prop === "string" && ROW_FIELDS.has(prop)) return { ...ENGINE_DESCRIPTOR, value: runtime[prop] };
+      return Reflect.getOwnPropertyDescriptor(target, prop);
+    },
+    set(_, prop, value) {
+      if (typeof prop !== "string") return false;
+      write(prop, value);
+      return true;
+    },
+  });
+
+  return {
+    proxy,
+    retarget(element, index, id) {
+      runtime = { index, id, value: isObject(element) ? undefined : element };
+    },
+  };
+}
+
+export {
+  createProxyScope,
+  createRowScope,
+  createRowState,
+  countEmits,
+  getForwardTargets,
+  unwrapRows,
+  type ReactiveProxy,
+  type RowScope,
+  type RowState,
+};

@@ -2,6 +2,12 @@ import type { ExpressionErrorReason } from "@uicast/expr";
 
 // Classified where thrown, by whose code raised it; never by inspecting messages.
 
+/**
+ * What failed: an expression's refusal or failure (an `ExpressionErrorReason`), or an element-level one.
+ *
+ * @example
+ * if (error.reason === "unknown-component") return <p>No implementation for {error.elementKey}</p>;
+ */
 export type EntryErrorReason =
   | ExpressionErrorReason
   | "invalid-entry"
@@ -12,6 +18,13 @@ export type EntryErrorReason =
   | "implementation"
   | "unknown";
 
+/**
+ * Whose code must fix a failure: `"document"` the model's (re-emit the entry), `"environment"` the host's, `"unknown"`
+ * either.
+ *
+ * @example
+ * const fault: EntryFault = error.fault; // "document" for reason "invalid-props"
+ */
 export type EntryFault = "document" | "environment" | "unknown";
 
 export const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
@@ -51,11 +64,20 @@ export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
   unknown: "unclassified failure",
 };
 
+/**
+ * The classified error every element failure arrives as, in the error slot and in `onError`. `reason` says what
+ * failed; `fault` says whose code must fix it.
+ *
+ * @example
+ * const onError = (error: EntryError) =>
+ *   error.fault === "document" ? askModelToFix(error.elementKey, error.message) : report(error);
+ */
 export class EntryError extends Error {
+  /** What failed, e.g. `"invalid-props"`. */
   readonly reason: EntryErrorReason;
-  // The error boundary fills it in when the throw site could not.
+  /** The key of the element that failed. The error boundary fills it in when the throw site could not. */
   elementKey?: string;
-  // Brand: two copies of core can share a bundle (git-dep consumption), where `instanceof` fails.
+  /** Brand for `EntryError.is`: `instanceof` fails when two copies of this package share a bundle. */
   readonly uicastEntryError = true;
 
   constructor(message: string, options: { reason: EntryErrorReason; elementKey?: string; cause?: unknown }) {
@@ -65,17 +87,29 @@ export class EntryError extends Error {
     this.elementKey = options.elementKey;
   }
 
-  // `document`: ask the model to re-emit; `environment`: the host's problem.
+  /** Whose code must fix it: `"document"` (the model, by re-emitting), `"environment"` (host code) or `"unknown"`. */
   get fault(): EntryFault {
     return FAULT_BY_REASON[this.reason];
   }
 
-  // Cross-copy-safe `instanceof`.
+  /**
+   * Whether `err` is an `EntryError`, from any copy of this package. Use it over `instanceof`.
+   *
+   * @example
+   * if (EntryError.is(err)) console.warn(err.reason, err.elementKey);
+   */
   static is(err: unknown): err is EntryError {
     return typeof err === "object" && err !== null && (err as { uicastEntryError?: unknown }).uicastEntryError === true;
   }
 
-  // An existing EntryError passes through.
+  /**
+   * Turns any thrown value into an `EntryError` with this `reason`. An `EntryError` passes through as is, and gets
+   * `elementKey` if it had none.
+   *
+   * @example
+   * const error = EntryError.wrap(err, "implementation", "orders-table");
+   * error.fault; // "environment"
+   */
   static wrap(err: unknown, reason: EntryErrorReason, elementKey?: string): EntryError {
     if (EntryError.is(err)) {
       if (elementKey && !err.elementKey) err.elementKey = elementKey;

@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useRef } from "react";
 import type { ComponentEntry } from "@uicast/core";
-import { extractDeps, parseScope, type DepsPart } from "@uicast/core/internal";
+import { countEmits, extractDeps, parseScope, type DepsPart } from "@uicast/core/internal";
 import { useRendererRegistry } from "../providers/renderer-provider";
 import type { Scopes } from "../types";
 import { inSeedRender } from "./use-seed";
@@ -8,7 +8,7 @@ import { inSeedRender } from "./use-seed";
 // Subscribing lands one commit late; comparing this count across the gap catches a write the node could not hear.
 function emitCount(scopes: Scopes): number {
   let total = 0;
-  for (const key in scopes) total += scopes[key].$$emitter.version;
+  for (const key in scopes) total += countEmits(scopes[key]);
   return total;
 }
 

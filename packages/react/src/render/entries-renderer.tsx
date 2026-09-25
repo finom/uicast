@@ -8,7 +8,18 @@ import { rootKeys } from "./document-skeleton";
 import { EntryRenderer } from "./entry-renderer";
 import { ROOT_FRAGMENT_KEY } from "./root-fragment";
 
-// Every renderer under one provider shares its scopes.
+/**
+ * Mounts a document inside a `<RendererProvider>`. Every renderer under one provider shares its scopes. Memoized on
+ * the `entries` array, so pass a new array for each streamed entry.
+ *
+ * @example
+ * <RendererProvider implementations={impls} evaluator={evaluator}>
+ *   <EntriesRenderer entries={entries} />
+ * </RendererProvider>;
+ *
+ * @example
+ * setEntries((prev) => [...prev, entry]); // a new array; settled subtrees do not re-render
+ */
 export const EntriesRenderer = memo(function EntriesRenderer({ entries }: EntriesRendererProps) {
   const { scopes, init } = useRendererGroup();
 

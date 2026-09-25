@@ -145,7 +145,7 @@ export const slowSeedsEntries: ComponentEntry[] = [
     each: "scopes.root.tags",
     as: "tg",
     seed: [{ set: "scopes.root.tags", expr: "delay({ ms: 4000, value: ['fast', 'slow', 'slower', 'cached', 'streamed', 'seeded'] })" }],
-    props: { expr: "({ text: scopes.tg.$$value, variant: 'secondary' })" },
+    props: { expr: "({ text: scopes.$tg.value, variant: 'secondary' })" },
   },
   {
     key: "low-card",

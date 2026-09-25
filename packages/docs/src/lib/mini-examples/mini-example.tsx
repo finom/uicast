@@ -36,7 +36,7 @@ const KEY_TIPS: Record<string, string> = {
   callbacks: "Event handlers; their assignments run on user actions.",
   children: "Keys of child elements, in render order.",
   each: "List source — the array this element iterates over.",
-  as: "Names the per-item scope created for a list.",
+  as: "Names each item's two scopes: the item and its row.",
   keyBy: "Item field used as the stable key for list items.",
   set: "The scope path this assignment writes to.",
   expr: "A JavaScript expression, evaluated against scope.",

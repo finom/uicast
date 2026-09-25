@@ -10,7 +10,12 @@ import {
   DialogTitle,
 } from "../components/ui/dialog";
 
-// `<RendererProvider fallbackComponents={{ confirm: ConfirmModal }}>`.
+/**
+ * A shadcn dialog for `confirm` steps, for `fallbackComponents.confirm`.
+ *
+ * @example
+ * const fallbackComponents = { confirm: ConfirmModal, error: RenderError }; // for <RendererProvider>
+ */
 export const ConfirmModal = ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) => (
   <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
     <DialogContent>

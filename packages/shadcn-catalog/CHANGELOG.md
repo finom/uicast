@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
 - `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 30 of the 128 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.

@@ -49,30 +49,40 @@ share live state.
 
 ## Item scopes
 
-A [list](/entry#list-fields) gives **each item its own scope**, named by `as`.
-That scope *is* the item, a window onto the element in the array, plus three
-read-only fields of the runtime's own.
+A [list](/entry#list-fields) gives **each item two scopes**, named by `as`.
+With `"as": "order"`:
+
+- `scopes.order` is the item, a window onto the element in the array, and
+  nothing else.
+- `scopes.$order` is the row: the runtime's read-only `index`, `id` and
+  `value`, and the row's [own state](#per-row-state).
 
 ```jsonc
 { "key": "orders", "component": "Card",
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "children": ["order-title"] }
 { "key": "order-title", "component": "Typography",
-  "props": { "expr": "({ text: (scopes.order.$$index + 1) + '. ' + scopes.order.customer + ' #' + scopes.order.$$id })" } }
+  "props": { "expr": "({ text: (scopes.$order.index + 1) + '. ' + scopes.order.customer })" } }
 ```
 
-`$$index` is the zero-based position in the `each` result, and `$$id` the key
+`index` is the zero-based position in the `each` result, and `id` the key
 `keyBy` picked (the index without `keyBy`). When the array holds strings or
-numbers, the item is `$$value`. The runtime computes all three on read. They
-are never stored on the item, and a copy of the row, such as
-`{ ...scopes.order }{:ts}`, holds only the item's own fields.
+numbers, the item is `value`. An `as` cannot start with `$`.
 
-**A write goes into the array.** `set: "scopes.order.status"{:ts}` changes that
-element inside `scopes.root.orders` and wakes everything reading the array.
+**A write to the item replaces it in the array.** The item itself never
+changes. `set: "scopes.order.price"{:ts}` does, behind the scenes:
 
-So a row can write only when its item sits in an array in scope. When `each`
-builds new objects, as `orders.map(o => ({ ...o, total })){:ts}` does, the
-write fails as `unknown-reference`. A row of primitives cannot be written.
+```js
+scopes.root.orders = scopes.root.orders.map((o) => (o === thisOrder ? { ...o, price } : o));
+```
+
+The array is the one `each` reads: `scopes.root.orders`, also when `each` is
+`scopes.root.orders.filter(...){:ts}`. In a nested list the write climbs: a line
+edit sets a new `scopes.order.lines`, which sets a new `scopes.root.orders`.
+
+When `each` builds new objects, as `orders.map(o => ({ ...o, total })){:ts}`
+does, no array holds the item, and the write fails as `unknown-reference`. A
+primitive item cannot be written.
 
 **Scopes stack**, so a list's `as` must be a new name: not `root`, and not the
 `as` of a list it sits inside. A reused name fails as `invalid-list` in the
@@ -93,23 +103,47 @@ may share a name.
 
 ## Per-row state
 
-State *about* a row that is not its data, such as expanded or selected, lives at
-root, keyed by `$$id`:
+State *about* a row that is not its data, such as expanded or editing, goes in
+the row's own scope, `scopes.$<as>`. It starts empty and never touches the
+item:
 
 ```jsonc
-{ "key": "page", "component": "Card",
-  "seed": [{ "set": "scopes.root.expanded", "literal": {} }], "children": ["orders", "expand-all"] }
-{ "key": "orders", "component": "Row", "each": "scopes.root.orders", "as": "order", "keyBy": "id",
-  "props": { "expr": "({ open: scopes.root.expanded[scopes.order.$$id] ?? false })" },
-  "callbacks": { "onToggle": [{ "set": "scopes.root.expanded",
-    "expr": "({ ...currentValue, [scopes.order.$$id]: !currentValue[scopes.order.$$id] })" }] } }
-{ "key": "expand-all", "component": "Button", "props": { "literal": { "text": "Expand all" } },
-  "callbacks": { "onClick": [{ "set": "scopes.root.expanded",
-    "expr": "scopes.root.orders.reduce((m, o) => ({ ...m, [o.id]: true }), {})" }] } }
+{ "key": "order", "component": "Collapsible",
+  "each": "scopes.root.orders", "as": "order", "keyBy": "id",
+  "props": {
+    "expr": "({ title: scopes.order.customer, open: scopes.$order.open })"
+  },
+  "callbacks": { "onOpenChange": [
+    { "set": "scopes.$order.open", "expr": "evt.open" }
+  ] } }
 ```
 
-One write to the map wakes every row, but only rows whose evaluated props
-changed re-render.
+A write re-renders that row only. The state is kept by the row's `id`, so it
+survives a reorder, a refetch, and a filter that hides the row and shows it
+again; it lasts as long as the list. The row and everything inside it can read
+it, and the rest of the page cannot.
+
+### State read outside the row
+
+State that something outside the row reads or writes, such as a count of
+selected rows or "select all", lives at root, keyed by the row's `id`:
+
+```jsonc
+{ "key": "order-check", "component": "Checkbox",
+  "each": "scopes.root.orders", "as": "order", "keyBy": "id",
+  "seed": [{ "set": "scopes.root.selected", "literal": {} }],
+  "props": {
+    "expr": "({ checked: scopes.root.selected[scopes.$order.id] })"
+  },
+  "callbacks": { "onChange": [{
+    "set": "scopes.root.selected",
+    "expr": "({ ...currentValue, [scopes.$order.id]: evt.checked })"
+  }] } }
+```
+
+`selected` holds one flag per order. The list's `seed` runs once, not once per
+row. A write to the map wakes every row, but only rows whose props changed
+re-render.
 
 ## Reading and writing
 
@@ -150,7 +184,7 @@ no-op, not an error. The same `set` in a `callbacks` step would write `price`.
 This is also why a value the user changed survives a re-mount.
 
 The host can also supply state.
-[`<RendererProvider evaluator={evaluator} init>`](/react/renderer#init--preload-state-for-the-group)
+[`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group)
 preloads `scopes.root` once, before any entry evaluates, and can
 [expose extra named scopes](/react/renderer#extra-named-scopes) (read as
 `scopes.userCtx.name`): proxies the host keeps and can update later.

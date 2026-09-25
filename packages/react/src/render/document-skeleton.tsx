@@ -66,7 +66,18 @@ export function SubtreeSkeleton({
   );
 }
 
-// The document's shape from the entries alone. Nothing is evaluated, so it renders in a server pass.
+/**
+ * Draws the document's shape from the entries alone, with the skeletons of the nearest `<RendererProvider>`. It
+ * evaluates nothing, so it renders in a server pass.
+ *
+ * @example
+ * return mounted ? <EntriesRenderer entries={entries} /> : <DocumentSkeleton entries={entries} />;
+ *
+ * @example
+ * <Suspense fallback={<DocumentSkeleton entries={entries} />}>
+ *   <EntriesRenderer entries={entries} />
+ * </Suspense>
+ */
 export function DocumentSkeleton({ entries }: { entries: ComponentEntry[] }): ReactElement | null {
   const store = useMemo(() => createElementsStore(buildElementsByKey(entries)), [entries]);
   const roots = useMemo(() => rootKeys(entries), [entries]);

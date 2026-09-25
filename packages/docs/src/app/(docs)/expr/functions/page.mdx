@@ -153,6 +153,17 @@ Step one has no `set`: it runs for its effect. A host-function step is a
 barrier, so the re-fetch waits for the delete, and `confirm` gates both.
 Ordering in full: [Reactivity](/entry/reactivity#effectful-sites-ordering).
 
+### Many items at once
+
+A host call cannot sit inside an arrow function, such as the one `.map(...)`
+takes, so one step cannot call a function once per item. For an action on many
+items, give the model a function that takes the list:
+
+```js
+updateProducts({ items: scopes.root.products.map(p => ({ id: p.id, qty: p.qty + 1 })) })  // ✅ one call
+scopes.root.products.map(p => updateProduct({ id: p.id, qty: p.qty + 1 }))                // ❌ a call per item
+```
+
 ### Windows and aggregates
 
 A function that can return a lot should take a window, declared in its

@@ -198,10 +198,10 @@ const inventoryEntries: ComponentEntry[] = [
   {
     key: "details-toggle",
     component: "IconButton",
-    props: { expr: "({ icon: scopes.root.openId === scopes.prod.$$id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
+    props: { expr: "({ icon: scopes.root.openId === scopes.$prod.id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
     callbacks: {
       onClick: [
-        { set: "scopes.root.openId", expr: "currentValue === scopes.prod.$$id ? null : scopes.prod.$$id" },
+        { set: "scopes.root.openId", expr: "currentValue === scopes.$prod.id ? null : scopes.$prod.id" },
         { set: "scopes.root.moves", expr: "listStockMovements({ productId: scopes.prod.id, limit: 5 })" },
       ],
     },
@@ -210,7 +210,7 @@ const inventoryEntries: ComponentEntry[] = [
     key: "details",
     component: "FlexCol",
     props: { literal: { gap: "0" } },
-    hidden: "scopes.root.openId !== scopes.prod.$$id",
+    hidden: "scopes.root.openId !== scopes.$prod.id",
     children: ["pmov"],
   },
   {
@@ -420,8 +420,8 @@ const salesEntries: ComponentEntry[] = [
   {
     key: "sel-check",
     component: "Checkbox",
-    props: { expr: "({ checked: scopes.root.selected[scopes.ord.$$id] ?? false })" },
-    callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.ord.$$id]: evt.checked })" }] },
+    props: { expr: "({ checked: scopes.root.selected[scopes.$ord.id] ?? false })" },
+    callbacks: { onChange: [{ set: "scopes.root.selected", expr: "({ ...currentValue, [scopes.$ord.id]: evt.checked })" }] },
   },
   { key: "c-id", component: "TableCell", props: { expr: "({ text: String(scopes.ord.id) })" } },
   { key: "c-date", component: "TableCell", children: ["c-date-value"] },
@@ -476,13 +476,13 @@ const salesEntries: ComponentEntry[] = [
   {
     key: "more-toggle",
     component: "IconButton",
-    props: { expr: "({ icon: scopes.root.expanded[scopes.ord.$$id] ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Details' })" },
-    callbacks: { onClick: [{ set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.ord.$$id]: !currentValue[scopes.ord.$$id] })" }] },
+    props: { expr: "({ icon: scopes.root.expanded[scopes.$ord.id] ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Details' })" },
+    callbacks: { onClick: [{ set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.$ord.id]: !currentValue[scopes.$ord.id] })" }] },
   },
   {
     key: "more",
     component: "DescriptionList",
-    hidden: "!scopes.root.expanded[scopes.ord.$$id]",
+    hidden: "!scopes.root.expanded[scopes.$ord.id]",
     props: {
       expr: "({ items: [{ label: 'Company', value: scopes.root.customers.items.find(c => c.id === scopes.ord.customerId)?.company ?? '—' }, { label: 'Email', value: scopes.root.customers.items.find(c => c.id === scopes.ord.customerId)?.email ?? '—' }, { label: 'Unit price', value: '$' + scopes.ord.unitPrice.toFixed(2) }, { label: 'Placed', value: scopes.ord.createdAt.slice(0, 16).replace('T', ' ') }] })",
     },
@@ -903,7 +903,7 @@ const topCustomersFence = j([
   { key: "top-h4", component: "TableHead", props: { literal: { text: "Lifetime" } } },
   { key: "top-body", component: "TableBody", children: ["top-row"] },
   { key: "top-row", component: "TableRow", each: "scopes.root.top.items", as: "tc", keyBy: "id", children: ["top-c1", "top-c2", "top-c3", "top-c4"] },
-  { key: "top-c1", component: "TableCell", props: { expr: "({ text: String(scopes.tc.$$index + 1) })" } },
+  { key: "top-c1", component: "TableCell", props: { expr: "({ text: String(scopes.$tc.index + 1) })" } },
   { key: "top-c2", component: "TableCell", props: { expr: "({ text: scopes.tc.name + ' — ' + scopes.tc.company })" } },
   { key: "top-c3", component: "TableCell", props: { expr: "({ text: String(scopes.tc.orders) })" } },
   { key: "top-c4", component: "TableCell", props: { expr: "({ text: '$' + scopes.tc.lifetime.toFixed(2) })" } },

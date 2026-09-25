@@ -62,6 +62,23 @@ const parseSpec = (
   return result.issues ? { ok: false, message: describeIssues(result.issues) } : { ok: true, value: result.value };
 };
 
+/**
+ * The React half of a component: pairs a definition with a `render` function and an optional `skeleton`. Pass the
+ * result to `<RendererProvider implementations>`.
+ *
+ * @example
+ * export const BadgeImpl = createComponentImplementation({
+ *   def: BadgeDef,
+ *   render: ({ text, children }) => <Badge>{children ?? text}</Badge>,
+ * });
+ *
+ * @example
+ * createComponentImplementation({
+ *   def: SearchInputDef,
+ *   render: ({ value, onChange }, { loading }) =>
+ *     <Input value={value} disabled={loading} onChange={(e) => onChange({ value: e.target.value })} />,
+ * });
+ */
 export const createComponentImplementation = <
   TProps extends CombinedSpec,
   TCallbacks extends Record<string, CombinedSpec>,
@@ -70,11 +87,17 @@ export const createComponentImplementation = <
   render,
   skeleton,
 }: {
+  /** The definition it draws; its schemas type `render`'s props. */
   def: ComponentDefinition<TProps, TCallbacks>;
+  /**
+   * Draws the element. Gets its parsed props, a function per callback and `children` in one object, and the render
+   * context second. May call hooks.
+   */
   render: (
     props: { children?: ReactNode } & Output<TProps> & CallbacksToFunctions<TCallbacks>,
     context: RenderContext,
   ) => ReactElement;
+  /** Draws the element while a child has not arrived, or while an async `seed` or `init` resolves. */
   skeleton?: (props: SkeletonComponentProps<Output<TProps>>) => ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
   // `render` may call hooks, so it runs inside a component of its own.

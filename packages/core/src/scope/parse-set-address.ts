@@ -13,8 +13,8 @@ export const PROTOTYPE_KEYS = new Set([
   "__lookupSetter__",
 ]);
 
-// Readable, never written.
-export const RESERVED_ROW_FIELDS = new Set(["$$id", "$$index", "$$value"]);
+// A row's `$<as>` scope: readable, never written.
+export const ROW_FIELDS = new Set(["index", "id", "value"]);
 
 type SetAddressFault = {
   kind: "shape" | "reserved" | "prototype";
@@ -27,14 +27,14 @@ export function findSetAddressFault(address: string): SetAddressFault | null {
   const [, scope, field] = match;
   const prototype = [scope, field].find((segment) => PROTOTYPE_KEYS.has(segment));
   if (prototype) return { kind: "prototype", segment: prototype };
-  return RESERVED_ROW_FIELDS.has(field) ? { kind: "reserved", segment: field } : null;
+  return scope.startsWith("$") && ROW_FIELDS.has(field) ? { kind: "reserved", segment: field } : null;
 }
 
 // The message names the fix — the recovery prompt forwards it verbatim.
 export function setAddressError(address: string, fault: SetAddressFault, elementKey?: string): EntryError {
   const messages: Record<SetAddressFault["kind"], string> = {
     shape: `"set": "${address}" is not an address. A set names one field, "scopes.<scope>.<field>"; to change part of a field, write the whole field.`,
-    reserved: `"set": "${address}" writes "${fault.segment}", which the runtime owns ($$id, $$index and $$value are read-only).`,
+    reserved: `"set": "${address}" writes "${fault.segment}", which the runtime owns (a row's index, id and value are read-only).`,
     prototype: `"set": "${address}" writes through "${fault.segment}", which reaches the prototype chain.`,
   };
   return new EntryError(messages[fault.kind], { reason: "guardrail-violation", elementKey });

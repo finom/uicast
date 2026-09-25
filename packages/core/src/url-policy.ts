@@ -2,18 +2,27 @@ import { isSchemaObject, type JSONSchema, resolvePointer } from "./json-schema";
 
 // An `<img src>` fetches on render, so the destination is checked, not the string that built it.
 
-// Every field optional; the defaults are the strict ones.
+/**
+ * Which URLs a prop declared as a URL (`z.url()`) may hold. An object changes the default rules field by field; a
+ * predicate replaces them.
+ *
+ * @example
+ * const urlPolicy: UrlPolicy = { hosts: ["cdn.example.com", "*.imgix.net"] };
+ *
+ * @example
+ * const urlPolicy: UrlPolicy = (url) => url.startsWith("https://cdn.example.com/");
+ */
 export type UrlPolicy =
   | {
-      // Relative URLs — `/a`, `a/b`, `?q=1`, `#x`. Default `true`.
+      /** Relative URLs: `/a`, `a/b`, `?q=1`, `#x`. Default `true`. */
       allowRelative?: boolean;
-      // Absolute URLs matching the page origin. Default `true`.
+      /** Absolute URLs on the page origin. Default `true`. */
       allowSameOrigin?: boolean;
-      // Extra http/https hosts. Exact match, or `*.example.com` for subdomains (not the apex — list both).
+      /** Extra http/https hosts: an exact match, or `*.example.com` for subdomains (not the apex, so list both). */
       hosts?: readonly string[];
-      // `data:` raster images. Default `true`. SVG stays excluded regardless — it can carry script.
+      /** `data:` raster images. Default `true`. SVG is never allowed: it can carry script. */
       allowDataImages?: boolean;
-      // Page origin for environments with no `location` (SSR); without it only `hosts` applies.
+      /** The page origin, for where there is no `location` (SSR); without either, only `hosts` matches an absolute URL. */
       origin?: string;
     }
   | ((url: string) => boolean);

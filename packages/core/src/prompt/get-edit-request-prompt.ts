@@ -1,12 +1,28 @@
 import { joinSections } from "./format";
 
+/**
+ * Options for `getEditRequestPrompt`.
+ *
+ * @example
+ * const options: EditRequestPromptOptions = { request: "Add a total row.", missingKeys: ["totals"] };
+ */
 export type EditRequestPromptOptions = {
+  /** The change the user asked for, in their words. */
   request: string;
-  // Referenced as children but never emitted; the model re-emits them.
+  /** Keys named in `children` but never emitted, as after a cut-off response. The model is told to emit them. */
   missingKeys?: string[];
 };
 
-// Per-turn content, not a system-prompt partial.
+/**
+ * A user message asking the model to change a page it made, by emitting only the entries that change. One turn's
+ * content, not part of the system prompt.
+ *
+ * @example
+ * const messages = [
+ *   { role: "assistant", content: stored.map((entry) => JSON.stringify(entry)).join("\n") },
+ *   { role: "user", content: getEditRequestPrompt({ request: "Make the total large." }) },
+ * ];
+ */
 export function getEditRequestPrompt({ request, missingKeys = [] }: EditRequestPromptOptions): string {
   return joinSections(
     request,

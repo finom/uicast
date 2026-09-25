@@ -2,6 +2,7 @@ import type { ValueSource } from "../types";
 import { EntryError } from "../entry-error";
 import { CONTEXT_NAMES } from "../constants";
 import type { ExpressionErrorReason, ExpressionEvaluator } from "@uicast/expr";
+import { unwrapRows } from "../scope/create-proxy-scope";
 
 // Identifier validity is the evaluator's own check; this screens only uicast's names.
 const screened = new WeakSet<ExpressionEvaluator>();
@@ -45,12 +46,18 @@ export const evaluate = (
 
   try {
     screen(evaluator);
-    const result = evaluator.eval(expr.expr, context);
+    const source = expr.expr;
+    const result = evaluator.eval(source, context);
+    // Only a read of a whole scope (`scopes.row`) can put a row window in the result.
+    const data = (value: unknown) =>
+      evaluator.memberReads(source, "scopes").some((read) => read.indexOf(".", "scopes.".length) === -1)
+        ? unwrapRows(value)
+        : value;
     return result instanceof Promise
-      ? result.catch((err) => {
+      ? result.then(data, (err) => {
           throw wrapEvalError(err);
         })
-      : result;
+      : data(result);
   } catch (err) {
     throw wrapEvalError(err);
   }

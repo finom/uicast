@@ -1,10 +1,23 @@
 import { noteSection } from "@uicast/core/internal";
 
+/**
+ * Options for `getFencePartialPrompt`.
+ *
+ * @example
+ * const options: FencePromptOptions = { note: "Keep each reply to one fence." };
+ */
 export type FencePromptOptions = {
-  // Host-specific context, appended as a trailing `## Note`.
+  /** Your text, appended verbatim as a trailing `## Note`. */
   note?: string;
 };
 
+/**
+ * The `# Emitting UI` block for Markdown chat replies: entries go in a `uicast` fence, and every block shares the
+ * `root` scope. Add it after the core blocks.
+ *
+ * @example
+ * const system = [...coreBlocks, getFencePartialPrompt()].join("\n\n");
+ */
 export function getFencePartialPrompt({ note }: FencePromptOptions = {}): string {
   const fence = `# Emitting UI
 

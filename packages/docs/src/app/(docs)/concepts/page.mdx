@@ -6,9 +6,9 @@ import { OrdersExample } from "@/lib/mini-examples/orders";
 
 # Concepts
 
-A complete **uicast** document, six entries: it loads products, lists them with
-an editable quantity, edits one in a modal, and keeps a live total. Every
-concept on this page is in it.
+A complete **uicast** document with six entries. It loads products, lists them
+with a quantity input, edits one in a dialog, and shows a total that stays up
+to date. Every concept on this page is in it.
 
 <OrdersExample />
 
@@ -25,9 +25,9 @@ card ─┬─ title
       └─ editor  (hidden until a row's ✎ is pressed)
 ```
 
-`card` is the **root**: no line lists it as a child. A parent must stream
-before its children; until a child's line arrives, the renderer shows the
-parent's [skeleton](/react#skeleton) in its place.
+`card` is the **root**: no line lists it as a child. A parent must arrive
+before its children. Until a child's line arrives, the parent's
+[skeleton](/react#skeleton) fills its place.
 
 ## One line, many elements: lists
 
@@ -38,14 +38,15 @@ in the array.
 { "each": "scopes.root.products", "as": "product", "keyBy": "id" }
 ```
 
-- **`each`** — the array, evaluated in the *parent's* scope.
-- **`as`** — names the per-item scope. `scopes.product` is the product itself,
-  plus `$$index` (0, 1, 2 …) and `$$id`.
-- **`keyBy`** — the field `$$id` comes from.
+- **`each`** — the array. It runs in the *parent's* scopes, so it cannot read
+  the item.
+- **`as`** — names the item's scopes. `scopes.product` is the product itself;
+  `scopes.$product` is its row, with `index` (0, 1, 2 …) and `id`.
+- **`keyBy`** — the field the row's `id` comes from.
 
 Three products in state, three elements from one entry:
 
-| `scopes.product` | `scopes.product.$$index` | rendered |
+| `scopes.product` | `scopes.$product.index` | rendered |
 |---|---|---|
 | `{ id: 8, name: "Espresso Beans", price: 15, qty: 1 }{:ts}` | `0` | Espresso Beans · $15 × 1 |
 | `{ id: 9, name: "Pour-Over Kettle", price: 23, qty: 4 }{:ts}` | `1` | Pour-Over Kettle · $23 × 4 |
@@ -54,14 +55,17 @@ Three products in state, three elements from one entry:
 
 ## State lives in scopes
 
-State is a flat set of named reactive containers. This document has two:
+State is kept in named scopes. This document has three:
 
 - **`scopes.root`** — one per app, shared by every element. It holds
   `products`, set by the [`seed`](/entry#seed) on line 1.
-- **`scopes.product`** — one per row, created by the list's `as`.
+- **`scopes.product`** — one per row, named by the list's `as`: the product
+  itself.
+- **`scopes.$product`** — one per row too: its `index`, `id` and own state.
 
-The names are flat — `scopes.product` is not inside `scopes.root` — but an
-element reads every scope around it. In a list inside a list, it reads them all:
+Scopes do not nest: `scopes.product` is not inside `scopes.root`. But an
+element can read every scope around it. In a list inside a list, it reads all of
+them:
 
 ```jsonc
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "order", "children": ["lines"] }
@@ -81,29 +85,28 @@ The `$135 total` sits outside the list and reads the array:
   "({ text: '$' + scopes.root.products.reduce((sum, p) => sum + p.price * p.qty, 0) + ' total' })" } }
 ```
 
-A row's quantity input writes the row's scope:
+Each row's quantity input writes to the product:
 
 ```jsonc
 { "onQtyChange": [{ "set": "scopes.product.qty", "expr": "evt.value" }] }
 ```
 
-A row scope is a window onto its element in the array, so this write changes
-the product **inside `scopes.root.products`**, and the total recomputes. The
-edit dialog's Save replaces the whole array instead; everything reading it
-re-renders.
+The write puts an edited copy of the product **into `scopes.root.products`**,
+so the total updates. The dialog's Save button replaces the whole array
+instead, and everything that reads it updates.
 
 Both edits then call `updateProduct(...){:ts}`, a [host function](/expr/functions)
-that persists the change. Save's first step carries a
-[`confirm`](/entry/value-sources#callbackvaluesourceassignment); declining skips
-it and every step after. The host's
+that saves the change. Save's first step has a
+[`confirm`](/entry/value-sources#callbackvaluesourceassignment): if the user
+declines, that step and every step after it are skipped. The host's
 [`fallbackComponents.confirm`](/react/renderer#fallbackcomponents--the-engines-fallback-ui)
 draws that dialog for every document.
 
 ## Reading state subscribes to it
 
 The `rows` list reads `scopes.root.products` in its `each`. Nothing declares
-that dependency: the engine reads it from the expression and subscribes the
-element to the field.
+this. The engine finds the read in the expression and subscribes the element to
+that field.
 
 ```jsonc
 { "key": "rows", "each": "scopes.root.products", "as": "product", "keyBy": "id" }
@@ -128,8 +131,8 @@ step hold **one expression** in a [subset of JavaScript](/expr). Two rules.
 ```
 
 **The same state must give the same result.** `props`, `hidden`, `loading` and
-`each` re-run only when a path they read changes, so a clock read there goes stale.
-Read the clock in a step and store it:
+`each` run again only when something they read changes, so a clock read there
+goes stale. The prompt has the model read the clock in a step and store it:
 
 ```jsonc
 { "props": { "expr": "({ text: 'Saved at ' + Date.now() })" } }  // ❌ changes with every re-run
@@ -138,11 +141,10 @@ Read the clock in a step and store it:
 
 ## Nothing runs on its own
 
-An event runs a callback, the page updates, then it waits. Expressions only
-read state. Callbacks write it on an event, seeds once at mount, and nothing
-else writes. So one event does a bounded amount of work. The term is
-*synchronous reactive*. Turing complete only if you count the user as the
-clock.
+An event runs a callback, the page updates, and then it waits. Expressions
+only read state. Callbacks write state when an event fires, seeds write it once
+at mount, and nothing else writes. So one event does a limited amount of work,
+and the page never loops on its own.
 
 ## What makes a document valid
 
@@ -156,10 +158,10 @@ Most render failures are one of these.
 {"key":"c","component":"Typography"}               ⚠️ second root — nobody references c
 ```
 
-Several roots render, wrapped in a fragment, but one root is the contract.
+Several roots still render, side by side, but the prompt asks for exactly one.
 
-**A list belongs in a container.** A list repeats its `component` per item, so
-give it a parent:
+**A list belongs in a container.** A list repeats its `component` once per
+item, so it needs a parent:
 
 ```jsonl
 {"key":"rows","component":"ProductRow","each":"scopes.root.products","as":"product"}   ⚠️ as the root
@@ -168,21 +170,21 @@ give it a parent:
 
 A root list renders, but its rows sit loose at the top level.
 
-**Give every list its own `as`.** The prompt asks for it, and a nested list that
-reuses its parent's `as` fails as `invalid-list`:
+**Every list needs its own `as`.** A nested list that reuses its parent's `as`
+fails as `invalid-list`:
 
 ```jsonl
 {"key":"orders","each":"scopes.root.orders","as":"row", ...}
 {"key":"lines","each":"scopes.row.lines","as":"row", ...}   ❌ inside it, scopes.row already exists
 ```
 
-**Reactive expressions are synchronous.** `props`, `hidden`, `loading` and `each` cannot
-call host functions; the engine rejects the call into the element's error slot.
-Call them from `seed` and `callbacks`, where the engine awaits the result:
+**`props`, `hidden`, `loading` and `each` cannot call host functions.** The call
+fails in the element's error slot. Host functions run in `seed` and
+`callbacks`, where the engine waits for the result, so there is no `await`:
 `listProducts(){:ts}`, never `await listProducts(){:ts}`.
 
-**Re-sending a key is an update, not an error.** The element is replaced in
-place, which is how [edit turns](/prompt) work:
+**Sending a key again updates the element.** It is not an error: the new line
+replaces the old one. [Edit turns](/prompt) work this way:
 
 ```jsonl
 {"key":"title","component":"Heading","props":{"expr":"({ text: 'Products' })"}}
@@ -191,18 +193,18 @@ place, which is how [edit turns](/prompt) work:
 
 ## Vocabulary
 
-Words **uicast** uses in a specific way. **props** is narrower than usual: it
-excludes event handlers, which definitions and entries declare separately as
+Words with a specific meaning in **uicast**. **props** is narrower than usual:
+it leaves out event handlers, which definitions and entries list separately as
 `callbacks`.
 
 | Term | Meaning |
 | --- | --- |
-| **uicast document** | One complete UI: a flat set of entries forming a tree with one **root** — the entry no other entry lists in `children`, derived structurally rather than flagged. Streamed as JSONLines, one entry per line. |
-| **entry** | One line of that stream: the JSON describing a single node. The node that mounts from it is its **element**. See [Entry fields](/entry). |
-| **list** | An entry that repeats, marked by [`each`](/entry) (the collection) with `as` naming the per-item scope. Each repetition is an **item**: `scopes.<as>` is the item itself, plus `$$index` and `$$id`. |
-| **scope** | A named reactive state bag: `scopes.root` shared across the document, plus one per list item. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
-| **expression** | A single expression in a subset of JavaScript, evaluated against the scopes — the format's only dynamic surface. Run by [`@uicast/expr`](/expr): a closed grammar, every read checked at run time, no `new Function`. |
+| **uicast document** | One complete UI: a flat list of entries that form a tree. The **root** is the entry no other entry lists in `children`; nothing else marks it. Streamed as JSONLines, one entry per line. |
+| **entry** | One line of the stream: the JSON for one node. What mounts from it is its **element**. See [Entry fields](/entry). |
+| **list** | An entry that repeats once per array item, marked by [`each`](/entry). `as` names two scopes per **item**: `scopes.<as>` is the item itself, and `scopes.$<as>` its row, with `index`, `id` and the row's own state. |
+| **scope** | Named state that elements read and subscribe to: `scopes.root` for the whole document, plus two per list item, the item and its row. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
+| **expression** | One expression in a subset of JavaScript, run against the scopes. It is the only part of a document that computes. Run by [`@uicast/expr`](/expr): a closed grammar, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }{:ts}` verbatim, or `{ "expr": … }{:ts}` evaluated. See [Value Sources](/entry/value-sources). |
 | **step** | One item of a `seed` or a callback: a value source, optionally with a `set` path to write it to. A step that reads what another writes runs after it. See [Entry fields](/entry#callbacks). |
-| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas), the impl is the React that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react). |
-| **host function** | A function the host exposes for expressions to call — async or not; the engine awaits the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas, `execute`. See [Host functions](/expr/functions). |
+| **definition** / **implementation** | The two halves of a component: the def is what the model reads (`name`, `description`, and `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas), the impl is the React code that draws it. A registered set of pairs is a **catalog**. See [def](/def) and [impl](/react). |
+| **host function** | A function the host gives expressions to call, sync or async; the engine waits for the result either way. Each is a [`standard-tool`](https://standard-tool.js.org/) — name, description, optional `StandardSchemaV1 & StandardJSONSchemaV1{:ts}` schemas, `execute`. See [Host functions](/expr/functions). |

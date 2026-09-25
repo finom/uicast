@@ -1,4 +1,16 @@
-// Skips blank and non-JSON lines: code fences, prose, partial lines.
+/**
+ * Yields each line of a byte or text stream that parses as JSON. Skips blank and non-JSON lines: code fences, prose,
+ * a cut-off last line. `T` is an assertion, not a check.
+ *
+ * @example
+ * for await (const value of streamJsonLines(result.textStream)) {
+ *   if (isComponentEntry(value)) await saveEntry(value);
+ * }
+ *
+ * @example
+ * if (!res.body) throw new Error(`Generation failed (${res.status})`);
+ * const entries = streamJsonLines<ComponentEntry>(res.body);
+ */
 export async function* streamJsonLines<T = unknown>(
   source: ReadableStream<Uint8Array | string> | AsyncIterable<string | Uint8Array>,
 ): AsyncGenerator<T> {

@@ -16,7 +16,17 @@ const reachable = (
   return out;
 };
 
-// A re-emitted key replaces its subtree but keeps old children its new `children` array still names.
+/**
+ * Folds entries into a `key → entry` map, as they render: a re-emitted key replaces its subtree but keeps the old
+ * children its new `children` still names.
+ *
+ * @example
+ * const byKey = buildElementsByKey(storedEntries);
+ * const current = Object.values(byKey); // without the entries a re-emit dropped
+ *
+ * @example
+ * const missingKeys = Object.values(byKey).flatMap((entry) => entry.children ?? []).filter((key) => !byKey[key]);
+ */
 export function buildElementsByKey(lines: ComponentEntry[]): Record<string, ComponentEntry> {
   // No prototype: keys are model-written, and `__proto__` or `toString` must be plain keys.
   const map: Record<string, ComponentEntry> = Object.create(null);

@@ -68,7 +68,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.items",
-        props: { expr: "({ text: scopes.row.$$value })" },
+        props: { expr: "({ text: scopes.$row.value })" },
       },
     ];
     const { container } = mountEntries(lines, { rootScope: { items: [] } });
@@ -87,7 +87,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.items.filter(i => i.startsWith(scopes.root.search))",
-        props: { expr: "({ text: scopes.row.$$value })" },
+        props: { expr: "({ text: scopes.$row.value })" },
       },
     ];
     const { container, scopes } = mountEntries(lines, {
@@ -105,7 +105,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).not.toContain("banana");
   });
 
-  it("per-row state at root, keyed by $$id, travels with the item when the array is reordered", async () => {
+  it("per-row state at root, keyed by the row's id, travels with the item when the array is reordered", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
       {
@@ -119,16 +119,16 @@ describe("EntryRenderer — lists", () => {
       {
         key: "mark",
         component: "Button",
-        props: { expr: "({ label: 'mark-' + scopes.row.$$id })" },
+        props: { expr: "({ label: 'mark-' + scopes.$row.id })" },
         callbacks: {
-          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.row.$$id]: true })" }],
+          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.$row.id]: true })" }],
         },
       },
       {
         key: "flag",
         component: "Box",
         props: {
-          expr: "({ text: scopes.row.$$id + ':' + !!scopes.root.flags[scopes.row.$$id] })",
+          expr: "({ text: scopes.$row.id + ':' + !!scopes.root.flags[scopes.$row.id] })",
         },
       },
     ];
@@ -163,15 +163,15 @@ describe("EntryRenderer — lists", () => {
       {
         key: "mark",
         component: "Button",
-        props: { expr: "({ label: 'mark-' + scopes.row.$$value })" },
+        props: { expr: "({ label: 'mark-' + scopes.$row.value })" },
         callbacks: {
-          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.row.$$id]: true })" }],
+          onClick: [{ set: "scopes.root.flags", expr: "({ ...currentValue, [scopes.$row.id]: true })" }],
         },
       },
       {
         key: "flag",
         component: "Box",
-        props: { expr: "({ text: scopes.row.$$value + ':' + !!scopes.root.flags[scopes.row.$$id] })" },
+        props: { expr: "({ text: scopes.$row.value + ':' + !!scopes.root.flags[scopes.$row.id] })" },
       },
     ];
     const { container, scopes, getByText } = mountEntries(lines, {
@@ -202,7 +202,7 @@ describe("EntryRenderer — lists", () => {
         component: "Box",
         as: "row",
         each: "scopes.root.n",
-        props: { expr: "({ text: scopes.row.$$value })" },
+        props: { expr: "({ text: scopes.$row.value })" },
       },
     ];
     const { container, emit } = mountEntries(lines, {
@@ -224,7 +224,7 @@ describe("EntryRenderer — lists", () => {
       component: "Box",
       as: "row",
       each: "scopes.root.items",
-      props: { expr: "({ text: scopes.row.$$value })" },
+      props: { expr: "({ text: scopes.$row.value })" },
     });
     expect(container.textContent).not.toContain("rows failed:");
     expect(container.textContent).toContain("first-item");
@@ -236,10 +236,12 @@ describe("EntryRenderer — lists", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const failed = new Set<string | undefined>();
     const lines: ComponentEntry[] = [
-      { key: "root", component: "Box", children: ["orders", "as-root", "side"] },
+      { key: "root", component: "Box", children: ["orders", "as-root", "twin", "side"] },
       { key: "orders", component: "Box", each: "scopes.root.orders", as: "row", children: ["lines"] },
       { key: "lines", component: "Box", each: "scopes.row.lines", as: "row" },
       { key: "as-root", component: "Box", each: "scopes.root.orders", as: "root" },
+      // Its rows' state would be `scopes.$twin`, a host scope here.
+      { key: "twin", component: "Box", each: "scopes.root.orders", as: "twin" },
       // Lists side by side do not stack, so they may share a name.
       {
         key: "side",
@@ -251,6 +253,7 @@ describe("EntryRenderer — lists", () => {
     ];
     const { container } = mountEntries(lines, {
       rootScope: { orders: [{ id: 1, lines: [{ sku: "a" }] }] },
+      scopes: { $twin: {} },
       onError: (error) => {
         expect(error.reason).toBe("invalid-list");
         failed.add(error.elementKey);
@@ -267,8 +270,9 @@ describe("EntryRenderer — lists", () => {
       'lines failed: List "as" must name a new scope, but "scopes.row" already exists here',
     );
     expect(container.textContent).toContain('"scopes.root" already exists here');
+    expect(container.textContent).toContain('"scopes.$twin" already exists here');
     expect(container.textContent).toContain("order 1");
-    expect([...failed].sort()).toEqual(["as-root", "lines"]);
+    expect([...failed].sort()).toEqual(["as-root", "lines", "twin"]);
     consoleError.mockRestore();
   });
 
@@ -377,12 +381,12 @@ describe("EntryRenderer — lists", () => {
       {
         key: "toggle",
         component: "Button",
-        props: { expr: "({ label: 'toggle-' + scopes.row.$$id })" },
+        props: { expr: "({ label: 'toggle-' + scopes.$row.id })" },
         callbacks: {
           onClick: [
             {
               set: "scopes.root.expanded",
-              expr: "({ ...currentValue, [scopes.row.$$id]: !currentValue[scopes.row.$$id] })",
+              expr: "({ ...currentValue, [scopes.$row.id]: !currentValue[scopes.$row.id] })",
             },
           ],
         },

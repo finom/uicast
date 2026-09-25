@@ -33,6 +33,7 @@ describe("entryShapeError", () => {
     ['{"key":"a","component":"Box","loading":true}', '"loading" must be a string, got a boolean.'],
     ['{"key":"a","component":"Box","each":["x"],"as":"row"}', '"each" must be a string, got an array.'],
     ['{"key":"a","component":"Box","each":"scopes.root.rows"}', 'A list needs "as"'],
+    ['{"key":"a","component":"Box","each":"scopes.root.rows","as":"$row"}', 'starts with "$"'],
     ['{"key":"a","component":"Box","each":"scopes.root.rows","as":"row","keyBy":1}', '"keyBy" must be a string'],
     ['{"key":"a","component":"Box","children":"b"}', '"children" must be an array of element keys, got a string.'],
     ['{"key":"a","component":"Box","children":["b",null]}', '"children[1]" must be an element key string, got null.'],
