@@ -11,27 +11,36 @@ replays in other people's browsers.
 
 ## What the framework defends
 
-| Surface | Defense |
+| | Defense |
 | --- | --- |
-| Expressions | The [evaluator](/expr): closed grammar, own-property reads and allow-listed calls through a membrane, a CPU/time/allocation budget, and no `new Function` in the package, so no CSP `unsafe-eval`. A property name built at run time is checked at the read. |
-| State writes | A `set` address is `scopes.<scope>.<field>`: never a number, never deeper. Prototype names and the runtime's `$$id` / `$$index` / `$$value` are refused, so `Object.prototype` stays untouched. |
-| URL props | Props a definition declares as URLs pass the [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before an implementation sees them: relative, same-origin and raster `data:` images by default. |
-| Failures | Every rejection is a classified [`EntryError`](/error-recovery), contained to that element's error slot. |
+| **Expressions** | The [evaluator](/expr) runs them itself, not the JavaScript engine. It allows a small part of JavaScript, reads only plain data and calls only allowed methods. It stops an expression that takes too long or too much memory. There is no `new Function`, so your CSP needs no <nobr>`unsafe-eval`</nobr>. |
+| **State writes** | A `set` writes only `scopes.<scope>.<field>`, never deeper. It cannot change `Object.prototype`. |
+| **URLs** | A prop declared with `z.url(){:ts}` goes through [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) before your component gets it. By default other sites are blocked. |
+| **Failures** | A rejected element shows an [error](/error-recovery) in its own slot. The rest of the page keeps working. |
 
 ## What stays your job
 
-- **Host functions are capabilities.** An expression can use only the scopes
-  and functions you gave it. Keep `functions` narrow and authorize on the
-  server.
-- **Scope data must be plain.** Inject JSON-shaped values only; a tool's
-  `outputSchema` ensures that.
-- **Catalog implementations follow the
-  [authoring contract](/react#props-the-document-controls)**: URLs through
-  declared props, no document strings in script-capable sinks, picked event
-  payloads.
-- **The prompt helps; the evaluator decides.** The prompt tells the model to
-  treat data as data and to refuse hostile requests, which makes bad output
-  rare.
+| | Risk | <nobr>What you do</nobr> |
+| --- | --- | --- |
+| **Functions** | A document can call every function you give it. If you give it `deleteProduct`, it can delete products. | Give only the functions it needs. Check permissions on the server. |
+| **Components** | A document writes every prop your component gets. A string prop used in `src`, `href` or `dangerouslySetInnerHTML` is not checked. | Declare URL props with `z.url(){:ts}`. Never put document text where it can run. See the [rules for components](/react#props-the-document-controls). |
+| **The prompt** | The prompt tells the model to ignore instructions hidden in data. A model can still follow them. | Do not rely on it. Rely on the evaluator and on your server's checks. |
+
+## How it is tested
+
+`@uicast/expr` has one runtime dependency, acorn. Its tests are in
+[`packages/expr/src/test`](https://github.com/finom/uicast/tree/main/packages/expr/src/test):
+
+| Test | What it checks |
+| --- | --- |
+| <nobr>`corpus.test.ts`</nobr> | Each expression returns the same value in `Evaluator` as in plain JavaScript, or both throw. |
+| <nobr>`baseline.test.ts`</nobr> | The same, on an ES2022 engine with newer built-ins removed. |
+| <nobr>`attacks.test.ts`</nobr> | Known escapes fail: `constructor` through a computed key, prototype pollution, huge allocations, a live object in scope. |
+| <nobr>`constants.test.ts`</nobr> | The runtime allows only what the allow-lists name. |
+| <nobr>`exit-gate.test.ts`</nobr> | Only plain data leaves an expression. |
+| <nobr>`host-functions.test.ts`</nobr> | A host function gets only input its schema accepts and returns only output its schema accepts. |
+| <nobr>`prototype-exposure.test.ts`</nobr> | No inherited property is readable or callable. |
+| <nobr>`prices.test.ts`</nobr> | Step prices follow measured time. |
 
 ## Reporting
 
@@ -42,6 +51,6 @@ is in scope.
 
 <Callout type="warning">
   Like any evaluator of untrusted input, this one can have bugs. A small grammar
-  and the [test suites](/expr#verification) reduce that risk; nothing removes
+  and the [tests](#how-it-is-tested) reduce that risk; nothing removes
   it.
 </Callout>

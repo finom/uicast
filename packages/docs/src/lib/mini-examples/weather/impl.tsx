@@ -1,12 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WeatherCardDef } from "./def";
 
 const CITIES = ["Amsterdam", "Tokyo", "Oslo"];

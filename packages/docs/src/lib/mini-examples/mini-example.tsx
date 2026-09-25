@@ -1,6 +1,7 @@
 "use client";
 import { ChevronRight } from "lucide-react";
 import { type MouseEvent, type ReactNode, useEffect, useState } from "react";
+import { type JsonToken, tokenizeJson } from "../json-tokens";
 
 const PROV = {
   you: "you provide",
@@ -23,8 +24,7 @@ export type CodePart = {
   node?: ReactNode;
 };
 
-const esc = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const attr = (s: string) => esc(s).replace(/"/g, "&quot;");
 
 const KEY_TIPS: Record<string, string> = {
@@ -45,42 +45,34 @@ const KEY_TIPS: Record<string, string> = {
   onClick: "An event handler; its assignments run on click.",
 };
 
+const TOKEN_CLASS: Record<JsonToken["kind"], string> = {
+  key: "tk-str",
+  str: "tk-str",
+  num: "tk-num",
+  bool: "tk-kw",
+  null: "tk-kw",
+  punct: "tk-punct",
+};
+
 function highlight(code: string, lang: Lang): string {
   if (lang === "md") {
     return code
       .split("\n")
       .map((line) => {
-        if (/^#{1,6}\s/.test(line))
-          return `<span class="tk-kw">${esc(line)}</span>`;
+        if (/^#{1,6}\s/.test(line)) return `<span class="tk-kw">${esc(line)}</span>`;
         const m = line.match(/^(\s*-\s)(.*)$/);
-        if (m)
-          return `<span class="tk-punct">${esc(m[1])}</span><span class="tk-muted">${esc(m[2])}</span>`;
+        if (m) return `<span class="tk-punct">${esc(m[1])}</span><span class="tk-muted">${esc(m[2])}</span>`;
         return `<span class="tk-muted">${esc(line)}</span>`;
       })
       .join("\n");
   }
-  const re = /("(?:[^"\\]|\\.)*")|(-?\b\d+(?:\.\d+)?\b)|(\b(?:null|true|false)\b)|([{}[\],:])/g;
-  const cls = [null, "tk-str", "tk-num", "tk-kw", "tk-punct"];
-  let out = "";
-  let last = 0;
-  for (let m = re.exec(code); m; m = re.exec(code)) {
-    if (m.index > last) out += esc(code.slice(last, m.index));
-    let gi = 1;
-    while (gi <= 4 && m[gi] == null) gi++;
-    const end = m.index + m[0].length;
-    if (gi === 1) {
-      const tip = KEY_TIPS[m[0].slice(1, -1)];
-      if (tip && /^\s*:/.test(code.slice(end))) {
-        out += `<span class="tk-str tk-key" data-tip="${attr(tip)}">${esc(m[0])}</span>`;
-        last = end;
-        continue;
-      }
-    }
-    out += `<span class="${cls[gi]}">${esc(m[0])}</span>`;
-    last = end;
-  }
-  out += esc(code.slice(last));
-  return out;
+  return tokenizeJson(code)
+    .map(({ text, kind }) => {
+      const tip = kind === "key" && KEY_TIPS[text.slice(1, -1)];
+      if (tip) return `<span class="tk-str tk-key" data-tip="${attr(tip)}">${esc(text)}</span>`;
+      return `<span class="${TOKEN_CLASS[kind]}">${esc(text)}</span>`;
+    })
+    .join("");
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -119,12 +111,12 @@ function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node
       <div className="mx-card-head">
         <span className="mx-card-head-l">
           <span className="mx-name">{name}</span>
-          {file ? <span className="mx-file">{file}</span> : null}
+          {file && <span className="mx-file">{file}</span>}
           <Chip prov={prov} />
         </span>
-        {node ? null : <CopyButton text={active.code} />}
+        {!node && <CopyButton text={active.code} />}
       </div>
-      {variants ? (
+      {variants && (
         <div className="mx-switch-row">
           <span className="mx-switch">
             {variants.map((v, i) => (
@@ -140,7 +132,7 @@ function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node
             ))}
           </span>
         </div>
-      ) : null}
+      )}
       {node ? (
         <div className="mx-mdx">{node}</div>
       ) : (
@@ -160,15 +152,7 @@ function CodeCard({ name, file, prov, code, lang, variants, defaultVariant, node
 // At the root, not inside the code block: `.mx-pre` scrolls and `.mx-card` clips, so a child of either is cut off.
 type Tip = { text: string; x: number; y: number };
 
-export function MiniExample({
-  entry,
-  result,
-  setup,
-}: {
-  entry: CodePart;
-  result: ReactNode;
-  setup: CodePart[];
-}) {
+export function MiniExample({ entry, result, setup }: { entry: CodePart; result: ReactNode; setup: CodePart[] }) {
   const [tip, setTip] = useState<Tip | null>(null);
   // The result runs its document, so it renders in the browser only.
   const [mounted, setMounted] = useState(false);
@@ -199,11 +183,11 @@ export function MiniExample({
       onScrollCapture={() => setTip(null)}
     >
       <style>{CSS}</style>
-      {tip ? (
+      {tip && (
         <span className="mx-tip" style={{ left: tip.x, top: tip.y }}>
           {tip.text}
         </span>
-      ) : null}
+      )}
 
       <div className="mx-hero">
         <CodeCard {...entry} />
@@ -222,9 +206,7 @@ export function MiniExample({
         <summary>
           <ChevronRight className="mx-chev" size={16} />
           <span className="mx-summary-strong">How it&apos;s built</span>
-          <span className="mx-summary-dim">
-            — definition, implementation, prompt &amp; wiring
-          </span>
+          <span className="mx-summary-dim">— definition, implementation, prompt &amp; wiring</span>
         </summary>
         <div className="mx-parts">
           {setup.map((part) => (

@@ -41,8 +41,8 @@ The [prompt-partial builders](/prompt). Each takes one options object.
 | Export | Emits |
 |---|---|
 | `getCommonInstructionsPartialPrompt({ maxListItems?, note? }){:ts}` | The output contract (entries, keys, partial replacement) and the names an [expression](/expr) can see: `scopes`, `evt`, `currentValue`. The language itself is `getExpressionsPartialPrompt(){:ts}`; use both. |
-| `getScopePartialPrompt({ kind, approxElements?, note? }){:ts}` | How much to build on this surface. |
-| `getComponentsPartialPrompt({ definitions, urlPolicy?, note? }){:ts}` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `# Common Events`. With a URL prop listed, `# URL Props` says what [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) loads; pass the renderer's. |
+| `getScopePartialPrompt({ kind, approxEntries?, note? }){:ts}` | How much to build on this surface. |
+| `getComponentsPartialPrompt({ definitions, urlPolicy?, note? }){:ts}` | The component menu, from your [definitions](/def). Callback payloads with a `$id` hoist into `## Common Events`. With a URL prop listed, `## URL Props` says what [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) loads; pass the renderer's. |
 | `getExpressionsPartialPrompt({ maxLength?, note? }){:ts}` | The `# JavaScript Expressions` block: syntax, methods, globals and the length limit, filled from [`@uicast/expr`](#uicastexpr)'s own tables. |
 | `getFunctionsPartialPrompt({ functions, note? }){:ts}` | Call signatures, from your [host functions](/expr/functions). |
 | `getEditRequestPrompt({ request, missingKeys? }){:ts}` | A user-turn message for an [edit](/prompt#edit-and-recovery-turns). |

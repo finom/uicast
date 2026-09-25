@@ -4,11 +4,12 @@ The [definition](/def) declares an event's payload, the
 [implementation](/react) fires it, and the [entry](/entry#callbacks) says what
 happens, with the payload as `evt`.
 
-## The same event in three places
+## Declare, fire, handle
 
-`onChange` on a search box:
+A search box fires `onChange` when the user types. Here is that event in the
+definition, the implementation and the entry:
 
-```ts filename="def.ts"
+```ts filename="def.ts (you provide)"
 createComponentDefinition({
   // …
   // the payload schema: what `evt` will carry
@@ -21,7 +22,7 @@ createComponentDefinition({
 });
 ```
 
-```tsx filename="impl.tsx"
+```tsx filename="impl.tsx (you provide)"
 createComponentImplementation({
   // …
   // fire it with a payload that matches the schema
@@ -31,7 +32,7 @@ createComponentImplementation({
 });
 ```
 
-```jsonc filename="the entry"
+```jsonc filename="entry (the LLM generates)"
 // react to it; `evt` is the payload the impl passed
 { "callbacks": {
   "onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }]
@@ -40,7 +41,7 @@ createComponentImplementation({
 
 In the prompt:
 
-```
+```md filename="partial prompt (generated from definition)"
   Event handlers:
     - onChange(evt)
       - value: string — The current search value
@@ -105,7 +106,7 @@ write:
 { "set": "scopes.root.tags", "expr": "[...currentValue, evt.value]" }
 ```
 
-With `scopes.root.tags` seeded to `[]{:ts}`, each event appends to it.
+With `scopes.root.tags` seeded to `[]`, each event appends to it.
 
 **Confirm first**: [`confirm`](/entry/value-sources#callbackvaluesourceassignment)
 is a key on the step:
@@ -145,4 +146,4 @@ the last one.
 ] } }
 ```
 
-The host call is a barrier, so `busy` turns `false{:ts}` only after the rows land.
+The host call is a barrier, so `busy` turns `false` only after the rows land.

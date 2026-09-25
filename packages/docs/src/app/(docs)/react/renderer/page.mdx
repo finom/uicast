@@ -47,7 +47,7 @@ The renderers under one provider form a **group** and share one `root` scope:
   "props": { "expr": "({ label: 'Orders', value: scopes.root.orderCount })" } }
 ```
 
-The Stat shows `1{:ts}`, not `0{:ts}`: [`seed`](/entry#seed) is first-writer-wins, so the
+The Stat shows `1`, not `0`: [`seed`](/entry#seed) is first-writer-wins, so the
 second seed keeps what the first wrote.
 
 The [Streamdown plugin](/streamdown) relies on this: each ```` ```uicast ````
@@ -82,8 +82,9 @@ throws outside a `<RendererProvider>`.
 
 ### Pass stable references
 
-`implementations` and `evaluator` must keep their identity across renders, or
-**every element re-renders**. Use module constants:
+`implementations`, `evaluator`, `fallbackComponents`, `urlPolicy` and `onError`
+must keep their identity across renders, or **every element re-renders**. Use
+module constants:
 
 ```tsx
 const implementations = [...impls, MyCard];                            // ✅ module scope
@@ -133,15 +134,13 @@ import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { ConfirmModal, RenderError } from "@uicast/shadcn-catalog";
 import { Skeleton } from "@uicast/shadcn-catalog/ui/skeleton";
 
-<RendererProvider
-  evaluator={evaluator}
-  implementations={impls}
-  fallbackComponents={{
-    defaultSkeleton: () => <Skeleton className="h-8 w-full" />,
-    confirm: ConfirmModal,
-    error: RenderError,
-  }}
->
+const fallbackComponents = {
+  defaultSkeleton: () => <Skeleton className="h-8 w-full" />,
+  confirm: ConfirmModal,
+  error: RenderError,
+};
+
+<RendererProvider evaluator={evaluator} implementations={impls} fallbackComponents={fallbackComponents}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -184,7 +183,9 @@ const RenderError = ({ error }: ErrorComponentProps) => {
   return <div>Something broke here: {error.message}</div>;
 };
 
-<RendererProvider evaluator={evaluator} implementations={impls} fallbackComponents={{ error: RenderError }}>
+const fallbackComponents = { error: RenderError };
+
+<RendererProvider evaluator={evaluator} implementations={impls} fallbackComponents={fallbackComponents}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
@@ -254,27 +255,25 @@ Anything else fails the element into the
 To allow more, pass an object or a predicate:
 
 ```tsx
-<RendererProvider
-  evaluator={evaluator}
-  implementations={impls}
-  urlPolicy={{ hosts: ["cdn.example.com", "*.imgix.net"] }}
->
+const urlPolicy = { hosts: ["cdn.example.com", "*.imgix.net"] };
+
+<RendererProvider evaluator={evaluator} implementations={impls} urlPolicy={urlPolicy}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```
 
 | Field | Default | |
 | --- | --- | --- |
-| `allowRelative` | `true{:ts}` | `/a`, `a/b`, `?q=1`, `#x`; `//host/a` and `\\host/a` count as absolute |
-| `allowSameOrigin` | `true{:ts}` | Absolute URLs on the page origin |
-| `hosts` | `[]{:ts}` | Extra hosts over http/https; `*.example.com` matches subdomains only |
-| `allowDataImages` | `true{:ts}` | `data:` raster images; never `image/svg+xml` |
+| `allowRelative` | `true` | `/a`, `a/b`, `?q=1`, `#x`; `//host/a` and `\\host/a` count as absolute |
+| `allowSameOrigin` | `true` | Absolute URLs on the page origin |
+| `hosts` | `[]` | Extra hosts over http/https; `*.example.com` matches subdomains only |
+| `allowDataImages` | `true` | `data:` raster images; never `image/svg+xml` |
 | `origin` | `location.origin` | Set it where there is no `location` (SSR) |
 
 A predicate, `urlPolicy={(url) => boolean}{:tsx}`, replaces these rules.
 
 Pass the same policy to the prompt, so the model writes URLs the renderer
-loads. Its `# URL Props` section lists them:
+loads. Its `## URL Props` section lists them:
 
 ```ts
 getComponentsPartialPrompt({ definitions, urlPolicy: { hosts: ["cdn.example.com", "*.imgix.net"] } });

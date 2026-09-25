@@ -9,17 +9,17 @@ and its events. An [entry](/entry) points into it.
 interface ComponentDefinition {
   name: string;          // catalog name the model emits — PascalCase, unique
   description: string;   // prose the model reads to decide when to use it
-  props: StandardSchemaV1 & StandardJSONSchemaV1; // the props object
+  props?: StandardSchemaV1 & StandardJSONSchemaV1; // the props object; leave it out when there are none
   callbacks?: Record<string, StandardSchemaV1 & StandardJSONSchemaV1>; // event → payload
   hidden?: boolean;      // kept out of the model's prompt, still renderable
 }
 ```
 
-`props` and each callback are
-[`@standard-schema/spec`](https://standardschema.dev) schemas that also convert
-to JSON Schema (`CombinedSpec` in `@uicast/core`): Zod 4.2+, Valibot or
-ArkType (the examples use Zod). The prompt prints the JSON Schema as a
-TypeScript-like signature; the implementation gets the inferred type.
+`props` and each callback are schemas that implement both
+[Standard Schema](https://standardschema.dev/schema) and
+[Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+,
+Valibot or ArkType (the examples use Zod). The prompt prints the JSON Schema as
+a TypeScript-like signature; the implementation gets the inferred type.
 
 ```ts filename="src/uicast-catalog/badge/def.ts"
 import z from "zod";
@@ -53,7 +53,7 @@ word on the `- Badge — …` line below.
 The model sees whatever the schema holds. Omit `props` for a component that
 takes none. `getComponentsPartialPrompt` turns the def above into:
 
-```
+```md
 - Badge — A small status indicator badge for labels, counts, or tags. Use it for status (active, pending), categories, counts, or any short label.
   Props:
     - text?: string — The badge text content
@@ -63,7 +63,7 @@ takes none. `getComponentsPartialPrompt` turns the def above into:
 Describe every field with `.meta`, or it prints as a bare type.
 `.default("neutral"){:ts}` makes `variant` optional and prints as `= "neutral"`.
 Props are parsed through the schema before [`render`](/react) sees them, so an
-omitted `variant` arrives as `"neutral"{:ts}`.
+omitted `variant` arrives as `"neutral"`.
 
 An entry's [`props`](/entry#props) must produce that shape:
 
@@ -100,7 +100,7 @@ createComponentDefinition({
 With `keyboardEventSchema` as a [shared event](#shared-events), the prompt
 prints:
 
-```
+```md
   Event handlers:
     - onChange(evt)
       - value: string — The current value
@@ -118,7 +118,7 @@ The model can then write:
 
 A callback with no payload is `z.null(){:ts}`, printed as a call with no argument:
 
-```
+```md
   Event handlers:
     - onPress() — Fires when pressed
 ```
@@ -148,8 +148,8 @@ createComponentDefinition({
 `getComponentsPartialPrompt` finds the `$id` on its own, and each handler
 becomes one line, `onKeyDown(evt: KeyboardEvent){:ts}`:
 
-```
-# Common Events
+```md
+## Common Events
 
 - KeyboardEvent — Fires on a key press
   - key: string — The key value (e.g. "Enter", "a")
@@ -186,9 +186,12 @@ import { impls } from "@uicast/shadcn-catalog/layout/impls";
 import { BadgeDef } from "./badge/def";
 import { BadgeImpl } from "./badge/impl";
 
-getComponentsPartialPrompt({ definitions: [...defs, BadgeDef] });
+const definitions = [...defs, BadgeDef];
+const implementations = [...impls, BadgeImpl];
 
-<RendererProvider evaluator={evaluator} implementations={[...impls, BadgeImpl]}>
+getComponentsPartialPrompt({ definitions });
+
+<RendererProvider evaluator={evaluator} implementations={implementations}>
   <EntriesRenderer entries={entries} />
 </RendererProvider>;
 ```

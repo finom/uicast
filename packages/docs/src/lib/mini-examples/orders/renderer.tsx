@@ -1,30 +1,13 @@
 "use client";
-import {
-  EntriesRenderer,
-  RendererProvider,
-  type ConfirmComponentProps,
-} from "@uicast/react";
-import { Button } from "@/components/ui/button";
-import {
-  ButtonImpl,
-  CardImpl,
-  EditDialogImpl,
-  HeadingImpl,
-  ProductRowImpl,
-} from "./impl";
-import { listProducts, updateProduct } from "./tools";
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
+import { type ConfirmComponentProps, EntriesRenderer, RendererProvider } from "@uicast/react";
+import { Button } from "@/components/ui/button";
+import { ButtonImpl, CardImpl, EditDialogImpl, HeadingImpl, ProductRowImpl } from "./impl";
+import { listProducts, updateProduct } from "./tools";
 
-const implementations = [
-  CardImpl,
-  HeadingImpl,
-  ButtonImpl,
-  ProductRowImpl,
-  EditDialogImpl,
-];
-const functions = [listProducts, updateProduct];
-const evaluator = new Evaluator({ functions });
+const implementations = [CardImpl, HeadingImpl, ButtonImpl, ProductRowImpl, EditDialogImpl];
+const evaluator = new Evaluator({ functions: [listProducts, updateProduct] });
 
 // Without it the engine falls back to window.confirm.
 const fallbackComponents = {
@@ -48,11 +31,7 @@ const fallbackComponents = {
 
 export function Products({ entries }: { entries: ComponentEntry[] }) {
   return (
-    <RendererProvider
-      implementations={implementations}
-      evaluator={evaluator}
-      fallbackComponents={fallbackComponents}
-    >
+    <RendererProvider implementations={implementations} evaluator={evaluator} fallbackComponents={fallbackComponents}>
       <EntriesRenderer entries={entries} />
     </RendererProvider>
   );

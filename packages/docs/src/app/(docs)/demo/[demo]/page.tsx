@@ -9,22 +9,16 @@ export function generateStaticParams() {
 
 export const dynamicParams = false;
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ demo: string }>;
-}): Promise<Metadata> {
+type Props = { params: Promise<{ demo: string }> };
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { demo } = await params;
-  // Only the manifest's strings cross into metadata; the registry would drag renderer and Dexie code onto the server path.
+  // Only the manifest's strings cross into metadata; the registry would drag the impls and Dexie onto the server path.
   const { title, tagline } = demoManifest[demo];
   return { title, description: tagline };
 }
 
-export default async function Page({
-  params,
-}: {
-  params: Promise<{ demo: string }>;
-}) {
+export default async function Page({ params }: Props) {
   const { demo } = await params;
   return <DemoRoute slug={demo} />;
 }

@@ -1,8 +1,5 @@
-import {
-  getComponentsPartialPrompt,
-  getFunctionsPartialPrompt,
-} from "@uicast/core/prompt";
-import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
+import { getComponentsPartialPrompt, getFunctionsPartialPrompt } from "@uicast/core/prompt";
+import { entriesPart } from "../entry-variants";
 import { type CodePart, MiniExample } from "../mini-example";
 import { Weather } from "./renderer";
 import { WeatherCardDef } from "./def";
@@ -29,7 +26,7 @@ const setup: CodePart[] = [
 export function WeatherExample() {
   return (
     <MiniExample
-      entry={{ name: "Entries", prov: "llm", variants: entryVariants(weatherEntries), defaultVariant: ENTRY_DEFAULT_VARIANT }}
+      entry={entriesPart(weatherEntries)}
       result={<Weather />}
       setup={setup}
     />

@@ -74,8 +74,8 @@ shares the `root` scope. The fence at the top of this page seeds
 {"key":"root","component":"Button","seed":[{"set":"scopes.root.orders","expr":"listOrders()"}],"props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.orders","expr":"listOrders()"}]}}
 ```
 
-Click Refresh and the `Stat` in the earlier block updates. Both fences name an
-element `root`: keys are per fence, only state is shared.
+Click Refresh and the `Stat` in the earlier block updates. Both fences use the
+key `root`: keys are per fence, only state is shared.
 
 **Every block seeds everything it reads**, even what an earlier block already
 seeded. Seeds are first-writer-wins, so the repeat writes nothing, and any block
@@ -110,7 +110,7 @@ const plugins = { cjk, code, math, mermaid, renderers: [fenceRenderer] };
 ## The prompt side
 
 `getFencePartialPrompt(){:ts}` from `@uicast/streamdown/prompt` teaches the model the
-[fence](/prompt#chat-surfaces) and the rules above. Partial replacement works
+[fence](/prompt#getfencepartialprompt) and the rules above. Partial replacement works
 only within one fence. Compose it after the core partials; see
 [Assembling the prompt](/prompt).
 

@@ -1,18 +1,11 @@
 "use client";
 import { useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
-import { Evaluator } from "@uicast/expr";
-import {
-  ConfirmModal,
-  RenderError,
-} from "@uicast/shadcn-catalog";
-import type { ComponentEntry } from "@uicast/core";
-import {
-  type ComponentImplementation,
-  EntriesRenderer,
-  RendererProvider,
-} from "@uicast/react";
 import type { StandardToolV0 } from "standard-tool";
+import type { ComponentEntry } from "@uicast/core";
+import { Evaluator } from "@uicast/expr";
+import { type ComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
+import { ConfirmModal, RenderError } from "@uicast/shadcn-catalog";
 
 // Sized in em to fit inline text and headings; `containerClassName` gives the inline wrapper a width inside flex parents
 // and hides its trailing <br>.
@@ -25,25 +18,17 @@ const DefaultSkeleton = () => (
     containerClassName="block w-full [&_br]:hidden"
   />
 );
-const DEFAULT_COMPONENTS = {
-  defaultSkeleton: DefaultSkeleton,
-  confirm: ConfirmModal,
-  error: RenderError,
-};
+const DEFAULT_COMPONENTS = { defaultSkeleton: DefaultSkeleton, confirm: ConfirmModal, error: RenderError };
 
-export function RenderCanvas({
-  lines,
-  catalog,
-  functions,
-  outlineKey,
-  onHoverKey,
-}: {
+type RenderCanvasProps = {
   lines: ComponentEntry[];
   catalog: ComponentImplementation[];
   functions: StandardToolV0[];
   outlineKey: string | null;
   onHoverKey: (key: string | null) => void;
-}) {
+};
+
+export function RenderCanvas({ lines, catalog, functions, outlineKey, onHoverKey }: RenderCanvasProps) {
   // One evaluator per tool set: it holds the parse cache.
   const evaluator = useMemo(() => new Evaluator({ functions }), [functions]);
   // Every catalog renderer stamps its root with `data-key`, so a hovered node maps back to its line.
@@ -60,11 +45,7 @@ export function RenderCanvas({
         }}
         onMouseLeave={() => onHoverKey(null)}
       >
-        <RendererProvider
-          implementations={catalog}
-          evaluator={evaluator}
-          fallbackComponents={DEFAULT_COMPONENTS}
-        >
+        <RendererProvider implementations={catalog} evaluator={evaluator} fallbackComponents={DEFAULT_COMPONENTS}>
           <EntriesRenderer entries={lines} />
         </RendererProvider>
       </div>

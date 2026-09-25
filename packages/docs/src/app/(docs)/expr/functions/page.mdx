@@ -209,12 +209,12 @@ getFunctionsPartialPrompt({
 
 renders exactly:
 
-```
+```md
 # Available Functions
 
 listProducts, deleteProduct
 
-# Function Details
+## Function Details
 
 - listProducts() => {
     id: number /* integer */;
@@ -272,8 +272,8 @@ const Person = z
   .meta({ id: "Person" });
 ```
 
-```
-# Function Details
+```md
+## Function Details
 
 - getOwners() => {
     owner?: Person;
@@ -283,7 +283,7 @@ const Person = z
     root?: Node;
   }: Whole tree.
 
-# Shared Types
+## Shared Types
 
 - Person: { id: string; name?: string }
 - Node: { name?: string; children?: Node[] } — A folder or file.
@@ -293,7 +293,7 @@ Without `.meta({ id }){:ts}`, `Person` is inlined at both sites. A **recursive**
 type needs a name: inlined, its self-reference stops at the cycle guard and
 prints `unknown[]`, which says the tree is one level deep.
 
-[Components](/def) hoist their own types into a separate `# Shared Types`
+[Components](/def) hoist their own types into a separate `## Shared Types`
 block; nothing crosses between the two.
 
 ## Where to go next

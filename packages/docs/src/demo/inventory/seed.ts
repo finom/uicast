@@ -21,9 +21,7 @@ const seedProducts: NewProduct[] = makeProducts(SEED_COUNT);
 // One transaction, so StrictMode's second, concurrent call sees the first call's rows.
 export async function seedIfEmpty(): Promise<void> {
   await db.transaction("rw", db.products, async () => {
-    const count = await db.products.count();
-    if (count > 0) return;
-    await db.products.bulkAdd(seedProducts);
+    if ((await db.products.count()) === 0) await db.products.bulkAdd(seedProducts);
   });
 }
 

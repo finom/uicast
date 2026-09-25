@@ -8,9 +8,7 @@ export function OrdersLoader() {
   const [entries, setEntries] = useState<ComponentEntry[] | null>(null);
 
   useEffect(() => {
-    fetch("/api/mini-examples/orders")
-      .then((res) => res.json())
-      .then(setEntries);
+    fetch("/api/mini-examples/orders").then((res) => res.json()).then(setEntries);
   }, []);
 
   return entries ? <Products entries={entries} /> : null;

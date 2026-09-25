@@ -1,5 +1,5 @@
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
-import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
+import { entriesPart } from "../entry-variants";
 import { type CodePart, MiniExample } from "../mini-example";
 import { Counter } from "./renderer";
 import { CounterDef } from "./def";
@@ -20,7 +20,7 @@ const setup: CodePart[] = [
 export function CounterExample() {
   return (
     <MiniExample
-      entry={{ name: "Entries", prov: "llm", variants: entryVariants(counterEntries), defaultVariant: ENTRY_DEFAULT_VARIANT }}
+      entry={entriesPart(counterEntries)}
       result={<Counter />}
       setup={setup}
     />

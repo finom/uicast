@@ -5,7 +5,7 @@ import { KnobDef } from "./def";
 const SWEEP_DEG = 270;
 const FULL_RANGE_DRAG_PX = 150;
 
-export const KnobRenderer = createComponentImplementation({
+export const KnobImpl = createComponentImplementation({
   def: KnobDef,
   render: ({ value, min, max, label, onTurn }, { entry }) => {
     const drag = useRef<{ startY: number; startVal: number } | null>(null);
@@ -13,10 +13,7 @@ export const KnobRenderer = createComponentImplementation({
     const angle = -SWEEP_DEG / 2 + ((value - min) / range) * SWEEP_DEG;
 
     return (
-      <div
-        data-key={entry.key}
-        className="flex select-none flex-col items-center gap-1.5"
-      >
+      <div data-key={entry.key} className="flex select-none flex-col items-center gap-1.5">
         <div
           role="slider"
           aria-valuenow={value}
@@ -32,28 +29,15 @@ export const KnobRenderer = createComponentImplementation({
           onPointerMove={(e) => {
             if (!drag.current) return;
             const dy = drag.current.startY - e.clientY;
-            const next = Math.min(
-              max,
-              Math.max(min, drag.current.startVal + (dy / FULL_RANGE_DRAG_PX) * range),
-            );
-            onTurn({ value: Math.round(next) });
+            const next = drag.current.startVal + (dy / FULL_RANGE_DRAG_PX) * range;
+            onTurn({ value: Math.round(Math.min(max, Math.max(min, next))) });
           }}
           onPointerUp={() => {
             drag.current = null;
           }}
         >
-          <svg
-            viewBox="0 0 100 100"
-            className="pointer-events-none size-16"
-            aria-hidden="true"
-          >
-            <circle
-              cx="50"
-              cy="50"
-              r="46"
-              className="fill-card stroke-border"
-              strokeWidth="4"
-            />
+          <svg viewBox="0 0 100 100" className="pointer-events-none size-16" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" className="fill-card stroke-border" strokeWidth="4" />
             <line
               x1="50"
               y1="50"

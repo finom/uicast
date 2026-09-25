@@ -1,9 +1,9 @@
 import { impls } from "@uicast/shadcn-catalog/all/impls";
-import { KnobRenderer } from "../components/knob/renderer";
+import { KnobImpl } from "../components/knob/impl";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
-import { StepSequencerRenderer } from "./components/step-sequencer/renderer";
-import { XYPadRenderer } from "./components/xy-pad/renderer";
+import { StepSequencerImpl } from "./components/step-sequencer/impl";
+import { XYPadImpl } from "./components/xy-pad/impl";
 import { studioFunctions } from "./functions";
 import { studioLines } from "./studio.lines";
 
@@ -12,10 +12,5 @@ export const studioDemo: DemoConfig = {
   ...demoManifest.studio,
   lines: studioLines,
   functions: studioFunctions,
-  catalog: [
-    ...impls,
-    XYPadRenderer,
-    KnobRenderer,
-    StepSequencerRenderer,
-  ],
+  catalog: [...impls, XYPadImpl, KnobImpl, StepSequencerImpl],
 };

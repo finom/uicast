@@ -36,17 +36,10 @@ export const listProducts = standardTool({
   ),
   async execute() {
     await new Promise((resolve) => setTimeout(resolve, LATENCY_MS));
-    PRODUCTS.splice(
-      0,
-      PRODUCTS.length,
-      ...PRODUCTS.slice(1),
-      ...PRODUCTS.slice(0, 1),
-    );
+    // The list rotates on every call, so a refetch shows it change.
+    PRODUCTS.push(...PRODUCTS.splice(0, 1));
     const overrides = readOverrides();
-    return PRODUCTS.slice(0, 3).map((product) => ({
-      ...product,
-      ...overrides[product.id],
-    }));
+    return PRODUCTS.slice(0, 3).map((product) => ({ ...product, ...overrides[product.id] }));
   },
 });
 

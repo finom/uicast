@@ -1,17 +1,8 @@
-import {
-  getComponentsPartialPrompt,
-  getFunctionsPartialPrompt,
-} from "@uicast/core/prompt";
-import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
+import { getComponentsPartialPrompt, getFunctionsPartialPrompt } from "@uicast/core/prompt";
+import { entriesPart } from "../entry-variants";
 import { type CodePart, MiniExample } from "../mini-example";
 import { OrdersLoader } from "./loader";
-import {
-  ButtonDef,
-  CardDef,
-  EditDialogDef,
-  HeadingDef,
-  ProductRowDef,
-} from "./def";
+import { ButtonDef, CardDef, EditDialogDef, HeadingDef, ProductRowDef } from "./def";
 import { listProducts, updateProduct } from "./tools";
 import DefMdx from "./def.mdx";
 import ImplMdx from "./impl.mdx";
@@ -20,9 +11,7 @@ import RendererMdx from "./renderer.mdx";
 import orderEntries from "./entries.json";
 
 const PROMPT = [
-  getComponentsPartialPrompt({
-    definitions: [CardDef, HeadingDef, ButtonDef, ProductRowDef, EditDialogDef],
-  }),
+  getComponentsPartialPrompt({ definitions: [CardDef, HeadingDef, ButtonDef, ProductRowDef, EditDialogDef] }),
   getFunctionsPartialPrompt({ functions: [listProducts, updateProduct] }),
 ].join("\n\n");
 
@@ -37,7 +26,7 @@ const setup: CodePart[] = [
 export function OrdersExample() {
   return (
     <MiniExample
-      entry={{ name: "Entries", prov: "llm", variants: entryVariants(orderEntries), defaultVariant: ENTRY_DEFAULT_VARIANT }}
+      entry={entriesPart(orderEntries)}
       result={<OrdersLoader />}
       setup={setup}
     />

@@ -1,13 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Button as UIButton } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ButtonDef,
-  CardDef,
-  EditDialogDef,
-  HeadingDef,
-  ProductRowDef,
-} from "./def";
+import { ButtonDef, CardDef, EditDialogDef, HeadingDef, ProductRowDef } from "./def";
 
 // card/impl.tsx
 export const CardImpl = createComponentImplementation({
@@ -29,12 +23,7 @@ export const HeadingImpl = createComponentImplementation({
 export const ButtonImpl = createComponentImplementation({
   def: ButtonDef,
   render: ({ label, onClick }) => (
-    <UIButton
-      variant="outline"
-      size="sm"
-      className="justify-self-start"
-      onClick={() => onClick()}
-    >
+    <UIButton variant="outline" size="sm" className="justify-self-start" onClick={() => onClick()}>
       {label}
     </UIButton>
   ),
@@ -46,12 +35,7 @@ export const ProductRowImpl = createComponentImplementation({
   render: ({ name, price, qty, onQtyChange, onEdit }) => (
     <div className="flex items-center gap-2 border-t pt-1 text-sm">
       <span className="truncate">{name}</span>
-      <UIButton
-        variant="ghost"
-        size="sm"
-        className="mr-auto h-6 px-1.5"
-        onClick={() => onEdit()}
-      >
+      <UIButton variant="ghost" size="sm" className="mr-auto h-6 px-1.5" onClick={() => onEdit()}>
         ✎
       </UIButton>
       <span className="w-12 text-right text-muted-foreground">${price} ×</span>
@@ -84,9 +68,7 @@ export const EditDialogImpl = createComponentImplementation({
             type="number"
             min={0}
             value={price}
-            onChange={(e) =>
-              onPriceChange({ value: e.target.valueAsNumber || 0 })
-            }
+            onChange={(e) => onPriceChange({ value: e.target.valueAsNumber || 0 })}
             className="flex-1 rounded border bg-transparent px-2 py-1"
           />
         </div>

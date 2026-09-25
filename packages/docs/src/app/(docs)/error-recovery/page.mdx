@@ -112,12 +112,12 @@ getErrorRecoveryPrompt({
 
 returns:
 
-```
+```md
 The generated UI hit runtime errors:
 
-- Element `chart`: chartData.map is not a function (expression-runtime — a valid expression threw at runtime)
+- Entry `chart`: chartData.map is not a function (expression-runtime — a valid expression threw at runtime)
 
-Diagnose each failure and emit a corrected version of the failed element, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another element sets up (e.g. a `seed` elsewhere), correct that element as well.
+Diagnose each failure and emit a corrected version of the failed entry, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another entry sets up (e.g. a `seed` elsewhere), correct that entry as well.
 ```
 
 `reason` adds the failure class to the line. An `environment` fault gets none,
@@ -161,7 +161,7 @@ calls `sendMessage`. Offer Recover for every fault but `environment`; an
 
 ## 3. Self-healing
 
-With no person involved, `onError` sends each `"document"{:ts}` fault as the same
+With no person involved, `onError` sends each `"document"` fault as the same
 recovery turn:
 
 ```tsx

@@ -4,8 +4,7 @@ import { db, type Product } from "./db";
 
 // IndexedDB is near-instant; the delay makes the async `seed` loading state visible. Writes stay instant.
 const NETWORK_MS = 300;
-const simulateLatency = () =>
-  new Promise<void>((resolve) => setTimeout(resolve, NETWORK_MS));
+const simulateLatency = () => new Promise<void>((resolve) => setTimeout(resolve, NETWORK_MS));
 
 // The form supplies every field and the number inputs emit numbers, so plain schemas keep the input type exact.
 const ProductDraft = z.object({
@@ -30,19 +29,14 @@ const listProducts = standardTool({
 
 const getCategoryBreakdown = standardTool({
   name: "getCategoryBreakdown",
-  description:
-    "Return total units in stock grouped by category, as { name, value } rows for charting.",
+  description: "Return total units in stock grouped by category, as { name, value } rows for charting.",
   outputSchema: z.array(z.object({ name: z.string(), value: z.number() })),
   async execute() {
     await simulateLatency();
     const products = await db.products.toArray();
     const byCategory = new Map<string, number>();
-    for (const p of products) {
-      byCategory.set(p.category, (byCategory.get(p.category) ?? 0) + p.stock);
-    }
-    return Array.from(byCategory, ([name, value]) => ({ name, value })).sort(
-      (a, b) => b.value - a.value,
-    );
+    for (const p of products) byCategory.set(p.category, (byCategory.get(p.category) ?? 0) + p.stock);
+    return Array.from(byCategory, ([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   },
 });
 
@@ -80,10 +74,4 @@ const deleteProduct = standardTool({
   },
 });
 
-export const inventoryFunctions: StandardToolV0[] = [
-  listProducts,
-  getCategoryBreakdown,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-];
+export const inventoryFunctions: StandardToolV0[] = [listProducts, getCategoryBreakdown, createProduct, updateProduct, deleteProduct];

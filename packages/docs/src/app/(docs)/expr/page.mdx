@@ -2,17 +2,16 @@
 title: The expression evaluator
 ---
 
-import { Callout } from "nextra/components";
-
 # The expression evaluator
 
 A model writes every `expr`, and a saved document replays in other people's
-browsers, so an expression is untrusted input. `@uicast/expr` runs it.
+browsers, so an expression is untrusted input.
 
-The language is **JavaScript expressions over JSON data**: the standard
-methods of strings, numbers and arrays and a short list of globals, without
-statements, `new`, mutation, regular expressions or function values. The
-package has no **uicast** dependency.
+`@uicast/expr` defines the language expressions are written in, a subset of
+JavaScript, and runs it. The subset is **JavaScript expressions over JSON
+data**: the standard methods of strings, numbers and arrays and a short list of
+globals, without statements, `new`, mutation, regular expressions or function
+values.
 
 ## How an expression runs
 
@@ -33,8 +32,8 @@ The checks happen at run time, because a name can be built while the
 expression runs:
 
 ```js
-"abc".substr(1)            // refused — `substr` is not in the language
-"abc"["sub" + "str"](1)    // the same call — the name exists only at run time
+"abc".substr(1)            // ❌ refused — `substr` is not in the language
+"abc"["sub" + "str"](1)    // ❌ the same call — the name exists only at run time
 ```
 
 Under `Evaluator` the call itself is checked, so both lines are refused. Three
@@ -74,15 +73,15 @@ Only `seed` and `callbacks` await a result, so only they may call host
 rejected into the error slot.
 
 A scope path read in `props`, `hidden`, `loading` or `each` subscribes the element to it.
-Paths are read from the expression text, not declared, so write them out
-literally: see [Reactivity &amp; Dependencies](/entry/reactivity).
+The paths are found in the expression text; nothing is declared. See
+[Reactivity &amp; Dependencies](/entry/reactivity).
 
 ## The language
 
 The grammar is a closed allow-list of AST node types; anything else fails
 validation.
 
-| | |
+| Kind | Allowed |
 | --- | --- |
 | Values | numbers, strings, booleans, `null`, template literals |
 | Access | `a.b`, `a[b]{:ts}`, `a?.b{:ts}`, `a?.[b]{:ts}` (optional *receiver*, not `a?.(){:ts}`) |
@@ -97,10 +96,10 @@ Left out on purpose:
   blocks or `function`. A runaway loop cannot be written, and with nothing
   named, nothing can recurse.
 - **Assignment, `++`, `delete`, mutating methods.** Expressions are **pure by
-  construction**: only a step's `set` changes state. Use `.toSorted(){:ts}` and
-  `.toReversed(){:ts}` instead of `.sort(){:ts}` and `.reverse(){:ts}`.
+  construction**: only a step's `set` changes state. `.toSorted(){:ts}` and
+  `.toReversed(){:ts}` replace `.sort(){:ts}` and `.reverse(){:ts}`.
 - **Regular expressions.** Catastrophic backtracking runs outside the budget.
-  Use `.includes(){:ts}`, `.startsWith(){:ts}`, `.split(){:ts}` or `.replaceAll(){:ts}`.
+  Text search goes through `.includes(){:ts}`, `.startsWith(){:ts}`, `.split(){:ts}` and `.replaceAll(){:ts}`.
 - **Functions as values.** An arrow is only a method's callback, as in
   `rows.map(r => r.name){:ts}`: never stored, returned or called. A global that
   takes one argument can replace it: `rows.filter(Boolean){:ts}`.
@@ -133,7 +132,8 @@ scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green" } })
 
 Expressions are also **stateless**: no `Math.random` (a random value comes
 from a host function) and nowhere to keep a counter. `Date.now(){:ts}` changes on
-every re-evaluation, so take it once in a step and read it back:
+every re-evaluation, so the prompt tells the model to take it once in a step and
+read it back:
 
 ```jsonc
 // ❌ a new timestamp every render pass
@@ -146,11 +146,6 @@ every re-evaluation, so take it once in a step and read it back:
 
 `getExpressionsPartialPrompt(){:ts}` gives the model these rules and the globals,
 filled from the evaluator's own tables.
-
-<Callout type="default">
-  Control flow lives in the document, not in expressions: sequencing in a
-  callback's ordered steps, iteration in `each`, conditionals in `hidden`.
-</Callout>
 
 ## Budgets
 
@@ -188,26 +183,47 @@ A rejection is a classified
 
 ## Performance
 
-Measured with `npx vitest bench --run --root packages/expr{:bash}`:
+The numbers below come from a fast computer, and from Chrome with its CPU
+slowed 6× (a mid-range phone) and 12× (a slow phone).
 
-| expression | in a document | `Evaluator` |
-| --- | --- | --- |
-| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~80 ns |
-| `scopes.root.user.name` | any scope read | ~115 ns |
-| template, two interpolations | a text prop | ~255 ns |
-| object literal from scope | every `props.expr` | ~260 ns |
-| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–63 µs |
-| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms |
+A page with a 50-row table (7 cells a row, the
+[reference catalog](/react/reference-catalog)) rendered by React, with its
+expressions run by `Evaluator` or compiled with `new Function`. Time from the
+event to the updated DOM:
 
-The prompt bounds the load: `maxListItems` on
-`getCommonInstructionsPartialPrompt` (default 100) tells the model to cap
-visible lists and page or filter past that. **Expressions shape display
-values; host functions compute.**
+| event | evaluator | <nobr>fast computer</nobr> | <nobr>mid-range phone</nobr> | <nobr>slow phone</nobr> |
+| --- | --- | --- | --- | --- |
+| <nobr>first render</nobr> | `Evaluator` | 15 ms | 37 ms | 78 ms |
+| | <nobr>`new Function`</nobr> | 14 ms | 34 ms | 71 ms |
+| <nobr>next page</nobr> | `Evaluator` | 15 ms | 36 ms | 76 ms |
+| | <nobr>`new Function`</nobr> | 15 ms | 34 ms | 70 ms |
+| <nobr>edit a row</nobr> | `Evaluator` | 1.5 ms | 4.6 ms | 8.8 ms |
+| | <nobr>`new Function`</nobr> | 1.3 ms | 3.9 ms | 8.4 ms |
 
-Whole events (every expression one event re-evaluates) in Chrome on an M4 Pro,
-then with the CPU slowed 6× and 12×:
+Most of each event is React and the DOM, the same under either evaluator.
+Per expression, on the fast computer:
 
-| event | M4 Pro | 6× slower | 12× slower |
+| expression | <nobr>in a document</nobr> | `Evaluator` | <nobr>`new Function`</nobr> |
+| --- | --- | --- | --- |
+| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~45 ns | ~4 ns |
+| `scopes.root.user.name` | any scope read | ~75 ns | ~6 ns |
+| template, two interpolations | a text prop | ~160 ns | ~28 ns |
+| object literal from scope | every `props.expr` | ~180 ns | ~9 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 20–39 µs | 0.7–2 µs |
+| re-evaluate a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.65 ms | ~0.09 ms |
+
+Two prompt rules keep the load small. Neither is an `Evaluator` limit:
+
+- `maxListItems` on `getCommonInstructionsPartialPrompt` (default 100): the
+  model caps each list at that many items and pages past it.
+- The model leaves real computation to host functions. It asks a function for
+  the page, sort and filters it offers, and reads the totals it returns
+  instead of summing rows. Give your functions those inputs and outputs.
+
+Expression time of whole events (every expression one event re-evaluates), in
+Chrome:
+
+| event | <nobr>fast computer</nobr> | <nobr>mid-range phone</nobr> | <nobr>slow phone</nobr> |
 | --- | --- | --- | --- |
 | 50-row table, 7 cells per row | 0.3 ms | 1.3 ms | 4.5 ms |
 | 100-row table, currency and date formatting per row | 0.4 ms | 2.5 ms | 5.1 ms |
@@ -222,48 +238,13 @@ table in the browser, and a search per row.
 
 ## What it does not secure
 
-An expression reaches only the contexts and the functions bound at
-construction; `window`, `fetch` and everything else are out of reach. The
-interpreter secures the language, not these:
+Expressions cannot reach `window`, `fetch` or the rest of the page. They see
+only the data and functions you give them. Two things are still up to you:
 
-- **Host functions are capabilities.** A callback can call any function you
-  bound, with any input its schema accepts: `deleteProduct({ id: 42 }){:ts}` deletes
-  product 42. Keep `functions` narrow and authorize on the server.
-- **Props that reach the DOM.** The browser may fetch a URL a document
-  controls on render. The renderer's
-  [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) gates
-  those props.
-- **What you put into scope.** The membrane refuses non-data values; tools
-  with an `outputSchema` pass only parsed data.
+| | Risk | <nobr>What you do</nobr> |
+| --- | --- | --- |
+| **Functions** | A document can call every function you give it. If you give it `deleteProduct`, it can delete products. | Give only the functions it needs. Check permissions on the server. |
+| **URLs** | A document can put your data into an image URL. The browser sends the data when it loads the image. | Declare URL props with `z.url(){:ts}`. Then [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) blocks other sites. |
 
-More, including the
-[catalog-authoring contract](/react#props-the-document-controls), is on
-[Security model](/security).
-
-## Verification
-
-`@uicast/expr` has one runtime dependency (acorn) and no `new Function`. Every
-rule is an allow-list held as data in `src/constants/`, and a test keeps the
-runtime tables and the README's language section equal to it.
-
-- **Against JavaScript.** `corpus.test.ts` runs each expression in `Evaluator`
-  and as plain JavaScript; both must return the same value or both throw
-  (*differential testing*). The likely bug is not an escape but a drift from
-  JavaScript (`"" == 0{:ts}`, `-0{:ts}`, coercion order). `baseline.test.ts` repeats the
-  corpus on an ES2022 engine with newer built-ins deleted.
-- **Against known attacks.** `attacks.test.ts` asserts that known escapes
-  reach nothing: `constructor` through a computed key, prototype pollution,
-  allocation bombs, recursion tricks, a live object in scope.
-- **Through the engine.** `hooks.test.ts` runs the corpus through a
-  `new Function` subclass and pins what it gives up:
-  `"abc"["sub" + "str"](1){:ts}` returns `"bc"{:ts}`.
-- **Other controls.** `exit-gate.test.ts` (only plain data leaves),
-  `host-functions.test.ts` (the tool boundary), `prototype-exposure.test.ts`
-  (null-prototype tables), `prices.test.ts` (step prices).
-
-<Callout type="warning">
-  Any evaluator of untrusted expressions can have implementation bugs. A
-  grammar small enough to review, tested differentially and adversarially,
-  bounds that risk; it does not remove it. `Evaluator` closes the computed-key
-  class and needs no `unsafe-eval`.
-</Callout>
+The [Security model](/security) page has more, including the
+[rules for components](/react#props-the-document-controls).

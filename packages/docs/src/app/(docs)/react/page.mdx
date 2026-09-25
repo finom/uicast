@@ -49,7 +49,7 @@ The second is the **render context**:
 
 - **`entry`**, the entry being rendered, unevaluated.
 - **`loading`**, the entry's [`loading`](/entry#loading) expression, evaluated.
-  What to show while it is `true{:ts}` is up to the implementation, such as a
+  What to show while it is `true` is up to the implementation, such as a
   busy state.
 - **`scopes`**, the scopes the entry's expressions read: `scopes.root` and the
   item scope of an enclosing list. It is for debugging; state changes go through
@@ -80,10 +80,10 @@ An optional `skeleton` draws a component while something is missing. It gets
 four props: `reason`, `entry`, `knownProps` and `children`. `reason` says what
 is missing:
 
-- `"streaming"{:ts}`: a child entry has not arrived yet. The **parent's** skeleton
+- `"streaming"`: a child entry has not arrived yet. The **parent's** skeleton
   fills the slot, with the parent's `entry`, since the child's component is not
   known yet. It gets no `children`.
-- `"seeding"{:ts}`: the element's own `seed` is waiting on an async host function.
+- `"seeding"`: the element's own `seed` is waiting on an async host function.
   The element and everything under it draw as skeletons, as
   [`DocumentSkeleton`](/react/ssr#document-skeleton) draws them: each skeleton
   gets `children` (its children's skeletons, or `null`) and draws its own tag,

@@ -3,16 +3,10 @@ import z from "zod";
 
 export const SwatchRailDef = createComponentDefinition({
   name: "SwatchRail",
-  description:
-    "A row of color swatches. Click one to select it; emits { index, hex, h, s, l }.",
+  description: "A row of color swatches. Click one to select it; emits { index, hex, h, s, l }.",
   props: z.strictObject({
-    swatches: z
-      .array(z.string())
-      .meta({ description: "Hex colors to show, left to right" }),
-    selected: z
-      .string()
-      .optional()
-      .meta({ description: "Currently selected hex (for highlight)" }),
+    swatches: z.array(z.string()).meta({ description: "Hex colors to show, left to right" }),
+    selected: z.string().optional().meta({ description: "Currently selected hex (for highlight)" }),
   }),
   callbacks: {
     onSelect: z.strictObject({

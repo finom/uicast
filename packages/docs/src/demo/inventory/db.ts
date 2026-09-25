@@ -12,12 +12,6 @@ export interface Product {
 
 export type NewProduct = Omit<Product, "id">;
 
-const db = new Dexie("uicast-inventory") as Dexie & {
-  products: EntityTable<Product, "id">;
-};
+export const db = new Dexie("uicast-inventory") as Dexie & { products: EntityTable<Product, "id"> };
 
-db.version(1).stores({
-  products: "++id, name, sku, category, stock, price",
-});
-
-export { db };
+db.version(1).stores({ products: "++id, name, sku, category, stock, price" });

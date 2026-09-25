@@ -1,9 +1,12 @@
 import { createComponentImplementation } from "@uicast/react";
 import { useRef, useState } from "react";
+import { fraction } from "../../../components/drag";
 import { NodeBoardDef } from "./def";
 
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
+
 // The pending "from" node is local UI state; the committed graph lives in scope.
-export const NodeBoardRenderer = createComponentImplementation({
+export const NodeBoardImpl = createComponentImplementation({
   def: NodeBoardDef,
   render: ({ nodes, links, onMoveNode, onConnect }, { entry }) => {
     const boardRef = useRef<HTMLDivElement>(null);
@@ -17,22 +20,13 @@ export const NodeBoardRenderer = createComponentImplementation({
       const id = dragId.current;
       if (!el || !id) return;
       const r = el.getBoundingClientRect();
-      const x = Math.round(Math.min(1, Math.max(0, (clientX - r.left) / r.width)) * 1000) / 1000;
-      const y = Math.round(Math.min(1, Math.max(0, (clientY - r.top) / r.height)) * 1000) / 1000;
-      onMoveNode({ id, x, y });
+      onMoveNode({ id, x: round3(fraction(clientX, r.left, r.width)), y: round3(fraction(clientY, r.top, r.height)) });
     };
 
+    // The first click picks the source, a second on another node connects, a second on the same one cancels.
     const clickPort = (id: string) => {
-      if (!pendingFrom) {
-        setPendingFrom(id);
-        return;
-      }
-      if (pendingFrom === id) {
-        setPendingFrom(null);
-        return;
-      }
-      onConnect({ from: pendingFrom, to: id });
-      setPendingFrom(null);
+      if (pendingFrom && pendingFrom !== id) onConnect({ from: pendingFrom, to: id });
+      setPendingFrom(pendingFrom ? null : id);
     };
 
     return (
@@ -46,12 +40,7 @@ export const NodeBoardRenderer = createComponentImplementation({
           dragId.current = null;
         }}
       >
-        <svg
-          className="pointer-events-none absolute inset-0 size-full"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          aria-hidden="true"
-        >
+        <svg className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
           {links.map((lk, i) => {
             const a = byId(lk.from);
             const b = byId(lk.to);
@@ -90,20 +79,16 @@ export const NodeBoardRenderer = createComponentImplementation({
                 e.stopPropagation();
                 clickPort(n.id);
               }}
-              className={[
-                "size-3 shrink-0 rounded-full border transition",
-                pendingFrom === n.id
-                  ? "border-primary bg-primary"
-                  : "border-muted-foreground/50 bg-background hover:border-primary",
-              ].join(" ")}
+              className={`size-3 shrink-0 rounded-full border transition ${
+                pendingFrom === n.id ? "border-primary bg-primary" : "border-muted-foreground/50 bg-background hover:border-primary"
+              }`}
             />
           </div>
         ))}
 
         {pendingFrom && (
           <div className="pointer-events-none absolute bottom-2 left-2 rounded-sm bg-background/80 px-2 py-0.5 text-xs text-muted-foreground">
-            Connecting from “{byId(pendingFrom)?.label}” — click another node’s
-            port
+            Connecting from “{byId(pendingFrom)?.label}” — click another node’s port
           </div>
         )}
       </div>

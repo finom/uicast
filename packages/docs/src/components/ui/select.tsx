@@ -1,2 +1,2 @@
-// See ./card.tsx — same reason: the snippet should read like an app's own file.
+// See ./card.tsx.
 export * from "@uicast/shadcn-catalog/ui/select";

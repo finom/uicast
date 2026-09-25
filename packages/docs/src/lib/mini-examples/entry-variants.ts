@@ -1,4 +1,4 @@
-import type { CodeVariant } from "./mini-example";
+import type { CodePart, CodeVariant } from "./mini-example";
 
 // Not in `mini-example.tsx`: that file is `"use client"`, and a server component cannot call a function exported from it.
 
@@ -12,10 +12,7 @@ function inline(value: unknown): string {
   if (value && typeof value === "object") {
     const entries = Object.entries(value);
     if (!entries.length) return "{}";
-    const body = entries
-      .map(([key, v]) => `${JSON.stringify(key)}: ${inline(v)}`)
-      .join(", ");
-    return `{ ${body} }`;
+    return `{ ${entries.map(([key, v]) => `${JSON.stringify(key)}: ${inline(v)}`).join(", ")} }`;
   }
   return JSON.stringify(value);
 }
@@ -38,16 +35,11 @@ function format(value: unknown, depth: number): string {
   return flat;
 }
 
-export function entryVariants(entries: unknown[]): CodeVariant[] {
-  return [
-    {
-      label: "JSONLines",
-      code: entries.map((entry) => JSON.stringify(entry)).join("\n"),
-      lang: "json",
-    },
+// The example's document, as JSONLines and as pretty-printed JSON (shown first).
+export function entriesPart(entries: unknown[]): CodePart {
+  const variants: CodeVariant[] = [
+    { label: "JSONLines", code: entries.map((entry) => JSON.stringify(entry)).join("\n"), lang: "json" },
     { label: "JSON", code: format(entries, 0), lang: "json" },
   ];
+  return { name: "Entries", prov: "llm", variants, defaultVariant: 1 };
 }
-
-// The pretty-printed JSON.
-export const ENTRY_DEFAULT_VARIANT = 1;

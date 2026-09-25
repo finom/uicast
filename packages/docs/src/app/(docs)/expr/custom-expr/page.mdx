@@ -50,23 +50,23 @@ const evaluator = new FunctionEvaluator({ functions });
 expression and gets the arguments `new Function` takes. Steps 1, 2 and 4 stay;
 the engine runs step 3.
 
-Same expressions, measured with `npx vitest bench --run --root packages/expr{:bash}`:
+Same expressions, on a fast computer:
 
-| expression | in a document | `Evaluator` | `FunctionEvaluator` |
+| expression | <nobr>in a document</nobr> | `Evaluator` | `FunctionEvaluator` |
 | --- | --- | --- | --- |
-| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~80 ns | ~29 ns |
-| `scopes.root.user.name` | any scope read | ~115 ns | ~38 ns |
-| template, two interpolations | a text prop | ~255 ns | ~56 ns |
-| object literal from scope | every `props.expr` | ~260 ns | ~93 ns |
-| `filter`, `map`, `reduce` over 1000 rows | a derived list | 28–63 µs | 0.7–1.9 µs |
-| a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.79 ms | ~0.26 ms |
+| `scopes.root.count > 0{:ts}` | a `hidden` condition | ~45 ns | ~9 ns |
+| `scopes.root.user.name` | any scope read | ~75 ns | ~17 ns |
+| template, two interpolations | a text prop | ~160 ns | ~37 ns |
+| object literal from scope | every `props.expr` | ~180 ns | ~53 ns |
+| `filter`, `map`, `reduce` over 1000 rows | a derived list | 20–39 µs | 0.7–2 µs |
+| a whole 1000-row table, 5 expressions per row | the realistic worst case | ~0.65 ms | ~0.23 ms |
 
 What it costs:
 
 - **No budget.** Nothing meters the engine; the `budget` option does nothing.
   `"x".repeat(1e9){:ts}` runs.
 - **No check at run time.** A name built at run time reaches whatever it names.
-  `"abc"["sub" + "str"](1){:ts}` returns `"bc"{:ts}`, and
+  `"abc"["sub" + "str"](1){:ts}` returns `"bc"`, and
   `[({}).constructor.constructor][0]("…")(){:ts}` reaches `Function`, which runs
   any code.
 - **`unsafe-eval`.** The page's Content-Security-Policy must allow it.

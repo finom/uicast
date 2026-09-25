@@ -1,5 +1,5 @@
 import { getComponentsPartialPrompt } from "@uicast/core/prompt";
-import { ENTRY_DEFAULT_VARIANT, entryVariants } from "../entry-variants";
+import { entriesPart } from "../entry-variants";
 import { type CodePart, MiniExample } from "../mini-example";
 import { Tracker } from "./renderer";
 import { TrackPadDef } from "./def";
@@ -20,7 +20,7 @@ const setup: CodePart[] = [
 export function TrackerExample() {
   return (
     <MiniExample
-      entry={{ name: "Entries", prov: "llm", variants: entryVariants(trackerEntries), defaultVariant: ENTRY_DEFAULT_VARIANT }}
+      entry={entriesPart(trackerEntries)}
       result={<Tracker />}
       setup={setup}
     />

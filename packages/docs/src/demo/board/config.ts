@@ -2,7 +2,7 @@ import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
 import { boardLines } from "./board.lines";
-import { NodeBoardRenderer } from "./components/node-board/renderer";
+import { NodeBoardImpl } from "./components/node-board/impl";
 import { boardFunctions } from "./functions";
 
 export const boardDemo: DemoConfig = {
@@ -10,5 +10,5 @@ export const boardDemo: DemoConfig = {
   ...demoManifest.board,
   lines: boardLines,
   functions: boardFunctions,
-  catalog: [...impls, NodeBoardRenderer],
+  catalog: [...impls, NodeBoardImpl],
 };

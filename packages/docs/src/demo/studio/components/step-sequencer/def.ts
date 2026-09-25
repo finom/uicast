@@ -3,8 +3,7 @@ import z from "zod";
 
 export const StepSequencerDef = createComponentDefinition({
   name: "StepSequencer",
-  description:
-    "A step-sequencer grid: one row per track, one cell per step. Click a cell to toggle it. Emits the toggled cell's coordinates and its new on/off state.",
+  description: "A step-sequencer grid: one row per track, one cell per step. Click a cell to toggle it. Emits the toggled cell's coordinates and its new on/off state.",
   props: z.strictObject({
     tracks: z
       .array(
@@ -15,13 +14,8 @@ export const StepSequencerDef = createComponentDefinition({
       )
       .meta({ description: "Grid rows, top to bottom" }),
     steps: z.number().default(16).meta({ description: "Number of step columns" }),
-    pattern: z
-      .array(z.array(z.boolean()))
-      .meta({ description: "pattern[trackIndex][stepIndex] = is the cell active" }),
-    playhead: z
-      .number()
-      .default(-1)
-      .meta({ description: "Step column to highlight as the playhead (-1 = none)" }),
+    pattern: z.array(z.array(z.boolean())).meta({ description: "pattern[trackIndex][stepIndex] = is the cell active" }),
+    playhead: z.number().default(-1).meta({ description: "Step column to highlight as the playhead (-1 = none)" }),
   }),
   callbacks: {
     onToggle: z.strictObject({

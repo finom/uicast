@@ -1,10 +1,10 @@
 import { impls } from "@uicast/shadcn-catalog/all/impls";
-import { KnobRenderer } from "../components/knob/renderer";
+import { KnobImpl } from "../components/knob/impl";
 import { demoManifest } from "../manifest";
 import type { DemoConfig } from "../types";
-import { ColorFieldRenderer } from "./components/color-field/renderer";
-import { ColorPreviewRenderer } from "./components/color-preview/renderer";
-import { SwatchRailRenderer } from "./components/swatch-rail/renderer";
+import { ColorFieldImpl } from "./components/color-field/impl";
+import { ColorPreviewImpl } from "./components/color-preview/impl";
+import { SwatchRailImpl } from "./components/swatch-rail/impl";
 import { colorLines } from "./color.lines";
 import { colorFunctions } from "./functions";
 
@@ -13,11 +13,5 @@ export const colorDemo: DemoConfig = {
   ...demoManifest.color,
   lines: colorLines,
   functions: colorFunctions,
-  catalog: [
-    ...impls,
-    ColorFieldRenderer,
-    SwatchRailRenderer,
-    ColorPreviewRenderer,
-    KnobRenderer,
-  ],
+  catalog: [...impls, ColorFieldImpl, SwatchRailImpl, ColorPreviewImpl, KnobImpl],
 };
