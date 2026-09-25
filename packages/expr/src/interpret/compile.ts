@@ -2,8 +2,7 @@ import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
 import type { Budget } from "../runtime/budget";
 import { chargeCompare, chargeNumber, chargeText } from "../runtime/coerce";
-import { callGlobal, withGlobalCallback } from "../runtime/globals";
-import { lookupName } from "../runtime/lookup";
+import { callGlobal, lookupName, withGlobalCallback } from "../runtime/globals";
 import { callMember, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
 import { childNodes, patternNames } from "../syntax/ast";
@@ -191,130 +190,108 @@ const compileList = (
 
 type BinaryFn = (l: unknown, r: unknown, budget: Budget) => unknown;
 
-// `+` is the one polymorphic operator: string concatenation or numeric addition. An array operand joins first.
-const plus: BinaryFn = (l, r, budget) => {
-	if (typeof l === "object" || typeof r === "object") {
-		chargeText(l, budget);
-		chargeText(r, budget);
-	}
-	const out: unknown = (l as number) + (r as number);
-	if (typeof out === "string") budget.string(out.length);
-	return out;
-};
-
-// A non-number operand is converted by the engine in time of its length, so it is charged first.
-const chargeNumbers = (l: unknown, r: unknown, budget: Budget): void => {
+// The engine converts a non-number operand in time of its length, so each operator charges that first.
+const chargeArithmetic = (l: unknown, r: unknown, budget: Budget): void => {
+	if (typeof l === "number" && typeof r === "number") return;
 	chargeNumber(l, budget);
 	chargeNumber(r, budget);
 };
+const chargeRelational = (l: unknown, r: unknown, budget: Budget): void => {
+	if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+};
+// `x == null` converts nothing.
+const chargeEquality = (l: unknown, r: unknown, budget: Budget): void => {
+	if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+};
 
-// Written out per operator: a shared wrapper would make one megamorphic call site of them all.
 export const BINARY_FNS: Record<string, BinaryFn> = {
-	"+": plus,
+	// The one polymorphic operator: string concatenation or numeric addition. An array operand joins first.
+	"+": (l, r, budget) => {
+		if (typeof l === "object" || typeof r === "object") {
+			chargeText(l, budget);
+			chargeText(r, budget);
+		}
+		const out: unknown = (l as number) + (r as number);
+		if (typeof out === "string") budget.string(out.length);
+		return out;
+	},
 	"-": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		chargeArithmetic(l, r, budget);
 		return (l as number) - (r as number);
 	},
 	"*": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		chargeArithmetic(l, r, budget);
 		return (l as number) * (r as number);
 	},
 	"/": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		chargeArithmetic(l, r, budget);
 		return (l as number) / (r as number);
 	},
 	"%": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		chargeArithmetic(l, r, budget);
 		return (l as number) % (r as number);
 	},
 	"**": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, budget);
+		chargeArithmetic(l, r, budget);
 		return (l as number) ** (r as number);
 	},
-	// `x == null` converts nothing.
 	"==": (l, r, budget) => {
-		if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+		chargeEquality(l, r, budget);
 		// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `==` is the point
 		return l == r;
 	},
 	"!=": (l, r, budget) => {
-		if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+		chargeEquality(l, r, budget);
 		// biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `!=` is the point
 		return l != r;
 	},
 	"===": (l, r) => l === r,
 	"!==": (l, r) => l !== r,
 	"<": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		chargeRelational(l, r, budget);
 		return (l as number) < (r as number);
 	},
 	"<=": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		chargeRelational(l, r, budget);
 		return (l as number) <= (r as number);
 	},
 	">": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		chargeRelational(l, r, budget);
 		return (l as number) > (r as number);
 	},
 	">=": (l, r, budget) => {
-		if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+		chargeRelational(l, r, budget);
 		return (l as number) >= (r as number);
 	},
 };
 
-// The common operators inline; one shared `fn(l, r)` call for every binary node costs a call and a megamorphic site.
+// The same closure for every operator would share one call site, too polymorphic for the engine to inline.
+// Written once per operator, each call site sees one function.
 const binaryThunk = (op: string, left: Thunk, right: Thunk): Thunk => {
+	const fn = BINARY_FNS[op];
 	switch (op) {
 		case "===":
-			return (frame, rt) => left(frame, rt) === right(frame, rt);
+			return (f, rt) => left(f, rt) === right(f, rt);
 		case "!==":
-			return (frame, rt) => left(frame, rt) !== right(frame, rt);
-		case "<":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
-				return (l as number) < (r as number);
-			};
-		case "<=":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
-				return (l as number) <= (r as number);
-			};
-		case ">":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
-				return (l as number) > (r as number);
-			};
-		case ">=":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, rt.budget);
-				return (l as number) >= (r as number);
-			};
+			return (f, rt) => left(f, rt) !== right(f, rt);
+		case "+":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
 		case "-":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, rt.budget);
-				return (l as number) - (r as number);
-			};
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
 		case "*":
-			return (frame, rt) => {
-				const l = left(frame, rt);
-				const r = right(frame, rt);
-				if (typeof l !== "number" || typeof r !== "number") chargeNumbers(l, r, rt.budget);
-				return (l as number) * (r as number);
-			};
-		default: {
-			const fn = BINARY_FNS[op];
-			return (frame, rt) => fn(left(frame, rt), right(frame, rt), rt.budget);
-		}
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		case "/":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		case "<":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		case "<=":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		case ">":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		case ">=":
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
+		default:
+			return (f, rt) => fn(left(f, rt), right(f, rt), rt.budget);
 	}
 };
 

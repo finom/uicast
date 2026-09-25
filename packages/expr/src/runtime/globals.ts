@@ -1,10 +1,14 @@
-import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, CALLBACK_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS } from "../constants/globals";
+import { ALLOWED_GLOBALS, CALLABLE_GLOBALS, CALLBACK_GLOBALS, CONSTANT_GLOBALS, NAMESPACE_GLOBALS, nullProto } from "../constants/globals";
 import { PRICES } from "../constants/limits";
 import { CALLBACK_ARGUMENT } from "../constants/methods";
+import { ExpressionError } from "../errors";
 import type { Budget } from "./budget";
 import { chargeNumber } from "./coerce";
 import { chargeResult } from "./membrane";
-import { fail, Lambda, Namespace, runtimeFault, table } from "./values";
+import { fail, Lambda, Namespace, runtimeFault } from "./values";
+
+type GlobalFn = (...args: unknown[]) => unknown;
+const platform = (name: string): unknown => (globalThis as Record<string, unknown>)[name];
 
 export const GLOBAL_VALUES: Readonly<Record<string, unknown>> = Object.freeze({
 	...Object.fromEntries(NAMESPACE_GLOBALS.map((name) => [name, new Namespace(name)])),
@@ -13,12 +17,32 @@ export const GLOBAL_VALUES: Readonly<Record<string, unknown>> = Object.freeze({
 
 // The same names as the engine's own objects, for an expression the engine runs.
 export const PLATFORM_GLOBALS: Readonly<Record<string, unknown>> = Object.freeze(
-	Object.fromEntries(ALLOWED_GLOBALS.map((name) => [name, (globalThis as Record<string, unknown>)[name]])),
+	Object.fromEntries(ALLOWED_GLOBALS.map((name) => [name, platform(name)])),
 );
 
-export const GLOBAL_FUNCTIONS: Readonly<Record<string, (...args: unknown[]) => unknown>> = table(
-	Object.fromEntries([...CALLABLE_GLOBALS].map((name) => [name, (globalThis as Record<string, unknown>)[name] as (...args: unknown[]) => unknown])),
+export const GLOBAL_FUNCTIONS: Readonly<Record<string, GlobalFn>> = nullProto(
+	Object.fromEntries([...CALLABLE_GLOBALS].map((name) => [name, platform(name) as GlobalFn])),
 );
+
+// The contexts last to first, then `global` for a name none of them has.
+export const lookupName = (
+	name: string,
+	contexts: readonly Record<string, unknown>[],
+	global: (name: string) => unknown,
+): unknown => {
+	for (let i = contexts.length - 1; i >= 0; i--) {
+		if (!Object.hasOwn(contexts[i], name)) continue;
+		const value = contexts[i][name];
+		// A function is never a value: it would print its source.
+		if (typeof value === "function") throw new ExpressionError(`"${name}" holds a function, which cannot be read in an expression`);
+		return value;
+	}
+	return global(name);
+};
+
+export const unknownName = (name: string): never => {
+	throw new ExpressionError(`"${name}" is not available in expressions`, "unknown-reference");
+};
 
 // These rewrite their text one character at a time, several per step for most, one for CJK.
 const URI_FUNCTIONS: ReadonlySet<string> = new Set(["encodeURIComponent", "decodeURIComponent"]);

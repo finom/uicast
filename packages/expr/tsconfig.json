@@ -16,8 +16,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
-    "incremental": true,
-    "experimentalDecorators": true
+    "incremental": true
   },
   "include": [
     "**/*.ts",

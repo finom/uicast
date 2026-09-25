@@ -14,6 +14,8 @@ export type ExpressionErrorReason =
 	// Allowed expression, wrong values (property of `null`, malformed JSON).
 	| "expression-runtime";
 
+export const messageOf = (err: unknown): string => (err instanceof Error ? err.message : String(err));
+
 export class ExpressionError extends Error {
 	// On the instance: `instanceof` fails when two copies of this package share a bundle.
 	readonly uicastExpressionError = true;

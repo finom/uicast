@@ -1,6 +1,6 @@
 import { MATH_CONSTANTS, NUMBER_CONSTANTS } from "../constants/globals";
 import { MAX_DATA_DEPTH, PRICES } from "../constants/limits";
-import { ExpressionError } from "../errors";
+import { ExpressionError, messageOf } from "../errors";
 import type { Budget } from "./budget";
 import { methodsOf } from "./methods";
 import { fail, isPlainObject, Namespace, plainData, reject, runtimeFault, typeName } from "./values";
@@ -44,7 +44,7 @@ export const assertData = (value: unknown, where: string, wholePromise = false):
 		walk(value, 0);
 	} catch (err) {
 		if (ExpressionError.is(err)) throw err;
-		reject(`${where} could not be checked: ${err instanceof Error ? err.message : String(err)}`);
+		reject(`${where} could not be checked: ${messageOf(err)}`);
 	}
 	if (promise) {
 		reject(
@@ -56,8 +56,7 @@ export const assertData = (value: unknown, where: string, wholePromise = false):
 };
 
 const asKey = (key: unknown): string | number => {
-	if (typeof key === "number") return key;
-	if (typeof key === "string") return key;
+	if (typeof key === "number" || typeof key === "string") return key;
 	if (typeof key === "symbol") return reject("A symbol cannot be used as a property key here");
 	if (key === null || key === undefined || typeof key === "object") {
 		return reject(`A ${typeName(key)} cannot be used as a property key`);

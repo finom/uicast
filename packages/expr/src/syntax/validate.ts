@@ -4,8 +4,7 @@ import { ALLOWED_BINARY, ALLOWED_LOGICAL, ALLOWED_NODES, ALLOWED_UNARY } from ".
 import { MAX_ARROW_PARAMS, MAX_AST_DEPTH } from "../constants/limits";
 import { ALLOWED_METHOD_NAMES, CALLBACK_ARGUMENT, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import { ExpressionError } from "../errors";
-import { walkFreeIdentifiers } from "./analyze";
-import { childNodes } from "./ast";
+import { childNodes, walkFreeIdentifiers } from "./ast";
 
 const OPERATORS: Record<string, ReadonlySet<string>> = {
 	UnaryExpression: ALLOWED_UNARY,

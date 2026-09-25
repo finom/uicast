@@ -1,5 +1,5 @@
 import { globalCallbackMessage, OBJECT_NAMESPACES } from "../constants/globals";
-import { ExpressionError } from "../errors";
+import { ExpressionError, messageOf } from "../errors";
 
 // Positional slots, no arguments array per call; the method tables fill at most four.
 type LambdaCall = (a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) => unknown;
@@ -53,12 +53,8 @@ export const fail: (message: string, cause?: unknown) => never = (message, cause
 // A built-in's own throw (RangeError, URIError) is a runtime fault, never raw.
 export const runtimeFault = (what: string, err: unknown): never => {
 	if (ExpressionError.is(err)) throw err;
-	return fail(`${what} failed: ${err instanceof Error ? err.message : String(err)}`, err);
+	return fail(`${what} failed: ${messageOf(err)}`, err);
 };
-
-// Null-prototype: a plain literal would make `toString` look like an entry.
-export const table = <T>(entries: Record<string, T>): Record<string, T> =>
-	Object.assign(Object.create(null) as Record<string, T>, entries);
 
 // Plain data only, the same gate a direct read applies.
 export const plainData = (value: unknown, where: string): object => {

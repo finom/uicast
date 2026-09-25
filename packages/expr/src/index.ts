@@ -1,11 +1,10 @@
 import { type BudgetOptions, DEFAULT_MAX_CACHE_SIZE, DEFAULT_MAX_SOURCE_LENGTH } from "./constants/limits";
-import { ExpressionError } from "./errors";
+import { ExpressionError, messageOf } from "./errors";
 import type { StandardToolV0 } from "./host/standard-tool";
 import { bindTools, callTool } from "./host/tool";
 import { compileAst } from "./interpret/compile";
 import { Budget, resolveLimits } from "./runtime/budget";
-import { GLOBAL_VALUES, PLATFORM_GLOBALS } from "./runtime/globals";
-import { lookupName, unknownName } from "./runtime/lookup";
+import { GLOBAL_VALUES, lookupName, PLATFORM_GLOBALS, unknownName } from "./runtime/globals";
 import { assertData } from "./runtime/membrane";
 import type { HostFunction } from "./runtime/values";
 import { type Analysis, Analyzer, type ExpressionFacts } from "./syntax/analyzer";
@@ -38,8 +37,6 @@ export interface ExpressionEvaluator {
 }
 
 type Run = (contexts: EvaluatorContexts) => unknown;
-
-const messageOf = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
 // Source never reaches the JavaScript engine unless a subclass sets `toFunction`, so no CSP `unsafe-eval`.
 // Each protected method is one step a subclass can change or skip.

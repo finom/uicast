@@ -1,8 +1,8 @@
-import type { StandardToolV0 } from "./standard-tool";
-import { ExpressionError, type ExpressionErrorReason } from "../errors";
+import { ExpressionError, type ExpressionErrorReason, messageOf } from "../errors";
 import { assertData } from "../runtime/membrane";
 import type { HostFunction } from "../runtime/values";
-import { hostFunctionNameFault } from "./names";
+import { hostFunctionNameFault } from "../syntax/parse";
+import type { StandardToolV0 } from "./standard-tool";
 
 // Nothing here is `async` — that would allocate a promise even on a synchronous return. Only a real Promise defers the next step.
 const then = (value: unknown, next: (value: unknown) => unknown): unknown =>
@@ -22,9 +22,7 @@ const formatIssues = (issues: NonNullable<Settled["issues"]>): string =>
 
 // The host's own message rides along: "server unreachable" is what makes a failure actionable.
 const hostFailure = (name: string, err: unknown): ExpressionError =>
-	ExpressionError.is(err)
-		? err
-		: new ExpressionError(`"${name}" failed: ${err instanceof Error ? err.message : String(err)}`, "host-function", err);
+	ExpressionError.is(err) ? err : new ExpressionError(`"${name}" failed: ${messageOf(err)}`, "host-function", err);
 
 // A validator's own throw, or a thenable that is not a Promise, is the host's schema misbehaving, not a verdict.
 const runSchema = (schema: Schema, name: string, value: unknown): Validation => {
@@ -72,7 +70,7 @@ const asData = (name: string, value: unknown): unknown => {
 	try {
 		assertData(value, `"${name}" result`);
 	} catch (err) {
-		throw new ExpressionError((err as Error).message, "host-function", err);
+		throw new ExpressionError(messageOf(err), "host-function", err);
 	}
 	return value;
 };

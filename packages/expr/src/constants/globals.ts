@@ -1,5 +1,6 @@
 // Nothing else resolves: `fetch` is absent, not blocked.
 
+// Frozen, with no prototype: a plain literal would make `toString` look like an entry.
 export const nullProto = <T>(entries: Record<string, T>): Readonly<Record<string, T>> =>
 	Object.freeze(Object.assign(Object.create(null) as Record<string, T>, entries));
 

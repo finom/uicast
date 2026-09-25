@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hostFunctionNameFault } from "../host/names";
-import { parseExpression } from "../syntax/parse";
+import { hostFunctionNameFault, parseExpression } from "../syntax/parse";
 
 describe("hostFunctionNameFault", () => {
 	it("accepts what the parser reads as a bare identifier", () => {

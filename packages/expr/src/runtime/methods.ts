@@ -1,11 +1,11 @@
-import { OBJECT_NAMESPACES } from "../constants/globals";
+import { nullProto, OBJECT_NAMESPACES } from "../constants/globals";
 import { MAX_FLAT_DEPTH, PRICES } from "../constants/limits";
 import { NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import type { Budget } from "./budget";
 import { collator, localeList, numberFormat } from "./intl";
 import { f16round, sumPrecise } from "./numeric";
 import { chargeDateText, chargeNumber, chargeText, joinedSize, jsonSize, num, scanCost, textCost, toInteger, toLength } from "./coerce";
-import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData, table } from "./values";
+import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData } from "./values";
 
 // The membrane charges each call and the result's size; a method charges only its own proportional work,
 // and output that can outgrow its input before producing it.
@@ -13,6 +13,7 @@ import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainDat
 
 // `recv` is `never` so each table can type its own receiver.
 type MethodImpl = (recv: never, args: unknown[], budget: Budget) => unknown;
+type Methods = Readonly<Record<string, MethodImpl>>;
 
 const requireString = (v: unknown, method: string): string =>
 	typeof v === "string" ? v : fail(`"${method}" needs a string argument here — regular expressions are not available`);
@@ -84,10 +85,10 @@ const itemsOf = (v: unknown, where: string, budget: Budget): unknown[] => {
 	return [...v];
 };
 
-const methodTable = (names: Iterable<string>, impl: (name: string) => MethodImpl): Record<string, MethodImpl> =>
-	table(Object.fromEntries([...names].map((name) => [name, impl(name)])));
+const methodTable = (names: Iterable<string>, impl: (name: string) => MethodImpl): Methods =>
+	nullProto(Object.fromEntries([...names].map((name) => [name, impl(name)])));
 
-const nativeTable = (target: object, names: Iterable<string>): Record<string, MethodImpl> =>
+const nativeTable = (target: object, names: Iterable<string>): Methods =>
 	methodTable(names, (name) => {
 		const fn = (target as Record<string, (...a: unknown[]) => unknown>)[name];
 		return (_r, args, budget) => {
@@ -116,7 +117,7 @@ const asJson = (v: unknown): unknown => {
 const objectArg = (o: unknown, where: string): object =>
 	o === null || o === undefined ? fail(`${where} cannot convert ${String(o)} to an object`) : plainData(o, where);
 
-const ARRAY_METHODS: Record<string, MethodImpl> = table({
+const ARRAY_METHODS: Methods = nullProto({
 	// No per-iteration tick: each `invoke` charges the callback's whole compiled cost.
 	map: (a: unknown[], [f]) => {
 		checkCallback(f);
@@ -296,7 +297,32 @@ const loneSurrogate = (s: string, from: number): number => {
 
 const REPLACEMENT_CHARACTER = "�";
 
-const STRING_METHODS: Record<string, MethodImpl> = table({
+// Charge one pass over `s` (a scan, or a rewrite character by character) and hand it back.
+const scanned = (s: string, budget: Budget): string => {
+	budget.tick(scanCost(s.length));
+	return s;
+};
+const rewritten = (s: string, budget: Budget): string => {
+	budget.tick(textCost(s.length));
+	return s;
+};
+
+// The length padStart and padEnd build, charged before they build it.
+const padLength = (n: unknown, budget: Budget): number => {
+	const target = toLength(n, budget);
+	budget.string(target);
+	budget.tick(scanCost(target));
+	return target;
+};
+
+// The locales a case change reads; the change is charged a rewrite plus a locale lookup.
+const caseLocales = (s: string, locales: unknown, budget: Budget) => {
+	const list = locales === undefined ? undefined : localeList(locales, budget);
+	budget.tick(PRICES.locale + textCost(s.length));
+	return list;
+};
+
+const STRING_METHODS: Methods = nullProto({
 	toString: (s: string) => s,
 	valueOf: (s: string) => s,
 	toLocaleString: (s: string) => s,
@@ -314,36 +340,17 @@ const STRING_METHODS: Record<string, MethodImpl> = table({
 		budget.tick(scanCost(prefix.length));
 		return s.startsWith(prefix, optNum(position, budget));
 	},
-	includes: (s: string, [v, position], budget) => {
-		budget.tick(scanCost(s.length));
-		return s.includes(asText(v, budget), optNum(position, budget));
-	},
-	indexOf: (s: string, [v, position], budget) => {
-		budget.tick(scanCost(s.length));
-		return s.indexOf(asText(v, budget), optNum(position, budget));
-	},
+	includes: (s: string, [v, position], budget) => scanned(s, budget).includes(asText(v, budget), optNum(position, budget)),
+	indexOf: (s: string, [v, position], budget) => scanned(s, budget).indexOf(asText(v, budget), optNum(position, budget)),
 	// The engine searches backwards naively: every position can compare the whole search text.
 	lastIndexOf: (s: string, [v, position], budget) => {
 		const search = asText(v, budget);
 		budget.tick(scanCost(s.length * Math.max(search.length, 1)));
 		return s.lastIndexOf(search, optNum(position, budget));
 	},
-	normalize: (s: string, [form], budget) => {
-		budget.tick(textCost(s.length));
-		return s.normalize(optString(form, budget));
-	},
-	padStart: (s: string, [n, pad], budget) => {
-		const target = toLength(n, budget);
-		budget.string(target);
-		budget.tick(scanCost(target));
-		return s.padStart(target, optString(pad, budget));
-	},
-	padEnd: (s: string, [n, pad], budget) => {
-		const target = toLength(n, budget);
-		budget.string(target);
-		budget.tick(scanCost(target));
-		return s.padEnd(target, optString(pad, budget));
-	},
+	normalize: (s: string, [form], budget) => rewritten(s, budget).normalize(optString(form, budget)),
+	padStart: (s: string, [n, pad], budget) => s.padStart(padLength(n, budget), optString(pad, budget)),
+	padEnd: (s: string, [n, pad], budget) => s.padEnd(padLength(n, budget), optString(pad, budget)),
 	repeat: (s: string, [n], budget) => {
 		const count = toInteger(n, budget);
 		if (!Number.isFinite(count) || count < 0) return fail(`repeat count ${String(n)} is not valid`);
@@ -385,42 +392,16 @@ const STRING_METHODS: Record<string, MethodImpl> = table({
 		budget.array(max === undefined ? parts : Math.min(parts, max));
 		return s.split(separator, max);
 	},
-	toLowerCase: (s: string, _args, budget) => {
-		budget.tick(textCost(s.length));
-		return s.toLowerCase();
-	},
-	toUpperCase: (s: string, _args, budget) => {
-		budget.tick(textCost(s.length));
-		return s.toUpperCase();
-	},
-	toLocaleLowerCase: (s: string, [locales], budget) => {
-		const list = locales === undefined ? undefined : localeList(locales, budget);
-		budget.tick(PRICES.locale + textCost(s.length));
-		return s.toLocaleLowerCase(list);
-	},
-	toLocaleUpperCase: (s: string, [locales], budget) => {
-		const list = locales === undefined ? undefined : localeList(locales, budget);
-		budget.tick(PRICES.locale + textCost(s.length));
-		return s.toLocaleUpperCase(list);
-	},
-	trim: (s: string, _args, budget) => {
-		budget.tick(scanCost(s.length));
-		return s.trim();
-	},
-	trimStart: (s: string, _args, budget) => {
-		budget.tick(scanCost(s.length));
-		return s.trimStart();
-	},
-	trimEnd: (s: string, _args, budget) => {
-		budget.tick(scanCost(s.length));
-		return s.trimEnd();
-	},
-	isWellFormed: (s: string, _args, budget) => {
-		budget.tick(textCost(s.length));
-		return loneSurrogate(s, 0) === -1;
-	},
+	toLowerCase: (s: string, _args, budget) => rewritten(s, budget).toLowerCase(),
+	toUpperCase: (s: string, _args, budget) => rewritten(s, budget).toUpperCase(),
+	toLocaleLowerCase: (s: string, [locales], budget) => s.toLocaleLowerCase(caseLocales(s, locales, budget)),
+	toLocaleUpperCase: (s: string, [locales], budget) => s.toLocaleUpperCase(caseLocales(s, locales, budget)),
+	trim: (s: string, _args, budget) => scanned(s, budget).trim(),
+	trimStart: (s: string, _args, budget) => scanned(s, budget).trimStart(),
+	trimEnd: (s: string, _args, budget) => scanned(s, budget).trimEnd(),
+	isWellFormed: (s: string, _args, budget) => loneSurrogate(rewritten(s, budget), 0) === -1,
 	toWellFormed: (s: string, _args, budget) => {
-		budget.tick(textCost(s.length));
+		rewritten(s, budget);
 		let out = "";
 		let from = 0;
 		for (let i = loneSurrogate(s, 0); i !== -1; i = loneSurrogate(s, i + 1)) {
@@ -444,7 +425,7 @@ const formatNumber = (n: number, [locales, options]: unknown[], budget: Budget):
 	return numberFormat(locales, options, budget).format(n);
 };
 
-const NUMBER_METHODS: Record<string, MethodImpl> = table({
+const NUMBER_METHODS: Methods = nullProto({
 	valueOf: (n: number) => n,
 	toFixed: (n: number, [digits], budget) => n.toFixed(optNum(digits, budget)),
 	toExponential: (n: number, [digits], budget) => n.toExponential(optNum(digits, budget)),
@@ -453,7 +434,7 @@ const NUMBER_METHODS: Record<string, MethodImpl> = table({
 	toLocaleString: formatNumber,
 });
 
-const MATH_OWN: Record<string, MethodImpl> = {
+const MATH_OWN: Methods = {
 	f16round: (_r, [x], budget) => {
 		budget.tick(PRICES.exactNumber);
 		return f16round(num(x, budget));
@@ -465,18 +446,18 @@ const MATH_OWN: Record<string, MethodImpl> = {
 	},
 };
 
-const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
-	Math: table({ ...nativeTable(Math, NAMESPACE_METHOD_NAMES.Math), ...MATH_OWN }),
+const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
+	Math: nullProto({ ...nativeTable(Math, NAMESPACE_METHOD_NAMES.Math), ...MATH_OWN }),
 	Number: nativeTable(Number, NAMESPACE_METHOD_NAMES.Number),
 	String: nativeTable(String, NAMESPACE_METHOD_NAMES.String),
-	Date: table({
+	Date: nullProto({
 		...nativeTable(Date, ["now", "UTC"]),
 		parse: (_r, [text], budget) => {
 			chargeDateText(text, budget);
 			return Date.parse(String(text));
 		},
 	}),
-	JSON: table({
+	JSON: nullProto({
 		parse: (_r, [text], budget) => {
 			const source = asText(text, budget);
 			budget.tick(PRICES.json + textCost(source.length));
@@ -501,7 +482,7 @@ const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
 			);
 		},
 	}),
-	Object: table({
+	Object: nullProto({
 		keys: (_r, [o]) => Object.keys(objectArg(o, "Object.keys")),
 		values: (_r, [o]) => Object.values(objectArg(o, "Object.values")),
 		entries: (_r, [o], budget) => {
@@ -536,7 +517,7 @@ const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
 		hasOwn: (_r, [o, key], budget) => Object.hasOwn(objectArg(o, "Object.hasOwn"), asText(key, budget)),
 		is: (_r, [a, b]) => Object.is(a, b),
 	}),
-	Array: table({
+	Array: nullProto({
 		isArray: (_r, [v]) => Array.isArray(v),
 		from: (_r, [source, mapper], budget) => {
 			if (mapper !== undefined) checkCallback(mapper);
@@ -548,7 +529,7 @@ const NAMESPACE_METHODS: Record<string, Record<string, MethodImpl>> = table({
 	}),
 });
 
-export const methodsOf = (obj: unknown): Record<string, MethodImpl> | undefined => {
+export const methodsOf = (obj: unknown): Methods | undefined => {
 	if (typeof obj === "string") return STRING_METHODS;
 	if (typeof obj === "number") return NUMBER_METHODS;
 	if (Array.isArray(obj)) return ARRAY_METHODS;

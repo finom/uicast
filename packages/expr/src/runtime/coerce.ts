@@ -24,13 +24,6 @@ export const joinedSize = (items: unknown[], budget: Budget): number => {
 	return size;
 };
 
-// What `String(v)` can print.
-export const textSize = (v: unknown, budget: Budget): number => {
-	if (typeof v === "string") return v.length;
-	if (Array.isArray(v)) return joinedSize(v, budget);
-	return JSON_SCALAR_WIDTH;
-};
-
 // Turning a value into text: only an array is long, joined in time and memory of its text. A function would print its source.
 export const chargeText = (v: unknown, budget: Budget): void => {
 	if (typeof v === "function") reject("A function cannot be read in an expression");
