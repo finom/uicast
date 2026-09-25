@@ -92,8 +92,9 @@ Each row's quantity input writes to the product:
 ```
 
 The write puts an edited copy of the product **into `scopes.root.products`**,
-so the total updates. The dialog's Save button replaces the whole array
-instead, and everything that reads it updates.
+so the total updates. The dialog sits outside the list, so its Save button has
+no `scopes.product` to write. It writes `scopes.root.products.map(...){:ts}`
+itself, which is what the row's write does behind the scenes.
 
 Both edits then call `updateProduct(...){:ts}`, a [host function](/expr/functions)
 that saves the change. Save's first step has a
@@ -131,12 +132,14 @@ step hold **one expression** in a [subset of JavaScript](/expr). Two rules.
 ```
 
 **The same state must give the same result.** `props`, `hidden`, `loading` and
-`each` run again only when something they read changes, so a clock read there
-goes stale. The prompt has the model read the clock in a step and store it:
+`each` run again only when a scope field they read changes. The time is not a
+scope field: props showing `Date.now(){:ts}` keep the time of their last run, and
+jump when an unrelated field changes. So the prompt has the model take the time
+once, in a step, and store it:
 
 ```jsonc
-{ "props": { "expr": "({ text: 'Saved at ' + Date.now() })" } }  // ❌ changes with every re-run
-{ "set": "scopes.root.savedAt", "expr": "Date.now()" }           // ✅ read once; props read scopes.root.savedAt
+{ "props": { "expr": "({ text: 'Saved at ' + Date.now() })" } }  // ⚠️ runs, but jumps whenever the props re-run
+{ "set": "scopes.root.savedAt", "expr": "Date.now()" }           // ✅ taken on save; props read scopes.root.savedAt
 ```
 
 ## Nothing runs on its own
@@ -160,23 +163,16 @@ Most render failures are one of these.
 
 Several roots still render, side by side, but the prompt asks for exactly one.
 
-**A list belongs in a container.** A list repeats its `component` once per
-item, so it needs a parent:
-
-```jsonl
-{"key":"rows","component":"ProductRow","each":"scopes.root.products","as":"product"}   ⚠️ as the root
-{"key":"card","component":"Card","children":["rows"]}                                  ✅ wrap it
-```
-
-A root list renders, but its rows sit loose at the top level.
-
-**Every list needs its own `as`.** A nested list that reuses its parent's `as`
-fails as `invalid-list`:
+**A list inside a list needs a new `as`.** A nested list that reuses its
+parent's `as` fails as `invalid-list`:
 
 ```jsonl
 {"key":"orders","each":"scopes.root.orders","as":"row", ...}
 {"key":"lines","each":"scopes.row.lines","as":"row", ...}   ❌ inside it, scopes.row already exists
 ```
+
+Lists side by side may share a name: an `invoices` list and a `quotes` list can
+each hold a list with `"as": "line"`.
 
 **`props`, `hidden`, `loading` and `each` cannot call host functions.** The call
 fails in the element's error slot. Host functions run in `seed` and

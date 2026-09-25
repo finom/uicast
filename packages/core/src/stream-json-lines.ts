@@ -1,6 +1,6 @@
 /**
  * Yields each line of a byte or text stream that parses as JSON. Skips blank and non-JSON lines: code fences, prose,
- * a cut-off last line. `T` is an assertion, not a check.
+ * a cut-off last line.
  *
  * @example
  * for await (const value of streamJsonLines(result.textStream)) {

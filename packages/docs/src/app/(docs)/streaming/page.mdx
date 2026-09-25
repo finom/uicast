@@ -52,10 +52,8 @@ return createTextStreamResponse({
 });
 ```
 
-`streamJsonLines<T>` yields every line that parses; `<T>` is an assertion, like
-`res.json() as T{:ts}`, not a check. `isComponentEntry` keeps non-entries out of the
-table: `key` and `component` must be strings, and `children`, if present, an
-array.
+`isComponentEntry` keeps non-entries out of the table: `key` and `component`
+must be strings, and `children`, if present, an array.
 
 ## The page
 
