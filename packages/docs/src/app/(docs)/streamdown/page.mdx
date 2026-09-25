@@ -14,7 +14,7 @@ Here's this month's revenue at a glance:
 The stat is live — it recomputes from the database on every view.
 ````
 
-[Streamdown](https://streamdown.ai/) (2.5+) renders Markdown as it streams and
+[Streamdown](https://streamdown.ai/) renders Markdown as it streams and
 lets a plugin claim a fence language. This plugin mounts `uicast` blocks as an
 [`<EntriesRenderer>`](/react/renderer) under your chat's `<RendererProvider>`.
 Every other fence stays highlighted code.
@@ -74,12 +74,13 @@ shares the `root` scope. The fence at the top of this page seeds
 {"key":"root","component":"Button","seed":[{"set":"scopes.root.orders","expr":"listOrders()"}],"props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.orders","expr":"listOrders()"}]}}
 ```
 
-Click Refresh and the `Stat` in the earlier block updates. Both fences use the
+Click Refresh and `stat` in the earlier block updates. Both fences use the
 key `root`: keys are per fence, only state is shared.
 
-**Every block seeds everything it reads**, even what an earlier block already
-seeded. Seeds are first-writer-wins, so the repeat writes nothing, and any block
-can be saved as a standalone page.
+**Every block seeds everything it reads.** The renderer does not enforce this;
+the [fence prompt](/prompt#getfencepartialprompt) tells the model to do it, even
+for a path an earlier block already seeded. Seeds are first-writer-wins, so the
+repeat writes nothing, and any block can be **saved as a standalone page**.
 
 **Blocks render after hydration**: a server-rendered chat page shows an empty
 fence until the browser takes over, unless [`ssr`](#ssr) is on.

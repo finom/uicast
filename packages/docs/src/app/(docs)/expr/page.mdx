@@ -23,7 +23,7 @@ Content-Security-Policy without `unsafe-eval` works.
 ```tsx
 import { Evaluator } from "@uicast/expr";
 
-const evaluator = new Evaluator({ functions });
+const evaluator = new Evaluator({ functions: tools });
 
 <RendererProvider evaluator={evaluator} /> // the React binding
 ```

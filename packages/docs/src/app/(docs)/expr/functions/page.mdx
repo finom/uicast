@@ -62,12 +62,12 @@ import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
 import type { StandardToolV0 } from "standard-tool";
 
-const inventoryFunctions: StandardToolV0[] = [
+const tools: StandardToolV0[] = [
   listProducts,
   createProduct,
   deleteProduct,
 ];
-const evaluator = new Evaluator({ functions: inventoryFunctions });
+const evaluator = new Evaluator({ functions: tools });
 
 <RendererProvider
   implementations={impls}

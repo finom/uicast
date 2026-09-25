@@ -154,7 +154,6 @@ function Generated({ prompt }: { prompt: string }) {
   const { data: entries = [] } = useQuery({
     queryKey: ["generate", prompt],
     enabled: prompt !== "",
-    staleTime: Number.POSITIVE_INFINITY,
     queryFn: streamedQuery({
       streamFn: async () => {
         const res = await fetch("/api/generate", {

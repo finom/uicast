@@ -11,7 +11,7 @@ Every expression in a document runs on the evaluator you pass to the renderer:
 ```tsx
 import { Evaluator } from "@uicast/expr";
 
-const evaluator = new Evaluator({ functions });
+const evaluator = new Evaluator({ functions: tools });
 
 <RendererProvider implementations={impls} evaluator={evaluator}>
   <EntriesRenderer entries={entries} />
@@ -43,7 +43,7 @@ export class FunctionEvaluator extends Evaluator {
   }
 }
 
-const evaluator = new FunctionEvaluator({ functions });
+const evaluator = new FunctionEvaluator({ functions: tools });
 ```
 
 **uicast** does not ship this class: copy it. `toFunction` runs once per

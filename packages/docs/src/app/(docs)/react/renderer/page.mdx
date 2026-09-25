@@ -12,8 +12,9 @@ as state changes. It also renders on the server: see
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
+import { tools } from "@/tools";
 
-const evaluator = new Evaluator({ functions: hostFunctions });
+const evaluator = new Evaluator({ functions: tools });
 const entries = [
   { key: "hello", component: "Typography", props: { literal: { text: "Hello" } } },
 ];
@@ -215,7 +216,7 @@ outside render: it holds the parse cache.
 import { Evaluator } from "@uicast/expr";
 
 const evaluator = new Evaluator({
-  functions: hostFunctions,    // see Host functions
+  functions: tools,            // see Host functions
   maxSourceLength: 1000,       // the default; tell the prompt the same number
   budget: { steps: 200_000 },  // optional ceilings
 });

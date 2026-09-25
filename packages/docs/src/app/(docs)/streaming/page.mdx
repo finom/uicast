@@ -27,9 +27,6 @@ export async function POST(req: Request) {
 }
 ```
 
-A generation can run for minutes. If your host limits how long a handler runs,
-raise the limit.
-
 ### Persisting as it streams
 
 To keep a page, read the stream on the way through and store each entry as its
@@ -77,33 +74,36 @@ import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 
-const evaluator = new Evaluator({ functions: hostFunctions });
-
-const { data: entries = [], isFetching } = useQuery({
-  queryKey: ["generate", prompt],
-  queryFn: streamedQuery({
-    streamFn: async ({ signal }) => {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt }),
-        signal,
-      });
-      if (!res.ok || !res.body) throw new Error(`Generation failed (${res.status})`);
-      return streamJsonLines<ComponentEntry>(res.body);
-    },
-  }),
-});
-
+const evaluator = new Evaluator({ functions: tools });
 const fallbackComponents = { defaultSkeleton: () => <Skeleton className="h-6 w-24" /> };
 
-<RendererProvider implementations={impls} evaluator={evaluator} fallbackComponents={fallbackComponents}>
-  <EntriesRenderer entries={entries} />
-</RendererProvider>;
+function Generated({ prompt }: { prompt: string }) {
+  const { data: entries = [], isFetching } = useQuery({
+    queryKey: ["generate", prompt],
+    queryFn: streamedQuery({
+      streamFn: async () => {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ prompt }),
+        });
+        if (!res.ok || !res.body) throw new Error(`Generation failed (${res.status})`);
+        return streamJsonLines<ComponentEntry>(res.body);
+      },
+    }),
+  });
+
+  return (
+    <RendererProvider implementations={impls} evaluator={evaluator} fallbackComponents={fallbackComponents}>
+      {isFetching && <p>Generating…</p>}
+      <EntriesRenderer entries={entries} />
+    </RendererProvider>
+  );
+}
 ```
 
-`data` holds the entries received so far. `isFetching` stays `true` until the
-stream ends, so use it for the spinner.
+`entries` holds the entries received so far. `isFetching` stays `true` until the
+stream ends.
 
 ## The half-arrived tree
 
@@ -113,16 +113,16 @@ stream ends, so use it for the spinner.
 {"key":"panel","component":"Card","props":{"literal":{"title":"Orders"}},"seed":[{"set":"scopes.root.open","expr":"countOpen()"}],"children":["stat"]}
 ```
 
-While `countOpen(){:ts}` runs, the panel draws its [`skeleton`](/react#skeleton).
-Then the Card shows its "Orders" title, with the Card's skeleton standing in for
-`stat`: without one, `fallbackComponents.defaultSkeleton`, or nothing. The next
-line lands:
+While `countOpen(){:ts}` runs, `panel` draws its implementation's
+[`skeleton`](/react#skeleton). Then `panel` renders with its "Orders" title, and
+the same skeleton holds the slot for `stat`. With no skeleton,
+`fallbackComponents.defaultSkeleton` does, or nothing. The next line lands:
 
 ```jsonl
 {"key":"stat","component":"Stat","props":{"expr":"({ label: 'Open', value: scopes.root.open })"}}
 ```
 
-The Stat replaces the skeleton, and `countOpen(){:ts}` does not run again: a
+`stat` replaces the skeleton, and `countOpen(){:ts}` does not run again: a
 [`seed`](/entry#seed) runs once. The tree is revealed, not rebuilt, and a
 document cut off at any line is still a valid document.
 
