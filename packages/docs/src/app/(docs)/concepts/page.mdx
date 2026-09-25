@@ -69,8 +69,8 @@ element reads every scope around it. In a list inside a list, it reads them all:
   "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
 
-So every `as` name must be unique: a repeated name hides the outer scope. See
-[State &amp; Scopes](/entry/state).
+So every `as` must be a new name: a list that reuses the name of a scope around
+it fails. See [State &amp; Scopes](/entry/state).
 
 ### Editing a row updates the total
 
@@ -169,11 +169,11 @@ give it a parent:
 A root list renders, but its rows sit loose at the top level.
 
 **Give every list its own `as`.** The prompt asks for it, and a nested list that
-reuses its parent's `as` hides the parent's item:
+reuses its parent's `as` fails as `invalid-list`:
 
 ```jsonl
 {"key":"orders","each":"scopes.root.orders","as":"row", ...}
-{"key":"lines","each":"scopes.row.lines","as":"row", ...}   ❌ inside it, scopes.row is the line, not the order
+{"key":"lines","each":"scopes.row.lines","as":"row", ...}   ❌ inside it, scopes.row already exists
 ```
 
 **Reactive expressions are synchronous.** `props`, `hidden`, `loading` and `each` cannot

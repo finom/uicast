@@ -41,7 +41,7 @@ class EntryError extends Error {
 | `unknown-reference` | an unregistered function, global, or scope path | `document` |
 | `invalid-entry` | a field has the wrong type, like a `seed` that is not an array | `document` |
 | `unknown-component` | the `component` name has no implementation | `document` |
-| `invalid-list` | `each` didn't evaluate to an array | `document` |
+| `invalid-list` | `each` didn't evaluate to an array, or `as` names a scope that already exists | `document` |
 | `invalid-props` | the evaluated props **fail** the def's schema, before render runs | `document` |
 | `invalid-arguments` | a host function rejected the document's arguments | `document` |
 | `host-function` | a host function threw or rejected | `environment` |

@@ -23,7 +23,7 @@ root.$$emitter.on("user", () => { /* … */ });   // subscribe to a field
 root.count = 1;                             // write — emits "count"
 root.$$set("user", { name: "Ada" });         // the same, as a call
 root.$$set("count", 0, { default: true });   // no-op — writes only if unset
-root.user.name = "Hopper";                  // ❌ a plain write into plain data — nobody hears it
+root.user.name = "Hopper";                  // ⚠️ a plain write into plain data — nobody hears it
 ```
 
 A write replaces one field and emits it. There is no deep write: to change part
@@ -70,12 +70,17 @@ are never stored on the item, and a copy of the row, such as
 **A write goes into the array.** `set: "scopes.order.status"{:ts}` changes that
 element inside `scopes.root.orders` and wakes everything reading the array.
 
-**Scopes stack**, so names must be globally unique. A reused name does not
-error; it silently shadows:
+So a row can write only when its item sits in an array in scope. When `each`
+builds new objects, as `orders.map(o => ({ ...o, total })){:ts}` does, the
+write fails as `unknown-reference`. A row of primitives cannot be written.
+
+**Scopes stack**, so a list's `as` must be a new name: not `root`, and not the
+`as` of a list it sits inside. A reused name fails as `invalid-list` in the
+list's [error slot](/error-recovery). Lists side by side do not stack, so they
+may share a name.
 
 ```jsonc
-// ❌ the inner `as` overwrites the outer. Inside a line, `scopes.item` IS the
-//   line, and the order it belongs to is unreachable.
+// ❌ invalid-list: inside an order, "scopes.item" already exists
 { "key": "orders", "component": "Card", "each": "scopes.root.orders", "as": "item", "children": ["lines"] }
 { "key": "lines", "component": "Typography", "each": "scopes.item.lines", "as": "item",
   "props": { "expr": "({ text: scopes.item.sku })" } }
@@ -85,12 +90,6 @@ error; it silently shadows:
 { "key": "lines", "component": "Typography", "each": "scopes.order.lines", "as": "line",
   "props": { "expr": "({ text: scopes.order.id + ' / ' + scopes.line.sku })" } }
 ```
-
-A row cannot write when its `each` built new objects
-(`orders.map(o => ({ ...o, total })){:ts}`): the element is in no scope field, so the
-write is refused as `unknown-reference`. Keep `each` on the data, or a `filter`
-/ `toSorted` of it, and derive in `props`. A row of primitives cannot be written
-at all; replace the array.
 
 ## Per-row state
 

@@ -5,13 +5,13 @@ describing one element. The engine mounts entries into a tree by key reference.
 The dynamic fields are JavaScript [expressions](/expr) over the document's
 [scopes](/entry/state).
 
-Every field but `loading`, used once:
+Every field, used once:
 
 ```jsonl
-{"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"children":["task-rows","empty-note","refresh"]}
+{"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"loading":"scopes.root.busy","children":["task-rows","empty-note","refresh"]}
 {"key":"task-rows","component":"Typography","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
 {"key":"empty-note","component":"Typography","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"text":"No tasks yet"}}}
-{"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.tasks","expr":"listTasks()"}]}}
+{"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.busy","literal":true},{"set":"scopes.root.tasks","expr":"listTasks()"},{"set":"scopes.root.busy","literal":false}]}}
 ```
 
 `task-card` is the root: no `children` array mentions it.
@@ -56,7 +56,8 @@ An unknown name renders the element's [error slot](/error-recovery); the rest of
 the document is unaffected.
 
 ### `children`
-The child `key`s, in render order. Absent or empty means a leaf:
+The keys of the entries inside this one, in the order they render. An entry
+with nothing inside has no `children`:
 
 ```jsonl
 {"key":"row","component":"FlexRow","children":["name","email"]}
@@ -87,15 +88,9 @@ element's error slot, before render.
 A bare [expression](/expr), with no `literal` form, that hides the element while
 truthy. Reactive, like `props`.
 
-```jsonl
-{ "key": "details-switch", "component": "Switch",
-  "seed": [{ "set": "scopes.root.showDetails", "literal": false }],
-  "props": { "expr": "({ checked: scopes.root.showDetails, label: 'Details' })" },
-  "callbacks": { "onChange": [{ "set": "scopes.root.showDetails", "expr": "evt.checked" }] } }
-{ "key": "details-note", "component": "Textarea", "hidden": "!scopes.root.showDetails",
-  "seed": [{ "set": "scopes.root.draft", "literal": "" }],
-  "props": { "expr": "({ value: scopes.root.draft })" },
-  "callbacks": { "onChange": [{ "set": "scopes.root.draft", "expr": "evt.value" }] } }
+```jsonc
+{ "key": "details", "component": "Typography", "hidden": "!scopes.root.showDetails",
+  "props": { "literal": { "text": "Ships in 2 days." } } }
 ```
 
 `hidden` does not unmount: it hides the subtree inside React's
@@ -130,8 +125,8 @@ An array of [assignments](/entry/value-sources#valuesourceassignment) that
 { "seed": [{ "set": "scopes.root.users", "expr": "getUsers()" }] }
 ```
 
-- **Runs once, on success.** Re-renders and partial replacement do not re-run
-  it. A failed seed never landed, so a corrected re-emission seeds normally.
+- **Writes only undefined fields.** A step skips its write when its `set` field
+  already holds a value, so a seed never overwrites state.
 - **Seed state, not derivations.** Seed values that change later: form fields,
   selections, fetched lists. Compute derived values in `props`, `hidden` or
   `each`; a seed would freeze them at mount time.
@@ -180,8 +175,9 @@ debounced.
   } }
   ```
 
-  The delete step has no `set`, so it runs only for its effect. Answering No
-  skips it and every step after.
+  Answering No skips the confirmed step and every step after it. Any step can
+  have `confirm`, with or without `set`. This delete has no `set` because it runs
+  only for its effect.
 
 ## List fields
 
@@ -208,6 +204,16 @@ write to a path it reads re-runs the list.
 { "each": "scopes.root.orders.filter(o => o.status === 'open')" }  // derived — still re-runs on every write to orders
 ```
 
+Lists nest, one entry per level. A list inside another list repeats for each
+outer item, and its `each` can read that item:
+
+```jsonl
+{"key":"order-card","component":"Card","each":"scopes.root.orders","as":"order","keyBy":"id","props":{"expr":"({ title: 'Order ' + scopes.order.id })"},"children":["line-row"]}
+{"key":"line-row","component":"Typography","each":"scopes.order.lines","as":"line","keyBy":"sku","props":{"expr":"({ text: scopes.line.qty + ' × ' + scopes.line.sku })"}}
+```
+
+Each card lists the lines of its own order.
+
 An `each` that evaluates to `undefined` renders zero rows, not an error.
 
 ### `as`
@@ -216,13 +222,14 @@ the item itself, plus `$$index` and `$$id` (from [`keyBy`](#keyby)); a
 primitive item is read as `$$value`. See
 [State &amp; Scopes](/entry/state#item-scopes).
 
-Scope names are one flat namespace, so `as` **must be globally unique**. Reused
-in a nested list, the inner one hides the outer:
+`as` **must be a new scope name**: not `root`, and not the `as` of a list this
+one sits inside. A reused name fails as `invalid-list` in the list's
+[error slot](/error-recovery):
 
 ```jsonc
 { "key": "order-row", "each": "scopes.root.orders", "as": "row", "children": ["line-item"] }
 { "key": "line-item", "each": "scopes.row.lines", "as": "row" }
-// ❌ inside line-item, scopes.row is the line — the order it belongs to is unreachable
+// ❌ invalid-list: inside order-row, scopes.row already exists
 ```
 
 ### `keyBy`

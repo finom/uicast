@@ -32,7 +32,6 @@ is rejected. Edit a row through its scope, or replace the array
 { "set": "scopes.root.count", "literal": 0 }
 { "set": "scopes.root.itemCount", "expr": "scopes.cart.items.length" }
 { "set": "scopes.root.count", "expr": "currentValue + 1" }  // read-modify-write
-{ "set": "scopes.root.open", "expr": "!currentValue" }      // unset → undefined → true
 ```
 
 **`currentValue`** is the value now at the `set` path, the one about to be
