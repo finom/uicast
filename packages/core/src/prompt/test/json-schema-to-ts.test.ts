@@ -195,6 +195,9 @@ describe("jsonSchemaToTs — constraints", () => {
         description: "Rows to return.",
       }),
     ).toBe("number /* Rows to return. integer, ≥ 1, ≤ 200, default 50 */");
+    expect(jsonSchemaToTs({ type: "integer", minimum: 1, default: 1, description: "1-based page number" })).toBe(
+      "number /* 1-based page number; integer, ≥ 1, default 1 */",
+    );
     expect(jsonSchemaToTs({ type: "number", exclusiveMinimum: 0, multipleOf: 5 })).toBe(
       "number /* > 0, multiple of 5 */",
     );

@@ -34,7 +34,9 @@ const annotation = (jsonSchema: unknown): string => {
   if (jsonSchema === null || typeof jsonSchema !== "object") return "";
   const schema = jsonSchema as JSONSchema;
   const description = typeof schema.description === "string" ? schema.description.replace(/\s+/g, " ").trim() : "";
-  return [description, constraints(schema).join(", ")].filter(Boolean).join(" ").replace(/\*\//g, "*");
+  // Marks where the description ends, unless its own punctuation already does.
+  const separator = /[.!?;:]$/.test(description) ? " " : "; ";
+  return [description, constraints(schema).join(", ")].filter(Boolean).join(separator).replace(/\*\//g, "*");
 };
 
 // A bare `.int()` stamps ±MAX_SAFE_INTEGER, which is no constraint.
