@@ -7,14 +7,15 @@ import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
-import { MessageSquare } from "lucide-react";
+import { Code, MessageSquare } from "lucide-react";
 import { useEffect } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { RendererProvider } from "@uicast/react";
 import { type Usage, UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
-import { createFenceRenderer } from "@uicast/streamdown";
+import { Toggle } from "@uicast/shadcn-catalog/ui/toggle";
+import { createFenceRenderer, type SourceToggleProps } from "@uicast/streamdown";
 import {
   Conversation,
   ConversationContent,
@@ -27,8 +28,16 @@ import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
 
+function SourceToggle({ showSource, onShowSourceChange }: SourceToggleProps) {
+  return (
+    <Toggle size="sm" className="mb-1 ml-auto flex" pressed={showSource} onPressedChange={onShowSourceChange}>
+      <Code /> Source
+    </Toggle>
+  );
+}
+
 // Module scope: a new component identity per render would remount every UI block.
-const uicastRenderer = createFenceRenderer({ showSourceToggle: true });
+const uicastRenderer = createFenceRenderer({ sourceToggle: SourceToggle });
 
 // Passing `plugins` replaces the default set, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
