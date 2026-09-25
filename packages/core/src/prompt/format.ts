@@ -1,8 +1,7 @@
-import type { JSONSchema } from "./json-schema-to-ts";
+import type { JSONSchema } from "../json-schema";
 
 // The prompt's convention: a type, then ` — description`.
-export const dashTail = (description: string | undefined): string =>
-	description ? ` — ${description}` : "";
+export const dashTail = (description: string | undefined): string => (description ? ` — ${description}` : "");
 
 // Drops one pair of parentheses around the whole type: `(A & B)` → `A & B`, but `(A) | (B)` stays.
 export const unwrapParens = (ts: string): string => {
@@ -20,3 +19,9 @@ export const stripRootAnnotations = (jsonSchema: unknown): unknown =>
 	jsonSchema !== null && typeof jsonSchema === "object"
 		? { ...(jsonSchema as JSONSchema), description: undefined, default: undefined }
 		: jsonSchema;
+
+export const noteSection = (note: string | undefined): string => (note?.trim() ? `## Note\n\n${note.trim()}` : "");
+
+// A partial's sections, blank-line separated; empty ones drop out.
+export const joinSections = (...sections: (string | false | null | undefined)[]): string =>
+	sections.filter(Boolean).join("\n\n");

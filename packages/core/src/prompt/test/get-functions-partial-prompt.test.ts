@@ -18,7 +18,7 @@ describe("getFunctionsPartialPrompt", () => {
 			execute: async () => undefined,
 		});
 		expect(getFunctionsPartialPrompt({ functions: [ping] })).toBe(
-			"# Available Functions\n\nping\n\n# Function Details\n\n- ping() => unknown: Liveness check.",
+			"# Available Functions\n\nping\n\n## Function Details\n\n- ping() => unknown: Liveness check.",
 		);
 	});
 
@@ -133,13 +133,13 @@ describe("getFunctionsPartialPrompt", () => {
 				"",
 				"getOwner",
 				"",
-				"# Function Details",
+				"## Function Details",
 				"",
 				"- getOwner() => {",
 				"    owner: Person;",
 				"  }: Who owns it.",
 				"",
-				"# Shared Types",
+				"## Shared Types",
 				"",
 				"- Person: { id: string; name?: string }",
 			].join("\n"),

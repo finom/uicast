@@ -313,6 +313,15 @@ describe("jsonSchemaToTs — $ref resolution", () => {
 		).toBe("{ root: { label: string; children?: unknown[] } }");
 	});
 
+	it("resolves `#` to the document root, once", () => {
+		expect(
+			jsonSchemaToTs({
+				type: "object",
+				properties: { name: { type: "string" }, kids: { type: "array", items: { $ref: "#" } } },
+			}),
+		).toBe("{ name?: string; kids?: { name?: string; kids?: unknown[] }[] }");
+	});
+
 	it("renders an unresolvable / non-local $ref as unknown", () => {
 		expect(jsonSchemaToTs({ $ref: "#/$defs/Missing" })).toBe("unknown");
 		expect(jsonSchemaToTs({ $ref: "https://example.com/s.json" })).toBe(

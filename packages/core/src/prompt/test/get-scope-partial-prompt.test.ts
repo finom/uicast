@@ -18,14 +18,14 @@ describe("getScopePartialPrompt", () => {
 
 	it("omits the size anchor and note by default", () => {
 		const out = getScopePartialPrompt({ kind: "page" });
-		expect(out).not.toContain("elements (JSONL lines)");
+		expect(out).not.toContain("entries (JSONL lines)");
 		expect(out).not.toContain("not a quota");
 	});
 
-	it("renders approxElements as a hint, not a quota", () => {
-		const out = getScopePartialPrompt({ kind: "answer", approxElements: 10 });
+	it("renders approxEntries as a hint, not a quota", () => {
+		const out = getScopePartialPrompt({ kind: "answer", approxEntries: 10 });
 		expect(out).toContain(
-			"around 10 elements (JSONL lines) — treat this as a hint about ambition, not a quota",
+			"around 10 entries (JSONL lines) — treat this as a hint about ambition, not a quota",
 		);
 	});
 
@@ -40,7 +40,7 @@ describe("getScopePartialPrompt", () => {
 	});
 
 	it("has no leading or trailing blank lines (composes via join)", () => {
-		const out = getScopePartialPrompt({ kind: "page", approxElements: 40 });
+		const out = getScopePartialPrompt({ kind: "page", approxEntries: 40 });
 		expect(out).toBe(out.trim());
 	});
 });

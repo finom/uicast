@@ -1,16 +1,14 @@
 // No semver guarantee.
 
-export { evaluate } from "./expr/evaluate";
-export { extractDeps, type DepsPart } from "./expr/extract-deps";
-export { planStepWaves } from "./expr/plan-step-waves";
-export { parseScope } from "./scope/parse-scope";
-export { createRowScope, getForwardTargets, type RowScope } from "./scope/create-proxy-scope";
-export { specToJSONSchema } from "./prompt-utils/spec-to-json-schema";
-export type { JSONSchema } from "./prompt-utils/json-schema-to-ts";
-export { findEntrySetAddressFault, parseSetAddress, setAddressError } from "./scope/parse-set-address";
-export { entryShapeError } from "./entry-shape";
-
 export { CALLBACK_DEBOUNCE_MS } from "./constants";
+export { entryShapeError } from "./entry-shape";
+export { evaluate } from "./expr/evaluate";
+export { type DepsPart, extractDeps } from "./expr/extract-deps";
+export { planStepWaves } from "./expr/plan-step-waves";
+export { type JSONSchema, specToJSONSchema } from "./json-schema";
+export { noteSection } from "./prompt/format";
+export { createRowScope, getForwardTargets, type RowScope } from "./scope/create-proxy-scope";
+export { parseScope } from "./scope/parse-scope";
+export { entrySetAddressError, parseSetAddress } from "./scope/parse-set-address";
 export { isComponentListEntry } from "./types";
-export { findUrlViolations, schemaHasUrlFormat } from "./security/url-policy";
-export { noteSection } from "./prompt/note-section";
+export { findUrlViolations, schemaHasUrlFormat } from "./url-policy";

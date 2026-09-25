@@ -18,8 +18,7 @@
       "@uicast/expr": ["../expr/src/index.ts"],
       "@uicast/expr/internal": ["../expr/src/internal.ts"],
       "@uicast/core/prompt": ["./src/prompt/index.ts"]
-    },
-    "experimentalDecorators": true
+    }
   },
   "include": [
     "**/*.ts",

@@ -8,21 +8,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
-- `getComponentsPartialPrompt({ urlPolicy })`: with a URL prop listed, a `# URL Props` section says which URLs the renderer loads, from the same policy (its defaults when omitted). A predicate prints nothing; describe it in `note`.
+- `getComponentsPartialPrompt({ urlPolicy })`: with a URL prop listed, a `## URL Props` section says which URLs the renderer loads, from the same policy (its defaults when omitted). A predicate prints nothing; describe it in `note`.
 - **`budget-exceeded` reason.** An expression that ran past its step, time or allocation budget was reported as `guardrail-violation`; it has its own reason now, fault `document`.
 - **`invalid-entry` reason**, fault `document`: a field of the line has the wrong type — a `seed` that is not an array of steps, a callback that is not one, `hidden` written as `{ "expr": … }`, a list without `as`. `entryShapeError` in `@uicast/core/internal` checks every field but `key` and `component` and names the wrong one. `isComponentEntry` still checks only what the element table needs, so such a line reaches the renderer and is classified there.
 
 ### Changed
 
+- The components and functions blocks each have one `#` heading, `# Available Components` and `# Available Functions`. Their other sections are `##`: `## Component Details`, `## Common Events`, `## Function Details`, `## Shared Types`, `## URL Props`.
+- The prompt says **entry** for a line the model writes, **element** for what mounts from it, and **step** for one item of a `seed` or a callback. The recovery message starts each line with ``Entry `<key>`:``, and the scope hint reads "around N entries (JSONL lines)".
 - The prompt says a seed only reads: a function that changes data (create, update, delete) goes in a callback, since a seed runs every time its element mounts.
 - **`EntryErrorReason` includes the evaluator's `ExpressionErrorReason`.** A reason from `@uicast/expr` passes through unchanged; nothing maps one onto the other.
-- `@uicast/core/internal` drops `depKey`, `findSetAddressFault`, `SetAddressFault`, `checkUrl`, `UrlCheck`, `UrlViolation` and `ForwardTarget`; nothing outside core used them.
+- `@uicast/core/internal` drops `depKey`, `findSetAddressFault`, `SetAddressFault`, `checkUrl`, `UrlCheck`, `UrlViolation` and `ForwardTarget`; nothing outside core used them. `findEntrySetAddressFault` and `setAddressError` are one call, `entrySetAddressError(entry)`, which returns the first bad `set` as its error.
+- No runtime dependencies: the Standard Schema and `StandardToolV0` types come from `@uicast/expr`, the peer dependency, instead of `@standard-schema/spec` and `standard-tool`.
 - `$$emitter.on` handlers take no argument; nothing read the `{ field, value, oldValue }` payload.
 - `ReactiveProxy` defaults to `Record<string, unknown>`, so `scopes.root.x` reads and writes type-check in `init` without a cast.
 - `extractDeps` requires its `part` argument.
 
 - **Breaking: a scope's `$set` and `$emitter` are `$$set` and `$$emitter`,** matching the item scope's `$$index`, `$$id` and `$$value`: every name the runtime owns on a scope starts with `$$`.
 - **Breaking: the public entry is only what a host writes against.** `checkUrl`, `findUrlViolations`, `schemaHasUrlFormat`, `UrlCheck`, `UrlViolation`, `isComponentListEntry` and `CALLBACK_DEBOUNCE_MS` moved to `@uicast/core/internal`. `UrlPolicy` stays public — a host declares it. The index is the document format, the definition factory, the scope and stream helpers, and `EntryError`.
+- **Breaking: `getScopePartialPrompt`'s `approxElements` is `approxEntries`,** the word the prompt uses for a line.
 - **A scope is one shallow proxy; a `set` names one field.** `createProxyScope` no longer wraps nested objects: everything under a field is plain data, a write replaces the field and emits it, and `$$set(field, value)` takes a field, not a path. Subscriptions are per field — a write to `scopes.root.user` wakes a reader of `scopes.root.user.name` — so `extractDeps` returns `scopes.<scope>.<field>` keys and `planStepWaves` compares them. The `set` address grammar is `scopes.<scope>.<field>`, checked by `parseSetAddress` / `findEntrySetAddressFault` (replacing `validate-set-path`); anything deeper, a number, a missing `scopes.` prefix, a prototype name or one of the runtime's row fields is a `guardrail-violation` at mount.
 - **Row scopes are windows onto array elements.** `createRowScope` (internal) reads the element's own fields plus `$$index`, `$$id` and, for a primitive element, `$$value`. Those three are computed on read and never enumerated: a spread, `Object.keys` or host-function argument made from a row holds only the element's fields. A write changes the element in place and emits on every scope field that holds it, found by identity, so nested lists and two lists over one array stay consistent. A row whose element is in no scope field (`each` built new objects, or the row was removed) refuses the write as `unknown-reference`. `childScopes` is gone.
 - The prompt's host-call examples pass the data field (`scopes.row.id`). `$$id` keys per-row UI maps; it is the `keyBy` value, or the index without `keyBy`.
@@ -53,6 +57,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **A component whose props are not one object showed the model no props.** A union, an intersection (`.and()`) or a record printed no `Props:`; it prints as one type now (`Props: { kind: "circle"; radius: number } | { kind: "square"; side: number }`), and a root `$ref` lists the fields of the object it names.
 - `getComponentsPartialPrompt` with no visible definition and `getFunctionsPartialPrompt` with no function printed their headings over nothing. They print only the `note`, if there is one.
 - `createComponentDefinition` refuses a `children` field in every branch of union or intersection props and payloads, not only in a plain object.
+- A prop type with a root self-reference (`$ref: "#"`) prints the root's fields one level down in the prompt, instead of `unknown`.
 
 ### Added
 

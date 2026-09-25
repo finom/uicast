@@ -1,6 +1,6 @@
 import { ALLOWED_GLOBALS, DEFAULT_MAX_SOURCE_LENGTH } from "@uicast/expr/internal";
+import { joinSections, noteSection } from "./format";
 import EXPRESSIONS from "./md/EXPRESSIONS.json" with { type: "json" };
-import { noteSection } from "./note-section";
 
 export type ExpressionsPromptOptions = {
 	// The evaluator's `maxSourceLength`. Default 1000.
@@ -14,8 +14,6 @@ export function getExpressionsPartialPrompt({
 	maxLength = DEFAULT_MAX_SOURCE_LENGTH,
 	note,
 }: ExpressionsPromptOptions = {}): string {
-	const language = EXPRESSIONS.replace("🔴ALLOWED_GLOBALS🔴", ALLOWED_GLOBALS.join(", "))
-		.replace("🔴MAX_LENGTH🔴", String(maxLength))
-		.trim();
-	return [language, noteSection(note)].filter(Boolean).join("\n\n");
+	const language = EXPRESSIONS.replace("🔴ALLOWED_GLOBALS🔴", ALLOWED_GLOBALS.join(", ")).replace("🔴MAX_LENGTH🔴", String(maxLength));
+	return joinSections(language.trim(), noteSection(note));
 }

@@ -1,6 +1,5 @@
-import { isSchemaObject, type JSONSchema, resolveRef } from "../prompt-utils/json-schema-to-ts";
-import { specToJSONSchema } from "../prompt-utils/spec-to-json-schema";
-import type { CombinedSpec, ComponentDefinition } from "../types";
+import { isSchemaObject, type JSONSchema, resolvePointer, specToJSONSchema } from "./json-schema";
+import type { CombinedSpec, ComponentDefinition } from "./types";
 
 type EmptyProps = Record<string, never>;
 
@@ -42,7 +41,7 @@ const propertyNames = (spec: CombinedSpec): string[] => {
     if (!isSchemaObject(node) || seen.has(node)) continue;
     seen.add(node);
     for (const name of Object.keys(node.properties ?? {})) names.add(name);
-    if (typeof node.$ref === "string") stack.push(resolveRef(node.$ref, schema));
+    if (typeof node.$ref === "string") stack.push(resolvePointer(node.$ref, schema));
     stack.push(...(node.anyOf ?? []), ...(node.oneOf ?? []), ...(node.allOf ?? []));
   }
   return [...names];

@@ -1,4 +1,4 @@
-import { isSchemaObject, type JSONSchema } from "../prompt-utils/json-schema-to-ts";
+import { isSchemaObject, type JSONSchema, resolvePointer } from "./json-schema";
 
 // An `<img src>` fetches on render, so the destination is checked, not the string that built it.
 
@@ -151,19 +151,6 @@ const URL_FORMATS = new Set(["uri", "url", "uri-reference", "iri", "iri-referenc
 const hasUrlFormat = (node: object): boolean => {
 	const format: unknown = Object.hasOwn(node, "format") ? Reflect.get(node, "format") : undefined;
 	return typeof format === "string" && URL_FORMATS.has(format);
-};
-
-// `#` is the document itself. Own keys only, so a pointer never lands on a prototype member.
-const resolvePointer = (ref: string, root: JSONSchema): unknown => {
-	if (ref === "#") return root;
-	if (!ref.startsWith("#/")) return undefined;
-	let node: unknown = root;
-	for (const segment of ref.slice(2).split("/")) {
-		const key = segment.replace(/~1/g, "/").replace(/~0/g, "~");
-		if (typeof node !== "object" || node === null || !Object.hasOwn(node, key)) return undefined;
-		node = Reflect.get(node, key);
-	}
-	return node;
 };
 
 // What a walk learns about a schema's nodes, kept per document: a `$ref` resolves against the document it sits in.

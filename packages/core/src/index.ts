@@ -1,27 +1,17 @@
-export { createComponentDefinition } from "./def/create-component-definition";
-
-export {
-  EntryError,
-  type EntryErrorReason,
-  type EntryFault,
-} from "./entry-error";
-
+export type { ExpressionEvaluator } from "@uicast/expr";
+export { buildElementsByKey } from "./build-elements-by-key";
+export { createComponentDefinition } from "./create-component-definition";
+export { EntryError, type EntryErrorReason, type EntryFault } from "./entry-error";
 export { createProxyScope, type ReactiveProxy } from "./scope/create-proxy-scope";
-
-export { buildElementsByKey } from "./utils/build-elements-by-key";
-
-export type { UrlPolicy } from "./security/url-policy";
-
-export { streamJsonLines } from "./stream/stream-json-lines";
-
+export { streamJsonLines } from "./stream-json-lines";
 export {
+  type CallbackValueSourceAssignment,
+  type CombinedSpec,
+  type ComponentDefinition,
   type ComponentEntry,
   type ComponentListEntry,
-  type ComponentDefinition,
-  type CombinedSpec,
+  isComponentEntry,
   type ValueSource,
   type ValueSourceAssignment,
-  type CallbackValueSourceAssignment,
-  isComponentEntry,
 } from "./types";
-export type { ExpressionEvaluator } from "@uicast/expr";
+export type { UrlPolicy } from "./url-policy";

@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	findEntrySetAddressFault,
-	findSetAddressFault,
-	parseSetAddress,
-	setAddressError,
-} from "../parse-set-address";
+import { entrySetAddressError, findSetAddressFault, parseSetAddress, setAddressError } from "../parse-set-address";
 
 describe("findSetAddressFault", () => {
 	it("accepts scopes.<scope>.<field>", () => {
@@ -73,16 +68,17 @@ describe("setAddressError", () => {
 	});
 });
 
-describe("findEntrySetAddressFault", () => {
+describe("entrySetAddressError", () => {
 	it("scans seed and every callback, skipping effect-only steps", () => {
-		expect(
-			findEntrySetAddressFault({
-				seed: [{ set: "scopes.root.a", literal: 1 }],
-				callbacks: {
-					onClick: [{ expr: "save()" }, { set: "scopes.root.rows.0", literal: 1 }],
-				},
-			}),
-		).toEqual({ set: "scopes.root.rows.0", fault: { kind: "shape" } });
-		expect(findEntrySetAddressFault({ seed: [{ set: "scopes.root.a", literal: 1 }] })).toBeNull();
+		const error = entrySetAddressError({
+			key: "card",
+			seed: [{ set: "scopes.root.a", literal: 1 }],
+			callbacks: {
+				onClick: [{ expr: "save()" }, { set: "scopes.root.rows.0", literal: 1 }],
+			},
+		});
+		expect(error).toMatchObject({ reason: "guardrail-violation", elementKey: "card" });
+		expect(error?.message).toContain('"scopes.root.rows.0" is not an address');
+		expect(entrySetAddressError({ key: "card", seed: [{ set: "scopes.root.a", literal: 1 }] })).toBeNull();
 	});
 });

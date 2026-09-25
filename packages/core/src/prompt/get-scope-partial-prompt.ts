@@ -1,10 +1,10 @@
-import { noteSection } from "./note-section";
+import { joinSections, noteSection } from "./format";
 
 export type ScopePromptOptions = {
 	// `"page"` a complete page; `"widget"` one embedded widget; `"answer"` a compact conversational answer.
 	kind: "page" | "widget" | "answer";
-	// Soft size anchor, rendered as a hint ("around N elements"), not a quota.
-	approxElements?: number;
+	// Soft size anchor, rendered as a hint ("around N entries"), not a quota.
+	approxEntries?: number;
 	// Host-specific context, appended as this section's trailing `## Note`.
 	note?: string;
 };
@@ -19,26 +19,19 @@ const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
 	widget: `Generate a **single, self-contained widget** — one focused piece of UI meant to be embedded into a host layout, not a full page.
 
 - Build exactly the widget the request names, complete and functional: bind real data via host functions and wire its interactions.
-- No page chrome: no page headers, navigation, or sections beyond the widget itself. Keep the element tree as small as the widget allows.`,
+- No page chrome: no page headers, navigation, or sections beyond the widget itself. Keep the tree as small as the widget allows.`,
 	answer: `You are answering a question inside a conversation. Produce a **compact, self-contained piece of UI that fully answers it** — typically a stat, a chart, a table, or a small combination — not a full page.
 
-- Use the fewest elements that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
+- Use the fewest entries that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
 - Bind real data via host functions — the answer must show actual values, not placeholders.`,
 };
 
-export function getScopePartialPrompt({
-	kind,
-	approxElements,
-	note,
-}: ScopePromptOptions): string {
-	return [
+export function getScopePartialPrompt({ kind, approxEntries, note }: ScopePromptOptions): string {
+	return joinSections(
 		"# Scope",
 		KIND_SECTIONS[kind],
-		approxElements !== undefined
-			? `A typical response on this surface is around ${approxElements} elements (JSONL lines) — treat this as a hint about ambition, not a quota.`
-			: "",
+		approxEntries !== undefined &&
+			`A typical response on this surface is around ${approxEntries} entries (JSONL lines) — treat this as a hint about ambition, not a quota.`,
 		noteSection(note),
-	]
-		.filter(Boolean)
-		.join("\n\n");
+	);
 }

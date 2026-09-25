@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import type { CombinedSpec } from "../../types";
+import type { CombinedSpec } from "../types";
 import { createComponentDefinition } from "../create-component-definition";
 
 describe("createComponentDefinition — the reserved `children` name", () => {

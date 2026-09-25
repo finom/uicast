@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ComponentEntry } from "../../types";
+import type { ComponentEntry } from "../types";
 import { buildElementsByKey } from "../build-elements-by-key";
 
 const e = (key: string, children?: string[]): ComponentEntry => ({

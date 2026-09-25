@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
-import { createComponentDefinition } from "../../def/create-component-definition";
+import { createComponentDefinition } from "../../create-component-definition";
 import { getComponentsPartialPrompt } from "../get-components-partial-prompt";
 
 describe("getComponentsPartialPrompt — duplicate names", () => {
@@ -72,7 +72,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 		});
 		const out = getComponentsPartialPrompt({ definitions: [A, B] });
 
-		expect(out).toContain("# Common Events");
+		expect(out).toContain("## Common Events");
 		expect(out).toContain("- MouseEvent — fires on click");
 		expect(out).toContain("onClick(evt: MouseEvent)");
 		expect(out.split("- x: number").length - 1).toBe(1);
@@ -86,7 +86,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 			callbacks: { onClick },
 		});
 		const out = getComponentsPartialPrompt({ definitions: [A] });
-		expect(out).toContain("# Common Events");
+		expect(out).toContain("## Common Events");
 		expect(out).toContain("- MouseEvent — fires on click");
 		expect(out).toContain("onClick(evt: MouseEvent)");
 	});
@@ -101,7 +101,7 @@ describe("getComponentsPartialPrompt — common events", () => {
 			},
 		});
 		const out = getComponentsPartialPrompt({ definitions: [A] });
-		expect(out).not.toContain("# Common Events");
+		expect(out).not.toContain("## Common Events");
 		expect(out).toContain("    - onDrag(evt) — fires on drag");
 		expect(out).toContain("      - x: number");
 	});
@@ -164,7 +164,7 @@ describe("getComponentsPartialPrompt — descriptions on props, handlers, option
 				"",
 				"Counter",
 				"",
-				"# Component Details",
+				"## Component Details",
 				"",
 				"- Counter — A button that shows a number and increments it on each click.",
 				"  Props:",
@@ -277,7 +277,7 @@ describe("getComponentsPartialPrompt — props that are not one object", () => {
 		});
 		const out = getComponentsPartialPrompt({ definitions: [Tree] });
 		expect(out).toContain("  Props:\n    - name: string\n    - kids?: Node[]");
-		expect(out).toContain("# Shared Types\n\n- Node: { name: string; kids?: Node[] }");
+		expect(out).toContain("## Shared Types\n\n- Node: { name: string; kids?: Node[] }");
 	});
 });
 
@@ -306,7 +306,7 @@ describe("getComponentsPartialPrompt — URL props", () => {
 	it("lists what the renderer's defaults load when no policy is given", () => {
 		const out = getComponentsPartialPrompt({ definitions: [LinkDef] });
 		expect(out).toContain(
-			"# URL Props\n\nA prop typed with a URL format (`format uri`, `format uri-reference`) must hold one of:\n" +
+			"## URL Props\n\nA prop typed with a URL format (`format uri`, `format uri-reference`) must hold one of:\n" +
 				"- a relative URL: `/a`, `a/b`, `?q=1`, `#x`\n- an absolute URL on this site\n" +
 				"- a `mailto:`, `tel:` or `sms:` link\n- a `data:` image, not SVG\n\nAny other URL fails the element.",
 		);
@@ -332,10 +332,10 @@ describe("getComponentsPartialPrompt — URL props", () => {
 	});
 
 	it("prints nothing for a predicate, which cannot be described", () => {
-		expect(getComponentsPartialPrompt({ definitions: [LinkDef], urlPolicy: () => true })).not.toContain("# URL Props");
+		expect(getComponentsPartialPrompt({ definitions: [LinkDef], urlPolicy: () => true })).not.toContain("## URL Props");
 	});
 
 	it("prints nothing when no listed component has a URL prop", () => {
-		expect(getComponentsPartialPrompt({ definitions: [TextDef] })).not.toContain("# URL Props");
+		expect(getComponentsPartialPrompt({ definitions: [TextDef] })).not.toContain("## URL Props");
 	});
 });

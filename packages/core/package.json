@@ -46,12 +46,9 @@
     "typecheck": "tsc --noEmit",
     "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
   },
-  "dependencies": {
-    "@standard-schema/spec": "^1.1.0",
-    "standard-tool": "^0.1.0"
-  },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.1",
+    "standard-tool": "^0.1.0",
     "vitest": "^5.0.1",
     "zod": "~4.6.5"
   },

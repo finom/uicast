@@ -25,7 +25,7 @@ describe("getErrorRecoveryPrompt", () => {
 			],
 		});
 		expect(out).toContain(
-			"- Element `kpi`: x is not defined (unknown-reference — the expression references a name that doesn't exist",
+			"- Entry `kpi`: x is not defined (unknown-reference — the expression references a name that doesn't exist",
 		);
 	});
 
@@ -35,7 +35,7 @@ describe("getErrorRecoveryPrompt", () => {
 				{ key: "kpi", message: "fetch failed", reason: "host-function" },
 			],
 		});
-		expect(out).toContain("- Element `kpi`: fetch failed\n");
+		expect(out).toContain("- Entry `kpi`: fetch failed\n");
 		expect(out).not.toContain("host-function");
 	});
 
