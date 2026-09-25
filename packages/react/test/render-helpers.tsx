@@ -16,11 +16,8 @@ import {
   type Scopes,
 } from "@uicast/react";
 import { EntryRenderer } from "@uicast/react/render/entry-renderer";
-import { RendererRegistryProvider } from "@uicast/react/store/renderer-registry";
-import {
-  createElementsStore,
-  ElementsStoreProvider,
-} from "@uicast/react/store/elements-store";
+import { createElementsStore, ElementsStoreProvider } from "@uicast/react/providers/elements-store";
+import { RendererRegistryProvider } from "@uicast/react/providers/renderer-provider";
 
 export const testEvaluator = new Evaluator();
 

@@ -58,7 +58,7 @@ describe("EntryRenderer — streaming / skeletons", () => {
 				description: "A box with its own skeleton",
 				props: z.object({}),
 			}),
-			render: ({ children}, { entry }) => (
+			render: ({ children }, { entry }) => (
 				<div data-key={entry.key}>{children}</div>
 			),
 			skeleton: () => <span data-box-ph />,

@@ -1,6 +1,8 @@
+import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ComponentEntry } from "@uicast/core";
-import { mountEntries } from "../../../test/render-helpers";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { defaultImplementationsList, mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 describe("EntryRenderer — children", () => {
   it("renders children in declared order", () => {
@@ -55,5 +57,19 @@ describe("EntryRenderer — children", () => {
     ];
     const { container } = mountEntries(lines);
     expect(container.textContent).toContain("just-me");
+  });
+
+  it("finds the roots without reading a `children` that is not an array", () => {
+    // Iterating a string `children` would count its characters as child keys and hide `a`.
+    const lines = [
+      { key: "root", component: "Box", children: "a" },
+      { key: "a", component: "Box", props: { expr: "({ text: 'own root' })" } },
+    ] as unknown as ComponentEntry[];
+    const { container } = render(
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}>
+        <EntriesRenderer entries={lines} />
+      </RendererProvider>,
+    );
+    expect(container.textContent).toContain("own root");
   });
 });

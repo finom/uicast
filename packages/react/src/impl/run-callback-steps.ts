@@ -1,6 +1,6 @@
 import type { CallbackValueSourceAssignment, ExpressionEvaluator, ReactiveProxy } from "@uicast/core";
 import { CALLBACK_DEBOUNCE_MS, evaluate, getForwardTargets, parseSetAddress, planStepWaves } from "@uicast/core/internal";
-import { requireScope } from "../require-scope";
+import { requireScope } from "../guards";
 import type { ConfirmFn, Debouncers, Scopes } from "../types";
 
 type Step = CallbackValueSourceAssignment & { target: { scope: string; field: string } | null };

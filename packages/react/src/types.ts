@@ -1,4 +1,4 @@
-import type { ComponentType, ReactElement, ReactNode } from "react";
+import type { ReactElement, ReactNode } from "react";
 import type {
   CombinedSpec,
   ComponentDefinition,
@@ -30,30 +30,6 @@ export type ComponentImplementation<
   skeleton: ((props: SkeletonComponentProps) => ReactElement) | null;
 };
 
-// What the renderer runs an implementation with; not exported from the package.
-export type ImplementationEngine = {
-  // Memoized: same props and context, no re-render.
-  Render: ComponentType<Record<string, unknown> & { __context: RenderContext }>;
-  // Props that need no evaluation, checked as `evaluate` checks them; `undefined` when there are none to know.
-  knownProps: (entry: ComponentEntry, urlPolicy: UrlPolicy | undefined) => Record<string, unknown> | undefined;
-  // Throws a classified EntryError on a document fault.
-  evaluate: (
-    entry: ComponentEntry,
-    scopes: Scopes,
-    evaluator: ExpressionEvaluator,
-    urlPolicy: UrlPolicy | undefined,
-  ) => { props: unknown; hidden: unknown; loading: unknown };
-  // One handler per callback the def declares, wired or not.
-  callbacks: (
-    entry: ComponentEntry,
-    scopes: Scopes,
-    confirm: ConfirmFn,
-    evaluator: ExpressionEvaluator,
-    onError: ((error: EntryError) => void) | undefined,
-    debouncers: Debouncers,
-  ) => Record<string, (evt: unknown) => Promise<void>>;
-};
-
 // `"streaming"`: entry not arrived; `"seeding"`: async seed or init still resolving.
 export type SkeletonComponentProps<TProps = Record<string, unknown>> = {
   reason: "streaming" | "seeding";
@@ -62,7 +38,7 @@ export type SkeletonComponentProps<TProps = Record<string, unknown>> = {
   // Props that need no evaluation (a literal, or none), parsed and checked as `render`'s are.
   // Absent when they come from an expression or fail the checks, and in a child's slot.
   knownProps?: TProps;
-  // Present when the caller draws the element itself, so the skeleton renders its own tag.
+  // The children's skeletons, to wrap in your own tag; null without children, absent in a child's slot.
   children?: ReactNode;
 };
 
@@ -83,14 +59,6 @@ export type FallbackComponents = {
   defaultSkeleton?: (props: SkeletonComponentProps) => ReactElement | null;
   confirm?: (props: ConfirmComponentProps) => ReactElement | null;
   error?: (props: ErrorComponentProps) => ReactElement | null;
-};
-
-export type RendererRegistry = {
-  implementations: Record<string, ComponentImplementation>;
-  fallbackComponents?: FallbackComponents;
-  evaluator: ExpressionEvaluator;
-  urlPolicy?: UrlPolicy;
-  onError?: (error: EntryError) => void;
 };
 
 // `root`, the scopes `init` attached, and one per active list `as` name.
@@ -121,11 +89,3 @@ export type RendererProviderProps = {
 export type EntriesRendererProps = {
   entries: ComponentEntry[];
 };
-
-// Each node subscribes to its own key, so settled subtrees don't re-render while siblings stream in.
-export interface ElementsStore {
-  get(key: string): ComponentEntry | undefined;
-  subscribe(key: string, listener: () => void): () => void;
-  // Notifies only the keys whose element identity changed.
-  setMap(next: Record<string, ComponentEntry>): void;
-}

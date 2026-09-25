@@ -1,24 +1,18 @@
-import { Activity, memo, Suspense, use, useEffect, useMemo, useRef, type ReactElement, type ReactNode } from "react";
 import { type ComponentListEntry, EntryError, type EntryErrorReason } from "@uicast/core";
-import {
-  isComponentListEntry,
-  entryShapeError,
-  evaluate,
-  findEntrySetAddressFault,
-  setAddressError,
-} from "@uicast/core/internal";
+import { entrySetAddressError, entryShapeError, evaluate, isComponentListEntry } from "@uicast/core/internal";
+import { Activity, memo, type ReactElement, type ReactNode, Suspense, use, useEffect, useMemo, useRef } from "react";
+import { refusePromise } from "../guards";
 import { engineOf } from "../impl/engine";
-import { structurallyEqual } from "../impl/structural-equal";
 import { useConfirm } from "../providers/confirm";
+import { useElement } from "../providers/elements-store";
 import { ErrorBoundary } from "../providers/error-boundary";
-import { useRendererRegistry } from "../store/renderer-registry";
-import { useElement } from "../store/elements-store";
-import { SubtreeSkeleton } from "./document-skeleton";
-import { refusePromise } from "../refuse-promise";
+import { useRendererRegistry } from "../providers/renderer-provider";
 import type { Debouncers, InitFn, RenderContext, Scopes } from "../types";
+import { SubtreeSkeleton } from "./document-skeleton";
+import { structurallyEqual } from "./structural-equal";
+import { useItemScopes } from "./use-item-scopes";
 import { useReactiveDeps } from "./use-reactive-deps";
 import { type SeedFailure, useSeed } from "./use-seed";
-import { useItemScopes } from "./use-item-scopes";
 
 function SuspendUntil({
   promise,
@@ -85,19 +79,12 @@ const EntryRendererInner = ({
 
   const impl = element ? implementations[element.component] : undefined;
   const engine = impl ? engineOf(impl) : undefined;
-  const willRender = !!element && !isListContainer && !!impl;
-  // Seed and init run on the element's own pass, never per item.
-  const seedEnabled = !asListItem && !shapeError && (isListContainer || willRender);
+  // Seed and init run on the element's own pass, never per item, and only for an element that renders.
+  const seedEnabled = !!element && !asListItem && !shapeError && (isListContainer || !!impl);
 
   // The container pass leaves the list's deps to ListEntryRenderer.
   useReactiveDeps(isListContainer || shapeError ? undefined : element, scopes, "render");
-  const { pending, error: seedError } = useSeed({
-    element,
-    scopes,
-    init,
-    evaluator,
-    enabled: seedEnabled,
-  });
+  const { pending, error: seedError } = useSeed({ element, scopes, init, evaluator, enabled: seedEnabled });
 
   // A fault is thrown below, inside this element's own boundary, so the hook order never changes.
   let props: unknown = null;
@@ -164,25 +151,24 @@ const EntryRendererInner = ({
   );
 
   // The slot stays mounted; `useElement` wakes it when the entry arrives.
-  if (!element) {
-    return <>{fallback}</>;
-  }
+  if (!element) return <>{fallback}</>;
+
+  // A latched error clears when `resetToken` changes: a re-emitted key is a fresh entry object.
+  const boundary = (content: ReactNode, resetToken: unknown = element, reason?: EntryErrorReason) => (
+    <ErrorBoundary
+      errorComponent={fallbackComponents?.error}
+      elementKey={elementKey}
+      resetToken={resetToken}
+      onError={onError}
+      reason={reason}
+    >
+      {content}
+    </ErrorBoundary>
+  );
 
   // Checked at first render, so the fault surfaces while the model is still streaming.
-  const invalidSet = shapeError ? null : findEntrySetAddressFault(element);
-  const lineError = invalidSet ? setAddressError(invalidSet.set, invalidSet.fault, elementKey) : shapeError;
-  if (lineError) {
-    return (
-      <ErrorBoundary
-        errorComponent={fallbackComponents?.error}
-        elementKey={elementKey}
-        resetToken={element}
-        onError={onError}
-      >
-        <ThrowError error={lineError} />
-      </ErrorBoundary>
-    );
-  }
+  const lineError = shapeError ?? entrySetAddressError(element);
+  if (lineError) return boundary(<ThrowError error={lineError} />);
 
   // `reason` matches the element's boundary, so a server report classifies the error as the browser would.
   const afterSeed = (content: ReactNode, whileSeeding: ReactNode, reason?: EntryErrorReason): ReactNode => {
@@ -198,76 +184,40 @@ const EntryRendererInner = ({
     );
   };
 
+  // A boundary of its own, so a bad list expression latches the list slot, not the parent's subtree.
+  // While an async seed is in flight the token is the batch promise, so the latch clears when the seed settles.
   if (isListContainer) {
-    // A boundary here, so a bad list expression latches the list slot, not the parent's subtree.
-    return (
-      <ErrorBoundary
-        errorComponent={fallbackComponents?.error}
-        elementKey={elementKey}
-        resetToken={pending ?? element}
-        onError={onError}
-      >
-        {afterSeed(
-          <ListEntryRenderer list={element} scopes={scopes} ancestors={ancestors} />,
-          <SubtreeSkeleton elementKey={elementKey} />,
-        )}
-      </ErrorBoundary>
+    return boundary(
+      afterSeed(
+        <ListEntryRenderer list={element} scopes={scopes} ancestors={ancestors} />,
+        <SubtreeSkeleton elementKey={elementKey} />,
+      ),
+      pending ?? element,
     );
   }
 
+  // Routed through the boundary, so a re-emission with a real name recovers it.
   if (!impl || !engine) {
-    // Routed through the boundary, so a re-emission with a real name recovers it.
-    return (
-      <ErrorBoundary
-        errorComponent={fallbackComponents?.error}
-        elementKey={elementKey}
-        resetToken={element}
-        onError={onError}
-      >
-        <ThrowError
-          error={
-            new EntryError(`Unknown component: ${element.component}`, {
-              reason: "unknown-component",
-              elementKey,
-            })
-          }
-        />
-      </ErrorBoundary>
-    );
+    const error = new EntryError(`Unknown component: ${element.component}`, { reason: "unknown-component", elementKey });
+    return boundary(<ThrowError error={error} />);
   }
 
   const { Render } = engine;
-  const rendered = (slot: ReactNode) => {
-    const result = (
-      <Render
-        {...(props as object)}
-        {...callbacks}
-        {...(slot ? { children: slot } : {})}
-        __context={context as RenderContext}
-      />
+  let content: ReactNode;
+  if (fault !== null) content = <ThrowError error={fault} />;
+  else {
+    content = (
+      <Render {...(props as object)} {...callbacks} {...(children ? { children } : {})} __context={context as RenderContext} />
     );
-    if (!element.hidden) return result;
-    return <Activity mode={hidden ? "hidden" : "visible"}>{result}</Activity>;
-  };
-  const content = fault !== null ? <ThrowError error={fault} /> : rendered(children);
+    if (element.hidden) content = <Activity mode={hidden ? "hidden" : "visible"}>{content}</Activity>;
+  }
 
   // Props already passed the def's schema, so a throw from `Render` is the implementation's.
-  return (
-    <ErrorBoundary
-      errorComponent={fallbackComponents?.error}
-      elementKey={elementKey}
-      // While an async seed is in flight the token is the batch promise, so the latch clears when the seed settles.
-      resetToken={pending ?? element}
-      onError={onError}
-      reason="implementation"
-    >
-      {afterSeed(
-        content,
-        // Props may read the data still loading, so the skeleton never reads them.
-        hidden ? null : <SubtreeSkeleton elementKey={elementKey} visible />,
-        "implementation",
-      )}
-    </ErrorBoundary>
+  // Props may read the data still loading, so the skeleton never reads them.
+  return boundary(
+    afterSeed(content, hidden ? null : <SubtreeSkeleton elementKey={elementKey} visible />, "implementation"),
+    pending ?? element,
+    "implementation",
   );
 };
 

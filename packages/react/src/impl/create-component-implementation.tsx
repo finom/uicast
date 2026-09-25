@@ -1,56 +1,39 @@
-import { memo, type ReactElement, type ReactNode } from "react";
-import type { StandardSchemaV1 } from "@standard-schema/spec";
 import {
-  EntryError,
-  type ComponentEntry,
   type CombinedSpec,
   type ComponentDefinition,
+  type ComponentEntry,
+  EntryError,
   type ExpressionEvaluator,
   type UrlPolicy,
 } from "@uicast/core";
-import {
-  findUrlViolations,
-  schemaHasUrlFormat,
-  evaluate,
-  specToJSONSchema,
-  type JSONSchema,
-} from "@uicast/core/internal";
-import type {
-  ComponentImplementation,
-  ConfirmFn,
-  Debouncers,
-  SkeletonComponentProps,
-  RenderContext,
-  Scopes,
-} from "../types";
-import { refusePromise } from "../refuse-promise";
+import { evaluate, findUrlViolations, type JSONSchema, schemaHasUrlFormat, specToJSONSchema } from "@uicast/core/internal";
+import { memo, type ReactElement, type ReactNode } from "react";
+import { refusePromise } from "../guards";
+import type { ComponentImplementation, ConfirmFn, Debouncers, RenderContext, Scopes, SkeletonComponentProps } from "../types";
 import { attachEngine } from "./engine";
 import { runCallbackSteps } from "./run-callback-steps";
 
+// What a schema accepts and what it parses to.
+type Input<S extends CombinedSpec> = NonNullable<S["~standard"]["types"]>["input"];
+type Output<S extends CombinedSpec> = NonNullable<S["~standard"]["types"]>["output"];
+
 // The impl passes the schema INPUT; the steps see the OUTPUT.
-type CallbackFn<S extends CombinedSpec> = [StandardSchemaV1.InferInput<S>] extends [null]
-  ? () => Promise<void>
-  : (args: StandardSchemaV1.InferInput<S>) => Promise<void>;
+type CallbackFn<S extends CombinedSpec> = [Input<S>] extends [null] ? () => Promise<void> : (args: Input<S>) => Promise<void>;
 
-type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = {
-  [K in keyof T]: CallbackFn<T[K]>;
-};
+type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = { [K in keyof T]: CallbackFn<T[K]> };
 
-const describeIssues = (issues: readonly StandardSchemaV1.Issue[]): string =>
+type Issue = { message: string; path?: readonly (PropertyKey | { key: PropertyKey })[] };
+
+const describeIssues = (issues: readonly Issue[]): string =>
   issues
-    .map((issue) => {
-      const path = issue.path
-        ?.map((segment) => (typeof segment === "object" ? segment.key : segment))
-        .join(".");
-      return path ? `${path}: ${issue.message}` : issue.message;
+    .map(({ message, path }) => {
+      const at = path?.map((segment) => String(typeof segment === "object" ? segment.key : segment)).join(".");
+      return at ? `${at}: ${message}` : message;
     })
     .join("; ");
 
 // An async or throwing validator passes the value through: a sync render cannot await.
-const parseSpec = (
-  spec: CombinedSpec,
-  value: unknown,
-): { ok: true; value: unknown } | { ok: false; message: string } => {
+const parseSpec = (spec: CombinedSpec, value: unknown): { ok: true; value: unknown } | { ok: false; message: string } => {
   let result: ReturnType<CombinedSpec["~standard"]["validate"]>;
   try {
     result = spec["~standard"].validate(value);
@@ -58,9 +41,7 @@ const parseSpec = (
     return { ok: true, value };
   }
   if (result instanceof Promise) return { ok: true, value };
-  return result.issues
-    ? { ok: false, message: describeIssues(result.issues) }
-    : { ok: true, value: result.value };
+  return result.issues ? { ok: false, message: describeIssues(result.issues) } : { ok: true, value: result.value };
 };
 
 export const createComponentImplementation = <
@@ -73,29 +54,30 @@ export const createComponentImplementation = <
 }: {
   def: ComponentDefinition<TProps, TCallbacks>;
   render: (
-    props: { children?: ReactNode } & StandardSchemaV1.InferOutput<TProps> &
+    props: { children?: ReactNode } & Output<TProps> &
       CallbacksToFunctions<TCallbacks>,
     context: RenderContext,
   ) => ReactElement;
-  skeleton?: (props: SkeletonComponentProps<StandardSchemaV1.InferOutput<TProps>>) => ReactElement;
+  skeleton?: (props: SkeletonComponentProps<Output<TProps>>) => ReactElement;
 }): ComponentImplementation<TProps, TCallbacks> => {
   // `render` may call hooks, so it runs inside a component of its own.
   const Render = memo(({ __context, ...props }: Record<string, unknown> & { __context: RenderContext }) =>
     render(props as Parameters<typeof render>[0], __context),
   );
 
-  // Computed once per component; a component with no URL prop never runs the value walk.
+  // The props schema when it declares a URL prop, else null. Computed once; a component with no URL prop never walks its values.
   let urlSchema: JSONSchema | null | undefined;
-  let hasUrlProps = false;
-  const ensureUrlSchema = (): void => {
-    if (urlSchema !== undefined) return;
-    try {
-      urlSchema = specToJSONSchema(def.props);
-    } catch {
-      // A spec that cannot convert fails loudly in the prompt builder; here it means no URL checking.
-      urlSchema = null;
+  const urlPropsSchema = (): JSONSchema | null => {
+    if (urlSchema === undefined) {
+      let schema: JSONSchema | undefined;
+      try {
+        schema = specToJSONSchema(def.props);
+      } catch {
+        // A spec that cannot convert fails loudly in the prompt builder; here it means no URL checking.
+      }
+      urlSchema = schema && schemaHasUrlFormat(schema) ? schema : null;
     }
-    hasUrlProps = schemaHasUrlFormat(urlSchema ?? undefined);
+    return urlSchema;
   };
 
   // The parsed output has every `.default()` applied; a schema failure is a document fault.
@@ -103,7 +85,7 @@ export const createComponentImplementation = <
     rawProps: unknown,
     entry: ComponentEntry,
     urlPolicy: UrlPolicy | undefined,
-  ): StandardSchemaV1.InferOutput<TProps> => {
+  ): Output<TProps> => {
     const parsed = parseSpec(def.props, rawProps);
     if (!parsed.ok) {
       throw new EntryError(
@@ -111,17 +93,14 @@ export const createComponentImplementation = <
         { reason: "invalid-props", elementKey: entry.key },
       );
     }
-    const props = parsed.value as StandardSchemaV1.InferOutput<TProps>;
-    ensureUrlSchema();
-    if (hasUrlProps) {
-      const violations = findUrlViolations(urlSchema ?? undefined, props, urlPolicy);
-      if (violations.length > 0) {
-        const { path, url, reason } = violations[0];
-        throw new EntryError(
-          `Prop "${path}" of ${def.name} is a URL this renderer will not load — ${reason}. Got: ${url}`,
-          { reason: "guardrail-violation", elementKey: entry.key },
-        );
-      }
+    const props = parsed.value as Output<TProps>;
+    const schema = urlPropsSchema();
+    const [violation] = schema ? findUrlViolations(schema, props, urlPolicy) : [];
+    if (violation) {
+      throw new EntryError(
+        `Prop "${violation.path}" of ${def.name} is a URL this renderer will not load — ${violation.reason}. Got: ${violation.url}`,
+        { reason: "guardrail-violation", elementKey: entry.key },
+      );
     }
     return props;
   };
@@ -131,7 +110,7 @@ export const createComponentImplementation = <
     scopes: Scopes,
     evaluator: ExpressionEvaluator,
     urlPolicy: UrlPolicy | undefined,
-  ): StandardSchemaV1.InferOutput<TProps> => {
+  ): Output<TProps> => {
     const rawProps = entry.props
       ? evaluate(entry.props, { scopes }, evaluator)
       : {};

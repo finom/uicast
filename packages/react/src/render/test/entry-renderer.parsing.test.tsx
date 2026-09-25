@@ -18,7 +18,7 @@ const BadgeImpl = createComponentImplementation({
       variant: z.enum(["default", "loud"]).default("default"),
     }),
   }),
-  render: ({ text, variant}, { entry }) => (
+  render: ({ text, variant }, { entry }) => (
     <span data-key={entry.key} data-variant={variant}>
       {text}
     </span>
@@ -32,7 +32,7 @@ const PressImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.object({ id: z.string(), times: z.number().default(1) }) },
   }),
-  render: ({ onPress}, { entry }) => (
+  render: ({ onPress }, { entry }) => (
     <button type="button" data-key={entry.key} onClick={() => onPress({ id: "a" })}>
       press
     </button>
@@ -46,7 +46,7 @@ const BadPayloadImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.object({ id: z.string() }) },
   }),
-  render: ({ onPress}, { entry }) => (
+  render: ({ onPress }, { entry }) => (
     <button type="button" data-key={entry.key} onClick={() => onPress({} as never)}>
       press
     </button>
@@ -60,7 +60,7 @@ const NullPressImpl = createComponentImplementation({
     props: z.object({}),
     callbacks: { onPress: z.null() },
   }),
-  render: ({ onPress}, { entry }) => (
+  render: ({ onPress }, { entry }) => (
     <button type="button" data-key={entry.key} onClick={() => onPress()}>
       press
     </button>

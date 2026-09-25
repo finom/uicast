@@ -1,8 +1,8 @@
 import { buildElementsByKey, type ComponentEntry } from "@uicast/core";
 import { Fragment, type ReactElement, type ReactNode, useMemo } from "react";
 import { engineOf } from "../impl/engine";
-import { createElementsStore, ElementsStoreProvider, useElement } from "../store/elements-store";
-import { useRendererRegistry } from "../store/renderer-registry";
+import { createElementsStore, ElementsStoreProvider, useElement } from "../providers/elements-store";
+import { useRendererRegistry } from "../providers/renderer-provider";
 
 // A list has no length yet; a few rows read as a list.
 const LIST_ROWS = 3;
@@ -11,6 +11,12 @@ const NO_ANCESTORS: ReadonlySet<string> = new Set();
 
 // A malformed line (a string `children`) draws no children instead of failing the skeleton.
 const childKeys = (entry: ComponentEntry): string[] => (Array.isArray(entry.children) ? entry.children : []);
+
+// The keys no line names as a child, in first-emitted order.
+export const rootKeys = (entries: ComponentEntry[]): string[] => {
+  const referenced = new Set(entries.flatMap(childKeys));
+  return [...new Set(entries.map((entry) => entry.key))].filter((key) => !referenced.has(key));
+};
 
 // An element and everything under it, from the entries alone. Each node wakes when its own entry streams in.
 // `hidden` is not evaluated, so an element that has it is left out, unless the caller evaluated it (`visible`).
@@ -63,10 +69,7 @@ export function SubtreeSkeleton({
 // The document's shape from the entries alone. Nothing is evaluated, so it renders in a server pass.
 export function DocumentSkeleton({ entries }: { entries: ComponentEntry[] }): ReactElement | null {
   const store = useMemo(() => createElementsStore(buildElementsByKey(entries)), [entries]);
-  const roots = useMemo(() => {
-    const referenced = new Set(entries.flatMap(childKeys));
-    return [...new Set(entries.map((entry) => entry.key))].filter((key) => !referenced.has(key));
-  }, [entries]);
+  const roots = useMemo(() => rootKeys(entries), [entries]);
   if (entries.length === 0) return null;
 
   return (

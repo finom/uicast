@@ -21,8 +21,7 @@
       "@uicast/core/prompt": ["../core/src/prompt/index.ts"],
       "@uicast/react": ["./src/index.ts"],
       "@uicast/react/*": ["./src/*"]
-    },
-    "experimentalDecorators": true
+    }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.mts"],
   "exclude": ["node_modules", "dist"]

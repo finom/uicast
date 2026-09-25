@@ -17,7 +17,7 @@ function countingSetup() {
   const counts: Record<string, number> = {};
   const boxRenderer = createComponentImplementation({
     def: boxDef,
-    render: ({ text, children}, { entry }) => {
+    render: ({ text, children }, { entry }) => {
       counts[entry.key] = (counts[entry.key] ?? 0) + 1;
       return (
         <div data-key={entry.key}>
@@ -85,7 +85,7 @@ describe("EntryRenderer — render-once on state change", () => {
     const counts: Record<string, number> = {};
     const boxRenderer = createComponentImplementation({
       def: boxDef,
-      render: ({ text, children}, { entry }) => {
+      render: ({ text, children }, { entry }) => {
         counts[entry.key] = (counts[entry.key] ?? 0) + 1;
         return (
           <div data-key={entry.key}>
@@ -134,7 +134,7 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
     const counts: Record<string, number> = {};
     const boxRenderer = createComponentImplementation({
       def: boxDef,
-      render: ({ text, children}, { entry }) => {
+      render: ({ text, children }, { entry }) => {
         counts[entry.key] = (counts[entry.key] ?? 0) + 1;
         return (
           <div data-key={entry.key}>

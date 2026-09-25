@@ -1,7 +1,7 @@
-import { useReducer, useRef } from "react";
-import { EntryError, type ComponentEntry, type ExpressionEvaluator } from "@uicast/core";
+import { type ComponentEntry, EntryError, type ExpressionEvaluator } from "@uicast/core";
 import { evaluate, parseSetAddress, planStepWaves } from "@uicast/core/internal";
-import { requireScope } from "../require-scope";
+import { useReducer, useRef } from "react";
+import { requireScope } from "../guards";
 import type { InitFn, Scopes } from "../types";
 
 // One attempt per entry object; a re-emitted key replaces it.
@@ -77,20 +77,10 @@ export function useSeed({
         );
       };
 
-      const waves = planStepWaves(steps, evaluator);
-      // Sync waves land during this render; the chain starts at the first async wave.
+      // Sync waves land during this render; from the first async wave on, each waits for the one before.
       let chain: Promise<unknown> | null = null;
-      for (let i = 0; i < waves.length; i++) {
-        const pendingWave = runWave(waves[i]);
-        if (pendingWave) {
-          const rest = waves.slice(i + 1);
-          chain = pendingWave.then(async () => {
-            for (const wave of rest) {
-              await runWave(wave);
-            }
-          });
-          break;
-        }
+      for (const wave of planStepWaves(steps, evaluator)) {
+        chain = chain ? chain.then(() => runWave(wave)) : runWave(wave);
       }
 
       if (init) {

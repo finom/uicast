@@ -5,7 +5,7 @@ import {
   parseScope,
   type DepsPart,
 } from "@uicast/core/internal";
-import { useRendererRegistry } from "../store/renderer-registry";
+import { useRendererRegistry } from "../providers/renderer-provider";
 import type { Scopes } from "../types";
 import { inSeedRender } from "./use-seed";
 
