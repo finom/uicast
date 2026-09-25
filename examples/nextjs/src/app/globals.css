@@ -1,0 +1,3 @@
+/* Optional — preflight and the shadcn palette, if you never ran `shadcn init`. */
+@import "@uicast/shadcn-catalog/theme.css";
+@import "@uicast/shadcn-catalog/catalog.css";
