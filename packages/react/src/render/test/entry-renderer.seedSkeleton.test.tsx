@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { createComponentImplementation } from "@uicast/react";
-import { mountEntries } from "../../../test/render-helpers";
+import { mountEntries, mountEntriesAsync } from "../../../test/render-helpers";
 
 const Panel = createComponentImplementation({
   def: createComponentDefinition({
@@ -44,7 +44,7 @@ function gated() {
 describe("EntryRenderer — skeleton while a seed loads", () => {
   it("draws the element's subtree as skeletons, not the element itself", async () => {
     const { load, open } = gated();
-    const { container } = mountEntries(
+    const { container } = await mountEntriesAsync(
       [
         {
           key: "root",
@@ -72,7 +72,7 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
 
   it("draws three items for a list whose own seed loads", async () => {
     const { load, open } = gated();
-    const { container } = mountEntries(
+    const { container } = await mountEntriesAsync(
       [
         { key: "root", component: "Panel", children: ["rows"] },
         {
@@ -95,7 +95,7 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
   it("does not fail on a prop that reads the data still loading", async () => {
     const { load, open } = gated();
     const onError = vi.fn();
-    const { container } = mountEntries(
+    const { container } = await mountEntriesAsync(
       [
         {
           key: "root",
@@ -115,15 +115,10 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
 
   it("adds an entry that streams in while its parent's seed loads", async () => {
     const { load } = gated();
-    let view!: ReturnType<typeof mountEntries>;
-    // Async, so the fallback's effects run and its entries subscribe.
-    await act(async () => {
-      view = mountEntries(
-        [{ key: "root", component: "Panel", seed: [{ set: "scopes.root.x", expr: "load()" }], children: ["note"] }],
-        { implementations, functions: [load] },
-      );
-    });
-    const { container, emit } = view;
+    const { container, emit } = await mountEntriesAsync(
+      [{ key: "root", component: "Panel", seed: [{ set: "scopes.root.x", expr: "load()" }], children: ["note"] }],
+      { implementations, functions: [load] },
+    );
     expect(container.innerHTML).toBe('<section data-sk=""></section>');
 
     emit({ key: "note", component: "Line" });
@@ -156,7 +151,7 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
       render: ({ title }) => <h2>{title}</h2>,
       skeleton: ({ knownProps }) => <h2 data-sk="">{knownProps?.title}</h2>,
     });
-    const { container } = mountEntries(
+    const { container } = await mountEntriesAsync(
       [
         {
           key: "root",

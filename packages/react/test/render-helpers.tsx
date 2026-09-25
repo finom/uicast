@@ -138,3 +138,12 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
 
   return { ...result, scopes, emit };
 }
+
+// Awaited, so a mount that suspends commits and runs its effects.
+export async function mountEntriesAsync(...args: Parameters<typeof mountEntries>) {
+  let view!: ReturnType<typeof mountEntries>;
+  await act(async () => {
+    view = mountEntries(...args);
+  });
+  return view;
+}

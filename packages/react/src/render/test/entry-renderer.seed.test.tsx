@@ -1,4 +1,5 @@
 import { act, render, waitFor } from "@testing-library/react";
+import { Suspense, use } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { Evaluator } from "@uicast/expr";
 import type { StandardToolV0 } from "standard-tool";
@@ -138,6 +139,69 @@ describe("EntryRenderer — seed", () => {
       expect(container.querySelector("[data-ph]")).toBeNull();
       expect(container.textContent).toContain("done");
     });
+  });
+
+  it("runs the seed once when React throws away the first render", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    let calls = 0;
+    let resolveLoad!: (value: string) => void;
+    const gate = new Promise<string>((resolve) => {
+      resolveLoad = resolve;
+    });
+    const functions: StandardToolV0[] = [
+      {
+        name: "loadData",
+        description: "",
+        execute: () => {
+          calls += 1;
+          return gate;
+        },
+      },
+    ];
+    const lines: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        seed: [{ set: "scopes.root.data", expr: "loadData()" }],
+        props: { expr: "({ text: scopes.root.data })" },
+      },
+    ];
+    let release!: () => void;
+    const blocked = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    // Suspends the shared boundary, so React discards the renderer's first render with it.
+    const Blocker = () => {
+      use(blocked);
+      return null;
+    };
+
+    let container!: HTMLElement;
+    await act(async () => {
+      container = render(
+        <RendererProvider implementations={defaultImplementationsList} evaluator={new Evaluator({ functions })}>
+          <Suspense fallback="blocked">
+            <EntriesRenderer entries={lines} />
+            <Blocker />
+          </Suspense>
+        </RendererProvider>,
+      ).container;
+    });
+    expect(container.textContent).toBe("blocked");
+
+    // The seed settles while no render using it has mounted.
+    await act(async () => {
+      resolveLoad("loaded-value");
+    });
+    await act(async () => {
+      release();
+    });
+    await waitFor(() => {
+      expect(container.textContent).toContain("loaded-value");
+    });
+    expect(calls).toBe(1);
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it("stays silent when an async seed resolves after unmount", async () => {

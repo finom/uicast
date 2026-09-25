@@ -1,6 +1,6 @@
 import { type ComponentEntry, EntryError, type ExpressionEvaluator } from "@uicast/core";
 import { evaluate, parseSetAddress, planStepWaves } from "@uicast/core/internal";
-import { useReducer, useRef } from "react";
+import { useEffect, useReducer, useRef } from "react";
 import { requireScope } from "../guards";
 import type { InitFn, Scopes } from "../types";
 
@@ -8,6 +8,10 @@ import type { InitFn, Scopes } from "../types";
 type SeedAttempt = {
   element: ComponentEntry;
   error: unknown;
+  // What `SuspendUntil` waits on; null when the seed was synchronous or has settled.
+  pending: Promise<SeedFailure | undefined> | null;
+  // Set once a render using the attempt commits; waking a render React threw away warns.
+  wake: (() => void) | null;
 };
 
 // What a failed seed's gate resolves to.
@@ -18,6 +22,15 @@ type SeedResult = {
   pending: Promise<SeedFailure | undefined> | null;
   // Rethrown inside the element's own boundary, so a bad seed cannot latch the parent.
   error: unknown;
+};
+
+// React can throw a render away before it mounts; the next render of the same entry and scopes adopts its seed.
+const attempts = new WeakMap<Scopes, WeakMap<ComponentEntry, SeedAttempt>>();
+
+// A `$$set` wake can land before this, so the gate is cleared explicitly.
+const settle = (attempt: SeedAttempt): void => {
+  attempt.pending = null;
+  attempt.wake?.();
 };
 
 // Sync seed and `init` writes land during render; a subscriber they wake must not set state until the render is over.
@@ -40,7 +53,11 @@ export function useSeed({
 }): SeedResult {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const attemptRef = useRef<SeedAttempt | null>(null);
-  const pendingSeedRef = useRef<Promise<SeedFailure | undefined> | null>(null);
+  if (!attemptRef.current && element) {
+    const earlier = attempts.get(scopes)?.get(element);
+    // A failed attempt is left behind, so a fresh mount retries it.
+    if (earlier && earlier.error === null) attemptRef.current = earlier;
+  }
 
   const attempt = attemptRef.current;
   const shouldSeed =
@@ -50,9 +67,10 @@ export function useSeed({
     (attempt === null || (attempt.error !== null && attempt.element !== element));
 
   if (shouldSeed) {
-    const record: SeedAttempt = { element, error: null };
+    const record: SeedAttempt = { element, error: null, pending: null, wake: null };
     attemptRef.current = record;
-    pendingSeedRef.current = null;
+    const byEntry = attempts.get(scopes) ?? new WeakMap<ComponentEntry, SeedAttempt>();
+    attempts.set(scopes, byEntry.set(element, record));
 
     seedRenders++;
     try {
@@ -99,18 +117,15 @@ export function useSeed({
       }
 
       if (chain) {
-        const batch = chain.then(() => {
-          // A `$$set` wake can land before this settles, so the gate is cleared explicitly.
-          pendingSeedRef.current = null;
-          forceRender();
-        });
         // The gate must never reject: `use()` on a rejected promise does not reliably reach a boundary.
-        pendingSeedRef.current = batch.then(
-          () => undefined,
+        record.pending = chain.then(
+          () => {
+            settle(record);
+            return undefined;
+          },
           (err) => {
             record.error = err;
-            pendingSeedRef.current = null;
-            forceRender();
+            settle(record);
             return { error: err };
           },
         );
@@ -123,8 +138,16 @@ export function useSeed({
   }
 
   const current = attemptRef.current;
+  const pending = current?.pending ?? null;
+  useEffect(() => {
+    if (!current) return;
+    current.wake = forceRender;
+    // It settled before this render committed, so nothing woke it.
+    if (pending && !current.pending) forceRender();
+  }, [current, pending]);
+
   return {
-    pending: pendingSeedRef.current,
+    pending,
     error: current && current.element === element ? current.error : null,
   };
 }

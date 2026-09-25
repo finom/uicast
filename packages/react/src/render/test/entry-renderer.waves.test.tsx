@@ -41,11 +41,14 @@ describe("dependency waves", () => {
         props: { expr: "({ text: scopes.root.city + ': ' + scopes.root.weather?.tempC })" },
       },
     ];
-    const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
-        <EntriesRenderer entries={lines} />
-      </RendererProvider>,
-    );
+    let container!: HTMLElement;
+    await act(async () => {
+      ({ container } = render(
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
+      ));
+    });
     await waitFor(() => {
       expect(container.textContent).toContain("Amsterdam: 14");
     });
@@ -87,11 +90,14 @@ describe("dependency waves", () => {
         props: { expr: "({ text: scopes.root.a + '+' + scopes.root.b })" },
       },
     ];
-    const { container } = render(
-      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
-        <EntriesRenderer entries={lines} />
-      </RendererProvider>,
-    );
+    let container!: HTMLElement;
+    await act(async () => {
+      ({ container } = render(
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
+      ));
+    });
     await waitFor(() => {
       expect(started).toEqual(["a", "b"]);
     });

@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act, waitFor } from "@testing-library/react";
 import type { ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
-import { mountEntries } from "../../../test/render-helpers";
+import { mountEntries, mountEntriesAsync } from "../../../test/render-helpers";
 
 const errorSlot = {
   error: ({ error }: ErrorComponentProps) => (
@@ -281,7 +281,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
         props: { expr: "({ text: 'sibling-alive' })" },
       },
     ];
-    const { container, emit } = mountEntries(lines, {
+    const { container, emit } = await mountEntriesAsync(lines, {
       functions,
       fallbackComponents: errorSlot,
     });
