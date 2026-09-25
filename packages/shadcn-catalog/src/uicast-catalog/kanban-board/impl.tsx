@@ -57,7 +57,11 @@ const CardView = ({ card, onClick }: { card: KanbanCard; onClick?: () => void })
             className="mt-2 text-xs"
             style={
               card.tagColor
-                ? { backgroundColor: CHART_COLORS[card.tagColor], color: "#fff", borderColor: CHART_COLORS[card.tagColor] }
+                ? {
+                    backgroundColor: CHART_COLORS[card.tagColor],
+                    color: "#fff",
+                    borderColor: CHART_COLORS[card.tagColor],
+                  }
                 : undefined
             }
           >
@@ -69,7 +73,15 @@ const CardView = ({ card, onClick }: { card: KanbanCard; onClick?: () => void })
   </Card>
 );
 
-const SortableCard = ({ card, columnId, onCardClick }: { card: KanbanCard; columnId: string; onCardClick: CardClick }) => {
+const SortableCard = ({
+  card,
+  columnId,
+  onCardClick,
+}: {
+  card: KanbanCard;
+  columnId: string;
+  onCardClick: CardClick;
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id });
   return (
     <div
@@ -140,7 +152,8 @@ export const KanbanBoardImpl = createComponentImplementation({
         const insertAt = to.index >= 0 ? to.index : to.column.cards.length;
         return prev.map((c) => {
           if (c === from.column) return { ...c, cards: c.cards.filter((k) => k.id !== card.id) };
-          if (c === to.column) return { ...c, cards: [...c.cards.slice(0, insertAt), card, ...c.cards.slice(insertAt)] };
+          if (c === to.column)
+            return { ...c, cards: [...c.cards.slice(0, insertAt), card, ...c.cards.slice(insertAt)] };
           return c;
         });
       });
@@ -162,7 +175,13 @@ export const KanbanBoardImpl = createComponentImplementation({
 
       const at = locate(next, activeId);
       if (!origin || !at || (origin.columnId === at.column.id && origin.index === at.index)) return;
-      onCardMove({ cardId: activeId, fromColumnId: origin.columnId, toColumnId: at.column.id, toIndex: at.index, columns: next });
+      onCardMove({
+        cardId: activeId,
+        fromColumnId: origin.columnId,
+        toColumnId: at.column.id,
+        toIndex: at.index,
+        columns: next,
+      });
     };
 
     return (

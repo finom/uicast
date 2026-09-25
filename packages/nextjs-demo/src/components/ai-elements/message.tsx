@@ -5,7 +5,11 @@ import { type ComponentProps, type HTMLAttributes, memo } from "react";
 import { Streamdown } from "streamdown";
 import { cn } from "@/lib/utils";
 
-export const Message = ({ className, from, ...props }: HTMLAttributes<HTMLDivElement> & { from: UIMessage["role"] }) => (
+export const Message = ({
+  className,
+  from,
+  ...props
+}: HTMLAttributes<HTMLDivElement> & { from: UIMessage["role"] }) => (
   <div
     className={cn(
       "group flex w-full max-w-[95%] flex-col gap-2",

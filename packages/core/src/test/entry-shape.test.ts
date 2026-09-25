@@ -12,10 +12,22 @@ describe("entryShapeError", () => {
     ['{"key":"a","component":"Box","seed":[{"set":1,"literal":1}]}', '"seed[0].set" must be an address string'],
     ['{"key":"a","component":"Box","callbacks":"oops"}', '"callbacks" must be an object of step arrays'],
     ['{"key":"a","component":"Box","callbacks":{"onClick":"oops"}}', '"callbacks.onClick" must be an array of steps'],
-    ['{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":"x()","confirm":true}]}}', '"callbacks.onClick[0].confirm"'],
-    ['{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":"x()","debounce":"yes"}]}}', '"callbacks.onClick[0].debounce"'],
-    ['{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":{"a":1}}]}}', '"callbacks.onClick[0].expr" must be an expression string'],
-    ['{"key":"a","component":"Box","props":"oops"}', '"props" must be { "expr": "…" } or { "literal": … }, got a string.'],
+    [
+      '{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":"x()","confirm":true}]}}',
+      '"callbacks.onClick[0].confirm"',
+    ],
+    [
+      '{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":"x()","debounce":"yes"}]}}',
+      '"callbacks.onClick[0].debounce"',
+    ],
+    [
+      '{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":{"a":1}}]}}',
+      '"callbacks.onClick[0].expr" must be an expression string',
+    ],
+    [
+      '{"key":"a","component":"Box","props":"oops"}',
+      '"props" must be { "expr": "…" } or { "literal": … }, got a string.',
+    ],
     ['{"key":"a","component":"Box","props":{"expr":5}}', '"props.expr" must be an expression string, got a number.'],
     ['{"key":"a","component":"Box","hidden":{"expr":"x"}}', '"hidden" must be a string, got an object.'],
     ['{"key":"a","component":"Box","loading":true}', '"loading" must be a string, got a boolean.'],

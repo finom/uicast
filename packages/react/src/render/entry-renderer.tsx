@@ -198,7 +198,10 @@ const EntryRendererInner = ({
 
   // Routed through the boundary, so a re-emission with a real name recovers it.
   if (!impl || !engine) {
-    const error = new EntryError(`Unknown component: ${element.component}`, { reason: "unknown-component", elementKey });
+    const error = new EntryError(`Unknown component: ${element.component}`, {
+      reason: "unknown-component",
+      elementKey,
+    });
     return boundary(<ThrowError error={error} />);
   }
 
@@ -207,7 +210,12 @@ const EntryRendererInner = ({
   if (fault !== null) content = <ThrowError error={fault} />;
   else {
     content = (
-      <Render {...(props as object)} {...callbacks} {...(children ? { children } : {})} __context={context as RenderContext} />
+      <Render
+        {...(props as object)}
+        {...callbacks}
+        {...(children ? { children } : {})}
+        __context={context as RenderContext}
+      />
     );
     if (element.hidden) content = <Activity mode={hidden ? "hidden" : "visible"}>{content}</Activity>;
   }

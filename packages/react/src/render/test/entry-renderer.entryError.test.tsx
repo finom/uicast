@@ -1,16 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, waitFor, within } from "@testing-library/react";
 import { z } from "zod";
-import {
-  createComponentDefinition,
-  type EntryError,
-  type ComponentEntry,
-} from "@uicast/core";
+import { createComponentDefinition, type EntryError, type ComponentEntry } from "@uicast/core";
 import type { StandardToolV0 } from "standard-tool";
 import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
-import {
-  defaultImplementationsList,
-  mountEntries, testEvaluator } from "../../../test/render-helpers";
+import { defaultImplementationsList, mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 const collect = () => {
   const seen: EntryError[] = [];
@@ -104,11 +98,18 @@ describe("EntryRenderer — EntryError classification", () => {
   it("reports a failing host `init` as `host-init`", async () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { seen, onError } = collect();
-    const lines: ComponentEntry[] = [
-      { key: "a", component: "Box", props: { literal: { text: "hi" } } },
-    ];
+    const lines: ComponentEntry[] = [{ key: "a", component: "Box", props: { literal: { text: "hi" } } }];
     render(
-      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={() => { throw new Error("bootstrap failed"); }} onError={onError}><EntriesRenderer entries={lines} /></RendererProvider>,
+      <RendererProvider
+        evaluator={testEvaluator}
+        implementations={defaultImplementationsList}
+        init={() => {
+          throw new Error("bootstrap failed");
+        }}
+        onError={onError}
+      >
+        <EntriesRenderer entries={lines} />
+      </RendererProvider>,
     );
     await waitFor(() => {
       expect(seen).toHaveLength(1);

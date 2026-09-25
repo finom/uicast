@@ -10,12 +10,10 @@ export const PopoverDef = createComponentDefinition({
       description: "Whether the popover is open/visible",
     }),
     triggerLabel: z.string().optional().meta({
-      description:
-        "Label text for a default trigger button. If omitted, renders a 'More' button.",
+      description: "Label text for a default trigger button. If omitted, renders a 'More' button.",
     }),
     side: z.enum(["top", "bottom", "left", "right"]).default("bottom").meta({
-      description:
-        "Preferred side to position the popover relative to the trigger",
+      description: "Preferred side to position the popover relative to the trigger",
     }),
   }),
   callbacks: {

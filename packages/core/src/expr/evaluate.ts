@@ -20,7 +20,9 @@ const screen = (evaluator: ExpressionEvaluator): void => {
 
 // Brand check: core has no runtime import of @uicast/expr.
 const isExpressionError = (err: unknown): err is { reason: ExpressionErrorReason; cause?: unknown } =>
-  typeof err === "object" && err !== null && (err as { uicastExpressionError?: unknown }).uicastExpressionError === true;
+  typeof err === "object" &&
+  err !== null &&
+  (err as { uicastExpressionError?: unknown }).uicastExpressionError === true;
 
 export const wrapEvalError = (err: unknown): EntryError => {
   if (EntryError.is(err)) return err;

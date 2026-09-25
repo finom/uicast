@@ -1,9 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import { Button } from "../../components/ui/button";
 import { PanelSkeleton } from "../../lib/skeletons";
 import { PopoverDef } from "./def";

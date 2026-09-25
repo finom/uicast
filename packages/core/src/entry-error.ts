@@ -58,14 +58,8 @@ export class EntryError extends Error {
   // Brand: two copies of core can share a bundle (git-dep consumption), where `instanceof` fails.
   readonly uicastEntryError = true;
 
-  constructor(
-    message: string,
-    options: { reason: EntryErrorReason; elementKey?: string; cause?: unknown },
-  ) {
-    super(
-      message,
-      options.cause !== undefined ? { cause: options.cause } : undefined,
-    );
+  constructor(message: string, options: { reason: EntryErrorReason; elementKey?: string; cause?: unknown }) {
+    super(message, options.cause !== undefined ? { cause: options.cause } : undefined);
     this.name = "EntryError";
     this.reason = options.reason;
     this.elementKey = options.elementKey;
@@ -78,19 +72,11 @@ export class EntryError extends Error {
 
   // Cross-copy-safe `instanceof`.
   static is(err: unknown): err is EntryError {
-    return (
-      typeof err === "object" &&
-      err !== null &&
-      (err as { uicastEntryError?: unknown }).uicastEntryError === true
-    );
+    return typeof err === "object" && err !== null && (err as { uicastEntryError?: unknown }).uicastEntryError === true;
   }
 
   // An existing EntryError passes through.
-  static wrap(
-    err: unknown,
-    reason: EntryErrorReason,
-    elementKey?: string,
-  ): EntryError {
+  static wrap(err: unknown, reason: EntryErrorReason, elementKey?: string): EntryError {
     if (EntryError.is(err)) {
       if (elementKey && !err.elementKey) err.elementKey = elementKey;
       return err;

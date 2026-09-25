@@ -1,3 +1,4 @@
+// biome-ignore-all format: one entry or row per line
 import type { ComponentEntry } from "@uicast/core";
 import { db } from "./index";
 import { chatMessages, chats } from "./schema";

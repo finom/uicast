@@ -10,7 +10,12 @@ import { createComponentImplementation, EntriesRenderer, RendererProvider } from
 
 const Box = createComponentImplementation({
   def: createComponentDefinition({ name: "Box", description: "div", props: z.object({ text: z.string().optional() }) }),
-  render: ({ text, children }) => <div>{text}{children}</div>,
+  render: ({ text, children }) => (
+    <div>
+      {text}
+      {children}
+    </div>
+  ),
   skeleton: () => <i>waiting</i>,
 });
 const Panel = createComponentImplementation({
@@ -34,7 +39,11 @@ const serverPass = async (execute: () => Promise<unknown>) => {
   const reported: EntryError[] = [];
   const reactErrors: unknown[] = [];
   const { prelude } = await prerender(
-    <RendererProvider implementations={[Box]} evaluator={new Evaluator({ functions: [listRows] })} onError={(e) => reported.push(e)}>
+    <RendererProvider
+      implementations={[Box]}
+      evaluator={new Evaluator({ functions: [listRows] })}
+      onError={(e) => reported.push(e)}
+    >
       <EntriesRenderer entries={entries} />
     </RendererProvider>,
     { onError: (err) => void reactErrors.push(err) },
@@ -68,7 +77,12 @@ describe("EntryRenderer — server pass", () => {
       <RendererProvider implementations={[Panel, Line]} evaluator={new Evaluator({ functions: [listRows] })}>
         <EntriesRenderer
           entries={[
-            { key: "page", component: "Panel", seed: [{ set: "scopes.root.rows", expr: "listRows()" }], children: ["row"] },
+            {
+              key: "page",
+              component: "Panel",
+              seed: [{ set: "scopes.root.rows", expr: "listRows()" }],
+              children: ["row"],
+            },
             { key: "row", component: "Line", each: "scopes.root.rows", as: "row" },
           ]}
         />

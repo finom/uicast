@@ -32,9 +32,7 @@ describe("EntryRenderer — callbacks", () => {
     });
 
     expect(container.textContent).toContain("0");
-    const btn = container.querySelector(
-      "button[data-key='btn']",
-    ) as HTMLButtonElement;
+    const btn = container.querySelector("button[data-key='btn']") as HTMLButtonElement;
     expect(btn).not.toBeNull();
 
     await act(async () => {
@@ -183,19 +181,13 @@ describe("EntryRenderer — the confirm seam", () => {
         </div>
       ) : null;
     const { container, scopes, getByText } = mountEntries(lines, {
-      wrapper: (children) => (
-        <ConfirmHost confirm={Modal}>{children}</ConfirmHost>
-      ),
+      wrapper: (children) => <ConfirmHost confirm={Modal}>{children}</ConfirmHost>,
     });
 
     await act(async () => {
-      fireEvent.click(
-        container.querySelector("button[data-key='root']") as HTMLButtonElement,
-      );
+      fireEvent.click(container.querySelector("button[data-key='root']") as HTMLButtonElement);
     });
-    expect(
-      container.querySelector("[data-modal-message]")?.textContent,
-    ).toBe("Sure?");
+    expect(container.querySelector("[data-modal-message]")?.textContent).toBe("Sure?");
     expect((scopes.root as Record<string, unknown>).done).toBeUndefined();
 
     await act(async () => {

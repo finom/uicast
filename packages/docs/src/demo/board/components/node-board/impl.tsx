@@ -40,7 +40,12 @@ export const NodeBoardImpl = createComponentImplementation({
           dragId.current = null;
         }}
       >
-        <svg className="pointer-events-none absolute inset-0 size-full" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <svg
+          className="pointer-events-none absolute inset-0 size-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
           {links.map((lk, i) => {
             const a = byId(lk.from);
             const b = byId(lk.to);
@@ -80,7 +85,9 @@ export const NodeBoardImpl = createComponentImplementation({
                 clickPort(n.id);
               }}
               className={`size-3 shrink-0 rounded-full border transition ${
-                pendingFrom === n.id ? "border-primary bg-primary" : "border-muted-foreground/50 bg-background hover:border-primary"
+                pendingFrom === n.id
+                  ? "border-primary bg-primary"
+                  : "border-muted-foreground/50 bg-background hover:border-primary"
               }`}
             />
           </div>

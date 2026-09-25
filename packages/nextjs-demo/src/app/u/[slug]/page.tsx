@@ -31,7 +31,11 @@ export default async function UserIndex({ params }: PageProps<"/u/[slug]">) {
         title="Pages"
         icon={FileText}
         empty="No pages yet."
-        items={userPages.map((page) => ({ key: page.id, href: `/u/${slug}/p/${page.seedId ?? page.id}`, title: page.title }))}
+        items={userPages.map((page) => ({
+          key: page.id,
+          href: `/u/${slug}/p/${page.seedId ?? page.id}`,
+          title: page.title,
+        }))}
       />
       <LinkGrid
         title="Chats"

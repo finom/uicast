@@ -76,10 +76,7 @@ describe("evaluate — host functions and evt", () => {
   });
 
   it("exposes evt to callbacks", () => {
-    const result = evaluate(
-      { expr: "evt.value + 1" },
-      { evt: { value: 10 } },
-    );
+    const result = evaluate({ expr: "evt.value + 1" }, { evt: { value: 10 } });
     expect(result).toBe(11);
   });
 
@@ -88,9 +85,7 @@ describe("evaluate — host functions and evt", () => {
       { expr: "fetch(21)" },
       {},
       new Evaluator({
-        functions: [
-          { name: "fetch", description: "", execute: (n: number) => n * 2 },
-        ],
+        functions: [{ name: "fetch", description: "", execute: (n: number) => n * 2 }],
       }),
     );
     expect(result).toBe(42);
@@ -120,9 +115,13 @@ describe("evaluate — host functions and evt", () => {
     } as unknown as NonNullable<StandardToolV0["inputSchema"]>;
 
     const call = (expr: string, tool: Partial<StandardToolV0>) =>
-      evaluate({ expr }, {}, new Evaluator({
-        functions: [{ name: "tool", description: "", execute: (i: unknown) => i, ...tool }],
-      }));
+      evaluate(
+        { expr },
+        {},
+        new Evaluator({
+          functions: [{ name: "tool", description: "", execute: (i: unknown) => i, ...tool }],
+        }),
+      );
 
     expect(() => call('tool("nope")', { inputSchema: numbers })).toThrow(
       expect.objectContaining({ reason: "invalid-arguments", fault: "document" }),
@@ -135,26 +134,30 @@ describe("evaluate — host functions and evt", () => {
   it("keeps an EntryError the host classified itself", () => {
     const own = new EntryError("no seats left", { reason: "invalid-arguments" });
     expect(() =>
-      evaluate({ expr: "tool(1)" }, {}, new Evaluator({
-        functions: [
-          {
-            name: "tool",
-            description: "",
-            execute: () => {
-              throw own;
+      evaluate(
+        { expr: "tool(1)" },
+        {},
+        new Evaluator({
+          functions: [
+            {
+              name: "tool",
+              description: "",
+              execute: () => {
+                throw own;
+              },
             },
-          },
-        ],
-      })),
+          ],
+        }),
+      ),
     ).toThrow(own);
   });
 });
 
 describe("evaluate — the evaluator's maxSourceLength", () => {
   it("rejects an oversized expression as a classified document fault", () => {
-    expect(() =>
-      evaluate({ expr: "1 + 1 + 1" }, {}, new Evaluator({ maxSourceLength: 5 })),
-    ).toThrow(expect.objectContaining({ message: expect.stringContaining("too long") }));
+    expect(() => evaluate({ expr: "1 + 1 + 1" }, {}, new Evaluator({ maxSourceLength: 5 }))).toThrow(
+      expect.objectContaining({ message: expect.stringContaining("too long") }),
+    );
     expect(evaluate({ expr: "1 + 1" }, {}, new Evaluator({ maxSourceLength: 5 }))).toBe(2);
   });
 });

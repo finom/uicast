@@ -7,15 +7,7 @@ import { PaginationImpl } from "../uicast-catalog/pagination/impl";
 import { SidebarImpl } from "../uicast-catalog/sidebar/impl";
 import { StepperImpl } from "../uicast-catalog/stepper/impl";
 
-export {
-  BreadcrumbImpl,
-  CommandMenuImpl,
-  LinkImpl,
-  NavigationMenuImpl,
-  PaginationImpl,
-  SidebarImpl,
-  StepperImpl,
-};
+export { BreadcrumbImpl, CommandMenuImpl, LinkImpl, NavigationMenuImpl, PaginationImpl, SidebarImpl, StepperImpl };
 
 export const impls: ComponentImplementation[] = [
   BreadcrumbImpl,

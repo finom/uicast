@@ -1,10 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { busy, cn } from "../../lib/utils";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "../../components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../../components/ui/avatar";
 import { Card } from "../../components/ui/card";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -34,11 +30,7 @@ function OrgNodeComponent({
           </AvatarFallback>
         </Avatar>
         <span className="text-sm font-medium text-center">{node.name}</span>
-        {node.title && (
-          <span className="text-xs text-muted-foreground text-center">
-            {node.title}
-          </span>
-        )}
+        {node.title && <span className="text-xs text-muted-foreground text-center">{node.title}</span>}
       </Card>
       {node.children && node.children.length > 0 && (
         <>

@@ -1,4 +1,11 @@
-import { convertToModelMessages, createUIMessageStreamResponse, isTextUIPart, streamText, toUIMessageStream, type UIMessage } from "ai";
+import {
+  convertToModelMessages,
+  createUIMessageStreamResponse,
+  isTextUIPart,
+  streamText,
+  toUIMessageStream,
+  type UIMessage,
+} from "ai";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -65,10 +72,7 @@ export async function POST(req: Request) {
   if ("error" in auth) return auth.error;
   const model = modelForUser(auth.me);
   if (!model) {
-    return Response.json(
-      { error: "No OpenRouter key on this account — log in again to grant one." },
-      { status: 403 },
-    );
+    return Response.json({ error: "No OpenRouter key on this account — log in again to grant one." }, { status: 403 });
   }
   const { id } = parsed.data;
   const uiMessages = parsed.data.messages as unknown as UIMessage[];

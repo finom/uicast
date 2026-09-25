@@ -33,11 +33,6 @@ export default async function UserChat({ params }: PageProps<"/u/[slug]/c/[id]">
   })) as UIMessage<Usage>[];
 
   return (
-    <ChatView
-      chatId={id}
-      initialMessages={initialMessages}
-      ownerSlug={slug}
-      readonly={me?.id !== row.chat.userId}
-    />
+    <ChatView chatId={id} initialMessages={initialMessages} ownerSlug={slug} readonly={me?.id !== row.chat.userId} />
   );
 }

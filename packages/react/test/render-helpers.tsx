@@ -50,11 +50,7 @@ const buttonDef = createComponentDefinition({
 const buttonRenderer = createComponentImplementation({
   def: buttonDef,
   render: ({ label, onClick }, { entry }) => (
-    <button
-      type="button"
-      data-key={entry.key}
-      onClick={() => onClick({})}
-    >
+    <button type="button" data-key={entry.key} onClick={() => onClick({})}>
       {label ?? "click"}
     </button>
   ),
@@ -114,8 +110,7 @@ export function mountEntries(lines: ComponentEntry[], options: MountOptions = {}
   }
 
   const childKeys = new Set(lines.flatMap((l) => l.children ?? []));
-  const rootKey =
-    lines.find((l) => !childKeys.has(l.key))?.key ?? lines[0]?.key ?? "root";
+  const rootKey = lines.find((l) => !childKeys.has(l.key))?.key ?? lines[0]?.key ?? "root";
 
   const store = createElementsStore(elements);
   const inner = (

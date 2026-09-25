@@ -33,9 +33,7 @@ describe("EntryRenderer — seeds on list elements", () => {
 
   it("a self-initializing list seeds via an async host function and renders when it lands", async () => {
     const fetchRows = vi.fn(async () => ["alpha", "beta"]);
-    const functions: StandardToolV0[] = [
-      { name: "fetchRows", description: "", execute: fetchRows },
-    ];
+    const functions: StandardToolV0[] = [{ name: "fetchRows", description: "", execute: fetchRows }];
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["the-list"] },
       {
@@ -60,9 +58,7 @@ describe("EntryRenderer — seeds on list elements", () => {
 
   it("an effectful seed on a non-empty list runs once, not once per item", () => {
     const count = vi.fn(() => "counted");
-    const functions: StandardToolV0[] = [
-      { name: "countCall", description: "", execute: count as () => unknown },
-    ];
+    const functions: StandardToolV0[] = [{ name: "countCall", description: "", execute: count as () => unknown }];
     const lines: ComponentEntry[] = [
       {
         key: "root",

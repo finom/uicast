@@ -29,7 +29,8 @@ const stepsFault = (steps: unknown, at: string, setRequired: boolean): string | 
     const here = `${at}[${i}]`;
     if (!isRecord(step)) return expected(here, 'a step ({ "set": "…", "expr": "…" })', step);
     if (setRequired && step.set === undefined) return `"${here}" has no "set": a seed step writes one field.`;
-    if (step.set !== undefined && typeof step.set !== "string") return expected(`${here}.set`, "an address string", step.set);
+    if (step.set !== undefined && typeof step.set !== "string")
+      return expected(`${here}.set`, "an address string", step.set);
     if (step.confirm !== undefined && typeof step.confirm !== "string") {
       return expected(`${here}.confirm`, "a message string", step.confirm);
     }

@@ -7,15 +7,7 @@ import { PaginationDef } from "../uicast-catalog/pagination/def";
 import { SidebarDef } from "../uicast-catalog/sidebar/def";
 import { StepperDef } from "../uicast-catalog/stepper/def";
 
-export {
-  BreadcrumbDef,
-  CommandMenuDef,
-  LinkDef,
-  NavigationMenuDef,
-  PaginationDef,
-  SidebarDef,
-  StepperDef,
-};
+export { BreadcrumbDef, CommandMenuDef, LinkDef, NavigationMenuDef, PaginationDef, SidebarDef, StepperDef };
 
 export const defs: ComponentDefinition[] = [
   BreadcrumbDef,

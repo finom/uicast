@@ -16,7 +16,7 @@
     "test:watch": "npm run test:watch --workspaces --if-present",
     "test:coverage": "npm run test:coverage --workspaces --if-present",
     "md-to-json": "node scripts/md-to-json.mjs",
-    "lint": "biome lint --error-on-warnings .",
+    "lint": "biome check --error-on-warnings .",
     "vpub-check-vars": "if [ -z \"$VERSION_TYPE\" ] || [ -z \"$PACKAGE\" ] || [ -z \"$NPM_TAG\" ]; then echo 'Error: VERSION_TYPE, PACKAGE, or NPM_TAG is not set'; exit 1; fi; if ! git diff --quiet HEAD; then echo 'Error: the git tree is not clean \u2014 commit or stash first (the release flow makes its own commit)'; exit 1; fi",
     "vpub:version": "npm version --prefix ./packages/$PACKAGE $VERSION_TYPE --no-git-tag-version && node scripts/sync-internal-deps.mjs && npm install --package-lock-only",
     "vpub:commit-and-publish": "NAME=$(node -p \"require('./packages/$PACKAGE/package.json').name\") && VERSION=$(node -p \"require('./packages/$PACKAGE/package.json').version\") && npm run --prefix ./packages/$PACKAGE npm-publish && git add ./packages/$PACKAGE/package.json package-lock.json && git commit -m \"chore(release): $NAME@$VERSION\" && ([ \"$NPM_TAG\" = \"latest\" ] && git tag \"${NAME#@uicast/}-v$VERSION\" || true) && git push && git push --tags",

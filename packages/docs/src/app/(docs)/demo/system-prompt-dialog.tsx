@@ -55,10 +55,9 @@ export function SystemPromptDialog({ demo }: { demo: DemoConfig }) {
         <DialogHeader>
           <DialogTitle>System prompt</DialogTitle>
           <DialogDescription>
-            What a host would send to the model for this demo — the shared
-            partials plus this catalog and these functions.
-            {prompt !== undefined &&
-              ` ≈${Math.round(prompt.length / CHARS_PER_TOKEN).toLocaleString("en-US")} tokens.`}
+            What a host would send to the model for this demo — the shared partials plus this catalog and these
+            functions.
+            {prompt !== undefined && ` ≈${Math.round(prompt.length / CHARS_PER_TOKEN).toLocaleString("en-US")} tokens.`}
           </DialogDescription>
         </DialogHeader>
         {/* min-w-0: a grid item's min-content width would let long code lines stretch the dialog past its max-width. */}

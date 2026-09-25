@@ -12,4 +12,5 @@ export const dragHandlers = (onPoint: (e: PointerEvent<HTMLDivElement>) => void)
 });
 
 // `value` as a 0..1 fraction of `size`, from `start`.
-export const fraction = (value: number, start: number, size: number) => Math.min(1, Math.max(0, (value - start) / size));
+export const fraction = (value: number, start: number, size: number) =>
+  Math.min(1, Math.max(0, (value - start) / size));

@@ -17,17 +17,8 @@ describe("buildElementsByKey", () => {
   });
 
   it("re-emitted entry replaces and drops orphaned descendants", () => {
-    const initial: ComponentEntry[] = [
-      e("root", ["a", "b"]),
-      e("a", ["a1"]),
-      e("a1"),
-      e("b"),
-    ];
-    const reemitted: ComponentEntry[] = [
-      ...initial,
-      e("a", ["a2"]),
-      e("a2"),
-    ];
+    const initial: ComponentEntry[] = [e("root", ["a", "b"]), e("a", ["a1"]), e("a1"), e("b")];
+    const reemitted: ComponentEntry[] = [...initial, e("a", ["a2"]), e("a2")];
     const map = buildElementsByKey(reemitted);
     expect(map.a).toBeDefined();
     expect(map.a.children).toEqual(["a2"]);
@@ -43,16 +34,8 @@ describe("buildElementsByKey", () => {
   });
 
   it("re-emitted entry keeps old children it still references", () => {
-    const initial: ComponentEntry[] = [
-      e("root", ["heading", "text"]),
-      e("heading"),
-      e("text"),
-    ];
-    const reemitted: ComponentEntry[] = [
-      ...initial,
-      e("root", ["heading", "text", "quote"]),
-      e("quote"),
-    ];
+    const initial: ComponentEntry[] = [e("root", ["heading", "text"]), e("heading"), e("text")];
+    const reemitted: ComponentEntry[] = [...initial, e("root", ["heading", "text", "quote"]), e("quote")];
     const map = buildElementsByKey(reemitted);
     expect(map.root.children).toEqual(["heading", "text", "quote"]);
     expect(map.heading).toBeDefined();
@@ -61,12 +44,7 @@ describe("buildElementsByKey", () => {
   });
 
   it("kept-by-reference children retain their own subtrees", () => {
-    const initial: ComponentEntry[] = [
-      e("root", ["a", "b"]),
-      e("a", ["a1"]),
-      e("a1"),
-      e("b"),
-    ];
+    const initial: ComponentEntry[] = [e("root", ["a", "b"]), e("a", ["a1"]), e("a1"), e("b")];
     const reemitted: ComponentEntry[] = [...initial, e("root", ["a"])];
     const map = buildElementsByKey(reemitted);
     expect(map.a).toBeDefined();
@@ -85,12 +63,7 @@ describe("buildElementsByKey", () => {
   });
 
   it("re-emitting a parent can re-parent an old grandchild", () => {
-    const lines: ComponentEntry[] = [
-      e("a", ["b"]),
-      e("b", ["c"]),
-      e("c"),
-      e("a", ["c"]),
-    ];
+    const lines: ComponentEntry[] = [e("a", ["b"]), e("b", ["c"]), e("c"), e("a", ["c"])];
     const map = buildElementsByKey(lines);
     expect(map.a.children).toEqual(["c"]);
     expect(map.c).toBeDefined();

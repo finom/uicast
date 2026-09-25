@@ -7,12 +7,8 @@ export const TabTriggerDef = createComponentDefinition({
     "A single tab button inside a TabList. The 'value' prop must match the corresponding TabContent's 'value' to link them. The `text` prop is the tab label displayed on the button.",
   props: z.strictObject({
     value: z.string().meta({
-      description:
-        "Unique value identifying this tab, must match the corresponding TabContent value",
+      description: "Unique value identifying this tab, must match the corresponding TabContent value",
     }),
-    text: z
-      .union([z.string(), z.number()])
-      .optional()
-      .meta({ description: "The tab button label text" }),
+    text: z.union([z.string(), z.number()]).optional().meta({ description: "The tab button label text" }),
   }),
 });

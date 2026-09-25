@@ -41,8 +41,7 @@ type ReactiveProxy<T extends object = Record<string, unknown>> = T & {
   $$set: (field: string, value: unknown, options?: SetOptions) => void;
 };
 
-const isObject = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === "object";
+const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object";
 
 function assertField(field: string): void {
   if (PROTOTYPE_KEYS.has(field)) {
@@ -51,10 +50,9 @@ function assertField(field: string): void {
     });
   }
   if (field.includes(".")) {
-    throw new EntryError(
-      `Cannot set "${field}": a scope field has no dots. Write the whole field.`,
-      { reason: "guardrail-violation" },
-    );
+    throw new EntryError(`Cannot set "${field}": a scope field has no dots. Write the whole field.`, {
+      reason: "guardrail-violation",
+    });
   }
 }
 
@@ -111,8 +109,7 @@ const forwardTargetsByProxy = new WeakMap<ReactiveProxy, () => ForwardTarget[]>(
 const windowsByElement = new WeakMap<object, Set<Emitter>>();
 
 // The fields, in the scopes a row can see, that hold its element by identity. Empty for a root-kind scope.
-const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] =>
-  forwardTargetsByProxy.get(proxy)?.() ?? [];
+const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] => forwardTargetsByProxy.get(proxy)?.() ?? [];
 
 const ENGINE_DESCRIPTOR = { writable: false, enumerable: false, configurable: true };
 

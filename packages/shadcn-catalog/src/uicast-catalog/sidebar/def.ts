@@ -16,9 +16,7 @@ export const SidebarDef = createComponentDefinition({
           items: z
             .array(
               z.strictObject({
-                label: z
-                  .string()
-                  .meta({ description: "Navigation item label" }),
+                label: z.string().meta({ description: "Navigation item label" }),
                 icon: iconNameSchema.optional().meta({
                   description: "Optional icon for the item.",
                 }),

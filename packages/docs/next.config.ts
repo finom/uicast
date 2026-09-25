@@ -21,12 +21,7 @@ const nextConfig: NextConfig = {
     },
   },
   // The tsconfig paths point @uicast/* at src/, so Next transpiles them as first-party code.
-  transpilePackages: [
-    "@uicast/expr",
-    "@uicast/core",
-    "@uicast/react",
-    "@uicast/shadcn-catalog",
-  ],
+  transpilePackages: ["@uicast/expr", "@uicast/core", "@uicast/react", "@uicast/shadcn-catalog"],
 };
 
 export default withNextra(nextConfig);

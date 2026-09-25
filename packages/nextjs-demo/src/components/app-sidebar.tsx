@@ -72,7 +72,9 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
   const slug = me?.slug ?? SYSTEM_SLUG;
 
   return (
-    <aside className={`${mobile ? "flex w-full border-0" : "hidden w-64 border-r md:flex"} h-full shrink-0 flex-col gap-2 bg-sidebar p-2 text-sidebar-foreground`}>
+    <aside
+      className={`${mobile ? "flex w-full border-0" : "hidden w-64 border-r md:flex"} h-full shrink-0 flex-col gap-2 bg-sidebar p-2 text-sidebar-foreground`}
+    >
       <Button asChild className="w-full justify-start">
         <Link href="/pages/new">
           <Plus data-icon="inline-start" />
@@ -94,7 +96,11 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
             label="Pages"
             empty="No pages yet. Create one to get started."
             icon={FileText}
-            items={pages?.map((page) => ({ key: page.id, href: `/u/${slug}/p/${page.seedId ?? page.id}`, title: page.title }))}
+            items={pages?.map((page) => ({
+              key: page.id,
+              href: `/u/${slug}/p/${page.seedId ?? page.id}`,
+              title: page.title,
+            }))}
           />
           <NavSection
             label="Chats"

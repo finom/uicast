@@ -15,19 +15,12 @@ export const ToastDef = createComponentDefinition({
     description: z.string().optional().meta({
       description: "Optional longer description text",
     }),
-    variant: z
-      .enum(["default", "success", "error", "warning"])
-      .default("default")
-      .meta({
-        description:
-          "Visual variant: default (neutral), success (green), error (red), warning (yellow)",
-      }),
-    position: z
-      .enum(["top-right", "top-left", "bottom-right", "bottom-left"])
-      .default("bottom-right")
-      .meta({
-        description: "Screen position for the toast notification",
-      }),
+    variant: z.enum(["default", "success", "error", "warning"]).default("default").meta({
+      description: "Visual variant: default (neutral), success (green), error (red), warning (yellow)",
+    }),
+    position: z.enum(["top-right", "top-left", "bottom-right", "bottom-left"]).default("bottom-right").meta({
+      description: "Screen position for the toast notification",
+    }),
   }),
   callbacks: {
     onClose: z.null().meta({

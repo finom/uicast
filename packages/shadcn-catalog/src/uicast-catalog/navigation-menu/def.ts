@@ -21,8 +21,7 @@ export const NavigationMenuDef = createComponentDefinition({
             )
             .optional()
             .meta({
-              description:
-                "Optional array of sub-menu items. If omitted, the item is a direct link.",
+              description: "Optional array of sub-menu items. If omitted, the item is a direct link.",
             }),
         }),
       )
@@ -35,8 +34,7 @@ export const NavigationMenuDef = createComponentDefinition({
           description: "The label of the clicked item",
         }),
         parentLabel: z.string().optional().meta({
-          description:
-            "The label of the parent menu item, if it was a sub-item",
+          description: "The label of the parent menu item, if it was a sub-item",
         }),
       })
       .meta({ description: "Callback when a navigation item is clicked" }),

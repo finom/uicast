@@ -31,7 +31,8 @@ export const updateOrder = standardTool({
   description: "Update an order by id (e.g. advance its status). Returns the updated order.",
   inputSchema: orderUpdate.extend(orderIdInput.shape),
   outputSchema: orderOutput,
-  execute: ({ id, ...patch }) => apiFetch(`/api/orders/${id}`, { method: "PATCH", body: patch, success: "Order updated" }),
+  execute: ({ id, ...patch }) =>
+    apiFetch(`/api/orders/${id}`, { method: "PATCH", body: patch, success: "Order updated" }),
 });
 
 export const deleteOrder = standardTool({

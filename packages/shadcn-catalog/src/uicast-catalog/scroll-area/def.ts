@@ -12,11 +12,8 @@ export const ScrollAreaDef = createComponentDefinition({
     width: z.number().int().positive().optional().meta({
       description: "Optional width in pixels. Fills its container when unset.",
     }),
-    orientation: z
-      .enum(["vertical", "horizontal", "both"])
-      .default("vertical")
-      .meta({
-        description: "Scroll direction. Vertical scrolling is always on; horizontal and both add sideways scrolling.",
-      }),
+    orientation: z.enum(["vertical", "horizontal", "both"]).default("vertical").meta({
+      description: "Scroll direction. Vertical scrolling is always on; horizontal and both add sideways scrolling.",
+    }),
   }),
 });

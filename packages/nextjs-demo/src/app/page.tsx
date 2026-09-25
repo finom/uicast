@@ -33,10 +33,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
       <section className="flex flex-col gap-3 pt-6 text-center">
         <h1 className="text-2xl font-semibold">Apps and answers, generated live</h1>
         <p className="mx-auto max-w-lg text-sm text-muted-foreground">
-          Describe a page or ask a question — the model builds working UI over a demo
-          database of customers, orders, and products. Everything anyone builds here is
-          public and read-only for others; log in with OpenRouter to build on your own
-          copy of the data, billed to your own credits.
+          Describe a page or ask a question — the model builds working UI over a demo database of customers, orders, and
+          products. Everything anyone builds here is public and read-only for others; log in with OpenRouter to build on
+          your own copy of the data, billed to your own credits.
         </p>
         <div className="flex justify-center gap-2">
           {me ? (
@@ -64,8 +63,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         )}
         {!me && (
           <p className="text-xs text-muted-foreground">
-            No account here — OpenRouter authorizes a key, and generations bill your own
-            credits. Start by browsing{" "}
+            No account here — OpenRouter authorizes a key, and generations bill your own credits. Start by browsing{" "}
             <Link className="underline" href={`/u/${SYSTEM_SLUG}`}>
               the demo content
             </Link>

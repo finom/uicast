@@ -46,8 +46,7 @@ export const boardLines: ComponentEntry[] = [
     component: "Typography",
     props: {
       literal: {
-        text:
-          "One bespoke component, two custom event shapes: dragging a node emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to } — both flowing through the same declarative callback mechanism.",
+        text: "One bespoke component, two custom event shapes: dragging a node emits a spatial { id, x, y }, wiring two nodes emits a relational { from, to } — both flowing through the same declarative callback mechanism.",
         variant: "muted",
       },
     },

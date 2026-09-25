@@ -36,7 +36,13 @@ const OPERATORS: Record<string, Operator[]> = {
 const INPUT_TYPES = { text: "text", number: "number", date: "date", select: "text" } as const;
 
 // A dropdown over `options`, each value its own label.
-const Choice = ({ value, options, onChange, className, placeholder }: {
+const Choice = ({
+  value,
+  options,
+  onChange,
+  className,
+  placeholder,
+}: {
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;

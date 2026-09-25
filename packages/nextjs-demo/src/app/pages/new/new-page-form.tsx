@@ -66,7 +66,11 @@ export function NewPageForm() {
         </CardContent>
         <CardFooter className="justify-end">
           <Button disabled={!name.trim() || !prompt.trim() || busy} onClick={() => create.mutate()}>
-            {busy ? <LoaderCircle data-icon="inline-start" className="animate-spin" /> : <Sparkles data-icon="inline-start" />}
+            {busy ? (
+              <LoaderCircle data-icon="inline-start" className="animate-spin" />
+            ) : (
+              <Sparkles data-icon="inline-start" />
+            )}
             Generate
           </Button>
         </CardFooter>

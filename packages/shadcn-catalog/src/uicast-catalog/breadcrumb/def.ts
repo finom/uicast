@@ -11,8 +11,7 @@ export const BreadcrumbDef = createComponentDefinition({
         z.strictObject({
           label: z.string().meta({ description: "The breadcrumb item text" }),
           active: z.boolean().optional().meta({
-            description:
-              "Whether this is the current/active page (last item, rendered as plain text)",
+            description: "Whether this is the current/active page (last item, rendered as plain text)",
           }),
         }),
       )

@@ -14,12 +14,8 @@ export const GanttChartDef = createComponentDefinition({
           start: z.number().int().nonnegative().meta({
             description: "Start position (e.g. day number or column index)",
           }),
-          duration: z
-            .number().int().positive()
-            .meta({ description: "Duration in the same unit as start" }),
-          color: chartColorSchema
-            .optional()
-            .meta({ description: "Optional task bar color." }),
+          duration: z.number().int().positive().meta({ description: "Duration in the same unit as start" }),
+          color: chartColorSchema.optional().meta({ description: "Optional task bar color." }),
           progress: z.number().min(0).max(100).optional().meta({
             description: "Optional progress percentage (0-100)",
           }),

@@ -31,7 +31,8 @@ export const updateSupplier = standardTool({
   description: "Update a supplier by id. Returns the updated supplier.",
   inputSchema: supplierUpdate.extend(supplierIdInput.shape),
   outputSchema: supplierOutput,
-  execute: ({ id, ...patch }) => apiFetch(`/api/suppliers/${id}`, { method: "PATCH", body: patch, success: "Supplier updated" }),
+  execute: ({ id, ...patch }) =>
+    apiFetch(`/api/suppliers/${id}`, { method: "PATCH", body: patch, success: "Supplier updated" }),
 });
 
 export const deleteSupplier = standardTool({

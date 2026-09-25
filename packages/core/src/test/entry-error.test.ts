@@ -10,21 +10,11 @@ const evaluate = (expr: ValueSource, context: Record<string, unknown>, evaluator
 
 describe("EntryError", () => {
   it("derives fault from reason — one source of truth", () => {
-    expect(new EntryError("x", { reason: "expression-syntax" }).fault).toBe(
-      "document",
-    );
-    expect(new EntryError("x", { reason: "invalid-arguments" }).fault).toBe(
-      "document",
-    );
-    expect(new EntryError("x", { reason: "host-function" }).fault).toBe(
-      "environment",
-    );
-    expect(new EntryError("x", { reason: "implementation" }).fault).toBe(
-      "environment",
-    );
-    expect(new EntryError("x", { reason: "expression-runtime" }).fault).toBe(
-      "unknown",
-    );
+    expect(new EntryError("x", { reason: "expression-syntax" }).fault).toBe("document");
+    expect(new EntryError("x", { reason: "invalid-arguments" }).fault).toBe("document");
+    expect(new EntryError("x", { reason: "host-function" }).fault).toBe("environment");
+    expect(new EntryError("x", { reason: "implementation" }).fault).toBe("environment");
+    expect(new EntryError("x", { reason: "expression-runtime" }).fault).toBe("unknown");
   });
 
   it("is() brand check survives where instanceof would (and rejects lookalikes)", () => {
@@ -97,10 +87,7 @@ describe("evaluate — classification at the throw site", () => {
 
   it("tags a runtime throw in a valid expression as expression-runtime (unknown)", () => {
     try {
-      evaluate(
-        { expr: "scopes.root.user.name" },
-        { scopes: { root: { user: null } } },
-      );
+      evaluate({ expr: "scopes.root.user.name" }, { scopes: { root: { user: null } } });
       expect.unreachable();
     } catch (err) {
       expect(EntryError.is(err) && err.reason).toBe("expression-runtime");
@@ -148,9 +135,7 @@ describe("evaluate — classification at the throw site", () => {
         ],
       }),
     );
-    await expect(result).rejects.toSatisfy(
-      (err: unknown) => EntryError.is(err) && err.reason === "host-function",
-    );
+    await expect(result).rejects.toSatisfy((err: unknown) => EntryError.is(err) && err.reason === "host-function");
   });
 
   it("passes a host-thrown EntryError through untouched", () => {

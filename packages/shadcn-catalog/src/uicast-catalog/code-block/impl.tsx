@@ -20,21 +20,10 @@ export const CodeBlockImpl = createComponentImplementation({
     return (
       <Card className="bg-muted" data-key={entry.key}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b px-4 py-2">
-          <span className="text-xs font-medium text-muted-foreground">
-            {language}
-          </span>
+          <span className="text-xs font-medium text-muted-foreground">{language}</span>
           {showCopyButton && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <Check className="size-3.5 text-green-500" />
-              ) : (
-                <Copy className="size-3.5" />
-              )}
+            <Button variant="ghost" size="icon" className="size-7" onClick={handleCopy}>
+              {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
             </Button>
           )}
         </CardHeader>
@@ -46,9 +35,7 @@ export const CodeBlockImpl = createComponentImplementation({
                   <tbody>
                     {lines.map((line, i) => (
                       <tr key={i}>
-                        <td className="select-none pr-4 text-right text-muted-foreground">
-                          {i + 1}
-                        </td>
+                        <td className="select-none pr-4 text-right text-muted-foreground">{i + 1}</td>
                         <td className="whitespace-pre">{line}</td>
                       </tr>
                     ))}

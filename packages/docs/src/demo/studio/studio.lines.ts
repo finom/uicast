@@ -14,6 +14,7 @@ export const studioLines: ComponentEntry[] = [
       { set: "scopes.root.drive", literal: 45 },
       {
         set: "scopes.root.pattern",
+        // biome-ignore format: one track per line
         literal: [
           [true, false, false, false, true, false, false, false, true, false, false, false, true, false, false, false],
           [false, false, false, false, true, false, false, false, false, false, false, false, true, false, false, false],
@@ -41,8 +42,7 @@ export const studioLines: ComponentEntry[] = [
     component: "Typography",
     props: {
       literal: {
-        text:
-          "Every pad, knob, and step below is a bespoke component emitting its own custom event payload — all wired declaratively into one reactive scope.",
+        text: "Every pad, knob, and step below is a bespoke component emitting its own custom event payload — all wired declaratively into one reactive scope.",
         variant: "muted",
       },
     },

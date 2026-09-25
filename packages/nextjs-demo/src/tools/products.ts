@@ -31,7 +31,8 @@ export const updateProduct = standardTool({
   description: "Update a product by id. Returns the updated product.",
   inputSchema: productUpdate.extend(productIdInput.shape),
   outputSchema: productOutput,
-  execute: ({ id, ...patch }) => apiFetch(`/api/products/${id}`, { method: "PATCH", body: patch, success: "Product updated" }),
+  execute: ({ id, ...patch }) =>
+    apiFetch(`/api/products/${id}`, { method: "PATCH", body: patch, success: "Product updated" }),
 });
 
 export const deleteProduct = standardTool({

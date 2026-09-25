@@ -22,9 +22,7 @@ describe("EntryRenderer — currentValue", () => {
       },
     ];
     const { container } = mountEntries(lines, { rootScope: { count: 10 } });
-    const btn = container.querySelector(
-      "button[data-key='btn']",
-    ) as HTMLButtonElement;
+    const btn = container.querySelector("button[data-key='btn']") as HTMLButtonElement;
 
     await act(async () => {
       fireEvent.click(btn);
@@ -75,9 +73,7 @@ describe("EntryRenderer — currentValue", () => {
         key: "btn",
         component: "Button",
         callbacks: {
-          onClick: [
-            { set: "scopes.root.items", expr: "[...currentValue, currentValue.length]" },
-          ],
+          onClick: [{ set: "scopes.root.items", expr: "[...currentValue, currentValue.length]" }],
         },
       },
       {

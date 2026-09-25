@@ -11,13 +11,9 @@ export const LinkDef = createComponentDefinition({
       format: "uri-reference",
       description: "The address the link opens",
     }),
-    variant: z
-      .enum(["default", "muted", "destructive"])
-      .default("default")
-      .meta({
-        description:
-          "Visual variant: default (primary color), muted (subtle), destructive (red)",
-      }),
+    variant: z.enum(["default", "muted", "destructive"]).default("default").meta({
+      description: "Visual variant: default (primary color), muted (subtle), destructive (red)",
+    }),
     size: z.enum(["sm", "default", "lg"]).default("default").meta({
       description: "Font size of the link",
     }),

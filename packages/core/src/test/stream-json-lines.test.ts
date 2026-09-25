@@ -3,9 +3,7 @@ import { streamJsonLines } from "../stream-json-lines";
 
 const encoder = new TextEncoder();
 
-async function* chunks(
-  parts: (string | Uint8Array)[],
-): AsyncGenerator<string | Uint8Array> {
+async function* chunks(parts: (string | Uint8Array)[]): AsyncGenerator<string | Uint8Array> {
   for (const part of parts) yield part;
 }
 
@@ -19,17 +17,11 @@ const collect = async (
 
 describe("streamJsonLines — chunk reassembly", () => {
   it("yields an entry split across chunks", async () => {
-    expect(await collect(chunks(['{"a"', ':1}\n{"b":2}\n']))).toEqual([
-      { a: 1 },
-      { b: 2 },
-    ]);
+    expect(await collect(chunks(['{"a"', ':1}\n{"b":2}\n']))).toEqual([{ a: 1 }, { b: 2 }]);
   });
 
   it("flushes the last line without a trailing newline", async () => {
-    expect(await collect(chunks(['{"a":1}\n{"b"', ":2}"]))).toEqual([
-      { a: 1 },
-      { b: 2 },
-    ]);
+    expect(await collect(chunks(['{"a":1}\n{"b"', ":2}"]))).toEqual([{ a: 1 }, { b: 2 }]);
   });
 });
 
@@ -42,16 +34,11 @@ describe("streamJsonLines — non-JSON noise", () => {
       '{"key":"b","compo\n',
       "```\n",
     ];
-    expect(await collect(chunks(parts))).toEqual([
-      { key: "a", component: "C" },
-    ]);
+    expect(await collect(chunks(parts))).toEqual([{ key: "a", component: "C" }]);
   });
 
   it("tolerates CRLF line endings and blank lines", async () => {
-    expect(await collect(chunks(['{"a":1}\r\n\r\n', '\n{"b":2}\r\n']))).toEqual([
-      { a: 1 },
-      { b: 2 },
-    ]);
+    expect(await collect(chunks(['{"a":1}\r\n\r\n', '\n{"b":2}\r\n']))).toEqual([{ a: 1 }, { b: 2 }]);
   });
 });
 
@@ -61,19 +48,13 @@ describe("streamJsonLines — byte input", () => {
     // Cut between the two bytes of "é" (0xC3 0xA9); also no trailing newline,
     // so the flush path decodes the tail.
     const cut = bytes.indexOf(0xc3) + 1;
-    expect(
-      await collect(chunks([bytes.slice(0, cut), bytes.slice(cut)])),
-    ).toEqual([{ s: "héllo" }]);
+    expect(await collect(chunks([bytes.slice(0, cut), bytes.slice(cut)]))).toEqual([{ s: "héllo" }]);
   });
 });
 
 describe("streamJsonLines — source kinds", () => {
   it("a ReadableStream yields the same entries as an async iterable", async () => {
-    const parts: (string | Uint8Array)[] = [
-      '{"a":1}\n',
-      encoder.encode('{"b":2}\n'),
-      '{"c":3}',
-    ];
+    const parts: (string | Uint8Array)[] = ['{"a":1}\n', encoder.encode('{"b":2}\n'), '{"c":3}'];
     const stream = new ReadableStream<Uint8Array | string>({
       start(controller) {
         for (const part of parts) controller.enqueue(part);

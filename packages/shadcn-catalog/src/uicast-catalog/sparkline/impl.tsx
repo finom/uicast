@@ -1,12 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { busy, cn } from "../../lib/utils";
-import {
-  LineChart,
-  Line,
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, Area, AreaChart, ResponsiveContainer } from "recharts";
 import { SparklineDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -20,7 +14,8 @@ export const SparklineImpl = createComponentImplementation({
       <div
         className={cn("inline-flex items-center", busy(loading))}
         style={{ width, height }}
-        aria-busy={loading || undefined} data-key={entry.key}
+        aria-busy={loading || undefined}
+        data-key={entry.key}
       >
         <ResponsiveContainer width="100%" height="100%">
           {filled ? (

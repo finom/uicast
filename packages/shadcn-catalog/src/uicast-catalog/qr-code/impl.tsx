@@ -10,10 +10,7 @@ const SWATCH = { white: "#ffffff", black: "#000000" } as const;
 export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({ value, size, bgColor, fgColor }, { entry }) => (
-    <Card
-      className="inline-flex items-center justify-center p-4"
-      data-key={entry.key}
-    >
+    <Card className="inline-flex items-center justify-center p-4" data-key={entry.key}>
       <CardContent className="p-0">
         <QRCodeSVG
           value={value}

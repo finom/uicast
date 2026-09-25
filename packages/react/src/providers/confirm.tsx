@@ -1,12 +1,4 @@
-import {
-  createContext,
-  type ReactElement,
-  type ReactNode,
-  useCallback,
-  useContext,
-  useRef,
-  useState,
-} from "react";
+import { createContext, type ReactElement, type ReactNode, useCallback, useContext, useRef, useState } from "react";
 import type { ConfirmComponentProps, ConfirmFn } from "../types";
 
 const windowConfirm: ConfirmFn = (message) =>

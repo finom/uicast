@@ -16,7 +16,9 @@ describe("RendererProvider — implementations prop", () => {
       },
     ];
     const { container } = render(
-      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}><EntriesRenderer entries={lines} /></RendererProvider>,
+      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList}>
+        <EntriesRenderer entries={lines} />
+      </RendererProvider>,
     );
     expect(container.textContent).toContain("from-catalog-prop");
   });
@@ -30,14 +32,16 @@ describe("RendererProvider — implementations prop", () => {
     const initB: InitFn = ({ scopes }) => {
       rootB = scopes.root;
     };
-    const box = (key: string): ComponentEntry[] => [
-      { key, component: "Box", props: { expr: "({ text: 'x' })" } },
-    ];
+    const box = (key: string): ComponentEntry[] => [{ key, component: "Box", props: { expr: "({ text: 'x' })" } }];
 
     render(
       <>
-        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initA}><EntriesRenderer entries={box("rA")} /></RendererProvider>
-        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initB}><EntriesRenderer entries={box("rB")} /></RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initA}>
+          <EntriesRenderer entries={box("rA")} />
+        </RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={initB}>
+          <EntriesRenderer entries={box("rB")} />
+        </RendererProvider>
       </>,
     );
 
@@ -65,7 +69,9 @@ describe("RendererProvider — implementations prop", () => {
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     expect(() =>
       render(
-        <RendererProvider evaluator={testEvaluator} implementations={[first, second]}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider evaluator={testEvaluator} implementations={[first, second]}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
       ),
     ).toThrow(/Duplicate component name "Box"/);
     errorSpy.mockRestore();
@@ -80,7 +86,9 @@ describe("RendererProvider — implementations prop", () => {
     const lines: ComponentEntry[] = [{ key: "k", component: "Box" }];
     expect(() =>
       render(
-        <RendererProvider evaluator={testEvaluator} implementations={[{ ...made }]}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider evaluator={testEvaluator} implementations={[{ ...made }]}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
       ),
     ).toThrow(/"Box" was not made by createComponentImplementation/);
     errorSpy.mockRestore();

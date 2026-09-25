@@ -9,9 +9,6 @@ export const HeadingDef = createComponentDefinition({
     level: z.enum(["1", "2", "3", "4", "5", "6"]).default("2").meta({
       description: "The heading level (1-6), maps to h1-h6 HTML tags",
     }),
-    text: z
-      .union([z.string(), z.number()])
-      .optional()
-      .meta({ description: "The heading text content" }),
+    text: z.union([z.string(), z.number()]).optional().meta({ description: "The heading text content" }),
   }),
 });

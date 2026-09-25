@@ -6,11 +6,7 @@ export const RangeSliderImpl = createComponentImplementation({
   def: RangeSliderDef,
   render: ({ min, max, step, valueLow, valueHigh, disabled, showValues, onChange }, { entry }) => (
     <div className="flex items-center gap-4" data-key={entry.key}>
-      {showValues && (
-        <span className="min-w-[3ch] text-sm font-medium tabular-nums">
-          {valueLow}
-        </span>
-      )}
+      {showValues && <span className="min-w-[3ch] text-sm font-medium tabular-nums">{valueLow}</span>}
       <Slider
         value={[valueLow, valueHigh]}
         min={min}
@@ -25,11 +21,7 @@ export const RangeSliderImpl = createComponentImplementation({
         }
         className="flex-1"
       />
-      {showValues && (
-        <span className="min-w-[3ch] text-sm font-medium tabular-nums">
-          {valueHigh}
-        </span>
-      )}
+      {showValues && <span className="min-w-[3ch] text-sm font-medium tabular-nums">{valueHigh}</span>}
     </div>
   ),
 });

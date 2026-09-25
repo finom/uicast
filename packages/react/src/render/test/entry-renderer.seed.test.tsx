@@ -78,15 +78,15 @@ describe("EntryRenderer — seed", () => {
     const gate = new Promise<string>((resolve) => {
       resolveLoad = resolve;
     });
-    const functions: StandardToolV0[] = [
-      { name: "loadData", description: "", execute: () => gate },
-    ];
+    const functions: StandardToolV0[] = [{ name: "loadData", description: "", execute: () => gate }];
     const evaluator = new Evaluator({ functions });
 
     let container!: HTMLElement;
     await act(async () => {
       container = render(
-        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
       ).container;
     });
     expect(container.textContent ?? "").not.toContain("loaded-value");
@@ -112,9 +112,7 @@ describe("EntryRenderer — seed", () => {
     const gate = new Promise<string>((resolve) => {
       resolveLoad = resolve;
     });
-    const functions: StandardToolV0[] = [
-      { name: "loadData", description: "", execute: () => gate },
-    ];
+    const functions: StandardToolV0[] = [{ name: "loadData", description: "", execute: () => gate }];
     const evaluator = new Evaluator({ functions });
 
     let container!: HTMLElement;
@@ -143,9 +141,7 @@ describe("EntryRenderer — seed", () => {
   });
 
   it("stays silent when an async seed resolves after unmount", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     let resolveLoad!: (value: string) => void;
     const gate = new Promise<string>((resolve) => {
       resolveLoad = resolve;
@@ -158,15 +154,15 @@ describe("EntryRenderer — seed", () => {
         props: { expr: "({ text: scopes.root.data })" },
       },
     ];
-    const functions: StandardToolV0[] = [
-      { name: "loadData", description: "", execute: () => gate },
-    ];
+    const functions: StandardToolV0[] = [{ name: "loadData", description: "", execute: () => gate }];
     const evaluator = new Evaluator({ functions });
 
     let unmount!: () => void;
     await act(async () => {
       ({ unmount } = render(
-        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
       ));
     });
     unmount();
@@ -181,9 +177,7 @@ describe("EntryRenderer — seed", () => {
 
   // vitest also fails the run on an unhandled rejection.
   it("stays silent when an async seed rejects after unmount", async () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     let rejectLoad!: (err: Error) => void;
     const gate = new Promise<string>((_resolve, reject) => {
       rejectLoad = reject;
@@ -196,15 +190,15 @@ describe("EntryRenderer — seed", () => {
         props: { expr: "({ text: scopes.root.data })" },
       },
     ];
-    const functions: StandardToolV0[] = [
-      { name: "loadData", description: "", execute: () => gate },
-    ];
+    const functions: StandardToolV0[] = [{ name: "loadData", description: "", execute: () => gate }];
     const evaluator = new Evaluator({ functions });
 
     let unmount!: () => void;
     await act(async () => {
       ({ unmount } = render(
-        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={lines} /></RendererProvider>,
+        <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+          <EntriesRenderer entries={lines} />
+        </RendererProvider>,
       ));
     });
     unmount();

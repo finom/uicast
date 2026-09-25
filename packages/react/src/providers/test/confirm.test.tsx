@@ -19,9 +19,7 @@ const Modal = ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) =>
 
 const hostWith =
   (confirm?: typeof Modal) =>
-  ({ children }: { children: ReactNode }) => (
-    <ConfirmHost confirm={confirm}>{children}</ConfirmHost>
-  );
+  ({ children }: { children: ReactNode }) => <ConfirmHost confirm={confirm}>{children}</ConfirmHost>;
 
 describe("confirm", () => {
   const originalConfirm = window.confirm;
@@ -64,9 +62,7 @@ describe("confirm", () => {
       answer = result.current("Clear the pattern?");
     });
 
-    expect(screen.getByTestId("message").textContent).toBe(
-      "Clear the pattern?",
-    );
+    expect(screen.getByTestId("message").textContent).toBe("Clear the pattern?");
     fireEvent.click(screen.getByText("Confirm"));
 
     await expect(answer).resolves.toBe(true);

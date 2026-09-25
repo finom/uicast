@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
   if (!(await ownsRow(suppliers, body.data.supplierId, auth.me.id))) {
     return json({ error: "supplierId does not exist" }, 400);
   }
-  const [row] = await db.insert(products).values({ ...body.data, userId: auth.me.id }).returning(COLS);
+  const [row] = await db
+    .insert(products)
+    .values({ ...body.data, userId: auth.me.id })
+    .returning(COLS);
   return json(row, 201);
 }

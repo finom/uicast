@@ -11,13 +11,7 @@ export const StepperImpl = createComponentImplementation({
   render: ({ steps, currentStep, orientation, onStepClick }, { entry }) => {
     const isHorizontal = orientation === "horizontal";
     return (
-      <div
-        className={cn(
-          "flex",
-          isHorizontal ? "flex-row items-start" : "flex-col",
-        )}
-        data-key={entry.key}
-      >
+      <div className={cn("flex", isHorizontal ? "flex-row items-start" : "flex-col")} data-key={entry.key}>
         {steps.map((step, i) => {
           const isCompleted = i < currentStep;
           const isCurrent = i === currentStep;
@@ -28,17 +22,10 @@ export const StepperImpl = createComponentImplementation({
               key={i}
               className={cn(
                 "flex",
-                isHorizontal
-                  ? "flex-col items-center flex-1"
-                  : "flex-row items-start pb-8 last:pb-0",
+                isHorizontal ? "flex-col items-center flex-1" : "flex-row items-start pb-8 last:pb-0",
               )}
             >
-              <div
-                className={cn(
-                  "flex items-center",
-                  isHorizontal ? "flex-row w-full" : "flex-col mr-4",
-                )}
-              >
+              <div className={cn("flex items-center", isHorizontal ? "flex-row w-full" : "flex-col mr-4")}>
                 {i > 0 && (
                   <Separator
                     orientation={isHorizontal ? "horizontal" : "vertical"}
@@ -63,29 +50,15 @@ export const StepperImpl = createComponentImplementation({
                 </Button>
 
                 {!isLast && isHorizontal && (
-                  <Separator
-                    className={cn(
-                      "flex-1 h-0.5",
-                      isCompleted ? "bg-primary" : "bg-border",
-                    )}
-                  />
+                  <Separator className={cn("flex-1 h-0.5", isCompleted ? "bg-primary" : "bg-border")} />
                 )}
               </div>
 
               <div className={isHorizontal ? "text-center mt-2 px-1" : "pt-1"}>
-                <p
-                  className={cn(
-                    "text-sm font-medium",
-                    isCurrent ? "text-foreground" : "text-muted-foreground",
-                  )}
-                >
+                <p className={cn("text-sm font-medium", isCurrent ? "text-foreground" : "text-muted-foreground")}>
                   {step.label}
                 </p>
-                {step.description && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {step.description}
-                  </p>
-                )}
+                {step.description && <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>}
               </div>
             </div>
           );

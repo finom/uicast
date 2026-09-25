@@ -23,14 +23,9 @@ export const HighlightedTextImpl = createComponentImplementation({
     return (
       <span data-key={entry.key}>
         {parts.map((part, i) => {
-          const isMatch = caseSensitive
-            ? part === highlight
-            : part.toLowerCase() === highlight.toLowerCase();
+          const isMatch = caseSensitive ? part === highlight : part.toLowerCase() === highlight.toLowerCase();
           return isMatch ? (
-            <mark
-              key={i}
-              className={`${BACKGROUNDS[color]} px-0.5 rounded-sm`}
-            >
+            <mark key={i} className={`${BACKGROUNDS[color]} px-0.5 rounded-sm`}>
               {part}
             </mark>
           ) : (

@@ -10,16 +10,8 @@ export const GaugeChartDef = createComponentDefinition({
     value: z.number().meta({ description: "Current value" }),
     min: z.number().default(0).meta({ description: "Minimum value" }),
     max: z.number().default(100).meta({ description: "Maximum value" }),
-    label: z
-      .string()
-      .optional()
-      .meta({ description: "Label text beneath the value" }),
-    color: chartColorSchema
-      .default("violet")
-      .meta({ description: "Gauge fill colour." }),
-    height: z
-      .number().int().positive()
-      .default(200)
-      .meta({ description: "Chart height in pixels" }),
+    label: z.string().optional().meta({ description: "Label text beneath the value" }),
+    color: chartColorSchema.default("violet").meta({ description: "Gauge fill colour." }),
+    height: z.number().int().positive().default(200).meta({ description: "Chart height in pixels" }),
   }),
 });

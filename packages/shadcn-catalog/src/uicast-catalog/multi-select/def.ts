@@ -12,9 +12,7 @@ export const MultiSelectDef = createComponentDefinition({
     options: z
       .array(
         z.strictObject({
-          label: z
-            .string()
-            .meta({ description: "Display text for this option" }),
+          label: z.string().meta({ description: "Display text for this option" }),
           value: z.string().meta({ description: "The value for this option" }),
         }),
       )

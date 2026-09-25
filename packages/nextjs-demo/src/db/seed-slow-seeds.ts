@@ -1,3 +1,4 @@
+// biome-ignore-all format: one entry or row per line
 import type { ComponentEntry } from "@uicast/core";
 
 // Hand-written, not generated: every section waits on `delay`, so a reload shows the skeletons at each level.

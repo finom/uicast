@@ -27,7 +27,9 @@ class ToyEvaluator implements ExpressionEvaluator {
   memberReads(source: string, root: string): readonly string[] {
     return source === "now" ? [] : [`${root}.${source}`];
   }
-  compile<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(source: string): (...contexts: TIn) => TOut {
+  compile<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(
+    source: string,
+  ): (...contexts: TIn) => TOut {
     return (...contexts) => this.eval<TOut>(source, ...contexts);
   }
   eval<TOut = unknown, TIn extends EvaluatorContexts = EvaluatorContexts>(source: string, ...contexts: TIn): TOut {
@@ -55,7 +57,9 @@ describe("ExpressionEvaluator", () => {
 
   it("still gets uicast's name screen and error classification", () => {
     const clash = new ToyEvaluator([tool("scopes")]);
-    expect(() => evaluate({ expr: "n" }, { scopes: {} }, clash)).toThrow(expect.objectContaining({ reason: "host-function" }));
+    expect(() => evaluate({ expr: "n" }, { scopes: {} }, clash)).toThrow(
+      expect.objectContaining({ reason: "host-function" }),
+    );
 
     class Throwing extends ToyEvaluator {
       override eval(): never {

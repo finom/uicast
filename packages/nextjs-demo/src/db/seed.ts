@@ -29,7 +29,8 @@ function validateStructure(where: string, entries: ComponentEntry[]): void {
     throw new Error(`[${where}] expected exactly one root, got: ${roots.map((r) => r.key).join(", ")}`);
   }
   const multi = [...referenced.entries()].filter(([, n]) => n > 1);
-  if (multi.length) throw new Error(`[${where}] children referenced more than once: ${multi.map(([k]) => k).join(", ")}`);
+  if (multi.length)
+    throw new Error(`[${where}] children referenced more than once: ${multi.map(([k]) => k).join(", ")}`);
   const asNames = new Set<string>();
   for (const e of entries) {
     if (e.each) {
@@ -44,7 +45,9 @@ function validateStructure(where: string, entries: ComponentEntry[]): void {
       const result = def.props["~standard"].validate(e.props.literal);
       if (result instanceof Promise) throw new Error(`[${where}] async props schema on ${e.component}`);
       if (result.issues) {
-        throw new Error(`[${where}] "${e.key}" props do not match ${e.component}: ${result.issues.map((i) => i.message).join("; ")}`);
+        throw new Error(
+          `[${where}] "${e.key}" props do not match ${e.component}: ${result.issues.map((i) => i.message).join("; ")}`,
+        );
       }
     }
     for (const cb of Object.keys(e.callbacks ?? {})) {
@@ -83,8 +86,15 @@ function validateFences(): void {
     for (const turn of chat.turns) {
       const fences = turn.text.match(/```uicast\n([\s\S]*?)```/g) ?? [];
       for (const fence of fences) {
-        const lines = fence.replace(/```uicast\n/, "").replace(/```$/, "").trim().split("\n");
-        validateEntries(chat.title, lines.map((line) => JSON.parse(line) as ComponentEntry));
+        const lines = fence
+          .replace(/```uicast\n/, "")
+          .replace(/```$/, "")
+          .trim()
+          .split("\n");
+        validateEntries(
+          chat.title,
+          lines.map((line) => JSON.parse(line) as ComponentEntry),
+        );
       }
     }
   }
@@ -111,7 +121,9 @@ async function updateSeedContent(userId: string): Promise<void> {
     await db.insert(componentEntries).values(page.entries.map((entry) => ({ pageId: row.id, data: entry })));
   }
   const seedIds = SEED_PAGES.map((page) => page.seedId);
-  await db.delete(pages).where(and(eq(pages.userId, userId), or(isNull(pages.seedId), notInArray(pages.seedId, seedIds))));
+  await db
+    .delete(pages)
+    .where(and(eq(pages.userId, userId), or(isNull(pages.seedId), notInArray(pages.seedId, seedIds))));
 
   // Chat ids are fixed strings, so a rewrite keeps every chat link.
   await db.delete(chats).where(eq(chats.userId, userId));

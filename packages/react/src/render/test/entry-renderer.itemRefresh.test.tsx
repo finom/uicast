@@ -45,8 +45,6 @@ describe("EntryRenderer — item proxy refresh", () => {
     } finally {
       console.error = original;
     }
-    expect(
-      warnings.filter((w) => w.includes("Cannot update a component")),
-    ).toEqual([]);
+    expect(warnings.filter((w) => w.includes("Cannot update a component"))).toEqual([]);
   });
 });

@@ -26,7 +26,9 @@ export const WaterfallChartImpl = createComponentImplementation({
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip
-            formatter={(_, name, item) => (name === "base" ? [undefined, undefined] : [item.payload.signedValue, "Value"])}
+            formatter={(_, name, item) =>
+              name === "base" ? [undefined, undefined] : [item.payload.signedValue, "Value"]
+            }
           />
           <ReferenceLine y={0} stroke="#666" />
           <Bar isAnimationActive={false} dataKey="base" stackId="waterfall" fill="transparent" />

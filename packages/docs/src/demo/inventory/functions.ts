@@ -74,4 +74,10 @@ const deleteProduct = standardTool({
   },
 });
 
-export const inventoryFunctions: StandardToolV0[] = [listProducts, getCategoryBreakdown, createProduct, updateProduct, deleteProduct];
+export const inventoryFunctions: StandardToolV0[] = [
+  listProducts,
+  getCategoryBreakdown,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+];

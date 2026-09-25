@@ -3,9 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act, render, waitFor } from "@testing-library/react";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import type { ComponentEntry } from "@uicast/core";
-import {
-  defaultImplementationsList,
-  mountEntries, testEvaluator } from "../../../test/render-helpers";
+import { defaultImplementationsList, mountEntries, testEvaluator } from "../../../test/render-helpers";
 
 const errorSlot = {
   error: ({ error }: ErrorComponentProps) => (
@@ -52,7 +50,9 @@ describe("EntryRenderer — containment edges", () => {
     let view!: ReturnType<typeof render>;
     await act(async () => {
       view = render(
-        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={initialLines} /></RendererProvider>,
+        <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}>
+          <EntriesRenderer entries={initialLines} />
+        </RendererProvider>,
       );
     });
     await waitFor(() => {
@@ -62,7 +62,9 @@ describe("EntryRenderer — containment edges", () => {
       initialLines.push(...more);
       await act(async () => {
         view.rerender(
-          <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}><EntriesRenderer entries={[...initialLines]} /></RendererProvider>,
+          <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} init={init}>
+            <EntriesRenderer entries={[...initialLines]} />
+          </RendererProvider>,
         );
       });
     };

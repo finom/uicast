@@ -20,9 +20,6 @@ export const BubbleChartDef = createComponentDefinition({
     xLabel: z.string().optional().meta({ description: "X-axis name, shown in the tooltip" }),
     yLabel: z.string().optional().meta({ description: "Y-axis name, shown in the tooltip" }),
     color: chartColorSchema.default("violet").meta({ description: "Bubble color." }),
-    height: z
-      .number().int().positive()
-      .default(300)
-      .meta({ description: "Chart height in pixels" }),
+    height: z.number().int().positive().default(300).meta({ description: "Chart height in pixels" }),
   }),
 });

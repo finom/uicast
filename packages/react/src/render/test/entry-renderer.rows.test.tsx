@@ -19,7 +19,12 @@ describe("EntryRenderer — row windows", () => {
       list({ props: { expr: "({ text: scopes.row.$$index + '/' + scopes.row.$$id + '/' + scopes.row.name + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
-      rootScope: { items: [{ id: "a", name: "Ada" }, { id: "b", name: "Bob" }] },
+      rootScope: {
+        items: [
+          { id: "a", name: "Ada" },
+          { id: "b", name: "Bob" },
+        ],
+      },
     });
     expect(container.textContent).toBe("0/a/Ada;1/b/Bob;");
   });
@@ -89,7 +94,10 @@ describe("EntryRenderer — row windows", () => {
         props: { expr: "({ text: 'total:' + scopes.root.items.reduce((s, i) => s + i.qty, 0) })" },
       },
     ];
-    const items = [{ id: 1, qty: 1 }, { id: 2, qty: 0 }];
+    const items = [
+      { id: 1, qty: 1 },
+      { id: 2, qty: 0 },
+    ];
     const { container, getByText } = mountEntries(lines, { rootScope: { items } });
     expect(container.textContent).toContain("total:1");
     await act(async () => {
@@ -114,7 +122,10 @@ describe("EntryRenderer — row windows", () => {
         callbacks: { onClick: [{ set: "scopes.row.name", literal: "Zed" }] },
       },
     ];
-    const items = [{ id: 1, name: "Bob" }, { id: 2, name: "Ada" }];
+    const items = [
+      { id: 1, name: "Bob" },
+      { id: 2, name: "Ada" },
+    ];
     const { container, getByText } = mountEntries(lines, { rootScope: { items } });
     expect(container.textContent).toContain("0:Ada;");
     expect(container.textContent).toContain("1:Bob;");
@@ -251,19 +262,29 @@ describe("EntryRenderer — row windows", () => {
       list({ props: { expr: "({ text: scopes.row.$$id + ':' + scopes.row.n + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1, n: "x" }, { id: 1, n: "y" }] },
+      rootScope: {
+        items: [
+          { id: 1, n: "x" },
+          { id: 1, n: "y" },
+        ],
+      },
     });
     expect(container.textContent).toBe("1:x;1#2:y;");
   });
 
-  it("keyBy values 1 and \"1\" are one id, so the rows get distinct keys", () => {
+  it('keyBy values 1 and "1" are one id, so the rows get distinct keys', () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
       list({ props: { expr: "({ text: scopes.row.$$id + ':' + scopes.row.n + ';' })" } }),
     ];
     const { container } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1, n: "x" }, { id: "1", n: "y" }] },
+      rootScope: {
+        items: [
+          { id: 1, n: "x" },
+          { id: "1", n: "y" },
+        ],
+      },
     });
     expect(container.textContent).toBe("1:x;1#2:y;");
     expect(consoleError.mock.calls.flat().join(" ")).not.toContain("same key");

@@ -10,22 +10,14 @@ export const FunnelChartDef = createComponentDefinition({
     data: z
       .array(
         z.strictObject({
-          name: z
-            .string()
-            .meta({ description: "The label for this funnel stage" }),
-          value: z
-            .number()
-            .meta({ description: "The numeric value for this stage" }),
+          name: z.string().meta({ description: "The label for this funnel stage" }),
+          value: z.number().meta({ description: "The numeric value for this stage" }),
         }),
       )
       .meta({
-        description:
-          "Array of stage data, ordered from widest (first stage) to narrowest (last stage)",
+        description: "Array of stage data, ordered from widest (first stage) to narrowest (last stage)",
       }),
     colors: z.array(chartColorSchema).optional().meta({ description: "One colour per stage, in order." }),
-    height: z
-      .number().int().positive()
-      .default(300)
-      .meta({ description: "Chart height in pixels" }),
+    height: z.number().int().positive().default(300).meta({ description: "Chart height in pixels" }),
   }),
 });

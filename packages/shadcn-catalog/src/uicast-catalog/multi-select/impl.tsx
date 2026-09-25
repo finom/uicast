@@ -15,9 +15,7 @@ export const MultiSelectImpl = createComponentImplementation({
     const selected = options.filter((option) => value.includes(option.value));
 
     const toggle = (optionValue: string) => {
-      const next = value.includes(optionValue)
-        ? value.filter((v) => v !== optionValue)
-        : [...value, optionValue];
+      const next = value.includes(optionValue) ? value.filter((v) => v !== optionValue) : [...value, optionValue];
       onChange({ value: next });
     };
 
@@ -50,9 +48,7 @@ export const MultiSelectImpl = createComponentImplementation({
                   </Badge>
                 ))
               ) : (
-                <span className="text-muted-foreground">
-                  {placeholder ?? "Select..."}
-                </span>
+                <span className="text-muted-foreground">{placeholder ?? "Select..."}</span>
               )}
             </span>
             <ChevronDown className="size-4 shrink-0 text-muted-foreground" />

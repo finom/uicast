@@ -7,12 +7,9 @@ export const BannerDef = createComponentDefinition({
   description:
     "A full-width banner notification for system-wide announcements or alerts. Renders a colored strip across the top or in-page. Use Banner for maintenance notices, feature announcements, promotions, or site-wide alerts.",
   props: z.strictObject({
-    variant: z
-      .enum(["info", "success", "warning", "error"])
-      .default("info")
-      .meta({
-        description: "Banner color variant",
-      }),
+    variant: z.enum(["info", "success", "warning", "error"]).default("info").meta({
+      description: "Banner color variant",
+    }),
     dismissible: z.boolean().default(true).meta({
       description: "Whether the user can dismiss the banner",
     }),

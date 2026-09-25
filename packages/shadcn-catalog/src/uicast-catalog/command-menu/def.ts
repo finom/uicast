@@ -44,8 +44,7 @@ export const CommandMenuDef = createComponentDefinition({
           description: "The label of the selected command",
         }),
         groupHeading: z.string().optional().meta({
-          description:
-            "The heading of the group containing the selected command",
+          description: "The heading of the group containing the selected command",
         }),
       })
       .meta({ description: "Callback when a command is selected" }),

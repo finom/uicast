@@ -6,10 +6,7 @@ import { Button } from "@uicast/shadcn-catalog/ui/button";
 
 // The slot unmounts by itself when the corrected element streams in. Recover hides on an `environment` fault:
 // host code failing is not the model's to fix.
-export function RecoverableRenderError({
-  error,
-  onRecover,
-}: ErrorComponentProps & { onRecover?: () => void }) {
+export function RecoverableRenderError({ error, onRecover }: ErrorComponentProps & { onRecover?: () => void }) {
   const recoverable = error.fault !== "environment";
   return (
     <Alert variant="destructive" data-key={error.elementKey}>

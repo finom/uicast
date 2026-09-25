@@ -16,10 +16,17 @@ describe("EntryRenderer — a seed streamed in after its readers", () => {
     expect(container.textContent).toBe("none");
     emit(
       { key: "root", component: "Box", children: ["reader", "seeder"] },
-      { key: "seeder", component: "Box", seed: [{ set: "scopes.root.n", literal: 1 }], props: { literal: { text: "s" } } },
+      {
+        key: "seeder",
+        component: "Box",
+        seed: [{ set: "scopes.root.n", literal: 1 }],
+        props: { literal: { text: "s" } },
+      },
     );
     await waitFor(() => expect(container.textContent).toBe("1s"));
-    const warnings = consoleError.mock.calls.map((c) => String(c[0])).filter((m) => m.includes("Cannot update a component"));
+    const warnings = consoleError.mock.calls
+      .map((c) => String(c[0]))
+      .filter((m) => m.includes("Cannot update a component"));
     consoleError.mockRestore();
     expect(warnings).toEqual([]);
   });

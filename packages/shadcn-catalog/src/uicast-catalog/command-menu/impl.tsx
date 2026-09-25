@@ -16,10 +16,7 @@ export const CommandMenuImpl = createComponentImplementation({
   def: CommandMenuDef,
   render: ({ open, placeholder, groups, onSelect, onOpenChange }, { entry }) => (
     <span data-key={entry.key}>
-      <CommandDialog
-        open={open}
-        onOpenChange={(v) => onOpenChange({ open: v })}
-      >
+      <CommandDialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
         <Command>
           <CommandInput placeholder={placeholder} />
           <CommandList>
@@ -38,9 +35,7 @@ export const CommandMenuImpl = createComponentImplementation({
                   >
                     {iconNode(item.icon, "mr-2 size-4 shrink-0")}
                     <span>{item.label}</span>
-                    {item.shortcut?.length ? (
-                      <CommandShortcut>{item.shortcut.join("+")}</CommandShortcut>
-                    ) : null}
+                    {item.shortcut?.length ? <CommandShortcut>{item.shortcut.join("+")}</CommandShortcut> : null}
                   </CommandItem>
                 ))}
               </CommandGroup>

@@ -18,9 +18,7 @@ export const ConfirmDialogImpl = createComponentImplementation({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            {description && (
-              <DialogDescription>{description}</DialogDescription>
-            )}
+            {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => onCancel()}>

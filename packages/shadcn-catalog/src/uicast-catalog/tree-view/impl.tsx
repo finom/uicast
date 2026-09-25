@@ -1,10 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { type ReactNode, useState } from "react";
-import {
-  Collapsible,
-  CollapsibleTrigger,
-  CollapsibleContent,
-} from "../../components/ui/collapsible";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../../components/ui/collapsible";
 import { Button } from "../../components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { iconNode } from "../../lib/icon-node";
@@ -56,17 +52,8 @@ function TreeNodeComponent({
     >
       {row(
         <CollapsibleTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-5 p-0"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {isExpanded ? (
-              <ChevronDown className="size-4" />
-            ) : (
-              <ChevronRight className="size-4" />
-            )}
+          <Button variant="ghost" size="icon" className="size-5 p-0" onClick={(e) => e.stopPropagation()}>
+            {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           </Button>
         </CollapsibleTrigger>,
       )}

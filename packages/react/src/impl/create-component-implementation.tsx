@@ -6,10 +6,23 @@ import {
   type ExpressionEvaluator,
   type UrlPolicy,
 } from "@uicast/core";
-import { evaluate, findUrlViolations, type JSONSchema, schemaHasUrlFormat, specToJSONSchema } from "@uicast/core/internal";
+import {
+  evaluate,
+  findUrlViolations,
+  type JSONSchema,
+  schemaHasUrlFormat,
+  specToJSONSchema,
+} from "@uicast/core/internal";
 import { memo, type ReactElement, type ReactNode } from "react";
 import { refusePromise } from "../guards";
-import type { ComponentImplementation, ConfirmFn, Debouncers, RenderContext, Scopes, SkeletonComponentProps } from "../types";
+import type {
+  ComponentImplementation,
+  ConfirmFn,
+  Debouncers,
+  RenderContext,
+  Scopes,
+  SkeletonComponentProps,
+} from "../types";
 import { attachEngine } from "./engine";
 import { runCallbackSteps } from "./run-callback-steps";
 
@@ -18,7 +31,9 @@ type Input<S extends CombinedSpec> = NonNullable<S["~standard"]["types"]>["input
 type Output<S extends CombinedSpec> = NonNullable<S["~standard"]["types"]>["output"];
 
 // The impl passes the schema INPUT; the steps see the OUTPUT.
-type CallbackFn<S extends CombinedSpec> = [Input<S>] extends [null] ? () => Promise<void> : (args: Input<S>) => Promise<void>;
+type CallbackFn<S extends CombinedSpec> = [Input<S>] extends [null]
+  ? () => Promise<void>
+  : (args: Input<S>) => Promise<void>;
 
 type CallbacksToFunctions<T extends Record<string, CombinedSpec>> = { [K in keyof T]: CallbackFn<T[K]> };
 
@@ -33,7 +48,10 @@ const describeIssues = (issues: readonly Issue[]): string =>
     .join("; ");
 
 // An async or throwing validator passes the value through: a sync render cannot await.
-const parseSpec = (spec: CombinedSpec, value: unknown): { ok: true; value: unknown } | { ok: false; message: string } => {
+const parseSpec = (
+  spec: CombinedSpec,
+  value: unknown,
+): { ok: true; value: unknown } | { ok: false; message: string } => {
   let result: ReturnType<CombinedSpec["~standard"]["validate"]>;
   try {
     result = spec["~standard"].validate(value);
@@ -54,8 +72,7 @@ export const createComponentImplementation = <
 }: {
   def: ComponentDefinition<TProps, TCallbacks>;
   render: (
-    props: { children?: ReactNode } & Output<TProps> &
-      CallbacksToFunctions<TCallbacks>,
+    props: { children?: ReactNode } & Output<TProps> & CallbacksToFunctions<TCallbacks>,
     context: RenderContext,
   ) => ReactElement;
   skeleton?: (props: SkeletonComponentProps<Output<TProps>>) => ReactElement;
@@ -81,17 +98,13 @@ export const createComponentImplementation = <
   };
 
   // The parsed output has every `.default()` applied; a schema failure is a document fault.
-  const checkProps = (
-    rawProps: unknown,
-    entry: ComponentEntry,
-    urlPolicy: UrlPolicy | undefined,
-  ): Output<TProps> => {
+  const checkProps = (rawProps: unknown, entry: ComponentEntry, urlPolicy: UrlPolicy | undefined): Output<TProps> => {
     const parsed = parseSpec(def.props, rawProps);
     if (!parsed.ok) {
-      throw new EntryError(
-        `Props do not match the ${def.name} schema — ${parsed.message}`,
-        { reason: "invalid-props", elementKey: entry.key },
-      );
+      throw new EntryError(`Props do not match the ${def.name} schema — ${parsed.message}`, {
+        reason: "invalid-props",
+        elementKey: entry.key,
+      });
     }
     const props = parsed.value as Output<TProps>;
     const schema = urlPropsSchema();
@@ -111,9 +124,7 @@ export const createComponentImplementation = <
     evaluator: ExpressionEvaluator,
     urlPolicy: UrlPolicy | undefined,
   ): Output<TProps> => {
-    const rawProps = entry.props
-      ? evaluate(entry.props, { scopes }, evaluator)
-      : {};
+    const rawProps = entry.props ? evaluate(entry.props, { scopes }, evaluator) : {};
     refusePromise(rawProps, "props", entry.key);
     return checkProps(rawProps, entry, urlPolicy);
   };
@@ -122,7 +133,9 @@ export const createComponentImplementation = <
   const knownProps = (entry: ComponentEntry, urlPolicy: UrlPolicy | undefined): Record<string, unknown> | undefined => {
     try {
       const source = entry.props ?? { literal: {} };
-      return "literal" in source ? (checkProps(source.literal, entry, urlPolicy) as Record<string, unknown>) : undefined;
+      return "literal" in source
+        ? (checkProps(source.literal, entry, urlPolicy) as Record<string, unknown>)
+        : undefined;
     } catch {
       return undefined;
     }
@@ -180,10 +193,7 @@ export const createComponentImplementation = <
             // Callbacks do not render, so there is no error slot: onError is the channel.
             const entryError = EntryError.wrap(err, "unknown", entry.key);
             onError?.(entryError);
-            console.error(
-              `[uicast] callback "${key}" on element "${entry.key}" failed:`,
-              entryError,
-            );
+            console.error(`[uicast] callback "${key}" on element "${entry.key}" failed:`, entryError);
           }
         },
       ]),

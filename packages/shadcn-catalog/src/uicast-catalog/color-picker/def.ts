@@ -8,11 +8,7 @@ export const ColorPickerDef = createComponentDefinition({
   description:
     "A color picker input for selecting a color value. Renders a native HTML color input alongside a text input showing the hex value. Use ColorPicker for theme customization, brand color selection, or any color-related settings.",
   props: z.strictObject({
-    value: z
-      .string()
-      .regex(HEX_COLOR)
-      .default("#000000")
-      .meta({
+    value: z.string().regex(HEX_COLOR).default("#000000").meta({
       description: "The current color as a hex string, e.g. '#ff5500'",
     }),
     disabled: z.boolean().default(false).meta({
@@ -21,10 +17,7 @@ export const ColorPickerDef = createComponentDefinition({
   }),
   callbacks: {
     onChange: z.strictObject({
-      value: z
-        .string()
-        .regex(HEX_COLOR)
-        .meta({
+      value: z.string().regex(HEX_COLOR).meta({
         description: "The newly selected color as a hex string",
       }),
     }),

@@ -4,7 +4,11 @@ import type { ComponentEntry } from "@uicast/core";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { EntryModal, type SelectedEntry } from "./entry-modal";
 
-type StreamPanelProps = { lines: ComponentEntry[]; hoveredKey: string | null; onHoverKey: (key: string | null) => void };
+type StreamPanelProps = {
+  lines: ComponentEntry[];
+  hoveredKey: string | null;
+  onHoverKey: (key: string | null) => void;
+};
 
 export function StreamPanel({ lines, hoveredKey, onHoverKey }: StreamPanelProps) {
   const boxRef = useRef<HTMLDivElement>(null);

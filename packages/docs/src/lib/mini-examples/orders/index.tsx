@@ -24,11 +24,5 @@ const setup: CodePart[] = [
 ];
 
 export function OrdersExample() {
-  return (
-    <MiniExample
-      entry={entriesPart(orderEntries)}
-      result={<OrdersLoader />}
-      setup={setup}
-    />
-  );
+  return <MiniExample entry={entriesPart(orderEntries)} result={<OrdersLoader />} setup={setup} />;
 }

@@ -80,11 +80,7 @@ describe("planStepWaves", () => {
     const a = { set: "scopes.root.a", expr: "loadA()" };
     const mut = { expr: "deleteProduct({ id: 1 })" };
     const b = { set: "scopes.root.b", expr: "loadB()" };
-    expect(planStepWaves([a, mut, b], (s) => s === mut)).toEqual([
-      [a],
-      [mut],
-      [b],
-    ]);
+    expect(planStepWaves([a, mut, b], (s) => s === mut)).toEqual([[a], [mut], [b]]);
   });
 
   it("an isBarrier step at position 0 still starts its own wave", () => {
@@ -99,10 +95,9 @@ describe("planStepWaves", () => {
       set: "scopes.root.sum",
       expr: "scopes.root.items.reduce((s, i) => s + i.qty, 0)",
     };
-    expect(
-      planStepWaves([bump, sum], undefined, (step) =>
-        step === bump ? ["scopes.root.items"] : [],
-      ),
-    ).toEqual([[bump], [sum]]);
+    expect(planStepWaves([bump, sum], undefined, (step) => (step === bump ? ["scopes.root.items"] : []))).toEqual([
+      [bump],
+      [sum],
+    ]);
   });
 });

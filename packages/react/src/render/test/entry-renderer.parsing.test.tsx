@@ -3,11 +3,7 @@ import { act, fireEvent, render, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
 import { createComponentDefinition, type EntryError } from "@uicast/core";
-import {
-  createComponentImplementation,
-  EntriesRenderer,
-  RendererProvider,
-} from "@uicast/react";
+import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 
 const BadgeImpl = createComponentImplementation({
   def: createComponentDefinition({
@@ -73,16 +69,10 @@ describe("EntryRenderer — schema parsing", () => {
   it("applies a schema default the entry left out", () => {
     const { container } = render(
       <RendererProvider evaluator={testEvaluator} implementations={impls}>
-        <EntriesRenderer
-          entries={[
-            { key: "b", component: "Badge", props: { literal: { text: "Paid" } } },
-          ]}
-        />
+        <EntriesRenderer entries={[{ key: "b", component: "Badge", props: { literal: { text: "Paid" } } }]} />
       </RendererProvider>,
     );
-    expect(container.querySelector("[data-key='b']")?.getAttribute("data-variant")).toBe(
-      "default",
-    );
+    expect(container.querySelector("[data-key='b']")?.getAttribute("data-variant")).toBe("default");
   });
 
   it("fails props the schema rejects as a document fault, before render", () => {
@@ -90,11 +80,7 @@ describe("EntryRenderer — schema parsing", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     render(
       <RendererProvider evaluator={testEvaluator} implementations={impls} onError={onError}>
-        <EntriesRenderer
-          entries={[
-            { key: "b", component: "Badge", props: { literal: { variant: "loud" } } },
-          ]}
-        />
+        <EntriesRenderer entries={[{ key: "b", component: "Badge", props: { literal: { variant: "loud" } } }]} />
       </RendererProvider>,
     );
     spy.mockRestore();

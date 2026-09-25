@@ -22,9 +22,6 @@ export const SankeyChartDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Array of links between nodes" }),
-    height: z
-      .number().int().positive()
-      .default(400)
-      .meta({ description: "Chart height in pixels" }),
+    height: z.number().int().positive().default(400).meta({ description: "Chart height in pixels" }),
   }),
 });

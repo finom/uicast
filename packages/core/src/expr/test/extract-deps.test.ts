@@ -6,9 +6,7 @@ import { type DepsPart, extractDeps as extract } from "../extract-deps";
 const ev = new Evaluator();
 const extractDeps = (entry: ComponentEntry, part: DepsPart = "all") => extract(entry, ev, part);
 
-const element = (
-  patch: Partial<ComponentEntry>,
-): ComponentEntry => ({
+const element = (patch: Partial<ComponentEntry>): ComponentEntry => ({
   key: "x",
   component: "C",
   ...patch,
@@ -32,9 +30,7 @@ describe("extractDeps — reads from loading", () => {
 
 describe("extractDeps — reads from props.expr", () => {
   it("captures a simple scopes path", () => {
-    expect(
-      extractDeps(element({ props: { expr: "({ value: scopes.root.count })" } })),
-    ).toEqual(["scopes.root.count"]);
+    expect(extractDeps(element({ props: { expr: "({ value: scopes.root.count })" } }))).toEqual(["scopes.root.count"]);
   });
 
   it("captures multiple distinct paths", () => {
@@ -43,9 +39,7 @@ describe("extractDeps — reads from props.expr", () => {
         props: { expr: "({ a: scopes.root.a, b: scopes.root.b })" },
       }),
     );
-    expect(deps).toEqual(
-      expect.arrayContaining(["scopes.root.a", "scopes.root.b"]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.a", "scopes.root.b"]));
     expect(deps).toHaveLength(2);
   });
 
@@ -56,13 +50,7 @@ describe("extractDeps — reads from props.expr", () => {
           props: { expr: "scopes.root.flag ? scopes.root.a : scopes.root.b" },
         }),
       ),
-    ).toEqual(
-      expect.arrayContaining([
-        "scopes.root.flag",
-        "scopes.root.a",
-        "scopes.root.b",
-      ]),
-    );
+    ).toEqual(expect.arrayContaining(["scopes.root.flag", "scopes.root.a", "scopes.root.b"]));
   });
 
   it("captures paths inside arrow callbacks (e.g. .filter)", () => {
@@ -73,35 +61,23 @@ describe("extractDeps — reads from props.expr", () => {
         },
       }),
     );
-    expect(deps).toEqual(
-      expect.arrayContaining([
-        "scopes.inv.rows",
-        "scopes.root.searchTerm",
-      ]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.inv.rows", "scopes.root.searchTerm"]));
   });
 });
 
 describe("extractDeps — method-call segments are dropped", () => {
   it("drops the final segment when the chain is a CallExpression callee", () => {
-    expect(
-      extractDeps(
-        element({ props: { expr: "scopes.root.items.filter(x => x)" } }),
-      ),
-    ).toEqual(["scopes.root.items"]);
-    expect(
-      extractDeps(
-        element({ props: { expr: "scopes.root.items.map(x => x)" } }),
-      ),
-    ).toEqual(["scopes.root.items"]);
+    expect(extractDeps(element({ props: { expr: "scopes.root.items.filter(x => x)" } }))).toEqual([
+      "scopes.root.items",
+    ]);
+    expect(extractDeps(element({ props: { expr: "scopes.root.items.map(x => x)" } }))).toEqual(["scopes.root.items"]);
   });
 
   it("truncates a deep read to its field: the field is what a write replaces", () => {
-    expect(
-      extractDeps(
-        element({ props: { expr: "scopes.root.items.length + scopes.root.user.name" } }),
-      ),
-    ).toEqual(["scopes.root.items", "scopes.root.user"]);
+    expect(extractDeps(element({ props: { expr: "scopes.root.items.length + scopes.root.user.name" } }))).toEqual([
+      "scopes.root.items",
+      "scopes.root.user",
+    ]);
   });
 
   it("a bare scope read subscribes to every field of it", () => {
@@ -112,9 +88,7 @@ describe("extractDeps — method-call segments are dropped", () => {
 
 describe("extractDeps — computed access handling", () => {
   it("stops at computed key and records the parent path", () => {
-    const deps = extractDeps(
-      element({ props: { expr: "scopes.root.rows[0].name" } }),
-    );
+    const deps = extractDeps(element({ props: { expr: "scopes.root.rows[0].name" } }));
     expect(deps).toEqual(["scopes.root.rows"]);
   });
 
@@ -124,9 +98,7 @@ describe("extractDeps — computed access handling", () => {
         props: { expr: "scopes.root.a[scopes.root.idx]" },
       }),
     );
-    expect(deps).toEqual(
-      expect.arrayContaining(["scopes.root.a", "scopes.root.idx"]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.a", "scopes.root.idx"]));
   });
 });
 
@@ -146,9 +118,7 @@ describe("extractDeps — what is NOT scanned", () => {
       extractDeps(
         element({
           callbacks: {
-            onClick: [
-              { set: "scopes.root.count", expr: "scopes.root.count + 1" },
-            ],
+            onClick: [{ set: "scopes.root.count", expr: "scopes.root.count + 1" }],
           },
         }),
       ),
@@ -156,17 +126,13 @@ describe("extractDeps — what is NOT scanned", () => {
   });
 
   it("excludes evt.X reads (evt is callback-only and not a scope)", () => {
-    expect(
-      extractDeps(element({ props: { expr: "evt.value" } })),
-    ).toEqual([]);
+    expect(extractDeps(element({ props: { expr: "evt.value" } }))).toEqual([]);
   });
 });
 
 describe("extractDeps — list entries read each too", () => {
   it("captures each", () => {
-    expect(extractDeps(list({ each: "scopes.root.rows" }))).toEqual([
-      "scopes.root.rows",
-    ]);
+    expect(extractDeps(list({ each: "scopes.root.rows" }))).toEqual(["scopes.root.rows"]);
   });
 
   it("captures both each and props.expr reads on a list", () => {
@@ -176,17 +142,13 @@ describe("extractDeps — list entries read each too", () => {
         props: { expr: "({ title: scopes.root.heading })" },
       }),
     );
-    expect(deps).toEqual(
-      expect.arrayContaining(["scopes.root.rows", "scopes.root.heading"]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.rows", "scopes.root.heading"]));
   });
 });
 
 describe("extractDeps — hidden contributes reads", () => {
   it("captures the hidden expression's paths", () => {
-    expect(extractDeps(element({ hidden: "scopes.root.done" }))).toEqual([
-      "scopes.root.done",
-    ]);
+    expect(extractDeps(element({ hidden: "scopes.root.done" }))).toEqual(["scopes.root.done"]);
   });
 
   it("unions hidden and props reads", () => {
@@ -196,9 +158,7 @@ describe("extractDeps — hidden contributes reads", () => {
         props: { expr: "({ value: scopes.root.count })" },
       }),
     );
-    expect(deps).toEqual(
-      expect.arrayContaining(["scopes.root.done", "scopes.root.count"]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.done", "scopes.root.count"]));
     expect(deps).toHaveLength(2);
   });
 });
@@ -216,21 +176,13 @@ describe("extractDeps — the part parameter", () => {
 
   it('"render" returns only props and hidden reads', () => {
     const deps = extractDeps(entry, "render");
-    expect(deps).toEqual(
-      expect.arrayContaining(["scopes.root.heading", "scopes.root.done"]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.heading", "scopes.root.done"]));
     expect(deps).toHaveLength(2);
   });
 
   it('the default "all" is the union of both', () => {
     const deps = extractDeps(entry);
-    expect(deps).toEqual(
-      expect.arrayContaining([
-        "scopes.root.rows",
-        "scopes.root.heading",
-        "scopes.root.done",
-      ]),
-    );
+    expect(deps).toEqual(expect.arrayContaining(["scopes.root.rows", "scopes.root.heading", "scopes.root.done"]));
     expect(deps).toHaveLength(3);
   });
 });

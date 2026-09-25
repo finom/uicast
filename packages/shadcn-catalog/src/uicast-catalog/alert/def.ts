@@ -10,12 +10,8 @@ export const AlertDef = createComponentDefinition({
     description: z.string().optional().meta({
       description: "Optional longer description text below the title",
     }),
-    status: z
-      .enum(["info", "success", "warning", "error"])
-      .default("info")
-      .meta({
-        description:
-          "The alert type determining the icon; error is also shown in red (destructive)",
-      }),
+    status: z.enum(["info", "success", "warning", "error"]).default("info").meta({
+      description: "The alert type determining the icon; error is also shown in red (destructive)",
+    }),
   }),
 });

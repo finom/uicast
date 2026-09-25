@@ -25,17 +25,9 @@ export const SearchInputImpl = createComponentImplementation({
           className="pl-9 pr-16"
         />
         <div className="absolute right-1 flex items-center gap-1">
-          {loading && (
-            <Loader2 className="size-4 animate-spin text-muted-foreground" />
-          )}
+          {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
           {strValue && !loading && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="size-7"
-              onClick={() => onClear()}
-            >
+            <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => onClear()}>
               <X className="size-4" />
             </Button>
           )}

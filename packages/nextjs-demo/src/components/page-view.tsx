@@ -69,9 +69,7 @@ export function PageView({ page: initialPage, initialEntries, ownerSlug, readonl
   const [history, setHistory] = useState(initialEntries);
   // The server picks initial vs edit mode by the stored entries.
   const [submission, setSubmission] = useState<{ prompt: string; seq: number } | null>(() =>
-    !readonly && initialEntries.length === 0 && initialPage.prompt
-      ? { prompt: initialPage.prompt, seq: 0 }
-      : null,
+    !readonly && initialEntries.length === 0 && initialPage.prompt ? { prompt: initialPage.prompt, seq: 0 } : null,
   );
   const [promptOpen, setPromptOpen] = useState(false);
   // Seeds fetch through the browser, so the server pass draws only the skeleton.
@@ -82,7 +80,11 @@ export function PageView({ page: initialPage, initialEntries, ownerSlug, readonl
 
   const systemPrompt = useMemo(() => (promptOpen ? buildSystemPrompt("page") : null), [promptOpen]);
 
-  const { data: lines = [], error: queryError, isFetching } = useQuery({
+  const {
+    data: lines = [],
+    error: queryError,
+    isFetching,
+  } = useQuery({
     queryKey: ["generate", page.id, submission?.seq],
     enabled: submission !== null,
     retry: false,

@@ -24,11 +24,5 @@ const setup: CodePart[] = [
 ];
 
 export function WeatherExample() {
-  return (
-    <MiniExample
-      entry={entriesPart(weatherEntries)}
-      result={<Weather />}
-      setup={setup}
-    />
-  );
+  return <MiniExample entry={entriesPart(weatherEntries)} result={<Weather />} setup={setup} />;
 }

@@ -37,7 +37,10 @@ describe("EntryRenderer — loading", () => {
         callbacks: { onClick: [{ set: "scopes.root.busy", expr: "!currentValue" }] },
       },
     ];
-    const { container } = mountEntries(lines, { rootScope: { busy: false }, implementations: { ...defaultImplementations, Panel: PanelImpl } });
+    const { container } = mountEntries(lines, {
+      rootScope: { busy: false },
+      implementations: { ...defaultImplementations, Panel: PanelImpl },
+    });
     const panel = () => container.querySelector("[data-key='panel']") as HTMLElement;
     expect(panel().dataset.loading).toBe("false");
 

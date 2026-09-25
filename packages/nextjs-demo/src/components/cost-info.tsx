@@ -12,13 +12,7 @@ const formatTokens = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : S
 
 export type Usage = { inputTokens: number; outputTokens: number; costUsd: number | null; model: string | null };
 
-export function UsageLine({
-  inputTokens,
-  outputTokens,
-  costUsd,
-  model,
-  className,
-}: Usage & { className?: string }) {
+export function UsageLine({ inputTokens, outputTokens, costUsd, model, className }: Usage & { className?: string }) {
   return (
     <p className={cn("flex items-center gap-1.5 text-xs text-muted-foreground", className)}>
       <span>

@@ -25,20 +25,20 @@ export const ARRAY_ALLOCATION_SHIFT = 3;
 // Steps an operation costs beyond its written nodes: its time over a plain step's, as
 // test/prices.test.ts measures it. So the step limit, not the clock, ends a long evaluation on any device.
 export const PRICES = Object.freeze({
-	// Any method or global function call, before its own work.
-	call: 2,
-	// A number formatted or two strings compared through a locale.
-	locale: 32,
-	// Building an Intl object, per locale tag it reads: charged once per distinct locale and options in an evaluation.
-	intlBuild: 2_000,
-	// A date read from text (plus a step per character).
-	dateText: 64,
-	// An item hashed into its group by Object.groupBy.
-	hash: 4,
-	// A number added by Math.sumPrecise, or rounded by Math.f16round.
-	exactNumber: 8,
-	// A JSON.parse or JSON.stringify call, before its size.
-	json: 32,
+  // Any method or global function call, before its own work.
+  call: 2,
+  // A number formatted or two strings compared through a locale.
+  locale: 32,
+  // Building an Intl object, per locale tag it reads: charged once per distinct locale and options in an evaluation.
+  intlBuild: 2_000,
+  // A date read from text (plus a step per character).
+  dateText: 64,
+  // An item hashed into its group by Object.groupBy.
+  hash: 4,
+  // A number added by Math.sumPrecise, or rounded by Math.f16round.
+  exactNumber: 8,
+  // A JSON.parse or JSON.stringify call, before its size.
+  json: 32,
 });
 
 // A pathologically nested host value cannot overflow the stack.
@@ -48,22 +48,22 @@ export const MAX_FLAT_DEPTH = 32;
 export const MAX_DATA_DEPTH = 256;
 
 export type BudgetOptions = {
-	// Evaluation steps before `budget-exceeded`. Default 1_000_000.
-	steps?: number;
-	// Wall-clock milliseconds before `budget-exceeded`. Default 100.
-	ms?: number;
-	// Longest string any operation may produce. Default 1_000_000.
-	maxStringLength?: number;
-	// Longest array any operation may produce. Default 100_000.
-	maxArrayLength?: number;
-	// Total across all operations. Default 10_000_000; per-op caps don't compose.
-	maxTotalAllocation?: number;
+  // Evaluation steps before `budget-exceeded`. Default 1_000_000.
+  steps?: number;
+  // Wall-clock milliseconds before `budget-exceeded`. Default 100.
+  ms?: number;
+  // Longest string any operation may produce. Default 1_000_000.
+  maxStringLength?: number;
+  // Longest array any operation may produce. Default 100_000.
+  maxArrayLength?: number;
+  // Total across all operations. Default 10_000_000; per-op caps don't compose.
+  maxTotalAllocation?: number;
 };
 
 export const DEFAULT_BUDGET: Required<BudgetOptions> = {
-	steps: 1_000_000,
-	ms: 100,
-	maxStringLength: 1_000_000,
-	maxArrayLength: 100_000,
-	maxTotalAllocation: 10_000_000,
+  steps: 1_000_000,
+  ms: 100,
+  maxStringLength: 1_000_000,
+  maxArrayLength: 100_000,
+  maxTotalAllocation: 10_000_000,
 };

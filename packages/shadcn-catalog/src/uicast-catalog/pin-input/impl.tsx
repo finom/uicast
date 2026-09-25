@@ -11,8 +11,7 @@ export const PinInputImpl = createComponentImplementation({
     const chars = value.split("").slice(0, length);
 
     const handleInput = (index: number, char: string) => {
-      const isValid =
-        type === "numeric" ? /^\d?$/.test(char) : /^[a-zA-Z0-9]?$/.test(char);
+      const isValid = type === "numeric" ? /^\d?$/.test(char) : /^[a-zA-Z0-9]?$/.test(char);
       if (!isValid) return;
 
       const newChars = [...chars];

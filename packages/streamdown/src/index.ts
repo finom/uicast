@@ -1,4 +1,4 @@
 export {
-	createFenceRenderer,
-	type FenceRendererOptions,
+  createFenceRenderer,
+  type FenceRendererOptions,
 } from "./create-fence-renderer";

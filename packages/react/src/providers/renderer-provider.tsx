@@ -59,7 +59,8 @@ export function RendererProvider({
     // Null prototype: a model-written name like "constructor" finds nothing.
     const map: Record<string, ComponentImplementation> = Object.create(null);
     for (const impl of implementations) {
-      if (impl.def.name in map) throw new Error(`[uicast] Duplicate component name "${impl.def.name}" in implementations.`);
+      if (impl.def.name in map)
+        throw new Error(`[uicast] Duplicate component name "${impl.def.name}" in implementations.`);
       // Throws here, not at first render, for an object `createComponentImplementation` did not make.
       engineOf(impl);
       map[impl.def.name] = impl;
@@ -82,7 +83,8 @@ export function RendererProvider({
 }
 
 const required = <T,>(value: T | null): T => {
-  if (value === null) throw new Error("[uicast] <EntriesRenderer> and <DocumentSkeleton> must be rendered inside a <RendererProvider>.");
+  if (value === null)
+    throw new Error("[uicast] <EntriesRenderer> and <DocumentSkeleton> must be rendered inside a <RendererProvider>.");
   return value;
 };
 

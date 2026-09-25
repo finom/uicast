@@ -12,18 +12,9 @@ export const ChatThreadDef = createComponentDefinition({
           id: z.string().meta({ description: "Message unique identifier" }),
           content: z.string().meta({ description: "Message text content" }),
           sender: z.string().meta({ description: "Sender name" }),
-          avatar: z
-            .string()
-            .optional()
-            .meta({ format: "uri-reference", description: "Sender avatar URL" }),
-          timestamp: z
-            .string()
-            .optional()
-            .meta({ description: "Message timestamp text" }),
-          isOwn: z
-            .boolean()
-            .optional()
-            .meta({ description: "Whether this is from the current user" }),
+          avatar: z.string().optional().meta({ format: "uri-reference", description: "Sender avatar URL" }),
+          timestamp: z.string().optional().meta({ description: "Message timestamp text" }),
+          isOwn: z.boolean().optional().meta({ description: "Whether this is from the current user" }),
         }),
       )
       .meta({ description: "Array of chat messages" }),

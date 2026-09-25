@@ -31,19 +31,13 @@ export const TreeViewDef = createComponentDefinition({
   callbacks: {
     onSelect: z
       .strictObject({
-        label: z
-          .string()
-          .meta({ description: "The label of the selected node" }),
-        path: z
-          .array(z.string())
-          .meta({ description: "The path from root to selected node" }),
+        label: z.string().meta({ description: "The label of the selected node" }),
+        path: z.array(z.string()).meta({ description: "The path from root to selected node" }),
       })
       .meta({ description: "Callback when a tree node is selected" }),
     onToggle: z
       .strictObject({
-        label: z
-          .string()
-          .meta({ description: "The label of the toggled node" }),
+        label: z.string().meta({ description: "The label of the toggled node" }),
         expanded: z.boolean().meta({ description: "The new expanded state" }),
       })
       .meta({ description: "Callback when a tree node is expanded/collapsed" }),

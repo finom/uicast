@@ -33,11 +33,7 @@ type CachedRow = {
 };
 
 // Cached by id, so a row keeps its identity across reorders and refetches.
-export function useItemScopes(
-  scopes: Scopes,
-  list: ComponentListEntry,
-  items: unknown[],
-): ItemRow[] {
+export function useItemScopes(scopes: Scopes, list: ComponentListEntry, items: unknown[]): ItemRow[] {
   // Keyed by the id's string form, like `seen`.
   const cache = useRef<Map<string, CachedRow>>(new Map());
   const prevScopes = useRef<Scopes | null>(null);

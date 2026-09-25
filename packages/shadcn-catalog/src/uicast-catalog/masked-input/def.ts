@@ -15,9 +15,9 @@ export const MaskedInputDef = createComponentDefinition({
       .regex(/^[#A*\s\-/().+]+$/)
       .default("###-##-####")
       .meta({
-      description:
-        "The mask pattern where # represents a digit, A represents a letter, and * represents any character. Other characters are literal separators.",
-    }),
+        description:
+          "The mask pattern where # represents a digit, A represents a letter, and * represents any character. Other characters are literal separators.",
+      }),
     placeholder: z.string().optional().meta({
       description: "Placeholder text. Defaults to the mask pattern.",
     }),
@@ -29,12 +29,8 @@ export const MaskedInputDef = createComponentDefinition({
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
     onChange: z.strictObject({
-      value: z
-        .string()
-        .meta({ description: "The formatted value with mask applied" }),
-      rawValue: z
-        .string()
-        .meta({ description: "The raw value without mask characters" }),
+      value: z.string().meta({ description: "The formatted value with mask applied" }),
+      rawValue: z.string().meta({ description: "The raw value without mask characters" }),
     }),
   },
 });

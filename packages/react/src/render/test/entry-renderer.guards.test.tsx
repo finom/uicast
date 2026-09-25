@@ -65,7 +65,11 @@ describe("EntryRenderer — document faults that must not crash", () => {
   it("finds no component named after an Object.prototype member", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container } = render(
-      <RendererProvider evaluator={testEvaluator} implementations={defaultImplementationsList} fallbackComponents={errorSlot}>
+      <RendererProvider
+        evaluator={testEvaluator}
+        implementations={defaultImplementationsList}
+        fallbackComponents={errorSlot}
+      >
         <EntriesRenderer
           entries={[
             { key: "root", component: "Box", props: { literal: { text: "parent-alive;" } }, children: ["bad"] },

@@ -8,24 +8,13 @@ export const DescriptionListImpl = createComponentImplementation({
   def: DescriptionListDef,
   render: ({ items, layout, columns }, { entry, loading }) => (
     <dl
-      className={cn(
-        "grid gap-4",
-        COLUMNS[columns],
-        busy(loading),
-      )}
+      className={cn("grid gap-4", COLUMNS[columns], busy(loading))}
       aria-busy={loading || undefined}
       data-key={entry.key}
     >
       {items.map((item, i) => (
-        <div
-          key={i}
-          className={
-            layout === "horizontal" ? "flex items-baseline justify-between gap-4" : "space-y-1"
-          }
-        >
-          <dt className="text-sm font-medium text-muted-foreground">
-            {item.label}
-          </dt>
+        <div key={i} className={layout === "horizontal" ? "flex items-baseline justify-between gap-4" : "space-y-1"}>
+          <dt className="text-sm font-medium text-muted-foreground">{item.label}</dt>
           <dd className="text-sm font-medium">{item.value}</dd>
         </div>
       ))}

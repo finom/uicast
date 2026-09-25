@@ -20,7 +20,15 @@ export const ConversationContent = ({ className, ...props }: ComponentProps<type
   <StickToBottom.Content className={cn("flex flex-col gap-8 p-4", className)} {...props} />
 );
 
-export const ConversationEmptyState = ({ icon, title, description }: { icon: ReactNode; title: string; description: string }) => (
+export const ConversationEmptyState = ({
+  icon,
+  title,
+  description,
+}: {
+  icon: ReactNode;
+  title: string;
+  description: string;
+}) => (
   <div className="flex size-full flex-col items-center justify-center gap-3 p-8 text-center">
     <div className="text-muted-foreground">{icon}</div>
     <div className="space-y-1">

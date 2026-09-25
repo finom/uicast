@@ -1,3 +1,4 @@
+// biome-ignore-all format: the lists are grouped by kind, one group per line
 import z from "zod";
 
 const CURRENCIES = ["USD", "EUR", "GBP", "JPY", "CNY", "INR", "CAD", "AUD", "CHF", "SEK", "NOK", "DKK", "PLN", "BRL", "MXN", "ZAR"] as const;

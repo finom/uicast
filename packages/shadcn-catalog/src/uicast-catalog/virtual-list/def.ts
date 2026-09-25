@@ -11,10 +11,7 @@ export const VirtualListDef = createComponentDefinition({
         z.strictObject({
           id: z.string().meta({ description: "Item unique identifier" }),
           primary: z.string().meta({ description: "Primary text" }),
-          secondary: z
-            .string()
-            .optional()
-            .meta({ description: "Secondary text" }),
+          secondary: z.string().optional().meta({ description: "Secondary text" }),
         }),
       )
       .meta({ description: "Array of list items" }),

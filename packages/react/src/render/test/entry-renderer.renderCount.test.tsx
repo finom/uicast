@@ -40,9 +40,17 @@ const REVEAL: ComponentEntry[] = [
 ];
 
 function streamReveal(catalog: ReturnType<typeof countingSetup>["catalog"]) {
-  const { rerender } = render(<RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>);
+  const { rerender } = render(
+    <RendererProvider evaluator={testEvaluator} implementations={catalog}>
+      <EntriesRenderer entries={REVEAL.slice(0, 1)} />
+    </RendererProvider>,
+  );
   for (let i = 2; i <= REVEAL.length; i++) {
-    rerender(<RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>);
+    rerender(
+      <RendererProvider evaluator={testEvaluator} implementations={catalog}>
+        <EntriesRenderer entries={REVEAL.slice(0, i)} />
+      </RendererProvider>,
+    );
   }
 }
 
@@ -62,13 +70,17 @@ describe("EntryRenderer — render-once during streaming", () => {
     const { catalog, counts } = countingSetup();
     const { rerender } = render(
       <StrictMode>
-        <RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, 1)} /></RendererProvider>
+        <RendererProvider evaluator={testEvaluator} implementations={catalog}>
+          <EntriesRenderer entries={REVEAL.slice(0, 1)} />
+        </RendererProvider>
       </StrictMode>,
     );
     for (let i = 2; i <= REVEAL.length; i++) {
       rerender(
         <StrictMode>
-          <RendererProvider evaluator={testEvaluator} implementations={catalog}><EntriesRenderer entries={REVEAL.slice(0, i)} /></RendererProvider>
+          <RendererProvider evaluator={testEvaluator} implementations={catalog}>
+            <EntriesRenderer entries={REVEAL.slice(0, i)} />
+          </RendererProvider>
         </StrictMode>,
       );
     }
@@ -113,13 +125,16 @@ describe("EntryRenderer — render-once on state change", () => {
       captured = scopes;
     };
 
-    render(<RendererProvider evaluator={testEvaluator} implementations={catalog} init={init}><EntriesRenderer entries={lines} /></RendererProvider>);
+    render(
+      <RendererProvider evaluator={testEvaluator} implementations={catalog} init={init}>
+        <EntriesRenderer entries={lines} />
+      </RendererProvider>,
+    );
     expect(counts.root).toBe(1);
     expect(counts.child).toBe(1);
 
     act(() => {
-      (captured as Record<string, Record<string, unknown>>).root.label =
-        "changed";
+      (captured as Record<string, Record<string, unknown>>).root.label = "changed";
     });
 
     expect(counts.root).toBe(2);

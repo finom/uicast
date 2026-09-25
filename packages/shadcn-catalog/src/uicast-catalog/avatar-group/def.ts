@@ -9,15 +9,9 @@ export const AvatarGroupDef = createComponentDefinition({
     avatars: z
       .array(
         z.strictObject({
-          src: z
-            .string()
-            .optional()
-            .meta({ format: "uri-reference", description: "Avatar image URL" }),
+          src: z.string().optional().meta({ format: "uri-reference", description: "Avatar image URL" }),
           alt: z.string().optional().meta({ description: "Alt text" }),
-          fallback: z
-            .string()
-            .optional()
-            .meta({ description: "Fallback text (initials)" }),
+          fallback: z.string().optional().meta({ description: "Fallback text (initials)" }),
         }),
       )
       .meta({ description: "Array of avatar data" }),

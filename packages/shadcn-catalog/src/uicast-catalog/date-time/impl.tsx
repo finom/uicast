@@ -60,7 +60,8 @@ function tickMs(ms: number): number {
 }
 
 function formatText(ms: number, isDay: boolean, format: Preset | "relative" | Intl.DateTimeFormatOptions): string {
-  if (format === "relative") return isDay ? relativeText(daysFromToday(ms), DAY) : relativeText((ms - Date.now()) / SECOND_MS, SECOND);
+  if (format === "relative")
+    return isDay ? relativeText(daysFromToday(ms), DAY) : relativeText((ms - Date.now()) / SECOND_MS, SECOND);
   const options = typeof format === "string" ? PRESETS[format] : format;
   // A day is shown in UTC, where it was parsed, so no time zone moves it; a written time zone wins.
   return new Intl.DateTimeFormat(undefined, isDay ? { timeZone: "UTC", ...options } : options).format(ms);

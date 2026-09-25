@@ -7,7 +7,11 @@ import { createComponentImplementation } from "@uicast/react";
 import { mountEntries } from "../../../test/render-helpers";
 
 const Panel = createComponentImplementation({
-  def: createComponentDefinition({ name: "Panel", description: "panel", props: z.object({ title: z.string().optional() }) }),
+  def: createComponentDefinition({
+    name: "Panel",
+    description: "panel",
+    props: z.object({ title: z.string().optional() }),
+  }),
   render: ({ title, children }) => (
     <section>
       {title}
@@ -17,7 +21,11 @@ const Panel = createComponentImplementation({
   skeleton: ({ children }) => <section data-sk="">{children}</section>,
 });
 const Line = createComponentImplementation({
-  def: createComponentDefinition({ name: "Line", description: "line", props: z.object({ text: z.string().optional() }) }),
+  def: createComponentDefinition({
+    name: "Line",
+    description: "line",
+    props: z.object({ text: z.string().optional() }),
+  }),
   render: ({ text }) => <p>{text}</p>,
   skeleton: () => <i />,
 });
@@ -46,7 +54,13 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
           children: ["note", "rows"],
         },
         { key: "note", component: "Line", props: { literal: { text: "note" } } },
-        { key: "rows", component: "Line", each: "scopes.root.rows", as: "row", props: { expr: "({ text: scopes.row.name })" } },
+        {
+          key: "rows",
+          component: "Line",
+          each: "scopes.root.rows",
+          as: "row",
+          props: { expr: "({ text: scopes.row.name })" },
+        },
       ],
       { implementations, functions: [load] },
     );
@@ -120,7 +134,13 @@ describe("EntryRenderer — skeleton while a seed loads", () => {
     const { load } = gated();
     const { container } = mountEntries(
       [
-        { key: "root", component: "Panel", hidden: "false", seed: [{ set: "scopes.root.x", expr: "load()" }], children: ["a", "b"] },
+        {
+          key: "root",
+          component: "Panel",
+          hidden: "false",
+          seed: [{ set: "scopes.root.x", expr: "load()" }],
+          children: ["a", "b"],
+        },
         { key: "a", component: "Line" },
         { key: "b", component: "Line", hidden: "!scopes.root.x" },
       ],

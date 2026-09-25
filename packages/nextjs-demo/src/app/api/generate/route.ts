@@ -29,10 +29,7 @@ export async function POST(req: Request) {
   if ("error" in auth) return auth.error;
   const model = modelForUser(auth.me);
   if (!model) {
-    return Response.json(
-      { error: "No OpenRouter key on this account — log in again to grant one." },
-      { status: 403 },
-    );
+    return Response.json({ error: "No OpenRouter key on this account — log in again to grant one." }, { status: 403 });
   }
 
   const [page] = await db.select().from(pages).where(eq(pages.id, pageId));
@@ -51,7 +48,9 @@ export async function POST(req: Request) {
   const storedByKey = buildElementsByKey(rows.map((row) => row.data));
   const missingKeys = [
     ...new Set(
-      Object.values(storedByKey).flatMap((entry) => entry.children ?? []).filter((key) => !storedByKey[key]),
+      Object.values(storedByKey)
+        .flatMap((entry) => entry.children ?? [])
+        .filter((key) => !storedByKey[key]),
     ),
   ];
   const messages: ModelMessage[] = rows.length

@@ -8,9 +8,7 @@ import { json, ownerForRead, readValid, requireUser } from "@/lib/api";
 export async function GET(req: NextRequest) {
   const read = await ownerForRead(req);
   if ("error" in read) return read.error;
-  return json(
-    await db.select().from(pages).where(eq(pages.userId, read.owner.id)).orderBy(pages.id),
-  );
+  return json(await db.select().from(pages).where(eq(pages.userId, read.owner.id)).orderBy(pages.id));
 }
 
 export async function POST(req: NextRequest) {
@@ -18,6 +16,9 @@ export async function POST(req: NextRequest) {
   if ("error" in auth) return auth.error;
   const body = await readValid(req, pageInsert);
   if ("error" in body) return body.error;
-  const [row] = await db.insert(pages).values({ ...body.data, userId: auth.me.id }).returning();
+  const [row] = await db
+    .insert(pages)
+    .values({ ...body.data, userId: auth.me.id })
+    .returning();
   return json({ ...row, slug: auth.me.slug }, 201);
 }

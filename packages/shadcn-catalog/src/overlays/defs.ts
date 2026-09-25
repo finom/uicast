@@ -7,15 +7,7 @@ import { ModalDef } from "../uicast-catalog/modal/def";
 import { PopoverDef } from "../uicast-catalog/popover/def";
 import { TooltipDef } from "../uicast-catalog/tooltip/def";
 
-export {
-  ConfirmDialogDef,
-  DrawerDef,
-  DropdownMenuDef,
-  DropdownMenuItemDef,
-  ModalDef,
-  PopoverDef,
-  TooltipDef,
-};
+export { ConfirmDialogDef, DrawerDef, DropdownMenuDef, DropdownMenuItemDef, ModalDef, PopoverDef, TooltipDef };
 
 export const defs: ComponentDefinition[] = [
   ConfirmDialogDef,

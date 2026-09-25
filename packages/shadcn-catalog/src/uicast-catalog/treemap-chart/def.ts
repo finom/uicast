@@ -10,15 +10,10 @@ export const TreemapChartDef = createComponentDefinition({
       .array(
         z.strictObject({
           name: z.string().meta({ description: "Item name" }),
-          value: z
-            .number()
-            .meta({ description: "Item value determining rectangle size" }),
+          value: z.number().meta({ description: "Item value determining rectangle size" }),
         }),
       )
       .meta({ description: "Array of items with name and value" }),
-    height: z
-      .number().int().positive()
-      .default(300)
-      .meta({ description: "Chart height in pixels" }),
+    height: z.number().int().positive().default(300).meta({ description: "Chart height in pixels" }),
   }),
 });

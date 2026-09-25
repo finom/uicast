@@ -33,12 +33,7 @@ export const offsetFromCenter = (point: Coordinates, center: Coordinates, zoom: 
 };
 
 // The tiles covering a `width` × `height` box around `center`.
-export const tilesAround = (
-  center: Coordinates,
-  zoom: number,
-  width: number,
-  height: number,
-): PlacedTile[] => {
+export const tilesAround = (center: Coordinates, zoom: number, width: number, height: number): PlacedTile[] => {
   const tileCount = 2 ** zoom;
   const middle = project(center, zoom);
   const left = middle.x - width / 2;

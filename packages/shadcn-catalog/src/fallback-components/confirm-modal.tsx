@@ -11,12 +11,7 @@ import {
 } from "../components/ui/dialog";
 
 // `<RendererProvider fallbackComponents={{ confirm: ConfirmModal }}>`.
-export const ConfirmModal = ({
-  open,
-  message,
-  onConfirm,
-  onCancel,
-}: ConfirmComponentProps) => (
+export const ConfirmModal = ({ open, message, onConfirm, onCancel }: ConfirmComponentProps) => (
   <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
     <DialogContent>
       <DialogHeader>

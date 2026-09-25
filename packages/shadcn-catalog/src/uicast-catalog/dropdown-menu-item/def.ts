@@ -7,18 +7,11 @@ export const DropdownMenuItemDef = createComponentDefinition({
   description:
     "A single item/action inside a DropdownMenu. Must be a child of DropdownMenu. Use DropdownMenuItem for each action option in the dropdown (Edit, Delete, View, etc.).",
   props: z.strictObject({
-    text: z
-      .union([z.string(), z.number()])
-      .optional()
-      .meta({ description: "The menu item label text" }),
+    text: z.union([z.string(), z.number()]).optional().meta({ description: "The menu item label text" }),
     variant: z.enum(["default", "destructive"]).default("default").meta({
-      description:
-        "Visual variant: default or destructive (red, for dangerous actions like Delete)",
+      description: "Visual variant: default or destructive (red, for dangerous actions like Delete)",
     }),
-    disabled: z
-      .boolean()
-      .default(false)
-      .meta({ description: "Whether the menu item is disabled" }),
+    disabled: z.boolean().default(false).meta({ description: "Whether the menu item is disabled" }),
   }),
   callbacks: {
     onClick: mouseEventSchema,

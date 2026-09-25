@@ -7,9 +7,7 @@ export const ScrollAreaImpl = createComponentImplementation({
   render: ({ height, width, orientation, children }, { entry }) => (
     <ScrollArea style={{ height, width }} data-key={entry.key}>
       {children}
-      {(orientation === "horizontal" || orientation === "both") && (
-        <ScrollBar orientation="horizontal" />
-      )}
+      {(orientation === "horizontal" || orientation === "both") && <ScrollBar orientation="horizontal" />}
     </ScrollArea>
   ),
 });

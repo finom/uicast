@@ -6,12 +6,7 @@ import { iconNode } from "../../lib/icon-node";
 import { Button } from "../../components/ui/button";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import { Badge } from "../../components/ui/badge";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { PanelSkeleton } from "../../lib/skeletons";
 
 const COLLAPSED_WIDTH = 64;
@@ -26,16 +21,8 @@ export const SidebarImpl = createComponentImplementation({
         data-key={entry.key}
       >
         <div className="flex items-center justify-end p-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => onToggleCollapse({ collapsed: !collapsed })}
-          >
-            {collapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronLeft className="size-4" />
-            )}
+          <Button variant="ghost" size="icon" onClick={() => onToggleCollapse({ collapsed: !collapsed })}>
+            {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
           </Button>
         </div>
         <ScrollArea className="flex-1 px-2 pb-4">
@@ -65,9 +52,7 @@ export const SidebarImpl = createComponentImplementation({
                     }
                   >
                     {iconNode(item.icon, "size-4")}
-                    {!collapsed && (
-                      <span className="flex-1 text-left">{item.label}</span>
-                    )}
+                    {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
                     {!collapsed && item.badge && (
                       <Badge variant="secondary" className="ml-auto">
                         {item.badge}
@@ -80,9 +65,7 @@ export const SidebarImpl = createComponentImplementation({
                   return (
                     <Tooltip key={ii}>
                       <TooltipTrigger asChild>{button}</TooltipTrigger>
-                      <TooltipContent side="right">
-                        {item.label}
-                      </TooltipContent>
+                      <TooltipContent side="right">{item.label}</TooltipContent>
                     </Tooltip>
                   );
                 }

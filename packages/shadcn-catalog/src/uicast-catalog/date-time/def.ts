@@ -36,7 +36,10 @@ export const DateTimeDef = createComponentDefinition({
           hour12: z.boolean().optional(),
           dateStyle: styles.optional(),
           timeStyle: styles.optional(),
-          timeZone: z.string().optional().meta({ description: "An IANA time zone, as 'UTC' or 'Europe/Berlin'. Default: the viewer's." }),
+          timeZone: z
+            .string()
+            .optional()
+            .meta({ description: "An IANA time zone, as 'UTC' or 'Europe/Berlin'. Default: the viewer's." }),
           timeZoneName: z.enum(["short", "long"]).optional(),
         }),
       ])

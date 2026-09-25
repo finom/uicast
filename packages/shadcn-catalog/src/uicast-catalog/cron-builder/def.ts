@@ -11,9 +11,8 @@ export const CronBuilderDef = createComponentDefinition({
       .regex(/^\S+ \S+ \S+ \S+ \S+$/)
       .default("* * * * *")
       .meta({
-      description:
-        "Current cron expression (5-part: minute hour day month weekday)",
-    }),
+        description: "Current cron expression (5-part: minute hour day month weekday)",
+      }),
     showPreview: z.boolean().default(true).meta({
       description: "Whether to show a human-readable preview of the expression",
     }),

@@ -9,9 +9,7 @@ const randomizePattern = standardTool({
   inputSchema: z.object({ tracks: z.number(), steps: z.number() }),
   outputSchema: z.array(z.array(z.boolean())),
   async execute({ tracks, steps }): Promise<boolean[][]> {
-    return Array.from({ length: tracks }, () =>
-      Array.from({ length: steps }, () => Math.random() < STEP_ON_CHANCE),
-    );
+    return Array.from({ length: tracks }, () => Array.from({ length: steps }, () => Math.random() < STEP_ON_CHANCE));
   },
 });
 

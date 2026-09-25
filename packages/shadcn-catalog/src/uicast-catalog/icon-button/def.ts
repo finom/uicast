@@ -11,12 +11,9 @@ export const IconButtonDef = createComponentDefinition({
     icon: iconNameSchema.meta({
       description: "Which icon to render.",
     }),
-    variant: z
-      .enum(["default", "destructive", "outline", "secondary", "ghost"])
-      .default("ghost")
-      .meta({
-        description: "Visual variant for the button",
-      }),
+    variant: z.enum(["default", "destructive", "outline", "secondary", "ghost"]).default("ghost").meta({
+      description: "Visual variant for the button",
+    }),
     size: z.enum(["default", "sm", "lg"]).default("default").meta({
       description: "Button size: sm (32px), default (36px), lg (40px)",
     }),

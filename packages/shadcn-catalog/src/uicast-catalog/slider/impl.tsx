@@ -16,11 +16,7 @@ export const SliderImpl = createComponentImplementation({
         onValueChange={(values) => onChange({ value: values[0] })}
         className="flex-1"
       />
-      {showValue && (
-        <span className="min-w-[3ch] text-sm font-medium tabular-nums">
-          {value}
-        </span>
-      )}
+      {showValue && <span className="min-w-[3ch] text-sm font-medium tabular-nums">{value}</span>}
     </div>
   ),
 });

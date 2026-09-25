@@ -17,9 +17,7 @@ export const ToggleGroupImpl = createComponentImplementation({
     const children = items.map((item) => (
       <ToggleGroupItem key={item.value} value={item.value}>
         {iconNode(item.icon, "size-4")}
-        {item.label && (
-          <span className={item.icon ? "ml-1" : ""}>{item.label}</span>
-        )}
+        {item.label && <span className={item.icon ? "ml-1" : ""}>{item.label}</span>}
       </ToggleGroupItem>
     ));
 

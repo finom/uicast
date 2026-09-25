@@ -30,11 +30,7 @@ export async function getModelPricing(): Promise<Pricing | null> {
   }
 }
 
-export function computeCostUsd(
-  pricing: Pricing | null,
-  inputTokens: number,
-  outputTokens: number,
-): number | null {
+export function computeCostUsd(pricing: Pricing | null, inputTokens: number, outputTokens: number): number | null {
   if (!pricing) return null;
   return inputTokens * pricing.promptUsd + outputTokens * pricing.completionUsd;
 }

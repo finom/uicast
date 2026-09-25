@@ -10,17 +10,11 @@ export const CodeEditorImpl = createComponentImplementation({
 
     return (
       <div
-        className={cn(
-          "flex rounded-md border border-input bg-background font-mono text-sm",
-          disabled && "opacity-50",
-        )}
+        className={cn("flex rounded-md border border-input bg-background font-mono text-sm", disabled && "opacity-50")}
         data-key={entry.key}
       >
         {showLineNumbers && (
-          <div
-            className="select-none border-r bg-muted/50 p-3 text-right text-muted-foreground"
-            style={{ minHeight }}
-          >
+          <div className="select-none border-r bg-muted/50 p-3 text-right text-muted-foreground" style={{ minHeight }}>
             {Array.from({ length: lineCount }).map((_, i) => (
               <div key={i} className="leading-6">
                 {i + 1}

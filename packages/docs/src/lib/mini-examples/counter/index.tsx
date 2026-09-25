@@ -18,11 +18,5 @@ const setup: CodePart[] = [
 ];
 
 export function CounterExample() {
-  return (
-    <MiniExample
-      entry={entriesPart(counterEntries)}
-      result={<Counter />}
-      setup={setup}
-    />
-  );
+  return <MiniExample entry={entriesPart(counterEntries)} result={<Counter />} setup={setup} />;
 }

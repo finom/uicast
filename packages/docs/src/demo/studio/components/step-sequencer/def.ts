@@ -3,7 +3,8 @@ import z from "zod";
 
 export const StepSequencerDef = createComponentDefinition({
   name: "StepSequencer",
-  description: "A step-sequencer grid: one row per track, one cell per step. Click a cell to toggle it. Emits the toggled cell's coordinates and its new on/off state.",
+  description:
+    "A step-sequencer grid: one row per track, one cell per step. Click a cell to toggle it. Emits the toggled cell's coordinates and its new on/off state.",
   props: z.strictObject({
     tracks: z
       .array(

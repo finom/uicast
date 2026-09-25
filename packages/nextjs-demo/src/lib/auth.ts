@@ -12,13 +12,48 @@ const SESSION_COOKIE = "sid";
 const SESSION_TTL_MS = 90 * 86_400_000;
 
 const ADJECTIVES = [
-  "amber", "brisk", "cedar", "dapper", "ember", "fjord", "gentle", "hazel",
-  "indigo", "jade", "keen", "lunar", "mellow", "nimble", "ochre", "pale",
-  "quiet", "rustic", "sable", "tidal", "umber", "vivid", "wry", "zesty",
+  "amber",
+  "brisk",
+  "cedar",
+  "dapper",
+  "ember",
+  "fjord",
+  "gentle",
+  "hazel",
+  "indigo",
+  "jade",
+  "keen",
+  "lunar",
+  "mellow",
+  "nimble",
+  "ochre",
+  "pale",
+  "quiet",
+  "rustic",
+  "sable",
+  "tidal",
+  "umber",
+  "vivid",
+  "wry",
+  "zesty",
 ];
 const ANIMALS = [
-  "falcon", "otter", "lynx", "heron", "badger", "wren", "marten", "ibex",
-  "plover", "stoat", "kestrel", "vole", "swift", "tern", "pika", "saiga",
+  "falcon",
+  "otter",
+  "lynx",
+  "heron",
+  "badger",
+  "wren",
+  "marten",
+  "ibex",
+  "plover",
+  "stoat",
+  "kestrel",
+  "vole",
+  "swift",
+  "tern",
+  "pika",
+  "saiga",
 ];
 
 function randomSlug(): string {
@@ -37,7 +72,10 @@ async function uniqueSlug(): Promise<string> {
 }
 
 export async function createUser(): Promise<User> {
-  const [user] = await db.insert(users).values({ slug: await uniqueSlug() }).returning();
+  const [user] = await db
+    .insert(users)
+    .values({ slug: await uniqueSlug() })
+    .returning();
   // Domain data only: no pages, no chats. The user builds their own.
   await insertStarterData(user.id);
   return user;

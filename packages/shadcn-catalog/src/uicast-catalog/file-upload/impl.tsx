@@ -15,9 +15,7 @@ export const FileUploadImpl = createComponentImplementation({
       data-key={entry.key}
     >
       <Upload className="size-8 text-muted-foreground" />
-      <span className="text-sm text-muted-foreground">
-        Click to upload{multiple ? " files" : " a file"}
-      </span>
+      <span className="text-sm text-muted-foreground">Click to upload{multiple ? " files" : " a file"}</span>
       <input
         type="file"
         accept={accept && acceptAttribute(accept)}

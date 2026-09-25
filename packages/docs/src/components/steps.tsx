@@ -18,9 +18,7 @@ export function Steps() {
     <div className="mb-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
       {STEPS.map(({ title, body }, i) => (
         <div key={title}>
-          <p className="font-mono text-xs text-muted-foreground">
-            {String(i + 1).padStart(2, "0")}
-          </p>
+          <p className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
           <h3 className="mt-2 text-balance font-semibold text-base">{title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{body}</p>
         </div>

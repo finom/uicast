@@ -24,8 +24,7 @@ function* parseLine<T>(raw: string): Generator<T> {
   if (!line) return;
   try {
     yield JSON.parse(line) as T;
-  } catch {
-  }
+  } catch {}
 }
 
 function toAsyncIterable(

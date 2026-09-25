@@ -10,50 +10,47 @@ import { studioLines } from "../../../../docs/src/demo/studio/studio.lines";
 const ev = new Evaluator();
 
 function collect(entry: Record<string, unknown>, out: string[]): void {
-	const vs = (v: unknown) => {
-		if (v && typeof v === "object" && "expr" in v && typeof v.expr === "string") out.push(v.expr);
-	};
-	vs(entry.props);
-	if (typeof entry.hidden === "string") out.push(entry.hidden);
-	if (typeof entry.loading === "string") out.push(entry.loading);
-	if (typeof entry.each === "string") out.push(entry.each);
-	for (const step of (entry.seed as unknown[]) ?? []) vs(step);
-	for (const steps of Object.values((entry.callbacks as Record<string, unknown[]>) ?? {})) {
-		for (const step of steps) vs(step);
-	}
+  const vs = (v: unknown) => {
+    if (v && typeof v === "object" && "expr" in v && typeof v.expr === "string") out.push(v.expr);
+  };
+  vs(entry.props);
+  if (typeof entry.hidden === "string") out.push(entry.hidden);
+  if (typeof entry.loading === "string") out.push(entry.loading);
+  if (typeof entry.each === "string") out.push(entry.each);
+  for (const step of (entry.seed as unknown[]) ?? []) vs(step);
+  for (const steps of Object.values((entry.callbacks as Record<string, unknown[]>) ?? {})) {
+    for (const step of steps) vs(step);
+  }
 }
 
 describe("every shipped document validates against the current language", () => {
-	const sources: [string, Record<string, unknown>[]][] = [
-		["board", boardLines as never],
-		["color", colorLines as never],
-		["inventory", inventoryLines as never],
-		["studio", studioLines as never],
-	];
-	for (const name of ["counter", "tracker", "weather", "orders"]) {
-		sources.push([
-			`mini:${name}`,
-			JSON.parse(
-				readFileSync(
-					new URL(`../../../../docs/src/lib/mini-examples/${name}/entries.json`, import.meta.url),
-					"utf8",
-				),
-			),
-		]);
-	}
+  const sources: [string, Record<string, unknown>[]][] = [
+    ["board", boardLines as never],
+    ["color", colorLines as never],
+    ["inventory", inventoryLines as never],
+    ["studio", studioLines as never],
+  ];
+  for (const name of ["counter", "tracker", "weather", "orders"]) {
+    sources.push([
+      `mini:${name}`,
+      JSON.parse(
+        readFileSync(new URL(`../../../../docs/src/lib/mini-examples/${name}/entries.json`, import.meta.url), "utf8"),
+      ),
+    ]);
+  }
 
-	for (const [name, entries] of sources) {
-		it(name, () => {
-			let total = 0;
-			for (const entry of entries) {
-				const exprs: string[] = [];
-				collect(entry, exprs);
-				for (const e of exprs) {
-					total++;
-					expect(() => ev.validate(e), `${String(entry.key)}: ${e}`).not.toThrow();
-				}
-			}
-			expect(total).toBeGreaterThan(0);
-		});
-	}
+  for (const [name, entries] of sources) {
+    it(name, () => {
+      let total = 0;
+      for (const entry of entries) {
+        const exprs: string[] = [];
+        collect(entry, exprs);
+        for (const e of exprs) {
+          total++;
+          expect(() => ev.validate(e), `${String(entry.key)}: ${e}`).not.toThrow();
+        }
+      }
+      expect(total).toBeGreaterThan(0);
+    });
+  }
 });

@@ -30,7 +30,11 @@ export async function GET(req: NextRequest) {
       .orderBy((row) => [dir(row[sort]), dir(row.id)])
       .limit(limit)
       .offset(offset),
-    db.select({ total: count() }).from(stockMovements).innerJoin(products, eq(products.id, stockMovements.productId)).where(where),
+    db
+      .select({ total: count() })
+      .from(stockMovements)
+      .innerJoin(products, eq(products.id, stockMovements.productId))
+      .where(where),
   ]);
   return json({ items, total, limit, offset });
 }
@@ -54,8 +58,14 @@ export async function POST(req: NextRequest) {
     if (product.stock + qty < 0) {
       return { error: json({ error: `Only ${product.stock} in stock — cannot remove ${Math.abs(qty)}` }, 409) };
     }
-    await tx.update(products).set({ stock: sql`${products.stock} + ${qty}` }).where(eq(products.id, productId));
-    const [row] = await tx.insert(stockMovements).values({ ...body.data, userId: auth.me.id }).returning(COLS);
+    await tx
+      .update(products)
+      .set({ stock: sql`${products.stock} + ${qty}` })
+      .where(eq(products.id, productId));
+    const [row] = await tx
+      .insert(stockMovements)
+      .values({ ...body.data, userId: auth.me.id })
+      .returning(COLS);
     return { row };
   });
   if ("error" in result) return result.error;

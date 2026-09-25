@@ -11,28 +11,16 @@ export const WaterfallChartDef = createComponentDefinition({
       .array(
         z.strictObject({
           name: z.string().meta({ description: "Category label" }),
-          value: z
-            .number()
-            .meta({ description: "Value (positive or negative)" }),
+          value: z.number().meta({ description: "Value (positive or negative)" }),
           isTotal: z.boolean().optional().meta({
-            description:
-              "Whether this bar shows the running total so far, from zero. Its value is ignored.",
+            description: "Whether this bar shows the running total so far, from zero. Its value is ignored.",
           }),
         }),
       )
       .meta({ description: "Array of waterfall data items" }),
-    height: z
-      .number().int().positive()
-      .default(300)
-      .meta({ description: "Chart height in pixels" }),
-    positiveColor: chartColorSchema
-      .default("green")
-      .meta({ description: "Color for positive values" }),
-    negativeColor: chartColorSchema
-      .default("red")
-      .meta({ description: "Color for negative values" }),
-    totalColor: chartColorSchema
-      .default("blue")
-      .meta({ description: "Color for total bars" }),
+    height: z.number().int().positive().default(300).meta({ description: "Chart height in pixels" }),
+    positiveColor: chartColorSchema.default("green").meta({ description: "Color for positive values" }),
+    negativeColor: chartColorSchema.default("red").meta({ description: "Color for negative values" }),
+    totalColor: chartColorSchema.default("blue").meta({ description: "Color for total bars" }),
   }),
 });

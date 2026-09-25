@@ -11,22 +11,14 @@ export const TextareaDef = createComponentDefinition({
     placeholder: z.string().optional().meta({
       description: "Placeholder text shown when the textarea is empty",
     }),
-    disabled: z
-      .boolean()
-      .default(false)
-      .meta({ description: "Whether the textarea is disabled" }),
-    rows: z
-      .number().int().min(1)
-      .default(3)
-      .meta({ description: "The number of visible text lines" }),
+    disabled: z.boolean().default(false).meta({ description: "Whether the textarea is disabled" }),
+    rows: z.number().int().min(1).default(3).meta({ description: "The number of visible text lines" }),
   }),
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
     onChange: z.strictObject({
-      value: z
-        .string()
-        .meta({ description: "The current string value of the textarea" }),
+      value: z.string().meta({ description: "The current string value of the textarea" }),
     }),
     onFocus: z.null(),
     onBlur: z.strictObject({

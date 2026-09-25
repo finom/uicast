@@ -25,8 +25,12 @@ export const BubbleChartImpl = createComponentImplementation({
               return (
                 <div className="rounded-md border bg-background p-2 text-xs shadow-md">
                   {d.name && <p className="font-medium">{d.name}</p>}
-                  <p>{xLabel ?? "X"}: {d.x}</p>
-                  <p>{yLabel ?? "Y"}: {d.y}</p>
+                  <p>
+                    {xLabel ?? "X"}: {d.x}
+                  </p>
+                  <p>
+                    {yLabel ?? "Y"}: {d.y}
+                  </p>
                   <p>Size: {d.z}</p>
                 </div>
               );

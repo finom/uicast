@@ -10,18 +10,9 @@ export const SparklineDef = createComponentDefinition({
     data: z.array(z.number()).meta({
       description: "Array of numeric values to plot, e.g. [10, 23, 45, 12, 50]",
     }),
-    width: z
-      .number().int().positive()
-      .default(100)
-      .meta({ description: "Sparkline width in pixels" }),
-    height: z
-      .number().int().positive()
-      .default(30)
-      .meta({ description: "Sparkline height in pixels" }),
+    width: z.number().int().positive().default(100).meta({ description: "Sparkline width in pixels" }),
+    height: z.number().int().positive().default(30).meta({ description: "Sparkline height in pixels" }),
     color: chartColorSchema.default("violet").meta({ description: "Line color." }),
-    filled: z
-      .boolean()
-      .default(false)
-      .meta({ description: "Whether to fill under the line" }),
+    filled: z.boolean().default(false).meta({ description: "Whether to fill under the line" }),
   }),
 });

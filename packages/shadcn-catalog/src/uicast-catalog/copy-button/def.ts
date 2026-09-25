@@ -12,12 +12,9 @@ export const CopyButtonDef = createComponentDefinition({
     label: z.string().default("Copy").meta({
       description: "Button label text",
     }),
-    variant: z
-      .enum(["default", "outline", "ghost", "secondary"])
-      .default("outline")
-      .meta({
-        description: "Button variant",
-      }),
+    variant: z.enum(["default", "outline", "ghost", "secondary"]).default("outline").meta({
+      description: "Button variant",
+    }),
     size: z.enum(["default", "sm", "lg", "icon"]).default("sm").meta({
       description: "Button size",
     }),

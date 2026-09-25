@@ -11,7 +11,8 @@ const parseLocalDate = (value: string): Date => {
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
-const formatLocalDate = (date: Date): string => `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+const formatLocalDate = (date: Date): string =>
+  `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 
 export const CalendarImpl = createComponentImplementation({
   def: CalendarDef,

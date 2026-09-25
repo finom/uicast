@@ -31,10 +31,7 @@ export const FilterBuilderDef = createComponentDefinition({
         }),
       )
       .meta({ description: "Available fields to filter on" }),
-    filters: z
-      .array(filterSchema)
-      .optional()
-      .meta({ description: "Current applied filters" }),
+    filters: z.array(filterSchema).optional().meta({ description: "Current applied filters" }),
   }),
   callbacks: {
     onApply: z

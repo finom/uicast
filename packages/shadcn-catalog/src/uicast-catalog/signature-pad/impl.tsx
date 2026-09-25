@@ -57,11 +57,7 @@ export const SignaturePadImpl = createComponentImplementation({
 
     return (
       <div className="space-y-2" data-key={entry.key}>
-        {label && (
-          <div className="text-sm font-medium text-muted-foreground">
-            {label}
-          </div>
-        )}
+        {label && <div className="text-sm font-medium text-muted-foreground">{label}</div>}
         <div className="inline-block rounded-md border border-input bg-background">
           <canvas
             ref={canvasRef}
@@ -77,13 +73,7 @@ export const SignaturePadImpl = createComponentImplementation({
             onPointerLeave={endDraw}
           />
           <div className="flex justify-end border-t p-1">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={clearCanvas}
-              disabled={disabled}
-            >
+            <Button type="button" variant="ghost" size="sm" onClick={clearCanvas} disabled={disabled}>
               <Eraser className="mr-1 size-4" />
               Clear
             </Button>

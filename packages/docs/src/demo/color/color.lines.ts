@@ -38,8 +38,7 @@ export const colorLines: ComponentEntry[] = [
     component: "Typography",
     props: {
       literal: {
-        text:
-          "Bespoke color components emit a structured { hex, h, s, l } payload — one event carrying several channels — straight into a reactive scope.",
+        text: "Bespoke color components emit a structured { hex, h, s, l } payload — one event carrying several channels — straight into a reactive scope.",
         variant: "muted",
       },
     },

@@ -17,5 +17,5 @@ export const columnWidth = (name: ColumnWidthName): string => COLUMN_WIDTHS[name
 export const widthSchema = z.enum(Object.keys(WIDTHS) as [WidthName, ...WidthName[]]).meta({ id: "Width" });
 export const heightSchema = z.enum(Object.keys(HEIGHTS) as [HeightName, ...HeightName[]]).meta({ id: "Height" });
 export const columnWidthSchema = z
-	.enum(Object.keys(COLUMN_WIDTHS) as [ColumnWidthName, ...ColumnWidthName[]])
-	.meta({ id: "ColumnWidth" });
+  .enum(Object.keys(COLUMN_WIDTHS) as [ColumnWidthName, ...ColumnWidthName[]])
+  .meta({ id: "ColumnWidth" });

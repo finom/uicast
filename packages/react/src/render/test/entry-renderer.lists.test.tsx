@@ -86,8 +86,7 @@ describe("EntryRenderer — lists", () => {
         key: "rows",
         component: "Box",
         as: "row",
-        each:
-          "scopes.root.items.filter(i => i.startsWith(scopes.root.search))",
+        each: "scopes.root.items.filter(i => i.startsWith(scopes.root.search))",
         props: { expr: "({ text: scopes.row.$$value })" },
       },
     ];
@@ -194,9 +193,7 @@ describe("EntryRenderer — lists", () => {
   });
 
   it("routes a non-array each through the error slot and recovers on re-emit", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const seen: EntryError[] = [];
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows"] },
@@ -219,9 +216,7 @@ describe("EntryRenderer — lists", () => {
         ),
       },
     });
-    expect(container.textContent).toContain(
-      'rows failed: List "each" must evaluate to an array',
-    );
+    expect(container.textContent).toContain('rows failed: List "each" must evaluate to an array');
     expect(seen[0]?.reason).toBe("invalid-list");
 
     emit({
@@ -265,7 +260,12 @@ describe("EntryRenderer — lists", () => {
       },
     ];
     const { container, getByText } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1, qty: 1 }, { id: 2, qty: 2 }] },
+      rootScope: {
+        items: [
+          { id: 1, qty: 1 },
+          { id: 2, qty: 2 },
+        ],
+      },
     });
     expect(container.textContent).toContain("total:3");
     await act(async () => {
@@ -308,7 +308,12 @@ describe("EntryRenderer — lists", () => {
       },
     ];
     const { container, getByText } = mountEntries(lines, {
-      rootScope: { items: [{ id: 1, qty: 1 }, { id: 2, qty: 2 }] },
+      rootScope: {
+        items: [
+          { id: 1, qty: 1 },
+          { id: 2, qty: 2 },
+        ],
+      },
     });
     await act(async () => {
       fireEvent.click(getByText("set5-1"));
@@ -335,7 +340,10 @@ describe("EntryRenderer — lists", () => {
         props: { expr: "({ label: 'toggle-' + scopes.row.$$id })" },
         callbacks: {
           onClick: [
-            { set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.row.$$id]: !currentValue[scopes.row.$$id] })" },
+            {
+              set: "scopes.root.expanded",
+              expr: "({ ...currentValue, [scopes.row.$$id]: !currentValue[scopes.row.$$id] })",
+            },
           ],
         },
       },

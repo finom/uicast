@@ -34,16 +34,10 @@ export const VirtualListImpl = createComponentImplementation({
                   top: actualIndex * itemHeight,
                   height: itemHeight,
                 }}
-                onClick={() =>
-                  onItemClick({ id: item.id, index: actualIndex })
-                }
+                onClick={() => onItemClick({ id: item.id, index: actualIndex })}
               >
                 <span className="text-sm">{item.primary}</span>
-                {item.secondary && (
-                  <span className="text-xs text-muted-foreground">
-                    {item.secondary}
-                  </span>
-                )}
+                {item.secondary && <span className="text-xs text-muted-foreground">{item.secondary}</span>}
               </div>
             );
           })}

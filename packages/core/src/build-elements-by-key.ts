@@ -1,7 +1,11 @@
 import type { ComponentEntry } from "./types";
 
 // The keys reachable from `start` through `children`, optionally only those `within` a set.
-const reachable = (map: Record<string, ComponentEntry>, start: readonly string[], within?: Set<string>): Set<string> => {
+const reachable = (
+  map: Record<string, ComponentEntry>,
+  start: readonly string[],
+  within?: Set<string>,
+): Set<string> => {
   const out = new Set<string>();
   const stack = [...start];
   for (let key = stack.pop(); key !== undefined; key = stack.pop()) {

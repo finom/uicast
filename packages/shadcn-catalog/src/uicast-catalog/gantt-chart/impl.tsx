@@ -12,7 +12,11 @@ export const GanttChartImpl = createComponentImplementation({
   render: ({ tasks, totalUnits }, { entry, loading }) => {
     const units = Array.from({ length: totalUnits }, (_, i) => i + 1);
     return (
-      <ScrollArea className={cn("rounded-md border", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
+      <ScrollArea
+        className={cn("rounded-md border", busy(loading))}
+        aria-busy={loading || undefined}
+        data-key={entry.key}
+      >
         <table className="w-full border-collapse text-sm">
           <thead>
             <tr className="border-b">
@@ -34,12 +38,19 @@ export const GanttChartImpl = createComponentImplementation({
                   <td className={cn(STICKY, "font-medium whitespace-nowrap")}>{task.name}</td>
                   {units.map((unit) => {
                     // This cell's share of the progress fill.
-                    const progress = Math.min(Math.max(((task.progress ?? 0) / 100) * task.duration - (unit - first), 0), 1);
+                    const progress = Math.min(
+                      Math.max(((task.progress ?? 0) / 100) * task.duration - (unit - first), 0),
+                      1,
+                    );
                     return (
                       <td key={unit} className="px-0 py-2 relative">
                         {unit >= first && unit <= last && (
                           <div
-                            className={cn("h-6 w-full", unit === first && "rounded-l-md", unit === last && "rounded-r-md")}
+                            className={cn(
+                              "h-6 w-full",
+                              unit === first && "rounded-l-md",
+                              unit === last && "rounded-r-md",
+                            )}
                             style={{ backgroundColor: color, opacity: 0.8 }}
                           >
                             {progress > 0 && (

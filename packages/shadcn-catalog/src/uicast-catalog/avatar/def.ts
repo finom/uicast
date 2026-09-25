@@ -12,8 +12,7 @@ export const AvatarDef = createComponentDefinition({
       description: "URL of the avatar image",
     }),
     fallback: z.string().default("?").meta({
-      description:
-        "Fallback text shown when no image is available (typically initials like 'JD')",
+      description: "Fallback text shown when no image is available (typically initials like 'JD')",
     }),
     size: z.enum(["sm", "md", "lg", "xl"]).default("md").meta({
       description: "Avatar size: sm (32px), md (40px), lg (48px), xl (64px)",

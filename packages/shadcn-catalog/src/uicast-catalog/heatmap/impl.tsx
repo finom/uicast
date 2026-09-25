@@ -40,10 +40,7 @@ export const HeatmapImpl = createComponentImplementation({
             <tr>
               <th className="p-2" />
               {cols.map((col) => (
-                <th
-                  key={col}
-                  className="p-2 text-xs font-medium text-muted-foreground text-center"
-                >
+                <th key={col} className="p-2 text-xs font-medium text-muted-foreground text-center">
                   {col}
                 </th>
               ))}
@@ -52,9 +49,7 @@ export const HeatmapImpl = createComponentImplementation({
           <tbody>
             {rows.map((row) => (
               <tr key={row}>
-                <td className="p-2 text-xs font-medium text-muted-foreground whitespace-nowrap">
-                  {row}
-                </td>
+                <td className="p-2 text-xs font-medium text-muted-foreground whitespace-nowrap">{row}</td>
                 {cols.map((col) => {
                   const val = valueMap.get(`${row}|${col}`) ?? 0;
                   const t = (val - minVal) / range;

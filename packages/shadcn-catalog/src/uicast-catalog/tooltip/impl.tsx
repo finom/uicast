@@ -1,10 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import {
-  Tooltip as ShadcnTooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "../../components/ui/tooltip";
+import { Tooltip as ShadcnTooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { TooltipDef } from "./def";
 
 export const TooltipImpl = createComponentImplementation({

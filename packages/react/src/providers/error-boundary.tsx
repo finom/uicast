@@ -25,10 +25,7 @@ interface ErrorBoundaryState {
   resetToken?: unknown;
 }
 
-export class ErrorBoundary extends Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { caught: null, resetToken: this.props.resetToken };
   private classified: { caught: unknown; error: EntryError } | null = null;
 

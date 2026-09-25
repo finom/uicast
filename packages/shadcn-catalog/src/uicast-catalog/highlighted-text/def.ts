@@ -12,10 +12,7 @@ export const HighlightedTextDef = createComponentDefinition({
     highlight: z.string().meta({
       description: "The text to highlight within the content",
     }),
-    color: z
-      .enum(["yellow", "green", "blue", "red"])
-      .default("yellow")
-      .meta({
+    color: z.enum(["yellow", "green", "blue", "red"]).default("yellow").meta({
       description: "Highlight color: yellow, green, blue, or red",
     }),
     caseSensitive: z.boolean().default(false).meta({

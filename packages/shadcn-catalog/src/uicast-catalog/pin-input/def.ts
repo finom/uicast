@@ -14,8 +14,7 @@ export const PinInputDef = createComponentDefinition({
       description: "Number of digits/characters in the pin",
     }),
     mask: z.boolean().default(false).meta({
-      description:
-        "Whether to mask the input (show dots instead of characters)",
+      description: "Whether to mask the input (show dots instead of characters)",
     }),
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",

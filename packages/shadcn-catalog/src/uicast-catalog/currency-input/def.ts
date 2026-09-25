@@ -25,9 +25,7 @@ export const CurrencyInputDef = createComponentDefinition({
     onKeyUp: keyboardEventSchema,
     onChange: z.strictObject({
       value: z.number().meta({ description: "The new numeric value" }),
-      formatted: z
-        .string()
-        .meta({ description: "The formatted currency string" }),
+      formatted: z.string().meta({ description: "The formatted currency string" }),
     }),
   },
 });

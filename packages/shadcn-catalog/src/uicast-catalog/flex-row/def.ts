@@ -19,12 +19,10 @@ export const FlexRowDef = createComponentDefinition({
       .default("start")
       .meta({ description: "Horizontal distribution of children" }),
     wrap: z.boolean().default(false).meta({
-      description:
-        "Whether children wrap to the next line when there is no space",
+      description: "Whether children wrap to the next line when there is no space",
     }),
     equalWidth: z.boolean().default(false).meta({
-      description:
-        "Whether all children should have equal width (flex: 1). Useful for side-by-side columns.",
+      description: "Whether all children should have equal width (flex: 1). Useful for side-by-side columns.",
     }),
   }),
   callbacks: {

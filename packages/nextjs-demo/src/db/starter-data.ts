@@ -1,3 +1,4 @@
+// biome-ignore-all format: one entry or row per line
 import { customers, type ORDER_STATUSES, orders, products, stockMovements, suppliers } from "./schema";
 import { db } from "./index";
 

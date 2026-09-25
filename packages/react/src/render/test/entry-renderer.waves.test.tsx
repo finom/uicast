@@ -236,11 +236,7 @@ describe("dependency waves", () => {
       },
     ];
     const { getByText } = render(
-      <RendererProvider
-        implementations={defaultImplementationsList}
-        evaluator={evaluator}
-        onError={onError}
-      >
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator} onError={onError}>
         <EntriesRenderer entries={lines} />
       </RendererProvider>,
     );

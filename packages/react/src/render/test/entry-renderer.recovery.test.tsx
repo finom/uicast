@@ -13,8 +13,7 @@ const errorSlot = {
   ),
 };
 
-const silenceConsoleError = () =>
-  vi.spyOn(console, "error").mockImplementation(() => {});
+const silenceConsoleError = () => vi.spyOn(console, "error").mockImplementation(() => {});
 
 describe("EntryRenderer — error recovery via re-emission", () => {
   it("recovers when a re-emit fixes a prohibited-global `hidden` expression", () => {

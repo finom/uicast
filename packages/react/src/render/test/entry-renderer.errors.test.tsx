@@ -5,9 +5,7 @@ import { mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — errors", () => {
   it("routes an unregistered component through the error slot as unknown-component", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -27,17 +25,13 @@ describe("EntryRenderer — errors", () => {
         },
       },
     });
-    expect(container.textContent).toContain(
-      "root errored (unknown-component): Unknown component: DoesNotExist",
-    );
+    expect(container.textContent).toContain("root errored (unknown-component): Unknown component: DoesNotExist");
     expect(seen[0]?.fault).toBe("document");
     consoleError.mockRestore();
   });
 
   it("recovers when a re-emission fixes the component name", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const lines: ComponentEntry[] = [
       {
         key: "root",
@@ -59,9 +53,7 @@ describe("EntryRenderer — errors", () => {
   });
 
   it("default error fallback shows the thrown message", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const lines: ComponentEntry[] = [
       {
@@ -70,16 +62,12 @@ describe("EntryRenderer — errors", () => {
       },
     ];
     const { container } = mountEntries(lines);
-    expect(container.textContent).toContain(
-      "Render error: BOOM_FROM_THROWER",
-    );
+    expect(container.textContent).toContain("Render error: BOOM_FROM_THROWER");
     consoleError.mockRestore();
   });
 
   it("renders the fallbackComponents.error slot when a renderer throws", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const lines: ComponentEntry[] = [
       {
@@ -101,9 +89,7 @@ describe("EntryRenderer — errors", () => {
   });
 
   it("ErrorBoundary contains throws inside a renderer (siblings keep rendering)", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const lines: ComponentEntry[] = [
       {
@@ -128,9 +114,7 @@ describe("EntryRenderer — errors", () => {
 });
 
 describe("EntryRenderer — host function call in a reactive site", () => {
-  const functions: StandardToolV0[] = [
-    { name: "loadThing", description: "", execute: async () => "value" },
-  ];
+  const functions: StandardToolV0[] = [{ name: "loadThing", description: "", execute: async () => "value" }];
 
   const mountLine = (line: ComponentEntry) => {
     const seen: EntryError[] = [];
@@ -145,9 +129,7 @@ describe("EntryRenderer — host function call in a reactive site", () => {
   };
 
   it("props evaluating to a Promise fails as guardrail-violation", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container, seen } = mountLine({
       key: "root",
       component: "Box",
@@ -159,9 +141,7 @@ describe("EntryRenderer — host function call in a reactive site", () => {
   });
 
   it("hidden evaluating to a Promise fails as guardrail-violation", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container, seen } = mountLine({
       key: "root",
       component: "Box",
@@ -174,9 +154,7 @@ describe("EntryRenderer — host function call in a reactive site", () => {
   });
 
   it("a list each evaluating to a Promise fails as guardrail-violation", () => {
-    const consoleError = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
     const { container, seen } = mountLine({
       key: "root",
       component: "Box",

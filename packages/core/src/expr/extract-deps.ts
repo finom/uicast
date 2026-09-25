@@ -9,11 +9,7 @@ export type DepsPart = "all" | "render" | "each";
 const cache = new WeakMap<ComponentEntry, Partial<Record<DepsPart, string[]>>>();
 
 // seed runs once and callbacks read at fire time, so neither is scanned.
-export function extractDeps(
-  entry: ComponentEntry,
-  evaluator: ExpressionEvaluator,
-  part: DepsPart,
-): string[] {
+export function extractDeps(entry: ComponentEntry, evaluator: ExpressionEvaluator, part: DepsPart): string[] {
   const slots = cache.get(entry);
   const cached = slots?.[part];
   if (cached) return cached;

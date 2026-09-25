@@ -1,10 +1,6 @@
 import { useEffect, useReducer, useRef } from "react";
 import type { ComponentEntry } from "@uicast/core";
-import {
-  extractDeps,
-  parseScope,
-  type DepsPart,
-} from "@uicast/core/internal";
+import { extractDeps, parseScope, type DepsPart } from "@uicast/core/internal";
 import { useRendererRegistry } from "../providers/renderer-provider";
 import type { Scopes } from "../types";
 import { inSeedRender } from "./use-seed";
@@ -17,11 +13,7 @@ function emitCount(scopes: Scopes): number {
 }
 
 // `mode` picks the slice, so a list and its items don't double-subscribe.
-export function useReactiveDeps(
-  element: ComponentEntry | undefined,
-  scopes: Scopes,
-  mode: DepsPart,
-): void {
+export function useReactiveDeps(element: ComponentEntry | undefined, scopes: Scopes, mode: DepsPart): void {
   const [, forceRender] = useReducer((x: number): number => x + 1, 0);
   const { evaluator } = useRendererRegistry();
 

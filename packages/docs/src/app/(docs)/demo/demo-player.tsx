@@ -99,8 +99,20 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
   };
   const controls = [
     { id: "start", label: "Jump to start", Icon: ChevronFirstIcon, disabled: count <= 0, onClick: () => seek(0) },
-    { id: "prev", label: "Previous entry", Icon: ChevronLeftIcon, disabled: count <= 0, onClick: () => seek(count - 1) },
-    { id: "play", label: playing ? "Pause" : "Play", Icon: playing ? PauseIcon : PlayIcon, disabled: atEnd, onClick: () => setPlaying(!playing) },
+    {
+      id: "prev",
+      label: "Previous entry",
+      Icon: ChevronLeftIcon,
+      disabled: count <= 0,
+      onClick: () => seek(count - 1),
+    },
+    {
+      id: "play",
+      label: playing ? "Pause" : "Play",
+      Icon: playing ? PauseIcon : PlayIcon,
+      disabled: atEnd,
+      onClick: () => setPlaying(!playing),
+    },
     { id: "next", label: "Next entry", Icon: ChevronRightIcon, disabled: atEnd, onClick: () => seek(count + 1) },
     { id: "end", label: "Jump to end", Icon: ChevronLastIcon, disabled: atEnd, onClick: () => seek(total) },
   ];
@@ -110,7 +122,11 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
     <main data-demo-surface="" className="flex h-[calc(100dvh-var(--nextra-navbar-height))] flex-col">
       <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-3 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
-          <Link href="/demo" className="text-sm text-muted-foreground transition hover:text-foreground" aria-label="All demos">
+          <Link
+            href="/demo"
+            className="text-sm text-muted-foreground transition hover:text-foreground"
+            aria-label="All demos"
+          >
             ←
           </Link>
           <span className="truncate font-semibold">{demo.title}</span>

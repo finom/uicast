@@ -7,15 +7,7 @@ import { ModalImpl } from "../uicast-catalog/modal/impl";
 import { PopoverImpl } from "../uicast-catalog/popover/impl";
 import { TooltipImpl } from "../uicast-catalog/tooltip/impl";
 
-export {
-  ConfirmDialogImpl,
-  DrawerImpl,
-  DropdownMenuImpl,
-  DropdownMenuItemImpl,
-  ModalImpl,
-  PopoverImpl,
-  TooltipImpl,
-};
+export { ConfirmDialogImpl, DrawerImpl, DropdownMenuImpl, DropdownMenuItemImpl, ModalImpl, PopoverImpl, TooltipImpl };
 
 export const impls: ComponentImplementation[] = [
   ConfirmDialogImpl,

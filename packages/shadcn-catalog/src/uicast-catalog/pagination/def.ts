@@ -7,12 +7,7 @@ export const PaginationDef = createComponentDefinition({
     "A pagination control below a paged table or list. With `totalPages` it shows Previous/Next, page numbers and optionally first/last; without it, Previous/Next only, and `hasNext` says whether Next is enabled.",
   props: z.strictObject({
     currentPage: z.number().int().min(1).meta({ description: "The current page, 1-based" }),
-    totalPages: z
-      .number()
-      .int()
-      .min(1)
-      .optional()
-      .meta({ description: "The page count, when known" }),
+    totalPages: z.number().int().min(1).optional().meta({ description: "The page count, when known" }),
     hasNext: z
       .boolean()
       .default(true)

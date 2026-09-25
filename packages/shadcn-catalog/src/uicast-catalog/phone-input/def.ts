@@ -18,27 +18,17 @@ export const PhoneInputDef = createComponentDefinition({
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",
     }),
-    countryCodes: z
-      .array(callingCodeSchema)
-      .optional()
-      .meta({
-        description:
-          "Available country codes. Defaults to common codes if not provided.",
-      }),
+    countryCodes: z.array(callingCodeSchema).optional().meta({
+      description: "Available country codes. Defaults to common codes if not provided.",
+    }),
   }),
   callbacks: {
     onKeyDown: keyboardEventSchema,
     onKeyUp: keyboardEventSchema,
     onChange: z.strictObject({
-      value: z
-        .string()
-        .meta({ description: "The phone number without country code" }),
-      countryCode: z
-        .string()
-        .meta({ description: "The selected country code" }),
-      fullNumber: z
-        .string()
-        .meta({ description: "The full phone number with country code" }),
+      value: z.string().meta({ description: "The phone number without country code" }),
+      countryCode: z.string().meta({ description: "The selected country code" }),
+      fullNumber: z.string().meta({ description: "The full phone number with country code" }),
     }),
   },
 });

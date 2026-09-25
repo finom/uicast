@@ -16,5 +16,6 @@ export const createStockMovement = standardTool({
     "Record a stock movement and adjust the product's stock atomically: positive qty receives stock, negative removes it. Fails with 409 when removal would take stock below zero.",
   inputSchema: movementInsert,
   outputSchema: movementOutput,
-  execute: (input) => apiFetch("/api/stock-movements", { method: "POST", body: input, success: "Stock movement recorded" }),
+  execute: (input) =>
+    apiFetch("/api/stock-movements", { method: "POST", body: input, success: "Stock movement recorded" }),
 });

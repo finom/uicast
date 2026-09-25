@@ -4,7 +4,10 @@ import { index, integer, jsonb, pgTable, real, serial, text, timestamp, uniqueIn
 // Every user owns a full copy of the domain data. Everything is world-readable; writes are owner-only.
 
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
-const ownerId = () => uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" });
+const ownerId = () =>
+  uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" });
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -41,7 +44,9 @@ export const products = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: ownerId(),
-    supplierId: integer("supplier_id").notNull().references(() => suppliers.id),
+    supplierId: integer("supplier_id")
+      .notNull()
+      .references(() => suppliers.id),
     name: text("name").notNull(),
     sku: text("sku").notNull(),
     category: text("category").notNull(),
@@ -71,8 +76,12 @@ export const orders = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: ownerId(),
-    customerId: integer("customer_id").notNull().references(() => customers.id),
-    productId: integer("product_id").notNull().references(() => products.id),
+    customerId: integer("customer_id")
+      .notNull()
+      .references(() => customers.id),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id),
     productName: text("product_name").notNull(),
     qty: integer("qty").notNull(),
     unitPrice: real("unit_price").notNull(),
@@ -91,7 +100,9 @@ export const stockMovements = pgTable(
   {
     id: serial("id").primaryKey(),
     userId: ownerId(),
-    productId: integer("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+    productId: integer("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
     // Positive = stock in, negative = stock out.
     qty: integer("qty").notNull(),
     reason: text("reason", { enum: MOVEMENT_REASONS }).notNull(),
@@ -125,7 +136,9 @@ export const componentEntries = pgTable(
   "component_entries",
   {
     id: serial("id").primaryKey(),
-    pageId: integer("page_id").notNull().references(() => pages.id, { onDelete: "cascade" }),
+    pageId: integer("page_id")
+      .notNull()
+      .references(() => pages.id, { onDelete: "cascade" }),
     data: jsonb("data").$type<ComponentEntry>().notNull(),
     createdAt: createdAt(),
   },
@@ -148,7 +161,9 @@ export const chatMessages = pgTable(
   "chat_messages",
   {
     id: serial("id").primaryKey(),
-    chatId: text("chat_id").notNull().references(() => chats.id, { onDelete: "cascade" }),
+    chatId: text("chat_id")
+      .notNull()
+      .references(() => chats.id, { onDelete: "cascade" }),
     // Preserved so reloads restore the message identities useChat expects.
     messageId: text("message_id").notNull(),
     role: text("role", { enum: ["user", "assistant", "system"] }).notNull(),

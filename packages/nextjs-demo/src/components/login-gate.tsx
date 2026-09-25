@@ -7,8 +7,8 @@ export function LoginGate({ what }: { what: string }) {
       <div className="flex max-w-sm flex-col items-center gap-4 text-center">
         <h1 className="text-lg font-semibold">Log in to {what}</h1>
         <p className="text-sm text-muted-foreground">
-          OpenRouter authorizes an API key for this demo — generations run on your own
-          credits, and you get a private copy of the demo data to build against.
+          OpenRouter authorizes an API key for this demo — generations run on your own credits, and you get a private
+          copy of the demo data to build against.
         </p>
         <Button asChild>
           <a href="/api/auth/login">

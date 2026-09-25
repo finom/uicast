@@ -10,12 +10,7 @@ export const SwitchImpl = createComponentImplementation({
     const id = useId();
     return (
       <div className="flex items-center gap-2" data-key={entry.key}>
-        <ShadcnSwitch
-          id={id}
-          checked={checked}
-          disabled={disabled}
-          onCheckedChange={(v) => onChange({ checked: v })}
-        />
+        <ShadcnSwitch id={id} checked={checked} disabled={disabled} onCheckedChange={(v) => onChange({ checked: v })} />
         {label && (
           <label
             htmlFor={id}

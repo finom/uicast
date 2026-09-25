@@ -10,9 +10,11 @@ export const supplierInsert = z.object({
   leadTimeDays: z.number().int().meta({ description: "Typical delivery lead time, in days." }),
 });
 export const supplierUpdate = supplierInsert.partial();
-export const supplierOutput = supplierInsert.extend({
-  id: z.number().int().meta({ description: "Supplier id." }),
-}).meta({ id: "Supplier" });
+export const supplierOutput = supplierInsert
+  .extend({
+    id: z.number().int().meta({ description: "Supplier id." }),
+  })
+  .meta({ id: "Supplier" });
 
 export const movementInsert = z.object({
   productId: z.number().int().meta({ description: "Product the stock moves for." }),
@@ -20,10 +22,12 @@ export const movementInsert = z.object({
   reason: z.enum(MOVEMENT_REASONS).meta({ description: "Why the stock moved." }),
   note: z.string().nullish().meta({ description: "Optional free-form note." }),
 });
-export const movementOutput = movementInsert.extend({
-  id: z.number().int().meta({ description: "Movement id." }),
-  createdAt: z.string().meta({ description: "ISO timestamp of the movement." }),
-}).meta({ id: "StockMovement" });
+export const movementOutput = movementInsert
+  .extend({
+    id: z.number().int().meta({ description: "Movement id." }),
+    createdAt: z.string().meta({ description: "ISO timestamp of the movement." }),
+  })
+  .meta({ id: "StockMovement" });
 
 export const productInsert = z.object({
   supplierId: z.number().int().meta({ description: "Id of the supplier this product is ordered from." }),
@@ -34,9 +38,11 @@ export const productInsert = z.object({
   price: z.number().meta({ description: "Unit price, in dollars." }),
 });
 export const productUpdate = productInsert.partial();
-export const productOutput = productInsert.extend({
-  id: z.number().int().meta({ description: "Product id." }),
-}).meta({ id: "Product" });
+export const productOutput = productInsert
+  .extend({
+    id: z.number().int().meta({ description: "Product id." }),
+  })
+  .meta({ id: "Product" });
 
 export const customerInsert = z.object({
   name: z.string().meta({ description: "Customer's full name." }),
@@ -44,10 +50,12 @@ export const customerInsert = z.object({
   email: z.string().meta({ description: "Customer's email address." }),
 });
 export const customerUpdate = customerInsert.partial();
-export const customerOutput = customerInsert.extend({
-  id: z.number().int().meta({ description: "Customer id." }),
-  createdAt: z.string().meta({ description: "ISO timestamp the customer was created." }),
-}).meta({ id: "Customer" });
+export const customerOutput = customerInsert
+  .extend({
+    id: z.number().int().meta({ description: "Customer id." }),
+    createdAt: z.string().meta({ description: "ISO timestamp the customer was created." }),
+  })
+  .meta({ id: "Customer" });
 
 export const orderInsert = z.object({
   customerId: z.number().int().meta({ description: "ID of the customer who placed the order." }),
@@ -59,11 +67,13 @@ export const orderInsert = z.object({
   status: z.enum(ORDER_STATUSES).optional().meta({ description: "Order status." }),
 });
 export const orderUpdate = orderInsert.partial();
-export const orderOutput = orderInsert.extend({
-  id: z.number().int().meta({ description: "Order id." }),
-  status: z.enum(ORDER_STATUSES).meta({ description: "Order status." }),
-  createdAt: z.string().meta({ description: "ISO timestamp the order was created." }),
-}).meta({ id: "Order" });
+export const orderOutput = orderInsert
+  .extend({
+    id: z.number().int().meta({ description: "Order id." }),
+    status: z.enum(ORDER_STATUSES).meta({ description: "Order status." }),
+    createdAt: z.string().meta({ description: "ISO timestamp the order was created." }),
+  })
+  .meta({ id: "Order" });
 
 // One schema reads the tool call (numbers) and the route's query string (strings).
 const listWindow = z
@@ -105,7 +115,11 @@ export const productListInput = listWindow.and(
     q: z.string().optional().meta({ description: "Matches the name or SKU, case-insensitive." }),
     category: z.string().optional().meta({ description: "Only this category." }),
     supplierId: z.coerce.number().int().optional().meta({ description: "Only this supplier." }),
-    stockAtMost: z.coerce.number().int().optional().meta({ description: "Only products with this many units or fewer." }),
+    stockAtMost: z.coerce
+      .number()
+      .int()
+      .optional()
+      .meta({ description: "Only products with this many units or fewer." }),
   }),
 );
 
@@ -131,7 +145,12 @@ export const orderListInput = listWindow.and(
     productId: z.coerce.number().int().optional().meta({ description: "Only this product." }),
     minTotal: z.coerce.number().optional().meta({ description: "Only orders with at least this total." }),
     from: z.iso.date().optional().meta({ description: "Only orders on or after this day." }),
-    days: z.coerce.number().int().positive().optional().meta({ description: "Only orders from the last this many days." }),
+    days: z.coerce
+      .number()
+      .int()
+      .positive()
+      .optional()
+      .meta({ description: "Only orders from the last this many days." }),
   }),
 );
 export const orderListRow = orderOutput
@@ -169,7 +188,12 @@ export const salesSummary = z.object({
 });
 
 export const stockSummaryInput = z.object({
-  lowStockAtMost: z.coerce.number().int().min(0).default(20).meta({ description: "A product is low on stock at this many units or fewer." }),
+  lowStockAtMost: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(20)
+    .meta({ description: "A product is low on stock at this many units or fewer." }),
 });
 export const stockSummary = z.object({
   products: z.number().int().meta({ description: "Products in the catalog." }),
@@ -180,7 +204,14 @@ export const stockSummary = z.object({
     .array(z.object({ category: z.string(), products: z.number().int(), units: z.number().int(), value: z.number() }))
     .meta({ description: "Per category, largest value first." }),
   bySupplier: z
-    .array(z.object({ supplierId: z.number().int(), products: z.number().int(), units: z.number().int(), value: z.number() }))
+    .array(
+      z.object({
+        supplierId: z.number().int(),
+        products: z.number().int(),
+        units: z.number().int(),
+        value: z.number(),
+      }),
+    )
     .meta({ description: "Per supplier, largest value first; a supplier with no products is absent." }),
 });
 

@@ -6,8 +6,7 @@ import { createComponentImplementation } from "../impl/create-component-implemen
 export const RootFragmentImpl = createComponentImplementation({
   def: createComponentDefinition({
     name: "RootFragment",
-    description:
-      "Host-only wrapper that renders its children directly with no DOM. Not emitted by the LLM.",
+    description: "Host-only wrapper that renders its children directly with no DOM. Not emitted by the LLM.",
     hidden: true,
   }),
   render: ({ children }) => <>{children}</>,

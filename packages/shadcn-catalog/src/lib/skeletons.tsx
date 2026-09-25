@@ -8,7 +8,9 @@ export const blockSkeleton = (height: number) => () => <Skeleton className="w-fu
 
 export const StackSkeleton = ({ children }: Children) => <div className="flex flex-col gap-2">{children}</div>;
 
-export const RowSkeleton = ({ children }: Children) => <div className="flex flex-row items-center gap-2">{children}</div>;
+export const RowSkeleton = ({ children }: Children) => (
+  <div className="flex flex-row items-center gap-2">{children}</div>
+);
 
 // A bordered box: the title, or a bar in its place, over the children's skeletons.
 export const PanelSkeleton = ({ title, children }: Children & { title?: ReactNode }) => (

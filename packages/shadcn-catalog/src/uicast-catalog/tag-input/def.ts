@@ -25,16 +25,12 @@ export const TagInputDef = createComponentDefinition({
     onKeyUp: keyboardEventSchema,
     onAdd: z.strictObject({
       tag: z.string().meta({ description: "The tag that was added" }),
-      tags: z
-        .array(z.string())
-        .meta({ description: "The updated array of all tags" }),
+      tags: z.array(z.string()).meta({ description: "The updated array of all tags" }),
     }),
     onRemove: z.strictObject({
       tag: z.string().meta({ description: "The tag that was removed" }),
       index: z.number().int().nonnegative().meta({ description: "The index of the removed tag" }),
-      tags: z
-        .array(z.string())
-        .meta({ description: "The updated array of remaining tags" }),
+      tags: z.array(z.string()).meta({ description: "The updated array of remaining tags" }),
     }),
   },
 });

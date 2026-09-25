@@ -6,11 +6,7 @@ import { TabsDef } from "./def";
 export const TabsImpl = createComponentImplementation({
   def: TabsDef,
   render: ({ value, children, onChange }, { entry }) => (
-    <ShadcnTabs
-      value={value}
-      onValueChange={(v) => onChange({ value: v })}
-      data-key={entry.key}
-    >
+    <ShadcnTabs value={value} onValueChange={(v) => onChange({ value: v })} data-key={entry.key}>
       {children}
     </ShadcnTabs>
   ),

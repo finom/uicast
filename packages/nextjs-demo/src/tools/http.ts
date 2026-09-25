@@ -23,9 +23,7 @@ export async function apiFetch(path: string, init?: ApiInit) {
     const error = body?.error;
     if (typeof error === "string") throw new Error(error);
     if (Array.isArray(error)) {
-      const issues = error
-        .map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`)
-        .join("; ");
+      const issues = error.map((issue) => `${issue.path.join(".") || "body"}: ${issue.message}`).join("; ");
       throw new Error(`${method} ${path} → ${res.status}: ${issues}`);
     }
     throw new Error(`${method} ${path} → ${res.status}`);

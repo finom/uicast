@@ -100,7 +100,8 @@ describe("RendererProvider — shared group store", () => {
     ];
     const userCtx = createProxyScope<{ name: string }>({ name: "Hopper" });
     const { container } = render(
-      <RendererProvider evaluator={testEvaluator}
+      <RendererProvider
+        evaluator={testEvaluator}
         implementations={defaultImplementationsList}
         init={({ scopes }) => {
           (scopes as Record<string, unknown>).userCtx = userCtx;
@@ -119,9 +120,9 @@ describe("RendererProvider — shared group store", () => {
 
   it("throws a clear error outside a RendererProvider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() =>
-      render(<EntriesRenderer entries={readerLines} />),
-    ).toThrow(/must be rendered inside a <RendererProvider>/);
+    expect(() => render(<EntriesRenderer entries={readerLines} />)).toThrow(
+      /must be rendered inside a <RendererProvider>/,
+    );
     spy.mockRestore();
   });
 });

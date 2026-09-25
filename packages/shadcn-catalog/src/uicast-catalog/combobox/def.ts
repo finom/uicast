@@ -18,9 +18,7 @@ export const ComboboxDef = createComponentDefinition({
     options: z
       .array(
         z.strictObject({
-          label: z
-            .string()
-            .meta({ description: "Display text for this option" }),
+          label: z.string().meta({ description: "Display text for this option" }),
           value: z.string().meta({ description: "The value for this option" }),
         }),
       )
@@ -35,9 +33,7 @@ export const ComboboxDef = createComponentDefinition({
   callbacks: {
     onChange: z.strictObject({
       value: z.string().meta({ description: "The newly selected value" }),
-      label: z
-        .string()
-        .meta({ description: "The label of the newly selected option" }),
+      label: z.string().meta({ description: "The label of the newly selected option" }),
     }),
   },
 });

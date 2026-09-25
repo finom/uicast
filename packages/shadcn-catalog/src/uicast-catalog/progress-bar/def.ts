@@ -15,13 +15,9 @@ export const ProgressBarDef = createComponentDefinition({
     showLabel: z.boolean().default(false).meta({
       description: "Whether to show the percentage text above the bar",
     }),
-    color: z
-      .enum(["default", "success", "warning", "error"])
-      .default("default")
-      .meta({
-        description:
-          "Color variant: default (primary), success (green), warning (yellow), error (red)",
-      }),
+    color: z.enum(["default", "success", "warning", "error"]).default("default").meta({
+      description: "Color variant: default (primary), success (green), warning (yellow), error (red)",
+    }),
     size: z.enum(["sm", "md", "lg"]).default("md").meta({
       description: "Bar height: sm (4px), md (8px), lg (12px)",
     }),

@@ -102,9 +102,7 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false 
                       );
                     })}
                   </MessageContent>
-                  {message.metadata && (
-                    <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />
-                  )}
+                  {message.metadata && <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />}
                 </Message>
               ))
             )}

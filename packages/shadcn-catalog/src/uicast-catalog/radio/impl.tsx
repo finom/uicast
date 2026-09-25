@@ -14,21 +14,13 @@ export const RadioImpl = createComponentImplementation({
         value={value}
         onValueChange={(v) => onChange({ value: v })}
         disabled={disabled}
-        className={
-          orientation === "horizontal" ? "flex flex-row gap-4" : "grid gap-2"
-        }
+        className={orientation === "horizontal" ? "flex flex-row gap-4" : "grid gap-2"}
         data-key={entry.key}
       >
         {options.map((opt) => (
           <div key={opt.value} className="flex items-center gap-2">
-            <RadioGroupItem
-              value={opt.value}
-              id={`${id}-${opt.value}`}
-            />
-            <Label
-              htmlFor={`${id}-${opt.value}`}
-              className="text-sm font-normal cursor-pointer"
-            >
+            <RadioGroupItem value={opt.value} id={`${id}-${opt.value}`} />
+            <Label htmlFor={`${id}-${opt.value}`} className="text-sm font-normal cursor-pointer">
               {opt.label}
             </Label>
           </div>

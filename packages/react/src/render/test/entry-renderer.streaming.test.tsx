@@ -1,188 +1,200 @@
 import type { StandardToolV0 } from "standard-tool";
-import {
-	createComponentImplementation,
-	EntriesRenderer,
-	RendererProvider,
-} from "@uicast/react";
+import { createComponentImplementation, EntriesRenderer, RendererProvider } from "@uicast/react";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { Evaluator } from "@uicast/expr";
 import { z } from "zod";
-import {
-	defaultImplementations,
-	defaultImplementationsList,
-	mountEntries,
-} from "../../../test/render-helpers";
+import { defaultImplementations, defaultImplementationsList, mountEntries } from "../../../test/render-helpers";
 
 describe("EntryRenderer — streaming / skeletons", () => {
-	it("renders the default skeleton when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
-		const lines: ComponentEntry[] = [
-			{
-				key: "root",
-				component: "Box",
-				children: ["pending"],
-			},
-		];
-		const { container } = mountEntries(lines, {
-			fallbackComponents: {
-				defaultSkeleton: ({ reason }) => <span data-test-placeholder>{reason}</span>,
-			},
-		});
-		const ph = container.querySelector("[data-test-placeholder]");
-		expect(ph).not.toBeNull();
-		expect(ph?.textContent).toBe("streaming");
-	});
+  it("renders the default skeleton when a referenced child hasn't streamed yet, with reason 'streaming'", () => {
+    const lines: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        children: ["pending"],
+      },
+    ];
+    const { container } = mountEntries(lines, {
+      fallbackComponents: {
+        defaultSkeleton: ({ reason }) => <span data-test-placeholder>{reason}</span>,
+      },
+    });
+    const ph = container.querySelector("[data-test-placeholder]");
+    expect(ph).not.toBeNull();
+    expect(ph?.textContent).toBe("streaming");
+  });
 
-	it("passes the parent's entry, and no known props, to the skeleton in a child's slot", () => {
-		const Row = createComponentImplementation({
-			def: createComponentDefinition({ name: "Row", description: "row", props: z.object({ gap: z.string() }) }),
-			render: ({ children }) => <div>{children}</div>,
-			skeleton: ({ entry, knownProps }) => (
-				<span data-test-placeholder>
-					{entry.key}:{knownProps ? "known" : "none"}
-				</span>
-			),
-		});
-		const { container } = mountEntries(
-			[{ key: "root", component: "Row", props: { literal: { gap: "4" } }, children: ["pending"] }],
-			{ implementations: { ...defaultImplementations, Row } },
-		);
-		expect(container.querySelector("[data-test-placeholder]")?.textContent).toBe("root:none");
-	});
+  it("passes the parent's entry, and no known props, to the skeleton in a child's slot", () => {
+    const Row = createComponentImplementation({
+      def: createComponentDefinition({ name: "Row", description: "row", props: z.object({ gap: z.string() }) }),
+      render: ({ children }) => <div>{children}</div>,
+      skeleton: ({ entry, knownProps }) => (
+        <span data-test-placeholder>
+          {entry.key}:{knownProps ? "known" : "none"}
+        </span>
+      ),
+    });
+    const { container } = mountEntries(
+      [{ key: "root", component: "Row", props: { literal: { gap: "4" } }, children: ["pending"] }],
+      { implementations: { ...defaultImplementations, Row } },
+    );
+    expect(container.querySelector("[data-test-placeholder]")?.textContent).toBe("root:none");
+  });
 
-	it("uses the parent's skeleton for an unstreamed child, over the default skeleton", () => {
-		const phBoxImpl = createComponentImplementation({
-			def: createComponentDefinition({
-				name: "PhBox",
-				description: "A box with its own skeleton",
-				props: z.object({}),
-			}),
-			render: ({ children }, { entry }) => (
-				<div data-key={entry.key}>{children}</div>
-			),
-			skeleton: () => <span data-box-ph />,
-		});
-		const { container } = mountEntries(
-			[
-				{
-					key: "root",
-					component: "PhBox",
-					children: ["pending"],
-				},
-			],
-			{
-				implementations: { ...defaultImplementations, PhBox: phBoxImpl },
-				fallbackComponents: {
-					defaultSkeleton: () => <span data-global-ph />,
-				},
-			},
-		);
-		expect(container.querySelector("[data-box-ph]")).not.toBeNull();
-		expect(container.querySelector("[data-global-ph]")).toBeNull();
-	});
+  it("uses the parent's skeleton for an unstreamed child, over the default skeleton", () => {
+    const phBoxImpl = createComponentImplementation({
+      def: createComponentDefinition({
+        name: "PhBox",
+        description: "A box with its own skeleton",
+        props: z.object({}),
+      }),
+      render: ({ children }, { entry }) => <div data-key={entry.key}>{children}</div>,
+      skeleton: () => <span data-box-ph />,
+    });
+    const { container } = mountEntries(
+      [
+        {
+          key: "root",
+          component: "PhBox",
+          children: ["pending"],
+        },
+      ],
+      {
+        implementations: { ...defaultImplementations, PhBox: phBoxImpl },
+        fallbackComponents: {
+          defaultSkeleton: () => <span data-global-ph />,
+        },
+      },
+    );
+    expect(container.querySelector("[data-box-ph]")).not.toBeNull();
+    expect(container.querySelector("[data-global-ph]")).toBeNull();
+  });
 
-	it("renders nothing when no skeleton is provided", () => {
-		const { container } = mountEntries([
-			{
-				key: "root",
-				component: "Box",
-				children: ["pending"],
-			},
-		]);
-		expect(container.querySelector("[data-key='root']")).not.toBeNull();
-		expect(container.textContent ?? "").not.toContain("loading");
-	});
+  it("renders nothing when no skeleton is provided", () => {
+    const { container } = mountEntries([
+      {
+        key: "root",
+        component: "Box",
+        children: ["pending"],
+      },
+    ]);
+    expect(container.querySelector("[data-key='root']")).not.toBeNull();
+    expect(container.textContent ?? "").not.toContain("loading");
+  });
 });
 
 describe("EntryRenderer — streaming + seed", () => {
-	it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
-		let count = 0;
-		const functions: StandardToolV0[] = [
-			{
-				name: "track",
-				description: "",
-				execute() {
-					count += 1;
-					return count;
-				},
-			},
-		];
-		const evaluator = new Evaluator({ functions });
-		const initial: ComponentEntry[] = [
-			{
-				key: "a",
-				component: "Box",
-				seed: [{ set: "scopes.root.tickA", expr: "track()" }],
-				props: { expr: "({ text: 'A' })" },
-			},
-		];
+  it("does not re-run an existing entry's seed when a sibling root entry streams in later", () => {
+    let count = 0;
+    const functions: StandardToolV0[] = [
+      {
+        name: "track",
+        description: "",
+        execute() {
+          count += 1;
+          return count;
+        },
+      },
+    ];
+    const evaluator = new Evaluator({ functions });
+    const initial: ComponentEntry[] = [
+      {
+        key: "a",
+        component: "Box",
+        seed: [{ set: "scopes.root.tickA", expr: "track()" }],
+        props: { expr: "({ text: 'A' })" },
+      },
+    ];
 
-		const next: ComponentEntry[] = [
-			...initial,
-			{
-				key: "b",
-				component: "Box",
-				props: { expr: "({ text: 'B' })" },
-			},
-		];
+    const next: ComponentEntry[] = [
+      ...initial,
+      {
+        key: "b",
+        component: "Box",
+        props: { expr: "({ text: 'B' })" },
+      },
+    ];
 
-		const { rerender, container } = render(<RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={initial} /></RendererProvider>);
-		expect(count).toBe(1);
-		expect(container.textContent).toContain("A");
+    const { rerender, container } = render(
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+        <EntriesRenderer entries={initial} />
+      </RendererProvider>,
+    );
+    expect(count).toBe(1);
+    expect(container.textContent).toContain("A");
 
-		rerender(<RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
+    rerender(
+      <RendererProvider implementations={defaultImplementationsList} evaluator={evaluator}>
+        <EntriesRenderer entries={next} />
+      </RendererProvider>,
+    );
 
-		expect(count).toBe(1);
-		expect(container.textContent).toContain("A");
-		expect(container.textContent).toContain("B");
-	});
+    expect(count).toBe(1);
+    expect(container.textContent).toContain("A");
+    expect(container.textContent).toContain("B");
+  });
 
-	it("does not re-run a parent's seed when a child entry streams in to fill its slot", () => {
-		let count = 0;
-		const functions: StandardToolV0[] = [
-			{
-				name: "track",
-				description: "",
-				execute() {
-					count += 1;
-					return count;
-				},
-			},
-		];
-		const evaluator = new Evaluator({ functions });
-		const fallbackComponents = {
-			defaultSkeleton: () => <span data-test-placeholder>pending</span>,
-		};
+  it("does not re-run a parent's seed when a child entry streams in to fill its slot", () => {
+    let count = 0;
+    const functions: StandardToolV0[] = [
+      {
+        name: "track",
+        description: "",
+        execute() {
+          count += 1;
+          return count;
+        },
+      },
+    ];
+    const evaluator = new Evaluator({ functions });
+    const fallbackComponents = {
+      defaultSkeleton: () => <span data-test-placeholder>pending</span>,
+    };
 
-		const initial: ComponentEntry[] = [
-			{
-				key: "root",
-				component: "Box",
-				seed: [{ set: "scopes.root.tickRoot", expr: "track()" }],
-				children: ["child"],
-			},
-		];
+    const initial: ComponentEntry[] = [
+      {
+        key: "root",
+        component: "Box",
+        seed: [{ set: "scopes.root.tickRoot", expr: "track()" }],
+        children: ["child"],
+      },
+    ];
 
-		const next: ComponentEntry[] = [
-			...initial,
-			{
-				key: "child",
-				component: "Box",
-				props: { expr: "({ text: 'child-arrived' })" },
-			},
-		];
+    const next: ComponentEntry[] = [
+      ...initial,
+      {
+        key: "child",
+        component: "Box",
+        props: { expr: "({ text: 'child-arrived' })" },
+      },
+    ];
 
-		const { rerender, container } = render(
-			<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={initial} /></RendererProvider>,
-		);
-		expect(count).toBe(1);
-		expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
+    const { rerender, container } = render(
+      <RendererProvider
+        fallbackComponents={fallbackComponents}
+        implementations={defaultImplementationsList}
+        evaluator={evaluator}
+      >
+        <EntriesRenderer entries={initial} />
+      </RendererProvider>,
+    );
+    expect(count).toBe(1);
+    expect(container.querySelector("[data-test-placeholder]")).not.toBeNull();
 
-		rerender(<RendererProvider fallbackComponents={fallbackComponents} implementations={defaultImplementationsList} evaluator={evaluator}><EntriesRenderer entries={next} /></RendererProvider>);
+    rerender(
+      <RendererProvider
+        fallbackComponents={fallbackComponents}
+        implementations={defaultImplementationsList}
+        evaluator={evaluator}
+      >
+        <EntriesRenderer entries={next} />
+      </RendererProvider>,
+    );
 
-		expect(count).toBe(1);
-		expect(container.querySelector("[data-test-placeholder]")).toBeNull();
-		expect(container.textContent).toContain("child-arrived");
-	});
+    expect(count).toBe(1);
+    expect(container.querySelector("[data-test-placeholder]")).toBeNull();
+    expect(container.textContent).toContain("child-arrived");
+  });
 });

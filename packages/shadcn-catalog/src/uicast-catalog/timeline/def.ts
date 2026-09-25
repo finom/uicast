@@ -11,21 +11,14 @@ export const TimelineDef = createComponentDefinition({
       .array(
         z.strictObject({
           title: z.string().meta({ description: "Event title" }),
-          description: z
-            .string()
-            .optional()
-            .meta({ description: "Event description" }),
+          description: z.string().optional().meta({ description: "Event description" }),
           time: z.string().optional().meta({
             description: "Timestamp text (e.g. '2 hours ago', 'Jan 15')",
           }),
-          icon: iconNameSchema.optional()
-            .meta({ description: "Optional icon for the event." }),
-          variant: z
-            .enum(["default", "success", "warning", "destructive"])
-            .optional()
-            .meta({
-              description: "Color variant for the event dot",
-            }),
+          icon: iconNameSchema.optional().meta({ description: "Optional icon for the event." }),
+          variant: z.enum(["default", "success", "warning", "destructive"]).optional().meta({
+            description: "Color variant for the event dot",
+          }),
         }),
       )
       .meta({ description: "Array of timeline events in chronological order" }),
@@ -33,12 +26,8 @@ export const TimelineDef = createComponentDefinition({
   callbacks: {
     onItemClick: z
       .strictObject({
-        index: z
-          .number().int().nonnegative()
-          .meta({ description: "The index of the clicked item" }),
-        title: z
-          .string()
-          .meta({ description: "The title of the clicked item" }),
+        index: z.number().int().nonnegative().meta({ description: "The index of the clicked item" }),
+        title: z.string().meta({ description: "The title of the clicked item" }),
       })
       .meta({ description: "Callback when a timeline item is clicked" }),
   },

@@ -12,10 +12,7 @@ export const SignaturePadDef = createComponentDefinition({
     height: z.number().int().positive().default(200).meta({
       description: "Canvas height in pixels",
     }),
-    penColor: z
-      .enum(["black", "blue"])
-      .default("black")
-      .meta({
+    penColor: z.enum(["black", "blue"]).default("black").meta({
       description: "Pen color for the signature",
     }),
     disabled: z.boolean().default(false).meta({
@@ -27,9 +24,7 @@ export const SignaturePadDef = createComponentDefinition({
   }),
   callbacks: {
     onEnd: z.strictObject({
-      isEmpty: z
-        .boolean()
-        .meta({ description: "Whether the signature pad is empty" }),
+      isEmpty: z.boolean().meta({ description: "Whether the signature pad is empty" }),
     }),
     onClear: z.null().meta({
       description: "Callback when the signature is cleared",

@@ -3,11 +3,7 @@ import { useState } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "../../components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -54,12 +50,7 @@ export const ComboboxImpl = createComponentImplementation({
                       setOpen(false);
                     }}
                   >
-                    <Check
-                      className={cn(
-                        "mr-2 size-4",
-                        value === option.value ? "opacity-100" : "opacity-0",
-                      )}
-                    />
+                    <Check className={cn("mr-2 size-4", value === option.value ? "opacity-100" : "opacity-0")} />
                     {option.label}
                   </CommandItem>
                 ))}

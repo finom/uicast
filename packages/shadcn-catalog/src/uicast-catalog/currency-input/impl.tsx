@@ -5,7 +5,15 @@ import { CurrencyInputDef } from "./def";
 
 // Any other currency shows its code.
 const SYMBOLS: Record<string, string> = {
-  USD: "$", EUR: "€", GBP: "£", JPY: "¥", CNY: "¥", INR: "₹", BRL: "R$", AUD: "A$", CAD: "C$",
+  USD: "$",
+  EUR: "€",
+  GBP: "£",
+  JPY: "¥",
+  CNY: "¥",
+  INR: "₹",
+  BRL: "R$",
+  AUD: "A$",
+  CAD: "C$",
 };
 
 export const CurrencyInputImpl = createComponentImplementation({

@@ -38,9 +38,7 @@ export interface ComponentListEntry extends ComponentEntry {
   as: string;
 }
 
-export function isComponentListEntry(
-  entry: ComponentEntry,
-): entry is ComponentListEntry {
+export function isComponentListEntry(entry: ComponentEntry): entry is ComponentListEntry {
   return entry.each !== undefined;
 }
 

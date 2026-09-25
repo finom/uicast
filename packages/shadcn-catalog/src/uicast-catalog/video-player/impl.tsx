@@ -5,10 +5,7 @@ import { VideoPlayerDef } from "./def";
 export const VideoPlayerImpl = createComponentImplementation({
   def: VideoPlayerDef,
   render: ({ src, poster, autoplay, muted, loop, width, onPlay, onPause, onEnded }, { entry }) => (
-    <div
-      className="rounded-lg overflow-hidden border"
-      data-key={entry.key}
-    >
+    <div className="rounded-lg overflow-hidden border" data-key={entry.key}>
       <video
         src={src}
         poster={poster}

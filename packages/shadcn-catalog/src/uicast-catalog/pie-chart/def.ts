@@ -11,25 +11,16 @@ export const PieChartDef = createComponentDefinition({
       .array(
         z.strictObject({
           name: z.string().meta({ description: "The label for this slice" }),
-          value: z
-            .number()
-            .meta({ description: "The numeric value for this slice." }),
+          value: z.number().meta({ description: "The numeric value for this slice." }),
         }),
       )
       .meta({ description: "Array of data objects with name and value" }),
     colors: z.array(chartColorSchema).optional().meta({ description: "One colour per slice, in order." }),
-    height: z
-      .number().int().positive()
-      .default(300)
-      .meta({ description: "Chart height in pixels" }),
+    height: z.number().int().positive().default(300).meta({ description: "Chart height in pixels" }),
     donut: z.boolean().default(false).meta({
-      description:
-        "Whether to render as a donut chart (with a hole in the center)",
+      description: "Whether to render as a donut chart (with a hole in the center)",
     }),
-    showLabels: z
-      .boolean()
-      .default(true)
-      .meta({ description: "Whether to show labels on each slice" }),
+    showLabels: z.boolean().default(true).meta({ description: "Whether to show labels on each slice" }),
     centerLabel: z
       .string()
       .optional()

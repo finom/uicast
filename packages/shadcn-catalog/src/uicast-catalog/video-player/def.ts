@@ -28,14 +28,8 @@ export const VideoPlayerDef = createComponentDefinition({
     }),
   }),
   callbacks: {
-    onPlay: z
-      .null()
-      .meta({ description: "Callback when video starts playing" }),
-    onPause: z
-      .null()
-      .meta({ description: "Callback when video is paused" }),
-    onEnded: z
-      .null()
-      .meta({ description: "Callback when video ends" }),
+    onPlay: z.null().meta({ description: "Callback when video starts playing" }),
+    onPause: z.null().meta({ description: "Callback when video is paused" }),
+    onEnded: z.null().meta({ description: "Callback when video ends" }),
   },
 });

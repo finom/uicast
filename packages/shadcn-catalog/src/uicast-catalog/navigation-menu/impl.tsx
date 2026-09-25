@@ -34,13 +34,9 @@ export const NavigationMenuImpl = createComponentImplementation({
                             })
                           }
                         >
-                          <div className="text-sm font-medium leading-none">
-                            {child.label}
-                          </div>
+                          <div className="text-sm font-medium leading-none">{child.label}</div>
                           {child.description && (
-                            <p className="line-clamp-2 text-sm/snug text-muted-foreground">
-                              {child.description}
-                            </p>
+                            <p className="line-clamp-2 text-sm/snug text-muted-foreground">{child.description}</p>
                           )}
                         </button>
                       </NavigationMenuLink>

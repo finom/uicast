@@ -18,11 +18,5 @@ const setup: CodePart[] = [
 ];
 
 export function TrackerExample() {
-  return (
-    <MiniExample
-      entry={entriesPart(trackerEntries)}
-      result={<Tracker />}
-      setup={setup}
-    />
-  );
+  return <MiniExample entry={entriesPart(trackerEntries)} result={<Tracker />} setup={setup} />;
 }

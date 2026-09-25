@@ -9,8 +9,7 @@ export const StickyHeaderImpl = createComponentImplementation({
       className={cn(
         "sticky top-0 bg-background/95 px-4 py-3",
         bordered && "border-b",
-        blurred &&
-          "backdrop-blur-sm supports-backdrop-filter:bg-background/60",
+        blurred && "backdrop-blur-sm supports-backdrop-filter:bg-background/60",
       )}
       style={{ zIndex }}
       data-key={entry.key}
