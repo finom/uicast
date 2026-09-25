@@ -43,7 +43,7 @@ The catalog ships its own stylesheet, so there is no Tailwind config to write:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-Every rule reads a CSS variable (`background-color: var(--card)`), so your theme restyles the catalog too.
+The catalog reads your theme's CSS variables (`background-color: var(--card)`), so your theme restyles it too.
 
 ## Groups
 

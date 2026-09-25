@@ -24,8 +24,8 @@ Import its stylesheet once, in your global CSS:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-`catalog.css` holds the utilities the components use and no palette: each rule
-reads a CSS variable (`var(--card){:css}`), so your theme applies. An app without its
+`catalog.css` holds the utilities the components use and no palette: it reads
+your theme's CSS variables (`var(--card){:css}`), so your theme applies. An app without its
 own shadcn setup imports `theme.css` first, for preflight and the shadcn
 palette:
 

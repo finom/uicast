@@ -20,7 +20,7 @@ expressions, calls no host functions and creates no scopes, so it renders in a
 server pass. It takes the implementations and the fallback UI from the nearest
 `<RendererProvider>`. Show it until the component mounts:
 
-```tsx filename="app/pages/[id]/document.tsx"
+```tsx filename="src/app/pages/[id]/document.tsx"
 "use client";
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
@@ -46,7 +46,7 @@ export function Document({ entries }: { entries: ComponentEntry[] }) {
 The page loads the stored entries on the server, so the first HTML already has
 the document's shape. A Next.js page, for example:
 
-```tsx filename="app/pages/[id]/page.tsx"
+```tsx filename="src/app/pages/[id]/page.tsx"
 import { Document } from "./document";
 
 export default async function Page({ params }: PageProps<"/pages/[id]">) {
@@ -169,7 +169,7 @@ all resolve it this way.
 The component imports `#tools` and keeps the skeleton as its fallback. The page
 stays the same:
 
-```tsx filename="app/pages/[id]/document.tsx"
+```tsx filename="src/app/pages/[id]/document.tsx"
 "use client";
 import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";

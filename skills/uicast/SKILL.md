@@ -291,9 +291,12 @@ import { type ComponentEntry, streamJsonLines } from "@uicast/core";
 
 const { data: entries = [] } = useQuery({
   queryKey: ["generate", prompt],
+  staleTime: Infinity, // else window focus refetches = new model call
+  retry: false,
   queryFn: streamedQuery({
-    streamFn: async ({ signal }) => {
-      const res = await fetch("/api/generate", { method: "POST", body: JSON.stringify({ prompt }), signal });
+    // No `signal`: unmount would cancel generation.
+    streamFn: async () => {
+      const res = await fetch("/api/generate", { method: "POST", body: JSON.stringify({ prompt }) });
       if (!res.ok || !res.body) throw new Error(`Generation failed (${res.status})`);
       return streamJsonLines<ComponentEntry>(res.body);
     },

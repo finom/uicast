@@ -11,7 +11,7 @@ complete. Below, a Next.js route relays the model's output with the
 returns the output as a text stream, and `createTextStreamResponse` relays it
 as is:
 
-```ts filename="app/api/generate/route.ts"
+```ts filename="src/app/api/generate/route.ts"
 import { createTextStreamResponse, streamText } from "ai";
 
 export async function POST(req: Request) {
@@ -78,6 +78,9 @@ const fallbackComponents = { defaultSkeleton: () => <Skeleton className="h-6 w-2
 function Generated({ prompt }: { prompt: string }) {
   const { data: entries = [], isFetching } = useQuery({
     queryKey: ["generate", prompt],
+    // One model call per prompt: no refetch on window focus, no retry.
+    staleTime: Infinity,
+    retry: false,
     queryFn: streamedQuery({
       streamFn: async () => {
         const res = await fetch("/api/generate", {
