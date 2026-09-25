@@ -232,6 +232,46 @@ describe("EntryRenderer — lists", () => {
     consoleError.mockRestore();
   });
 
+  it("routes an `as` that names an existing scope through the error slot", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    const failed = new Set<string | undefined>();
+    const lines: ComponentEntry[] = [
+      { key: "root", component: "Box", children: ["orders", "as-root", "side"] },
+      { key: "orders", component: "Box", each: "scopes.root.orders", as: "row", children: ["lines"] },
+      { key: "lines", component: "Box", each: "scopes.row.lines", as: "row" },
+      { key: "as-root", component: "Box", each: "scopes.root.orders", as: "root" },
+      // Lists side by side do not stack, so they may share a name.
+      {
+        key: "side",
+        component: "Box",
+        each: "scopes.root.orders",
+        as: "row",
+        props: { expr: "({ text: 'order ' + scopes.row.id })" },
+      },
+    ];
+    const { container } = mountEntries(lines, {
+      rootScope: { orders: [{ id: 1, lines: [{ sku: "a" }] }] },
+      onError: (error) => {
+        expect(error.reason).toBe("invalid-list");
+        failed.add(error.elementKey);
+      },
+      fallbackComponents: {
+        error: ({ error }) => (
+          <div>
+            {error.elementKey} failed: {error.message}
+          </div>
+        ),
+      },
+    });
+    expect(container.textContent).toContain(
+      'lines failed: List "as" must name a new scope, but "scopes.row" already exists here',
+    );
+    expect(container.textContent).toContain('"scopes.root" already exists here');
+    expect(container.textContent).toContain("order 1");
+    expect([...failed].sort()).toEqual(["as-root", "lines"]);
+    consoleError.mockRestore();
+  });
+
   it("a row write wakes readers of the source array", async () => {
     const lines: ComponentEntry[] = [
       { key: "root", component: "Box", children: ["rows", "total"] },

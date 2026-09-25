@@ -243,6 +243,14 @@ const ListEntryRendererInner = ({
   const { evaluator } = useRendererRegistry();
   useReactiveDeps(list, scopes, "each");
 
+  // The rows would hide the scope of that name.
+  if (Object.hasOwn(scopes, list.as)) {
+    throw new EntryError(`List "as" must name a new scope, but "scopes.${list.as}" already exists here`, {
+      reason: "invalid-list",
+      elementKey: list.key,
+    });
+  }
+
   const rawItems = evaluate({ expr: list.each }, { scopes }, evaluator);
   refusePromise(rawItems, "each", list.key);
   const items = rawItems ?? [];

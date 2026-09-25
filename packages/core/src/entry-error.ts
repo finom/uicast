@@ -41,7 +41,7 @@ export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
     "the expression references a name that doesn't exist — an unregistered function, a blocked global, or an unset scope path",
   "invalid-entry": "a field of the line has the wrong type, like a `seed` that is not an array of steps",
   "unknown-component": "no component with this name exists",
-  "invalid-list": "`each` didn't evaluate to an array",
+  "invalid-list": "`each` didn't evaluate to an array, or `as` names a scope that already exists",
   "invalid-props": "the evaluated props don't match the component's props schema",
   "invalid-arguments": "a host function rejected the call's arguments",
   "host-function": "a host function failed while executing",
