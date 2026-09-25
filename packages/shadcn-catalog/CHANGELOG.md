@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Implementations share three helpers in `src/lib`: `skeletons.tsx` (the bar, stack, row and panel skeletons), `chart-frame.tsx` (the box around every Recharts chart) and `use-mirror.ts` (local state that a prop change resets). Copy them with a component. Rendering is unchanged, except that every chart's box is `position: relative`, as `PieChart`'s was.
 - `RenderError` reads the element's key from `error.elementKey`, since `ErrorComponentProps` no longer carries it.
 - Depends on zod `~4.6.5` (was `~4.3.6`).
 - **Breaking: `RelativeTime` is `DateTime`, and shows any date or time** in the viewer's language and time zone. `value` takes an ISO date-time, an ISO date (shown as that day in every time zone) or a timestamp in milliseconds. `format` is `"date"` (the default), `"time"`, `"datetime"`, `"relative"`, or `Intl.DateTimeFormat` options. A relative time updates as time passes: each second under a minute away, each minute under an hour, else each hour; it rendered once before. The text takes the surrounding style instead of small muted text.

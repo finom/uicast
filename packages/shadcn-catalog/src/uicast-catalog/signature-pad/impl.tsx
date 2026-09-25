@@ -1,24 +1,16 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { type PointerEvent, useRef } from "react";
 import { Button } from "../../components/ui/button";
 import { Eraser } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { blockSkeleton } from "../../lib/skeletons";
 import { SignaturePadDef } from "./def";
 
 const INKS = { black: "#000000", blue: "#1d4ed8" } as const;
 
 export const SignaturePadImpl = createComponentImplementation({
   def: SignaturePadDef,
-  render: ({
-    width,
-    height,
-    penColor,
-    disabled,
-    label,
-    onEnd,
-    onClear,
-  }, { entry }) => {
+  render: ({ width, height, penColor, disabled, label, onEnd, onClear }, { entry }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawingRef = useRef(false);
     const hasInkRef = useRef(false);
@@ -100,5 +92,5 @@ export const SignaturePadImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 160 }} />,
+  skeleton: blockSkeleton(160),
 });

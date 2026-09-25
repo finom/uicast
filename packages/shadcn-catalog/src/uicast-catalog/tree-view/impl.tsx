@@ -1,5 +1,4 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { type ReactNode, useState } from "react";
 import {
   Collapsible,
@@ -9,6 +8,7 @@ import {
 import { Button } from "../../components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { iconNode } from "../../lib/icon-node";
+import { blockSkeleton } from "../../lib/skeletons";
 import { type TreeNode, TreeViewDef } from "./def";
 
 function TreeNodeComponent({
@@ -113,5 +113,5 @@ export const TreeViewImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 240 }} />,
+  skeleton: blockSkeleton(240),
 });

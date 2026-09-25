@@ -6,13 +6,7 @@ import { CopyButtonDef } from "./def";
 
 export const CopyButtonImpl = createComponentImplementation({
   def: CopyButtonDef,
-  render: ({
-    text,
-    label,
-    variant,
-    size,
-    onCopy,
-  }, { entry }) => {
+  render: ({ text, label, variant, size, onCopy }, { entry }) => {
     const { copied, copy } = useCopy();
 
     const handleCopy = async () => {

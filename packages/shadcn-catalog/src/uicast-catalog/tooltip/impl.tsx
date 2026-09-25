@@ -9,19 +9,17 @@ import { TooltipDef } from "./def";
 
 export const TooltipImpl = createComponentImplementation({
   def: TooltipDef,
-  render: ({ content, side, children }, { entry }) => {
-    return (
-      <TooltipProvider>
-        <ShadcnTooltip>
-          {/* The provider renders no DOM node, so the trigger span carries the data-key. */}
-          <TooltipTrigger asChild>
-            <span data-key={entry.key}>{children}</span>
-          </TooltipTrigger>
-          <TooltipContent side={side}>
-            <p>{content}</p>
-          </TooltipContent>
-        </ShadcnTooltip>
-      </TooltipProvider>
-    );
-  },
+  render: ({ content, side, children }, { entry }) => (
+    <TooltipProvider>
+      <ShadcnTooltip>
+        {/* The provider renders no DOM node, so the trigger span carries the data-key. */}
+        <TooltipTrigger asChild>
+          <span data-key={entry.key}>{children}</span>
+        </TooltipTrigger>
+        <TooltipContent side={side}>
+          <p>{content}</p>
+        </TooltipContent>
+      </ShadcnTooltip>
+    </TooltipProvider>
+  ),
 });

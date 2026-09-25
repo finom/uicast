@@ -1,47 +1,44 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "../../lib/utils";
 import { CountdownTimerDef } from "./def";
 
-function calculateTimeLeft(target: Date) {
-  const diff = target.getTime() - Date.now();
-  if (diff <= 0)
-    return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
+const SIZES = {
+  sm: { number: "text-lg font-semibold", label: "text-xs" },
+  default: { number: "text-2xl font-bold", label: "text-xs" },
+  lg: { number: "text-4xl font-bold", label: "text-sm" },
+};
+
+function timeLeft(target: Date) {
+  const ms = target.getTime() - Date.now();
+  if (ms <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0, expired: true };
   return {
-    days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((diff / (1000 * 60)) % 60),
-    seconds: Math.floor((diff / 1000) % 60),
+    days: Math.floor(ms / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((ms / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((ms / (1000 * 60)) % 60),
+    seconds: Math.floor((ms / 1000) % 60),
     expired: false,
   };
 }
 
 export const CountdownTimerImpl = createComponentImplementation({
   def: CountdownTimerDef,
-  render: ({
-    targetDate,
-    showDays,
-    showHours,
-    showMinutes,
-    showSeconds,
-    size,
-    onComplete,
-  }, { entry }) => {
+  render: ({ targetDate, showDays, showHours, showMinutes, showSeconds, size, onComplete }, { entry }) => {
     const target = new Date(targetDate);
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft(target));
+    const [left, setLeft] = useState(() => timeLeft(target));
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: the interval re-arms only when targetDate changes; target/onComplete are read from the arming render on purpose
     useEffect(() => {
-      const initial = calculateTimeLeft(target);
+      const initial = timeLeft(target);
       if (initial.expired) {
         // Expired before arming: never fire onComplete.
-        setTimeLeft(initial);
+        setLeft(initial);
         return;
       }
       const interval = setInterval(() => {
-        const updated = calculateTimeLeft(target);
-        setTimeLeft(updated);
-        if (updated.expired) {
+        const next = timeLeft(target);
+        setLeft(next);
+        if (next.expired) {
           clearInterval(interval);
           onComplete();
         }
@@ -49,41 +46,23 @@ export const CountdownTimerImpl = createComponentImplementation({
       return () => clearInterval(interval);
     }, [targetDate]);
 
-    const sizeClasses = {
-      sm: { num: "text-lg font-semibold", label: "text-xs" },
-      default: { num: "text-2xl font-bold", label: "text-xs" },
-      lg: { num: "text-4xl font-bold", label: "text-sm" },
-    };
-
-    const s = sizeClasses[size];
-
+    const { number, label } = SIZES[size];
     const segments = [
-      { value: timeLeft.days, label: "Days", show: showDays },
-      { value: timeLeft.hours, label: "Hours", show: showHours },
-      { value: timeLeft.minutes, label: "Min", show: showMinutes },
-      { value: timeLeft.seconds, label: "Sec", show: showSeconds },
-    ].filter((seg) => seg.show);
+      { value: left.days, label: "Days", show: showDays },
+      { value: left.hours, label: "Hours", show: showHours },
+      { value: left.minutes, label: "Min", show: showMinutes },
+      { value: left.seconds, label: "Sec", show: showSeconds },
+    ].filter((segment) => segment.show);
 
     return (
       <div className="inline-flex items-center gap-3" data-key={entry.key}>
-        {segments.map((seg, i) => (
-          <div key={seg.label} className="flex items-center gap-3">
+        {segments.map((segment, i) => (
+          <div key={segment.label} className="flex items-center gap-3">
             <div className="flex flex-col items-center">
-              <span className={cn(s.num, "tabular-nums")}>
-                {String(seg.value).padStart(2, "0")}
-              </span>
-              <span
-                className={cn(
-                  s.label,
-                  "text-muted-foreground uppercase tracking-wide",
-                )}
-              >
-                {seg.label}
-              </span>
+              <span className={cn(number, "tabular-nums")}>{String(segment.value).padStart(2, "0")}</span>
+              <span className={cn(label, "text-muted-foreground uppercase tracking-wide")}>{segment.label}</span>
             </div>
-            {i < segments.length - 1 && (
-              <span className={cn(s.num, "text-muted-foreground")}>:</span>
-            )}
+            {i < segments.length - 1 && <span className={cn(number, "text-muted-foreground")}>:</span>}
           </div>
         ))}
       </div>

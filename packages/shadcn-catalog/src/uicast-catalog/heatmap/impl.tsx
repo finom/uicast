@@ -1,8 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { HeatmapDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
+import { blockSkeleton } from "../../lib/skeletons";
 
 // `hex` is one of CHART_COLORS: `#rrggbb`.
 function hexToRgb(hex: string) {
@@ -24,14 +24,7 @@ function interpolateColor(min: string, max: string, t: number) {
 
 export const HeatmapImpl = createComponentImplementation({
   def: HeatmapDef,
-  render: ({
-    data,
-    rows,
-    cols,
-    minColor,
-    maxColor,
-    showValues,
-  }, { entry }) => {
+  render: ({ data, rows, cols, minColor, maxColor, showValues }, { entry }) => {
     const values = data.map((d) => d.value);
     const minVal = Math.min(...values);
     const maxVal = Math.max(...values);
@@ -88,5 +81,5 @@ export const HeatmapImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: blockSkeleton(300),
 });

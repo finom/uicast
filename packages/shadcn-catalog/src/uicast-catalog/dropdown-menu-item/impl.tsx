@@ -5,22 +5,14 @@ import { DropdownMenuItemDef } from "./def";
 
 export const DropdownMenuItemImpl = createComponentImplementation({
   def: DropdownMenuItemDef,
-  render: ({
-    text,
-    children,
-    variant,
-    disabled,
-    onClick,
-  }, { entry }) => {
-    return (
-      <ShadcnDropdownMenuItem
-        variant={variant}
-        disabled={disabled}
-        onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={entry.key}
-      >
-        {children ?? text}
-      </ShadcnDropdownMenuItem>
-    );
-  },
+  render: ({ text, children, variant, disabled, onClick }, { entry }) => (
+    <ShadcnDropdownMenuItem
+      variant={variant}
+      disabled={disabled}
+      onClick={(e) => onClick(pickMouseEvent(e))}
+      data-key={entry.key}
+    >
+      {children ?? text}
+    </ShadcnDropdownMenuItem>
+  ),
 });

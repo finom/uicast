@@ -1,53 +1,44 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { busy, cn } from "../../lib/utils";
 import {
-  RadarChart as RechartsRadarChart,
-  PolarGrid,
+  Legend,
   PolarAngleAxis,
+  PolarGrid,
   PolarRadiusAxis,
   Radar,
-  Legend,
-  ResponsiveContainer,
+  RadarChart as RechartsRadarChart,
   Tooltip,
 } from "recharts";
-import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
+import { ChartFrame } from "../../lib/chart-frame";
+import { chartColors } from "../../lib/chart-colors";
+import { blockSkeleton } from "../../lib/skeletons";
 import { RadarChartDef } from "./def";
 
 export const RadarChartImpl = createComponentImplementation({
   def: RadarChartDef,
-  render: ({
-    data,
-    dataKey,
-    valueKeys,
-    colors,
-    height,
-  }, { entry, loading }) => {
-    const radarColors = colors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors;
-
+  render: ({ data, dataKey, valueKeys, colors, height }, { entry, loading }) => {
+    const palette = chartColors(colors);
     return (
-      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <ResponsiveContainer width="100%" height={height}>
-          <RechartsRadarChart data={data}>
-            <PolarGrid />
-            <PolarAngleAxis dataKey={dataKey} />
-            <PolarRadiusAxis />
-            <Tooltip />
-            <Legend />
-            {valueKeys.map((key, i) => (
-              <Radar isAnimationActive={false}
-                key={key}
-                name={key}
-                dataKey={key}
-                stroke={radarColors[i % radarColors.length]}
-                fill={radarColors[i % radarColors.length]}
-                fillOpacity={0.3}
-              />
-            ))}
-          </RechartsRadarChart>
-        </ResponsiveContainer>
-      </div>
+      <ChartFrame entry={entry} loading={loading} height={height}>
+        <RechartsRadarChart data={data}>
+          <PolarGrid />
+          <PolarAngleAxis dataKey={dataKey} />
+          <PolarRadiusAxis />
+          <Tooltip />
+          <Legend />
+          {valueKeys.map((key, i) => (
+            <Radar
+              isAnimationActive={false}
+              key={key}
+              name={key}
+              dataKey={key}
+              stroke={palette[i % palette.length]}
+              fill={palette[i % palette.length]}
+              fillOpacity={0.3}
+            />
+          ))}
+        </RechartsRadarChart>
+      </ChartFrame>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: blockSkeleton(300),
 });

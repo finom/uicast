@@ -1,9 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
 import { MapPin } from "lucide-react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
 import { LocationMapDef } from "./def";
 import { offsetFromCenter, TILE_SIZE, tilesAround } from "./project";
+import { blockSkeleton } from "../../lib/skeletons";
 
 const tileSrc = (z: number, x: number, y: number): string => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`;
 
@@ -64,5 +64,5 @@ export const LocationMapImpl = createComponentImplementation({
       </div>
     </TooltipProvider>
   ),
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: blockSkeleton(300),
 });

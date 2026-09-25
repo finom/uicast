@@ -10,12 +10,7 @@ const BACKGROUNDS = {
 
 export const HighlightedTextImpl = createComponentImplementation({
   def: HighlightedTextDef,
-  render: ({
-    text,
-    highlight,
-    color,
-    caseSensitive,
-  }, { entry }) => {
+  render: ({ text, highlight, color, caseSensitive }, { entry }) => {
     if (!highlight) {
       return <span data-key={entry.key}>{text}</span>;
     }

@@ -1,8 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { Button } from "../../components/ui/button";
 import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp } from "lucide-react";
 import { Children, useState } from "react";
+import { Button } from "../../components/ui/button";
+import { blockSkeleton } from "../../lib/skeletons";
 import { CarouselDef } from "./def";
 
 const LAYOUTS = {
@@ -27,11 +27,7 @@ const SLIDE_GAP = "1rem";
 
 export const CarouselImpl = createComponentImplementation({
   def: CarouselDef,
-  render: ({
-    orientation,
-    loop,
-    children,
-  }, { entry }) => {
+  render: ({ orientation, loop, children }, { entry }) => {
     const slides = Children.toArray(children);
     const [current, setCurrent] = useState(0);
     const { translate, Prev, Next, prevClass, nextClass } = LAYOUTS[orientation];
@@ -82,5 +78,5 @@ export const CarouselImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 240 }} />,
+  skeleton: blockSkeleton(240),
 });

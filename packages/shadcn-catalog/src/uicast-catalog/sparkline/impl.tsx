@@ -1,5 +1,4 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import {
   LineChart,
@@ -10,16 +9,11 @@ import {
 } from "recharts";
 import { SparklineDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
+import { blockSkeleton } from "../../lib/skeletons";
 
 export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
-  render: ({
-    data,
-    width,
-    height,
-    color,
-    filled,
-  }, { entry, loading }) => {
+  render: ({ data, width, height, color, filled }, { entry, loading }) => {
     const chartData = data.map((value) => ({ value }));
 
     return (
@@ -58,5 +52,5 @@ export const SparklineImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 40 }} />,
+  skeleton: blockSkeleton(40),
 });

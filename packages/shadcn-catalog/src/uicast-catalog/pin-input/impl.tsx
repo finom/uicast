@@ -6,17 +6,7 @@ import { PinInputDef } from "./def";
 
 export const PinInputImpl = createComponentImplementation({
   def: PinInputDef,
-  render: ({
-    value,
-    length,
-    mask,
-    disabled,
-    type,
-    onChange,
-    onComplete,
-    onKeyDown,
-    onKeyUp,
-  }, { entry }) => {
+  render: ({ value, length, mask, disabled, type, onChange, onComplete, onKeyDown, onKeyUp }, { entry }) => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const chars = value.split("").slice(0, length);
 

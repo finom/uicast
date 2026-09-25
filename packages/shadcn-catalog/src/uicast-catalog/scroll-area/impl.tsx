@@ -4,19 +4,12 @@ import { ScrollAreaDef } from "./def";
 
 export const ScrollAreaImpl = createComponentImplementation({
   def: ScrollAreaDef,
-  render: ({
-    height,
-    width,
-    orientation,
-    children,
-  }, { entry }) => {
-    return (
-      <ScrollArea style={{ height, width }} data-key={entry.key}>
-        {children}
-        {(orientation === "horizontal" || orientation === "both") && (
-          <ScrollBar orientation="horizontal" />
-        )}
-      </ScrollArea>
-    );
-  },
+  render: ({ height, width, orientation, children }, { entry }) => (
+    <ScrollArea style={{ height, width }} data-key={entry.key}>
+      {children}
+      {(orientation === "horizontal" || orientation === "both") && (
+        <ScrollBar orientation="horizontal" />
+      )}
+    </ScrollArea>
+  ),
 });

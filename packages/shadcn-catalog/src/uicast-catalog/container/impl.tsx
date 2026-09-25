@@ -1,43 +1,28 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { cn } from "../../lib/utils";
 import { GAP } from "../../lib/layout";
+import { PanelSkeleton } from "../../lib/skeletons";
+import { cn } from "../../lib/utils";
 import { ContainerDef } from "./def";
+
+const MAX_WIDTHS = {
+  sm: "max-w-screen-sm",
+  md: "max-w-3xl",
+  lg: "max-w-5xl",
+  xl: "max-w-7xl",
+  "2xl": "max-w-screen-2xl",
+  full: "max-w-full",
+};
+const PADDINGS = { none: "px-0", sm: "px-2", default: "px-4", lg: "px-8" };
 
 export const ContainerImpl = createComponentImplementation({
   def: ContainerDef,
-  render: ({
-    maxWidth,
-    padding,
-    gap,
-    children,
-  }, { entry }) => {
-    return (
-      <div
-        className={cn(
-          "mx-auto flex w-full flex-col",
-          GAP[gap],
-          maxWidth === "sm" && "max-w-screen-sm",
-          maxWidth === "md" && "max-w-3xl",
-          maxWidth === "lg" && "max-w-5xl",
-          maxWidth === "xl" && "max-w-7xl",
-          maxWidth === "2xl" && "max-w-screen-2xl",
-          maxWidth === "full" && "max-w-full",
-          padding === "none" && "px-0",
-          padding === "sm" && "px-2",
-          padding === "default" && "px-4",
-          padding === "lg" && "px-8",
-        )}
-        data-key={entry.key}
-      >
-        {children}
-      </div>
-    );
-  },
-  skeleton: ({ children }) => (
-    <div className="flex flex-col gap-3 rounded-lg border p-4">
-      <Skeleton className="h-4 w-40" />
+  render: ({ maxWidth, padding, gap, children }, { entry }) => (
+    <div
+      className={cn("mx-auto flex w-full flex-col", GAP[gap], MAX_WIDTHS[maxWidth], PADDINGS[padding])}
+      data-key={entry.key}
+    >
       {children}
     </div>
   ),
+  skeleton: PanelSkeleton,
 });

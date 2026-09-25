@@ -8,13 +8,7 @@ import { CodeBlockDef } from "./def";
 
 export const CodeBlockImpl = createComponentImplementation({
   def: CodeBlockDef,
-  render: ({
-    code,
-    language,
-    showLineNumbers,
-    showCopyButton,
-    onCopy,
-  }, { entry }) => {
+  render: ({ code, language, showLineNumbers, showCopyButton, onCopy }, { entry }) => {
     const { copied, copy } = useCopy();
     const lines = code.split("\n");
 

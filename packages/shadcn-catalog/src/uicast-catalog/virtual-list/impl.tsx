@@ -1,18 +1,13 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { useState } from "react";
+import { blockSkeleton } from "../../lib/skeletons";
 import { VirtualListDef } from "./def";
 
 const OVERSCAN = 1;
 
 export const VirtualListImpl = createComponentImplementation({
   def: VirtualListDef,
-  render: ({
-    items,
-    height,
-    itemHeight,
-    onItemClick,
-  }, { entry }) => {
+  render: ({ items, height, itemHeight, onItemClick }, { entry }) => {
     const [scrollTop, setScrollTop] = useState(0);
 
     const totalHeight = items.length * itemHeight;
@@ -56,5 +51,5 @@ export const VirtualListImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 320 }} />,
+  skeleton: blockSkeleton(320),
 });

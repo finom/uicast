@@ -10,22 +10,20 @@ import { DropdownMenuDef } from "./def";
 
 export const DropdownMenuImpl = createComponentImplementation({
   def: DropdownMenuDef,
-  render: ({ triggerLabel, children }, { entry }) => {
-    return (
-      <span data-key={entry.key}>
-        <ShadcnDropdownMenu>
-          <DropdownMenuTrigger asChild>
-            {triggerLabel ? (
-              <Button variant="outline">{triggerLabel}</Button>
-            ) : (
-              <Button variant="ghost" size="icon">
-                <MoreHorizontal className="size-4" />
-              </Button>
-            )}
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">{children}</DropdownMenuContent>
-        </ShadcnDropdownMenu>
-      </span>
-    );
-  },
+  render: ({ triggerLabel, children }, { entry }) => (
+    <span data-key={entry.key}>
+      <ShadcnDropdownMenu>
+        <DropdownMenuTrigger asChild>
+          {triggerLabel ? (
+            <Button variant="outline">{triggerLabel}</Button>
+          ) : (
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="size-4" />
+            </Button>
+          )}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">{children}</DropdownMenuContent>
+      </ShadcnDropdownMenu>
+    </span>
+  ),
 });

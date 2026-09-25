@@ -5,12 +5,7 @@ import { TruncatedTextDef } from "./def";
 
 export const TruncatedTextImpl = createComponentImplementation({
   def: TruncatedTextDef,
-  render: ({
-    text,
-    maxLines,
-    expandable,
-    onToggle,
-  }, { entry }) => {
+  render: ({ text, maxLines, expandable, onToggle }, { entry }) => {
     const [expanded, setExpanded] = useState(false);
 
     return (

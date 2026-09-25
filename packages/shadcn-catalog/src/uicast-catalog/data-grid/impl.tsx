@@ -1,5 +1,4 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import {
   TableBody,
   TableCell,
@@ -10,58 +9,51 @@ import {
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { DataGridDef } from "./def";
 import { columnWidth } from "../../lib/sizes";
+import { blockSkeleton } from "../../lib/skeletons";
 
 export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
-  render: ({
-    columns,
-    rows,
-    maxHeight,
-    striped,
-    onRowClick,
-  }, { entry }) => {
-    return (
-      <div
-        className="rounded-md border overflow-hidden"
-        data-key={entry.key}
-      >
-        <ScrollArea style={{ maxHeight }}>
-          {/* Not the ui Table: its overflow wrapper would become the sticky header's scroll container. */}
-          <table className="w-full text-sm">
-            <TableHeader className="sticky top-0 z-10 bg-muted">
-              <TableRow>
+  render: ({ columns, rows, maxHeight, striped, onRowClick }, { entry }) => (
+    <div
+      className="rounded-md border overflow-hidden"
+      data-key={entry.key}
+    >
+      <ScrollArea style={{ maxHeight }}>
+        {/* Not the ui Table: its overflow wrapper would become the sticky header's scroll container. */}
+        <table className="w-full text-sm">
+          <TableHeader className="sticky top-0 z-10 bg-muted">
+            <TableRow>
+              {columns.map((col) => (
+                <TableHead
+                  key={col.key}
+                  style={col.width ? { width: columnWidth(col.width) } : undefined}
+                >
+                  {col.header}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map((row, rowIndex) => (
+              <TableRow
+                key={rowIndex}
+                className={`cursor-pointer ${
+                  striped && rowIndex % 2 === 1 ? "bg-muted/30" : ""
+                }`}
+                onClick={() => onRowClick({ rowIndex, row })}
+              >
                 {columns.map((col) => (
-                  <TableHead
-                    key={col.key}
-                    style={col.width ? { width: columnWidth(col.width) } : undefined}
-                  >
-                    {col.header}
-                  </TableHead>
+                  <TableCell key={col.key}>
+                    {String(row[col.key] ?? "")}
+                  </TableCell>
                 ))}
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row, rowIndex) => (
-                <TableRow
-                  key={rowIndex}
-                  className={`cursor-pointer ${
-                    striped && rowIndex % 2 === 1 ? "bg-muted/30" : ""
-                  }`}
-                  onClick={() => onRowClick({ rowIndex, row })}
-                >
-                  {columns.map((col) => (
-                    <TableCell key={col.key}>
-                      {String(row[col.key] ?? "")}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </table>
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
-      </div>
-    );
-  },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 320 }} />,
+            ))}
+          </TableBody>
+        </table>
+        <ScrollBar orientation="horizontal" />
+      </ScrollArea>
+    </div>
+  ),
+  skeleton: blockSkeleton(320),
 });

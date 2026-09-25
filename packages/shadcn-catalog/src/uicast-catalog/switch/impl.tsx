@@ -5,12 +5,7 @@ import { SwitchDef } from "./def";
 
 export const SwitchImpl = createComponentImplementation({
   def: SwitchDef,
-  render: ({
-    checked,
-    disabled,
-    label,
-    onChange,
-  }, { entry }) => {
+  render: ({ checked, disabled, label, onChange }, { entry }) => {
     // Per instance, not `entry.key`: list items share one entry key.
     const id = useId();
     return (

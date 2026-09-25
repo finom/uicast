@@ -4,20 +4,12 @@ import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { X } from "lucide-react";
+import { RowSkeleton } from "../../lib/skeletons";
 import { TagInputDef } from "./def";
 
 export const TagInputImpl = createComponentImplementation({
   def: TagInputDef,
-  render: ({
-    tags,
-    placeholder,
-    disabled,
-    maxTags,
-    onAdd,
-    onRemove,
-    onKeyDown,
-    onKeyUp,
-  }, { entry }) => {
+  render: ({ tags, placeholder, disabled, maxTags, onAdd, onRemove, onKeyDown, onKeyUp }, { entry }) => {
     const [inputValue, setInputValue] = useState("");
 
     const handleAdd = () => {
@@ -70,5 +62,5 @@ export const TagInputImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: ({ children }) => <div className="flex flex-row items-center gap-2">{children}</div>,
+  skeleton: RowSkeleton,
 });

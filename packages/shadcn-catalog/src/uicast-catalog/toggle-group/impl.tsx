@@ -5,15 +5,7 @@ import { ToggleGroupDef } from "./def";
 
 export const ToggleGroupImpl = createComponentImplementation({
   def: ToggleGroupDef,
-  render: ({
-    type,
-    value,
-    items,
-    variant,
-    size,
-    disabled,
-    onChange,
-  }, { entry }) => {
+  render: ({ type, value, items, variant, size, disabled, onChange }, { entry }) => {
     // Radix pairs `type` with the value's shape, so the two cases are separate elements.
     const shared = {
       onValueChange: (newValue: string | string[]) => onChange({ value: newValue }),

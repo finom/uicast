@@ -7,17 +7,7 @@ import { SearchInputDef } from "./def";
 
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
-  render: ({
-    value,
-    placeholder,
-    disabled,
-    loading,
-    onChange,
-    onClear,
-    onSubmit,
-    onKeyDown,
-    onKeyUp,
-  }, { entry }) => {
+  render: ({ value, placeholder, disabled, loading, onChange, onClear, onSubmit, onKeyDown, onKeyUp }, { entry }) => {
     const strValue = value ?? "";
     return (
       <div className="relative flex items-center" data-key={entry.key}>

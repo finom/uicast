@@ -18,31 +18,29 @@ const TREND_COLORS = {
 
 export const StatImpl = createComponentImplementation({
   def: StatDef,
-  render: ({ label, value, trend, trendValue, helpText }, { entry, loading }) => {
-    return (
-      <div className={cn("flex flex-col gap-1", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <span className="text-sm font-medium text-muted-foreground">
-          {label}
+  render: ({ label, value, trend, trendValue, helpText }, { entry, loading }) => (
+    <div className={cn("flex flex-col gap-1", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
+      <span className="text-sm font-medium text-muted-foreground">
+        {label}
+      </span>
+      <div className="flex items-baseline gap-2">
+        <span className="text-3xl font-bold tracking-tight">
+          {value}
         </span>
-        <div className="flex items-baseline gap-2">
-          <span className="text-3xl font-bold tracking-tight">
-            {value}
+        {(trend || trendValue) && (
+          <span
+            className={`flex items-center gap-1 text-sm font-medium ${TREND_COLORS[trend ?? "neutral"]}`}
+          >
+            {trend && TREND_ICONS[trend]}
+            {trendValue}
           </span>
-          {(trend || trendValue) && (
-            <span
-              className={`flex items-center gap-1 text-sm font-medium ${TREND_COLORS[trend ?? "neutral"]}`}
-            >
-              {trend && TREND_ICONS[trend]}
-              {trendValue}
-            </span>
-          )}
-        </div>
-        {helpText && (
-          <span className="text-xs text-muted-foreground">{helpText}</span>
         )}
       </div>
-    );
-  },
+      {helpText && (
+        <span className="text-xs text-muted-foreground">{helpText}</span>
+      )}
+    </div>
+  ),
   skeleton: () => (
     <div className="flex min-w-0 flex-col gap-1">
       <Skeleton className="h-4 w-20" />

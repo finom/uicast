@@ -6,13 +6,7 @@ import { RadioDef } from "./def";
 
 export const RadioImpl = createComponentImplementation({
   def: RadioDef,
-  render: ({
-    value,
-    options,
-    orientation,
-    disabled,
-    onChange,
-  }, { entry }) => {
+  render: ({ value, options, orientation, disabled, onChange }, { entry }) => {
     // Per instance, not `entry.key`: list items share one entry key.
     const id = useId();
     return (

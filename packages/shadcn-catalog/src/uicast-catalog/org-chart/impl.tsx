@@ -1,5 +1,4 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { busy, cn } from "../../lib/utils";
 import {
   Avatar,
@@ -8,6 +7,7 @@ import {
 } from "../../components/ui/avatar";
 import { Card } from "../../components/ui/card";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
+import { blockSkeleton } from "../../lib/skeletons";
 import { type OrgNode, OrgChartDef } from "./def";
 
 function OrgNodeComponent({
@@ -59,15 +59,13 @@ function OrgNodeComponent({
 
 export const OrgChartImpl = createComponentImplementation({
   def: OrgChartDef,
-  render: ({ root, onNodeClick }, { entry, loading }) => {
-    return (
-      <ScrollArea className={cn("py-4", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <div className="flex justify-center">
-          <OrgNodeComponent node={root} onNodeClick={onNodeClick} />
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    );
-  },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  render: ({ root, onNodeClick }, { entry, loading }) => (
+    <ScrollArea className={cn("py-4", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
+      <div className="flex justify-center">
+        <OrgNodeComponent node={root} onNodeClick={onNodeClick} />
+      </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  ),
+  skeleton: blockSkeleton(300),
 });

@@ -15,11 +15,9 @@ const COLORS = {
 
 export const IconImpl = createComponentImplementation({
   def: IconDef,
-  render: ({ name, size, color }, { entry }) => {
-    return (
-      <span data-key={entry.key}>
-        {iconNode(name, cn(SIZES[size], COLORS[color]))}
-      </span>
-    );
-  },
+  render: ({ name, size, color }, { entry }) => (
+    <span data-key={entry.key}>
+      {iconNode(name, cn(SIZES[size], COLORS[color]))}
+    </span>
+  ),
 });

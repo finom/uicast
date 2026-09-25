@@ -9,13 +9,7 @@ import { MultiSelectDef } from "./def";
 
 export const MultiSelectImpl = createComponentImplementation({
   def: MultiSelectDef,
-  render: ({
-    value,
-    options,
-    placeholder,
-    disabled,
-    onChange,
-  }, { entry }) => {
+  render: ({ value, options, placeholder, disabled, onChange }, { entry }) => {
     const [open, setOpen] = useState(false);
     const listRef = useRef<HTMLDivElement>(null);
     const selected = options.filter((option) => value.includes(option.value));

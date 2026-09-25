@@ -4,11 +4,9 @@ import { AspectRatioDef } from "./def";
 
 export const AspectRatioImpl = createComponentImplementation({
   def: AspectRatioDef,
-  render: ({ ratio, children }, { entry }) => {
-    return (
-      <div data-key={entry.key}>
-        <AspectRatio ratio={ratio}>{children}</AspectRatio>
-      </div>
-    );
-  },
+  render: ({ ratio, children }, { entry }) => (
+    <div data-key={entry.key}>
+      <AspectRatio ratio={ratio}>{children}</AspectRatio>
+    </div>
+  ),
 });

@@ -1,60 +1,40 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { busy, cn } from "../../lib/utils";
-import {
-  ComposedChart,
-  Bar,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
+import { Bar, CartesianGrid, ComposedChart, Legend, Line, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartFrame } from "../../lib/chart-frame";
+import { chartColors, defaultChartColors } from "../../lib/chart-colors";
+import { blockSkeleton } from "../../lib/skeletons";
 import { ComboChartDef } from "./def";
 
 export const ComboChartImpl = createComponentImplementation({
   def: ComboChartDef,
-  render: ({
-    data,
-    xKey,
-    barKeys,
-    lineKeys,
-    barColors,
-    lineColors,
-    height,
-  }, { entry, loading }) => {
-    const bColors = barColors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors.slice(0, 3);
-    const lColors = lineColors?.map((c) => CHART_COLORS[c]) ?? defaultChartColors.slice(3);
-
+  render: ({ data, xKey, barKeys, lineKeys, barColors, lineColors, height }, { entry, loading }) => {
+    const barPalette = chartColors(barColors, defaultChartColors.slice(0, 3));
+    const linePalette = chartColors(lineColors, defaultChartColors.slice(3));
     return (
-      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <ResponsiveContainer width="100%" height={height}>
-          <ComposedChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xKey} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {barKeys.map((key, i) => (
-              <Bar isAnimationActive={false} key={key} dataKey={key} fill={bColors[i % bColors.length]} />
-            ))}
-            {lineKeys.map((key, i) => (
-              <Line isAnimationActive={false}
-                key={key}
-                type="monotone"
-                dataKey={key}
-                stroke={lColors[i % lColors.length]}
-                strokeWidth={2}
-                dot={false}
-              />
-            ))}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </div>
+      <ChartFrame entry={entry} loading={loading} height={height}>
+        <ComposedChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey={xKey} />
+          <YAxis />
+          <Tooltip />
+          <Legend />
+          {barKeys.map((key, i) => (
+            <Bar isAnimationActive={false} key={key} dataKey={key} fill={barPalette[i % barPalette.length]} />
+          ))}
+          {lineKeys.map((key, i) => (
+            <Line
+              isAnimationActive={false}
+              key={key}
+              type="monotone"
+              dataKey={key}
+              stroke={linePalette[i % linePalette.length]}
+              strokeWidth={2}
+              dot={false}
+            />
+          ))}
+        </ComposedChart>
+      </ChartFrame>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: blockSkeleton(300),
 });

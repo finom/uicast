@@ -1,15 +1,10 @@
-import type { ReactNode } from "react";
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import {
-  Alert as ShadcnAlert,
-  AlertTitle,
-  AlertDescription,
-} from "../../components/ui/alert";
-import { AlertCircle, CheckCircle2, Info, AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { AlertDescription, AlertTitle, Alert as ShadcnAlert } from "../../components/ui/alert";
+import { PanelSkeleton } from "../../lib/skeletons";
 import { AlertDef } from "./def";
 
-const iconMap: Record<string, ReactNode> = {
+const STATUS_ICONS = {
   info: <Info className="size-4" />,
   success: <CheckCircle2 className="size-4" />,
   warning: <AlertTriangle className="size-4" />,
@@ -18,20 +13,14 @@ const iconMap: Record<string, ReactNode> = {
 
 export const AlertImpl = createComponentImplementation({
   def: AlertDef,
-  render: ({ title, description, status }, { entry }) => {
-    const variant = status === "error" ? "destructive" : "default";
-    return (
-      <ShadcnAlert variant={variant} data-key={entry.key}>
-        {iconMap[status]}
-        <AlertTitle>{title}</AlertTitle>
-        {description && <AlertDescription>{description}</AlertDescription>}
-      </ShadcnAlert>
-    );
-  },
+  render: ({ title, description, status }, { entry }) => (
+    <ShadcnAlert variant={status === "error" ? "destructive" : "default"} data-key={entry.key}>
+      {STATUS_ICONS[status]}
+      <AlertTitle>{title}</AlertTitle>
+      {description && <AlertDescription>{description}</AlertDescription>}
+    </ShadcnAlert>
+  ),
   skeleton: ({ knownProps, children }) => (
-    <div className="flex flex-col gap-3 rounded-lg border p-4">
-      {knownProps?.title ? <AlertTitle>{knownProps.title}</AlertTitle> : <Skeleton className="h-4 w-40" />}
-      {children}
-    </div>
+    <PanelSkeleton title={knownProps?.title && <AlertTitle>{knownProps.title}</AlertTitle>}>{children}</PanelSkeleton>
   ),
 });

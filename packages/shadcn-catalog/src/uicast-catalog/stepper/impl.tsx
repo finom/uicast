@@ -3,16 +3,12 @@ import { Button } from "../../components/ui/button";
 import { Separator } from "../../components/ui/separator";
 import { Check } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { StackSkeleton } from "../../lib/skeletons";
 import { StepperDef } from "./def";
 
 export const StepperImpl = createComponentImplementation({
   def: StepperDef,
-  render: ({
-    steps,
-    currentStep,
-    orientation,
-    onStepClick,
-  }, { entry }) => {
+  render: ({ steps, currentStep, orientation, onStepClick }, { entry }) => {
     const isHorizontal = orientation === "horizontal";
     return (
       <div
@@ -97,5 +93,5 @@ export const StepperImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
+  skeleton: StackSkeleton,
 });

@@ -1,5 +1,4 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -7,39 +6,27 @@ import {
   DialogTitle,
   DialogDescription,
 } from "../../components/ui/dialog";
+import { PanelSkeleton } from "../../lib/skeletons";
 import { ModalDef } from "./def";
 
 export const ModalImpl = createComponentImplementation({
   def: ModalDef,
-  render: ({
-    open,
-    title,
-    description,
-    children,
-    onOpenChange,
-  }, { entry }) => {
-    return (
-      <span data-key={entry.key}>
-        <Dialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
-          <DialogContent>
-            {(title || description) && (
-              <DialogHeader>
-                {title && <DialogTitle>{title}</DialogTitle>}
-                {description && (
-                  <DialogDescription>{description}</DialogDescription>
-                )}
-              </DialogHeader>
-            )}
-            {children}
-          </DialogContent>
-        </Dialog>
-      </span>
-    );
-  },
-  skeleton: ({ children }) => (
-    <div className="flex flex-col gap-3 rounded-lg border p-4">
-      <Skeleton className="h-4 w-40" />
-      {children}
-    </div>
+  render: ({ open, title, description, children, onOpenChange }, { entry }) => (
+    <span data-key={entry.key}>
+      <Dialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
+        <DialogContent>
+          {(title || description) && (
+            <DialogHeader>
+              {title && <DialogTitle>{title}</DialogTitle>}
+              {description && (
+                <DialogDescription>{description}</DialogDescription>
+              )}
+            </DialogHeader>
+          )}
+          {children}
+        </DialogContent>
+      </Dialog>
+    </span>
   ),
+  skeleton: PanelSkeleton,
 });

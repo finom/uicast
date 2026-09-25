@@ -1,18 +1,11 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { cn } from "../../lib/utils";
+import { blockSkeleton } from "../../lib/skeletons";
 import { CodeEditorDef } from "./def";
 
 export const CodeEditorImpl = createComponentImplementation({
   def: CodeEditorDef,
-  render: ({
-    value,
-    placeholder,
-    disabled,
-    minHeight,
-    showLineNumbers,
-    onChange,
-  }, { entry }) => {
+  render: ({ value, placeholder, disabled, minHeight, showLineNumbers, onChange }, { entry }) => {
     const lineCount = value.split("\n").length;
 
     return (
@@ -47,5 +40,5 @@ export const CodeEditorImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 240 }} />,
+  skeleton: blockSkeleton(240),
 });

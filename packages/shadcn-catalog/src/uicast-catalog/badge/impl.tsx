@@ -4,11 +4,9 @@ import { BadgeDef } from "./def";
 
 export const BadgeImpl = createComponentImplementation({
   def: BadgeDef,
-  render: ({ text, children, variant }, { entry }) => {
-    return (
-      <ShadcnBadge variant={variant} data-key={entry.key}>
-        {children ?? text}
-      </ShadcnBadge>
-    );
-  },
+  render: ({ text, children, variant }, { entry }) => (
+    <ShadcnBadge variant={variant} data-key={entry.key}>
+      {children ?? text}
+    </ShadcnBadge>
+  ),
 });

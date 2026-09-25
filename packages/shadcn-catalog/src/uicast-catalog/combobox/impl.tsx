@@ -20,15 +20,7 @@ import { ComboboxDef } from "./def";
 
 export const ComboboxImpl = createComponentImplementation({
   def: ComboboxDef,
-  render: ({
-    value,
-    placeholder,
-    searchPlaceholder,
-    options,
-    disabled,
-    emptyMessage,
-    onChange,
-  }, { entry }) => {
+  render: ({ value, placeholder, searchPlaceholder, options, disabled, emptyMessage, onChange }, { entry }) => {
     const [open, setOpen] = useState(false);
     const selectedOption = options.find((o) => o.value === value);
 

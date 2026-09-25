@@ -5,24 +5,15 @@ import { ButtonDef } from "./def";
 
 export const ButtonImpl = createComponentImplementation({
   def: ButtonDef,
-  render: ({
-    text,
-    children,
-    variant,
-    size,
-    disabled,
-    onClick,
-  }, { entry }) => {
-    return (
-      <ShadcnButton
-        variant={variant}
-        size={size}
-        disabled={disabled}
-        onClick={(e) => onClick(pickMouseEvent(e))}
-        data-key={entry.key}
-      >
-        {children ?? text}
-      </ShadcnButton>
-    );
-  },
+  render: ({ text, children, variant, size, disabled, onClick }, { entry }) => (
+    <ShadcnButton
+      variant={variant}
+      size={size}
+      disabled={disabled}
+      onClick={(e) => onClick(pickMouseEvent(e))}
+      data-key={entry.key}
+    >
+      {children ?? text}
+    </ShadcnButton>
+  ),
 });

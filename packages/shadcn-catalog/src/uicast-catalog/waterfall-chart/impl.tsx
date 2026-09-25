@@ -1,83 +1,43 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { busy, cn } from "../../lib/utils";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  ReferenceLine,
-} from "recharts";
-import { WaterfallChartDef } from "./def";
+import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
+import { ChartFrame } from "../../lib/chart-frame";
 import { CHART_COLORS } from "../../lib/chart-colors";
+import { blockSkeleton } from "../../lib/skeletons";
+import { WaterfallChartDef } from "./def";
 
 export const WaterfallChartImpl = createComponentImplementation({
   def: WaterfallChartDef,
-  render: ({
-    data,
-    height,
-    positiveColor,
-    negativeColor,
-    totalColor,
-  }, { entry, loading }) => {
-    const barColors = { total: totalColor, positive: positiveColor, negative: negativeColor };
+  render: ({ data, height, positiveColor, negativeColor, totalColor }, { entry, loading }) => {
+    // Each bar floats on an invisible `base` bar stacked under it.
     let running = 0;
-    const processedData = data.map((item) => {
-      if (item.isTotal) {
-        return {
-          name: item.name,
-          base: 0,
-          value: running,
-          signedValue: running,
-          type: "total" as const,
-        };
-      }
+    const bars = data.map(({ name, value, isTotal }) => {
+      if (isTotal) return { name, base: 0, value: running, signedValue: running, swatch: totalColor };
       const base = running;
-      running += item.value;
-      return {
-        name: item.name,
-        base: item.value >= 0 ? base : base + item.value,
-        value: Math.abs(item.value),
-        signedValue: item.value,
-        type: (item.value >= 0 ? "positive" : "negative") as
-          | "positive"
-          | "negative",
-      };
+      running += value;
+      return value >= 0
+        ? { name, base, value, signedValue: value, swatch: positiveColor }
+        : { name, base: base + value, value: -value, signedValue: value, swatch: negativeColor };
     });
 
     return (
-      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <ResponsiveContainer width="100%" height={height}>
-          <BarChart data={processedData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip
-              formatter={(_, name, item) => {
-                if (name === "base") return [undefined, undefined];
-                return [item.payload.signedValue, "Value"];
-              }}
-            />
-            <ReferenceLine y={0} stroke="#666" />
-            <Bar
-              isAnimationActive={false}
-              dataKey="base"
-              stackId="waterfall"
-              fill="transparent"
-            />
-            <Bar isAnimationActive={false} dataKey="value" stackId="waterfall">
-              {processedData.map((bar, i) => (
-                <Cell key={i} fill={CHART_COLORS[barColors[bar.type]]} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <ChartFrame entry={entry} loading={loading} height={height}>
+        <BarChart data={bars}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip
+            formatter={(_, name, item) => (name === "base" ? [undefined, undefined] : [item.payload.signedValue, "Value"])}
+          />
+          <ReferenceLine y={0} stroke="#666" />
+          <Bar isAnimationActive={false} dataKey="base" stackId="waterfall" fill="transparent" />
+          <Bar isAnimationActive={false} dataKey="value" stackId="waterfall">
+            {bars.map((bar, i) => (
+              <Cell key={i} fill={CHART_COLORS[bar.swatch]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ChartFrame>
     );
   },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  skeleton: blockSkeleton(300),
 });

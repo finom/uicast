@@ -1,26 +1,17 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
-import { busy, cn } from "../../lib/utils";
-import { Sankey, Tooltip, ResponsiveContainer } from "recharts";
+import { Sankey, Tooltip } from "recharts";
+import { ChartFrame } from "../../lib/chart-frame";
+import { blockSkeleton } from "../../lib/skeletons";
 import { SankeyChartDef } from "./def";
 
 export const SankeyChartImpl = createComponentImplementation({
   def: SankeyChartDef,
-  render: ({ nodes, links, height }, { entry, loading }) => {
-    return (
-      <div className={cn("w-full min-w-0", busy(loading))} aria-busy={loading || undefined} data-key={entry.key}>
-        <ResponsiveContainer width="100%" height={height}>
-          <Sankey
-            data={{ nodes, links }}
-            nodePadding={30}
-            nodeWidth={10}
-            linkCurvature={0.5}
-          >
-            <Tooltip />
-          </Sankey>
-        </ResponsiveContainer>
-      </div>
-    );
-  },
-  skeleton: () => <Skeleton className="w-full" style={{ height: 300 }} />,
+  render: ({ nodes, links, height }, { entry, loading }) => (
+    <ChartFrame entry={entry} loading={loading} height={height}>
+      <Sankey data={{ nodes, links }} nodePadding={30} nodeWidth={10} linkCurvature={0.5}>
+        <Tooltip />
+      </Sankey>
+    </ChartFrame>
+  ),
+  skeleton: blockSkeleton(300),
 });

@@ -3,41 +3,24 @@ import { Badge } from "../../components/ui/badge";
 import { cn } from "../../lib/utils";
 import { NotificationBadgeDef } from "./def";
 
+const DOT_COLORS = { destructive: "bg-destructive", default: "bg-primary", secondary: "bg-secondary" };
+
 export const NotificationBadgeImpl = createComponentImplementation({
   def: NotificationBadgeDef,
-  render: ({
-    count,
-    max,
-    variant,
-    dot,
-    showZero,
-    children,
-  }, { entry }) => {
-    const shouldShow = count > 0 || showZero;
-    const displayCount = count > max ? `${max}+` : String(count);
-
-    return (
-      <div className="relative inline-flex" data-key={entry.key}>
-        {children}
-        {shouldShow &&
-          (dot ? (
-            <span
-              className={cn(
-                "absolute -top-1 -right-1 size-2.5 rounded-full",
-                variant === "destructive" && "bg-destructive",
-                variant === "default" && "bg-primary",
-                variant === "secondary" && "bg-secondary",
-              )}
-            />
-          ) : (
-            <Badge
-              variant={variant}
-              className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-xs font-medium justify-center"
-            >
-              {displayCount}
-            </Badge>
-          ))}
-      </div>
-    );
-  },
+  render: ({ count, max, variant, dot, showZero, children }, { entry }) => (
+    <div className="relative inline-flex" data-key={entry.key}>
+      {children}
+      {(count > 0 || showZero) &&
+        (dot ? (
+          <span className={cn("absolute -top-1 -right-1 size-2.5 rounded-full", DOT_COLORS[variant])} />
+        ) : (
+          <Badge
+            variant={variant}
+            className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-xs font-medium justify-center"
+          >
+            {count > max ? `${max}+` : count}
+          </Badge>
+        ))}
+    </div>
+  ),
 });

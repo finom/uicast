@@ -5,12 +5,7 @@ import { CheckboxDef } from "./def";
 
 export const CheckboxImpl = createComponentImplementation({
   def: CheckboxDef,
-  render: ({
-    checked,
-    disabled,
-    label,
-    onChange,
-  }, { entry }) => {
+  render: ({ checked, disabled, label, onChange }, { entry }) => {
     // Per instance, not `entry.key`: list items share one entry key.
     const id = useId();
     return (

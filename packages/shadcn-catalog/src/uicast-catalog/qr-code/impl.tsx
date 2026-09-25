@@ -1,7 +1,7 @@
 import { QRCodeSVG } from "qrcode.react";
 import { createComponentImplementation } from "@uicast/react";
-import { Skeleton } from "../../components/ui/skeleton";
 import { Card, CardContent } from "../../components/ui/card";
+import { blockSkeleton } from "../../lib/skeletons";
 import { QRCodeDef } from "./def";
 
 const SWATCH = { white: "#ffffff", black: "#000000" } as const;
@@ -9,12 +9,7 @@ const SWATCH = { white: "#ffffff", black: "#000000" } as const;
 // Rendered locally: a hot-linked image service would ship the value in the URL.
 export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
-  render: ({
-    value,
-    size,
-    bgColor,
-    fgColor,
-  }, { entry }) => (
+  render: ({ value, size, bgColor, fgColor }, { entry }) => (
     <Card
       className="inline-flex items-center justify-center p-4"
       data-key={entry.key}
@@ -31,5 +26,5 @@ export const QRCodeImpl = createComponentImplementation({
       </CardContent>
     </Card>
   ),
-  skeleton: () => <Skeleton className="w-full" style={{ height: 160 }} />,
+  skeleton: blockSkeleton(160),
 });

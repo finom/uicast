@@ -6,15 +6,11 @@ import {
 } from "../../components/ui/resizable";
 import { ResizablePanelDef } from "./def";
 import { Children } from "react";
+import { StackSkeleton } from "../../lib/skeletons";
 
 export const ResizablePanelImpl = createComponentImplementation({
   def: ResizablePanelDef,
-  render: ({
-    direction,
-    defaultSize,
-    minSize,
-    children,
-  }, { entry }) => {
+  render: ({ direction, defaultSize, minSize, children }, { entry }) => {
     const [first, ...rest] = Children.toArray(children);
 
     // react-resizable-panels reads a bare number as pixels; the def gives percentages.
@@ -34,5 +30,5 @@ export const ResizablePanelImpl = createComponentImplementation({
       </ResizablePanelGroup>
     );
   },
-  skeleton: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
+  skeleton: StackSkeleton,
 });

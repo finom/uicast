@@ -1,11 +1,12 @@
-import { useContext, useEffect, useId, useState } from "react";
 import { createComponentImplementation } from "@uicast/react";
+import { useContext, useEffect, useId, useState } from "react";
 import {
+  AccordionContent,
+  AccordionTrigger,
   Accordion as ShadcnAccordion,
   AccordionItem as ShadcnAccordionItem,
-  AccordionTrigger,
-  AccordionContent,
 } from "../../components/ui/accordion";
+import { StackSkeleton } from "../../lib/skeletons";
 import { AccordionContext } from "../accordion/impl";
 import { AccordionItemDef } from "./def";
 
@@ -20,23 +21,19 @@ export const AccordionItemImpl = createComponentImplementation({
     const [localOpen, setLocalOpen] = useState(open);
     const isOpen = single ? single.openKey === id : localOpen;
 
+    const setOpen = (next: boolean) => {
+      // Functional: the document can open one item and close another in the same commit.
+      if (single) single.setOpenKey((key) => (next ? id : key === id ? "" : key));
+      else setLocalOpen(next);
+    };
+
     // biome-ignore lint/correctness/useExhaustiveDependencies: re-sync only when the document-driven open changes; single is read from the syncing render on purpose
-    useEffect(() => {
-      if (single) {
-        // Functional: the document can open one item and close another in the same commit.
-        if (open) single.setOpenKey(id);
-        else single.setOpenKey((key) => (key === id ? "" : key));
-      } else {
-        setLocalOpen(open);
-      }
-    }, [open]);
+    useEffect(() => setOpen(open), [open]);
 
     // A sibling taking the slot closes this item without its trigger firing; the document must hear it.
     // biome-ignore lint/correctness/useExhaustiveDependencies: fire only when the slot owner changes
     useEffect(() => {
-      if (single && open && single.openKey !== "" && single.openKey !== id) {
-        onToggle({ open: false });
-      }
+      if (single && open && single.openKey !== "" && single.openKey !== id) onToggle({ open: false });
     }, [single?.openKey]);
 
     return (
@@ -44,11 +41,9 @@ export const AccordionItemImpl = createComponentImplementation({
         type="single"
         collapsible={single ? single.collapsible : true}
         value={isOpen ? id : ""}
-        onValueChange={(val) => {
-          const newOpen = val === id;
-          if (single) single.setOpenKey(newOpen ? id : "");
-          else setLocalOpen(newOpen);
-          onToggle({ open: newOpen });
+        onValueChange={(value) => {
+          setOpen(value === id);
+          onToggle({ open: value === id });
         }}
         data-key={entry.key}
       >
@@ -59,5 +54,5 @@ export const AccordionItemImpl = createComponentImplementation({
       </ShadcnAccordion>
     );
   },
-  skeleton: ({ children }) => <div className="flex flex-col gap-2">{children}</div>,
+  skeleton: StackSkeleton,
 });

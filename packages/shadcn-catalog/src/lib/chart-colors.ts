@@ -20,3 +20,7 @@ export const chartColorSchema = z.enum(Object.keys(CHART_COLORS) as [ChartColor,
 const DEFAULT_CYCLE: ChartColor[] = ["violet", "green", "amber", "orange", "blue", "teal"];
 
 export const defaultChartColors: string[] = DEFAULT_CYCLE.map((n) => CHART_COLORS[n]);
+
+// The named colors, else `fallback`.
+export const chartColors = (names: readonly ChartColor[] | undefined, fallback = defaultChartColors): string[] =>
+	names?.map((name) => CHART_COLORS[name]) ?? fallback;

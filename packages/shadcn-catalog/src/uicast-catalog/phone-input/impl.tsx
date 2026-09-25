@@ -13,16 +13,7 @@ import { type CallingCode, CALLING_CODES } from "../../lib/country-codes";
 
 export const PhoneInputImpl = createComponentImplementation({
   def: PhoneInputDef,
-  render: ({
-    value,
-    countryCode,
-    placeholder,
-    disabled,
-    countryCodes,
-    onChange,
-    onKeyDown,
-    onKeyUp,
-  }, { entry }) => {
+  render: ({ value, countryCode, placeholder, disabled, countryCodes, onChange, onKeyDown, onKeyUp }, { entry }) => {
     const codes = (countryCodes ?? (Object.keys(CALLING_CODES) as CallingCode[])).map((code) => ({
       code,
       country: CALLING_CODES[code],
