@@ -46,21 +46,19 @@ export const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
 
 // Appended to the recovery prompt's failure lines.
 export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
-  "expression-syntax": "the expression doesn't parse",
-  "guardrail-violation":
-    "the expression or a `set` path breaks a guardrail rule — blocked syntax or API, or a `set` that is not `scopes.<scope>.<field>`",
-  "budget-exceeded": "the expression exceeded its step, time, or allocation budget",
-  "unknown-reference":
-    "the expression references a name that doesn't exist — an unregistered function, a blocked global, or an unset scope path",
-  "invalid-entry": "a field of the line has the wrong type, like a `seed` that is not an array of steps",
-  "unknown-component": "no component with this name exists",
-  "invalid-list": "`each` didn't evaluate to an array, or `as` names a scope that already exists",
-  "invalid-props": "the evaluated props don't match the component's props schema",
-  "invalid-arguments": "a host function rejected the call's arguments",
-  "host-function": "a host function failed while executing",
-  "host-init": "the host init callback failed",
-  implementation: "the component implementation threw",
-  "expression-runtime": "a valid expression threw at runtime",
+  "expression-syntax": "expression doesn't parse",
+  "guardrail-violation": "breaks guardrail rule: blocked syntax or API, or `set` not `scopes.<scope>.<field>`",
+  "budget-exceeded": "expression passed its step, time or allocation budget",
+  "unknown-reference": "name doesn't exist: unregistered function, blocked global, or unset scope path",
+  "invalid-entry": "line field has wrong type, like `seed` not array of steps",
+  "unknown-component": "no component with this name",
+  "invalid-list": "`each` not array, or `as` names existing scope",
+  "invalid-props": "evaluated props don't match component's props schema",
+  "invalid-arguments": "host function rejected call's arguments",
+  "host-function": "host function failed",
+  "host-init": "host init callback failed",
+  implementation: "component implementation threw",
+  "expression-runtime": "valid expression threw at runtime",
   unknown: "unclassified failure",
 };
 

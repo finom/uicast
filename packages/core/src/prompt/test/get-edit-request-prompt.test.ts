@@ -7,8 +7,8 @@ describe("getEditRequestPrompt", () => {
       request: "Add pagination to the orders table.",
     });
     expect(out.startsWith("Add pagination to the orders table.")).toBe(true);
-    expect(out).toContain("Emit ONLY the entries that change");
-    expect(out).toContain("Never re-emit the whole page");
+    expect(out).toContain("Emit ONLY entries that change");
+    expect(out).toContain("Never re-emit whole page");
     expect(out).not.toContain("never emitted");
   });
 

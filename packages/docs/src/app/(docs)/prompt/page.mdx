@@ -18,9 +18,9 @@ import { tools } from "./tools";
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "answer" }),
-  getExpressionsPartialPrompt(),
   getComponentsPartialPrompt({ definitions: defs }),
   getFunctionsPartialPrompt({ functions: tools }),
+  getExpressionsPartialPrompt(),
   getFencePartialPrompt(),
 ].join("\n\n");
 ```
@@ -57,7 +57,7 @@ The rules every surface needs: the output format (JSONL entries, keys,
 children), how to replace part of a page, and what an expression can read
 (`scopes`, `evt`, `currentValue`, host functions).
 
-It emits `# Overview`, `# Output Format`, `# Rules` and `# Expression Context`.
+It emits `# Output Format`, `# Rules` and `# Expression Context`.
 
 | Option | Default | <nobr>What it does</nobr> |
 | --- | --- | --- |
@@ -85,12 +85,12 @@ What one response should be. It emits `# Scope`.
 ```md
 # Scope
 
-You are answering a question inside a conversation. Produce a **compact, self-contained piece of UI that fully answers it** — typically a stat, a chart, a table, or a small combination — not a full page.
+Answering question in chat. Build **compact UI that fully answers it**: stat, chart, table or small mix, not page.
 
-- Use the fewest entries that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
-- Bind real data via host functions — the answer must show actual values, not placeholders.
+- Fewest entries that answer it. No page chrome (headers, navigation, filter bars) unless asked.
+- Real values from host functions, never placeholders.
 
-A typical response on this surface is around 10 entries (JSONL lines) — treat this as a hint about ambition, not a quota.
+Typical response here: around 10 entries. Hint about ambition, not quota.
 ```
 
 ### `getComponentsPartialPrompt`

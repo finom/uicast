@@ -290,9 +290,9 @@ describe("getComponentsPartialPrompt — URL props", () => {
   it("lists what the renderer's defaults load when no policy is given", () => {
     const out = getComponentsPartialPrompt({ definitions: [LinkDef] });
     expect(out).toContain(
-      "## URL Props\n\nA prop typed with a URL format (`format uri`, `format uri-reference`) must hold one of:\n" +
-        "- a relative URL: `/a`, `a/b`, `?q=1`, `#x`\n- an absolute URL on this site\n" +
-        "- a `mailto:`, `tel:` or `sms:` link\n- a `data:` image, not SVG\n\nAny other URL fails the element.",
+      "## URL Props\n\nURL-format props (`format uri`, `format uri-reference`) take only:\n" +
+        "- relative URL: `/a`, `a/b`, `?q=1`, `#x`\n- absolute URL on this site\n" +
+        "- `mailto:`, `tel:` or `sms:` link\n- `data:` image, not SVG\n\nOther URLs fail element.",
     );
   });
 
@@ -307,9 +307,9 @@ describe("getComponentsPartialPrompt — URL props", () => {
       },
     });
     expect(out).toContain(
-      "- an absolute URL on `https://app.example.com`\n" +
-        "- an http or https URL on `cdn.example.com`, `*.img.example.com`\n" +
-        "- a `mailto:`, `tel:` or `sms:` link\n\nAny other URL fails the element.",
+      "- absolute URL on `https://app.example.com`\n" +
+        "- http or https URL on `cdn.example.com`, `*.img.example.com`\n" +
+        "- `mailto:`, `tel:` or `sms:` link\n\nOther URLs fail element.",
     );
     expect(out).not.toContain("relative URL");
     expect(out).not.toContain("`data:`");

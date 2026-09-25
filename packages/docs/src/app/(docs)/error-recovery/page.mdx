@@ -113,11 +113,11 @@ getErrorRecoveryPrompt({
 returns:
 
 ```md
-The generated UI hit runtime errors:
+Rendered UI has errors:
 
-- Entry `chart`: chartData.map is not a function (expression-runtime — a valid expression threw at runtime)
+- Entry `chart`: chartData.map is not a function (expression-runtime — valid expression threw at runtime)
 
-Diagnose each failure and emit a corrected version of the failed entry, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another entry sets up (e.g. a `seed` elsewhere), correct that entry as well.
+Re-emit each failed entry fixed, same `key`. Fix cause: when it comes from another entry (like `seed` elsewhere), fix that entry too.
 ```
 
 `reason` adds the failure class to the line. An `environment` fault gets none,

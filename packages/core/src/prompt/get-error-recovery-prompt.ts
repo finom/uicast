@@ -45,8 +45,8 @@ export function getErrorRecoveryPrompt({ failures }: ErrorRecoveryPromptOptions)
     })
     .join("\n");
   return [
-    "The generated UI hit runtime errors:",
+    "Rendered UI has errors:",
     list,
-    "Diagnose each failure and emit a corrected version of the failed entry, keeping its `key`. Fix the cause, not just the reported line — if the error comes from state or an expression that another entry sets up (e.g. a `seed` elsewhere), correct that entry as well.",
+    "Re-emit each failed entry fixed, same `key`. Fix cause: when it comes from another entry (like `seed` elsewhere), fix that entry too.",
   ].join("\n\n");
 }

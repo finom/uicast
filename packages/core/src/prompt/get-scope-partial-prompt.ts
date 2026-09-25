@@ -16,20 +16,20 @@ export type ScopePromptOptions = {
 };
 
 const KIND_SECTIONS: Record<ScopePromptOptions["kind"], string> = {
-  page: `Generate a **complete, functional page** — the unit of output is a whole working page, not a fragment. A single header, title, or lone element is never a sufficient response.
+  page: `Build **complete, working page**: whole page, never fragment or lone element.
 
-- Treat a terse request as a request for the obvious full version of that page. Infer the missing details from the domain: the host functions tell you what data exists; the component list tells you what you can build with it. "Order dashboard" implies the full shape — summary stats, a data table bound to real data, filters, row actions.
-- Bind real data wherever a host function provides it. Fetch with \`seed\` and render from state — do not fill components with invented placeholder content when a function returns the real thing.
-- Wire the interactions a page of this kind is expected to have: forms that submit, filters that filter, destructive actions with \`confirm\`. A control that does nothing on interaction is a defect.
-- Completeness is not padding: build what the request and the domain support, and stop there. Do not invent sections no host function can populate.`,
-  widget: `Generate a **single, self-contained widget** — one focused piece of UI meant to be embedded into a host layout, not a full page.
+- Terse request = obvious full version. Infer rest from domain: functions show what data exists, components what you can build. "Order dashboard" = summary stats, table bound to real data, filters, row actions.
+- Bind real data wherever host function gives it: fetch in \`seed\`, render from state. No invented placeholder content.
+- Wire interactions page needs: forms submit, filters filter, destructive actions \`confirm\`. Control that does nothing = defect.
+- No padding: build what request and data support, then stop. No section no function can fill.`,
+  widget: `Build **one self-contained widget** for host's layout, not page.
 
-- Build exactly the widget the request names, complete and functional: bind real data via host functions and wire its interactions.
-- No page chrome: no page headers, navigation, or sections beyond the widget itself. Keep the tree as small as the widget allows.`,
-  answer: `You are answering a question inside a conversation. Produce a **compact, self-contained piece of UI that fully answers it** — typically a stat, a chart, a table, or a small combination — not a full page.
+- Exactly widget asked for, complete: real data from host functions, interactions wired.
+- No page chrome: no headers, navigation, extra sections. Smallest tree that works.`,
+  answer: `Answering question in chat. Build **compact UI that fully answers it**: stat, chart, table or small mix, not page.
 
-- Use the fewest entries that fully answer the question; skip page chrome (headers, navigation, filter bars) unless asked.
-- Bind real data via host functions — the answer must show actual values, not placeholders.`,
+- Fewest entries that answer it. No page chrome (headers, navigation, filter bars) unless asked.
+- Real values from host functions, never placeholders.`,
 };
 
 /**
@@ -46,7 +46,7 @@ export function getScopePartialPrompt({ kind, approxEntries, note }: ScopePrompt
     "# Scope",
     KIND_SECTIONS[kind],
     approxEntries !== undefined &&
-      `A typical response on this surface is around ${approxEntries} entries (JSONL lines) — treat this as a hint about ambition, not a quota.`,
+      `Typical response here: around ${approxEntries} entries. Hint about ambition, not quota.`,
     noteSection(note),
   );
 }

@@ -5,26 +5,26 @@ describe("getScopePartialPrompt", () => {
   it("renders a # Scope section for each kind", () => {
     const page = getScopePartialPrompt({ kind: "page" });
     expect(page).toMatch(/^# Scope\n\n/);
-    expect(page).toContain("complete, functional page");
+    expect(page).toContain("complete, working page");
 
     const widget = getScopePartialPrompt({ kind: "widget" });
     expect(widget).toMatch(/^# Scope\n\n/);
-    expect(widget).toContain("single, self-contained widget");
+    expect(widget).toContain("one self-contained widget");
 
     const answer = getScopePartialPrompt({ kind: "answer" });
     expect(answer).toMatch(/^# Scope\n\n/);
-    expect(answer).toContain("answering a question inside a conversation");
+    expect(answer).toContain("Answering question in chat");
   });
 
   it("omits the size anchor and note by default", () => {
     const out = getScopePartialPrompt({ kind: "page" });
-    expect(out).not.toContain("entries (JSONL lines)");
-    expect(out).not.toContain("not a quota");
+    expect(out).not.toContain("Typical response here");
+    expect(out).not.toContain("not quota");
   });
 
   it("renders approxEntries as a hint, not a quota", () => {
     const out = getScopePartialPrompt({ kind: "answer", approxEntries: 10 });
-    expect(out).toContain("around 10 entries (JSONL lines) — treat this as a hint about ambition, not a quota");
+    expect(out).toContain("around 10 entries. Hint about ambition, not quota.");
   });
 
   it("renders note as a trailing ## Note section", () => {

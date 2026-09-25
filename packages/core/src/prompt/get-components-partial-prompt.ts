@@ -54,13 +54,13 @@ const describeUrlProps = (policy: UrlPolicy | undefined): string => {
   if (typeof policy === "function") return "";
   const { allowRelative, allowSameOrigin, hosts, allowDataImages, origin } = resolveUrlPolicy(policy);
   const allowed = [
-    allowRelative && "- a relative URL: `/a`, `a/b`, `?q=1`, `#x`",
-    allowSameOrigin && `- an absolute URL on ${origin ? `\`${origin}\`` : "this site"}`,
-    hosts.length > 0 && `- an http or https URL on ${hosts.map((host) => `\`${host}\``).join(", ")}`,
-    "- a `mailto:`, `tel:` or `sms:` link",
-    allowDataImages && "- a `data:` image, not SVG",
+    allowRelative && "- relative URL: `/a`, `a/b`, `?q=1`, `#x`",
+    allowSameOrigin && `- absolute URL on ${origin ? `\`${origin}\`` : "this site"}`,
+    hosts.length > 0 && `- http or https URL on ${hosts.map((host) => `\`${host}\``).join(", ")}`,
+    "- `mailto:`, `tel:` or `sms:` link",
+    allowDataImages && "- `data:` image, not SVG",
   ].filter(Boolean);
-  return `## URL Props\n\nA prop typed with a URL format (\`format uri\`, \`format uri-reference\`) must hold one of:\n${allowed.join("\n")}\n\nAny other URL fails the element.`;
+  return `## URL Props\n\nURL-format props (\`format uri\`, \`format uri-reference\`) take only:\n${allowed.join("\n")}\n\nOther URLs fail element.`;
 };
 
 // A callback payload carrying a `$id` is a common event; two different payloads under one `$id` throw.

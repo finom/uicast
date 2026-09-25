@@ -15,9 +15,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **A shorter prompt.** Each rule is stated once, in terse wording: the common instructions are about 60% shorter, the expressions block about 35%, and the scope, edit and recovery text about 40%. `# Overview` is part of `# Output Format`. Three rules the engine never had are gone: a list may be the root, an object literal needs no parentheses, and a list's `as` only has to differ from the scopes around it.
 - The components and functions blocks each have one `#` heading, `# Available Components` and `# Available Functions`. Their other sections are `##`: `## Component Details`, `## Common Events`, `## Function Details`, `## Shared Types`, `## URL Props`.
-- The recovery prompt describes `invalid-list` as "`each` didn't evaluate to an array, or `as` names a scope that already exists": the React binding now reports a list whose `as` repeats a scope around it.
-- The prompt says **entry** for a line the model writes, **element** for what mounts from it, and **step** for one item of a `seed` or a callback. The recovery message starts each line with ``Entry `<key>`:``, and the scope hint reads "around N entries (JSONL lines)".
+- The recovery prompt's `invalid-list` line also covers an `as` that names an existing scope: the React binding now reports a list whose `as` repeats a scope around it.
+- The prompt says **entry** for a line the model writes, **element** for what mounts from it, and **step** for one item of a `seed` or a callback. The recovery message starts each line with ``Entry `<key>`:``, and the scope hint reads "around N entries".
 - The prompt says a seed only reads: a function that changes data (create, update, delete) goes in a callback, since a seed runs every time its element mounts.
 - **`EntryErrorReason` includes the evaluator's `ExpressionErrorReason`.** A reason from `@uicast/expr` passes through unchanged; nothing maps one onto the other.
 - `@uicast/core/internal` drops `depKey`, `findSetAddressFault`, `SetAddressFault`, `checkUrl`, `UrlCheck`, `UrlViolation` and `ForwardTarget`; nothing outside core used them. `findEntrySetAddressFault` and `setAddressError` are one call, `entrySetAddressError(entry)`, which returns the first bad `set` as its error.

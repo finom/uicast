@@ -17,7 +17,7 @@ describe("getFencePartialPrompt", () => {
   });
 
   it("explicitly supersedes the core raw-JSONL output rule", () => {
-    expect(getFencePartialPrompt()).toContain("REPLACES the raw-JSONL output rule");
+    expect(getFencePartialPrompt()).toContain("REPLACE the raw-JSONL output rule");
   });
 
   it("renders note as a trailing ## Note section", () => {
@@ -35,7 +35,7 @@ describe("getFencePartialPrompt", () => {
   it("teaches the single-app shared root scope", () => {
     const out = getFencePartialPrompt();
     expect(out).toContain("ONE app with ONE live `root` scope");
-    expect(out).toContain("reuse an existing path for the same data");
+    expect(out).toContain("same data, same path");
     expect(out).toContain("first writer wins");
   });
 

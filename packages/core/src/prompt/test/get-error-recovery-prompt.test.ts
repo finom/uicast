@@ -9,7 +9,7 @@ describe("getErrorRecoveryPrompt", () => {
         { key: "kpi", message: "scopes.root.totals is undefined" },
       ],
     });
-    expect(out).toContain("runtime errors");
+    expect(out).toContain("Rendered UI has errors:");
     expect(out).toContain("`chart`: chartData.map is not a function");
     expect(out).toContain("`kpi`: scopes.root.totals is undefined");
   });
@@ -24,9 +24,7 @@ describe("getErrorRecoveryPrompt", () => {
         },
       ],
     });
-    expect(out).toContain(
-      "- Entry `kpi`: x is not defined (unknown-reference — the expression references a name that doesn't exist",
-    );
+    expect(out).toContain("- Entry `kpi`: x is not defined (unknown-reference — name doesn't exist");
   });
 
   it("leaves environment-fault reasons unannotated", () => {
@@ -41,8 +39,8 @@ describe("getErrorRecoveryPrompt", () => {
     const out = getErrorRecoveryPrompt({
       failures: [{ key: "table", message: "boom" }],
     });
-    expect(out).toContain("keeping its `key`");
-    expect(out).toContain("Fix the cause");
+    expect(out).toContain("same `key`");
+    expect(out).toContain("Fix cause");
     expect(out).toContain("`seed`");
   });
 });
