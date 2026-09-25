@@ -6,16 +6,33 @@ import { ALLOWED_GLOBALS } from "../constants/globals";
 import { DEFAULT_BUDGET } from "../constants/limits";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 
-// Every runnable example in README.md, run.
+// Every runnable example in _README.md, run.
 
 describe("README", () => {
   it("the opening example", () => {
-    const rows = [{ stock: 1 }, { stock: 0 }, { stock: 4 }];
+    const rows = [
+      { name: "Mug", stock: 4, status: "open" },
+      { name: "Kettle", stock: 0, status: "sold" },
+      { name: "Beans", stock: 12, status: "open" },
+    ];
     const ev = new Evaluator();
     expect(ev.eval("rows.filter(r => r.stock > 0).length", { rows })).toBe(2);
+    expect(ev.eval("rows.map(r => r.name).join(', ')", { rows })).toBe("Mug, Kettle, Beans");
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: the string IS the expression under test
+    expect(ev.eval("`${rows.length} items, ${rows.filter(r => !r.stock).length} sold out`", { rows })).toBe(
+      "3 items, 1 sold out",
+    );
+    expect(ev.eval("Object.groupBy(rows, r => r.status)", { rows })).toEqual({
+      open: [rows[0], rows[2]],
+      sold: [rows[1]],
+    });
     expect(() => ev.eval('rows["pu" + "sh"]({ stock: 9 })', { rows })).toThrow(
       /"push" is not an available method on array/,
     );
+  });
+
+  it("reads only own properties", () => {
+    expect(new Evaluator().eval("({}).constructor")).toBeUndefined();
   });
 
   it("the callback examples", () => {
@@ -124,7 +141,7 @@ describe("README", () => {
 });
 
 describe("the README's language section matches the tables", () => {
-  const readme = readFileSync(resolve(__dirname, "../../README.md"), "utf8");
+  const readme = readFileSync(resolve(__dirname, "../../_README.md"), "utf8");
   const section = readme.slice(readme.indexOf("## The language"), readme.indexOf("## Evaluator"));
   const tokens = (text: string, pattern: RegExp): Set<string> => new Set([...text.matchAll(pattern)].map((m) => m[1]));
   const RECEIVERS: Record<string, string> = {
@@ -167,7 +184,7 @@ describe("the README's language section matches the tables", () => {
   });
 
   it("lists every global, and nothing else", () => {
-    const line = section.slice(section.indexOf("**Globals.**"), section.indexOf("**Methods.**"));
+    const line = section.match(/^\| \*\*Globals\*\* \|(.*)\|$/m)?.[1] ?? "";
     expect([...tokens(line, /`(\w+)`/g)].sort()).toEqual([...ALLOWED_GLOBALS].sort());
   });
 });

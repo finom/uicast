@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
+  "author": "Andrey Gubanov (https://github.com/finom)",
   "type": "module",
   "scripts": {
     "update-mdx-snippets": "node scripts/update-mdx-snippets.mjs",

@@ -3,6 +3,7 @@
   "version": "0.0.1-beta.0",
   "description": "The expression language of uicast documents: JavaScript expressions over JSON data. Closed AST allow-list, runtime membrane, CPU and allocation budget. Never calls new Function, so it needs no unsafe-eval.",
   "license": "MIT",
+  "author": "Andrey Gubanov (https://github.com/finom)",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/finom/uicast.git",

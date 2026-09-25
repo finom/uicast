@@ -10,24 +10,35 @@
   <img alt="Your components and your functions become one prompt; the model answers with a screen built from those same components." src="packages/docs/public/uicast-hero-light.svg" width="936">
 </picture>
 
-**uicast** renders a user interface that a language model writes at run time. The model picks components from a catalog you register and calls functions you expose. It writes no React, and nothing it produces is compiled or added to your bundle; what it produces is data, which the renderer evaluates and can store and render again.
+**uicast** renders a user interface that a language model writes at run time. You register components and functions. The model answers a request with a document that uses them, and the renderer shows it line by line as it streams. A document is data: it is never compiled or added to your bundle, so you can store it and render it again.
 
-Logic in a generated screen is written in an expression language: a subset of JavaScript, one expression per value. A total, a filter, a condition, the steps an event runs — all of it is source the evaluator interprets, never source the JavaScript engine runs. That language is [`@uicast/expr`](packages/expr), and its limits are below.
+The logic in a document is written as expressions: JavaScript expressions over JSON data, run by an interpreter, not by the JavaScript engine. That language is [`@uicast/expr`](packages/expr).
 
-## What a generated document can do
+## A document
 
-- Elements reference their children by key. The renderer builds the tree and renders each element as it arrives.
-- State lives in scopes. A `seed` runs once when an element mounts, usually to fetch.
-- A prop is either a literal or an expression. An expression re-evaluates when the state it reads changes.
-- An event runs steps. `set` is the only way to write state; steps otherwise compute.
-- A list renders one child per item, each item with its own scope.
-- Host functions are the only path to your backend.
+A document is JSON Lines, one entry per line. Asked for open orders, a model can write:
+
+```jsonl
+{"key":"root","component":"Card","props":{"literal":{"title":"Open orders"}},"seed":[{"set":"scopes.root.orders","expr":"listOrders({ status: 'open' })"}],"children":["total","row","refresh"]}
+{"key":"total","component":"Stat","props":{"expr":"({ label: 'Open total', value: scopes.root.orders.reduce((sum, o) => sum + o.total, 0) })"}}
+{"key":"row","component":"Typography","each":"scopes.root.orders","as":"order","keyBy":"id","props":{"expr":"({ text: scopes.order.customer + ': $' + scopes.order.total })"}}
+{"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.orders","expr":"listOrders({ status: 'open' })"}]}}
+```
+
+- `children` lists keys, and the tree is built from them. Each element renders when its line arrives; a child still on its way shows a skeleton.
+- `seed` runs once, when the element mounts. Here it calls `listOrders`, a function you wrote, and stores the result in the `root` scope.
+- A prop is a `literal` or an `expr`. `total` reads `scopes.root.orders`, so it updates when the orders change.
+- `each` makes `row` a list: one element per order. `scopes.order` is that order.
+- A callback runs steps. `set` is the only way to change state. Refresh loads the orders again, and the total and the rows update.
 
 ## What you write
 
-A **definition** is what the model reads about one component — its name, what it is for, its props:
+A **definition** is what the model reads about a component: its name, when to use it, its props.
 
 ```ts
+import { createComponentDefinition } from "@uicast/core";
+import z from "zod";
+
 export const StatDef = createComponentDefinition({
   name: "Stat",
   description: "One number with a label. Use it for a KPI, not for a table cell.",
@@ -38,23 +49,48 @@ export const StatDef = createComponentDefinition({
 });
 ```
 
-An **implementation** is the React component it pairs with. `@uicast/shadcn-catalog` ships 128 pairs over shadcn/ui if you do not want to start with your own.
+An **implementation** is the React component that renders it. It gets the props already evaluated and checked by the schema:
 
-A **host function** is one [`standard-tool`](https://standard-tool.js.org/) per operation the model may perform. Its input schema is checked before `execute` runs; its output schema is how the model knows what the result contains:
+```tsx
+import { createComponentImplementation } from "@uicast/react";
+
+export const StatImpl = createComponentImplementation({
+  def: StatDef,
+  render: ({ label, value }) => (
+    <p>
+      {label}: <strong>{value}</strong>
+    </p>
+  ),
+});
+```
+
+[`@uicast/shadcn-catalog`](packages/shadcn-catalog) is a reference catalog of 128 such pairs over shadcn/ui. The document above uses it.
+
+A **host function** is one [standard tool](https://standard-tool.js.org/) per operation the model may call. `execute` runs where the document runs, usually the browser, so it calls your API:
 
 ```ts
+import { standardTool } from "standard-tool";
+
 export const listOrders = standardTool({
   name: "listOrders",
-  description: "Orders for the signed-in customer, newest first.",
+  description: "Orders, newest first.",
   inputSchema: z.object({ status: z.enum(["all", "open", "refunded"]).default("all") }),
-  outputSchema: z.array(orderSchema),
+  outputSchema: z.array(z.object({ id: z.number(), customer: z.string(), total: z.number() })),
   execute: ({ status }) => fetch(`/api/orders?status=${status}`).then((r) => r.json()),
 });
 ```
 
-The **system prompt** is generated from those two registries, so the model can name nothing else, and every `description` reaches it word for word:
+The **system prompt** is built from your definitions (`defs`) and functions (`tools`), so it names only what your renderer can run. Every `description` reaches the model word for word:
 
 ```ts
+import {
+  getCommonInstructionsPartialPrompt,
+  getComponentsPartialPrompt,
+  getExpressionsPartialPrompt,
+  getFunctionsPartialPrompt,
+  getScopePartialPrompt,
+} from "@uicast/core/prompt";
+
 const system = [
   getCommonInstructionsPartialPrompt(),
   getScopePartialPrompt({ kind: "page" }),
@@ -64,9 +100,12 @@ const system = [
 ].join("\n\n");
 ```
 
-**Rendering** is a provider and a renderer. The evaluator is constructed once, with the host functions bound to it:
+**Rendering** takes a provider and a renderer. The evaluator is created once, with the host functions bound to it:
 
 ```tsx
+import { Evaluator } from "@uicast/expr";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+
 const evaluator = new Evaluator({ functions: tools });
 
 <RendererProvider implementations={impls} evaluator={evaluator}>
@@ -74,60 +113,66 @@ const evaluator = new Evaluator({ functions: tools });
 </RendererProvider>;
 ```
 
+`impls` holds your implementations. `entries` grows as lines stream in; [`streamJsonLines`](https://uicast.dev/streaming) reads them from the response. In a chat, the model puts entries in a ```` ```uicast ```` fence in its Markdown reply, and [`@uicast/streamdown`](packages/streamdown) renders the fence.
+
 ## Expressions
 
-A closed grammar, parsed once with acorn. Reads are own-property only. Methods and globals come from an allow-list. Every evaluation runs under a budget on steps, time and allocation. There is no `eval` and no `new Function` in the package, so a **uicast** app runs under a Content-Security-Policy without `unsafe-eval`.
+An expression is JavaScript: one expression, over JSON data.
 
 ```js
-scopes.root.orders.reduce((a, o) => a + o.total, 0)   // ✅ → a number
-listOrders({ status: "open" })                        // ✅ a host function you registered
-fetch("/api/orders")                                  // ❌ "fetch" is not available in expressions
-({}).constructor                                      // ❌ undefined — nothing inherited is reachable
+scopes.root.orders.filter((o) => o.total > 100).length  // → 1
+listOrders({ status: "open" })                          // → calls your host function
+fetch("/api/orders")                                    // → ExpressionError: "fetch" is not available in expressions
+({}).constructor                                        // → undefined: inherited names are not readable
 ```
 
-An arrow is written only as a method's callback, so a function is never a value and nothing recurses. Methods newer than ES2022 — `toSorted`, `Object.groupBy`, `Math.sumPrecise` — are implemented in the interpreter, so they work the same on any ES2022 engine. Regular expressions, mutation, `async`, `Math.random()` and `Temporal` are left out; the [`@uicast/expr` README](packages/expr) lists what is in and why the rest is not.
+- The grammar is closed: every syntax node, operator, global and method is on an allow-list. Anything else is refused before it runs.
+- An expression reads only own properties of plain data, and only JSON leaves it.
+- There are no loops, no recursion and no function values, and every evaluation has a step, time and allocation budget.
+- There is no `eval` or `new Function`, so a Content-Security-Policy needs no `unsafe-eval`.
 
-The interpreter secures the language, not what you plug into it. Host functions are capabilities you grant, so authorize them on the server. Scope data is only as safe as what you put there. Props that reach the DOM, such as URLs, go through the renderer's `urlPolicy`.
+The [`@uicast/expr` README](packages/expr) lists what is in the language and why the rest is not.
 
-A subclass of `Evaluator` that sets `toFunction` is the faster path: the same checks, then the source goes through `new Function`. Roughly 3–5× on one expression and 20–90× on anything that loops over data, where the engine runs the loop instead of the interpreter. It needs `unsafe-eval`, nothing meters it, and a property name assembled at run time is never checked, so it is for documents whose author you trust.
+## Security
+
+A document is untrusted input: a model wrote it, and a saved document runs in other people's browsers. The evaluator checks expressions. These stay your job:
+
+- **Functions.** A document can call every function you bind. Bind only what it needs, and authorize every call on the server.
+- **Components.** A document writes every prop. Declare URL props with `z.url()`, so [`urlPolicy`](https://uicast.dev/react/renderer#urlpolicy--the-urls-a-document-may-load) checks them, and never put document text where it can run.
+- **Instructions in data.** A function result the model reads, as in a chat, can carry instructions the user never gave. The prompt tells the model to follow only the user, but that is not a boundary: check permissions in your functions.
+
+See the [security model](https://uicast.dev/security) and [SECURITY.md](SECURITY.md).
 
 ## Install
 
 ```sh
-npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool
+npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
 ```
 
-Node 24 or later. The packages are beta, under the `beta` dist-tag.
-
-Four steps to a first page, spelled out in [Getting started](packages/docs/src/app/%28docs%29/getting-started/page.mdx):
-
-1. Register the catalog, or your own components with a definition and an implementation each.
-2. Expose your data as host functions.
-3. Build the system prompt from the same catalog and functions, and stream the model's answer through.
-4. Render it with `<RendererProvider>` and `<EntriesRenderer>`.
+The packages are beta, under the `beta` dist-tag. `@uicast/react` needs React 19.2. [Getting started](https://uicast.dev/getting-started) builds a first page: host functions, a streaming route, the page.
 
 ## Packages
 
 | Package | What it is |
 | --- | --- |
-| [`@uicast/core`](packages/core) | The engine, framework-agnostic: entry format, reactive scopes, dependency extraction, error classification, prompt builders. |
-| [`@uicast/react`](packages/react) | The React binding: provider, renderer, per-element error boundary, the confirm seam. |
-| [`@uicast/expr`](packages/expr) | The expression language and its interpreter. No **uicast** dependency; works standalone. |
-| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | 128 components over shadcn/ui and Radix, each with the definition the model reads. |
-| [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: generated screens inside ` ```uicast ` fences in Markdown chat replies. |
+| [`@uicast/core`](packages/core) | The engine, without React: entry format, reactive scopes, error classification, prompt builders. |
+| [`@uicast/react`](packages/react) | The React binding: provider, renderer, skeletons, an error boundary per element. |
+| [`@uicast/expr`](packages/expr) | The expression language and its interpreter. Works on its own. |
+| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | A reference catalog: 128 components over shadcn/ui and Radix, each with its definition. |
+| [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: documents inside ```` ```uicast ```` fences in Markdown chat replies. |
 
 ## Documentation
 
-The docs site is `packages/docs` (`npm run dev` there). It is not published yet.
+The full documentation is at [uicast.dev](https://uicast.dev). To start:
 
-- [Concepts](packages/docs/src/app/%28docs%29/concepts/page.mdx) — the vocabulary: document, entry, element, scope, expression, step.
-- [The expression evaluator](packages/docs/src/app/%28docs%29/expr/page.mdx) — the language, the budgets, the threat model.
-- [Component definition](packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](packages/docs/src/app/%28docs%29/react/page.mdx) — what the model reads and what React renders.
-- [Host functions](packages/docs/src/app/%28docs%29/functions/page.mdx), [Event handling](packages/docs/src/app/%28docs%29/events/page.mdx), [Assembling the prompt](packages/docs/src/app/%28docs%29/prompt/page.mdx).
-- [Component Entry Format](packages/docs/src/app/%28docs%29/entry/page.mdx) — every field, value sources, state and scopes, reactivity.
-- [Security model](packages/docs/src/app/%28docs%29/security/page.mdx) and [SECURITY.md](SECURITY.md).
+- [Concepts](https://uicast.dev/concepts): documents, entries, elements, scopes, expressions, steps.
+- [Component definition](https://uicast.dev/def) and [implementation](https://uicast.dev/react): your own components.
+- [Host functions](https://uicast.dev/expr/functions): changing data, confirmation, refetching.
+- [Assembling the prompt](https://uicast.dev/prompt): the system prompt, block by block.
+- [Entry fields](https://uicast.dev/entry): every field an entry can have.
+- [Next.js demo](https://uicast.dev/nextjs-demo): a back office where every table, form and detail view is generated.
 
-`packages/nextjs-demo` is a chat workspace over generated pages, backed by a live database: [Next.js demo](packages/docs/src/app/%28docs%29/nextjs-demo/page.mdx).
+Coding agents can install the [agent skill](https://uicast.dev/skill): `npx skills add finom/uicast`.
 
 ## Development
 
@@ -138,8 +183,8 @@ npm run typecheck
 npm run lint
 ```
 
-`npm run build` compiles every package to `dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+Node 24 or later. `npm run build` compiles every package to `dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © [Andrey Gubanov](https://github.com/finom)

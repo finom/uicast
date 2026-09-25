@@ -1,39 +1,75 @@
 # @uicast/shadcn-catalog
 
-The component catalog for **uicast**: 128 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix.
+[![npm](https://img.shields.io/npm/v/@uicast/shadcn-catalog)](https://www.npmjs.com/package/@uicast/shadcn-catalog)
 
-A **definition** is what the model reads — the component's name, what it is for, and its props as a schema. An **implementation** is the React component the renderer runs. Register both and a generated document can name any component in the catalog. Pairs live one directory per component under `src/uicast-catalog/`; copy that layout for your own design system.
+Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
-## Install
+A reference component catalog for **uicast**: 128 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`.
 
 ```sh
 npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @uicast/expr@beta
 ```
 
+Needs React 19.2.
+
+## Use it
+
+The definitions go to the prompt, the implementations to the renderer:
+
 ```ts
+import { getComponentsPartialPrompt } from "@uicast/core/prompt";
 import { defs } from "@uicast/shadcn-catalog/all/defs";
-import { impls } from "@uicast/shadcn-catalog/all/impls";
+
+getComponentsPartialPrompt({ definitions: defs });
 ```
 
-Each module exports its components by name, and all of them as one array: `defs` goes to `getComponentsPartialPrompt`, `impls` to `<RendererProvider>`. They are separate entry points because the prompt is usually built on the server and the implementations only ship to the browser.
+```tsx
+import { impls } from "@uicast/shadcn-catalog/all/impls";
 
-For a smaller prompt, take some groups instead — `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays` — or `essential`: 30 components, about a quarter of the prompt text. See [Essentials](#essentials).
+<RendererProvider implementations={impls} evaluator={evaluator}>
+  <EntriesRenderer entries={entries} />
+</RendererProvider>;
+```
 
-## Entry points
+The `defs` modules import no React, so the prompt can be built on the server. Each module also exports its components by name (`CardDef`, `CardImpl`, …). To add your own, extend both arrays: `[...defs, MyDef]` and `[...impls, MyImpl]`.
 
-| Import | What it is |
-| --- | --- |
-| `@uicast/shadcn-catalog/all/defs` | Every component's definition, for the prompt. |
-| `@uicast/shadcn-catalog/all/impls` | Every component's React implementation, for the renderer. |
-| `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | One group: `layout`, `content`, `data`, `charts`, `forms`, `navigation` or `overlays`. |
-| `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | The 30 essential components. |
-| `@uicast/shadcn-catalog/events` | The shared event schemas a definition's `callbacks` reuse. |
-| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError` — the renderer's confirm and error slots. |
-| `@uicast/shadcn-catalog/ui/*` | The underlying shadcn components, if you need one directly. |
+## Styles
 
-## Essentials
+The catalog ships its own stylesheet, so there is no Tailwind config to write:
 
-The full catalog is 87,000 characters of prompt. Most generated pages use a fraction of it, and a model choosing between 128 components spends attention on the choice. `essential/defs` and `essential/impls` hold a curated 30, at about a quarter the prompt text:
+```css
+/* Optional: preflight and the shadcn palette, if you never ran `shadcn init`. */
+@import "@uicast/shadcn-catalog/theme.css";
+@import "@uicast/shadcn-catalog/catalog.css";
+```
+
+Every rule reads a CSS variable (`background-color: var(--card)`), so your theme restyles the catalog too.
+
+## Groups
+
+The whole catalog is about 89,000 characters of prompt. A group is smaller:
+
+| Group | Size | What is in it |
+| --- | --- | --- |
+| `essential` | 30 | Common components from every group, below. About 21,000 characters. |
+| `layout` | 17 | Card, grid, flex row and column, tabs, accordion. |
+| `content` | 35 | Heading, typography, badge, avatar, timeline, alert, map. |
+| `data` | 11 | Table, data grid, virtual list, kanban board, org chart. |
+| `charts` | 16 | Bar, line, pie, area, scatter, funnel, sankey. |
+| `forms` | 35 | Field, input, select, date picker, file upload, button. |
+| `navigation` | 7 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
+| `overlays` | 7 | Modal, confirm dialog, drawer, popover, tooltip, dropdown menu. |
+
+Take several groups by spreading them, the same way on both sides:
+
+```ts
+import * as layout from "@uicast/shadcn-catalog/layout/defs";
+import * as charts from "@uicast/shadcn-catalog/charts/defs";
+
+const definitions = [...layout.defs, ...charts.defs];
+```
+
+The essentials:
 
 | Group | Components |
 | --- | --- |
@@ -45,30 +81,28 @@ The full catalog is 87,000 characters of prompt. Most generated pages use a frac
 | `navigation` | `Pagination` |
 | `overlays` | `Modal` |
 
-Swapping is one import path. Add your own with `[...defs, MyDef]`.
+## Entry points
+
+| Import | What it holds |
+| --- | --- |
+| `@uicast/shadcn-catalog/<group>/defs` | The group's definitions, for the prompt. `<group>` is `all`, `essential` or a group above. |
+| `@uicast/shadcn-catalog/<group>/impls` | The matching implementations, for the renderer. |
+| `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for the renderer's `fallbackComponents`. |
+| `@uicast/shadcn-catalog/events` | `mouseEventSchema` and `keyboardEventSchema`, payloads the catalog's callbacks share. |
+| `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components, such as `/ui/button` and `/ui/skeleton`. |
+| `@uicast/shadcn-catalog/catalog.css` | Every utility the components use. No palette. |
+| `@uicast/shadcn-catalog/theme.css` | Optional: preflight and the shadcn palette. |
 
 ## Map tiles
 
-`LocationMap` draws raster map tiles from OpenStreetMap's tile server, whose [usage policy](https://operations.osmfoundation.org/policies/tiles/) forbids heavy use without permission, and credits them in the corner. To use another tile server, copy `src/uicast-catalog/location-map/` into your own catalog and change the tile URL.
+`LocationMap` loads map tiles from OpenStreetMap's tile server, whose [usage policy](https://operations.osmfoundation.org/policies/tiles/) forbids heavy use without permission. To use another tile server, copy `src/uicast-catalog/location-map/` into your own catalog and change the tile URL.
 
-The tile URL comes from the implementation, not the document, so the renderer's `urlPolicy` does not check it; a Content-Security-Policy needs the tile host in `img-src`. The document sets the center and zoom, so the tile server sees which area a page shows.
-
-## Styles
-
-The catalog ships its own stylesheet, so there is no Tailwind config to write:
-
-```css
-/* Optional — preflight and the shadcn palette, if you never ran `shadcn init`. */
-@import "@uicast/shadcn-catalog/theme.css";
-@import "@uicast/shadcn-catalog/catalog.css";
-```
-
-Every rule uses a CSS variable (`background-color: var(--card)`), so your own theme restyles the catalog the way it restyles your components.
+The tile URL comes from the implementation, not the document, so `urlPolicy` does not check it; a Content-Security-Policy needs the tile host in `img-src`. The document sets the center and zoom, so the tile server sees which area a page shows.
 
 ## Documentation
 
-[github.com/finom/uicast](https://github.com/finom/uicast) — the [component definition](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/def/page.mdx) and [implementation](https://github.com/finom/uicast/blob/main/packages/docs/src/app/%28docs%29/react/page.mdx) pages cover writing your own pairs.
+[Reference catalog](https://uicast.dev/react/reference-catalog) · [Component definition](https://uicast.dev/def) · [Component implementation](https://uicast.dev/react)
 
 ## License
 
-[MIT](../../LICENSE)
+[MIT](https://github.com/finom/uicast/blob/main/LICENSE) © [Andrey Gubanov](https://github.com/finom)
