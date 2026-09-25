@@ -23,8 +23,7 @@
       "@uicast/react/*": ["./packages/react/src/*"],
       "@uicast/streamdown": ["./packages/streamdown/src/index.ts"],
       "@uicast/streamdown/prompt": ["./packages/streamdown/src/prompt/index.ts"]
-    },
-    "experimentalDecorators": true
+    }
   },
   "include": [
     "packages/expr/**/*.ts",
