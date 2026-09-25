@@ -23,7 +23,7 @@ ev.eval("Object.groupBy(rows, r => r.status)", { rows }); // → { open: [Mug, B
 ev.eval('rows["pu" + "sh"]({ stock: 9 })', { rows }); // → ExpressionError: "push" is not an available method on array
 ```
 
-- **JavaScript syntax, one expression.** Developers and language models already write it.
+- **JavaScript syntax.** One expression, no statements.
 - **No `eval`, no `new Function`.** The source is parsed with acorn and interpreted, so a Content-Security-Policy needs no `unsafe-eval`.
 - **A closed grammar.** Every syntax node, operator, global and method is on an allow-list. Anything else is refused before the expression runs.
 - **Checked as it runs.** Only own properties of plain data are readable, and only JSON leaves an expression.
@@ -150,6 +150,8 @@ ev.eval("ids.map(id => getUser({ id }))", { ids }); // → ExpressionError: cann
 
 ## Security
 
+It runs in your JavaScript realm, not in a sandbox: values pass in and out without copying, and these checks are the boundary.
+
 What the evaluator enforces:
 
 - Nothing outside the grammar runs. The allow-lists are data in `src/constants/`. There is no deny-list: inherited names such as `constructor` are simply not readable.
@@ -171,13 +173,9 @@ A subclass that sets the protected `toFunction` hook runs the checked source on 
 
 Each control is pinned by a test, such as `attacks.test.ts` and `exit-gate.test.ts`. `corpus.test.ts` runs every test expression here and as plain JavaScript, and the two must agree. One runtime dependency: acorn.
 
-## Why JavaScript syntax
-
-A language model writes JavaScript without being taught; CEL, the usual embedded language, has to be taught in the prompt. So the syntax is JavaScript's, and the grammar is closed by allow-lists. It runs in the host's realm, not in a sandbox such as isolated-vm or QuickJS, so values pass in and out without being copied.
-
 ## In uicast
 
-`getExpressionsPartialPrompt()` from `@uicast/core/prompt` describes this language to the model, and `getFunctionsPartialPrompt({ functions })` prints the signatures of the functions you bound. It is the same array, so the model is told what the evaluator accepts. Assembly is documented at [uicast.dev/prompt](https://uicast.dev/prompt).
+`getExpressionsPartialPrompt()` from `@uicast/core/prompt` describes this language to the model, and `getFunctionsPartialPrompt({ functions })` prints the functions you bind here. See [uicast.dev/prompt](https://uicast.dev/prompt).
 
 ## License
 

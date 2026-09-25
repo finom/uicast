@@ -10,8 +10,6 @@ The engine of **uicast**, without React: component definitions, the entry format
 npm install @uicast/core@beta @uicast/expr@beta
 ```
 
-`@uicast/expr` is a peer dependency. Core creates no evaluator: it runs every expression on the one you pass to the renderer.
-
 ## Define a component
 
 A definition is what the model reads about a component. It imports no React, so the prompt can be built on the server.
@@ -30,7 +28,7 @@ export const StatDef = createComponentDefinition({
 });
 ```
 
-`props` and each payload in `callbacks` are schemas that implement [Standard Schema](https://standardschema.dev/schema) and [Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+, Valibot or ArkType. The prompt prints them as TypeScript-like signatures, with every `description`.
+`props` and each payload in `callbacks` are schemas that implement [Standard Schema](https://standardschema.dev/schema) and [Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+, Valibot or ArkType. Every `description` reaches the model word for word.
 
 ## Build the prompt
 
@@ -69,7 +67,7 @@ Each takes `note`: your text, added at the end of its block. Two more builders m
 
 ## Read the stream
 
-The model writes one entry per line. `streamJsonLines` yields each line of a byte or text stream that parses as JSON, and skips the rest: code fences, prose, a cut-off last line. On the server, it can store each entry as it arrives:
+`streamJsonLines` yields each line of a stream that parses as JSON, and skips the rest: code fences, prose, a cut-off last line. On the server, store each entry as it arrives:
 
 ```ts
 import { isComponentEntry, streamJsonLines } from "@uicast/core";
@@ -112,11 +110,11 @@ The renderer calls `onError` once per failure. See [Error recovery](https://uica
 | `createProxyScope(initial?)` | A reactive scope, for a [scope your app adds](https://uicast.dev/react/renderer#extra-named-scopes). |
 | `EntryError` | The error every element failure arrives as. |
 
-The prompt builders come from `@uicast/core/prompt`. Types are listed in the [API reference](https://uicast.dev/api-ref#uicastcore).
+The prompt builders come from `@uicast/core/prompt`.
 
 ## Documentation
 
-[Concepts](https://uicast.dev/concepts) · [Component definition](https://uicast.dev/def) · [Assembling the prompt](https://uicast.dev/prompt) · [Entry fields](https://uicast.dev/entry) · [Streaming](https://uicast.dev/streaming) · [Error recovery](https://uicast.dev/error-recovery)
+[Concepts](https://uicast.dev/concepts) · [Component definition](https://uicast.dev/def) · [Assembling the prompt](https://uicast.dev/prompt) · [Entry fields](https://uicast.dev/entry) · [Streaming](https://uicast.dev/streaming) · [Error recovery](https://uicast.dev/error-recovery) · [API reference](https://uicast.dev/api-ref#uicastcore)
 
 ## License
 

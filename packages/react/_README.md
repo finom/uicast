@@ -4,13 +4,13 @@
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
-The React binding of **uicast**. It renders a document with your component implementations, and re-renders an element when the state it reads changes.
+Renders **uicast** documents in React, with your component implementations.
 
 ```sh
 npm install @uicast/react@beta @uicast/core@beta @uicast/expr@beta
 ```
 
-Needs React 19.2. It re-exports nothing from `@uicast/core`: import from both.
+Needs React 19.2.
 
 ## Implement a component
 
@@ -31,7 +31,7 @@ export const StatImpl = createComponentImplementation({
 });
 ```
 
-`render` gets one object: every prop, already evaluated and parsed by the definition's schema, every callback as an async function, and `children`. Its second argument holds the `entry` and its `loading` flag. `skeleton` is optional: it draws the component while its data or children are on the way.
+`render` gets the props, already evaluated and checked by the definition's schema, each callback as a function, and `children`. `skeleton` is optional: it draws the component while its data or children are on the way.
 
 ## Render a document
 
@@ -40,7 +40,7 @@ import type { ComponentEntry } from "@uicast/core";
 import { Evaluator } from "@uicast/expr";
 import { EntriesRenderer, RendererProvider } from "@uicast/react";
 
-// Once, at module scope: host functions bind to it, and it holds the parse cache.
+// Once, at module scope: your host functions bind to it.
 const evaluator = new Evaluator({ functions: tools });
 
 export function Page({ entries }: { entries: ComponentEntry[] }) {
@@ -65,7 +65,7 @@ export function Page({ entries }: { entries: ComponentEntry[] }) {
 
 ## Server rendering
 
-`<DocumentSkeleton entries>` draws the document's shape from the entries alone. It runs no expressions and calls no host functions, so it renders in a server pass. Show it inside the same provider until the page mounts, then render `<EntriesRenderer>`. `<EntriesRenderer>` can render on the server too, but then its seeds call your host functions there. See [Server rendering](https://uicast.dev/react/ssr).
+`<DocumentSkeleton entries>` draws the document's shape without running it, so it renders on the server. Show it until the page mounts, then `<EntriesRenderer>`. An `<EntriesRenderer>` rendered on the server calls your host functions there. See [Server rendering](https://uicast.dev/react/ssr).
 
 ## Props come from the model
 

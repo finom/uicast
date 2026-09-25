@@ -4,7 +4,7 @@
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
-Renders **uicast** documents inside Markdown chat replies. The model puts entries in a code fence tagged `uicast`, and this [Streamdown](https://streamdown.ai/) plugin mounts each fence as a live document. Other fences stay highlighted code.
+Renders **uicast** documents inside Markdown chat replies. The model puts entries in a code fence tagged `uicast`, and this [Streamdown](https://streamdown.ai/) plugin mounts each fence as a live document.
 
 ````md
 Here are your open orders:
@@ -19,7 +19,7 @@ Here are your open orders:
 npm install @uicast/streamdown@beta streamdown
 ```
 
-Needs Streamdown 2.5 and React 19.2. The blocks render under your [`<RendererProvider>`](https://www.npmjs.com/package/@uicast/react).
+Needs Streamdown 2.5 and React 19.2.
 
 ## Use it
 
@@ -46,12 +46,12 @@ export function Chat({ replies }: { replies: string[] }) {
 }
 ```
 
-Create the renderer once, at module scope: a new one on each render remounts every block. Each complete line in a fence mounts at once; a cut-off last line waits for its newline.
+Create the renderer once, at module scope: a new one on each render remounts every block.
 
 | Option | Default | What it does |
 | --- | --- | --- |
 | `sourceToggle` | none | Your component, drawn above each block, that switches the block to its source. It gets `showSource` and `onShowSourceChange`. |
-| `ssr` | `false` | Renders blocks in a server pass too. By default the server HTML holds each block's skeleton, and the block renders after hydration. With `ssr: true`, seeds run on the server and call your host functions there. |
+| `ssr` | `false` | Off: the server sends each block's skeleton, and the block renders after hydration. On: blocks render on the server, and their seeds call your host functions there. |
 
 ## One conversation, one app
 
