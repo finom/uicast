@@ -478,10 +478,12 @@ const uicastRenderer = createFenceRenderer(); // ONCE, module scope
 - The provider wraps the whole conversation: every fence in every message shares
   the one `root` scope, so a widget in message 3 can read state a widget in
   message 1 wrote.
-- Blocks mount client-side only (seeds and tool calls must not run during SSR);
-  entries appear progressively as fence lines complete.
-- `createFenceRenderer({ showSourceToggle: true })` adds a Rendered/Source
-  switcher per block.
+- Blocks render after mount, so seeds and tool calls do not run in a server
+  pass; `createFenceRenderer({ ssr: true })` renders them there too. Entries
+  appear as fence lines complete.
+- `createFenceRenderer({ sourceToggle: SourceToggle })` draws your component
+  above each block. It gets `showSource` and `onShowSourceChange` and switches
+  that block to its source.
 - Wrappers over Streamdown (e.g. AI Elements' response component) apply their
   own default plugin set, and passing `plugins` **replaces** it — recompose the
   defaults alongside the fence renderer:

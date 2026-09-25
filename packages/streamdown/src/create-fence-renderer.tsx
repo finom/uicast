@@ -1,12 +1,18 @@
 "use client";
 import type { ComponentEntry } from "@uicast/core";
-import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { EntriesRenderer } from "@uicast/react";
-import type { CustomRenderer, CustomRendererProps } from "streamdown";
+import { type ComponentType, type CSSProperties, useEffect, useMemo, useState } from "react";
+import { CodeBlock, type CustomRenderer, type CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
 
+export type SourceToggleProps = {
+  showSource: boolean;
+  onShowSourceChange: (showSource: boolean) => void;
+};
+
 export type FenceRendererOptions = {
-  showSourceToggle?: boolean;
+  // Drawn above each block; the block stays mounted while its source shows.
+  sourceToggle?: ComponentType<SourceToggleProps>;
   // Render blocks in a server pass too: their seeds run and host functions are called on the server.
   ssr?: boolean;
 };
@@ -14,66 +20,26 @@ export type FenceRendererOptions = {
 // Chat hosts often wrap blocks in overflow:hidden; 1px keeps focus rings from being clipped.
 const blockStyle: CSSProperties = { padding: 1 };
 
-const toggleRowStyle: CSSProperties = {
-  display: "flex",
-  justifyContent: "flex-end",
-  gap: 4,
-  marginBottom: 4,
-};
-
-const sourceStyle: CSSProperties = {
-  margin: 0,
-  padding: 12,
-  overflowX: "auto",
-  fontSize: 12,
-  lineHeight: 1.5,
-  border: "1px solid color-mix(in srgb, currentColor 15%, transparent)",
-  borderRadius: 6,
-};
-
-const toggleButtonStyle = (active: boolean): CSSProperties => ({
-  font: "inherit",
-  fontSize: 12,
-  padding: "2px 8px",
-  background: "none",
-  border: "1px solid",
-  borderColor: active ? "color-mix(in srgb, currentColor 40%, transparent)" : "transparent",
-  borderRadius: 4,
-  cursor: "pointer",
-  opacity: active ? 1 : 0.55,
-});
-
-const VIEWS = [
-  ["rendered", "Rendered"],
-  ["source", "Source"],
-] as const;
-
 // Call once per option set and reuse: a fresh component type per render remounts every block.
-export function createFenceRenderer({ showSourceToggle, ssr }: FenceRendererOptions = {}): CustomRenderer {
+export function createFenceRenderer({ sourceToggle: SourceToggle, ssr }: FenceRendererOptions = {}): CustomRenderer {
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
     const [cache] = useState(() => new Map<string, ComponentEntry>());
     const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
-    const [view, setView] = useState<"rendered" | "source">("rendered");
+    const [showSource, setShowSource] = useState(false);
     // Tools usually fetch browser-relative URLs, so nothing runs in a server pass unless `ssr` is set.
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
     const rendered = mounted || ssr ? <EntriesRenderer entries={entries} /> : null;
-    // No toggle row above nothing; a finished garbage-only fence still gets the Source view.
-    if (!showSourceToggle || (entries.length === 0 && isIncomplete)) {
+    // No toggle above nothing; a finished garbage-only fence still gets the source view.
+    if (!SourceToggle || (entries.length === 0 && isIncomplete)) {
       return <div style={blockStyle}>{rendered}</div>;
     }
     return (
       <div style={blockStyle}>
-        <div style={toggleRowStyle}>
-          {VIEWS.map(([value, label]) => (
-            <button key={value} type="button" style={toggleButtonStyle(view === value)} onClick={() => setView(value)}>
-              {label}
-            </button>
-          ))}
-        </div>
+        <SourceToggle showSource={showSource} onShowSourceChange={setShowSource} />
         {/* Keep the block mounted while source shows — a remount would re-run seeds and wipe block state. */}
-        <div hidden={view !== "rendered"}>{rendered}</div>
-        {view === "source" && <pre style={sourceStyle}>{code}</pre>}
+        <div hidden={showSource}>{rendered}</div>
+        {showSource && <CodeBlock code={code} language="jsonl" isIncomplete={isIncomplete} />}
       </div>
     );
   }

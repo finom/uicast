@@ -6,7 +6,7 @@ import { Evaluator, type StandardToolV0 } from "@uicast/expr";
 import { z } from "zod";
 import { createComponentDefinition, type ComponentEntry } from "@uicast/core";
 import { createComponentImplementation, RendererProvider } from "@uicast/react";
-import { createFenceRenderer, type FenceRendererOptions } from "../create-fence-renderer";
+import { createFenceRenderer, type FenceRendererOptions, type SourceToggleProps } from "../create-fence-renderer";
 import { FENCE_LANGUAGE } from "../parse-fence-code";
 
 const boxDef = createComponentDefinition({
@@ -37,6 +37,13 @@ const Host = ({ evaluator = defaultEvaluator, children }: { evaluator?: Evaluato
 );
 
 const line = (entry: ComponentEntry) => JSON.stringify(entry);
+
+// The label names the view a click switches to.
+const Toggle = ({ showSource, onShowSourceChange }: SourceToggleProps) => (
+  <button type="button" onClick={() => onShowSourceChange(!showSource)}>
+    {showSource ? "Rendered" : "Source"}
+  </button>
+);
 
 // No vitest globals, so RTL cannot auto-register its cleanup.
 afterEach(cleanup);
@@ -192,23 +199,21 @@ describe("createFenceRenderer — source toggle", () => {
   });
 
   it("shows the toggle only once a complete entry exists in a streaming fence", () => {
-    const Fence = createFenceRenderer({ showSourceToggle: true }).component;
+    const Fence = createFenceRenderer({ sourceToggle: Toggle }).component;
     const at = (code: string) => (
       <Host>
         <Fence code={code} isIncomplete language={FENCE_LANGUAGE} />
       </Host>
     );
     const { queryByText, rerender } = render(at(entryLine.slice(0, 11)));
-    expect(queryByText("Rendered")).toBeNull();
     expect(queryByText("Source")).toBeNull();
 
     rerender(at(`${entryLine}\n${entryLine.slice(0, 11)}`));
-    expect(queryByText("Rendered")).not.toBeNull();
     expect(queryByText("Source")).not.toBeNull();
   });
 
   it("shows the toggle for a finished fence even when it produced no entries", () => {
-    const Fence = createFenceRenderer({ showSourceToggle: true }).component;
+    const Fence = createFenceRenderer({ sourceToggle: Toggle }).component;
     const { queryByText } = render(
       <Host>
         <Fence code="just some prose" isIncomplete={false} language={FENCE_LANGUAGE} />
@@ -218,7 +223,7 @@ describe("createFenceRenderer — source toggle", () => {
   });
 
   it("keeps the block mounted while source shows — the seed does not re-run", () => {
-    const Fence = createFenceRenderer({ showSourceToggle: true }).component;
+    const Fence = createFenceRenderer({ sourceToggle: Toggle }).component;
     let calls = 0;
     const functions: StandardToolV0[] = [
       {

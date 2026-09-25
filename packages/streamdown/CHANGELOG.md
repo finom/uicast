@@ -15,4 +15,5 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Breaking: `showSourceToggle` is `sourceToggle`, a component you pass.** It gets `showSource` and `onShowSourceChange` (the exported `SourceToggleProps`) and is drawn as-is above each block; the built-in buttons and their styles are gone. The source shows in Streamdown's `CodeBlock` instead of a styled `<pre>`.
 - The fence prompt says entry, not element, for a line the model writes: "Entry keys are still per-fence", "a lone corrected entry".
