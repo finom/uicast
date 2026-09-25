@@ -12,3 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `getFencePartialPrompt({ note? })`: `note` appends host-specific context as the section's trailing `## Note`, matching every other **uicast** prompt partial.
 - `FencePromptOptions`, the options type of `getFencePartialPrompt`, is exported from `@uicast/streamdown/prompt`, as core exports its builders' option types.
 - Initial public beta of the Streamdown plugin: uicast entries ride inside `uicast` code fences in Markdown chat replies, plus the matching fence prompt partial.
+
+### Changed
+
+- The fence prompt says entry, not element, for a line the model writes: "Entry keys are still per-fence", "a lone corrected entry".

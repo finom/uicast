@@ -20,7 +20,7 @@ const boxDef = createComponentDefinition({
 
 const boxImpl = createComponentImplementation({
 	def: boxDef,
-	render: ({ text, children}, { entry }) => (
+	render: ({ text, children }, { entry }) => (
 		<div data-key={entry.key}>
 			{text}
 			{children}

@@ -1,6 +1,6 @@
 "use client";
-import { type CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentEntry } from "@uicast/core";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 import { EntriesRenderer } from "@uicast/react";
 import type { CustomRenderer, CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
@@ -31,27 +31,27 @@ const sourceStyle: CSSProperties = {
   borderRadius: 6,
 };
 
-function toggleButtonStyle(active: boolean): CSSProperties {
-  return {
-    font: "inherit",
-    fontSize: 12,
-    padding: "2px 8px",
-    background: "none",
-    border: "1px solid",
-    borderColor: active ? "color-mix(in srgb, currentColor 40%, transparent)" : "transparent",
-    borderRadius: 4,
-    cursor: "pointer",
-    opacity: active ? 1 : 0.55,
-  };
-}
+const toggleButtonStyle = (active: boolean): CSSProperties => ({
+  font: "inherit",
+  fontSize: 12,
+  padding: "2px 8px",
+  background: "none",
+  border: "1px solid",
+  borderColor: active ? "color-mix(in srgb, currentColor 40%, transparent)" : "transparent",
+  borderRadius: 4,
+  cursor: "pointer",
+  opacity: active ? 1 : 0.55,
+});
+
+const VIEWS = [
+  ["rendered", "Rendered"],
+  ["source", "Source"],
+] as const;
 
 // Call once per option set and reuse: a fresh component type per render remounts every block.
-export function createFenceRenderer(options: FenceRendererOptions = {}): CustomRenderer {
-  const { showSourceToggle, ssr } = options;
+export function createFenceRenderer({ showSourceToggle, ssr }: FenceRendererOptions = {}): CustomRenderer {
   function FenceBlock({ code, isIncomplete }: CustomRendererProps) {
-    const cacheRef = useRef<Map<string, ComponentEntry> | null>(null);
-    if (!cacheRef.current) cacheRef.current = new Map();
-    const cache = cacheRef.current;
+    const [cache] = useState(() => new Map<string, ComponentEntry>());
     const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
     const [view, setView] = useState<"rendered" | "source">("rendered");
     // Tools usually fetch browser-relative URLs, so nothing runs in a server pass unless `ssr` is set.
@@ -65,20 +65,11 @@ export function createFenceRenderer(options: FenceRendererOptions = {}): CustomR
     return (
       <div style={blockStyle}>
         <div style={toggleRowStyle}>
-          <button
-            type="button"
-            style={toggleButtonStyle(view === "rendered")}
-            onClick={() => setView("rendered")}
-          >
-            Rendered
-          </button>
-          <button
-            type="button"
-            style={toggleButtonStyle(view === "source")}
-            onClick={() => setView("source")}
-          >
-            Source
-          </button>
+          {VIEWS.map(([value, label]) => (
+            <button key={value} type="button" style={toggleButtonStyle(view === value)} onClick={() => setView(value)}>
+              {label}
+            </button>
+          ))}
         </div>
         {/* Keep the block mounted while source shows — a remount would re-run seeds and wipe block state. */}
         <div hidden={view !== "rendered"}>{rendered}</div>
