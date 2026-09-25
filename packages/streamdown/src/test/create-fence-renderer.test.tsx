@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { act, type ReactNode } from "react";
+import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Evaluator, type StandardToolV0 } from "@uicast/expr";
@@ -263,7 +264,17 @@ describe("createFenceRenderer — source toggle", () => {
 });
 
 describe("createFenceRenderer — client-only gate", () => {
+  const skeleton = { renders: 0 };
+  // Module-stable, so the provider's value does not change between renders.
+  const fallbackComponents = {
+    defaultSkeleton: () => {
+      skeleton.renders += 1;
+      return <span data-skeleton="" />;
+    },
+  };
+
   function setup(options?: FenceRendererOptions) {
+    skeleton.renders = 0;
     const Fence = createFenceRenderer(options).component;
     const counter = { calls: 0 };
     const functions: StandardToolV0[] = [
@@ -284,22 +295,52 @@ describe("createFenceRenderer — client-only gate", () => {
       props: { expr: "({ text: 'seeded ' + scopes.root.n })" },
     });
     const at = () => (
-      <Host evaluator={evaluator}>
+      <RendererProvider implementations={implementations} evaluator={evaluator} fallbackComponents={fallbackComponents}>
         <Fence code={code} isIncomplete={false} language={FENCE_LANGUAGE} />
-      </Host>
+      </RendererProvider>
     );
     return { counter, at };
   }
 
-  it("renders no entries and runs no seeds during SSR; the client mount seeds once", () => {
+  it("draws the skeleton and runs no seeds in a server pass; the client mount seeds once", () => {
     const { counter, at } = setup();
 
     const html = renderToString(at());
     expect(counter.calls).toBe(0);
+    expect(html).toContain("data-skeleton");
     expect(html).not.toContain("seeded");
 
     const { container } = render(at());
     expect(counter.calls).toBe(1);
+    expect(container.textContent).toContain("seeded 1");
+  });
+
+  it("hydrates the server skeleton without a mismatch, then renders the block", async () => {
+    const { counter, at } = setup();
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(at());
+    document.body.appendChild(container);
+    expect(container.querySelector("[data-skeleton]")).not.toBeNull();
+
+    const recoverable = vi.fn();
+    let root: Root | undefined;
+    await act(async () => {
+      root = hydrateRoot(container, at(), { onRecoverableError: recoverable });
+    });
+    expect(recoverable).not.toHaveBeenCalled();
+    expect(counter.calls).toBe(1);
+    expect(container.textContent).toContain("seeded 1");
+    expect(container.querySelector("[data-skeleton]")).toBeNull();
+
+    act(() => root?.unmount());
+    container.remove();
+  });
+
+  it("renders a block made in the browser at once, without drawing its skeleton", () => {
+    const { at } = setup();
+
+    const { container } = render(at());
+    expect(skeleton.renders).toBe(0);
     expect(container.textContent).toContain("seeded 1");
   });
 
@@ -309,5 +350,6 @@ describe("createFenceRenderer — client-only gate", () => {
     const html = renderToString(at());
     expect(counter.calls).toBe(1);
     expect(html).toContain("seeded 1");
+    expect(html).not.toContain("data-skeleton");
   });
 });

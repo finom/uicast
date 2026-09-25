@@ -1,7 +1,7 @@
 "use client";
 import type { ComponentEntry } from "@uicast/core";
-import { EntriesRenderer } from "@uicast/react";
-import { type ComponentType, type CSSProperties, useEffect, useMemo, useState } from "react";
+import { DocumentSkeleton, EntriesRenderer } from "@uicast/react";
+import { type ComponentType, type CSSProperties, useMemo, useState, useSyncExternalStore } from "react";
 import { CodeBlock, type CustomRenderer, type CustomRendererProps } from "streamdown";
 import { FENCE_LANGUAGE, parseFenceCode } from "./parse-fence-code";
 
@@ -29,12 +29,24 @@ export type SourceToggleProps = {
 export type FenceRendererOptions = {
   /** Your toggle, drawn above each block to switch it to its source. The block stays mounted while its source shows. */
   sourceToggle?: ComponentType<SourceToggleProps>;
-  /** Render blocks in a server pass too: their seeds run, and call host functions, on the server. Default `false`. */
+  /**
+   * Render blocks in a server pass too: their seeds run, and call host functions, on the server. Default `false`: the
+   * server draws each block's skeleton.
+   */
   ssr?: boolean;
 };
 
 // Chat hosts often wrap blocks in overflow:hidden; 1px keeps focus rings from being clipped.
 const blockStyle: CSSProperties = { padding: 1 };
+
+// False in a server pass and while its HTML hydrates; true otherwise, so a block made in the browser renders at once.
+const subscribeToNothing = () => () => {};
+const useHydrated = (): boolean =>
+  useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
 
 /**
  * The Streamdown renderer for `uicast` fences: each block mounts as an `<EntriesRenderer>` under your
@@ -52,10 +64,9 @@ export function createFenceRenderer({ sourceToggle: SourceToggle, ssr }: FenceRe
     const [cache] = useState(() => new Map<string, ComponentEntry>());
     const entries = useMemo(() => parseFenceCode(code, cache), [code, cache]);
     const [showSource, setShowSource] = useState(false);
-    // Tools usually fetch browser-relative URLs, so nothing runs in a server pass unless `ssr` is set.
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
-    const rendered = mounted || ssr ? <EntriesRenderer entries={entries} /> : null;
+    // Tools usually fetch browser-relative URLs, so a server pass draws only the skeleton unless `ssr` is set.
+    const hydrated = useHydrated();
+    const rendered = hydrated || ssr ? <EntriesRenderer entries={entries} /> : <DocumentSkeleton entries={entries} />;
     // No toggle above nothing; a finished garbage-only fence still gets the source view.
     if (!SourceToggle || (entries.length === 0 && isIncomplete)) {
       return <div style={blockStyle}>{rendered}</div>;

@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **A block draws its skeleton until the page hydrates**, as `DocumentSkeleton` draws it, instead of nothing. A server pass without `ssr` now sends the block's shape, so the page does not jump when the block renders. A block created in the browser renders at once; before, it drew nothing for one frame.
 - **Breaking: `showSourceToggle` is `sourceToggle`, a component you pass.** It gets `showSource` and `onShowSourceChange` (the exported `SourceToggleProps`) and is drawn as-is above each block; the built-in buttons and their styles are gone. The source shows in Streamdown's `CodeBlock` instead of a styled `<pre>`.
 - The fence prompt says entry, not element, for a line the model writes.
 - `getFencePartialPrompt` is about 40% shorter, with the same rules in terse wording.

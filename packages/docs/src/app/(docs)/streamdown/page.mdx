@@ -89,8 +89,8 @@ the [fence prompt](/prompt#getfencepartialprompt) tells the model to do it, even
 for a path an earlier block already seeded. Seeds are first-writer-wins, so the
 repeat writes nothing, and any block can be **saved as a standalone page**.
 
-**Blocks render after hydration**: a server-rendered chat page shows an empty
-fence until the browser takes over, unless [`ssr`](#ssr) is on.
+**Blocks render after hydration**: a server-rendered chat page shows each
+block's skeleton until the browser takes over, unless [`ssr`](#ssr) is on.
 
 ## `sourceToggle`
 
@@ -119,8 +119,9 @@ switching back keeps its state.
 
 ## `ssr`
 
-By default a block renders once the page mounts in the browser, so the server
-HTML holds an empty block and nothing in it runs on the server. With
+By default the server HTML holds the block's
+[skeleton](/react/ssr#document-skeleton), and nothing in it runs on the server.
+The block renders once the page hydrates. With
 `ssr: true{:ts}`, the block renders in the server pass too:
 
 - Its seeds run there and call their host functions on the server, so those
