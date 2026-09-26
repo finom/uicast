@@ -11,6 +11,14 @@ Log in with OpenRouter (OAuth PKCE; generation bills your own credits) to get a
 private copy of the demo data and your own pages and chats under
 `/u/<your-slug>`.
 
+## Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffinom%2Fuicast%2Ftree%2Fmain%2Fexamples%2Fback-office&project-name=uicast-back-office&repository-name=uicast-back-office&env=APP_SECRET&envDescription=Encrypts%20the%20stored%20OpenRouter%20keys.%20Make%20one%20with%3A%20openssl%20rand%20-base64%2032&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%5D)
+
+Vercel creates a Neon database and asks for `APP_SECRET` (make one with
+`openssl rand -base64 32{:bash}`). The first deploy creates the tables and the
+demo account.
+
 ## Install and run
 
 ```sh
