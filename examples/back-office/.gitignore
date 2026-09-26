@@ -1,3 +1,4 @@
 .env*
 !.env.example
 .vercel
+next-env.d.ts
