@@ -6,9 +6,15 @@ A back office for **Warehouse**, a made-up store: suppliers, products, customers
 
 Everything is world-readable; only the owner can write. Logging in with OpenRouter (OAuth PKCE) creates an account with a random slug and a private copy of the demo data. Generations run on the OpenRouter key the login grants, so they bill your own credits. OpenRouter returns a key but no user id, so the account lives in a session cookie: after you log out, the next login creates a new account. Logged out, you can read the seed account, `@uicast`, and everyone's recent pages.
 
+## Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffinom%2Fuicast%2Ftree%2Fmain%2Fexamples%2Fback-office&project-name=uicast-back-office&repository-name=uicast-back-office&env=APP_SECRET&envDescription=Encrypts%20the%20stored%20OpenRouter%20keys.%20Make%20one%20with%3A%20openssl%20rand%20-base64%2032&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%5D)
+
+Vercel creates a Neon database and asks for `APP_SECRET` (make one with `openssl rand -base64 32`). The first deploy creates the tables and the demo account.
+
 ## Run
 
-It runs inside this repo, against the packages' source. To start your own app, use [`examples/starter`](../starter).
+Inside this repo, it runs against the packages' source. To start your own app, use [`examples/starter`](../starter).
 
 ```bash
 npm install                                                      # repo root
