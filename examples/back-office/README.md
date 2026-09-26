@@ -1,4 +1,4 @@
-# @uicast/nextjs-demo
+# @uicast/back-office
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 

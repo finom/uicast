@@ -1,4 +1,4 @@
-# @uicast/nextjs-demo
+# @uicast/back-office
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
@@ -8,16 +8,18 @@ Everything is world-readable; only the owner can write. Logging in with OpenRout
 
 ## Run
 
+It runs inside this repo, against the packages' source. To start your own app, use [`examples/starter`](../starter).
+
 ```bash
 npm install                                                      # repo root
-docker compose -f packages/nextjs-demo/docker-compose.yml up -d  # local Postgres
-cp packages/nextjs-demo/.env.example packages/nextjs-demo/.env.local
-npm run db:push -w @uicast/nextjs-demo
-npm run db:seed -w @uicast/nextjs-demo
-npm run dev -w @uicast/nextjs-demo
+docker compose -f examples/back-office/docker-compose.yml up -d  # local Postgres
+cp examples/back-office/.env.example examples/back-office/.env.local
+npm run db:push -w @uicast/back-office
+npm run db:seed -w @uicast/back-office
+npm run dev -w @uicast/back-office
 ```
 
-Set these in `packages/nextjs-demo/.env.local`:
+Set these in `examples/back-office/.env.local`:
 
 - `DATABASE_URL`: the Postgres connection string. The example points at the docker-compose database; in production it is a Neon pooled connection string.
 - `APP_SECRET`: encrypts the stored OpenRouter keys. Login fails without it. Generate one with `openssl rand -base64 32`.
@@ -26,13 +28,13 @@ Set these in `packages/nextjs-demo/.env.local`:
 
 There is no site-wide model key: each user's OpenRouter key is stored encrypted on their account.
 
-`db:push` and `db:seed` do not load `.env.local`. They take `DATABASE_URL` from the environment, else the docker-compose default. To target another database, set it inline: `DATABASE_URL=<url> npm run db:push -w @uicast/nextjs-demo`.
+`db:push` and `db:seed` do not load `.env.local`. They take `DATABASE_URL` from the environment, else the docker-compose default. To target another database, set it inline: `DATABASE_URL=<url> npm run db:push -w @uicast/back-office`.
 
 ## Database
 
 No migrations are committed. `npm run db:push` applies `src/db/schema.ts` to the database directly.
 
-`npm run db:seed` checks the seed pages and chats against the catalog and the expression grammar, then writes the `@uicast` account. An existing account is updated in place, pages by their seed id and chats by id, so page ids and shared links survive. `npm run db:seed -w @uicast/nextjs-demo -- --fresh` deletes the account and recreates it with fresh data.
+`npm run db:seed` checks the seed pages and chats against the catalog and the expression grammar, then writes the `@uicast` account. An existing account is updated in place, pages by their seed id and chats by id, so page ids and shared links survive. `npm run db:seed -w @uicast/back-office -- --fresh` deletes the account and recreates it with fresh data.
 
 On Vercel, the `vercel-build` script runs `db:push -- --force` and `db:seed` before `next build`, on production deploys only. Preview deploys share the production database, so they only build.
 
@@ -67,7 +69,7 @@ In the generated UIs, forms validate and submit, buttons change the database thr
 
 The Source toggle above a chat block shows the JSON Lines the model wrote.
 
-[uicast.dev/nextjs-demo](https://uicast.dev/nextjs-demo) covers what the app still hand-writes and how its tools wrap the API.
+[uicast.dev/back-office](https://uicast.dev/back-office) covers what the app still hand-writes and how its tools wrap the API.
 
 ## License
 

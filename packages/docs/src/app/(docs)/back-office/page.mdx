@@ -1,6 +1,6 @@
-# Next.js demo
+# Back office
 
-`packages/nextjs-demo` is a small back office over five Postgres tables (Neon
+`examples/back-office` is a small back office over five Postgres tables (Neon
 in production, docker-compose locally): suppliers, products, customers, orders
 and a stock ledger. The shell (sidebar, chat panel) is hand-written; every
 table, form and detail view is generated. **uicast** calls this the
@@ -15,13 +15,13 @@ private copy of the demo data and your own pages and chats under
 
 ```sh
 npm install                                   # repo root
-docker compose -f packages/nextjs-demo/docker-compose.yml up -d
-npm run db:push -w @uicast/nextjs-demo
-npm run db:seed -w @uicast/nextjs-demo
-npm run dev -w @uicast/nextjs-demo
+docker compose -f examples/back-office/docker-compose.yml up -d
+npm run db:push -w @uicast/back-office
+npm run db:seed -w @uicast/back-office
+npm run dev -w @uicast/back-office
 ```
 
-Copy `packages/nextjs-demo/.env.example` to `.env.local`. `DATABASE_URL` works
+Copy `examples/back-office/.env.example` to `.env.local`. `DATABASE_URL` works
 as is with docker (use a Neon pooled string in production), and `APP_SECRET`
 encrypts stored OpenRouter keys (`openssl rand -base64 32{:bash}`). `OPENROUTER_MODEL`
 and `AI_MAX_OUTPUT_TOKENS` are optional. There is no site-wide model key.
@@ -96,7 +96,7 @@ changed keys ([partial replacement](/entry#key)).
 ## Layout
 
 ```
-packages/nextjs-demo
+examples/back-office
 ├── src/db/schema.ts     suppliers · products · customers  (the domain, per user)
 │                        orders · stock_movements
 │                        users · sessions                  (OpenRouter login)

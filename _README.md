@@ -154,8 +154,10 @@ The packages are beta, under the `beta` dist-tag. `@uicast/react` needs React 19
 Or start from a Next.js app with all of it wired:
 
 ```sh
-npx create-next-app@latest my-app --example https://github.com/finom/uicast/tree/main/examples/nextjs
+npx create-next-app@latest my-app --example https://github.com/finom/uicast/tree/main/examples/starter
 ```
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffinom%2Fuicast%2Ftree%2Fmain%2Fexamples%2Fstarter&project-name=uicast-app&repository-name=uicast-app)
 
 [Getting started](https://uicast.dev/getting-started) builds the same app step by step.
 
@@ -178,7 +180,7 @@ The full documentation is at [uicast.dev](https://uicast.dev). To start:
 - [Host functions](https://uicast.dev/expr/functions): changing data, confirmation, refetching.
 - [Assembling the prompt](https://uicast.dev/prompt): the system prompt, block by block.
 - [Entry fields](https://uicast.dev/entry): every field an entry can have.
-- [Next.js demo](https://uicast.dev/nextjs-demo): a back office where every table, form and detail view is generated.
+- [Back office](https://uicast.dev/back-office): an example app where every table, form and detail view is generated.
 
 Coding agents can install the [agent skill](https://uicast.dev/skill): `npx skills add finom/uicast`.
 

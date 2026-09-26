@@ -10,6 +10,11 @@
       "packages/*/*.mjs",
       "scripts/*.mjs",
       "packages/*/scripts/**/*.mjs",
+      "examples/back-office/src/**/*.ts",
+      "examples/back-office/src/**/*.tsx",
+      "examples/back-office/*.ts",
+      "examples/back-office/*.mjs",
+      "examples/back-office/scripts/**/*.mjs",
       "!**/next-env.d.ts"
     ]
   },

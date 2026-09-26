@@ -30,7 +30,7 @@ const meta: MetaRecord = {
   prompt: "Assembling the prompt",
   streaming: "Streaming",
   streamdown: "Streamdown plugin",
-  "nextjs-demo": "Next.js demo 🔧",
+  "back-office": "Back office 🔧",
   entry: {
     title: "Component Entry Format",
     items: {
