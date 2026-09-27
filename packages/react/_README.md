@@ -42,10 +42,11 @@ import { EntriesRenderer, RendererProvider } from "@uicast/react";
 
 // Once, at module scope: your host functions bind to it.
 const evaluator = new Evaluator({ functions: tools });
+const impls = [StatImpl];
 
 export function Page({ entries }: { entries: ComponentEntry[] }) {
   return (
-    <RendererProvider implementations={[StatImpl]} evaluator={evaluator}>
+    <RendererProvider implementations={impls} evaluator={evaluator}>
       <EntriesRenderer entries={entries} />
     </RendererProvider>
   );

@@ -168,8 +168,6 @@ What stays yours:
 - **Host functions are capabilities.** A call is checked against the declared shape. Whether the caller may make it is your authorization, on the server.
 - **Contexts are readable.** Pass only what the expression may see.
 
-A subclass that sets the protected `toFunction` hook runs the checked source on the JavaScript engine instead: faster, but without the run-time checks and the budget, and it needs `unsafe-eval`. Use it only for source you trust: [uicast.dev/expr/custom-expr](https://uicast.dev/expr/custom-expr).
-
 Each control is pinned by a test, such as `attacks.test.ts` and `exit-gate.test.ts`. `corpus.test.ts` runs every test expression here and as plain JavaScript, and the two must agree. One runtime dependency: acorn.
 
 ## In uicast
