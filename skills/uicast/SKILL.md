@@ -17,7 +17,7 @@ Model streams JSONL **entries**; each names a component you register; **uicast**
 npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
 ```
 
-Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown@beta streamdown`. React 19. Packages are beta: `@beta` tag.
+Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown@beta streamdown`. React 19.2. Packages are beta: `@beta` tag.
 
 | Package | Role |
 | --- | --- |
@@ -126,7 +126,7 @@ import { impls } from "@uicast/shadcn-catalog/all/impls"; // renderer
 @import "@uicast/shadcn-catalog/catalog.css"; /* always */
 ```
 
-- Styles read CSS variables (`var(--card)`): your theme restyles catalog.
+- Styles read CSS variables (`var(--card)`): your theme restyles the catalog, except the fixed status colors (green, yellow, red, blue).
 - Smaller prompt: `essential/defs` + `essential/impls` (30 components, about quarter of prompt), or groups: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each `<group>/defs` + `<group>/impls`.
 - Extend: `[...defs, MyDef]`, `[...impls, MyImpl]`.
 - Replace component: filter its name out of BOTH arrays, then append yours. Duplicate names throw.
@@ -180,7 +180,7 @@ export const tools = [listProducts, deleteProduct];
 - Validators and defaults print in prompt; model calls within them.
 - List functions: page window (`limit`/`offset` or `page`), sort, filters in; `{ items, total }` out. Model pages and filters through them. Sums and counts: own functions.
 - `title` (optional): human label model may reuse on button.
-- Name: JS identifier, unique; not `scopes`, `evt`, `currentValue`, or global like `Math`. Prompt builder throws otherwise.
+- Name: JS identifier, unique; not `scopes`, `evt`, `currentValue`, or global like `Math`. `Evaluator` and prompt builder throw otherwise.
 - Input schema rejects call → `invalid-arguments` (model's mistake). `execute` throws → `host-function` (yours).
 
 ## 3. Prompt
