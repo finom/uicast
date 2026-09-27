@@ -21,9 +21,10 @@ npm install                                                      # repo root
 docker compose -f examples/back-office/docker-compose.yml up -d  # local Postgres
 cp examples/back-office/.env.example examples/back-office/.env.local
 npm run db:push -w @uicast/back-office
-npm run db:seed -w @uicast/back-office
 npm run dev -w @uicast/back-office
 ```
+
+Optional: `npm run db:seed -w @uicast/back-office` writes the `@uicast` demo account, whose pages and chats logged-out visitors browse. Without it, logging in still gives you a copy of the demo data.
 
 Set these in `examples/back-office/.env.local`:
 
