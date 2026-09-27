@@ -39,11 +39,13 @@ There is no site-wide model key: each user's OpenRouter key is stored encrypted 
 
 ## Database
 
-No migrations are committed. `npm run db:push` applies `src/db/schema.ts` to the database directly.
+`src/db/schema.ts` is the schema. There are no migrations: `npm run db:push` changes the database to match the file.
 
-`npm run db:seed` checks the seed pages and chats against the catalog and the expression grammar, then writes the `@uicast` account. An existing account is updated in place, pages by their seed id and chats by id, so page ids and shared links survive. `npm run db:seed -w @uicast/back-office -- --fresh` deletes the account and recreates it with fresh data.
+Each account has its own copy of the demo data (suppliers, products, customers, orders, stock ledger) and its own pages and chats. Logging in creates an account and copies the demo data from `src/db/starter-data.ts` into it.
 
-On Vercel, the `vercel-build` script runs `db:push -- --force` and `db:seed` before `next build`, on production deploys only. Preview deploys share the production database, so they only build.
+`npm run db:seed` writes the `@uicast` account: the demo data, plus the pages and chats from `src/db/seed-content.ts`. Running it again rewrites those pages and chats in place, so their links keep working; the demo data stays as it is. `npm run db:seed -w @uicast/back-office -- --fresh` deletes the account and creates it again; page links change.
+
+On Vercel, a production deploy runs `db:push -- --force` and `db:seed` before the build; `--force` applies changes that drop data without asking. Preview deploys share the production database, so they run neither.
 
 ## Routes
 
