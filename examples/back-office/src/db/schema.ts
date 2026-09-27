@@ -35,6 +35,8 @@ export const suppliers = pgTable(
     email: text("email").notNull(),
     category: text("category").notNull(),
     leadTimeDays: integer("lead_time_days").notNull(),
+    // Nullable: production pushes with `--force`, and a NOT NULL column would truncate the table.
+    location: jsonb("location").$type<{ city: string; lat: number; lng: number }>(),
   },
   (t) => [index("suppliers_user").on(t.userId)],
 );

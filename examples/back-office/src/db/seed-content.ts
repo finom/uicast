@@ -883,6 +883,10 @@ const receiveCardFence = j([
   ] } },
 ]);
 
+const supplierMapFence = j([
+  { key: "map", component: "LocationMap", seed: [{ set: "scopes.root.suppliers", expr: "listSuppliers()" }], props: { expr: "({ center: { lat: 41, lng: 22 }, zoom: 2, width: 680, height: 300, markers: scopes.root.suppliers.items.filter(s => s.location).map(s => ({ lat: s.location.lat, lng: s.location.lng, label: s.name + ' · ' + s.location.city + ' · ' + s.leadTimeDays + ' days' })) })" } },
+]);
+
 const revenueFence = j([
   { key: "rev-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.year", expr: "getSalesSummary({ days: 365 })" }], children: ["rev-stats", "rev-chart"] },
   { key: "rev-stats", component: "Grid", props: { literal: { columns: "3", gap: "4" } }, children: ["rev-total", "rev-aov", "rev-open"] },
@@ -1069,6 +1073,15 @@ export const SEED_CHATS: {
         role: "assistant",
         usage: { inputTokens: 41100, outputTokens: 410, costUsd: 0.2157, model: OPUS_5 },
         text: `Here you go — adjust the count if the dock miscounted, then book it:\n\n\`\`\`uicast\n${receiveCardFence}\n\`\`\`\n\nThe stat above is live: it re-reads the product the moment the movement lands, so you'll see the stock jump when you click.`,
+      },
+      {
+        role: "user",
+        text: "Where do all our suppliers ship from? The lead times are all over the place.",
+      },
+      {
+        role: "assistant",
+        usage: { inputTokens: 42600, outputTokens: 390, costUsd: 0.2228, model: OPUS_5 },
+        text: `Hover a pin for the city and lead time:\n\n\`\`\`uicast\n${supplierMapFence}\n\`\`\`\n\nThe European suppliers mostly ship in 4–12 days and the Asian ones in 16–18. **Nordform Werk** is the exception: Hamburg, but 21 days, so that time goes into building the furniture, not shipping it.`,
       },
     ],
   },

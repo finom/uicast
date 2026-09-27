@@ -2,9 +2,9 @@ import type { ComponentEntry, ValueSource } from "@uicast/core";
 import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db } from "./index";
-import { chatMessages, chats, componentEntries, pages, users } from "./schema";
+import { chatMessages, chats, componentEntries, pages, suppliers, users } from "./schema";
 import { insertSeedChats, SEED_CHATS, SEED_PAGES } from "./seed-content";
-import { insertStarterData } from "./starter-data";
+import { insertStarterData, STARTER_SUPPLIERS } from "./starter-data";
 import { evaluator } from "@/lib/evaluator";
 import { SYSTEM_SLUG } from "@/lib/system-slug";
 
@@ -139,6 +139,13 @@ async function main() {
     .update(chatMessages)
     .set({ model: sql`${chatMessages.metadata}->>'model'`, metadata: sql`${chatMessages.metadata} - 'model'` })
     .where(sql`${chatMessages.metadata} ? 'model'`);
+  // Every account's suppliers saved before `suppliers.location` existed get the starter location of the same name.
+  for (const { name, location } of STARTER_SUPPLIERS) {
+    await db
+      .update(suppliers)
+      .set({ location })
+      .where(and(eq(suppliers.name, name), isNull(suppliers.location)));
+  }
 
   const [existing] = await db.select().from(users).where(eq(users.slug, SYSTEM_SLUG));
   if (existing && !process.argv.includes("--fresh")) {

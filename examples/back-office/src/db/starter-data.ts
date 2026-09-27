@@ -5,10 +5,10 @@ import { db } from "./index";
 // Deterministic. The ledger reconciles: every order not cancelled gets a "shipped" movement and "received" batches balance each product.
 
 const NAMED_SUPPLIERS = [
-  { name: "Lumen Trade Co.", email: "orders@lumentrade.eu", category: "Lighting", leadTimeDays: 7 },
-  { name: "Nordform Werk", email: "sales@nordform.de", category: "Furniture", leadTimeDays: 21 },
-  { name: "Circuitry Direct", email: "b2b@circuitrydirect.com", category: "Electronics", leadTimeDays: 10 },
-  { name: "Atelier Supply", email: "hello@ateliersupply.fr", category: "Accessories", leadTimeDays: 5 },
+  { name: "Lumen Trade Co.", email: "orders@lumentrade.eu", category: "Lighting", leadTimeDays: 7, location: { city: "Rotterdam", lat: 51.9244, lng: 4.4777 } },
+  { name: "Nordform Werk", email: "sales@nordform.de", category: "Furniture", leadTimeDays: 21, location: { city: "Hamburg", lat: 53.5511, lng: 9.9937 } },
+  { name: "Circuitry Direct", email: "b2b@circuitrydirect.com", category: "Electronics", leadTimeDays: 10, location: { city: "Boston", lat: 42.3601, lng: -71.0589 } },
+  { name: "Atelier Supply", email: "hello@ateliersupply.fr", category: "Accessories", leadTimeDays: 5, location: { city: "Lyon", lat: 45.764, lng: 4.8357 } },
 ];
 
 const NAMED_PRODUCTS = [
@@ -74,12 +74,12 @@ function makeRandom(seed: number): () => number {
 
 // Generated stock stays above 20 and a generated account under $800 lifetime, so the seeded chats' prose stays true.
 const EXTRA_SUPPLIERS = [
-  { name: "Klangwerk Audio", email: "b2b@klangwerk.de", category: "Audio", leadTimeDays: 12 },
-  { name: "Vault Storage Systems", email: "sales@vaultstorage.com", category: "Storage", leadTimeDays: 14 },
-  { name: "Papyrus Office", email: "orders@papyrus.it", category: "Office", leadTimeDays: 4 },
-  { name: "Copperline Cables", email: "trade@copperline.cn", category: "Cables", leadTimeDays: 18 },
-  { name: "Pixelgrade Displays", email: "wholesale@pixelgrade.kr", category: "Displays", leadTimeDays: 16 },
-  { name: "Formsense Ergonomics", email: "hello@formsense.se", category: "Ergonomics", leadTimeDays: 9 },
+  { name: "Klangwerk Audio", email: "b2b@klangwerk.de", category: "Audio", leadTimeDays: 12, location: { city: "Berlin", lat: 52.52, lng: 13.405 } },
+  { name: "Vault Storage Systems", email: "sales@vaultstorage.com", category: "Storage", leadTimeDays: 14, location: { city: "Columbus", lat: 39.9612, lng: -82.9988 } },
+  { name: "Papyrus Office", email: "orders@papyrus.it", category: "Office", leadTimeDays: 4, location: { city: "Milan", lat: 45.4642, lng: 9.19 } },
+  { name: "Copperline Cables", email: "trade@copperline.cn", category: "Cables", leadTimeDays: 18, location: { city: "Shenzhen", lat: 22.5431, lng: 114.0579 } },
+  { name: "Pixelgrade Displays", email: "wholesale@pixelgrade.kr", category: "Displays", leadTimeDays: 16, location: { city: "Seoul", lat: 37.5665, lng: 126.978 } },
+  { name: "Formsense Ergonomics", email: "hello@formsense.se", category: "Ergonomics", leadTimeDays: 9, location: { city: "Malmö", lat: 55.605, lng: 13.0038 } },
 ];
 
 const EXTRA_CATALOG: Record<string, { code: string; names: string[]; price: [number, number] }> = {
@@ -151,7 +151,7 @@ function generateStarter() {
   return { products, customers, orders };
 }
 
-const STARTER_SUPPLIERS = [...NAMED_SUPPLIERS, ...EXTRA_SUPPLIERS];
+export const STARTER_SUPPLIERS = [...NAMED_SUPPLIERS, ...EXTRA_SUPPLIERS];
 const { products: STARTER_PRODUCTS, customers: STARTER_CUSTOMERS, orders: STARTER_ORDERS } = generateStarter();
 
 // Call once, at user creation.

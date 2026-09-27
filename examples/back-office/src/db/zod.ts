@@ -3,16 +3,26 @@ import { MOVEMENT_REASONS, ORDER_STATUSES } from "./schema";
 
 // `.meta({ description })` says what a field is; the validators say the rest. `.meta({ id })` makes a shared type in the prompt.
 
+const supplierLocation = z
+  .object({
+    city: z.string(),
+    lat: z.number().min(-90).max(90),
+    lng: z.number().min(-180).max(180),
+  })
+  .meta({ description: "Where the supplier ships from." });
+
 export const supplierInsert = z.object({
   name: z.string().meta({ description: "Supplier company name." }),
   email: z.string().meta({ description: "Contact email for purchase orders." }),
   category: z.string().meta({ description: "Product category this supplier covers." }),
   leadTimeDays: z.number().int().meta({ description: "Typical delivery lead time, in days." }),
+  location: supplierLocation.nullish(),
 });
 export const supplierUpdate = supplierInsert.partial();
 export const supplierOutput = supplierInsert
   .extend({
     id: z.number().int().meta({ description: "Supplier id." }),
+    location: supplierLocation.nullable(),
   })
   .meta({ id: "Supplier" });
 
