@@ -6,8 +6,8 @@ import { TimelineDef } from "./def";
 
 const DOT_COLORS = {
   default: "bg-primary",
-  success: "bg-green-500",
-  warning: "bg-yellow-500",
+  success: "bg-success",
+  warning: "bg-warning",
   destructive: "bg-destructive",
 };
 

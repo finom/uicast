@@ -23,7 +23,7 @@ export const CodeBlockImpl = createComponentImplementation({
           <span className="text-xs font-medium text-muted-foreground">{language}</span>
           {showCopyButton && (
             <Button variant="ghost" size="icon" className="size-7" onClick={handleCopy}>
-              {copied ? <Check className="size-3.5 text-green-500" /> : <Copy className="size-3.5" />}
+              {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
             </Button>
           )}
         </CardHeader>

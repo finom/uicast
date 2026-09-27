@@ -15,9 +15,9 @@ const POSITIONS = {
 
 const ICONS = {
   default: null,
-  success: <CheckCircle2 className="size-4 text-green-500" />,
-  error: <AlertCircle className="size-4 text-red-500" />,
-  warning: <AlertTriangle className="size-4 text-yellow-500" />,
+  success: <CheckCircle2 className="size-4 text-success" />,
+  error: <AlertCircle className="size-4 text-destructive" />,
+  warning: <AlertTriangle className="size-4 text-warning" />,
 };
 
 export const ToastImpl = createComponentImplementation({

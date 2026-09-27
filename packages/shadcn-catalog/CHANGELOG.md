@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- Status colors come from theme variables: `--success`, `--warning`, `--info` and shadcn's `--destructive` replace the fixed Tailwind green, yellow, blue and red. `catalog.css` sets defaults for the first three, light and dark; a theme's own values win. `Rating` stars and `HighlightedText` colors use them too. `Banner` and `DiffViewer` text stays in the foreground color, on a tint of the status color.
 - Implementations share three helpers in `src/lib`: `skeletons.tsx` (the bar, stack, row and panel skeletons), `chart-frame.tsx` (the box around every Recharts chart) and `use-mirror.ts` (local state that a prop change resets). Copy them with a component. Rendering is unchanged, except that every chart's box is `position: relative`, as `PieChart`'s was.
 - `RenderError` reads the element's key from `error.elementKey`, since `ErrorComponentProps` no longer carries it.
 - Depends on zod `~4.6.5` (was `~4.3.6`).
@@ -49,6 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `Callout` icons show their variant color. shadcn's `Alert` set every icon to the text color, which overrode the icon's own class.
 - `PieChart`, `FunnelChart`, `ComboChart` and `GanttChart` used a colour's name as the SVG fill; they look it up in the palette now, as the other charts do.
 - `SearchInput.onSubmit` sends the input's live value, not the `value` prop it was last given.
 - `NumberInput` keeps a minimum width (`5rem`), so it no longer collapses to nothing inside a table cell.

@@ -11,8 +11,8 @@ const TREND_ICONS = {
 };
 
 const TREND_COLORS = {
-  up: "text-green-600",
-  down: "text-red-600",
+  up: "text-success",
+  down: "text-destructive",
   neutral: "text-muted-foreground",
 };
 

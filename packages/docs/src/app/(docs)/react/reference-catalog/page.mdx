@@ -24,10 +24,11 @@ Import its stylesheet once, in your global CSS:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-`catalog.css` holds the utilities the components use and no palette: it reads
-your theme's CSS variables (`var(--card){:css}`), so your theme applies. An app without its
-own shadcn setup imports `theme.css` first, for preflight and the shadcn
-palette:
+`catalog.css` holds the utilities the components use. It reads your theme's CSS
+variables (`var(--card){:css}`), so your theme applies, status colors included:
+`--success`, `--warning`, `--info` and `--destructive`. `catalog.css` has
+defaults for the first three. An app without its own shadcn setup imports
+`theme.css` first, for preflight and the shadcn palette:
 
 ```css
 @import "@uicast/shadcn-catalog/theme.css";

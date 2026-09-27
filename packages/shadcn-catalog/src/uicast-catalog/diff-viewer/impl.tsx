@@ -9,8 +9,8 @@ type Row = { type: "unchanged" | "added" | "removed"; line: string; oldLineNum?:
 
 const MARKERS = { added: "+", removed: "-", unchanged: " " };
 const TONES = {
-  added: "bg-green-50 dark:bg-green-950/30 text-green-800 dark:text-green-200",
-  removed: "bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-200",
+  added: "bg-success/15",
+  removed: "bg-destructive/15",
   unchanged: "",
 };
 const TITLE = "border-b px-4 py-2 bg-muted text-xs font-medium";

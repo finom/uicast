@@ -9,23 +9,23 @@ import { BannerDef } from "./def";
 
 const VARIANTS = {
   info: {
-    box: "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800",
-    text: "text-blue-800 dark:text-blue-200",
+    box: "bg-info/10 border-info/30",
+    color: "text-info",
     Icon: Info,
   },
   success: {
-    box: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800",
-    text: "text-green-800 dark:text-green-200",
+    box: "bg-success/10 border-success/30",
+    color: "text-success",
     Icon: CheckCircle,
   },
   warning: {
-    box: "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800",
-    text: "text-yellow-800 dark:text-yellow-200",
+    box: "bg-warning/10 border-warning/30",
+    color: "text-warning",
     Icon: AlertTriangle,
   },
   error: {
-    box: "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800",
-    text: "text-red-800 dark:text-red-200",
+    box: "bg-destructive/10 border-destructive/30",
+    color: "text-destructive",
     Icon: XCircle,
   },
 };
@@ -36,12 +36,12 @@ export const BannerImpl = createComponentImplementation({
     const [visible, setVisible] = useState(true);
     if (!visible) return <span data-key={entry.key} className="hidden" />;
 
-    const { box, text, Icon: DefaultIcon } = VARIANTS[variant];
+    const { box, color, Icon: DefaultIcon } = VARIANTS[variant];
     const Icon = icon ? ICONS[icon] : DefaultIcon;
     return (
       <div className={cn("flex items-center gap-3 rounded-lg border px-4 py-3", box)} data-key={entry.key}>
-        <Icon className={cn("size-5 shrink-0", text)} />
-        <div className={cn("flex-1 text-sm", text)}>{children}</div>
+        <Icon className={cn("size-5 shrink-0", color)} />
+        <div className="flex-1 text-sm">{children}</div>
         {dismissible && (
           <Button
             variant="ghost"

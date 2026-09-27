@@ -4,9 +4,9 @@ import { ProgressBarDef } from "./def";
 
 const COLORS = {
   default: "[&>[data-slot=progress-indicator]]:bg-primary",
-  success: "[&>[data-slot=progress-indicator]]:bg-green-500",
-  warning: "[&>[data-slot=progress-indicator]]:bg-yellow-500",
-  error: "[&>[data-slot=progress-indicator]]:bg-red-500",
+  success: "[&>[data-slot=progress-indicator]]:bg-success",
+  warning: "[&>[data-slot=progress-indicator]]:bg-warning",
+  error: "[&>[data-slot=progress-indicator]]:bg-destructive",
 };
 const HEIGHTS = { sm: "h-1", md: "h-2", lg: "h-3" };
 

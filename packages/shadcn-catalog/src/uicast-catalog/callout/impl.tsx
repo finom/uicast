@@ -4,12 +4,13 @@ import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
 import { PanelSkeleton } from "../../lib/skeletons";
 import { CalloutDef } from "./def";
 
+// On the Alert, not the icon: Alert sets `*:[svg]:text-current`, which beats a class on the icon.
 const VARIANTS = {
-  info: { Icon: Info, color: "text-blue-600 dark:text-blue-400" },
-  tip: { Icon: Lightbulb, color: "text-green-600 dark:text-green-400" },
-  warning: { Icon: AlertTriangle, color: "text-yellow-600 dark:text-yellow-400" },
-  error: { Icon: XCircle, color: "text-red-600 dark:text-red-400" },
-  note: { Icon: StickyNote, color: "text-foreground" },
+  info: { Icon: Info, color: "*:[svg]:text-info" },
+  tip: { Icon: Lightbulb, color: "*:[svg]:text-success" },
+  warning: { Icon: AlertTriangle, color: "*:[svg]:text-warning" },
+  error: { Icon: XCircle, color: "*:[svg]:text-destructive" },
+  note: { Icon: StickyNote, color: undefined },
 };
 
 export const CalloutImpl = createComponentImplementation({
@@ -17,8 +18,8 @@ export const CalloutImpl = createComponentImplementation({
   render: ({ variant, title, children }, { entry }) => {
     const { Icon, color } = VARIANTS[variant];
     return (
-      <Alert data-key={entry.key} variant={variant === "error" ? "destructive" : "default"}>
-        <Icon className={`size-4 ${color}`} />
+      <Alert data-key={entry.key} variant={variant === "error" ? "destructive" : "default"} className={color}>
+        <Icon className="size-4" />
         {title && <AlertTitle>{title}</AlertTitle>}
         <AlertDescription>{children}</AlertDescription>
       </Alert>

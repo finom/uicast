@@ -17,16 +17,13 @@ export const RatingImpl = createComponentImplementation({
           size="icon"
           className={cn(
             "size-auto p-0.5 transition-colors",
-            disabled ? "cursor-default" : "cursor-pointer hover:text-yellow-400",
+            disabled ? "cursor-default" : "cursor-pointer hover:text-warning",
           )}
           disabled={disabled}
           onClick={() => onChange({ value: i + 1 })}
         >
           <Star
-            className={cn(
-              SIZES[size],
-              i < value ? "fill-yellow-400 text-yellow-400" : "fill-none text-muted-foreground",
-            )}
+            className={cn(SIZES[size], i < value ? "fill-warning text-warning" : "fill-none text-muted-foreground")}
           />
         </Button>
       ))}

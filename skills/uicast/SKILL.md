@@ -126,7 +126,7 @@ import { impls } from "@uicast/shadcn-catalog/all/impls"; // renderer
 @import "@uicast/shadcn-catalog/catalog.css"; /* always */
 ```
 
-- Styles read CSS variables (`var(--card)`): your theme restyles the catalog, except the fixed status colors (green, yellow, red, blue).
+- Styles read CSS variables (`var(--card)`): your theme restyles the catalog, status colors included (`--success`, `--warning`, `--info`, `--destructive`; `catalog.css` defaults the first three).
 - Smaller prompt: `essential/defs` + `essential/impls` (30 components, about quarter of prompt), or groups: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each `<group>/defs` + `<group>/impls`.
 - Extend: `[...defs, MyDef]`, `[...impls, MyImpl]`.
 - Replace component: filter its name out of BOTH arrays, then append yours. Duplicate names throw.

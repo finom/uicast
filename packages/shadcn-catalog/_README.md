@@ -43,22 +43,25 @@ The catalog ships its own stylesheet, so there is no Tailwind config to write:
 @import "@uicast/shadcn-catalog/catalog.css";
 ```
 
-The catalog reads your theme's CSS variables (`background-color: var(--card)`), so your theme restyles it too.
+The catalog reads your theme's CSS variables (`background-color: var(--card)`), so your theme restyles it too, status colors included: `--success`, `--warning`, `--info` and `--destructive`. `catalog.css` has defaults for the first three.
 
 ## Groups
 
-The whole catalog is about 89,000 characters of prompt. A group is smaller:
+A group puts only its components into the prompt:
 
-| Group | Size | What is in it |
-| --- | --- | --- |
-| `essential` | 30 | Common components from every group, below. About 21,000 characters. |
-| `layout` | 17 | Card, grid, flex row and column, tabs, accordion. |
-| `content` | 35 | Heading, typography, badge, avatar, timeline, alert, map. |
-| `data` | 11 | Table, data grid, virtual list, kanban board, org chart. |
-| `charts` | 16 | Bar, line, pie, area, scatter, funnel, sankey. |
-| `forms` | 35 | Field, input, select, date picker, file upload, button. |
-| `navigation` | 7 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
-| `overlays` | 7 | Modal, confirm dialog, drawer, popover, tooltip, dropdown menu. |
+| Group | Size | Tokens | What is in it |
+| --- | --- | --- | --- |
+| `all` | 128 | 22,100 | Every component. |
+| `essential` | 30 | 5,300 | Common components from every group, below. |
+| `layout` | 17 | 2,300 | Card, grid, flex row and column, tabs, accordion. |
+| `content` | 35 | 6,700 | Heading, typography, badge, avatar, timeline, alert, map. |
+| `data` | 11 | 1,800 | Table, data grid, virtual list, kanban board, org chart. |
+| `charts` | 16 | 3,000 | Bar, line, pie, area, scatter, funnel, sankey. |
+| `forms` | 35 | 6,900 | Field, input, select, date picker, file upload, button. |
+| `navigation` | 7 | 2,300 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
+| `overlays` | 7 | 1,200 | Modal, confirm dialog, drawer, popover, tooltip, dropdown menu. |
+
+Tokens are rounded and counted with OpenAI's o200k tokenizer (GPT-4o and later). Other models count differently.
 
 Take several groups by spreading them, the same way on both sides:
 
@@ -90,7 +93,7 @@ The essentials:
 | `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for the renderer's `fallbackComponents`. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema` and `keyboardEventSchema`, payloads the catalog's callbacks share. |
 | `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components, such as `/ui/button` and `/ui/skeleton`. |
-| `@uicast/shadcn-catalog/catalog.css` | Every utility the components use. No palette. |
+| `@uicast/shadcn-catalog/catalog.css` | Every utility the components use. |
 | `@uicast/shadcn-catalog/theme.css` | Optional: preflight and the shadcn palette. |
 
 ## Map tiles

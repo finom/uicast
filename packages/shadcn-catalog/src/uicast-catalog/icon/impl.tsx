@@ -9,8 +9,8 @@ const COLORS = {
   muted: "text-muted-foreground",
   primary: "text-primary",
   destructive: "text-destructive",
-  success: "text-green-600 dark:text-green-500",
-  warning: "text-amber-600 dark:text-amber-500",
+  success: "text-success",
+  warning: "text-warning",
 } as const;
 
 export const IconImpl = createComponentImplementation({

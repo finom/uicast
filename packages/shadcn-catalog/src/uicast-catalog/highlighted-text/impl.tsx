@@ -2,10 +2,10 @@ import { createComponentImplementation } from "@uicast/react";
 import { HighlightedTextDef } from "./def";
 
 const BACKGROUNDS = {
-  yellow: "bg-yellow-200 dark:bg-yellow-800/50",
-  green: "bg-green-200 dark:bg-green-800/50",
-  blue: "bg-blue-200 dark:bg-blue-800/50",
-  red: "bg-red-200 dark:bg-red-800/50",
+  yellow: "bg-warning/30",
+  green: "bg-success/30",
+  blue: "bg-info/30",
+  red: "bg-destructive/30",
 } as const;
 
 export const HighlightedTextImpl = createComponentImplementation({
