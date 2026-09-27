@@ -58,7 +58,7 @@ The [expression language](/expr).
 
 | Export | What it does |
 |---|---|
-| `Evaluator` | The interpreter: `eval`, `compile`, `validate`, `memberReads`. `functions` binds [host functions](/expr/functions) at construction, so a call is checked before it runs; `budget` sets the limits. A subclass that sets `toFunction` runs expressions with `new Function` ([Custom evaluator](/expr/custom-expr)). |
+| `Evaluator` | The interpreter: `eval`, `compile`, `validate`. `functions` binds [host functions](/expr/functions) at construction, so a call is checked before it runs; `budget` sets the limits. A subclass that sets `toFunction` runs expressions with `new Function` ([Custom evaluator](/expr/custom-expr)). |
 | `ExpressionEvaluator` | The interface `Evaluator` implements and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator for another language. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 

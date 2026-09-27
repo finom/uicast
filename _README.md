@@ -122,8 +122,8 @@ An expression is JavaScript: one expression, over JSON data.
 ```js
 scopes.root.orders.filter((o) => o.total > 100).length  // → 1
 listOrders({ status: "open" })                          // → calls your host function
-fetch("/api/orders")                                    // → ExpressionError: "fetch" is not available in expressions
-({}).constructor                                        // → undefined: inherited names are not readable
+fetch("/api/orders")                                    // ❌ ExpressionError: "fetch" is not available in expressions
+({}).constructor                                        // ❌ undefined: inherited names are not readable
 ```
 
 - The grammar is closed: every syntax node, operator, global and method is on an allow-list. Anything else is refused before it runs.

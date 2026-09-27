@@ -20,7 +20,7 @@ ev.eval("rows.filter(r => r.stock > 0).length", { rows }); // → 2
 ev.eval("rows.map(r => r.name).join(', ')", { rows }); // → "Mug, Kettle, Beans"
 ev.eval("`${rows.length} items, ${rows.filter(r => !r.stock).length} sold out`", { rows }); // → "3 items, 1 sold out"
 ev.eval("Object.groupBy(rows, r => r.status)", { rows }); // → { open: [Mug, Beans], sold: [Kettle] }
-ev.eval('rows["pu" + "sh"]({ stock: 9 })', { rows }); // → ExpressionError: "push" is not an available method on array
+ev.eval('rows["pu" + "sh"]({ stock: 9 })', { rows }); // ❌ ExpressionError: "push" is not an available method on array
 ```
 
 - **JavaScript syntax.** One expression, no statements.
@@ -99,7 +99,6 @@ const ev = new Evaluator({
 | `eval(source, ...contexts)` | Runs the source. Each context is an object of names; a later one shadows an earlier one. |
 | `compile(source)` | The same, prepared once: `ev.compile("a + b")({ a, b })`. |
 | `validate(source)` | Checks without running. Returns the free names and the host functions called. |
-| `memberReads(source, root)` | Every static path read under `root`, such as `scopes.root.count`. Enough to drive subscriptions. |
 
 Every failure is an `ExpressionError` with a `reason`, such as `"guardrail-violation"` or `"budget-exceeded"`.
 
@@ -143,9 +142,9 @@ ev.eval("user.name", { user }); // → "Ada"
 - No call inside a callback: one call per item would run before anything could refuse the result.
 
 ```ts
-ev.eval("getUser({ id: 'seven' })"); // → ExpressionError: rejected its argument
-ev.eval("getUser({ id: 7 }).name"); // → ExpressionError: its call must be the result itself
-ev.eval("ids.map(id => getUser({ id }))", { ids }); // → ExpressionError: cannot be called inside a callback
+ev.eval("getUser({ id: 'seven' })"); // ❌ ExpressionError: rejected its argument
+ev.eval("getUser({ id: 7 }).name"); // ❌ ExpressionError: its call must be the result itself
+ev.eval("ids.map(id => getUser({ id }))", { ids }); // ❌ ExpressionError: cannot be called inside a callback
 ```
 
 ## Security
@@ -158,8 +157,8 @@ What the evaluator enforces:
 - Only JSON leaves an expression, as its result or as a host function's argument. The language builds nothing else, so the gate stops what came in through a context:
 
   ```ts
-  ev.eval("user", { user: new User() }); // → ExpressionError: The result contains a User, which is not plain data
-  ev.eval("scopes.fn", { scopes: { fn } }); // → ExpressionError: "fn" holds a function, which cannot be read in an expression
+  ev.eval("user", { user: new User() }); // ❌ ExpressionError: The result contains a User, which is not plain data
+  ev.eval("scopes.fn", { scopes: { fn } }); // ❌ ExpressionError: "fn" holds a function, which cannot be read in an expression
   ```
 
 - Every evaluation ends within its budget.
