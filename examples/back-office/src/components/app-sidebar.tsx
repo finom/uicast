@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FileText, type LucideIcon, MessageSquare, Plus } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import type { ReactNode } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { ScrollArea } from "@uicast/shadcn-catalog/ui/scroll-area";
 import { Separator } from "@uicast/shadcn-catalog/ui/separator";
@@ -20,7 +21,7 @@ const getJson =
 
 type NavSectionProps = {
   label: string;
-  empty: string;
+  empty: ReactNode;
   icon: LucideIcon;
   items?: { key: string | number; href: string; title: string }[];
   className?: string;
@@ -94,7 +95,14 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
         <div className="flex flex-col gap-1 pr-2">
           <NavSection
             label="Pages"
-            empty="No pages yet. Create one to get started."
+            empty={
+              <>
+                No pages yet.{" "}
+                <Link className="underline hover:text-foreground" href="/pages/new">
+                  Create one
+                </Link>
+              </>
+            }
             icon={FileText}
             items={pages?.map((page) => ({
               key: page.id,
@@ -104,7 +112,14 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
           />
           <NavSection
             label="Chats"
-            empty="No chats yet. Start one to ask about your data."
+            empty={
+              <>
+                No chats yet.{" "}
+                <Link className="underline hover:text-foreground" href="/chats/new">
+                  Start one
+                </Link>
+              </>
+            }
             icon={MessageSquare}
             items={chats?.map((chat) => ({ key: chat.id, href: `/u/${slug}/c/${chat.id}`, title: chat.title }))}
             className="mt-3"

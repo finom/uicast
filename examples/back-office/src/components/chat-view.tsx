@@ -14,6 +14,7 @@ import { RendererProvider } from "@uicast/react";
 import { type Usage, UsageLine } from "@/components/cost-info";
 import { useRendererDefaults } from "@/components/renderer-defaults";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
+import { Button } from "@uicast/shadcn-catalog/ui/button";
 import { Toggle } from "@uicast/shadcn-catalog/ui/toggle";
 import { createFenceRenderer, type SourceToggleProps } from "@uicast/streamdown";
 import {
@@ -27,6 +28,13 @@ import { PromptInput } from "@/components/ai-elements/prompt-input";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
+
+const SUGGESTIONS = [
+  "Which products are running low?",
+  "Chart revenue for the last 30 days",
+  "Top 5 customers by spend",
+  "Mark paid orders as shipped",
+];
 
 function SourceToggle({ showSource, onShowSourceChange }: SourceToggleProps) {
   return (
@@ -87,13 +95,23 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false 
     >
       <div className="flex h-full flex-col">
         <Conversation className="flex-1">
-          <ConversationContent className="mx-auto w-full max-w-3xl p-4">
+          <ConversationContent className="mx-auto min-h-full w-full max-w-3xl p-4">
             {messages.length === 0 ? (
               <ConversationEmptyState
                 icon={<MessageSquare className="size-8" />}
                 title="Ask about your data"
                 description="Answers can include live UI — charts, tables, and stats bound to the demo database."
-              />
+              >
+                {!readonly && (
+                  <div className="flex max-w-xl flex-wrap justify-center gap-2 pt-2">
+                    {SUGGESTIONS.map((text) => (
+                      <Button key={text} variant="outline" onClick={() => handleSubmit(text)}>
+                        {text}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </ConversationEmptyState>
             ) : (
               messages.map((message) => (
                 <Message from={message.role} key={message.id}>

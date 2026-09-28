@@ -24,17 +24,20 @@ export const ConversationEmptyState = ({
   icon,
   title,
   description,
+  children,
 }: {
   icon: ReactNode;
   title: string;
   description: string;
+  children?: ReactNode;
 }) => (
-  <div className="flex size-full flex-col items-center justify-center gap-3 p-8 text-center">
+  <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
     <div className="text-muted-foreground">{icon}</div>
     <div className="space-y-1">
       <h3 className="font-medium text-sm">{title}</h3>
       <p className="text-muted-foreground text-sm">{description}</p>
     </div>
+    {children}
   </div>
 );
 
