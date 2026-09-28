@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { chatMessages, chats, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
+import { pickChatSuggestions } from "@/lib/suggestions";
 import { ChatView } from "@/components/chat-view";
 import type { Usage } from "@/components/cost-info";
 
@@ -20,7 +21,7 @@ export default async function UserChat({ params }: PageProps<"/u/[slug]/c/[id]">
   // The row appears with the first message; until then only its owner sees it.
   if (!row) {
     if (me?.slug !== slug) notFound();
-    return <ChatView chatId={id} ownerSlug={slug} />;
+    return <ChatView chatId={id} ownerSlug={slug} suggestions={pickChatSuggestions()} />;
   }
 
   const rows = await db.select().from(chatMessages).where(eq(chatMessages.chatId, id)).orderBy(asc(chatMessages.id));

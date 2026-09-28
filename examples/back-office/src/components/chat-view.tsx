@@ -29,12 +29,15 @@ import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
 import { setApiOwner } from "@/tools/http";
 
-const SUGGESTIONS = [
-  "Which products are running low?",
-  "Chart revenue for the last 30 days",
-  "Top 5 customers by spend",
-  "Mark paid orders as shipped",
-];
+// The chat route answers `{ error }` JSON, and useChat hands over the raw body.
+const errorText = (message: string) => {
+  try {
+    const { error } = JSON.parse(message);
+    return typeof error === "string" ? error : message;
+  } catch {
+    return message;
+  }
+};
 
 function SourceToggle({ showSource, onShowSourceChange }: SourceToggleProps) {
   return (
@@ -50,9 +53,15 @@ const uicastRenderer = createFenceRenderer({ sourceToggle: SourceToggle });
 // Passing `plugins` replaces the default set, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
 
-type ChatViewProps = { chatId: string; initialMessages?: UIMessage<Usage>[]; ownerSlug: string; readonly?: boolean };
+type ChatViewProps = {
+  chatId: string;
+  initialMessages?: UIMessage<Usage>[];
+  ownerSlug: string;
+  readonly?: boolean;
+  suggestions?: string[];
+};
 
-export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false }: ChatViewProps) {
+export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false, suggestions }: ChatViewProps) {
   setApiOwner(ownerSlug);
   const { messages, sendMessage, status, stop, error } = useChat({ id: chatId, messages: initialMessages });
   const queryClient = useQueryClient();
@@ -102,9 +111,9 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false 
                 title="Ask about your data"
                 description="Answers can include live UI — charts, tables, and stats bound to the demo database."
               >
-                {!readonly && (
+                {suggestions && (
                   <div className="flex max-w-xl flex-wrap justify-center gap-2 pt-2">
-                    {SUGGESTIONS.map((text) => (
+                    {suggestions.map((text) => (
                       <Button key={text} variant="outline" onClick={() => handleSubmit(text)}>
                         {text}
                       </Button>
@@ -138,7 +147,7 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false 
         </Conversation>
 
         <div className="mx-auto w-full max-w-3xl px-4 pb-4">
-          {error && <p className="pb-2 text-xs text-destructive">{error.message}</p>}
+          {error && <p className="pb-2 text-xs text-destructive">{errorText(error.message)}</p>}
 
           {readonly ? (
             <p className="rounded-md border px-3 py-2 text-center text-xs text-muted-foreground">

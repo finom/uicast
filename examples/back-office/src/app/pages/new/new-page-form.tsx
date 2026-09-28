@@ -9,8 +9,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@uicast/shadcn-catalog/ui/input";
 import { Label } from "@uicast/shadcn-catalog/ui/label";
 import { Textarea } from "@uicast/shadcn-catalog/ui/textarea";
+import type { PageIdea } from "@/lib/suggestions";
 
-export function NewPageForm() {
+export function NewPageForm({ ideas }: { ideas: PageIdea[] }) {
   const [name, setName] = useState("");
   const [prompt, setPrompt] = useState("");
   const router = useRouter();
@@ -43,6 +44,21 @@ export function NewPageForm() {
           <CardDescription>Name the page and describe what you want to generate.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
+          <div className="flex flex-wrap gap-2">
+            {ideas.map((idea) => (
+              <Button
+                key={idea.name}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setName(idea.name);
+                  setPrompt(idea.prompt);
+                }}
+              >
+                {idea.name}
+              </Button>
+            ))}
+          </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="page-name">Page name</Label>
             <Input

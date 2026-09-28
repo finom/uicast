@@ -1,5 +1,6 @@
 import { getSessionUser } from "@/lib/auth";
 import { LoginGate } from "@/components/login-gate";
+import { pickPageIdeas } from "@/lib/suggestions";
 import { NewPageForm } from "./new-page-form";
 
 export const dynamic = "force-dynamic";
@@ -14,5 +15,5 @@ export default async function NewPage() {
       />
     );
   }
-  return <NewPageForm />;
+  return <NewPageForm ideas={pickPageIdeas()} />;
 }
