@@ -1,12 +1,24 @@
-import Link from "next/link";
+import { desc, eq } from "drizzle-orm";
+import { redirect } from "next/navigation";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
+import { db } from "@/db";
+import { chats } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ login?: string | string[] }> }) {
-  const { login } = await searchParams;
   const me = await getSessionUser();
+  if (me) {
+    const [latest] = await db
+      .select({ id: chats.id })
+      .from(chats)
+      .where(eq(chats.userId, me.id))
+      .orderBy(desc(chats.createdAt))
+      .limit(1);
+    redirect(latest ? `/u/${me.slug}/c/${latest.id}` : "/chats/new");
+  }
+  const { login } = await searchParams;
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
@@ -15,22 +27,9 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
         Describe a page or ask a question. The model answers with working UI over the store's demo data, billed to your
         own OpenRouter credits.
       </p>
-      <div className="flex gap-2">
-        {me ? (
-          <>
-            <Button asChild className="h-11 px-6 text-base">
-              <Link href="/pages/new">New page</Link>
-            </Button>
-            <Button asChild variant="outline" className="h-11 px-6 text-base">
-              <Link href="/chats/new">New chat</Link>
-            </Button>
-          </>
-        ) : (
-          <Button asChild className="h-11 px-6 text-base">
-            <a href="/api/auth/login">Log in with OpenRouter</a>
-          </Button>
-        )}
-      </div>
+      <Button asChild className="h-11 px-6 text-base">
+        <a href="/api/auth/login">Log in with OpenRouter</a>
+      </Button>
       {login === "failed" && (
         <p role="alert" className="text-xs text-destructive">
           OpenRouter login failed or was cancelled. Try again.

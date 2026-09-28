@@ -35,5 +35,5 @@ export async function GET(req: Request) {
   }
   await db.update(users).set({ openrouterKeyEnc }).where(eq(users.id, user.id));
 
-  return Response.redirect(new URL(`/u/${user.slug}`, req.url), 302);
+  return Response.redirect(new URL("/", req.url), 302);
 }
