@@ -171,8 +171,8 @@ export const slowSeedsEntries: ComponentEntry[] = [
   },
   {
     key: "low-empty",
-    component: "Callout",
+    component: "Alert",
     hidden: "scopes.root.low.items.length > 0",
-    props: { literal: { variant: "info", title: "Nothing is low on stock." } },
+    props: { literal: { title: "Nothing is low on stock." } },
   },
 ];

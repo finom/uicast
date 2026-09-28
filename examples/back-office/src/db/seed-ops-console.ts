@@ -135,7 +135,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
 
   { key: "charts", component: "Grid", props: { literal: { columns: "2", gap: "4" } }, children: ["chart-rev", "chart-units", "chart-status", "chart-heat"] },
   { key: "chart-rev", component: "Card", props: { literal: { title: "Revenue by day", description: "Last 30 days, cancelled orders excluded" } }, children: ["rev-area"] },
-  { key: "rev-area", component: "AreaChart", props: { expr: "({ data: scopes.root.sales.byDay, xKey: 'date', yKeys: ['revenue'], height: 220 })" } },
+  { key: "rev-area", component: "LineChart", props: { expr: "({ data: scopes.root.sales.byDay, xKey: 'date', yKeys: ['revenue'], filled: true, height: 220 })" } },
   { key: "chart-units", component: "Card", props: { literal: { title: "Units by category" } }, children: ["units-bar"] },
   {
     key: "units-bar",
@@ -318,8 +318,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   { key: "stock-row", component: "FlexRow", props: { literal: { gap: "1", align: "center" } }, children: ["stock-minus", "stock-badge", "stock-plus"] },
   {
     key: "stock-minus",
-    component: "IconButton",
-    props: { literal: { icon: "Minus", size: "sm", tooltip: "Remove one unit" } },
+    component: "Button",
+    props: { literal: { icon: "Minus", variant: "ghost", size: "sm", tooltip: "Remove one unit" } },
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: scopes.prod.id, qty: -1, reason: 'adjustment', note: 'Console −1' })" },
@@ -335,8 +335,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   },
   {
     key: "stock-plus",
-    component: "IconButton",
-    props: { literal: { icon: "Plus", size: "sm", tooltip: "Receive one unit" } },
+    component: "Button",
+    props: { literal: { icon: "Plus", variant: "ghost", size: "sm", tooltip: "Receive one unit" } },
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: scopes.prod.id, qty: 1, reason: 'received', note: 'Console +1' })" },
@@ -360,8 +360,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   { key: "pc-details", component: "TableCell", children: ["details-toggle", "details"] },
   {
     key: "details-toggle",
-    component: "IconButton",
-    props: { expr: "({ icon: scopes.root.openProductId === scopes.$prod.id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
+    component: "Button",
+    props: { expr: "({ icon: scopes.root.openProductId === scopes.$prod.id ? 'ChevronUp' : 'ChevronDown', variant: 'ghost', size: 'sm', tooltip: 'Recent movements' })" },
     callbacks: {
       onClick: [
         { set: "scopes.root.openProductId", expr: "currentValue === scopes.$prod.id ? null : scopes.$prod.id" },
@@ -509,8 +509,8 @@ export const opsConsoleEntries: ComponentEntry[] = [
   { key: "oc-act", component: "TableCell", children: ["ord-cancel"] },
   {
     key: "ord-cancel",
-    component: "IconButton",
-    props: { literal: { icon: "X", size: "sm", tooltip: "Cancel order" } },
+    component: "Button",
+    props: { literal: { icon: "X", variant: "ghost", size: "sm", tooltip: "Cancel order" } },
     hidden: "scopes.ord.status === 'delivered' || scopes.ord.status === 'cancelled'",
     callbacks: {
       onClick: [

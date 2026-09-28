@@ -172,8 +172,8 @@ const inventoryEntries: ComponentEntry[] = [
   { key: "adjust-row", component: "FlexRow", props: { literal: { gap: "1", align: "center" } }, children: ["adjust-minus", "adjust-plus"] },
   {
     key: "adjust-minus",
-    component: "IconButton",
-    props: { literal: { icon: "Minus", size: "sm", tooltip: "Remove one unit" } },
+    component: "Button",
+    props: { literal: { icon: "Minus", variant: "ghost", size: "sm", tooltip: "Remove one unit" } },
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: scopes.prod.id, qty: -1, reason: 'adjustment', note: 'Count correction' })" },
@@ -184,8 +184,8 @@ const inventoryEntries: ComponentEntry[] = [
   },
   {
     key: "adjust-plus",
-    component: "IconButton",
-    props: { literal: { icon: "Plus", size: "sm", tooltip: "Receive one unit" } },
+    component: "Button",
+    props: { literal: { icon: "Plus", variant: "ghost", size: "sm", tooltip: "Receive one unit" } },
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: scopes.prod.id, qty: 1, reason: 'received', note: 'Single unit' })" },
@@ -197,8 +197,8 @@ const inventoryEntries: ComponentEntry[] = [
   { key: "c-details", component: "TableCell", children: ["details-toggle", "details"] },
   {
     key: "details-toggle",
-    component: "IconButton",
-    props: { expr: "({ icon: scopes.root.openId === scopes.$prod.id ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Recent movements' })" },
+    component: "Button",
+    props: { expr: "({ icon: scopes.root.openId === scopes.$prod.id ? 'ChevronUp' : 'ChevronDown', variant: 'ghost', size: 'sm', tooltip: 'Recent movements' })" },
     callbacks: {
       onClick: [
         { set: "scopes.root.openId", expr: "currentValue === scopes.$prod.id ? null : scopes.$prod.id" },
@@ -237,7 +237,7 @@ const inventoryEntries: ComponentEntry[] = [
   },
   {
     key: "rcv-drawer",
-    component: "Drawer",
+    component: "Modal",
     props: { expr: "({ open: scopes.root.rcvOpen, title: 'Receive stock', description: 'Records a movement in the ledger and adjusts the count.', side: 'right' })" },
     callbacks: { onOpenChange: [{ set: "scopes.root.rcvOpen", expr: "evt.open" }] },
     children: ["rcv-form"],
@@ -357,7 +357,7 @@ const salesEntries: ComponentEntry[] = [
   },
   { key: "charts-row", component: "Grid", props: { literal: { columns: "2", gap: "4" } }, children: ["trend-card", "top-card"] },
   { key: "trend-card", component: "Card", props: { literal: { title: "Revenue by day", description: "Last 30 days" } }, children: ["trend"] },
-  { key: "trend", component: "AreaChart", props: { expr: "({ data: scopes.root.month.byDay, xKey: 'date', yKeys: ['revenue'], height: 220 })" } },
+  { key: "trend", component: "LineChart", props: { expr: "({ data: scopes.root.month.byDay, xKey: 'date', yKeys: ['revenue'], filled: true, height: 220 })" } },
   { key: "top-card", component: "Card", props: { literal: { title: "Top accounts", description: "Lifetime value, cancelled orders excluded" } }, children: ["top-bar"] },
   {
     key: "top-bar",
@@ -381,9 +381,9 @@ const salesEntries: ComponentEntry[] = [
   },
   {
     key: "customer-filter",
-    component: "Combobox",
+    component: "Select",
     props: {
-      expr: "({ value: scopes.root.customerId, placeholder: 'Any customer', searchPlaceholder: 'Find a customer…', options: [{ label: 'Any customer', value: 'all' }, ...scopes.root.customers.items.map(c => ({ label: c.name + ' — ' + c.company, value: String(c.id) }))] })",
+      expr: "({ searchable: true, value: scopes.root.customerId, placeholder: 'Any customer', searchPlaceholder: 'Find a customer…', options: [{ label: 'Any customer', value: 'all' }, ...scopes.root.customers.items.map(c => ({ label: c.name + ' — ' + c.company, value: String(c.id) }))] })",
     },
     callbacks: { onChange: [{ set: "scopes.root.customerId", expr: "evt.value" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.orders", expr: "listOrders({ limit: 50, offset: (scopes.root.page - 1) * 50, sort: scopes.root.sortKey === 'total' ? 'total' : 'createdAt', order: scopes.root.sortKey === 'oldest' ? 'asc' : 'desc', status: scopes.root.status === 'all' ? undefined : scopes.root.status, customerId: scopes.root.customerId === 'all' ? undefined : Number(scopes.root.customerId), days: scopes.root.days === 'all' ? undefined : Number(scopes.root.days) })" }, { set: "scopes.root.busy", literal: false }] },
   },
@@ -457,7 +457,7 @@ const salesEntries: ComponentEntry[] = [
   },
   {
     key: "cancel",
-    component: "IconButton",
+    component: "Button",
     props: { literal: { icon: "X", variant: "ghost", size: "sm", tooltip: "Cancel order" } },
     hidden: "scopes.ord.status === 'delivered' || scopes.ord.status === 'cancelled'",
     callbacks: {
@@ -475,8 +475,8 @@ const salesEntries: ComponentEntry[] = [
   { key: "c-more", component: "TableCell", children: ["more-toggle", "more"] },
   {
     key: "more-toggle",
-    component: "IconButton",
-    props: { expr: "({ icon: scopes.root.expanded[scopes.$ord.id] ? 'ChevronUp' : 'ChevronDown', size: 'sm', tooltip: 'Details' })" },
+    component: "Button",
+    props: { expr: "({ icon: scopes.root.expanded[scopes.$ord.id] ? 'ChevronUp' : 'ChevronDown', variant: 'ghost', size: 'sm', tooltip: 'Details' })" },
     callbacks: { onClick: [{ set: "scopes.root.expanded", expr: "({ ...currentValue, [scopes.$ord.id]: !currentValue[scopes.$ord.id] })" }] },
   },
   {
@@ -624,7 +624,7 @@ const customersEntries: ComponentEntry[] = [
   },
   {
     key: "detail",
-    component: "Drawer",
+    component: "Modal",
     props: {
       expr: "({ open: scopes.root.selectedId !== null, title: scopes.root.customers.items.find(c => c.id === scopes.root.selectedId)?.name ?? '', description: scopes.root.customers.items.find(c => c.id === scopes.root.selectedId)?.company ?? '', side: 'right' })",
     },
@@ -713,7 +713,7 @@ const customersEntries: ComponentEntry[] = [
   { key: "dc-status", component: "TableCell", props: { expr: "({ text: scopes.dord.status })" } },
   {
     key: "add-drawer",
-    component: "Drawer",
+    component: "Modal",
     props: { expr: "({ open: scopes.root.addOpen, title: 'Add customer', side: 'right' })" },
     callbacks: { onOpenChange: [{ set: "scopes.root.addOpen", expr: "evt.open" }] },
     children: ["add-form"],
@@ -956,7 +956,7 @@ const addProductFence = j([
   { key: "ap-open", component: "Button", props: { literal: { text: "Add product" } }, callbacks: { onClick: [{ set: "scopes.root.npOpen", literal: true }] } },
   { key: "ap-latest", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["ap-line"] },
   { key: "ap-line", component: "Typography", each: "scopes.root.latest.items", as: "np", keyBy: "id", props: { expr: "({ text: scopes.np.name + ' — ' + scopes.np.sku + ' — $' + scopes.np.price.toFixed(2), variant: 'muted' })" } },
-  { key: "ap-drawer", component: "Drawer", props: { expr: "({ open: scopes.root.npOpen, title: 'New product', description: 'Saved through the same API the rest of the app uses.', side: 'right' })" }, callbacks: { onOpenChange: [{ set: "scopes.root.npOpen", expr: "evt.open" }] }, children: ["ap-form"] },
+  { key: "ap-drawer", component: "Modal", props: { expr: "({ open: scopes.root.npOpen, title: 'New product', description: 'Saved through the same API the rest of the app uses.', side: 'right' })" }, callbacks: { onOpenChange: [{ set: "scopes.root.npOpen", expr: "evt.open" }] }, children: ["ap-form"] },
   { key: "ap-form", component: "FlexCol", props: { literal: { gap: "4" } }, children: ["apf-name", "apf-sku", "apf-cat", "apf-sup", "apf-stock", "apf-price", "ap-actions"] },
   { key: "apf-name", component: "Field", children: ["apl-name", "api-name"] },
   { key: "apl-name", component: "FieldLabel", props: { literal: { text: "Name" } } },
