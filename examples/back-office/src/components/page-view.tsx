@@ -120,6 +120,13 @@ export function PageView({ page: initialPage, initialEntries, ownerSlug, readonl
   const model = usageLine?.model ?? page.model;
   const streamError = control("error")?.error ?? queryError?.message;
   const runLabel = entries.length > 0 ? "Iterate" : "Generate";
+  // The entry the model is writing: a new page starts at its root, then entries count up from there.
+  const progress =
+    usageLine || finishReason
+      ? "Finishing…"
+      : history.length === 0 && runEntries.length === 0
+        ? "Generating the root…"
+        : `Generating entry ${runEntries.length + 1}…`;
 
   const renameIfChanged = async () => {
     const title = name.trim();
@@ -163,7 +170,7 @@ export function PageView({ page: initialPage, initialEntries, ownerSlug, readonl
         {isFetching && (
           <span className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
             <LoaderCircle className="size-3.5 animate-spin" />
-            Generating…
+            {progress}
           </span>
         )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -227,7 +234,7 @@ export function PageView({ page: initialPage, initialEntries, ownerSlug, readonl
               @{ownerSlug} · read-only
             </span>
           ) : (
-            <Button variant="outline" size="sm" onClick={() => setEditOpen((open) => !open)}>
+            <Button variant="outline" size="sm" disabled={isFetching} onClick={() => setEditOpen((open) => !open)}>
               <Pencil data-icon="inline-start" />
               Edit
             </Button>
