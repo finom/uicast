@@ -532,7 +532,7 @@ const customersEntries: ComponentEntry[] = [
     children: ["header-text", "add-btn"],
   },
   { key: "header-text", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["title", "subtitle"] },
-  { key: "title", component: "Heading", props: { literal: { level: "1", text: "Customer 360" } } },
+  { key: "title", component: "Heading", props: { literal: { level: "1", text: "Customer accounts" } } },
   {
     key: "subtitle",
     component: "Typography",
@@ -787,7 +787,7 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   },
   {
     seedId: "seed-page-customers",
-    title: "Customer 360",
+    title: "Customer accounts",
     usage: { inputTokens: 37300, outputTokens: 3900, costUsd: 0.284, model: OPUS_5 },
     prompt:
       "A customer page for the account team: who buys from us, how much each has spent, and their order history. Let me look someone up, fix their details, add a new account, and remove one if needed.",
