@@ -24,7 +24,7 @@ Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: a
 | `@uicast/expr` | Expression evaluator; host functions bind on it. |
 | `@uicast/core` | Entry types, streaming helpers, errors; prompt builders in `@uicast/core/prompt`. |
 | `@uicast/react` | Renderer. |
-| `@uicast/shadcn-catalog` | 128 ready components. Optional. |
+| `@uicast/shadcn-catalog` | 106 ready components. Optional. |
 | `@uicast/streamdown` | `uicast` fences in Markdown chat replies. |
 
 Never import `@uicast/core/internal` or `@uicast/expr/internal`: plumbing, no semver.
@@ -127,7 +127,7 @@ import { impls } from "@uicast/shadcn-catalog/all/impls"; // renderer
 ```
 
 - Styles read CSS variables (`var(--card)`): your theme restyles the catalog, status colors included (`--success`, `--warning`, `--info`, `--destructive`; `catalog.css` defaults the first three).
-- Smaller prompt: `essential/defs` + `essential/impls` (30 components, about quarter of prompt), or groups: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each `<group>/defs` + `<group>/impls`.
+- Smaller prompt: `essential/defs` + `essential/impls` (29 components, about quarter of prompt), or groups: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each `<group>/defs` + `<group>/impls`.
 - Extend: `[...defs, MyDef]`, `[...impls, MyImpl]`.
 - Replace component: filter its name out of BOTH arrays, then append yours. Duplicate names throw.
 - `ConfirmModal`, `RenderError` from `@uicast/shadcn-catalog` fit `fallbackComponents`; `Skeleton` from `@uicast/shadcn-catalog/ui/skeleton`.

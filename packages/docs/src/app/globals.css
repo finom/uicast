@@ -8,16 +8,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Radix sets state as `data-state="<x>"` or as a bare attribute, depending on the primitive; the state variants match both. */
-@custom-variant data-horizontal (&[data-orientation=horizontal]);
-@custom-variant data-vertical (&[data-orientation=vertical]);
-@custom-variant data-active (&:is([data-state=active], [data-active]));
-@custom-variant data-open (&:is([data-state=open], [data-open]));
-@custom-variant data-closed (&:is([data-state=closed], [data-closed]));
-@custom-variant data-checked (&:is([data-state=checked], [data-checked]));
-@custom-variant data-unchecked (&:is([data-state=unchecked], [data-unchecked]));
-@custom-variant data-selected (&:is([data-state=selected], [data-selected]));
-@custom-variant data-disabled (&[data-disabled]);
+/* The state variants of shadcn/tailwind.css: `data-state="<x>"` or the bare attribute, never one set to "false". */
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+@custom-variant data-active (&:where([data-state="active"], [data-active]:not([data-active="false"])));
+@custom-variant data-open (&:where([data-state="open"], [data-open]:not([data-open="false"])));
+@custom-variant data-closed (&:where([data-state="closed"], [data-closed]:not([data-closed="false"])));
+@custom-variant data-checked (&:where([data-state="checked"], [data-checked]:not([data-checked="false"])));
+@custom-variant data-unchecked (&:where([data-state="unchecked"], [data-unchecked]:not([data-unchecked="false"])));
+@custom-variant data-selected (&:where([data-selected="true"]));
+@custom-variant data-disabled (&:where([data-disabled="true"], [data-disabled]:not([data-disabled="false"])));
 @custom-variant data-inset (&[data-inset]);
 @custom-variant data-placeholder (&[data-placeholder]);
 @custom-variant data-popup-open (&[data-popup-open]);

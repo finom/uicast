@@ -7,7 +7,7 @@ Five packages, published as compiled ESM with type declarations.
 | [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders. No React. |
 | [`@uicast/expr`](#uicastexpr) | The expression evaluator: closed grammar, runtime membrane, budget. No **uicast** imports. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
-| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | A reference catalog: 128 def/impl pairs over shadcn/ui. |
+| [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | A reference catalog: 106 def/impl pairs over shadcn/ui. |
 | [`@uicast/streamdown`](#uicaststreamdown) | Renders `uicast` fences inside a Markdown chat reply. |
 
 ## `@uicast/core`
@@ -98,7 +98,7 @@ A reference catalog, usable as is. See
 | `@uicast/shadcn-catalog/essential/defs`, `/essential/impls` | 30 common components from every group. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema`: shared payloads the catalog's callbacks reuse. See [Shared events](/def#shared-events). |
 | `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for [`fallbackComponents`](/react/renderer). |
-| `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components (`/ui/button`, `/ui/skeleton`, …). |
+| `@uicast/shadcn-catalog/ui/*` | The 37 underlying components, shadcn/ui's and Kibo UI's kanban (`/ui/button`, `/ui/skeleton`, …). |
 | `@uicast/shadcn-catalog/catalog.css` | Every utility the components use, and defaults for `--success`, `--warning` and `--info`. Colors come from your theme's variables. |
 | `@uicast/shadcn-catalog/theme.css` | Optional baseline: preflight plus the shadcn palette. |
 

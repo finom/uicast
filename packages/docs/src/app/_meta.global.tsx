@@ -26,6 +26,8 @@ const meta: MetaRecord = {
       ssr: "Server rendering",
     },
   },
+  // Linked from the reference catalog page and the catalog README, not from the menus.
+  "shadcn-catalog-gallery": { title: "Catalog gallery", display: "hidden" },
   events: "Event handling",
   prompt: "Assembling the prompt",
   streaming: "Streaming",

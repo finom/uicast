@@ -1,0 +1,143 @@
+// biome-ignore-all format: one entry per line, as in a document
+import type { Example } from ".";
+
+export const forms: Record<string, Example> = {
+  Button: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2", align: "start" } }, seed: [{ set: "scopes.root.created", literal: 0 }, { set: "scopes.root.printed", literal: 0 }], children: ["row", "count"] },
+    { key: "row", component: "FlexRow", props: { literal: { gap: "2", align: "center" } }, children: ["create-btn", "print-btn"] },
+    { key: "create-btn", component: "Button", props: { literal: { text: "Create purchase order", icon: "Plus", tooltip: "Starts a new draft" } }, callbacks: { onClick: [{ set: "scopes.root.created", expr: "currentValue + 1" }] } },
+    { key: "print-btn", component: "Button", props: { literal: { icon: "Printer", variant: "outline", tooltip: "Print the order list" } }, callbacks: { onClick: [{ set: "scopes.root.printed", expr: "currentValue + 1" }] } },
+    { key: "count", component: "Typography", props: { expr: "({ text: 'Created ' + scopes.root.created + ', printed ' + scopes.root.printed + '.', variant: 'muted' })" } },
+  ],
+  ButtonGroup: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2", align: "start" } }, seed: [{ set: "scopes.root.view", literal: "list" }], children: ["group", "view-label"] },
+    { key: "group", component: "ButtonGroup", props: { literal: { attached: true } }, children: ["list-btn", "grid-btn"] },
+    { key: "list-btn", component: "Button", props: { expr: "({ text: 'List', size: 'sm', variant: scopes.root.view === 'list' ? 'default' : 'outline' })" }, callbacks: { onClick: [{ set: "scopes.root.view", literal: "list" }] } },
+    { key: "grid-btn", component: "Button", props: { expr: "({ text: 'Grid', size: 'sm', variant: scopes.root.view === 'grid' ? 'default' : 'outline' })" }, callbacks: { onClick: [{ set: "scopes.root.view", literal: "grid" }] } },
+    { key: "view-label", component: "Typography", props: { expr: "({ text: 'View: ' + scopes.root.view, variant: 'muted' })" } },
+  ],
+  Checkbox: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.inStock", literal: true }], children: ["chk", "state"] },
+    { key: "chk", component: "Checkbox", props: { expr: "({ checked: scopes.root.inStock, label: 'In stock' })" }, callbacks: { onChange: [{ set: "scopes.root.inStock", expr: "evt.checked" }] } },
+    { key: "state", component: "Typography", props: { expr: "({ text: scopes.root.inStock ? 'Marked in stock.' : 'Marked out of stock.', variant: 'muted' })" } },
+  ],
+  CodeEditor: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.template", literal: "Hi {{customer.name}}, your order has shipped." }], children: ["editor", "chars"] },
+    { key: "editor", component: "CodeEditor", props: { expr: "({ value: scopes.root.template, minHeight: 120 })" }, callbacks: { onChange: [{ set: "scopes.root.template", expr: "evt.value" }] } },
+    { key: "chars", component: "Typography", props: { expr: "({ text: scopes.root.template.length + ' characters', variant: 'small' })" } },
+  ],
+  ColorPicker: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.accent", literal: "#2563eb" }], children: ["picker", "value"] },
+    { key: "picker", component: "ColorPicker", props: { expr: "({ value: scopes.root.accent })" }, callbacks: { onChange: [{ set: "scopes.root.accent", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Accent color: ' + scopes.root.accent, variant: 'muted' })" } },
+  ],
+  CopyButton: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2", align: "start" } }, seed: [{ set: "scopes.root.copied", literal: "" }], children: ["copy", "status"] },
+    { key: "copy", component: "CopyButton", props: { literal: { text: "SKU-48213-BLK", label: "Copy SKU" } }, callbacks: { onCopy: [{ set: "scopes.root.copied", expr: "evt.text" }] } },
+    { key: "status", component: "Typography", props: { expr: "({ text: scopes.root.copied ? 'Copied ' + scopes.root.copied + '.' : 'Not copied yet.', variant: 'muted' })" } },
+  ],
+  CurrencyInput: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.price", literal: 24.99 }], children: ["input", "value"] },
+    { key: "input", component: "CurrencyInput", props: { expr: "({ value: scopes.root.price, currency: 'USD' })" }, callbacks: { onChange: [{ set: "scopes.root.price", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Unit price: $' + scopes.root.price.toFixed(2), variant: 'muted' })" } },
+  ],
+  DatePicker: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.deliveryDate", literal: "2026-10-15" }], children: ["picker", "value"] },
+    { key: "picker", component: "DatePicker", props: { expr: "({ value: scopes.root.deliveryDate, min: '2026-01-01' })" }, callbacks: { onChange: [{ set: "scopes.root.deliveryDate", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Delivery date: ' + scopes.root.deliveryDate, variant: 'muted' })" } },
+  ],
+  Field: [
+    { key: "field", component: "Field", seed: [{ set: "scopes.root.status", literal: "pending" }], children: ["label", "select", "hint"] },
+    { key: "label", component: "FieldLabel", props: { literal: { text: "Order status" } } },
+    { key: "select", component: "Select", props: { expr: "({ value: scopes.root.status, options: [{ label: 'Pending', value: 'pending' }, { label: 'Paid', value: 'paid' }, { label: 'Shipped', value: 'shipped' }] })" }, callbacks: { onChange: [{ set: "scopes.root.status", expr: "evt.value" }] } },
+    { key: "hint", component: "FieldDescription", props: { expr: "({ text: 'Currently: ' + scopes.root.status })" } },
+  ],
+  FieldDescription: "Field",
+  FieldLabel: "Field",
+  FileUpload: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.fileNames", literal: "" }], children: ["upload", "picked"] },
+    { key: "upload", component: "FileUpload", props: { literal: { accept: ["csv", "spreadsheet"] } }, callbacks: { onChange: [{ set: "scopes.root.fileNames", expr: "evt.files.map(f => f.name).join(', ')" }] } },
+    { key: "picked", component: "Typography", props: { expr: "({ text: scopes.root.fileNames ? 'Selected: ' + scopes.root.fileNames : 'No file selected yet.', variant: 'muted' })" } },
+  ],
+  FormulaBar: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.formula", literal: "=SUM(B2:B14)" }], children: ["bar", "value"] },
+    { key: "bar", component: "FormulaBar", props: { expr: "({ value: scopes.root.formula, cellReference: 'C15' })" }, callbacks: { onChange: [{ set: "scopes.root.formula", expr: "evt.value" }], onSubmit: [{ set: "scopes.root.formula", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Formula: ' + scopes.root.formula, variant: 'muted' })" } },
+  ],
+  Input: [
+    { key: "field", component: "Field", seed: [{ set: "scopes.root.name", literal: "Walnut Bookshelf" }], children: ["label", "input", "hint"] },
+    { key: "label", component: "FieldLabel", props: { literal: { text: "Product name" } } },
+    { key: "input", component: "Input", props: { expr: "({ value: scopes.root.name })" }, callbacks: { onChange: [{ set: "scopes.root.name", expr: "evt.value" }] } },
+    { key: "hint", component: "FieldDescription", props: { expr: "({ text: scopes.root.name.length + ' characters' })" } },
+  ],
+  MultiSelect: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.categories", literal: ["seating"] }], children: ["select", "value"] },
+    { key: "select", component: "MultiSelect", props: { expr: "({ value: scopes.root.categories, placeholder: 'Select categories', options: [{ label: 'Seating', value: 'seating' }, { label: 'Storage', value: 'storage' }, { label: 'Lighting', value: 'lighting' }, { label: 'Outdoor', value: 'outdoor' }] })" }, callbacks: { onChange: [{ set: "scopes.root.categories", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Categories: ' + (scopes.root.categories.join(', ') || 'none'), variant: 'muted' })" } },
+  ],
+  NumberInput: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.qty", literal: 12 }], children: ["input", "value"] },
+    { key: "input", component: "NumberInput", props: { expr: "({ value: scopes.root.qty, min: 0, step: 1 })" }, callbacks: { onChange: [{ set: "scopes.root.qty", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Reorder quantity: ' + scopes.root.qty, variant: 'muted' })" } },
+  ],
+  PhoneInput: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.phone", literal: "555-0142" }, { set: "scopes.root.phoneCode", literal: "+1" }], children: ["input", "value"] },
+    { key: "input", component: "PhoneInput", props: { expr: "({ value: scopes.root.phone, countryCode: scopes.root.phoneCode })" }, callbacks: { onChange: [{ set: "scopes.root.phone", expr: "evt.value" }, { set: "scopes.root.phoneCode", expr: "evt.countryCode" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Contact: ' + scopes.root.phoneCode + ' ' + scopes.root.phone, variant: 'muted' })" } },
+  ],
+  PinInput: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.code", literal: "" }], children: ["pin", "state"] },
+    { key: "pin", component: "PinInput", props: { expr: "({ value: scopes.root.code, length: 6 })" }, callbacks: { onChange: [{ set: "scopes.root.code", expr: "evt.value" }] } },
+    { key: "state", component: "Typography", props: { expr: "({ text: scopes.root.code.length + ' of 6 digits entered', variant: 'muted' })" } },
+  ],
+  Radio: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.priority", literal: "standard" }], children: ["radio", "value"] },
+    { key: "radio", component: "Radio", props: { expr: "({ value: scopes.root.priority, orientation: 'horizontal', options: [{ label: 'Standard', value: 'standard' }, { label: 'Expedited', value: 'expedited' }, { label: 'Rush', value: 'rush' }] })" }, callbacks: { onChange: [{ set: "scopes.root.priority", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Shipping: ' + scopes.root.priority, variant: 'muted' })" } },
+  ],
+  Rating: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.score", literal: 4 }], children: ["stars", "value"] },
+    { key: "stars", component: "Rating", props: { expr: "({ value: scopes.root.score, max: 5 })" }, callbacks: { onChange: [{ set: "scopes.root.score", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: scopes.root.score + ' of 5 stars', variant: 'muted' })" } },
+  ],
+  SearchInput: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.products", literal: [{ id: 1, name: "Walnut Bookshelf" }, { id: 2, name: "Birch Standing Desk" }, { id: 3, name: "Oak Dining Chair" }, { id: 4, name: "Linen Floor Lamp" }, { id: 5, name: "Walnut Side Table" }] }], children: ["search", "hit", "none"] },
+    { key: "search", component: "SearchInput", props: { expr: "({ value: scopes.root.q, placeholder: 'Search products…' })" }, callbacks: { onChange: [{ set: "scopes.root.q", expr: "evt.value" }], onClear: [{ set: "scopes.root.q", literal: "" }] } },
+    { key: "hit", component: "Typography", each: "scopes.root.products.filter(p => p.name.toLowerCase().includes(scopes.root.q.toLowerCase()))", as: "product", keyBy: "id", props: { expr: "({ text: scopes.product.name, as: 'div' })" } },
+    { key: "none", component: "Typography", hidden: "scopes.root.products.some(p => p.name.toLowerCase().includes(scopes.root.q.toLowerCase()))", props: { expr: "({ text: 'No products match ' + scopes.root.q + '.', variant: 'muted' })" } },
+  ],
+  Select: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.category", literal: "furniture" }, { set: "scopes.root.supplierId", literal: "sup-2" }], children: ["select", "value", "supplier", "picked"] },
+    { key: "select", component: "Select", props: { expr: "({ value: scopes.root.category, options: [{ label: 'Furniture', value: 'furniture' }, { label: 'Lighting', value: 'lighting' }, { label: 'Storage', value: 'storage' }, { label: 'Outdoor', value: 'outdoor' }] })" }, callbacks: { onChange: [{ set: "scopes.root.category", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Category: ' + scopes.root.category, variant: 'muted' })" } },
+    { key: "supplier", component: "Select", props: { expr: "({ value: scopes.root.supplierId, placeholder: 'Pick a supplier', searchable: true, options: [{ label: 'Nordform', value: 'sup-1' }, { label: 'Baltic Supply Co.', value: 'sup-2' }, { label: 'Atlas Components', value: 'sup-3' }] })" }, callbacks: { onChange: [{ set: "scopes.root.supplierId", expr: "evt.value" }] } },
+    { key: "picked", component: "Typography", props: { expr: "({ text: 'Supplier: ' + scopes.root.supplierId, variant: 'muted' })" } },
+  ],
+  Slider: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.threshold", literal: 20 }, { set: "scopes.root.price", literal: [20, 80] }], children: ["slider", "value", "range", "range-value"] },
+    { key: "slider", component: "Slider", props: { expr: "({ value: scopes.root.threshold, min: 0, max: 100, step: 5, showValue: true })" }, callbacks: { onChange: [{ set: "scopes.root.threshold", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Low-stock alert at ' + scopes.root.threshold + ' units', variant: 'muted' })" } },
+    { key: "range", component: "Slider", props: { expr: "({ value: scopes.root.price, min: 0, max: 200, step: 5, showValue: true })" }, callbacks: { onChange: [{ set: "scopes.root.price", expr: "evt.value" }] } },
+    { key: "range-value", component: "Typography", props: { expr: "({ text: 'Price range: $' + scopes.root.price[0] + ' - $' + scopes.root.price[1], variant: 'muted' })" } },
+  ],
+  Switch: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.autoReorder", literal: false }], children: ["switch", "value"] },
+    { key: "switch", component: "Switch", props: { expr: "({ checked: scopes.root.autoReorder, label: 'Auto-reorder when low' })" }, callbacks: { onChange: [{ set: "scopes.root.autoReorder", expr: "evt.checked" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: scopes.root.autoReorder ? 'Auto-reorder is on.' : 'Auto-reorder is off.', variant: 'muted' })" } },
+  ],
+  Textarea: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.note", literal: "Leave at the loading dock, ring bell twice." }], children: ["area", "count"] },
+    { key: "area", component: "Textarea", props: { expr: "({ value: scopes.root.note, rows: 3, placeholder: 'Delivery instructions…' })" }, callbacks: { onChange: [{ set: "scopes.root.note", expr: "evt.value" }] } },
+    { key: "count", component: "Typography", props: { expr: "({ text: scopes.root.note.length + ' characters', variant: 'small' })" } },
+  ],
+  TimePicker: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.cutoff", literal: "17:00" }], children: ["picker", "value"] },
+    { key: "picker", component: "TimePicker", props: { expr: "({ value: scopes.root.cutoff })" }, callbacks: { onChange: [{ set: "scopes.root.cutoff", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Same-day cutoff: ' + scopes.root.cutoff, variant: 'muted' })" } },
+  ],
+  ToggleGroup: [
+    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.align", literal: "left" }], children: ["toggle", "value"] },
+    { key: "toggle", component: "ToggleGroup", props: { expr: "({ type: 'single', value: scopes.root.align, variant: 'outline', size: 'sm', items: [{ label: 'Left', value: 'left' }, { label: 'Center', value: 'center' }, { label: 'Right', value: 'right' }] })" }, callbacks: { onChange: [{ set: "scopes.root.align", expr: "evt.value" }] } },
+    { key: "value", component: "Typography", props: { expr: "({ text: 'Alignment: ' + scopes.root.align, variant: 'muted' })" } },
+  ],
+};

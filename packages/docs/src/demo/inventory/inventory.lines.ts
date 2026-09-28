@@ -172,8 +172,8 @@ export const inventoryLines: ComponentEntry[] = [
   { key: "c-actions", component: "TableCell", children: ["edit-btn", "del-btn"] },
   {
     key: "edit-btn",
-    component: "IconButton",
-    props: { literal: { icon: "Pencil", tooltip: "Edit", size: "sm" } },
+    component: "Button",
+    props: { literal: { icon: "Pencil", variant: "ghost", tooltip: "Edit", size: "sm" } },
     callbacks: {
       onClick: [
         { set: "scopes.root.draftId", expr: "scopes.row.id" },
@@ -188,7 +188,7 @@ export const inventoryLines: ComponentEntry[] = [
   },
   {
     key: "del-btn",
-    component: "IconButton",
+    component: "Button",
     props: { literal: { icon: "Trash2", tooltip: "Delete", size: "sm", variant: "ghost" } },
     callbacks: {
       onClick: [
@@ -219,7 +219,7 @@ export const inventoryLines: ComponentEntry[] = [
 
   {
     key: "drawer",
-    component: "Drawer",
+    component: "Modal",
     props: {
       expr: "({ open: scopes.root.draftOpen, title: scopes.root.draftId ? 'Edit product' : 'New product', side: 'right' })",
     },

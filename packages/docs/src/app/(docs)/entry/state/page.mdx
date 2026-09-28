@@ -108,12 +108,14 @@ the row's own scope, `scopes.$<as>`. It starts empty and never touches the
 item:
 
 ```jsonc
-{ "key": "order", "component": "Collapsible",
+{ "key": "orders", "component": "Accordion",
+  "props": { "literal": { "type": "multiple" } }, "children": ["order"] }
+{ "key": "order", "component": "AccordionItem",
   "each": "scopes.root.orders", "as": "order", "keyBy": "id",
   "props": {
     "expr": "({ title: scopes.order.customer, open: scopes.$order.open })"
   },
-  "callbacks": { "onOpenChange": [
+  "callbacks": { "onToggle": [
     { "set": "scopes.$order.open", "expr": "evt.open" }
   ] } }
 ```
