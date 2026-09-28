@@ -1,5 +1,5 @@
 ---
-title: Demos
+title: Replays
 ---
 
 import { Cards } from "nextra/components";
@@ -9,16 +9,18 @@ import { colorPrompt } from "@/demo/color/color.prompt";
 import { inventoryPrompt } from "@/demo/inventory/inventory.prompt";
 import { studioPrompt } from "@/demo/studio/studio.prompt";
 
-# Demos
+# Replays
 
-Each demo replays a document entry by entry, on the same code path as a
-streamed model response. The components are real implementations, the host
-functions run against live data, and the finished app is interactive.
+Each replay feeds a prewritten document to the renderer entry by entry, on the
+same code path as a streamed model response. No model is called. The
+components are real implementations, the host functions run against live data,
+and the finished app is interactive. The [back office](/back-office) generates
+with a live model.
 
 ## Inventory
 
 <Cards num={2}>
-  <Cards.Card title="Open the Inventory demo" href="/demo/inventory" arrow />
+  <Cards.Card title="Open the Inventory replay" href="/replays/inventory" arrow />
   <Cards.Card
     title="Source on GitHub"
     href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/inventory"
@@ -33,7 +35,7 @@ A CRUD dashboard over a live in-browser database. Its prompt:
 ## Groovebox
 
 <Cards num={2}>
-  <Cards.Card title="Open the Groovebox demo" href="/demo/studio" arrow />
+  <Cards.Card title="Open the Groovebox replay" href="/replays/studio" arrow />
   <Cards.Card
     title="Source on GitHub"
     href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/studio"
@@ -49,7 +51,7 @@ interaction is a custom event. Its prompt:
 ## Palette studio
 
 <Cards num={2}>
-  <Cards.Card title="Open the Palette studio demo" href="/demo/color" arrow />
+  <Cards.Card title="Open the Palette studio replay" href="/replays/color" arrow />
   <Cards.Card
     title="Source on GitHub"
     href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/color"
@@ -65,7 +67,7 @@ a `{ hex, h, s, l }{:ts}` payload. Its prompt:
 ## Flow board
 
 <Cards num={2}>
-  <Cards.Card title="Open the Flow board demo" href="/demo/board" arrow />
+  <Cards.Card title="Open the Flow board replay" href="/replays/board" arrow />
   <Cards.Card
     title="Source on GitHub"
     href="https://github.com/finom/uicast/tree/main/packages/docs/src/demo/board"

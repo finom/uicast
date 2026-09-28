@@ -4,8 +4,8 @@ import type { MetaRecord } from "nextra";
 const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
-  // `type: "page"` puts Demos in the navbar; the /demo/[slug] players render full-bleed on their own.
-  demo: { title: "Demos", type: "page" },
+  // `type: "page"` puts Replays in the navbar; the /replays/[slug] players render full-bleed on their own.
+  replays: { title: "Replays", type: "page" },
   skill: "Agent skill",
   concepts: "Concepts",
   expr: {
@@ -52,7 +52,7 @@ const meta: MetaRecord = {
     href: "https://standard-tool.js.org/",
   },
   warehouse: {
-    title: "Live demo",
+    title: "Example app",
     type: "page",
     href: "https://warehouse.uicast.dev",
   },

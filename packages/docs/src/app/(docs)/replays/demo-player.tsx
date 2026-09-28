@@ -123,9 +123,9 @@ export function DemoPlayer({ demo }: { demo: DemoConfig }) {
       <header className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b border-border px-3 py-3 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link
-            href="/demo"
+            href="/replays"
             className="text-sm text-muted-foreground transition hover:text-foreground"
-            aria-label="All demos"
+            aria-label="All replays"
           >
             ←
           </Link>

@@ -55,7 +55,7 @@ export function SystemPromptDialog({ demo }: { demo: DemoConfig }) {
         <DialogHeader>
           <DialogTitle>System prompt</DialogTitle>
           <DialogDescription>
-            What a host would send to the model for this demo — the shared partials plus this catalog and these
+            What a host would send to the model for this replay — the shared partials plus this catalog and these
             functions.
             {prompt !== undefined && ` ≈${Math.round(prompt.length / CHARS_PER_TOKEN).toLocaleString("en-US")} tokens.`}
           </DialogDescription>
