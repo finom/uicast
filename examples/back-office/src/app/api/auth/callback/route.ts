@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   const verifier = store.get("pkce_verifier")?.value;
   store.delete("pkce_verifier");
   if (!code || !verifier) {
-    return Response.redirect(new URL("/?login=failed", req.url), 302);
+    return Response.redirect(new URL("/chats/new?login=failed", req.url), 302);
   }
 
   const res = await fetch("https://openrouter.ai/api/v1/auth/keys", {
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
   });
   const body = (await res.json().catch(() => null)) as { key?: string } | null;
   if (!res.ok || !body?.key) {
-    return Response.redirect(new URL("/?login=failed", req.url), 302);
+    return Response.redirect(new URL("/chats/new?login=failed", req.url), 302);
   }
 
   // Before the account exists: without APP_SECRET this throws, and no keyless account is left behind.

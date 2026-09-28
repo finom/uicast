@@ -111,6 +111,15 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
           />
         </div>
       </ScrollArea>
+
+      <nav className="flex gap-4 px-2 pb-1 text-xs text-muted-foreground">
+        <a className="hover:text-foreground" href="https://uicast.dev" target="_blank" rel="noreferrer">
+          Docs
+        </a>
+        <a className="hover:text-foreground" href="https://github.com/finom/uicast" target="_blank" rel="noreferrer">
+          GitHub
+        </a>
+      </nav>
     </aside>
   );
 }

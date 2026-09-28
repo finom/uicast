@@ -1,16 +1,7 @@
 import { LogIn } from "lucide-react";
-import type { ReactNode } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 
-export function LoginGate({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description: string;
-  children?: ReactNode;
-}) {
+export function LoginGate({ title, description }: { title: string; description: string }) {
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
       <h1 className="text-2xl font-semibold">{title}</h1>
@@ -21,7 +12,6 @@ export function LoginGate({
           Log in with OpenRouter
         </a>
       </Button>
-      {children}
     </div>
   );
 }

@@ -48,9 +48,17 @@ type ChatViewProps = {
   ownerSlug: string;
   readonly?: boolean;
   loggedOut?: boolean;
+  loginFailed?: boolean;
 };
 
-export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false, loggedOut = false }: ChatViewProps) {
+export function ChatView({
+  chatId,
+  initialMessages,
+  ownerSlug,
+  readonly = false,
+  loggedOut = false,
+  loginFailed = false,
+}: ChatViewProps) {
   setApiOwner(ownerSlug);
   const { messages, sendMessage, status, stop, error } = useChat({ id: chatId, messages: initialMessages });
   const queryClient = useQueryClient();
@@ -147,6 +155,11 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
           )}
           {loggedOut && (
             <p className="pt-2 text-center text-xs text-muted-foreground">
+              {loginFailed && (
+                <span role="alert" className="text-destructive">
+                  OpenRouter login failed or was cancelled.{" "}
+                </span>
+              )}
               <a className="underline" href="/api/auth/login">
                 Log in with OpenRouter
               </a>{" "}
