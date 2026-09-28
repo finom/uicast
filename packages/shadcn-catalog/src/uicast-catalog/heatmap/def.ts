@@ -18,8 +18,8 @@ export const HeatmapDef = createComponentDefinition({
       .meta({ description: "Array of cell data with row, col, and value" }),
     rows: z.array(z.string()).meta({ description: "Row labels in order" }),
     cols: z.array(z.string()).meta({ description: "Column labels in order" }),
-    minColor: chartColorSchema.default("blue").meta({ description: "Color for minimum value" }),
-    maxColor: chartColorSchema.default("violet").meta({ description: "Color for maximum value" }),
+    minColor: chartColorSchema.default("slate").meta({ description: "Color for minimum value" }),
+    maxColor: chartColorSchema.default("blue").meta({ description: "Color for maximum value" }),
     showValues: z.boolean().default(true).meta({ description: "Whether to show values in cells" }),
   }),
 });

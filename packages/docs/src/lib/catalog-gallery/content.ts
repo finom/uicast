@@ -63,7 +63,7 @@ export const content: Record<string, Example> = {
   ],
 
   EmptyState: [
-    { key: "empty", component: "EmptyState", props: { literal: { title: "No suppliers yet", description: "Add a supplier to start tracking restocks." } }, children: ["add-btn"] },
+    { key: "empty", component: "EmptyState", props: { literal: { title: "No suppliers yet", description: "Add a supplier to start tracking restocks.", icon: "Truck" } }, children: ["add-btn"] },
     { key: "add-btn", component: "Button", props: { literal: { text: "Add supplier" } } },
   ],
 

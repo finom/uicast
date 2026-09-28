@@ -54,7 +54,7 @@ A group puts only its components into the prompt:
 | `all` | 106 | 18,700 | Every component. |
 | `essential` | 29 | 5,500 | Common components from every group, below. |
 | `layout` | 16 | 2,200 | Card, grid, flex row and column, tabs, accordion. |
-| `content` | 29 | 5,900 | Heading, typography, badge, avatar, timeline, alert, map. |
+| `content` | 29 | 6,000 | Heading, typography, badge, avatar, timeline, alert, map. |
 | `data` | 10 | 1,600 | Table, data grid, virtual list, kanban board. |
 | `charts` | 12 | 2,400 | Bar, line, pie, scatter, funnel, heatmap. |
 | `forms` | 27 | 5,400 | Field, input, select, date picker, file upload, button. |

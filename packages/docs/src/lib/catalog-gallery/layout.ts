@@ -59,11 +59,11 @@ export const layout: Record<string, Example> = {
 
   ResizablePanel: [
     { key: "panels", component: "ResizablePanel", props: { literal: { direction: "horizontal", defaultSize: 50, minSize: 20 } }, children: ["list", "detail"] },
-    { key: "list", component: "Container", props: { literal: { maxWidth: "full", gap: "1" } }, children: ["o1", "o2", "o3"] },
+    { key: "list", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["o1", "o2", "o3"] },
     { key: "o1", component: "Typography", props: { literal: { text: "#1042 — Café Bloom" } } },
     { key: "o2", component: "Typography", props: { literal: { text: "#1043 — Nordic Roasters" } } },
     { key: "o3", component: "Typography", props: { literal: { text: "#1044 — Acme Foods" } } },
-    { key: "detail", component: "Container", props: { literal: { maxWidth: "full", gap: "1" } }, children: ["detail-title", "detail-body"] },
+    { key: "detail", component: "FlexCol", props: { literal: { gap: "1" } }, children: ["detail-title", "detail-body"] },
     { key: "detail-title", component: "Heading", props: { literal: { level: "4", text: "Order #1042" } } },
     { key: "detail-body", component: "Typography", props: { literal: { text: "3 items, $128.00, shipped Sept 25." } } },
   ],

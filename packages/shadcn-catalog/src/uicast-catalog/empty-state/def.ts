@@ -1,6 +1,7 @@
 import z from "zod";
 import { createComponentDefinition } from "@uicast/core";
 import { mouseEventSchema } from "../../events/mouse";
+import { iconNameSchema } from "../../lib/icons";
 
 export const EmptyStateDef = createComponentDefinition({
   name: "EmptyState",
@@ -13,6 +14,7 @@ export const EmptyStateDef = createComponentDefinition({
     description: z.string().optional().meta({
       description: "Optional helper text, e.g. 'Try adjusting your filters'",
     }),
+    icon: iconNameSchema.optional().meta({ description: "An icon in place of the default folder" }),
   }),
   callbacks: {
     onClick: mouseEventSchema,

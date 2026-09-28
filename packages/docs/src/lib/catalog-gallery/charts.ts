@@ -19,7 +19,7 @@ export const charts: Record<string, Example> = {
   ],
   Heatmap: [
     { key: "card", component: "Card", props: { literal: { title: "Orders processed by day and shift" } }, children: ["chart"] },
-    { key: "chart", component: "Heatmap", props: { literal: { data: [{ row: "Mon", col: "Morning", value: 18 }, { row: "Mon", col: "Afternoon", value: 32 }, { row: "Mon", col: "Evening", value: 22 }, { row: "Wed", col: "Morning", value: 20 }, { row: "Wed", col: "Afternoon", value: 35 }, { row: "Wed", col: "Evening", value: 26 }, { row: "Fri", col: "Morning", value: 24 }, { row: "Fri", col: "Afternoon", value: 44 }, { row: "Fri", col: "Evening", value: 38 }, { row: "Sat", col: "Morning", value: 30 }, { row: "Sat", col: "Afternoon", value: 52 }, { row: "Sat", col: "Evening", value: 46 }], rows: ["Mon", "Wed", "Fri", "Sat"], cols: ["Morning", "Afternoon", "Evening"], minColor: "slate", maxColor: "blue" } } },
+    { key: "chart", component: "Heatmap", props: { literal: { data: [{ row: "Mon", col: "Morning", value: 18 }, { row: "Mon", col: "Afternoon", value: 32 }, { row: "Mon", col: "Evening", value: 22 }, { row: "Wed", col: "Morning", value: 20 }, { row: "Wed", col: "Afternoon", value: 35 }, { row: "Wed", col: "Evening", value: 26 }, { row: "Fri", col: "Morning", value: 24 }, { row: "Fri", col: "Afternoon", value: 44 }, { row: "Fri", col: "Evening", value: 38 }, { row: "Sat", col: "Morning", value: 30 }, { row: "Sat", col: "Afternoon", value: 52 }, { row: "Sat", col: "Evening", value: 46 }], rows: ["Mon", "Wed", "Fri", "Sat"], cols: ["Morning", "Afternoon", "Evening"] } } },
   ],
   LineChart: [
     { key: "card", component: "Card", props: { literal: { title: "Orders per day", description: "Last 7 days, by channel" } }, children: ["chart"] },

@@ -19,11 +19,11 @@ export const ResizablePanelImpl = createComponentImplementation({
         data-key={entry.key}
       >
         <ResizablePanel defaultSize={`${defaultSize}%`} minSize={`${minSize}%`}>
-          <div className="h-full overflow-auto">{first}</div>
+          <div className="h-full overflow-auto p-3">{first}</div>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={`${100 - defaultSize}%`} minSize={`${minSize}%`}>
-          <div className="h-full overflow-auto">{rest}</div>
+          <div className="h-full overflow-auto p-3">{rest}</div>
         </ResizablePanel>
       </ResizablePanelGroup>
     );

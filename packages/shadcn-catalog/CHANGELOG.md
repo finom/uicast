@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card` and `Alert` draw the `title` in place of a bar. Without known props they draw as before.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
+- `EmptyState.icon`: an icon in place of the default folder.
 
 ### Changed
 
@@ -25,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Alert` takes child entries below its description, its `title` is optional, and its icon shows the status color. It covers what `Callout` did.
 - `EmptyState` shows a folder icon instead of an inbox.
 - `RadarChart` draws no radius axis; its numbers crossed the plot.
+- `Heatmap` runs from `slate` to `blue` by default, light to strong. It ran from blue to violet, and the highest values looked palest.
 - **Breaking: eight components merged into the one they duplicated.** `Tag` is `Badge` with `removable` (and `onClick`, `onRemove`). `Banner` is `Alert` with `dismissible` and `icon` (and `onDismiss`). `BubbleChart` is `ScatterChart` with `sizeKey`. `AreaChart` is `LineChart` with `filled` and `stacked`. `ComboChart` is `BarChart` with `lineKeys`, colored after the bars. `RangeSlider` is `Slider` with a `[low, high]` pair as `value`. `Drawer` is `Modal` with `side`. `Combobox` is `Select` with `searchable`, and `Select.onChange` sends the option's `label` too.
 - **Breaking: `Button` takes an `icon` and a `tooltip`, and `size` is `sm`, `default` or `lg`.** Without text it is square. `size` sets the height, the text size and the icon size; `"icon"` is gone.
 - Descriptions name only their own component and its parts, since a host registers any subset of the catalog. A catalog test fails on a description that names another component. `DataGrid` and `Table` each describe their own use.
@@ -67,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `NavigationMenu` opens on click only. It also opened on hover, so a click just after the hover-open closed it again.
 - `Select` opens its list below the field, as wide as the field, with or without `searchable`.
 - `ResizablePanel` applies a new `defaultSize` from the document; the panels kept the first one.
+- `ResizablePanel` pads its panes; their content touched the border.
 - `KanbanBoard`: a dropped card no longer disappears for a moment before it shows in its column. A card dropped on another card takes its place instead of going to the end of the column. In a narrow container the columns keep their width and the board scrolls; they overlapped.
 - `CurrencyInput` shows the amount in the `locale`'s number format while it is not focused; `locale` changed only the `formatted` value. A currency code such as `CHF` no longer overlaps the amount.
 - `Toast` is one box. It was an alert inside a card, and the card clipped the alert's corners. Its icons show the status color; they were the text color.
