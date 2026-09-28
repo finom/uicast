@@ -1,23 +1,11 @@
-import { desc, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
-import { db } from "@/db";
-import { chats } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ login?: string | string[] }> }) {
-  const me = await getSessionUser();
-  if (me) {
-    const [latest] = await db
-      .select({ id: chats.id })
-      .from(chats)
-      .where(eq(chats.userId, me.id))
-      .orderBy(desc(chats.createdAt))
-      .limit(1);
-    redirect(latest ? `/u/${me.slug}/c/${latest.id}` : "/chats/new");
-  }
+  if (await getSessionUser()) redirect("/chats/new");
   const { login } = await searchParams;
 
   return (
