@@ -11,7 +11,6 @@ type PromptInputProps = {
   status: ChatStatus;
   onStop: () => void;
   onSubmit: (text: string) => void;
-  disabled?: boolean;
 };
 
 // A file dropped on the form is ignored rather than opened by the browser.
@@ -20,7 +19,7 @@ const ignoreFiles = (event: DragEvent) => {
 };
 
 // Enter sends, Shift+Enter breaks the line. While a run is in flight the button stops it.
-export function PromptInput({ placeholder, status, onStop, onSubmit, disabled }: PromptInputProps) {
+export function PromptInput({ placeholder, status, onStop, onSubmit }: PromptInputProps) {
   const [composing, setComposing] = useState(false);
   const generating = status === "submitted" || status === "streaming";
 
@@ -46,7 +45,6 @@ export function PromptInput({ placeholder, status, onStop, onSubmit, disabled }:
         <div className="contents">
           <InputGroupTextarea
             className="field-sizing-content max-h-48 min-h-16"
-            disabled={disabled}
             name="message"
             onCompositionEnd={() => setComposing(false)}
             onCompositionStart={() => setComposing(true)}
@@ -58,7 +56,6 @@ export function PromptInput({ placeholder, status, onStop, onSubmit, disabled }:
           <div className="flex min-w-0 items-center gap-1" />
           <InputGroupButton
             aria-label={generating ? "Stop" : "Submit"}
-            disabled={disabled}
             onClick={(event) => {
               if (!generating) return;
               event.preventDefault();
