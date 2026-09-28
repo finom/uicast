@@ -1,98 +1,59 @@
-import { desc, eq } from "drizzle-orm";
-import { FileText, MessageSquare, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
-import { LinkGrid } from "@/components/link-grid";
-import { db } from "@/db";
-import { chats, pages, users } from "@/db/schema";
 import { getSessionUser } from "@/lib/auth";
-import { SYSTEM_SLUG } from "@/lib/system-slug";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home({ searchParams }: { searchParams: Promise<{ login?: string | string[] }> }) {
   const { login } = await searchParams;
   const me = await getSessionUser();
-  const [recentPages, recentChats] = await Promise.all([
-    db
-      .select({ id: pages.id, seedId: pages.seedId, title: pages.title, slug: users.slug })
-      .from(pages)
-      .innerJoin(users, eq(pages.userId, users.id))
-      .orderBy(desc(pages.createdAt))
-      .limit(12),
-    db
-      .select({ id: chats.id, title: chats.title, slug: users.slug })
-      .from(chats)
-      .innerJoin(users, eq(chats.userId, users.id))
-      .orderBy(desc(chats.createdAt))
-      .limit(8),
-  ]);
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-8 p-6">
-      <section className="flex flex-col gap-3 pt-6 text-center">
-        <h1 className="text-2xl font-semibold">Apps and answers, generated live</h1>
-        <p className="mx-auto max-w-lg text-sm text-muted-foreground">
-          Describe a page or ask a question — the model builds working UI over a demo database of customers, orders, and
-          products. Everything anyone builds here is public and read-only for others; log in with OpenRouter to build on
-          your own copy of the data, billed to your own credits.
-        </p>
-        <div className="flex justify-center gap-2">
-          {me ? (
-            <>
-              <Button asChild>
-                <Link href="/pages/new">
-                  <Sparkles data-icon="inline-start" />
-                  Create a page
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href="/chats/new">New chat</Link>
-              </Button>
-            </>
-          ) : (
+    <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-2xl font-semibold">Apps and answers, generated live</h1>
+      <p className="max-w-md text-sm text-muted-foreground">
+        Describe a page or ask a question. The model answers with working UI over a demo store's data, billed to your
+        own OpenRouter credits.
+      </p>
+      <div className="flex gap-2">
+        {me ? (
+          <>
             <Button asChild>
-              <a href="/api/auth/login">Log in with OpenRouter</a>
+              <Link href="/pages/new">New page</Link>
             </Button>
-          )}
-        </div>
-        {login === "failed" && (
-          <p role="alert" className="text-xs text-destructive">
-            OpenRouter login failed or was cancelled. Try again.
-          </p>
+            <Button asChild variant="outline">
+              <Link href="/chats/new">New chat</Link>
+            </Button>
+          </>
+        ) : (
+          <Button asChild>
+            <a href="/api/auth/login">Log in with OpenRouter</a>
+          </Button>
         )}
-        {!me && (
-          <p className="text-xs text-muted-foreground">
-            No account here — OpenRouter authorizes a key, and generations bill your own credits. Start by browsing{" "}
-            <Link className="underline" href={`/u/${SYSTEM_SLUG}`}>
-              the demo content
-            </Link>
-            .
-          </p>
-        )}
-      </section>
-
-      <LinkGrid
-        title="Recent pages"
-        icon={FileText}
-        empty="Nothing here yet — seed the database."
-        items={recentPages.map((page) => ({
-          key: page.id,
-          href: `/u/${page.slug}/p/${page.seedId ?? page.id}`,
-          title: page.title,
-          owner: page.slug,
-        }))}
-      />
-      <LinkGrid
-        title="Recent chats"
-        icon={MessageSquare}
-        items={recentChats.map((chat) => ({
-          key: chat.id,
-          href: `/u/${chat.slug}/c/${chat.id}`,
-          title: chat.title,
-          owner: chat.slug,
-        }))}
-      />
+      </div>
+      {login === "failed" && (
+        <p role="alert" className="text-xs text-destructive">
+          OpenRouter login failed or was cancelled. Try again.
+        </p>
+      )}
+      <nav className="flex gap-4 text-sm text-muted-foreground">
+        <a
+          className="underline-offset-4 hover:text-foreground hover:underline"
+          href="https://uicast.dev"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Docs
+        </a>
+        <a
+          className="underline-offset-4 hover:text-foreground hover:underline"
+          href="https://github.com/finom/uicast"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+      </nav>
     </div>
   );
 }

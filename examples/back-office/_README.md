@@ -4,7 +4,7 @@ Part of [**uicast**](https://github.com/finom/uicast), the expression-driven gen
 
 A back office for **Warehouse**, a made-up store: suppliers, products, customers, orders and a stock ledger in Postgres. The shell (sidebar, chat panel) is hand-written. Every page and chat answer is a **uicast** document a model writes against `@uicast/shadcn-catalog`, rendered live. A page is stored as rows of entries, so nothing is built or deployed per generation.
 
-Everything is world-readable; only the owner can write. Logging in with OpenRouter (OAuth PKCE) creates an account with a random slug and a private copy of the demo data. Generations run on the OpenRouter key the login grants, so they bill your own credits. OpenRouter returns a key but no user id, so the account lives in a session cookie: after you log out, the next login creates a new account. Logged out, you can read the seed account, `@uicast`, and everyone's recent pages.
+Everything is world-readable; only the owner can write. Logging in with OpenRouter (OAuth PKCE) creates an account with a random slug and a private copy of the demo data. Generations run on the OpenRouter key the login grants, so they bill your own credits. OpenRouter returns a key but no user id, so the account lives in a session cookie: after you log out, the next login creates a new account. Logged out, you can read the seed account, `@uicast`.
 
 ## Deploy
 

@@ -78,7 +78,7 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
       <Button asChild className="w-full justify-start">
         <Link href="/pages/new">
           <Plus data-icon="inline-start" />
-          Create page
+          New page
         </Link>
       </Button>
       <Button asChild variant="outline" className="w-full justify-start">
