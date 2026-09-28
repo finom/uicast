@@ -10,23 +10,23 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
 
   return (
     <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-2xl font-semibold">Apps and answers, generated live</h1>
+      <h1 className="text-2xl font-semibold">Warehouse back office</h1>
       <p className="max-w-md text-sm text-muted-foreground">
-        Describe a page or ask a question. The model answers with working UI over a demo store's data, billed to your
+        Describe a page or ask a question. The model answers with working UI over the store's demo data, billed to your
         own OpenRouter credits.
       </p>
       <div className="flex gap-2">
         {me ? (
           <>
-            <Button asChild>
+            <Button asChild className="h-11 px-6 text-base">
               <Link href="/pages/new">New page</Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" className="h-11 px-6 text-base">
               <Link href="/chats/new">New chat</Link>
             </Button>
           </>
         ) : (
-          <Button asChild>
+          <Button asChild className="h-11 px-6 text-base">
             <a href="/api/auth/login">Log in with OpenRouter</a>
           </Button>
         )}
