@@ -3,10 +3,18 @@
 
 /* Tailwind scans this package only; the catalog's and Streamdown's classes live outside it. */
 @source "../../../../packages/shadcn-catalog/src/**/*.{ts,tsx}";
-@source "../../../../node_modules/streamdown/dist/index.js";
-/* The same two when the app is deployed as its own repo. Tailwind skips a path that doesn't exist. */
+@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../../node_modules/@streamdown/cjk/dist/*.js";
+@source "../../../../node_modules/@streamdown/code/dist/*.js";
+@source "../../../../node_modules/@streamdown/math/dist/*.js";
+@source "../../../../node_modules/@streamdown/mermaid/dist/*.js";
+/* The same when the app is deployed as its own repo. Tailwind skips a path that doesn't exist. */
 @source "../../node_modules/@uicast/shadcn-catalog/dist";
-@source "../../node_modules/streamdown/dist/index.js";
+@source "../../node_modules/streamdown/dist/*.js";
+@source "../../node_modules/@streamdown/cjk/dist/*.js";
+@source "../../node_modules/@streamdown/code/dist/*.js";
+@source "../../node_modules/@streamdown/math/dist/*.js";
+@source "../../node_modules/@streamdown/mermaid/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 

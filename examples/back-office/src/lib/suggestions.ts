@@ -1,188 +1,215 @@
-// Examples for an empty chat and for the new-page form; each one is answerable with the demo's host functions.
+// Examples for the chat and for the new-page form. Each one asks for something that changes data, using the demo's host functions.
 const CHAT_SUGGESTIONS = [
-  "Which products are running low?",
-  "Stock value by category",
-  "Chart units in stock by category",
-  "Our 10 most expensive products",
-  "Add a new product",
-  "Receive stock for a product",
-  "Recent stock adjustments",
-  "Latest returns in the stock ledger",
-  "Chart revenue for the last 30 days",
-  "Revenue for the last 7 days",
-  "Revenue trend for the last 90 days",
-  "Orders by status",
-  "Orders waiting for payment",
-  "Mark paid orders as shipped",
-  "Orders over $500",
-  "Largest orders this month",
-  "Cancelled orders, newest first",
+  // Orders
   "Create an order for a customer",
-  "Top 5 customers by spend",
-  "Customers with the most orders",
-  "Customers with no orders yet",
-  "Newest customers",
-  "Add a new customer",
-  "Look up a customer's orders",
-  "Suppliers on a map",
-  "Suppliers by lead time",
-  "Which supplier ships fastest?",
-  "Products grouped by supplier",
-  "Add a new supplier",
-  "A dashboard for this week",
-  "What's our total stock value?",
-  "Orders from our top customer",
-  "Average order value this month",
-  "Best sales day this month",
-  "Orders placed today",
-  "Which category has the most stock?",
-  "Products priced under $50",
-  "Products out of stock",
+  "Mark pending orders as paid",
+  "Ship paid orders, one click each",
+  "Mark shipped orders as delivered",
+  "Cancel an order, with a confirm step",
+  "Change the quantity of a pending order",
+  "Swap an order to a different product",
+  "Delete a cancelled order",
+  "Orders kanban: drag to change status",
+  "Repeat a customer's last order",
+  // Products
+  "Add a new product",
+  "Add a product with opening stock",
+  "Duplicate a product with a new SKU",
   "Change a product's price",
-  "Recently received stock",
-  "Log a stock adjustment",
-  "Delivered orders this week",
-  "Which product sells best?",
+  "Discount a product by 15%",
+  "Edit prices in a searchable table",
+  "Move a product to another supplier",
+  "Move a product to another category",
+  "Rename a product",
+  "Mark a product as out of stock",
+  // Stock
+  "Receive a delivery for a product",
+  "Restock low-stock products",
+  "Log a customer return",
+  "Log a stock adjustment with a note",
+  "Correct a product's stock count",
+  "Write off damaged units",
+  "Undo the last stock movement",
+  // Customers
+  "Add a new customer",
   "Update a customer's email",
-  "Suppliers based in Europe",
-  "Suppliers by category",
-  "Which supplier has the most products?",
-  "Stock value by supplier",
-  "Low-stock items and their suppliers",
-  "Compare this week to last week",
+  "Change a customer's company",
+  "Add a customer, then an order for them",
+  "Delete a customer with no orders",
+  "Edit customers in a table",
+  // Suppliers
+  "Add a new supplier",
+  "Set up a new supplier and product",
+  "Change a supplier's lead time",
+  "Update a supplier's email",
+  "Rename a supplier",
+  "Suppliers on a map, click to edit",
+  // Lookups that end in an action
+  "Top customers, with a New order button",
+  "Search products and edit one",
+  "Find a customer and edit them",
+  "Find an order and change its status",
+  "Orders over $500, with status buttons",
+  "Suppliers by lead time, editable",
+  "Today's orders, with status buttons",
+  "This week's returns, with an Undo",
+  "Stock by category, with a Receive form",
+  "This week's revenue and orders to ship",
+  "A customer's orders, cancel or repeat",
 ];
 
 export type PageIdea = { name: string; prompt: string };
 
 const PAGE_IDEAS: PageIdea[] = [
   {
-    name: "Low-stock watchlist",
+    name: "Order desk",
     prompt:
-      "Every product at 10 units or fewer, lowest first, with its supplier and lead time. Let me receive stock for a product right from the list.",
+      "Orders in tabs by status, with the count on each tab. Every row has the next action for its status: Mark paid, Ship or Mark delivered, plus Cancel with a confirm step. Tabs and counts update after each action.",
   },
   {
-    name: "Stock by category",
-    prompt: "Stock value and units per category as a chart and a table, with the low-stock count for each category.",
-  },
-  {
-    name: "Price list",
-    prompt: "A searchable price list of every product, sortable by price or name, where I can edit a price in place.",
-  },
-  {
-    name: "Product catalog",
+    name: "Order board",
     prompt:
-      "A product catalog with search and a category filter, a detail view for each product, and a form to add a product.",
+      "A kanban board of orders with a column per status. Dragging a card to another column changes the order's status. Clicking a card opens the order in a side panel with its customer, product and total.",
+  },
+  {
+    name: "Order builder",
+    prompt:
+      "Pick a customer and a product and set the quantity; the unit price, total and stock left update as I type, with a warning when the quantity is more than the stock. Create the order and show today's orders below.",
+  },
+  {
+    name: "Restock planner",
+    prompt:
+      "Products at 10 units or fewer, most urgent first by stock and supplier lead time, with a suggested reorder quantity per row. A Receive button records the delivery. A chart shows units per category.",
+  },
+  {
+    name: "Price editor",
+    prompt:
+      "A searchable price list, sortable by name or price. Edit a price in its row, see the change in percent before saving, and ask for confirmation when the change is over 20%.",
   },
   {
     name: "Receiving desk",
     prompt:
-      "A page to receive deliveries: pick a product, enter the quantity and record it in the stock ledger. Show the latest receipts underneath.",
+      "Record deliveries: pick a product, enter the quantity and a note, and see its stock before and after. Saving logs a received movement. List today's receipts below, each with an Undo that logs the reverse movement.",
+  },
+  {
+    name: "Customer desk",
+    prompt:
+      "Search customers. Picking one shows an editable form with their details, their orders with a status action per row, and a form to place a new order for them.",
+  },
+  {
+    name: "Supplier map",
+    prompt:
+      "Suppliers on a map and in a table. Clicking a marker or a row opens a side panel with the supplier's products and a form to edit its lead time and email.",
+  },
+  {
+    name: "Payments",
+    prompt:
+      "Pending orders, oldest first, with the customer, total and how many days they have waited. A Mark paid button on each row, and the total still unpaid at the top, updating after each payment.",
+  },
+  {
+    name: "Shipping queue",
+    prompt:
+      "Paid orders waiting to ship, oldest first, with the customer, product and quantity. A Ship button on each row, and a counter of what is left to ship.",
+  },
+  {
+    name: "Product manager",
+    prompt:
+      "A product grid with search and a category filter. Each card opens a modal to edit the product. An Add product button opens a form in a side panel.",
+  },
+  {
+    name: "Stock count",
+    prompt:
+      "A count sheet for one category: each product with its stock and an input for the counted units. Saving a row logs an adjustment for the difference. Show today's adjustments below.",
+  },
+  {
+    name: "Returns desk",
+    prompt:
+      "Log a return: find the order, set the quantity and a note, and put the units back in stock. List this month's returns with the refunded value of each.",
+  },
+  {
+    name: "Weekly ops",
+    prompt:
+      "This week at a glance: revenue, orders by status and the low-stock count as stat cards, a daily revenue chart, and three action lists: orders to ship, payments to collect and products to restock, each with its button.",
+  },
+  {
+    name: "Sales by day",
+    prompt:
+      "Pick a day from the last 30 and see its revenue, its orders with a status action per row, and how it compares to the average day.",
+  },
+  {
+    name: "Customer onboarding",
+    prompt:
+      "A step-by-step flow: add a customer, pick a product and a quantity for their first order with a live total, then confirm. Show the new customer and the order at the end.",
+  },
+  {
+    name: "Category manager",
+    prompt:
+      "Pick a category and see its products with stock and value, a chart of units per product, and controls on each row to change the price or record a delivery.",
+  },
+  {
+    name: "Low-stock alerts",
+    prompt:
+      "An alert for every product at 5 units or fewer, with its supplier and lead time, and a small form inside each alert to record a delivery.",
+  },
+  {
+    name: "Supplier onboarding",
+    prompt:
+      "A three-step wizard with a stepper: add a supplier, add its first product, then receive opening stock. Show a summary at the end.",
+  },
+  {
+    name: "Order lookup",
+    prompt:
+      "Search orders by customer or product and filter by status. Open an order in a modal to change its status or quantity, or delete it with a confirm step.",
+  },
+  {
+    name: "Price review",
+    prompt:
+      "Products with a price range slider and a category filter. Each row has -5%, +5% and a custom price, with the new price shown before saving.",
   },
   {
     name: "Stock ledger",
     prompt:
-      "The stock ledger, newest first, filterable by reason and product, with totals for received and shipped units.",
+      "The stock ledger with filters for reason and product, totals in and out, and a form to log a movement. Each entry has an Undo that logs the reverse movement.",
   },
   {
-    name: "Returns log",
+    name: "Customer cleanup",
     prompt:
-      "Every return in the stock ledger, newest first, with the product and quantity, and a form to log a return.",
-  },
-  {
-    name: "Revenue overview",
-    prompt: "Revenue for the last 30 days: a daily chart, the total, the average per day and the best day.",
-  },
-  {
-    name: "Quarterly revenue",
-    prompt: "Revenue over the last 90 days as a weekly trend, with a total for each month.",
-  },
-  {
-    name: "Order pipeline",
-    prompt:
-      "Orders per status as stat cards and a bar chart, with a table of the latest orders that I can filter by status.",
-  },
-  {
-    name: "Payment follow-up",
-    prompt: "Pending orders waiting for payment, oldest first, with the customer and total. Let me mark each one paid.",
-  },
-  {
-    name: "Shipping queue",
-    prompt: "Paid orders waiting to ship, oldest first, with the customer and product. Let me mark each one shipped.",
-  },
-  {
-    name: "Big orders",
-    prompt: "Orders over $500, largest first, with the customer, product, status and date.",
-  },
-  {
-    name: "Cancellations",
-    prompt: "Cancelled orders, newest first, with the lost revenue in total and per customer.",
-  },
-  {
-    name: "Order entry",
-    prompt:
-      "A form to create an order: pick a customer and a product, set the quantity, and see the total before saving. List today's orders below it.",
-  },
-  {
-    name: "Order lookup",
-    prompt: "Search orders by customer or product name, filter by status, and open an order to change its status.",
+      "Customers with no orders yet, with an Edit and a Delete button on each row; Delete asks first. Show how many are left.",
   },
   {
     name: "Top customers",
-    prompt: "The top 10 customers by lifetime spend as a bar chart, with their order counts in a table.",
-  },
-  {
-    name: "Customer directory",
     prompt:
-      "A customer directory with search, the lifetime value and order count of each customer, and forms to add or edit a customer.",
+      "The top 10 customers by lifetime spend as a bar chart and a table. A New order button on each row opens an order form for that customer.",
   },
   {
-    name: "New customers",
-    prompt: "The customers who joined most recently, with their order count and what they have spent so far.",
-  },
-  {
-    name: "Customers to follow up",
-    prompt: "Customers with no orders yet, with their contact details, newest first.",
-  },
-  {
-    name: "Customer detail",
-    prompt: "Look up a customer and see their details, every order they placed, and their lifetime value.",
-  },
-  {
-    name: "Supplier map",
-    prompt: "Every supplier on a map by city, with a table of suppliers, their category and lead time.",
-  },
-  {
-    name: "Supplier lead times",
-    prompt: "Suppliers ranked by lead time as a bar chart, with the number of products each one supplies.",
-  },
-  {
-    name: "Supplier directory",
-    prompt: "A supplier directory with search and a category filter, and forms to add or edit a supplier.",
-  },
-  {
-    name: "Products by supplier",
-    prompt: "Products grouped by supplier, with the units in stock and the stock value for each supplier.",
-  },
-  {
-    name: "Weekly dashboard",
-    prompt: "A dashboard for this week: revenue, orders by status, low-stock products and the newest customers.",
-  },
-  {
-    name: "Daily operations",
-    prompt: "One page for the day: orders to ship, payments to chase, and products to reorder.",
-  },
-  {
-    name: "Category deep dive",
-    prompt: "Pick a category and see its products, its stock value, its low-stock items and its recent orders.",
-  },
-  {
-    name: "Sales by product",
-    prompt: "Orders from the last 30 days grouped by product, with the units sold and the revenue for each product.",
-  },
-  {
-    name: "Reorder planner",
+    name: "Supplier scorecard",
     prompt:
-      "Products low on stock with their supplier's lead time, most urgent first, with a button to record a delivery.",
+      "Suppliers ranked by lead time, with their product count. Edit a lead time in its row; the ranking updates after saving.",
+  },
+  {
+    name: "Daily close",
+    prompt:
+      "The end of the day: today's revenue at the top, today's orders with their status actions, and today's stock movements with an Undo on each.",
+  },
+  {
+    name: "Reorder desk",
+    prompt:
+      "Pick a customer and see their past orders, each with a Repeat button that places the same order again after I confirm the quantity.",
+  },
+  {
+    name: "Pricing simulator",
+    prompt:
+      "Pick a category and a price change in percent. See each product's old and new price and the change in stock value, and apply the new price one product at a time.",
+  },
+  {
+    name: "Warehouse inbox",
+    prompt:
+      "One inbox of everything that needs a click today: payments to collect, orders to ship and products to restock. Each item has its button and leaves the list when done.",
+  },
+  {
+    name: "Product launch",
+    prompt:
+      "Add a product: name, SKU, category, supplier, price and opening stock, with a live preview card. Saving creates the product and records the opening stock.",
   },
 ];
 
@@ -192,5 +219,9 @@ function pick<T>(items: T[], count = 4) {
   return Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
 }
 
-export const pickChatSuggestions = (asked: string[] = []) => pick(CHAT_SUGGESTIONS.filter((s) => !asked.includes(s)));
+export const pickChatSuggestions = (asked: string[] = []) =>
+  pick(
+    CHAT_SUGGESTIONS.filter((s) => !asked.includes(s)),
+    3,
+  );
 export const pickPageIdeas = () => pick(PAGE_IDEAS);

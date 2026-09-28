@@ -14,7 +14,10 @@ export const buildSystemPrompt = (kind: "page" | "answer", ...extra: string[]) =
     getCommonInstructionsPartialPrompt(),
     getScopePartialPrompt({ kind }),
     getComponentsPartialPrompt({ definitions: defs }),
-    getFunctionsPartialPrompt({ functions: domainTools }),
+    getFunctionsPartialPrompt({
+      functions: domainTools,
+      note: "Each function that creates, updates or deletes data shows a toast when it succeeds. Don't write a Toast entry for it.",
+    }),
     getExpressionsPartialPrompt(),
     ...extra,
   ].join("\n\n");
