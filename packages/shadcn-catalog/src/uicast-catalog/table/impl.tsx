@@ -7,9 +7,12 @@ import { TableDef } from "./def";
 export const TableImpl = createComponentImplementation({
   def: TableDef,
   render: ({ children }, { entry, loading }) => (
-    <ShadcnTable className={busy(loading)} aria-busy={loading || undefined} data-key={entry.key}>
-      {children}
-    </ShadcnTable>
+    // Off-screen tables skip layout and paint; the intrinsic size keeps the scroll height until the first render.
+    <div className="[content-visibility:auto] [contain-intrinsic-size:auto_24rem]" data-key={entry.key}>
+      <ShadcnTable className={busy(loading)} aria-busy={loading || undefined}>
+        {children}
+      </ShadcnTable>
+    </div>
   ),
   skeleton: tableSkeleton(ShadcnTable, <TableBody>{SKELETON_ROWS}</TableBody>),
 });

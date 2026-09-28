@@ -13,7 +13,7 @@ export const NotificationBadgeDef = createComponentDefinition({
       description: "Maximum displayed count (shows max+ for larger values)",
     }),
     variant: z.enum(["default", "destructive", "secondary"]).default("destructive").meta({
-      description: "Badge color variant",
+      description: "Color variant",
     }),
     dot: z.boolean().default(false).meta({
       description: "Show as a small dot instead of count",

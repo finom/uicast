@@ -16,7 +16,7 @@ export const VirtualListDef = createComponentDefinition({
       )
       .meta({ description: "Array of list items" }),
     height: z.number().int().positive().default(400).meta({
-      description: "Container height in pixels",
+      description: "Height of the list in pixels",
     }),
     itemHeight: z.number().int().positive().default(48).meta({
       description: "Height of each item in pixels",

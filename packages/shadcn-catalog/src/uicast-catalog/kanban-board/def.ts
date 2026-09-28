@@ -3,9 +3,9 @@ import { createComponentDefinition } from "@uicast/core";
 import { chartColorSchema } from "../../lib/chart-colors";
 
 const cardSchema = z.strictObject({
-  id: z.string().meta({ description: "Card unique identifier (unique across the whole board)" }),
-  title: z.string().meta({ description: "Card title" }),
-  description: z.string().optional().meta({ description: "Card description" }),
+  id: z.string().meta({ description: "Unique id of the card, across the whole board" }),
+  title: z.string().meta({ description: "Title of the card" }),
+  description: z.string().optional().meta({ description: "Description of the card" }),
   tag: z.string().optional().meta({ description: "Optional tag/label" }),
   tagColor: chartColorSchema.optional().meta({ description: "Tag background colour." }),
 });

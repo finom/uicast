@@ -3,11 +3,8 @@ import { AlertImpl } from "../uicast-catalog/alert/impl";
 import { AvatarImpl } from "../uicast-catalog/avatar/impl";
 import { AvatarGroupImpl } from "../uicast-catalog/avatar-group/impl";
 import { BadgeImpl } from "../uicast-catalog/badge/impl";
-import { BannerImpl } from "../uicast-catalog/banner/impl";
 import { CalendarImpl } from "../uicast-catalog/calendar/impl";
-import { CalloutImpl } from "../uicast-catalog/callout/impl";
 import { CarouselImpl } from "../uicast-catalog/carousel/impl";
-import { ChatThreadImpl } from "../uicast-catalog/chat-thread/impl";
 import { CodeBlockImpl } from "../uicast-catalog/code-block/impl";
 import { CountdownTimerImpl } from "../uicast-catalog/countdown-timer/impl";
 import { DateTimeImpl } from "../uicast-catalog/date-time/impl";
@@ -24,27 +21,21 @@ import { NotificationBadgeImpl } from "../uicast-catalog/notification-badge/impl
 import { PictureImpl } from "../uicast-catalog/picture/impl";
 import { ProgressBarImpl } from "../uicast-catalog/progress-bar/impl";
 import { QRCodeImpl } from "../uicast-catalog/qr-code/impl";
-import { SkeletonImpl } from "../uicast-catalog/skeleton/impl";
 import { SpinnerImpl } from "../uicast-catalog/spinner/impl";
 import { StatImpl } from "../uicast-catalog/stat/impl";
-import { TagImpl } from "../uicast-catalog/tag/impl";
 import { TimelineImpl } from "../uicast-catalog/timeline/impl";
 import { ToastImpl } from "../uicast-catalog/toast/impl";
 import { TreeViewImpl } from "../uicast-catalog/tree-view/impl";
 import { TruncatedTextImpl } from "../uicast-catalog/truncated-text/impl";
 import { TypographyImpl } from "../uicast-catalog/typography/impl";
-import { VideoPlayerImpl } from "../uicast-catalog/video-player/impl";
 
 export {
   AlertImpl,
   AvatarImpl,
   AvatarGroupImpl,
   BadgeImpl,
-  BannerImpl,
   CalendarImpl,
-  CalloutImpl,
   CarouselImpl,
-  ChatThreadImpl,
   CodeBlockImpl,
   CountdownTimerImpl,
   DateTimeImpl,
@@ -61,16 +52,13 @@ export {
   PictureImpl,
   ProgressBarImpl,
   QRCodeImpl,
-  SkeletonImpl,
   SpinnerImpl,
   StatImpl,
-  TagImpl,
   TimelineImpl,
   ToastImpl,
   TreeViewImpl,
   TruncatedTextImpl,
   TypographyImpl,
-  VideoPlayerImpl,
 };
 
 export const impls: ComponentImplementation[] = [
@@ -78,11 +66,8 @@ export const impls: ComponentImplementation[] = [
   AvatarImpl,
   AvatarGroupImpl,
   BadgeImpl,
-  BannerImpl,
   CalendarImpl,
-  CalloutImpl,
   CarouselImpl,
-  ChatThreadImpl,
   CodeBlockImpl,
   CountdownTimerImpl,
   DateTimeImpl,
@@ -99,14 +84,11 @@ export const impls: ComponentImplementation[] = [
   PictureImpl,
   ProgressBarImpl,
   QRCodeImpl,
-  SkeletonImpl,
   SpinnerImpl,
   StatImpl,
-  TagImpl,
   TimelineImpl,
   ToastImpl,
   TreeViewImpl,
   TruncatedTextImpl,
   TypographyImpl,
-  VideoPlayerImpl,
 ];

@@ -1,5 +1,15 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Bar, CartesianGrid, Legend, BarChart as RechartsBarChart, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Legend,
+  Line,
+  BarChart as RechartsBarChart,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors } from "../../lib/chart-colors";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -7,11 +17,12 @@ import { BarChartDef } from "./def";
 
 export const BarChartImpl = createComponentImplementation({
   def: BarChartDef,
-  render: ({ data, xKey, yKeys, colors, height, stacked }, { entry, loading }) => {
+  render: ({ data, xKey, yKeys, lineKeys = [], colors, height, stacked }, { entry, loading }) => {
     const palette = chartColors(colors);
+    const Chart = lineKeys.length ? ComposedChart : RechartsBarChart;
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <RechartsBarChart data={data}>
+        <Chart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xKey} />
           <YAxis />
@@ -26,7 +37,18 @@ export const BarChartImpl = createComponentImplementation({
               stackId={stacked ? "stack" : undefined}
             />
           ))}
-        </RechartsBarChart>
+          {lineKeys.map((key, i) => (
+            <Line
+              isAnimationActive={false}
+              key={key}
+              type="monotone"
+              dataKey={key}
+              stroke={palette[(yKeys.length + i) % palette.length]}
+              strokeWidth={2}
+              dot={false}
+            />
+          ))}
+        </Chart>
       </ChartFrame>
     );
   },

@@ -5,10 +5,10 @@ import { cn } from "../../lib/utils";
 import { TimelineDef } from "./def";
 
 const DOT_COLORS = {
-  default: "bg-primary",
-  success: "bg-success",
-  warning: "bg-warning",
-  destructive: "bg-destructive",
+  default: "bg-primary text-primary-foreground",
+  success: "bg-success text-white",
+  warning: "bg-warning text-white",
+  destructive: "bg-destructive text-white",
 };
 
 export const TimelineImpl = createComponentImplementation({
@@ -18,21 +18,22 @@ export const TimelineImpl = createComponentImplementation({
       {items.map((item, i) => (
         <div
           key={i}
-          className="relative flex gap-4 pb-8 last:pb-0 cursor-pointer"
+          className={cn("flex gap-4", entry.callbacks?.onItemClick && "cursor-pointer")}
           onClick={() => onItemClick({ index: i, title: item.title })}
         >
           <div className="flex flex-col items-center">
             <div
               className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-full text-white",
+                "flex size-6 shrink-0 items-center justify-center rounded-full",
                 DOT_COLORS[item.variant ?? "default"],
               )}
             >
-              {iconNode(item.icon, "size-3") ?? <div className="size-2 rounded-full bg-white" />}
+              {iconNode(item.icon, "size-3") ?? <div className="size-2 rounded-full bg-current" />}
             </div>
-            {i < items.length - 1 && <div className="w-px flex-1 bg-border" />}
+            {i < items.length - 1 && <div className="w-0.5 flex-1 bg-border" />}
           </div>
-          <div className="flex-1 pb-2">
+          {/* The gap to the next item is padding here, so the line beside it spans the gap. */}
+          <div className={cn("flex-1", i < items.length - 1 && "pb-8")}>
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-medium">{item.title}</p>
               {item.time && <span className="text-xs text-muted-foreground whitespace-nowrap">{item.time}</span>}

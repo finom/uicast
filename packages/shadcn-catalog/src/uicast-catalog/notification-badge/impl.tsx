@@ -4,6 +4,8 @@ import { cn } from "../../lib/utils";
 import { NotificationBadgeDef } from "./def";
 
 const DOT_COLORS = { destructive: "bg-destructive", default: "bg-primary", secondary: "bg-secondary" };
+// The destructive Badge is a translucent tint; over an icon the count needs a solid fill.
+const SOLID = { destructive: "bg-destructive text-white dark:bg-destructive", default: "", secondary: "" };
 
 export const NotificationBadgeImpl = createComponentImplementation({
   def: NotificationBadgeDef,
@@ -12,11 +14,19 @@ export const NotificationBadgeImpl = createComponentImplementation({
       {children}
       {(count > 0 || showZero) &&
         (dot ? (
-          <span className={cn("absolute -top-1 -right-1 size-2.5 rounded-full", DOT_COLORS[variant])} />
+          <span
+            className={cn(
+              "absolute -top-1 -right-1 z-10 size-2.5 rounded-full ring-2 ring-background",
+              DOT_COLORS[variant],
+            )}
+          />
         ) : (
           <Badge
             variant={variant}
-            className="absolute -top-2 -right-2 h-5 min-w-5 px-1 text-xs font-medium justify-center"
+            className={cn(
+              "absolute -top-2 -right-2 z-10 h-5 min-w-5 justify-center px-1 text-xs font-medium ring-2 ring-background",
+              SOLID[variant],
+            )}
           >
             {count > max ? `${max}+` : count}
           </Badge>

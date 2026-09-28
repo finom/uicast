@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
-import { InboxIcon } from "lucide-react";
+import { FolderOpenIcon } from "lucide-react";
 import { PanelSkeleton } from "../../lib/skeletons";
 import { EmptyStateDef } from "./def";
 
@@ -12,7 +12,7 @@ export const EmptyStateImpl = createComponentImplementation({
       onClick={(e) => onClick(pickMouseEvent(e))}
       data-key={entry.key}
     >
-      <InboxIcon className="size-12 text-muted-foreground mb-4" />
+      <FolderOpenIcon className="size-12 text-muted-foreground mb-4" />
       <h3 className="text-lg font-semibold">{title}</h3>
       {description && <p className="text-sm text-muted-foreground mt-1 max-w-sm">{description}</p>}
       {children && <div className="mt-4">{children}</div>}

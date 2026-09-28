@@ -3,11 +3,8 @@ import { AlertDef } from "../uicast-catalog/alert/def";
 import { AvatarDef } from "../uicast-catalog/avatar/def";
 import { AvatarGroupDef } from "../uicast-catalog/avatar-group/def";
 import { BadgeDef } from "../uicast-catalog/badge/def";
-import { BannerDef } from "../uicast-catalog/banner/def";
 import { CalendarDef } from "../uicast-catalog/calendar/def";
-import { CalloutDef } from "../uicast-catalog/callout/def";
 import { CarouselDef } from "../uicast-catalog/carousel/def";
-import { ChatThreadDef } from "../uicast-catalog/chat-thread/def";
 import { CodeBlockDef } from "../uicast-catalog/code-block/def";
 import { CountdownTimerDef } from "../uicast-catalog/countdown-timer/def";
 import { DateTimeDef } from "../uicast-catalog/date-time/def";
@@ -24,27 +21,21 @@ import { NotificationBadgeDef } from "../uicast-catalog/notification-badge/def";
 import { PictureDef } from "../uicast-catalog/picture/def";
 import { ProgressBarDef } from "../uicast-catalog/progress-bar/def";
 import { QRCodeDef } from "../uicast-catalog/qr-code/def";
-import { SkeletonDef } from "../uicast-catalog/skeleton/def";
 import { SpinnerDef } from "../uicast-catalog/spinner/def";
 import { StatDef } from "../uicast-catalog/stat/def";
-import { TagDef } from "../uicast-catalog/tag/def";
 import { TimelineDef } from "../uicast-catalog/timeline/def";
 import { ToastDef } from "../uicast-catalog/toast/def";
 import { TreeViewDef } from "../uicast-catalog/tree-view/def";
 import { TruncatedTextDef } from "../uicast-catalog/truncated-text/def";
 import { TypographyDef } from "../uicast-catalog/typography/def";
-import { VideoPlayerDef } from "../uicast-catalog/video-player/def";
 
 export {
   AlertDef,
   AvatarDef,
   AvatarGroupDef,
   BadgeDef,
-  BannerDef,
   CalendarDef,
-  CalloutDef,
   CarouselDef,
-  ChatThreadDef,
   CodeBlockDef,
   CountdownTimerDef,
   DateTimeDef,
@@ -61,16 +52,13 @@ export {
   PictureDef,
   ProgressBarDef,
   QRCodeDef,
-  SkeletonDef,
   SpinnerDef,
   StatDef,
-  TagDef,
   TimelineDef,
   ToastDef,
   TreeViewDef,
   TruncatedTextDef,
   TypographyDef,
-  VideoPlayerDef,
 };
 
 export const defs: ComponentDefinition[] = [
@@ -78,11 +66,8 @@ export const defs: ComponentDefinition[] = [
   AvatarDef,
   AvatarGroupDef,
   BadgeDef,
-  BannerDef,
   CalendarDef,
-  CalloutDef,
   CarouselDef,
-  ChatThreadDef,
   CodeBlockDef,
   CountdownTimerDef,
   DateTimeDef,
@@ -99,14 +84,11 @@ export const defs: ComponentDefinition[] = [
   PictureDef,
   ProgressBarDef,
   QRCodeDef,
-  SkeletonDef,
   SpinnerDef,
   StatDef,
-  TagDef,
   TimelineDef,
   ToastDef,
   TreeViewDef,
   TruncatedTextDef,
   TypographyDef,
-  VideoPlayerDef,
 ];

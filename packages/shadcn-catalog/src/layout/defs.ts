@@ -3,7 +3,6 @@ import { AccordionDef } from "../uicast-catalog/accordion/def";
 import { AccordionItemDef } from "../uicast-catalog/accordion-item/def";
 import { AspectRatioDef } from "../uicast-catalog/aspect-ratio/def";
 import { CardDef } from "../uicast-catalog/card/def";
-import { CollapsibleDef } from "../uicast-catalog/collapsible/def";
 import { ContainerDef } from "../uicast-catalog/container/def";
 import { DividerDef } from "../uicast-catalog/divider/def";
 import { FlexColDef } from "../uicast-catalog/flex-col/def";
@@ -22,7 +21,6 @@ export {
   AccordionItemDef,
   AspectRatioDef,
   CardDef,
-  CollapsibleDef,
   ContainerDef,
   DividerDef,
   FlexColDef,
@@ -42,7 +40,6 @@ export const defs: ComponentDefinition[] = [
   AccordionItemDef,
   AspectRatioDef,
   CardDef,
-  CollapsibleDef,
   ContainerDef,
   DividerDef,
   FlexColDef,

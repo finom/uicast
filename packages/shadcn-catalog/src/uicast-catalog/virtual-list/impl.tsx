@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { useState } from "react";
 import { blockSkeleton } from "../../lib/skeletons";
+import { cn } from "../../lib/utils";
 import { VirtualListDef } from "./def";
 
 const OVERSCAN = 1;
@@ -29,7 +30,10 @@ export const VirtualListImpl = createComponentImplementation({
             return (
               <div
                 key={item.id}
-                className="absolute inset-x-0 flex flex-col justify-center px-4 border-b hover:bg-accent cursor-pointer"
+                className={cn(
+                  "absolute inset-x-0 flex flex-col justify-center px-4 border-b",
+                  entry.callbacks?.onItemClick && "cursor-pointer hover:bg-accent",
+                )}
                 style={{
                   top: actualIndex * itemHeight,
                   height: itemHeight,

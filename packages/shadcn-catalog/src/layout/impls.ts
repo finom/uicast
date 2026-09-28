@@ -3,7 +3,6 @@ import { AccordionImpl } from "../uicast-catalog/accordion/impl";
 import { AccordionItemImpl } from "../uicast-catalog/accordion-item/impl";
 import { AspectRatioImpl } from "../uicast-catalog/aspect-ratio/impl";
 import { CardImpl } from "../uicast-catalog/card/impl";
-import { CollapsibleImpl } from "../uicast-catalog/collapsible/impl";
 import { ContainerImpl } from "../uicast-catalog/container/impl";
 import { DividerImpl } from "../uicast-catalog/divider/impl";
 import { FlexColImpl } from "../uicast-catalog/flex-col/impl";
@@ -22,7 +21,6 @@ export {
   AccordionItemImpl,
   AspectRatioImpl,
   CardImpl,
-  CollapsibleImpl,
   ContainerImpl,
   DividerImpl,
   FlexColImpl,
@@ -42,7 +40,6 @@ export const impls: ComponentImplementation[] = [
   AccordionItemImpl,
   AspectRatioImpl,
   CardImpl,
-  CollapsibleImpl,
   ContainerImpl,
   DividerImpl,
   FlexColImpl,

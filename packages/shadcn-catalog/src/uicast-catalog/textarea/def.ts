@@ -5,7 +5,7 @@ import { keyboardEventSchema } from "../../events/keyboard";
 export const TextareaDef = createComponentDefinition({
   name: "Textarea",
   description:
-    "A multi-line text input field for longer text content such as comments, descriptions, or messages. Renders a styled textarea element. Use Textarea for multi-line form fields. For labels and descriptions, wrap with Field, FieldLabel, and FieldDescription components. For single-line input, use Input instead.",
+    "A multi-line text input field for longer text content such as comments, descriptions, or messages. Renders a styled textarea element. Use Textarea for multi-line form fields.",
   props: z.strictObject({
     value: z.string().optional().meta({ description: "The current textarea value." }),
     placeholder: z.string().optional().meta({

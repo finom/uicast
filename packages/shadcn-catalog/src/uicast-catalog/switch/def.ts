@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const SwitchDef = createComponentDefinition({
   name: "Switch",
   description:
-    "A toggle switch for boolean on/off states. Renders a styled toggle that slides between on and off. Use Switch for enabling/disabling features, toggling settings, or any binary state. For a square checkbox, use Checkbox instead.",
+    "A toggle switch for boolean on/off states. Renders a styled toggle that slides between on and off. Use Switch for enabling/disabling features, toggling settings, or any binary state.",
   props: z.strictObject({
     checked: z.boolean().default(false).meta({
       description: "Whether the switch is on (checked)",

@@ -4,7 +4,7 @@
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
-A reference component catalog for **uicast**: 128 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`.
+A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
 
 ```sh
 npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @uicast/expr@beta
@@ -51,15 +51,15 @@ A group puts only its components into the prompt:
 
 | Group | Size | Tokens | What is in it |
 | --- | --- | --- | --- |
-| `all` | 128 | 22,100 | Every component. |
-| `essential` | 30 | 5,300 | Common components from every group, below. |
-| `layout` | 17 | 2,300 | Card, grid, flex row and column, tabs, accordion. |
-| `content` | 35 | 6,700 | Heading, typography, badge, avatar, timeline, alert, map. |
-| `data` | 11 | 1,800 | Table, data grid, virtual list, kanban board, org chart. |
-| `charts` | 16 | 3,000 | Bar, line, pie, area, scatter, funnel, sankey. |
-| `forms` | 35 | 6,900 | Field, input, select, date picker, file upload, button. |
+| `all` | 106 | 18,700 | Every component. |
+| `essential` | 29 | 5,500 | Common components from every group, below. |
+| `layout` | 16 | 2,200 | Card, grid, flex row and column, tabs, accordion. |
+| `content` | 29 | 5,900 | Heading, typography, badge, avatar, timeline, alert, map. |
+| `data` | 10 | 1,600 | Table, data grid, virtual list, kanban board. |
+| `charts` | 12 | 2,400 | Bar, line, pie, scatter, funnel, heatmap. |
+| `forms` | 27 | 5,400 | Field, input, select, date picker, file upload, button. |
 | `navigation` | 7 | 2,300 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
-| `overlays` | 7 | 1,200 | Modal, confirm dialog, drawer, popover, tooltip, dropdown menu. |
+| `overlays` | 5 | 900 | Modal, popover, tooltip, dropdown menu. |
 
 Tokens are rounded and counted with OpenAI's o200k tokenizer (GPT-4o and later). Other models count differently.
 
@@ -80,7 +80,7 @@ The essentials:
 | `content` | `Heading` `Typography` `Badge` `Stat` `Alert` `EmptyState` `DescriptionList` |
 | `data` | `Table` `TableHeader` `TableBody` `TableRow` `TableHead` `TableCell` |
 | `charts` | `BarChart` `LineChart` `PieChart` |
-| `forms` | `Input` `NumberInput` `Select` `Checkbox` `Switch` `SearchInput` `Button` `IconButton` |
+| `forms` | `Input` `NumberInput` `Select` `Checkbox` `Switch` `SearchInput` `Button` |
 | `navigation` | `Pagination` |
 | `overlays` | `Modal` |
 
@@ -92,7 +92,7 @@ The essentials:
 | `@uicast/shadcn-catalog/<group>/impls` | The matching implementations, for the renderer. |
 | `@uicast/shadcn-catalog` | `ConfirmModal` and `RenderError`, for the renderer's `fallbackComponents`. |
 | `@uicast/shadcn-catalog/events` | `mouseEventSchema` and `keyboardEventSchema`, payloads the catalog's callbacks share. |
-| `@uicast/shadcn-catalog/ui/*` | The 35 underlying shadcn components, such as `/ui/button` and `/ui/skeleton`. |
+| `@uicast/shadcn-catalog/ui/*` | The 37 underlying components (shadcn/ui, and Kibo UI's kanban), such as `/ui/button` and `/ui/skeleton`. |
 | `@uicast/shadcn-catalog/catalog.css` | Every utility the components use. |
 | `@uicast/shadcn-catalog/theme.css` | Optional: preflight and the shadcn palette. |
 
@@ -104,7 +104,7 @@ The tile URL comes from the implementation, not the document, so `urlPolicy` doe
 
 ## Documentation
 
-[Reference catalog](https://uicast.dev/react/reference-catalog) · [Component definition](https://uicast.dev/def) · [Component implementation](https://uicast.dev/react)
+[Reference catalog](https://uicast.dev/react/reference-catalog) · [Gallery](https://uicast.dev/shadcn-catalog-gallery) · [Component definition](https://uicast.dev/def) · [Component implementation](https://uicast.dev/react)
 
 ## License
 

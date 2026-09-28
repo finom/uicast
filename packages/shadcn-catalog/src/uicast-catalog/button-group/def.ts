@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const ButtonGroupDef = createComponentDefinition({
   name: "ButtonGroup",
   description:
-    "A horizontal group of buttons displayed together with connected borders. Children must be Button or IconButton components. Use ButtonGroup for related actions like view mode toggles, segmented controls, or action toolbars.",
+    "A horizontal group of buttons displayed together with connected borders. Its children are buttons. Use ButtonGroup for related actions like view mode toggles, segmented controls, or action toolbars.",
   props: z.strictObject({
     attached: z.boolean().default(true).meta({
       description: "Whether buttons are visually attached (shared borders) or spaced apart",

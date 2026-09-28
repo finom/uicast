@@ -1,5 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Input } from "../../components/ui/input";
+import { useState } from "react";
+import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "../../components/ui/input-group";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { CurrencyInputDef } from "./def";
 
@@ -18,26 +19,33 @@ const SYMBOLS: Record<string, string> = {
 
 export const CurrencyInputImpl = createComponentImplementation({
   def: CurrencyInputDef,
-  render: ({ value, currency, locale, placeholder, disabled, onChange, onKeyDown, onKeyUp }, { entry }) => (
-    <div className="relative" data-key={entry.key}>
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-        {SYMBOLS[currency] ?? currency}
-      </span>
-      <Input
-        type="number"
-        value={value ?? ""}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={(e) => {
-          const amount = Number.parseFloat(e.target.value) || 0;
-          const formatted = new Intl.NumberFormat(locale, { style: "currency", currency }).format(amount);
-          onChange({ value: amount, formatted });
-        }}
-        onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
-        onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
-        className="pl-8"
-        step="0.01"
-      />
-    </div>
-  ),
+  render: ({ value, currency, locale, placeholder, disabled, onChange, onKeyDown, onKeyUp }, { entry }) => {
+    // The text being typed; out of focus the input shows `value` in the locale's format.
+    const [draft, setDraft] = useState<string>();
+    const money = new Intl.NumberFormat(locale, { style: "currency", currency });
+    const { minimumFractionDigits, maximumFractionDigits } = money.resolvedOptions();
+    const amount = new Intl.NumberFormat(locale, { minimumFractionDigits, maximumFractionDigits });
+    return (
+      <InputGroup data-key={entry.key}>
+        <InputGroupAddon>
+          <InputGroupText>{SYMBOLS[currency] ?? currency}</InputGroupText>
+        </InputGroupAddon>
+        <InputGroupInput
+          inputMode="decimal"
+          value={draft ?? (value === undefined ? "" : amount.format(value))}
+          placeholder={placeholder}
+          disabled={disabled}
+          onFocus={() => setDraft(value === undefined ? "" : String(value))}
+          onBlur={() => setDraft(undefined)}
+          onChange={(e) => {
+            setDraft(e.target.value);
+            const next = Number.parseFloat(e.target.value.replace(",", ".")) || 0;
+            onChange({ value: next, formatted: money.format(next) });
+          }}
+          onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
+          onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
+        />
+      </InputGroup>
+    );
+  },
 });

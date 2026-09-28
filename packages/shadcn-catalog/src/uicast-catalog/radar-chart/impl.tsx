@@ -1,13 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import {
-  Legend,
-  PolarAngleAxis,
-  PolarGrid,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart as RechartsRadarChart,
-  Tooltip,
-} from "recharts";
+import { Legend, PolarAngleAxis, PolarGrid, Radar, RadarChart as RechartsRadarChart, Tooltip } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors } from "../../lib/chart-colors";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -22,7 +14,6 @@ export const RadarChartImpl = createComponentImplementation({
         <RechartsRadarChart data={data}>
           <PolarGrid />
           <PolarAngleAxis dataKey={dataKey} />
-          <PolarRadiusAxis />
           <Tooltip />
           <Legend />
           {valueKeys.map((key, i) => (

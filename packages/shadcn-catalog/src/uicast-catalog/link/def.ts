@@ -4,7 +4,7 @@ import { createComponentDefinition } from "@uicast/core";
 export const LinkDef = createComponentDefinition({
   name: "Link",
   description:
-    "A text link: an <a> element that opens `href` when clicked. With `external`, it opens in a new tab and shows an external-link icon. Use Link to go to another page or site; for an action, use Button. The `text` prop sets the link text.",
+    "A text link: an <a> element that opens `href` when clicked. With `external`, it opens in a new tab and shows an external-link icon. Use Link to go to another page or site, not for an action. The `text` prop sets the link text.",
   props: z.strictObject({
     text: z.union([z.string(), z.number()]).optional().meta({ description: "The link text content" }),
     href: z.string().meta({

@@ -9,7 +9,7 @@ export const AvatarGroupDef = createComponentDefinition({
     avatars: z
       .array(
         z.strictObject({
-          src: z.string().optional().meta({ format: "uri-reference", description: "Avatar image URL" }),
+          src: z.string().optional().meta({ format: "uri-reference", description: "Image URL" }),
           alt: z.string().optional().meta({ description: "Alt text" }),
           fallback: z.string().optional().meta({ description: "Fallback text (initials)" }),
         }),
@@ -19,7 +19,7 @@ export const AvatarGroupDef = createComponentDefinition({
       description: "Maximum number of avatars to show before +N overflow",
     }),
     size: z.enum(["sm", "default", "lg"]).default("default").meta({
-      description: "Avatar size",
+      description: "Size of each avatar",
     }),
   }),
 });

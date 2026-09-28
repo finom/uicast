@@ -25,7 +25,7 @@ export const HighlightedTextImpl = createComponentImplementation({
         {parts.map((part, i) => {
           const isMatch = caseSensitive ? part === highlight : part.toLowerCase() === highlight.toLowerCase();
           return isMatch ? (
-            <mark key={i} className={`${BACKGROUNDS[color]} px-0.5 rounded-sm`}>
+            <mark key={i} className={`${BACKGROUNDS[color]} rounded-sm px-0.5 text-inherit`}>
               {part}
             </mark>
           ) : (

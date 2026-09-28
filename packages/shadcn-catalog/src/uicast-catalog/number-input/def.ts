@@ -5,7 +5,7 @@ import { keyboardEventSchema } from "../../events/keyboard";
 export const NumberInputDef = createComponentDefinition({
   name: "NumberInput",
   description:
-    "A numeric input field specifically designed for entering numbers. Renders an HTML number input. Use NumberInput for quantities, amounts, scores, or any numeric-only data. For general text input, use Input instead.",
+    "A numeric input field specifically designed for entering numbers. Renders an HTML number input. Use NumberInput for quantities, amounts, scores, or any numeric-only data.",
   props: z.strictObject({
     value: z.number().meta({ description: "The current numeric value" }),
     min: z.number().optional().meta({ description: "Minimum allowed value" }),

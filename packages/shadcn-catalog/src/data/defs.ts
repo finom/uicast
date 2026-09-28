@@ -1,7 +1,6 @@
 import type { ComponentDefinition } from "@uicast/core";
 import { DataGridDef } from "../uicast-catalog/data-grid/def";
 import { KanbanBoardDef } from "../uicast-catalog/kanban-board/def";
-import { OrgChartDef } from "../uicast-catalog/org-chart/def";
 import { TableDef } from "../uicast-catalog/table/def";
 import { TableBodyDef } from "../uicast-catalog/table-body/def";
 import { TableCellDef } from "../uicast-catalog/table-cell/def";
@@ -14,7 +13,6 @@ import { VirtualListDef } from "../uicast-catalog/virtual-list/def";
 export {
   DataGridDef,
   KanbanBoardDef,
-  OrgChartDef,
   TableDef,
   TableBodyDef,
   TableCellDef,
@@ -28,7 +26,6 @@ export {
 export const defs: ComponentDefinition[] = [
   DataGridDef,
   KanbanBoardDef,
-  OrgChartDef,
   TableDef,
   TableBodyDef,
   TableCellDef,

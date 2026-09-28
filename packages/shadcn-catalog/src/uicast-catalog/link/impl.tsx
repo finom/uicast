@@ -13,7 +13,8 @@ export const LinkImpl = createComponentImplementation({
       rel={external ? "noopener noreferrer" : undefined}
       className={cn(
         buttonVariants({ variant: "link", size }),
-        "inline-flex items-center gap-1",
+        // A button's box, minus the width a flex column stretches and the side padding that indents the text.
+        "inline-flex w-fit items-center gap-1 px-0",
         variant === "muted" && "text-muted-foreground",
         variant === "destructive" && "text-destructive",
         size === "lg" && "text-base",

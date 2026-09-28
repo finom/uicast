@@ -4,8 +4,7 @@ import { iconNameSchema } from "../../lib/icons";
 
 export const IconDef = createComponentDefinition({
   name: "Icon",
-  description:
-    "A single icon. Use it inside a Button, a table cell, or beside text. For a clickable icon, use IconButton.",
+  description: "A single icon. Use it inside a button, a table cell, or beside text.",
   props: z.strictObject({
     name: iconNameSchema.meta({
       description: "Which icon to render.",

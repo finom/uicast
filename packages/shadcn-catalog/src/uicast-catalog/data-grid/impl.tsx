@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
+import { cn } from "../../lib/utils";
 import { DataGridDef } from "./def";
 import { columnWidth } from "../../lib/sizes";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -9,7 +10,8 @@ export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
   render: ({ columns, rows, maxHeight, striped, onRowClick }, { entry }) => (
     <div className="rounded-md border overflow-hidden" data-key={entry.key}>
-      <ScrollArea style={{ maxHeight }}>
+      {/* The viewport fills the root's height, and a root with only a max height has none. */}
+      <ScrollArea style={{ maxHeight }} className="*:data-[slot=scroll-area-viewport]:max-h-[inherit]">
         {/* Not the ui Table: its overflow wrapper would become the sticky header's scroll container. */}
         <table className="w-full text-sm">
           <TableHeader className="sticky top-0 z-10 bg-muted">
@@ -25,7 +27,10 @@ export const DataGridImpl = createComponentImplementation({
             {rows.map((row, rowIndex) => (
               <TableRow
                 key={rowIndex}
-                className={`cursor-pointer ${striped && rowIndex % 2 === 1 ? "bg-muted/30" : ""}`}
+                className={cn(
+                  entry.callbacks?.onRowClick && "cursor-pointer",
+                  striped && rowIndex % 2 === 1 && "bg-muted/30",
+                )}
                 onClick={() => onRowClick({ rowIndex, row })}
               >
                 {columns.map((col) => (

@@ -10,8 +10,14 @@ export const ResizablePanelImpl = createComponentImplementation({
     const [first, ...rest] = Children.toArray(children);
 
     // react-resizable-panels reads a bare number as pixels; the def gives percentages.
+    // It reads `defaultSize` once, so a new one from the document remounts the group.
     return (
-      <ResizablePanelGroup orientation={direction} className="min-h-50 rounded-lg border" data-key={entry.key}>
+      <ResizablePanelGroup
+        key={defaultSize}
+        orientation={direction}
+        className="min-h-50 rounded-lg border"
+        data-key={entry.key}
+      >
         <ResizablePanel defaultSize={`${defaultSize}%`} minSize={`${minSize}%`}>
           <div className="h-full overflow-auto">{first}</div>
         </ResizablePanel>

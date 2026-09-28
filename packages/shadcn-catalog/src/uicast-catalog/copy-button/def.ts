@@ -10,13 +10,13 @@ export const CopyButtonDef = createComponentDefinition({
       description: "The text to copy to clipboard",
     }),
     label: z.string().default("Copy").meta({
-      description: "Button label text",
+      description: "Label text",
     }),
     variant: z.enum(["default", "outline", "ghost", "secondary"]).default("outline").meta({
-      description: "Button variant",
+      description: "Visual variant",
     }),
     size: z.enum(["default", "sm", "lg", "icon"]).default("sm").meta({
-      description: "Button size",
+      description: "Size",
     }),
   }),
   callbacks: {

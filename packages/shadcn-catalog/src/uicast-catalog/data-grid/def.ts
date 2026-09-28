@@ -7,7 +7,7 @@ const rowSchema = z.record(z.string(), z.union([z.string(), z.number(), z.boolea
 export const DataGridDef = createComponentDefinition({
   name: "DataGrid",
   description:
-    "A data grid for displaying large tabular datasets with fixed headers and scrollable body. Supports column definitions and large row counts with overflow scrolling. Use DataGrid for large datasets, reports, or any data that needs a compact scrollable table view. For simpler tables, use Table with TableHeader/TableBody/TableRow/TableCell instead.",
+    "A data grid from one entry: `columns` and `rows` are data, and every cell shows text. The header stays fixed while the rows scroll past `maxHeight`. Use DataGrid for large datasets, reports, or any data that needs a compact scrollable table view.",
   props: z.strictObject({
     columns: z
       .array(

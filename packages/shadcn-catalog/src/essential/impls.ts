@@ -13,7 +13,6 @@ import { FlexColImpl } from "../uicast-catalog/flex-col/impl";
 import { FlexRowImpl } from "../uicast-catalog/flex-row/impl";
 import { GridImpl } from "../uicast-catalog/grid/impl";
 import { HeadingImpl } from "../uicast-catalog/heading/impl";
-import { IconButtonImpl } from "../uicast-catalog/icon-button/impl";
 import { InputImpl } from "../uicast-catalog/input/impl";
 import { LineChartImpl } from "../uicast-catalog/line-chart/impl";
 import { ModalImpl } from "../uicast-catalog/modal/impl";
@@ -45,7 +44,6 @@ export {
   FlexRowImpl,
   GridImpl,
   HeadingImpl,
-  IconButtonImpl,
   InputImpl,
   LineChartImpl,
   ModalImpl,
@@ -78,7 +76,6 @@ export const impls: ComponentImplementation[] = [
   FlexRowImpl,
   GridImpl,
   HeadingImpl,
-  IconButtonImpl,
   InputImpl,
   LineChartImpl,
   ModalImpl,

@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import type { PointerEvent } from "react";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -10,6 +11,12 @@ import {
 } from "../../components/ui/navigation-menu";
 import { NavigationMenuDef } from "./def";
 
+// Click only: Radix also opens on hover, and a click just after the hover-open closed the menu again.
+const noHover = {
+  onPointerMove: (e: PointerEvent) => e.preventDefault(),
+  onPointerLeave: (e: PointerEvent) => e.preventDefault(),
+};
+
 export const NavigationMenuImpl = createComponentImplementation({
   def: NavigationMenuDef,
   render: ({ items, onNavigate }, { entry }) => (
@@ -18,26 +25,23 @@ export const NavigationMenuImpl = createComponentImplementation({
         {items.map((item, i) =>
           item.children && item.children.length > 0 ? (
             <NavigationMenuItem key={i}>
-              <NavigationMenuTrigger>{item.label}</NavigationMenuTrigger>
-              <NavigationMenuContent>
-                <ul className="grid w-100 gap-3 p-4 md:grid-cols-2">
+              <NavigationMenuTrigger {...noHover}>{item.label}</NavigationMenuTrigger>
+              <NavigationMenuContent {...noHover}>
+                <ul className="w-96">
                   {item.children.map((child, ci) => (
                     <li key={ci}>
                       <NavigationMenuLink asChild>
                         <button
                           type="button"
-                          className="block w-full select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-left"
-                          onClick={() =>
-                            onNavigate({
-                              label: child.label,
-                              parentLabel: item.label,
-                            })
-                          }
+                          className="w-full text-left"
+                          onClick={() => onNavigate({ label: child.label, parentLabel: item.label })}
                         >
-                          <div className="text-sm font-medium leading-none">{child.label}</div>
-                          {child.description && (
-                            <p className="line-clamp-2 text-sm/snug text-muted-foreground">{child.description}</p>
-                          )}
+                          <div className="flex flex-col gap-1 text-sm">
+                            <div className="leading-none font-medium">{child.label}</div>
+                            {child.description && (
+                              <div className="line-clamp-2 text-muted-foreground">{child.description}</div>
+                            )}
+                          </div>
                         </button>
                       </NavigationMenuLink>
                     </li>

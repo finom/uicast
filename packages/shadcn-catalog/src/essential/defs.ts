@@ -13,7 +13,6 @@ import { FlexColDef } from "../uicast-catalog/flex-col/def";
 import { FlexRowDef } from "../uicast-catalog/flex-row/def";
 import { GridDef } from "../uicast-catalog/grid/def";
 import { HeadingDef } from "../uicast-catalog/heading/def";
-import { IconButtonDef } from "../uicast-catalog/icon-button/def";
 import { InputDef } from "../uicast-catalog/input/def";
 import { LineChartDef } from "../uicast-catalog/line-chart/def";
 import { ModalDef } from "../uicast-catalog/modal/def";
@@ -45,7 +44,6 @@ export {
   FlexRowDef,
   GridDef,
   HeadingDef,
-  IconButtonDef,
   InputDef,
   LineChartDef,
   ModalDef,
@@ -78,7 +76,6 @@ export const defs: ComponentDefinition[] = [
   FlexRowDef,
   GridDef,
   HeadingDef,
-  IconButtonDef,
   InputDef,
   LineChartDef,
   ModalDef,

@@ -8,22 +8,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
 - A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
-- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 30 of the 128 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
+- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 106 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
-- Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card`, `Alert` and `Callout` draw the `title` in place of a bar. Without known props they draw as before.
+- Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card` and `Alert` draw the `title` in place of a bar. Without known props they draw as before.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
 
 ### Changed
 
-- Status colors come from theme variables: `--success`, `--warning`, `--info` and shadcn's `--destructive` replace the fixed Tailwind green, yellow, blue and red. `catalog.css` sets defaults for the first three, light and dark; a theme's own values win. `Rating` stars and `HighlightedText` colors use them too. `Banner` and `DiffViewer` text stays in the foreground color, on a tint of the status color.
+- `src/components/ui` holds the current shadcn radix-nova registry items, with only their import paths changed. The two local edits moved to implementations: `Table` puts its `content-visibility` on a wrapper, and `DataGrid` passes its max height to the scroll viewport.
+- `KanbanBoard` is built on Kibo UI's Kanban. Cards show their borders, and a tag is a tinted chip with a colored dot.
+- `Carousel` is built on shadcn's Carousel (Embla). The arrows sit outside the slides instead of over them. It adds the `embla-carousel-react` dependency.
+- `Alert` takes child entries below its description, its `title` is optional, and its icon shows the status color. It covers what `Callout` did.
+- `EmptyState` shows a folder icon instead of an inbox.
+- `RadarChart` draws no radius axis; its numbers crossed the plot.
+- **Breaking: eight components merged into the one they duplicated.** `Tag` is `Badge` with `removable` (and `onClick`, `onRemove`). `Banner` is `Alert` with `dismissible` and `icon` (and `onDismiss`). `BubbleChart` is `ScatterChart` with `sizeKey`. `AreaChart` is `LineChart` with `filled` and `stacked`. `ComboChart` is `BarChart` with `lineKeys`, colored after the bars. `RangeSlider` is `Slider` with a `[low, high]` pair as `value`. `Drawer` is `Modal` with `side`. `Combobox` is `Select` with `searchable`, and `Select.onChange` sends the option's `label` too.
+- **Breaking: `Button` takes an `icon` and a `tooltip`, and `size` is `sm`, `default` or `lg`.** Without text it is square. `size` sets the height, the text size and the icon size; `"icon"` is gone.
+- Descriptions name only their own component and its parts, since a host registers any subset of the catalog. A catalog test fails on a description that names another component. `DataGrid` and `Table` each describe their own use.
+- Status colors come from theme variables: `--success`, `--warning`, `--info` and shadcn's `--destructive` replace the fixed Tailwind green, yellow, blue and red. `catalog.css` sets defaults for the first three, light and dark; a theme's own values win. `Rating` stars and `HighlightedText` colors use them too. `DiffViewer` text stays in the foreground color, on a tint of the status color.
 - Implementations share three helpers in `src/lib`: `skeletons.tsx` (the bar, stack, row and panel skeletons), `chart-frame.tsx` (the box around every Recharts chart) and `use-mirror.ts` (local state that a prop change resets). Copy them with a component. Rendering is unchanged, except that every chart's box is `position: relative`, as `PieChart`'s was.
 - `RenderError` reads the element's key from `error.elementKey`, since `ErrorComponentProps` no longer carries it.
 - Depends on zod `~4.6.5` (was `~4.3.6`).
 - **Breaking: `RelativeTime` is `DateTime`, and shows any date or time** in the viewer's language and time zone. `value` takes an ISO date-time, an ISO date (shown as that day in every time zone) or a timestamp in milliseconds. `format` is `"date"` (the default), `"time"`, `"datetime"`, `"relative"`, or `Intl.DateTimeFormat` options. A relative time updates as time passes: each second under a minute away, each minute under an hour, else each hour; it rendered once before. The text takes the surrounding style instead of small muted text.
-- **Breaking: 21 redundant components are gone**, leaving 129. Each was covered by one that remains: `Stack` (FlexRow/FlexCol), `Sheet` (Drawer, identical props), `Spacer` (the gap props), `Label` (Typography, or FieldLabel in a form), `DonutChart` (PieChart's `donut`), `AlertDialog` (ConfirmDialog), `SegmentedControl` (ToggleGroup), `PasswordInput` (Input's `password` type), `DateRangePicker` (two DatePickers), `FlowDiagram` (Stepper), `Toolbar` (FlexRow), `FormSection` (Card), `PageHeader` (Heading + Typography + Breadcrumb), `StatusIndicator` (Badge), `InlineMessage` (Alert), `CircularProgress` (GaugeChart or ProgressBar), `Menubar` (NavigationMenu), `ContextMenu` (DropdownMenu), `Toggle` (Switch or ToggleGroup). `SortableList` and `Barcode` went because neither did what its name said — the drag handles never reordered and the barcode was never scannable.
+- **Breaking: 21 redundant components are gone.** Each was covered by one that remains: `Stack` (FlexRow/FlexCol), `Sheet` (Modal's `side`), `Spacer` (the gap props), `Label` (Typography, or FieldLabel in a form), `DonutChart` (PieChart's `donut`), `AlertDialog` (a step's `confirm`), `SegmentedControl` (ToggleGroup), `PasswordInput` (Input's `password` type), `DateRangePicker` (two DatePickers), `FlowDiagram` (Stepper), `Toolbar` (FlexRow), `FormSection` (Card), `PageHeader` (Heading + Typography + Breadcrumb), `StatusIndicator` (Badge), `InlineMessage` (Alert), `CircularProgress` (GaugeChart or ProgressBar), `Menubar` (NavigationMenu), `ContextMenu` (DropdownMenu), `Toggle` (Switch or ToggleGroup). `SortableList` and `Barcode` went because neither did what its name said — the drag handles never reordered and the barcode was never scannable.
 - **Breaking: the registries are one module per group.** `@uicast/shadcn-catalog/<group>/defs` and `/<group>/impls` for `layout`, `content`, `data`, `charts`, `forms`, `navigation` and `overlays`, and `/all/defs` and `/all/impls` for every group, export each definition and implementation by name, and all of them as one array: `defs` or `impls`. Was `/defs` and `/impls` exporting `allDefinitions` and `allImplementations`.
 - **Breaking: `ConfirmModal` and `RenderError` come from the package root, `@uicast/shadcn-catalog`.** Was `/default-components`.
 - Pairs moved from `src/uicast/` to `src/uicast-catalog/`. Internal layout — the package's entry points are unchanged.
@@ -32,26 +42,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Table`, `Card`, `Stat`, `DescriptionList` and every chart render busy while `loading` is true: the content stays, dimmed and pulsing, with `aria-busy` set.
 - **Breaking: `Icon` and every `icon` prop take a name from a fixed set.** The catalog imports ~96 named icons instead of the whole lucide namespace, so a consumer bundle carries 8.6 KB gzipped instead of 175 KB. The names appear once in the prompt as the shared type `IconName`. `Icon.color` is a theme vocabulary (`default`, `muted`, `primary`, `destructive`, `success`, `warning`), not a Tailwind class fragment.
 - **Breaking: no prop takes free-form text where the value comes from a fixed set.** Chart colours are palette names (`ChartColor`), sizes are named (`Width`, `Height`, `ColumnWidth`) or pixel counts, code languages, currencies, locales, calling codes, file kinds, keyboard keys and filter operators are enums, and dates and times are `z.iso.date()` / `z.iso.time()` / `z.iso.datetime()`.
-- **Breaking: `TreeView.items` and `OrgChart.root` nest to any depth.** Both were unrolled two levels deep and then `z.any()`. `FileUpload.accept` is now a list of kinds, not a comma-joined string. `Kbd.keys` and every menu `shortcut` are key-name arrays. `Tag.onRemove` sends `null`, like every other payload-free callback.
+- **Breaking: `TreeView.items` nests to any depth.** It was unrolled two levels deep and then `z.any()`. `FileUpload.accept` is now a list of kinds, not a comma-joined string. `Kbd.keys` and every menu `shortcut` are key-name arrays.
 - Numeric props carry their bounds: percentages are 0-100 (`ProgressBar.value` runs from 0 to `max`), indices and counts are non-negative integers, pixel dimensions are positive integers, and map coordinates are within their real ranges.
 - Callback payloads use `z.strictObject`, matching props.
 - `ScatterChart.nameKey` is `name`, a string: the series name in the tooltip. It was typed as a colour.
-- `SignaturePad.onEnd` reports `isEmpty` truthfully and fires only after a stroke.
 - **Breaking: four components are renamed so that no component shares a name with a JavaScript or browser global:** `Map` is `LocationMap`, `Image` is `Picture`, `Text` is `Typography`, `Highlight` is `HighlightedText`. Their exports follow (`TypographyDef`, `TypographyImpl`, …). A catalog test fails on any such name.
 - **Breaking: `LocationMap` draws map tiles itself.** 256-px raster tiles fill the `width` × `height` box, placed by the Web Mercator formula from `center` and `zoom`, and pins are placed by the same formula. It was an openstreetmap.org iframe over a fixed ±0.05° box, with pins placed by a different rule that missed their spot. `zoom` runs from 0 to 19 and changes what the map shows; `width` and `height` are at most 2048. Pins are buttons named by their label, which shows on hover or focus. The tiles come from OpenStreetMap, and their credit is always shown.
 - **Breaking: `Link` renders an `<a href>`.** A click opens `href`, and `external` opens it in a new tab (`target="_blank" rel="noopener noreferrer"`). `href` is required; `onClick` and `disabled` are gone. A link navigates; an action is a `Button`.
-- Descriptions match what renders: `Popover` (the trigger is a button labelled `triggerLabel`; every child renders in the panel), `PhoneInput.value` (without the calling code), `NotificationBadge.count` (0 hides the badge unless `showZero`), `HighlightedText.color` (four named colours, no CSS colour), `PieChart.colors` and `FunnelChart.colors` (one per slice or stage), `Sidebar` (collapses to icons; its sections do not collapse), `TreemapChart` (one rectangle per item, not nested), `TruncatedText` (a Show more toggle, no tooltip), `WaterfallChart.data[].isTotal` (the running total; its value is ignored), `ScrollArea.orientation` (vertical scrolling is always on).
+- Descriptions match what renders: `Popover` (the trigger is a button labelled `triggerLabel`; every child renders in the panel), `PhoneInput.value` (without the calling code), `NotificationBadge.count` (0 hides the badge unless `showZero`), `HighlightedText.color` (four named colours, no CSS colour), `PieChart.colors` and `FunnelChart.colors` (one per slice or stage), `Sidebar` (collapses to icons; its sections do not collapse), `TreemapChart` (one rectangle per item, not nested), `TruncatedText` (a Show more toggle, no tooltip), `WaterfallChart.data[].isTotal` (the running total; its value is ignored), `ScrollArea.orientation` (vertical scrolling is always on), `Pagination` (without `totalPages`, the pages up to the current one).
 
 ### Removed
 
-- Props and callbacks nothing implemented: `Banner.onAction`, `CodeEditor.language`, `CurrencyInput.min` and `max`, `Field.disabled`, `FieldLabel.htmlFor`, `TreemapChart.data[].color`.
+- `Callout`: use `Alert`. Callout's `tip` and `note` variants have no counterpart; `info` is the closest.
+- **Breaking: `ChatThread`, `Collapsible`, `ConfirmDialog`, `CronBuilder`, `FilterBuilder`, `IconButton`, `MaskedInput`, `OrgChart`, `SankeyChart`, `SignaturePad`, `Skeleton`, `TagInput` and `VideoPlayer`.** `Accordion` covers `Collapsible`, a step's `confirm` covers `ConfirmDialog`, `Button` covers `IconButton`, and `MultiSelect` covers `TagInput`.
+- Props and callbacks nothing implemented: `CodeEditor.language`, `CurrencyInput.min` and `max`, `Field.disabled`, `FieldLabel.htmlFor`, `TreemapChart.data[].color`.
 - `ui/context-menu` and `ui/menubar`: only the removed `ContextMenu` and `Menubar` used them.
 - **Breaking: `MarkdownViewer`.** Its markdown loaded images from any site and linked anywhere, past the renderer's `urlPolicy`. The catalog no longer depends on `streamdown`.
 
 ### Fixed
 
-- `Callout` icons show their variant color. shadcn's `Alert` set every icon to the text color, which overrode the icon's own class.
-- `PieChart`, `FunnelChart`, `ComboChart` and `GanttChart` used a colour's name as the SVG fill; they look it up in the palette now, as the other charts do.
+- `QRCode` has a quiet zone, which scanners need, and no card around it.
+- Every option of a searchable `Select`, `MultiSelect` and `CommandMenu` looked highlighted. `catalog.css` defines the `data-*` state variants as shadcn does, so `data-selected="false"` no longer matches.
+- `NavigationMenu` sub-items show the label above the description, as in shadcn's example; they sat side by side and overflowed.
+- `NavigationMenu` opens on click only. It also opened on hover, so a click just after the hover-open closed it again.
+- `Select` opens its list below the field, as wide as the field, with or without `searchable`.
+- `ResizablePanel` applies a new `defaultSize` from the document; the panels kept the first one.
+- `KanbanBoard`: a dropped card no longer disappears for a moment before it shows in its column. A card dropped on another card takes its place instead of going to the end of the column. In a narrow container the columns keep their width and the board scrolls; they overlapped.
+- `CurrencyInput` shows the amount in the `locale`'s number format while it is not focused; `locale` changed only the `formatted` value. A currency code such as `CHF` no longer overlaps the amount.
+- `Toast` is one box. It was an alert inside a card, and the card clipped the alert's corners. Its icons show the status color; they were the text color.
+- `Timeline`: the icon in a default dot shows on a dark theme; it was white on a white dot.
+- `FunnelChart` stage names fit in the chart; the widest stage's name was cut off.
+- `GanttChart` bars are one piece; lines showed between the units.
+- A searchable `Select` looks like the plain one when closed: the same chevron and text weight.
+- `Link` is as wide as its text, with no side padding. In a column it stretched to the full width, its text centered.
+- `Avatar`, `Timeline`, `VirtualList` and `DataGrid` show the pointer cursor only when a click callback is bound.
+- `Timeline` draws the line between items; it stopped at each item's text.
+- `TruncatedText` shows Show more only when the text is clamped.
+- `HighlightedText` matches keep the text color. They were black, the browser's default for `<mark>`.
+- `NotificationBadge` counts are solid, with a ring in the background color, so the element under them does not show through.
+- `PieChart`, `FunnelChart` and `GanttChart` used a colour's name as the SVG fill; they look it up in the palette now, as the other charts do.
 - `SearchInput.onSubmit` sends the input's live value, not the `value` prop it was last given.
 - `NumberInput` keeps a minimum width (`5rem`), so it no longer collapses to nothing inside a table cell.
 - `AccordionItem` content that loads after opening (rows fetched on open) was clipped at the height measured on open; the content wrapper no longer has a fixed height.
@@ -62,22 +91,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `DataGrid`'s header stays in view while its rows scroll.
 - `DatePicker` and `TimePicker` no longer report a cleared or half-typed value, an empty string the payload schema refused.
 - `ColorPicker`'s text field reports only a complete hex colour; every keystroke before that failed the payload schema.
-- `BubbleChart.xLabel` and `yLabel` name the values in the tooltip; they were shown nowhere.
 - `KanbanBoard`: cancelling a drag puts a card moved to another column back; it stayed there, and `onCardMove` never fired.
-- `FilterBuilder`: choosing another field resets the operator and the value.
 - `List` with `ordered: true` draws numbers; it drew bullets unless `styleType` said otherwise.
 - `NavigationMenu` items without sub-items take keyboard focus.
 - `Link`: `size: "lg"` enlarges the text, and `underline: "none"` no longer underlines on hover.
 - `FileUpload` shows the not-allowed cursor when disabled.
 - `FunnelChart` labels use the text colour; they were black, unreadable on a dark theme.
 - `ResizablePanel` sizes are percentages, as the definition says: react-resizable-panels 4 read the numbers as pixels.
-- `SignaturePad` draws with touch and pen, not only the mouse.
 - `TreemapChart` draws every item; rectangles narrower than 30 px or shorter than 20 px were dropped.
 - `WaterfallChart`'s tooltip shows a decrease as a negative value.
 - `ProgressBar.max` must be positive; 0 gave the bar a NaN width.
 - `MultiSelect` is rebuilt on Popover and Command. A click anywhere on an option toggles it, a click outside closes the list, and the list takes the arrow keys and Enter. The trigger nested a button in a button, a React hydration warning; only the checkbox toggled, and nothing closed the list but the trigger.
 - `Carousel` with `orientation: "vertical"` showed every slide at once and stepped past them. Slides now share one cell, as tall as the tallest, and the vertical arrows sit at the top and bottom. `loop` with no slides no longer sets the index to NaN, and the arrow buttons have accessible names.
-- `Combobox` and `CommandMenu` shaded every option, not just the highlighted one: cmdk sets `data-selected="false"` on the others, and the style matched the attribute's presence.
 - Descriptions no longer claim what the implementation does not do: syntax highlighting in `CodeBlock`, a ⌘K shortcut in `CommandMenu`, formatted amounts in `CurrencyInput`, info, success and warning colours in `Alert`, a blue confirm button in `ConfirmDialog`, a shadow on `Card`.
 
 ### Changed

@@ -1,133 +1,37 @@
-import {
-  closestCorners,
-  DndContext,
-  type DragEndEvent,
-  type DragOverEvent,
-  DragOverlay,
-  type DragStartEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useDroppable,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { closestCorners, type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { createComponentImplementation } from "@uicast/react";
-import { useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import { Badge } from "../../components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { KanbanBoard, KanbanCard, KanbanCards, KanbanHeader, KanbanProvider } from "../../components/ui/kanban";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { CHART_COLORS } from "../../lib/chart-colors";
 import { blockSkeleton } from "../../lib/skeletons";
 import { useMirror } from "../../lib/use-mirror";
-import { cn } from "../../lib/utils";
-import { type KanbanCard, type KanbanColumn, KanbanBoardDef } from "./def";
+import { type KanbanCard as BoardCard, type KanbanColumn, KanbanBoardDef } from "./def";
 
-type CardClick = (evt: { cardId: string; columnId: string }) => void;
+// Kibo's board takes one flat list, with each card's column as a field.
+type Item = { id: string; name: string; column: string; card: BoardCard };
 
-// Where `id` is: a card's column and index, or a column itself (index -1), so a drop can target an empty column.
-const locate = (board: KanbanColumn[], id: string) => {
-  const column = board.find((c) => c.id === id);
-  if (column) return { column, index: -1 };
-  for (const column of board) {
-    const index = column.cards.findIndex((card) => card.id === id);
-    if (index >= 0) return { column, index };
-  }
-  return undefined;
-};
+const toItems = (board: KanbanColumn[]): Item[] =>
+  board.flatMap((column) => column.cards.map((card) => ({ id: card.id, name: card.title, column: column.id, card })));
 
-const CardView = ({ card, onClick }: { card: KanbanCard; onClick?: () => void }) => (
-  <Card className="hover:shadow-md transition-shadow" onClick={onClick}>
-    <CardHeader className="p-3 pb-1">
-      <CardTitle className="text-sm">{card.title}</CardTitle>
-    </CardHeader>
-    {(card.description || card.tag) && (
-      <CardContent className="p-3 pt-0">
-        {card.description && <p className="text-xs text-muted-foreground line-clamp-2">{card.description}</p>}
-        {card.tag && (
-          <Badge
-            variant="outline"
-            className="mt-2 text-xs"
-            style={
-              card.tagColor
-                ? {
-                    backgroundColor: CHART_COLORS[card.tagColor],
-                    color: "#fff",
-                    borderColor: CHART_COLORS[card.tagColor],
-                  }
-                : undefined
-            }
-          >
-            {card.tag}
-          </Badge>
-        )}
-      </CardContent>
-    )}
-  </Card>
-);
+const toBoard = (board: KanbanColumn[], items: Item[]): KanbanColumn[] =>
+  board.map((column) => ({
+    ...column,
+    cards: items.filter((item) => item.column === column.id).map((item) => item.card),
+  }));
 
-const SortableCard = ({
-  card,
-  columnId,
-  onCardClick,
-}: {
-  card: KanbanCard;
-  columnId: string;
-  onCardClick: CardClick;
-}) => {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: card.id });
-  return (
-    <div
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn("cursor-grab active:cursor-grabbing", isDragging && "opacity-40")}
-      {...attributes}
-      {...listeners}
-    >
-      <CardView card={card} onClick={() => onCardClick({ cardId: card.id, columnId })} />
-    </div>
-  );
-};
-
-const BoardColumn = ({ column, onCardClick }: { column: KanbanColumn; onCardClick: CardClick }) => {
-  // Droppable under the column's own id, so a card can land in an empty column.
-  const { setNodeRef } = useDroppable({ id: column.id });
-  return (
-    <div className="flex w-72 shrink-0 flex-col rounded-lg border bg-muted/50">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
-        <h3 className="text-sm font-semibold">{column.title}</h3>
-        <Badge variant="secondary" className="text-xs">
-          {column.cards.length}
-        </Badge>
-      </div>
-      <SortableContext items={column.cards.map((card) => card.id)} strategy={verticalListSortingStrategy}>
-        <ScrollArea className="flex-1 p-2">
-          <div ref={setNodeRef} className="space-y-2 min-h-8">
-            {column.cards.map((card) => (
-              <SortableCard key={card.id} card={card} columnId={column.id} onCardClick={onCardClick} />
-            ))}
-          </div>
-        </ScrollArea>
-      </SortableContext>
-    </div>
-  );
-};
+const indexInColumn = (items: Item[], item: Item) => items.filter((i) => i.column === item.column).indexOf(item);
 
 export const KanbanBoardImpl = createComponentImplementation({
   def: KanbanBoardDef,
   render: ({ columns, onCardClick, onCardMove }, { entry }) => {
     // Resyncs by content: the document writing `evt.columns` back matches the local board and nothing moves.
     const [board, setBoard] = useMirror(columns, JSON.stringify(columns));
-    const [activeCard, setActiveCard] = useState<KanbanCard | null>(null);
+    const items = useMemo(() => toItems(board), [board]);
     // The state at drag start: a no-op drop skips the callback, a cancel puts `board` back.
-    const dragOrigin = useRef<{ columnId: string; index: number; board: KanbanColumn[] } | null>(null);
+    const origin = useRef<{ column: string; index: number; board: KanbanColumn[] } | null>(null);
 
     const sensors = useSensors(
       // The distance threshold keeps plain clicks flowing to onCardClick.
@@ -135,77 +39,98 @@ export const KanbanBoardImpl = createComponentImplementation({
       useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
     );
 
-    const handleDragStart = ({ active }: DragStartEvent) => {
-      const at = locate(board, String(active.id));
-      setActiveCard(at?.column.cards[at.index] ?? null);
-      dragOrigin.current = at ? { columnId: at.column.id, index: at.index, board } : null;
-    };
-
-    // Cross-column moves happen live while hovering; within-column order settles on drop.
-    const handleDragOver = ({ active, over }: DragOverEvent) => {
-      if (!over) return;
-      setBoard((prev) => {
-        const from = locate(prev, String(active.id));
-        const to = locate(prev, String(over.id));
-        if (!from || !to || from.column === to.column || from.index < 0) return prev;
-        const card = from.column.cards[from.index];
-        const insertAt = to.index >= 0 ? to.index : to.column.cards.length;
-        return prev.map((c) => {
-          if (c === from.column) return { ...c, cards: c.cards.filter((k) => k.id !== card.id) };
-          if (c === to.column)
-            return { ...c, cards: [...c.cards.slice(0, insertAt), card, ...c.cards.slice(insertAt)] };
-          return c;
-        });
-      });
-    };
-
     const handleDragEnd = ({ active, over }: DragEndEvent) => {
-      setActiveCard(null);
-      const activeId = String(active.id);
-      const origin = dragOrigin.current;
-      dragOrigin.current = null;
-
-      let next = board;
-      const from = locate(board, activeId);
-      const to = over ? locate(board, String(over.id)) : undefined;
-      if (from && to && from.column === to.column && from.index >= 0 && to.index >= 0 && from.index !== to.index) {
-        next = board.map((c) => (c === from.column ? { ...c, cards: arrayMove(c.cards, from.index, to.index) } : c));
-        setBoard(next);
-      }
-
-      const at = locate(next, activeId);
-      if (!origin || !at || (origin.columnId === at.column.id && origin.index === at.index)) return;
+      const start = origin.current;
+      origin.current = null;
+      // Kibo applies this same move after the handler returns.
+      const moved =
+        over && active.id !== over.id
+          ? arrayMove(
+              items,
+              items.findIndex((item) => item.id === active.id),
+              items.findIndex((item) => item.id === over.id),
+            )
+          : items;
+      const item = moved.find((i) => i.id === active.id);
+      if (!start || !item) return;
+      const toIndex = indexInColumn(moved, item);
+      if (start.column === item.column && start.index === toIndex) return;
       onCardMove({
-        cardId: activeId,
-        fromColumnId: origin.columnId,
-        toColumnId: at.column.id,
-        toIndex: at.index,
-        columns: next,
+        cardId: item.id,
+        fromColumnId: start.column,
+        toColumnId: item.column,
+        toIndex,
+        columns: toBoard(board, moved),
       });
     };
 
     return (
-      <ScrollArea className="pb-4" data-key={entry.key}>
-        <DndContext
+      <ScrollArea data-key={entry.key}>
+        <KanbanProvider
+          columns={board.map((column) => ({ id: column.id, name: column.title, count: column.cards.length }))}
+          data={items}
           sensors={sensors}
+          // Kibo's closestCenter often picks the whole column over a card in it, so a card lands at the column's end.
           collisionDetection={closestCorners}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
+          // Columns keep 12rem and narrow boards scroll; the padding keeps the drop ring inside the clipping viewport.
+          className="auto-cols-[minmax(12rem,1fr)] p-1"
+          onDataChange={(next) => setBoard(toBoard(board, next))}
+          onDragStart={({ active }) => {
+            const item = items.find((i) => i.id === active.id);
+            origin.current = item ? { column: item.column, index: indexInColumn(items, item), board } : null;
+          }}
           onDragEnd={handleDragEnd}
           onDragCancel={() => {
-            setActiveCard(null);
-            if (dragOrigin.current) setBoard(dragOrigin.current.board);
-            dragOrigin.current = null;
+            if (origin.current) setBoard(origin.current.board);
+            origin.current = null;
           }}
         >
-          <div className="flex gap-4">
-            {board.map((column) => (
-              <BoardColumn key={column.id} column={column} onCardClick={onCardClick} />
-            ))}
-          </div>
-          {/* A fixed-position layer, so the dragged card is not clipped by the scroll containers. */}
-          <DragOverlay>{activeCard ? <CardView card={activeCard} /> : null}</DragOverlay>
-        </DndContext>
+          {(column) => (
+            <KanbanBoard id={column.id} key={column.id}>
+              <KanbanHeader className="flex items-center justify-between">
+                {column.name}
+                <span className="font-normal text-muted-foreground tabular-nums">{column.count}</span>
+              </KanbanHeader>
+              <KanbanCards<Item>
+                id={column.id}
+                // dnd-kit hides the dropped card while its drop animation runs, and Kibo has emptied the overlay by then.
+                className="[&>*]:opacity-100!"
+              >
+                {(item) => (
+                  <KanbanCard column={item.column} id={item.id} key={item.id} name={item.name}>
+                    <div onClick={() => onCardClick({ cardId: item.id, columnId: item.column })}>
+                      <p className="m-0 text-sm font-medium">{item.name}</p>
+                      {item.card.description && (
+                        <p className="mt-1 line-clamp-2 text-muted-foreground">{item.card.description}</p>
+                      )}
+                      {item.card.tag && (
+                        <Badge
+                          variant="secondary"
+                          className="mt-2 gap-1.5"
+                          style={
+                            item.card.tagColor
+                              ? {
+                                  backgroundColor: `color-mix(in srgb, ${CHART_COLORS[item.card.tagColor]} 20%, transparent)`,
+                                }
+                              : undefined
+                          }
+                        >
+                          {item.card.tagColor && (
+                            <span
+                              className="size-1.5 rounded-full"
+                              style={{ backgroundColor: CHART_COLORS[item.card.tagColor] }}
+                            />
+                          )}
+                          {item.card.tag}
+                        </Badge>
+                      )}
+                    </div>
+                  </KanbanCard>
+                )}
+              </KanbanCards>
+            </KanbanBoard>
+          )}
+        </KanbanProvider>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
     );
