@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Button } from "@uicast/shadcn-catalog/ui/button";
+import { LoginGate } from "@/components/login-gate";
 import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
@@ -9,15 +9,10 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
   const { login } = await searchParams;
 
   return (
-    <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="text-2xl font-semibold">Warehouse back office</h1>
-      <p className="max-w-md text-sm text-muted-foreground">
-        Describe a page or ask a question. The model answers with working UI over the store's demo data, billed to your
-        own OpenRouter credits.
-      </p>
-      <Button asChild className="h-11 px-6 text-base">
-        <a href="/api/auth/login">Log in with OpenRouter</a>
-      </Button>
+    <LoginGate
+      title="Warehouse back office"
+      description="Describe a page or ask a question. The model answers with working UI over the store's demo data, billed to your own OpenRouter credits."
+    >
       {login === "failed" && (
         <p role="alert" className="text-xs text-destructive">
           OpenRouter login failed or was cancelled. Try again.
@@ -41,6 +36,6 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ l
           GitHub
         </a>
       </nav>
-    </div>
+    </LoginGate>
   );
 }

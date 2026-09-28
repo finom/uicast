@@ -42,9 +42,15 @@ const uicastRenderer = createFenceRenderer({ sourceToggle: SourceToggle });
 // Passing `plugins` replaces the default set, so the built-ins are recomposed.
 const streamdownPlugins = { cjk, code, math, mermaid, renderers: [uicastRenderer] };
 
-type ChatViewProps = { chatId: string; initialMessages?: UIMessage<Usage>[]; ownerSlug: string; readonly?: boolean };
+type ChatViewProps = {
+  chatId: string;
+  initialMessages?: UIMessage<Usage>[];
+  ownerSlug: string;
+  readonly?: boolean;
+  loggedOut?: boolean;
+};
 
-export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false }: ChatViewProps) {
+export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false, loggedOut = false }: ChatViewProps) {
   setApiOwner(ownerSlug);
   const { messages, sendMessage, status, stop, error } = useChat({ id: chatId, messages: initialMessages });
   const queryClient = useQueryClient();
@@ -136,7 +142,16 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false 
               status={status}
               onStop={stop}
               onSubmit={handleSubmit}
+              disabled={loggedOut}
             />
+          )}
+          {loggedOut && (
+            <p className="pt-2 text-center text-xs text-muted-foreground">
+              <a className="underline" href="/api/auth/login">
+                Log in with OpenRouter
+              </a>{" "}
+              to send messages.
+            </p>
           )}
         </div>
       </div>

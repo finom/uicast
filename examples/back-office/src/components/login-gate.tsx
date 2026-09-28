@@ -1,22 +1,27 @@
 import { LogIn } from "lucide-react";
+import type { ReactNode } from "react";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 
-export function LoginGate({ what }: { what: string }) {
+export function LoginGate({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) {
   return (
-    <div className="flex h-full items-center justify-center p-8">
-      <div className="flex max-w-sm flex-col items-center gap-4 text-center">
-        <h1 className="text-lg font-semibold">Log in to {what}</h1>
-        <p className="text-sm text-muted-foreground">
-          OpenRouter authorizes an API key for this demo — generations run on your own credits, and you get a private
-          copy of the demo data to build against.
-        </p>
-        <Button asChild>
-          <a href="/api/auth/login">
-            <LogIn data-icon="inline-start" />
-            Log in with OpenRouter
-          </a>
-        </Button>
-      </div>
+    <div className="flex min-h-full flex-col items-center justify-center gap-4 p-6 text-center">
+      <h1 className="text-2xl font-semibold">{title}</h1>
+      <p className="max-w-md text-sm text-muted-foreground">{description}</p>
+      <Button asChild className="h-11 px-6 text-base">
+        <a href="/api/auth/login">
+          <LogIn />
+          Log in with OpenRouter
+        </a>
+      </Button>
+      {children}
     </div>
   );
 }
