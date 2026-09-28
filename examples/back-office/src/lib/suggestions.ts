@@ -30,6 +30,26 @@ const CHAT_SUGGESTIONS = [
   "Products grouped by supplier",
   "Add a new supplier",
   "A dashboard for this week",
+  "What's our total stock value?",
+  "Orders from our top customer",
+  "Average order value this month",
+  "Best sales day this month",
+  "Orders placed today",
+  "Which category has the most stock?",
+  "Products priced under $50",
+  "Products out of stock",
+  "Change a product's price",
+  "Recently received stock",
+  "Log a stock adjustment",
+  "Delivered orders this week",
+  "Which product sells best?",
+  "Update a customer's email",
+  "Suppliers based in Europe",
+  "Suppliers by category",
+  "Which supplier has the most products?",
+  "Stock value by supplier",
+  "Low-stock items and their suppliers",
+  "Compare this week to last week",
 ];
 
 export type PageIdea = { name: string; prompt: string };
@@ -172,5 +192,5 @@ function pick<T>(items: T[], count = 4) {
   return Array.from({ length: count }, () => pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
 }
 
-export const pickChatSuggestions = () => pick(CHAT_SUGGESTIONS);
+export const pickChatSuggestions = (asked: string[] = []) => pick(CHAT_SUGGESTIONS.filter((s) => !asked.includes(s)));
 export const pickPageIdeas = () => pick(PAGE_IDEAS);

@@ -8,7 +8,7 @@ import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
 import { Code, MessageSquare } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { RendererProvider } from "@uicast/react";
 import { type Usage, UsageLine } from "@/components/cost-info";
@@ -27,6 +27,8 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import { PromptInput } from "@/components/ai-elements/prompt-input";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
+import { pickChatSuggestions } from "@/lib/suggestions";
+import { cn } from "@/lib/utils";
 import { setApiOwner } from "@/tools/http";
 
 // The chat route answers `{ error }` JSON, and useChat hands over the raw body.
@@ -38,6 +40,27 @@ const errorText = (message: string) => {
     return message;
   }
 };
+
+// Example requests; a click sends one as the user's message.
+function Suggestions({
+  items,
+  onPick,
+  className,
+}: {
+  items: string[];
+  onPick: (text: string) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn("flex flex-wrap gap-2", className)}>
+      {items.map((text) => (
+        <Button key={text} variant="outline" onClick={() => onPick(text)}>
+          {text}
+        </Button>
+      ))}
+    </div>
+  );
+}
 
 function SourceToggle({ showSource, onShowSourceChange }: SourceToggleProps) {
   return (
@@ -65,6 +88,8 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
   setApiOwner(ownerSlug);
   const { messages, sendMessage, status, stop, error } = useChat({ id: chatId, messages: initialMessages });
   const queryClient = useQueryClient();
+  // The server picks the first set; each send picks the set shown under its answer.
+  const [picks, setPicks] = useState(suggestions);
 
   const busy = status === "streaming" || status === "submitted";
   const rendererDefaults = useRendererDefaults((failure) => {
@@ -92,6 +117,10 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
       // Shallow: a router navigation would stop the stream into this mounted view.
       window.history.replaceState(null, "", `/u/${ownerSlug}/c/${chatId}`);
     }
+    const asked = messages
+      .flatMap((m) => (m.role === "user" ? m.parts : []))
+      .flatMap((p) => (p.type === "text" ? [p.text] : []));
+    setPicks(pickChatSuggestions([...asked, text]));
     sendMessage({ text });
   };
 
@@ -111,36 +140,31 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
                 title="Ask about your data"
                 description="Answers can include live UI — charts, tables, and stats bound to the demo database."
               >
-                {suggestions && (
-                  <div className="flex max-w-xl flex-wrap justify-center gap-2 pt-2">
-                    {suggestions.map((text) => (
-                      <Button key={text} variant="outline" onClick={() => handleSubmit(text)}>
-                        {text}
-                      </Button>
-                    ))}
-                  </div>
-                )}
+                {picks && <Suggestions items={picks} onPick={handleSubmit} className="max-w-xl justify-center pt-2" />}
               </ConversationEmptyState>
             ) : (
-              messages.map((message) => (
-                <Message from={message.role} key={message.id}>
-                  <MessageContent>
-                    {message.parts.map((part, index) => {
-                      if (part.type !== "text") return null;
-                      return message.role === "assistant" ? (
-                        <MessageResponse key={index} plugins={streamdownPlugins}>
-                          {part.text}
-                        </MessageResponse>
-                      ) : (
-                        <span className="whitespace-pre-wrap" key={index}>
-                          {part.text}
-                        </span>
-                      );
-                    })}
-                  </MessageContent>
-                  {message.metadata && <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />}
-                </Message>
-              ))
+              <>
+                {messages.map((message) => (
+                  <Message from={message.role} key={message.id}>
+                    <MessageContent>
+                      {message.parts.map((part, index) => {
+                        if (part.type !== "text") return null;
+                        return message.role === "assistant" ? (
+                          <MessageResponse key={index} plugins={streamdownPlugins}>
+                            {part.text}
+                          </MessageResponse>
+                        ) : (
+                          <span className="whitespace-pre-wrap" key={index}>
+                            {part.text}
+                          </span>
+                        );
+                      })}
+                    </MessageContent>
+                    {message.metadata && <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />}
+                  </Message>
+                ))}
+                {!readonly && status === "ready" && picks && <Suggestions items={picks} onPick={handleSubmit} />}
+              </>
             )}
           </ConversationContent>
           <ConversationScrollButton />
