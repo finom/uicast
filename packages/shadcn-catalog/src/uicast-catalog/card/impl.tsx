@@ -21,7 +21,7 @@ export const CardImpl = createComponentImplementation({
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
       )}
-      <CardContent>{children}</CardContent>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
     </Card>
   ),
   skeleton: ({ knownProps, children }) => (
@@ -29,7 +29,7 @@ export const CardImpl = createComponentImplementation({
       <CardHeader>
         {knownProps?.title ? <CardTitle>{knownProps.title}</CardTitle> : <Skeleton className="h-4 w-40" />}
       </CardHeader>
-      <CardContent className="flex flex-col gap-3">{children}</CardContent>
+      <CardContent className="flex flex-col gap-4">{children}</CardContent>
     </Card>
   ),
 });

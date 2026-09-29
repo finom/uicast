@@ -6,7 +6,7 @@ import { TabContentDef } from "./def";
 export const TabContentImpl = createComponentImplementation({
   def: TabContentDef,
   render: ({ value, children }, { entry }) => (
-    <TabsContent value={value} data-key={entry.key}>
+    <TabsContent value={value} className="flex flex-col gap-4" data-key={entry.key}>
       {children}
     </TabsContent>
   ),

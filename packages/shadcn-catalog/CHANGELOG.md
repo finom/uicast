@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Carousel` is built on shadcn's Carousel (Embla). The arrows sit outside the slides instead of over them. It adds the `embla-carousel-react` dependency.
 - `Alert` takes child entries below its description, its `title` is optional, and its icon shows the status color. It covers what `Callout` did.
 - `EmptyState` shows a folder icon instead of an inbox.
+- `Button` is as wide as its label. In a column or a grid cell it stretched to the full width.
 - `RadarChart` draws no radius axis; its numbers crossed the plot.
 - `Heatmap` runs from `slate` to `blue` by default, light to strong. It ran from blue to violet, and the highest values looked palest.
 - **Breaking: eight components merged into the one they duplicated.** `Tag` is `Badge` with `removable` (and `onClick`, `onRemove`). `Banner` is `Alert` with `dismissible` and `icon` (and `onDismiss`). `BubbleChart` is `ScatterChart` with `sizeKey`. `AreaChart` is `LineChart` with `filled` and `stacked`. `ComboChart` is `BarChart` with `lineKeys`, colored after the bars. `RangeSlider` is `Slider` with a `[low, high]` pair as `value`. `Drawer` is `Modal` with `side`. `Combobox` is `Select` with `searchable`, and `Select.onChange` sends the option's `label` too.
@@ -63,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Child entries placed straight in `Card`, `TabContent`, `AccordionItem` or a `Modal` with `side` touched. They sit in a column with a 16px gap now.
+- A closed `Modal`, `Toast` or `CommandMenu` added an empty gap to the column or grid around it. Its placeholder is hidden now.
 - `QRCode` has a quiet zone, which scanners need, and no card around it.
 - Every option of a searchable `Select`, `MultiSelect` and `CommandMenu` looked highlighted. `catalog.css` defines the `data-*` state variants as shadcn does, so `data-selected="false"` no longer matches.
 - `NavigationMenu` sub-items show the label above the description, as in shadcn's example; they sat side by side and overflowed.

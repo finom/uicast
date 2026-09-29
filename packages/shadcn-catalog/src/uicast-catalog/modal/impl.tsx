@@ -7,7 +7,7 @@ import { ModalDef } from "./def";
 export const ModalImpl = createComponentImplementation({
   def: ModalDef,
   render: ({ open, title, description, side, children, onOpenChange }, { entry }) => (
-    <span data-key={entry.key}>
+    <span data-key={entry.key} className="hidden">
       {side ? (
         <Sheet open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <SheetContent side={side}>
@@ -17,7 +17,7 @@ export const ModalImpl = createComponentImplementation({
                 {description && <SheetDescription>{description}</SheetDescription>}
               </SheetHeader>
             )}
-            <div className="flex-1 overflow-y-auto p-4">{children}</div>
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">{children}</div>
           </SheetContent>
         </Sheet>
       ) : (

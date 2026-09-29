@@ -23,7 +23,7 @@ const VARIANTS = {
 export const ToastImpl = createComponentImplementation({
   def: ToastDef,
   render: ({ open, title, description, variant, position, onClose }, { entry }) => {
-    if (!open) return <span data-key={entry.key} />;
+    if (!open) return <span data-key={entry.key} className="hidden" />;
     const { Icon, color } = VARIANTS[variant];
     return (
       <Alert

@@ -15,7 +15,7 @@ import { CommandMenuDef } from "./def";
 export const CommandMenuImpl = createComponentImplementation({
   def: CommandMenuDef,
   render: ({ open, placeholder, groups, onSelect, onOpenChange }, { entry }) => (
-    <span data-key={entry.key}>
+    <span data-key={entry.key} className="hidden">
       <CommandDialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
         <Command>
           <CommandInput placeholder={placeholder} />

@@ -49,7 +49,7 @@ export const AccordionItemImpl = createComponentImplementation({
       >
         <ShadcnAccordionItem value={id}>
           <AccordionTrigger>{title}</AccordionTrigger>
-          <AccordionContent>{children}</AccordionContent>
+          <AccordionContent className="flex flex-col gap-4">{children}</AccordionContent>
         </ShadcnAccordionItem>
       </ShadcnAccordion>
     );
