@@ -14,6 +14,7 @@ export const InputDef = createComponentDefinition({
       .meta({ description: "The HTML input type" }),
     placeholder: z.string().optional().meta({ description: "Placeholder text shown when the input is empty" }),
     disabled: z.boolean().default(false).meta({ description: "Whether the input is disabled" }),
+    required: z.boolean().default(false).meta({ description: "Whether it must be filled before its form submits" }),
   }),
   callbacks: {
     onKeyDown: keyboardEventSchema,

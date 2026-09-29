@@ -18,13 +18,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import { RequiredValue } from "../../lib/form";
 import { cn } from "../../lib/utils";
 import { SelectDef } from "./def";
 
 export const SelectImpl = createComponentImplementation({
   def: SelectDef,
   render: (
-    { value, placeholder = "Select...", options, disabled, searchable, searchPlaceholder, emptyMessage, onChange },
+    {
+      value,
+      placeholder = "Select...",
+      options,
+      disabled,
+      required,
+      searchable,
+      searchPlaceholder,
+      emptyMessage,
+      onChange,
+    },
     { entry },
   ) => {
     const [open, setOpen] = useState(false);
@@ -34,6 +45,7 @@ export const SelectImpl = createComponentImplementation({
         <ShadcnSelect
           value={value}
           disabled={disabled}
+          required={required}
           onValueChange={(v) => {
             const option = options.find((o) => o.value === v);
             if (option) onChange(option);
@@ -93,6 +105,7 @@ export const SelectImpl = createComponentImplementation({
             </CommandList>
           </Command>
         </PopoverContent>
+        {required && <RequiredValue value={selected?.value ?? ""} />}
       </Popover>
     );
   },

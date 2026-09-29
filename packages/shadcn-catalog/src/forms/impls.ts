@@ -11,6 +11,7 @@ import { FieldImpl } from "../uicast-catalog/field/impl";
 import { FieldDescriptionImpl } from "../uicast-catalog/field-description/impl";
 import { FieldLabelImpl } from "../uicast-catalog/field-label/impl";
 import { FileUploadImpl } from "../uicast-catalog/file-upload/impl";
+import { FormImpl } from "../uicast-catalog/form/impl";
 import { FormulaBarImpl } from "../uicast-catalog/formula-bar/impl";
 import { InputImpl } from "../uicast-catalog/input/impl";
 import { MultiSelectImpl } from "../uicast-catalog/multi-select/impl";
@@ -40,6 +41,7 @@ export {
   FieldDescriptionImpl,
   FieldLabelImpl,
   FileUploadImpl,
+  FormImpl,
   FormulaBarImpl,
   InputImpl,
   MultiSelectImpl,
@@ -70,6 +72,7 @@ export const impls: ComponentImplementation[] = [
   FieldDescriptionImpl,
   FieldLabelImpl,
   FileUploadImpl,
+  FormImpl,
   FormulaBarImpl,
   InputImpl,
   MultiSelectImpl,

@@ -8,6 +8,7 @@ export const CheckboxDef = createComponentDefinition({
   props: z.strictObject({
     checked: z.boolean().default(false).meta({ description: "Whether the checkbox is checked" }),
     disabled: z.boolean().default(false).meta({ description: "Whether the checkbox is disabled" }),
+    required: z.boolean().default(false).meta({ description: "Whether it must be checked before its form submits" }),
     label: z.string().optional().meta({ description: "Optional inline label text next to the checkbox" }),
   }),
   callbacks: {

@@ -15,7 +15,7 @@ export const CopyButtonImpl = createComponentImplementation({
     };
 
     return (
-      <Button variant={variant} size={size} onClick={handleCopy} data-key={entry.key}>
+      <Button type="button" variant={variant} size={size} onClick={handleCopy} data-key={entry.key}>
         {copied ? (
           <>
             <Check className="mr-1 size-3.5 text-success" />

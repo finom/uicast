@@ -4,7 +4,7 @@
 
 Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
 
-A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
+A reference component catalog for **uicast**: 107 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
 
 ```sh
 npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @uicast/expr@beta
@@ -51,13 +51,13 @@ A group puts only its components into the prompt:
 
 | Group | Size | Tokens | What is in it |
 | --- | --- | --- | --- |
-| `all` | 106 | 18,700 | Every component. |
+| `all` | 107 | 19,000 | Every component. |
 | `essential` | 29 | 5,500 | Common components from every group, below. |
 | `layout` | 16 | 2,200 | Card, grid, flex row and column, tabs, accordion. |
 | `content` | 29 | 6,000 | Heading, typography, badge, avatar, timeline, alert, map. |
 | `data` | 10 | 1,600 | Table, data grid, virtual list, kanban board. |
 | `charts` | 12 | 2,400 | Bar, line, pie, scatter, funnel, heatmap. |
-| `forms` | 27 | 5,400 | Field, input, select, date picker, file upload, button. |
+| `forms` | 28 | 5,600 | Form, field, input, select, date picker, file upload, button. |
 | `navigation` | 7 | 2,300 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
 | `overlays` | 5 | 900 | Modal, popover, tooltip, dropdown menu. |
 

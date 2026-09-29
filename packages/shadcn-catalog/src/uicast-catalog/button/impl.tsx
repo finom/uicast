@@ -16,6 +16,7 @@ export const ButtonImpl = createComponentImplementation({
     const Icon = icon && ICONS[icon];
     const button = (
       <ShadcnButton
+        type="button"
         variant={variant}
         size={square ? SQUARE[size] : size}
         disabled={disabled}

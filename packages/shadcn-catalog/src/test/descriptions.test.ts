@@ -8,7 +8,7 @@ const FAMILIES = [
   ["Tabs", "TabList", "TabTrigger", "TabContent"],
   ["Accordion", "AccordionItem"],
   ["DropdownMenu", "DropdownMenuItem"],
-  ["Field", "FieldLabel", "FieldDescription"],
+  ["Form", "Field", "FieldLabel", "FieldDescription"],
 ];
 
 const schemaOf = (spec: ComponentDefinition["props"]) =>

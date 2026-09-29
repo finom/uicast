@@ -19,7 +19,7 @@ const SYMBOLS: Record<string, string> = {
 
 export const CurrencyInputImpl = createComponentImplementation({
   def: CurrencyInputDef,
-  render: ({ value, currency, locale, placeholder, disabled, onChange, onKeyDown, onKeyUp }, { entry }) => {
+  render: ({ value, currency, locale, placeholder, disabled, required, onChange, onKeyDown, onKeyUp }, { entry }) => {
     // The text being typed; out of focus the input shows `value` in the locale's format.
     const [draft, setDraft] = useState<string>();
     const money = new Intl.NumberFormat(locale, { style: "currency", currency });
@@ -35,6 +35,7 @@ export const CurrencyInputImpl = createComponentImplementation({
           value={draft ?? (value === undefined ? "" : amount.format(value))}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           onFocus={() => setDraft(value === undefined ? "" : String(value))}
           onBlur={() => setDraft(undefined)}
           onChange={(e) => {

@@ -64,7 +64,7 @@ export const StatImpl = createComponentImplementation({
 });
 ```
 
-[`@uicast/shadcn-catalog`](packages/shadcn-catalog) is a reference catalog of 106 such pairs over shadcn/ui. The document above uses it.
+[`@uicast/shadcn-catalog`](packages/shadcn-catalog) is a reference catalog of 107 such pairs over shadcn/ui. The document above uses it.
 
 A **host function** is one [standard tool](https://standard-tool.js.org/) per operation the model may call. `execute` runs where the document runs, usually the browser, so it calls your API:
 
@@ -168,7 +168,7 @@ npx create-next-app@latest my-app --example https://github.com/finom/uicast/tree
 | [`@uicast/core`](packages/core) | The engine, without React: entry format, reactive scopes, error classification, prompt builders. |
 | [`@uicast/react`](packages/react) | The React binding: provider, renderer, skeletons, an error boundary per element. |
 | [`@uicast/expr`](packages/expr) | The expression language and its interpreter. Works on its own. |
-| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | A reference catalog: 106 components over shadcn/ui and Radix, each with its definition. |
+| [`@uicast/shadcn-catalog`](packages/shadcn-catalog) | A reference catalog: 107 components over shadcn/ui and Radix, each with its definition. |
 | [`@uicast/streamdown`](packages/streamdown) | A Streamdown plugin: documents inside ```` ```uicast ```` fences in Markdown chat replies. |
 
 ## Documentation

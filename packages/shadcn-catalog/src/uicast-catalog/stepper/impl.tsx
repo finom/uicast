@@ -37,6 +37,7 @@ export const StepperImpl = createComponentImplementation({
                 )}
 
                 <Button
+                  type="button"
                   variant={isCompleted ? "default" : "outline"}
                   size="icon"
                   className={cn(

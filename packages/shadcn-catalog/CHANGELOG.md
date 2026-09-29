@@ -10,13 +10,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
 - A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
-- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 106 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
+- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 107 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
 - Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card` and `Alert` draw the `title` in place of a bar. Without known props they draw as before.
 - `Pagination` works without a page count: `totalPages` is optional, and without it the control renders Previous, the pages up to the current one and Next, with `hasNext` (default `true`) gating Next — for a function that returns a page and no total. An ellipsis marks pages elided on either side.
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
 - `EmptyState.icon`: an icon in place of the default folder.
+- `Form`: holds the fields and draws its own submit button (`submitText`). On submit the browser checks every field, each `Field` whose control fails shows the browser's message, and the first gets focus. `onSubmit` runs only when all pass, and the button shows a spinner until its steps finish.
+- `required` on `Input`, `Textarea`, `CurrencyInput`, `Select` and `Checkbox`. The `FieldLabel` of a required control shows a red asterisk.
 
 ### Changed
 
@@ -66,6 +68,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Child entries placed straight in `Card`, `TabContent`, `AccordionItem` or a `Modal` with `side` touched. They sit in a column with a 16px gap now.
 - A closed `Modal`, `Toast` or `CommandMenu` added an empty gap to the column or grid around it. Its placeholder is hidden now.
+- A button inside a form submitted it: `Button`, `Rating`, `CopyButton`, `CodeBlock`, `Alert`, `Toast`, `Pagination`, `Stepper`, `TruncatedText` and `Sidebar` render `type="button"` now.
 - `QRCode` has a quiet zone, which scanners need, and no card around it.
 - Every option of a searchable `Select`, `MultiSelect` and `CommandMenu` looked highlighted. `catalog.css` defines the `data-*` state variants as shadcn does, so `data-selected="false"` no longer matches.
 - `NavigationMenu` sub-items show the label above the description, as in shadcn's example; they sat side by side and overflowed.

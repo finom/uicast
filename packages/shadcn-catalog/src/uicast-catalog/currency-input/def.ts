@@ -19,6 +19,9 @@ export const CurrencyInputDef = createComponentDefinition({
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",
     }),
+    required: z.boolean().default(false).meta({
+      description: "Whether an amount must be entered before its form submits",
+    }),
   }),
   callbacks: {
     onKeyDown: keyboardEventSchema,

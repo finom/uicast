@@ -22,7 +22,7 @@ export const CodeBlockImpl = createComponentImplementation({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b px-4 py-2">
           <span className="text-xs font-medium text-muted-foreground">{language}</span>
           {showCopyButton && (
-            <Button variant="ghost" size="icon" className="size-7" onClick={handleCopy}>
+            <Button type="button" variant="ghost" size="icon" className="size-7" onClick={handleCopy}>
               {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
             </Button>
           )}

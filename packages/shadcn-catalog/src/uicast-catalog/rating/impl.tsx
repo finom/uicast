@@ -12,6 +12,7 @@ export const RatingImpl = createComponentImplementation({
     <div className="flex items-center gap-1" data-key={entry.key}>
       {Array.from({ length: max }, (_, i) => (
         <Button
+          type="button"
           key={i}
           variant="ghost"
           size="icon"

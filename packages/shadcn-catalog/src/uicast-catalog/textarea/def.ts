@@ -12,6 +12,7 @@ export const TextareaDef = createComponentDefinition({
       description: "Placeholder text shown when the textarea is empty",
     }),
     disabled: z.boolean().default(false).meta({ description: "Whether the textarea is disabled" }),
+    required: z.boolean().default(false).meta({ description: "Whether it must be filled before its form submits" }),
     rows: z.number().int().min(1).default(3).meta({ description: "The number of visible text lines" }),
   }),
   callbacks: {

@@ -42,6 +42,7 @@ export const TruncatedTextImpl = createComponentImplementation({
         </p>
         {expandable && (clamped || expanded) && (
           <Button
+            type="button"
             variant="link"
             size="sm"
             className="mt-1 h-auto p-0 text-xs font-medium"

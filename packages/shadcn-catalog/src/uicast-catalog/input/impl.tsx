@@ -7,12 +7,16 @@ const reading = (input: HTMLInputElement) => ({ value: input.value, valueAsNumbe
 
 export const InputImpl = createComponentImplementation({
   def: InputDef,
-  render: ({ value, type, placeholder, disabled, onChange, onFocus, onBlur, onKeyDown, onKeyUp }, { entry }) => (
+  render: (
+    { value, type, placeholder, disabled, required, onChange, onFocus, onBlur, onKeyDown, onKeyUp },
+    { entry },
+  ) => (
     <ShadcnInput
       type={type}
       value={value}
       placeholder={placeholder}
       disabled={disabled}
+      required={required}
       onChange={(e) => onChange(reading(e.target))}
       onFocus={() => onFocus()}
       onBlur={(e) => onBlur(reading(e.target))}

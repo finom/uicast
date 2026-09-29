@@ -17,6 +17,9 @@ export const SelectDef = createComponentDefinition({
       )
       .meta({ description: "Array of options to display in the dropdown" }),
     disabled: z.boolean().default(false).meta({ description: "Whether the select is disabled" }),
+    required: z.boolean().default(false).meta({
+      description: "Whether an option must be picked before its form submits",
+    }),
     searchable: z.boolean().default(false).meta({ description: "Whether the dropdown has a search field" }),
     searchPlaceholder: z.string().default("Search...").meta({
       description: "Placeholder text for the search field",

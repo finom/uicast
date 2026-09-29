@@ -35,6 +35,7 @@ export const AlertImpl = createComponentImplementation({
         {dismissible && (
           <AlertAction>
             <Button
+              type="button"
               variant="ghost"
               size="icon-xs"
               onClick={() => {

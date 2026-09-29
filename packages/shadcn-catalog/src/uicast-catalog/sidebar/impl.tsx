@@ -21,7 +21,7 @@ export const SidebarImpl = createComponentImplementation({
         data-key={entry.key}
       >
         <div className="flex items-center justify-end p-2">
-          <Button variant="ghost" size="icon" onClick={() => onToggleCollapse({ collapsed: !collapsed })}>
+          <Button type="button" variant="ghost" size="icon" onClick={() => onToggleCollapse({ collapsed: !collapsed })}>
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
           </Button>
         </div>
@@ -36,6 +36,7 @@ export const SidebarImpl = createComponentImplementation({
               {section.items.map((item, ii) => {
                 const button = (
                   <Button
+                    type="button"
                     key={ii}
                     variant={item.active ? "secondary" : "ghost"}
                     className={cn(

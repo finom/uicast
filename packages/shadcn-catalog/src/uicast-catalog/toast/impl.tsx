@@ -38,7 +38,13 @@ export const ToastImpl = createComponentImplementation({
         {Icon && <Icon className="size-4" />}
         <AlertTitle className="flex items-center justify-between">
           {title}
-          <Button variant="ghost" size="icon" className="shrink-0 size-6 -mr-1 -mt-1" onClick={() => onClose()}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="shrink-0 size-6 -mr-1 -mt-1"
+            onClick={() => onClose()}
+          >
             <X className="size-4" />
           </Button>
         </AlertTitle>

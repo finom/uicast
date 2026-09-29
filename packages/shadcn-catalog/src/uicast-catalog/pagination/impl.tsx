@@ -21,7 +21,7 @@ export const PaginationImpl = createComponentImplementation({
     const atEnd = totalPages === undefined ? !hasNext : currentPage >= totalPages;
     const moreAfter = totalPages === undefined ? hasNext : pages[pages.length - 1] < totalPages;
     const arrow = (Icon: LucideIcon, page: number, disabled: boolean) => (
-      <Button variant="outline" size="icon" disabled={disabled} onClick={() => onPageChange({ page })}>
+      <Button type="button" variant="outline" size="icon" disabled={disabled} onClick={() => onPageChange({ page })}>
         <Icon className="size-4" />
       </Button>
     );
@@ -33,6 +33,7 @@ export const PaginationImpl = createComponentImplementation({
         {pages[0] > 1 && ELLIPSIS}
         {pages.map((page) => (
           <Button
+            type="button"
             key={page}
             variant={page === currentPage ? "default" : "outline"}
             size="icon"
