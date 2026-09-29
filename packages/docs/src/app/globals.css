@@ -4,7 +4,7 @@
 
 /* Tailwind scans this package only; the catalog's and Streamdown's classes live outside it. */
 @source "../../../shadcn-catalog/src/**/*.{ts,tsx}";
-@source "../../../../node_modules/streamdown/dist/index.js";
+@source "../../../../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -21,6 +21,12 @@ npm install @uicast/streamdown@beta streamdown
 
 Needs Streamdown 2.5 and React 19.2.
 
+Streamdown styles its output with Tailwind classes, so Tailwind has to scan its files. Add them to your CSS, with the path relative to that file, as [Streamdown's setup](https://streamdown.ai/docs/getting-started) says:
+
+```css
+@source "../node_modules/streamdown/dist/*.js";
+```
+
 ## Use it
 
 ```tsx
