@@ -1,36 +1,20 @@
-import { GENERATION_MODEL } from "./openrouter";
+import type { LanguageModelUsage } from "ai";
 
-// Rates from OpenRouter's own model listing; a fetch failure means "no price", never a made-up number.
+// USD per 1M tokens, from OpenRouter's listing. A new model needs its row here; without one, no cost is shown.
+const MODEL_PRICES: Record<string, { input: number; output: number; cacheRead: number; cacheWrite: number }> = {
+  "anthropic/claude-opus-5.5": { input: 4, output: 20, cacheRead: 0.2, cacheWrite: 5 },
+};
 
-type Pricing = { promptUsd: number; completionUsd: number };
-
-const PRICING_TTL_MS = 3_600_000;
-
-let cached: { at: number; pricing: Pricing | null } | undefined;
-
-export async function getModelPricing(): Promise<Pricing | null> {
-  if (cached && Date.now() - cached.at < PRICING_TTL_MS) return cached.pricing;
-  try {
-    const res = await fetch("https://openrouter.ai/api/v1/models", {
-      headers: { accept: "application/json" },
-    });
-    const body = (await res.json()) as {
-      data?: { id: string; pricing?: { prompt?: string; completion?: string } }[];
-    };
-    const model = body.data?.find((m) => m.id === GENERATION_MODEL);
-    const prompt = Number(model?.pricing?.prompt);
-    const completion = Number(model?.pricing?.completion);
-    const pricing =
-      Number.isFinite(prompt) && Number.isFinite(completion) ? { promptUsd: prompt, completionUsd: completion } : null;
-    cached = { at: Date.now(), pricing };
-    return pricing;
-  } catch {
-    cached = { at: Date.now(), pricing: null };
-    return null;
-  }
-}
-
-export function computeCostUsd(pricing: Pricing | null, inputTokens: number, outputTokens: number): number | null {
-  if (!pricing) return null;
-  return inputTokens * pricing.promptUsd + outputTokens * pricing.completionUsd;
+// OpenRouter reports cache writes only in its raw usage, so this takes one step's usage, not a total.
+export function computeCostUsd(model: string, usage: LanguageModelUsage): number | null {
+  const price = MODEL_PRICES[model];
+  if (!price) return null;
+  const details = usage.raw?.prompt_tokens_details as { cache_write_tokens?: number } | undefined;
+  const cacheRead = usage.inputTokenDetails.cacheReadTokens ?? 0;
+  const cacheWrite = details?.cache_write_tokens ?? 0;
+  const input = (usage.inputTokens ?? 0) - cacheRead - cacheWrite;
+  const output = usage.outputTokens ?? 0;
+  return (
+    (input * price.input + cacheRead * price.cacheRead + cacheWrite * price.cacheWrite + output * price.output) / 1e6
+  );
 }

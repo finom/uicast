@@ -6,9 +6,9 @@ import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
-import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
+import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser, PROMPT_CACHING } from "@/lib/openrouter";
 import { buildSystemPrompt } from "@/lib/system-prompt";
-import { computeCostUsd, getModelPricing } from "@/lib/pricing";
+import { computeCostUsd } from "@/lib/pricing";
 
 export const maxDuration = 300;
 
@@ -80,6 +80,7 @@ export async function POST(req: Request) {
           system,
           messages,
           maxOutputTokens: MAX_OUTPUT_TOKENS,
+          providerOptions: PROMPT_CACHING,
           onError: ({ error }) => {
             streamError = error;
           },
@@ -108,10 +109,11 @@ export async function POST(req: Request) {
 
         // An estimate: OpenRouter's invoice is authoritative. Billing must not fail a finished run.
         try {
-          const [usage, pricing] = await Promise.all([result.usage, getModelPricing()]);
+          // One step, no tools. Its own usage keeps OpenRouter's raw cache-write count; `result.usage` drops it.
+          const [{ usage }] = await result.steps;
           const inputTokens = usage.inputTokens ?? 0;
           const outputTokens = usage.outputTokens ?? 0;
-          const costUsd = computeCostUsd(pricing, inputTokens, outputTokens);
+          const costUsd = computeCostUsd(GENERATION_MODEL, usage);
           await db
             .update(pages)
             .set({

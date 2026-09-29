@@ -12,8 +12,8 @@ import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
-import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
-import { computeCostUsd, getModelPricing } from "@/lib/pricing";
+import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser, PROMPT_CACHING } from "@/lib/openrouter";
+import { computeCostUsd } from "@/lib/pricing";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
 export const maxDuration = 300;
@@ -88,28 +88,29 @@ export async function POST(req: Request) {
   }
   await persistMessages(id, uiMessages);
 
-  // Prefetched so the metadata callback can price the finish synchronously.
-  const pricing = await getModelPricing();
-
   const result = streamText({
     model,
     system: buildSystemPrompt("answer", getFencePartialPrompt()),
     messages: await convertToModelMessages(uiMessages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
+    providerOptions: PROMPT_CACHING,
   });
+  let costUsd: number | null = 0;
 
   const stream = toUIMessageStream({
     stream: result.stream,
     originalMessages: uiMessages,
     generateMessageId: () => crypto.randomUUID(),
     messageMetadata: ({ part }) => {
+      if (part.type === "finish-step") {
+        const stepCost = computeCostUsd(GENERATION_MODEL, part.usage);
+        costUsd = costUsd === null || stepCost === null ? null : costUsd + stepCost;
+      }
       if (part.type !== "finish") return undefined;
-      const inputTokens = part.totalUsage.inputTokens ?? 0;
-      const outputTokens = part.totalUsage.outputTokens ?? 0;
       return {
-        inputTokens,
-        outputTokens,
-        costUsd: computeCostUsd(pricing, inputTokens, outputTokens),
+        inputTokens: part.totalUsage.inputTokens ?? 0,
+        outputTokens: part.totalUsage.outputTokens ?? 0,
+        costUsd,
         model: GENERATION_MODEL,
       };
     },

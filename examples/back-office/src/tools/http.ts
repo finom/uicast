@@ -28,7 +28,7 @@ export async function apiFetch(path: string, init?: ApiInit) {
     }
     throw new Error(`${method} ${path} → ${res.status}`);
   }
-  if (init?.success) showToast(init.success);
+  if (init?.success) showToast(init.success, "success");
   return res.json();
 }
 
