@@ -33,9 +33,10 @@ Set these in `examples/back-office/.env.local`:
 - `DATABASE_URL`: the Postgres connection string. The example points at the docker-compose database; in production it is a Neon pooled connection string.
 - `APP_SECRET`: encrypts the stored OpenRouter keys. Login fails without it. Generate one with `openssl rand -base64 32`.
 - `OPENROUTER_MODEL`: optional, the model every generation uses. Default `anthropic/claude-opus-5.5`.
-- `AI_MAX_OUTPUT_TOKENS`: optional, the output token cap per generation. Default `62000`.
 
 There is no site-wide model key: each user's OpenRouter key is stored encrypted on their account.
+
+Each page and chat answer shows its token counts and an estimated cost. Prices come from `src/lib/pricing.ts`, one row per model; a model without a row shows no cost. Requests use OpenRouter's prompt caching: a prompt prefix repeated within five minutes bills at the cache-read price.
 
 `db:push` and `db:seed` do not load `.env.local`. They take `DATABASE_URL` from the environment, else the docker-compose default. To target another database, set it inline: `DATABASE_URL=<url> npm run db:push -w @uicast/back-office`.
 
@@ -58,19 +59,18 @@ In the generated UIs, forms validate and submit, buttons change the database thr
 - `Order intake terminal for phone orders`
 - `Product catalog with an add-product form`
 - `Customer manager with edit and delete`
-- `Supplier directory with each supplier's products`
 
 **New chat** answers with live UI, in `uicast` fences rendered by `@uicast/streamdown`:
 
-- `How much did we earn this month?`
-- `Quick tool to create an order`
-- `Help me clear the pending queue`
-- `Which products are running low, and who supplies them?`
-- `Receive a delivery into stock`
+- `Mark pending orders as paid`
+- `Receive a delivery for a product`
+- `Set up a new supplier and product`
+- `Orders kanban: drag to change status`
+- `Top customers, with a New order button`
 
 The Source toggle above a chat block shows the JSON Lines the model wrote.
 
-[uicast.dev/back-office](https://uicast.dev/back-office) covers what the app still hand-writes and how its tools wrap the API.
+[uicast.dev/example-app](https://uicast.dev/example-app) shows where each **uicast** piece sits in the app.
 
 ## License
 

@@ -180,7 +180,7 @@ The full documentation is at [uicast.dev](https://uicast.dev). To start:
 - [Host functions](https://uicast.dev/expr/functions): changing data, confirmation, refetching.
 - [Assembling the prompt](https://uicast.dev/prompt): the system prompt, block by block.
 - [Entry fields](https://uicast.dev/entry): every field an entry can have.
-- [Back office](https://uicast.dev/back-office): an example app where every table, form and detail view is generated.
+- [Example app](https://uicast.dev/example-app): a back office where every table, form and detail view is generated.
 
 Coding agents can install the [agent skill](https://uicast.dev/skill): `npx skills add finom/uicast`.
 

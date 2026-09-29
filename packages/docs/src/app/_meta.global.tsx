@@ -32,7 +32,7 @@ const meta: MetaRecord = {
   prompt: "Assembling the prompt",
   streaming: "Streaming",
   streamdown: "Streamdown plugin",
-  "back-office": "Back office 🔧",
+  "example-app": "Example app",
   entry: {
     title: "Component Entry Format",
     items: {

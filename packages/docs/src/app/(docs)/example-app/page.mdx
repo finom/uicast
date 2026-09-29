@@ -1,0 +1,75 @@
+# Example app
+
+The example app is a back office for Warehouse, a made-up store. It has five
+Postgres tables: suppliers, products, customers, orders and a stock ledger. The
+sidebar and the chat panel are hand-written; every page and chat answer is a
+**uicast** document that a model writes with the
+[reference catalog](/react/reference-catalog). It runs at
+[warehouse.uicast.dev](https://warehouse.uicast.dev). The code is in
+[`examples/back-office`](https://github.com/finom/uicast/tree/main/examples/back-office).
+
+## Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Ffinom%2Fuicast%2Ftree%2Fmain%2Fexamples%2Fback-office&project-name=uicast-back-office&repository-name=uicast-back-office&env=APP_SECRET&envDescription=Encrypts%20the%20stored%20OpenRouter%20keys.%20Make%20one%20with%3A%20openssl%20rand%20-base64%2032&stores=%5B%7B%22type%22%3A%22integration%22%2C%22protocol%22%3A%22storage%22%2C%22productSlug%22%3A%22neon%22%2C%22integrationSlug%22%3A%22neon%22%7D%5D)
+
+Vercel creates a Neon database and asks for `APP_SECRET`; make one with
+`openssl rand -base64 32{:bash}`. The first deploy creates the tables and the
+demo account.
+
+## Run
+
+```sh
+npm install                                                      # repo root
+docker compose -f examples/back-office/docker-compose.yml up -d  # local Postgres
+cp examples/back-office/.env.example examples/back-office/.env.local
+npm run db:push -w @uicast/back-office
+npm run dev -w @uicast/back-office
+```
+
+In `.env.local`, set `APP_SECRET`: it encrypts the stored OpenRouter keys.
+`DATABASE_URL` works as is with the docker database, and `OPENROUTER_MODEL` is
+optional. `npm run db:seed -w @uicast/back-office{:bash}` is optional too: it
+writes the `@uicast` demo account that logged-out visitors see.
+
+More details are in the app's
+[README](https://github.com/finom/uicast/tree/main/examples/back-office).
+
+## Functions
+
+`src/tools/` has one [host function](/expr/functions) per REST endpoint. Each
+one calls the endpoint a hand-written front end would call, and shares the
+route's schema from `src/db/zod.ts`:
+
+```ts filename="src/tools/products.ts"
+export const listProducts = standardTool({
+  name: "listProducts",
+  description: "A page of products, by name by default.",
+  inputSchema: productListInput.optional(),
+  outputSchema: pageOf(productOutput),
+  execute: (input) => apiFetch(`/api/products${query(input ?? {})}`),
+});
+```
+
+The model gets only the functions over the store's data. The endpoints for
+pages, entries and chats stay out, so a generated page can create an order but
+cannot edit a page or read a chat ([Security](/security#what-stays-your-job)):
+
+```ts filename="src/tools/index.ts"
+// Page and entry endpoints are excluded: the page system is not the model's to mutate.
+export const domainTools: StandardToolV0[] = [
+  listCustomers, getCustomer, createCustomer, updateCustomer, deleteCustomer,
+  listProducts, getProduct, createProduct, updateProduct, deleteProduct,
+  listOrders, getOrder, createOrder, updateOrder, deleteOrder,
+  listSuppliers, getSupplier, createSupplier, updateSupplier, deleteSupplier,
+  listStockMovements, createStockMovement,
+  getSalesSummary, getStockSummary,
+];
+```
+
+## Pages and chats
+
+A page streams into the `component_entries` table, one row per entry
+([Persisting as it streams](/streaming#persisting-as-it-streams)). Opening it
+later is a query and a render. An edit is another generation that re-emits
+only the entries it changes ([`key`](/entry#key)). A chat answer carries its
+entries in `uicast` fences, which the [Streamdown plugin](/streamdown) renders.
