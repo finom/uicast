@@ -19,9 +19,9 @@ import { StreamPanel } from "./stream-panel";
 import { SystemPromptDialog } from "./system-prompt-dialog";
 
 // Paced by each entry's serialized size, like token-by-token generation.
-const MS_PER_CHAR = 8;
-const MIN_REVEAL_MS = 250;
-const MAX_REVEAL_MS = 6000;
+const MS_PER_CHAR = 6;
+const MIN_REVEAL_MS = 190;
+const MAX_REVEAL_MS = 4600;
 
 const revealDelay = (line: ComponentEntry) =>
   Math.min(MAX_REVEAL_MS, Math.max(MIN_REVEAL_MS, JSON.stringify(line).length * MS_PER_CHAR));
