@@ -7,7 +7,7 @@ import { code } from "@streamdown/code";
 import { math } from "@streamdown/math";
 import { mermaid } from "@streamdown/mermaid";
 import type { UIMessage } from "ai";
-import { Code, MessageSquare } from "lucide-react";
+import { Code, LoaderCircle, MessageSquare } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getErrorRecoveryPrompt } from "@uicast/core/prompt";
 import { RendererProvider } from "@uicast/react";
@@ -62,6 +62,8 @@ function Suggestions({
   );
 }
 
+const hasText = (message: UIMessage) => message.parts.some((part) => part.type === "text" && part.text);
+
 function SourceToggle({ showSource, onShowSourceChange }: SourceToggleProps) {
   return (
     <Toggle size="sm" className="mb-1 ml-auto flex" pressed={showSource} onPressedChange={onShowSourceChange}>
@@ -92,6 +94,9 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
   const [picks, setPicks] = useState(suggestions);
 
   const busy = status === "streaming" || status === "submitted";
+  const last = messages.at(-1);
+  // From the send until the answer's first text arrives.
+  const waiting = busy && !(last?.role === "assistant" && hasText(last));
   const rendererDefaults = useRendererDefaults((failure) => {
     if (readonly) {
       showToast("Read-only chat — log in with OpenRouter to run recovery in your own copy.");
@@ -144,25 +149,37 @@ export function ChatView({ chatId, initialMessages, ownerSlug, readonly = false,
               </ConversationEmptyState>
             ) : (
               <>
-                {messages.map((message) => (
-                  <Message from={message.role} key={message.id}>
+                {messages
+                  .filter((message) => message.role === "user" || hasText(message))
+                  .map((message) => (
+                    <Message from={message.role} key={message.id}>
+                      <MessageContent>
+                        {message.parts.map((part, index) => {
+                          if (part.type !== "text") return null;
+                          return message.role === "assistant" ? (
+                            <MessageResponse key={index} plugins={streamdownPlugins}>
+                              {part.text}
+                            </MessageResponse>
+                          ) : (
+                            <span className="whitespace-pre-wrap" key={index}>
+                              {part.text}
+                            </span>
+                          );
+                        })}
+                      </MessageContent>
+                      {message.metadata && <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />}
+                    </Message>
+                  ))}
+                {waiting && (
+                  <Message from="assistant">
                     <MessageContent>
-                      {message.parts.map((part, index) => {
-                        if (part.type !== "text") return null;
-                        return message.role === "assistant" ? (
-                          <MessageResponse key={index} plugins={streamdownPlugins}>
-                            {part.text}
-                          </MessageResponse>
-                        ) : (
-                          <span className="whitespace-pre-wrap" key={index}>
-                            {part.text}
-                          </span>
-                        );
-                      })}
+                      <span className="flex items-center gap-1.5 text-muted-foreground">
+                        <LoaderCircle className="size-3.5 animate-spin" />
+                        Generating…
+                      </span>
                     </MessageContent>
-                    {message.metadata && <UsageLine className="mt-1 justify-end text-[11px]" {...message.metadata} />}
                   </Message>
-                ))}
+                )}
                 {!readonly && status === "ready" && picks && <Suggestions items={picks} onPick={handleSubmit} />}
               </>
             )}
