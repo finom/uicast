@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FileTextIcon } from "lucide-react";
 import { GitHubIcon } from "nextra/icons";
+import { BetaBadge } from "./beta-badge";
 
 // The `h1` is real markup for the outline; `clear-both` keeps the block clear of Nextra's floated "Copy page" control.
 export function Hero() {
@@ -11,7 +12,7 @@ export function Hero() {
       <Image src="/uicast-logo-dark.svg" alt="" width={64} height={64} className="hidden dark:block" />
       <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">uicast</h1>
       <p className="text-balance text-lg font-medium text-muted-foreground sm:text-xl">
-        The expression-driven generative UI framework
+        The expression-driven generative UI framework <BetaBadge className="-translate-y-[0.05em]" />
       </p>
       <div className="mt-4 flex flex-col gap-3 self-stretch sm:flex-row sm:justify-center sm:self-auto">
         <Link
