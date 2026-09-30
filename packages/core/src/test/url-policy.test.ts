@@ -29,6 +29,11 @@ describe("checkUrl — schemes that must never pass", () => {
     }
   });
 
+  it("trims a long run of spaces in linear time", () => {
+    const spaces = " ".repeat(100_000);
+    expect(ok(`${spaces}javascript:alert(1)${spaces}x`, at())).toBe(false);
+  });
+
   it("rejects other executable and local schemes", () => {
     for (const value of [
       "vbscript:msgbox(1)",

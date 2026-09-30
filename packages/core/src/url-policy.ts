@@ -52,11 +52,15 @@ const NAMES_HOST_RE = /^[\\/]{2}/;
 const NETWORK_PATH_BASE = "https://base.invalid/";
 
 // Strip what the URL parser strips, or `"java\nscript:"` reads as relative here and `javascript:` in the DOM.
-const normalize = (raw: string): string =>
-  raw
-    .replace(/[\t\n\r]/g, "")
-    // biome-ignore lint/suspicious/noControlCharactersInRegex: mirroring the URL parser is the point
-    .replace(/^[\u0000-\u0020]+|[\u0000-\u0020]+$/g, "");
+const normalize = (raw: string): string => {
+  const url = raw.replace(/[\t\n\r]/g, "");
+  // A loop, not a regex: a trailing `[\0- ]+$` takes quadratic time on a long run of spaces.
+  let start = 0;
+  let end = url.length;
+  while (start < end && url.charCodeAt(start) <= 0x20) start++;
+  while (end > start && url.charCodeAt(end - 1) <= 0x20) end--;
+  return url.slice(start, end);
+};
 
 const parseUrl = (url: string, base?: string): URL | null => {
   try {
