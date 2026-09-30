@@ -10,7 +10,7 @@ import { CONTEXT, PLAIN, WORKLOADS } from "./price-workloads";
 // Each operation's time per charged step, over a plain step's. Far above 1, the operation is underpriced:
 // a long evaluation of it would reach the clock before the step limit, and only on slow devices.
 const MAX_RATIO = 4;
-const RUNS = 5;
+const RUNS = 11;
 
 const UNLIMITED = Number.MAX_SAFE_INTEGER;
 const LIMITS = resolveLimits({
