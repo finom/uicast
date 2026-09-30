@@ -9,6 +9,7 @@
   "type": "module",
   "workspaces": [
     "packages/*",
+    "docs",
     "examples/back-office"
   ],
   "scripts": {

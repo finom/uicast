@@ -46,7 +46,7 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
         </Footer>
       }
       pageMap={await getPageMap()}
-      docsRepositoryBase="https://github.com/finom/uicast/tree/main/packages/docs"
+      docsRepositoryBase="https://github.com/finom/uicast/tree/main/docs"
     >
       {children}
     </Layout>

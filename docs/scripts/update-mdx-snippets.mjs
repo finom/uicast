@@ -3,7 +3,7 @@
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const REPO_ROOT = path.resolve("../..");
+const REPO_ROOT = path.resolve("..");
 
 function parseAttrs(fenceLine) {
   const attrs = {};

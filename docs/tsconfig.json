@@ -27,27 +27,27 @@
         "./src/*"
       ],
       "@uicast/expr": [
-        "../expr/src/index.ts"
+        "../packages/expr/src/index.ts"
       ],
       "@uicast/expr/internal": [
-        "../expr/src/internal.ts"
+        "../packages/expr/src/internal.ts"
       ],
       "@uicast/core": [
-        "../core/src/index.ts"
+        "../packages/core/src/index.ts"
       ],
       "@uicast/core/internal": [
-        "../core/src/internal.ts"
+        "../packages/core/src/internal.ts"
       ],
       "@uicast/core/prompt": [
-        "../core/src/prompt/index.ts"
+        "../packages/core/src/prompt/index.ts"
       ],
       "@uicast/react": [
-        "../react/src/index.ts"
+        "../packages/react/src/index.ts"
       ],
-      "@uicast/shadcn-catalog": ["../shadcn-catalog/src/index.ts"],
-      "@uicast/shadcn-catalog/*/impls": ["../shadcn-catalog/src/*/impls.ts"],
-      "@uicast/shadcn-catalog/*/defs": ["../shadcn-catalog/src/*/defs.ts"],
-      "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
+      "@uicast/shadcn-catalog": ["../packages/shadcn-catalog/src/index.ts"],
+      "@uicast/shadcn-catalog/*/impls": ["../packages/shadcn-catalog/src/*/impls.ts"],
+      "@uicast/shadcn-catalog/*/defs": ["../packages/shadcn-catalog/src/*/defs.ts"],
+      "@uicast/shadcn-catalog/ui/*": ["../packages/shadcn-catalog/src/components/ui/*"]
     }
   },
   "include": [

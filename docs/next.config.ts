@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 import nextra from "nextra";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const monorepoRoot = join(here, "..", "..");
+const monorepoRoot = join(here, "..");
 
 const withNextra = nextra({ search: { codeblocks: false } });
 
