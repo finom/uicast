@@ -6,7 +6,7 @@ import { ALLOWED_GLOBALS } from "../constants/globals";
 import { DEFAULT_BUDGET } from "../constants/limits";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";
 
-// Every runnable example in _README.md, run.
+// Every runnable example in README.md, run.
 
 describe("README", () => {
   it("the opening example", () => {
@@ -141,7 +141,7 @@ describe("README", () => {
 });
 
 describe("the README's language section matches the tables", () => {
-  const readme = readFileSync(resolve(__dirname, "../../_README.md"), "utf8");
+  const readme = readFileSync(resolve(__dirname, "../../README.md"), "utf8");
   const section = readme.slice(readme.indexOf("## The language"), readme.indexOf("## Evaluator"));
   const tokens = (text: string, pattern: RegExp): Set<string> => new Set([...text.matchAll(pattern)].map((m) => m[1]));
   const RECEIVERS: Record<string, string> = {
