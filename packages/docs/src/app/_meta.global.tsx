@@ -2,7 +2,7 @@ import type { MetaRecord } from "nextra";
 
 // streamdown precedes error recovery: recovery's chat section assumes the fence model.
 const meta: MetaRecord = {
-  index: "Introduction",
+  index: { title: "Introduction", theme: { breadcrumb: false } },
   "getting-started": "Getting started",
   skill: "Agent skill",
   concepts: "Concepts",
