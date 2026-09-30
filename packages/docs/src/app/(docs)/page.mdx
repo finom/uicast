@@ -6,6 +6,7 @@ import { Bleed } from "nextra/components";
 import { Hero } from "@/components/hero";
 import { HeroIllustration } from "@/components/hero-illustration";
 import { Replay } from "@/components/replay/replay";
+import { ShowMore } from "@/components/show-more";
 import { Sponsors } from "@/components/sponsors";
 import { Steps } from "@/components/steps";
 import { CounterExample } from "@/lib/mini-examples/counter";
@@ -78,6 +79,8 @@ document.cookie                                      // ❌ throws — so do "wi
 component definitions and function schemas. Change a prop or a function, and
 the prompt changes with it.
 
+<ShowMore>
+
 ```md
 # Available Components
 
@@ -112,6 +115,8 @@ listOrders, refundOrder, updateOrder, listProducts, placeOrder, listWarehouses, 
 
 … one entry per function …
 ```
+
+</ShowMore>
 
 > Show this week's orders, with refund buttons.
 

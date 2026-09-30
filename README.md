@@ -1,4 +1,4 @@
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/finom/uicast/badge)](https://scorecard.dev/viewer/?uri=github.com/finom/uicast)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/finom/uicast/badge)](https://scorecard.dev/viewer/?uri=github.com/finom/uicast) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15106/badge)](https://www.bestpractices.dev/projects/15106)
 
 # uicast
 
@@ -13,6 +13,15 @@
 **uicast** renders a user interface that a language model writes at run time. You register components and functions. The model answers a request with a document that uses them, and the renderer shows it line by line as it streams. A document is data: it is never compiled or added to your bundle, so you can store it and render it again.
 
 The logic in a document is written as expressions: JavaScript expressions over JSON data, run by an interpreter, not by the JavaScript engine. That language is [`@uicast/expr`](packages/expr).
+
+## Sponsors
+
+<a href="https://www.starlingmx.com/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/sponsors/starling-mx-dark.png">
+    <img alt="Starling MX" src="packages/docs/public/sponsors/starling-mx-light.png" height="28">
+  </picture>
+</a>
 
 ## A document
 
