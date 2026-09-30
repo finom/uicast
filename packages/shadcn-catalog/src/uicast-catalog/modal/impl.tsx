@@ -11,24 +11,20 @@ export const ModalImpl = createComponentImplementation({
       {side ? (
         <Sheet open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <SheetContent side={side}>
-            {(title || description) && (
-              <SheetHeader>
-                {title && <SheetTitle>{title}</SheetTitle>}
-                {description && <SheetDescription>{description}</SheetDescription>}
-              </SheetHeader>
-            )}
+            <SheetHeader>
+              <SheetTitle>{title}</SheetTitle>
+              {description && <SheetDescription>{description}</SheetDescription>}
+            </SheetHeader>
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">{children}</div>
           </SheetContent>
         </Sheet>
       ) : (
         <Dialog open={open} onOpenChange={(v) => onOpenChange({ open: v })}>
           <DialogContent>
-            {(title || description) && (
-              <DialogHeader>
-                {title && <DialogTitle>{title}</DialogTitle>}
-                {description && <DialogDescription>{description}</DialogDescription>}
-              </DialogHeader>
-            )}
+            <DialogHeader>
+              <DialogTitle>{title}</DialogTitle>
+              {description && <DialogDescription>{description}</DialogDescription>}
+            </DialogHeader>
             {children}
           </DialogContent>
         </Dialog>

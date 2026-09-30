@@ -112,9 +112,9 @@ export const content: Record<string, Example> = {
 
   ProgressBar: [
     { key: "col", component: "FlexCol", props: { literal: { gap: "3" } }, children: ["p1", "p2", "p3"] },
-    { key: "p1", component: "ProgressBar", props: { literal: { value: 82, showLabel: true, color: "success" } } },
-    { key: "p2", component: "ProgressBar", props: { literal: { value: 45, showLabel: true, color: "warning" } } },
-    { key: "p3", component: "ProgressBar", props: { literal: { value: 12, showLabel: true, color: "error" } } },
+    { key: "p1", component: "ProgressBar", props: { literal: { value: 82, label: "Chairs in stock", showLabel: true, color: "success" } } },
+    { key: "p2", component: "ProgressBar", props: { literal: { value: 45, label: "Tables in stock", showLabel: true, color: "warning" } } },
+    { key: "p3", component: "ProgressBar", props: { literal: { value: 12, label: "Lamps in stock", showLabel: true, color: "error" } } },
   ],
 
   QRCode: [

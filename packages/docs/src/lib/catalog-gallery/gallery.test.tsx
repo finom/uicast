@@ -4,11 +4,17 @@ import { EntriesRenderer, RendererProvider } from "@uicast/react";
 import * as all from "@uicast/shadcn-catalog/all/defs";
 import { impls } from "@uicast/shadcn-catalog/all/impls";
 import { act, cleanup, render } from "@testing-library/react";
+import axe from "axe-core";
 import { describe, expect, it } from "vitest";
 import { EXAMPLES, GROUPS } from ".";
 
 const DEFS = new Map(all.defs.map((def) => [def.name, def]));
 const evaluator = new Evaluator();
+// WCAG A and AA. Color contrast needs layout, which happy-dom does not compute.
+const AXE_OPTIONS: axe.RunOptions = {
+  runOnly: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],
+  rules: { "color-contrast": { enabled: false } },
+};
 
 function expressionsOf(entry: ComponentEntry): string[] {
   const sources: (ValueSource | undefined)[] = [entry.props, ...(entry.seed ?? [])];
@@ -61,19 +67,21 @@ function problems(entries: ComponentEntry[]): string[] {
 }
 
 // A fault of the document is the example's; an environment fault (no canvas in happy-dom) is not.
-async function documentFaults(entries: ComponentEntry[]): Promise<string[]> {
-  const faults: string[] = [];
+async function renderFaults(entries: ComponentEntry[]): Promise<{ document: string[]; a11y: string[] }> {
+  const document: string[] = [];
   const onError = (error: EntryError) => {
-    if (error.fault === "document") faults.push(`"${error.elementKey}": ${error.message}`);
+    if (error.fault === "document") document.push(`"${error.elementKey}": ${error.message}`);
   };
-  render(
+  const { container } = render(
     <RendererProvider implementations={impls} evaluator={evaluator} onError={onError}>
       <EntriesRenderer entries={entries} />
     </RendererProvider>,
   );
   await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+  const { violations } = await axe.run(container, AXE_OPTIONS);
+  const a11y = violations.flatMap((violation) => violation.nodes.map((node) => `${violation.id}: ${node.html}`));
   cleanup();
-  return faults;
+  return { document, a11y };
 }
 
 describe.each(Object.entries(GROUPS))("%s", (_group, defs) => {
@@ -87,6 +95,9 @@ describe.each(Object.entries(GROUPS))("%s", (_group, defs) => {
       return;
     }
     expect(problems(example)).toEqual([]);
-    expect(await documentFaults(example)).toEqual([]);
+    const faults = await renderFaults(example);
+    expect(faults.document).toEqual([]);
+    // The message lists every violation; the assertion alone prints a truncated array.
+    expect(faults.a11y, faults.a11y.join("\n")).toEqual([]);
   });
 });

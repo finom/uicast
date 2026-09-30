@@ -17,7 +17,7 @@ export const LinkDef = createComponentDefinition({
     size: z.enum(["sm", "default", "lg"]).default("default").meta({
       description: "Font size of the link",
     }),
-    underline: z.enum(["always", "hover", "none"]).default("hover").meta({
+    underline: z.enum(["always", "hover", "none"]).default("always").meta({
       description: "Underline behavior: always, hover, none",
     }),
     external: z.boolean().default(false).meta({

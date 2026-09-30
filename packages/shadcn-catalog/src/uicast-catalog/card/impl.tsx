@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
 import { Skeleton } from "../../components/ui/skeleton";
 import { pickMouseEvent } from "../../events/mouse";
-import { busy, cn } from "../../lib/utils";
+import { busy, clickByKeyboard, cn } from "../../lib/utils";
 import { CardDef } from "./def";
 
 export const CardImpl = createComponentImplementation({
@@ -12,6 +12,7 @@ export const CardImpl = createComponentImplementation({
       // min-w-0: intrinsic content width (charts, tables) must not win over the track size.
       className={cn("min-w-0 [content-visibility:auto] [contain-intrinsic-size:auto_16rem]", busy(loading))}
       onClick={(e) => onClick(pickMouseEvent(e))}
+      {...clickByKeyboard(!!entry.callbacks?.onClick)}
       aria-busy={loading || undefined}
       data-key={entry.key}
     >

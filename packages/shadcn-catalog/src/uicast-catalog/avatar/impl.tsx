@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { AvatarFallback, AvatarImage, Avatar as ShadcnAvatar } from "../../components/ui/avatar";
 import { pickMouseEvent } from "../../events/mouse";
-import { cn } from "../../lib/utils";
+import { clickByKeyboard, cn } from "../../lib/utils";
 import { AvatarDef } from "./def";
 
 const SIZES = { sm: "size-8", md: "size-10", lg: "size-12", xl: "size-16" };
@@ -13,6 +13,7 @@ export const AvatarImpl = createComponentImplementation({
     <ShadcnAvatar
       className={cn(SIZES[size], entry.callbacks?.onClick && "cursor-pointer")}
       onClick={(e) => onClick(pickMouseEvent(e))}
+      {...clickByKeyboard(!!entry.callbacks?.onClick)}
       data-key={entry.key}
     >
       {src && <AvatarImage src={src} alt={fallback} />}

@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { useState } from "react";
 import { blockSkeleton } from "../../lib/skeletons";
-import { cn } from "../../lib/utils";
+import { clickByKeyboard, cn } from "../../lib/utils";
 import { VirtualListDef } from "./def";
 
 const OVERSCAN = 1;
@@ -39,6 +39,7 @@ export const VirtualListImpl = createComponentImplementation({
                   height: itemHeight,
                 }}
                 onClick={() => onItemClick({ id: item.id, index: actualIndex })}
+                {...clickByKeyboard(!!entry.callbacks?.onItemClick)}
               >
                 <span className="text-sm">{item.primary}</span>
                 {item.secondary && <span className="text-xs text-muted-foreground">{item.secondary}</span>}

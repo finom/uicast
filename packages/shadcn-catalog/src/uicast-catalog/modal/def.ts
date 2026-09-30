@@ -7,7 +7,7 @@ export const ModalDef = createComponentDefinition({
     "A modal dialog overlay that appears on top of the page content. Controlled by the 'open' prop. Contains a title, optional description, and any children components in the body. Use Modal for forms, detail views, confirmations, or any content that requires user focus. Use the 'hidden' entry property or the 'open' prop to control visibility. The onOpenChange callback fires when the user closes the modal (clicks overlay or X button). With `side`, it slides in from that edge of the screen as a drawer: side navigation, detail panels, filters.",
   props: z.strictObject({
     open: z.boolean().default(false).meta({ description: "Whether the modal is open/visible" }),
-    title: z.string().optional().meta({ description: "The modal header title" }),
+    title: z.string().meta({ description: "The modal header title" }),
     description: z.string().optional().meta({ description: "Optional description text below the title" }),
     side: z
       .enum(["left", "right"])

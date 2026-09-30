@@ -1,4 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
+import { Children } from "react";
 import { StackSkeleton } from "../../lib/skeletons";
 import { ListDef } from "./def";
 
@@ -8,12 +9,15 @@ export const ListImpl = createComponentImplementation({
   def: ListDef,
   render: ({ ordered, styleType, children }, { entry }) => {
     const Tag = ordered ? "ol" : "ul";
+    // A hidden child renders nothing, so its item hides too.
     return (
       <Tag
-        className={`${MARKERS[styleType ?? (ordered ? "decimal" : "disc")]} pl-5 space-y-1 text-sm *:list-item`}
+        className={`${MARKERS[styleType ?? (ordered ? "decimal" : "disc")]} pl-5 space-y-1 text-sm`}
         data-key={entry.key}
       >
-        {children}
+        {Children.map(children, (child) => (
+          <li className="empty:hidden">{child}</li>
+        ))}
       </Tag>
     );
   },

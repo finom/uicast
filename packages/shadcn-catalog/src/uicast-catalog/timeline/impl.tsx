@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { iconNode } from "../../lib/icon-node";
 import { StackSkeleton } from "../../lib/skeletons";
-import { cn } from "../../lib/utils";
+import { clickByKeyboard, cn } from "../../lib/utils";
 import { TimelineDef } from "./def";
 
 const DOT_COLORS = {
@@ -20,6 +20,7 @@ export const TimelineImpl = createComponentImplementation({
           key={i}
           className={cn("flex gap-4", entry.callbacks?.onItemClick && "cursor-pointer")}
           onClick={() => onItemClick({ index: i, title: item.title })}
+          {...clickByKeyboard(!!entry.callbacks?.onItemClick)}
         >
           <div className="flex flex-col items-center">
             <div

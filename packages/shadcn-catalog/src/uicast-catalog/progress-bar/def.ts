@@ -12,6 +12,9 @@ export const ProgressBarDef = createComponentDefinition({
     max: z.number().positive().default(100).meta({
       description: "Maximum value (default 100)",
     }),
+    label: z.string().optional().meta({
+      description: "What the bar measures, shown above it",
+    }),
     showLabel: z.boolean().default(false).meta({
       description: "Whether to show the percentage text above the bar",
     }),

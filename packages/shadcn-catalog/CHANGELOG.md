@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `ProgressBar.label`: what the bar measures, shown above it. The bar takes it as its accessible name, or the `Field`'s label inside a `Field`.
+- Tab reaches a `Card`, `Avatar`, `Badge` or `TableRow` with an `onClick`, a `DataGrid` row with `onRowClick`, a `VirtualList` or `Timeline` item with `onItemClick`, and a `TreeView` row with `onSelect`. Enter or Space clicks it.
 - `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
 - A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
 - `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 107 components — layout, text, the table family, a form with its fields and the common controls, two charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
@@ -23,6 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- **Breaking: `Picture.alt` and `Modal.title` are required.** A screen reader reads the `alt` and names the dialog by its title. An empty `alt` marks a decorative image.
+- **Breaking: `Link` is underlined by default** (`underline: "always"`). A link told apart from text by color alone fails WCAG 1.4.1.
+- `List` puts each child in an `<li>`, so a screen reader counts the items.
 - The `/events` schemas, `KeyboardEvent` and `MouseEvent`, are named by `id`, as core now reads a common event.
 - `DateTime.value`'s description names only `Date.parse()`: expressions have no `Date.now()`.
 - `src/components/ui` holds the current shadcn radix-nova registry items, with only their import paths changed. The two local edits moved to implementations: `Table` puts its `content-visibility` on a wrapper, and `DataGrid` passes its max height to the scroll viewport.
@@ -72,6 +77,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `ProgressBar` gives screen readers its value. shadcn's `Progress` used it only to draw the bar.
+- `Slider`'s thumb takes the `Field`'s label as its name. A range keeps Radix's own "Minimum" and "Maximum".
 - Accessible names. A `FieldLabel` names its control (`aria-labelledby`), and a failing field's message describes it (`aria-describedby`). Icon-only buttons have labels: the SearchInput clear, CodeBlock copy, Toast close, Alert dismiss, Badge remove and DropdownMenu trigger buttons, the Pagination arrows and the Sidebar toggle. The current page in Pagination and Sidebar and the current Stepper step carry `aria-current`. Each chart is named by its type, and GaugeChart and Sparkline read out their values.
 - `PieChart`'s `centerLabel` sits at the center of the ring. It was centered on the chart's box, which the legend makes taller, so the label sat low.
 - `SearchInput`, `TimePicker` and `NumberInput` keep what the user types when no step writes it back. They showed only `value`, so without such a step typing did nothing.

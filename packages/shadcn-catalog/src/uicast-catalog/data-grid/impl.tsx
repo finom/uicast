@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
-import { cn } from "../../lib/utils";
+import { clickByKeyboard, cn } from "../../lib/utils";
 import { DataGridDef } from "./def";
 import { columnWidth } from "../../lib/sizes";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -32,6 +32,7 @@ export const DataGridImpl = createComponentImplementation({
                   striped && rowIndex % 2 === 1 && "bg-muted/30",
                 )}
                 onClick={() => onRowClick({ rowIndex, row })}
+                {...clickByKeyboard(!!entry.callbacks?.onRowClick)}
               >
                 {columns.map((col) => (
                   <TableCell key={col.key}>{String(row[col.key] ?? "")}</TableCell>

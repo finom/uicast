@@ -2,6 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { X } from "lucide-react";
 import { Badge as ShadcnBadge } from "../../components/ui/badge";
 import { pickMouseEvent } from "../../events/mouse";
+import { clickByKeyboard } from "../../lib/utils";
 import { BadgeDef } from "./def";
 
 export const BadgeImpl = createComponentImplementation({
@@ -11,6 +12,7 @@ export const BadgeImpl = createComponentImplementation({
       variant={variant}
       className={entry.callbacks?.onClick ? "cursor-pointer" : undefined}
       onClick={(e) => onClick(pickMouseEvent(e))}
+      {...clickByKeyboard(!!entry.callbacks?.onClick)}
       data-key={entry.key}
     >
       {children ?? text}

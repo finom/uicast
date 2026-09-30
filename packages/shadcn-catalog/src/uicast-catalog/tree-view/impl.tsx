@@ -4,6 +4,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "../../compo
 import { Button } from "../../components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { iconNode } from "../../lib/icon-node";
+import { clickByKeyboard } from "../../lib/utils";
 import { blockSkeleton } from "../../lib/skeletons";
 import { type TreeNode, TreeViewDef } from "./def";
 
@@ -15,6 +16,7 @@ function TreeNodeComponent({
   setExpanded,
   onSelect,
   onToggle,
+  selectable,
 }: {
   node: TreeNode;
   depth: number;
@@ -23,6 +25,7 @@ function TreeNodeComponent({
   setExpanded: (key: string, expanded: boolean) => void;
   onSelect: (args: { label: string; path: string[] }) => Promise<void>;
   onToggle: (args: { label: string; expanded: boolean }) => Promise<void>;
+  selectable: boolean;
 }) {
   const key = path.join("/");
   const isExpanded = expandedMap[key] ?? node.expanded ?? false;
@@ -33,6 +36,7 @@ function TreeNodeComponent({
       className="flex items-center gap-1 rounded-md px-2 py-1 text-sm hover:bg-accent cursor-pointer"
       style={{ paddingLeft: `${depth * 16 + 8}px` }}
       onClick={() => onSelect({ label: node.label, path })}
+      {...clickByKeyboard(selectable)}
     >
       {lead}
       {iconNode(node.icon, "size-4 shrink-0")}
@@ -74,6 +78,7 @@ function TreeNodeComponent({
             setExpanded={setExpanded}
             onSelect={onSelect}
             onToggle={onToggle}
+            selectable={selectable}
           />
         ))}
       </CollapsibleContent>
@@ -101,6 +106,7 @@ export const TreeViewImpl = createComponentImplementation({
             setExpanded={setExpanded}
             onSelect={onSelect}
             onToggle={onToggle}
+            selectable={!!entry.callbacks?.onSelect}
           />
         ))}
       </div>

@@ -12,8 +12,9 @@ export const PictureDef = createComponentDefinition({
       format: "uri-reference",
       description: "The image URL/source",
     }),
-    alt: z.string().default("").meta({
-      description: "Alt text for accessibility and fallback display",
+    alt: z.string().meta({
+      description:
+        "What the image shows, read by screen readers and shown if it fails to load. Empty for a decorative image",
     }),
     width: widthSchema.optional().meta({ description: "Rendered width." }),
     height: heightSchema.optional().meta({ description: "Rendered height." }),
