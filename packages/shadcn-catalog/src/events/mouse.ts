@@ -2,7 +2,7 @@ import type { MouseEvent } from "react";
 import z from "zod";
 
 /**
- * The payload of a mouse callback: page, screen and client coordinates. Its `$id`, `MouseEvent`, prints it once in
+ * The payload of a mouse callback: page, screen and client coordinates. Its `id`, `MouseEvent`, prints it once in
  * the prompt, under `## Common Events`.
  *
  * @example
@@ -21,7 +21,7 @@ export const mouseEventSchema = z
     clientX: z.number().meta({ description: "The X coordinate of the pointer relative to the viewport" }),
     clientY: z.number().meta({ description: "The Y coordinate of the pointer relative to the viewport" }),
   })
-  .meta({ $id: "MouseEvent", description: "Callback for a mouse event such as a click" });
+  .meta({ id: "MouseEvent", description: "Callback for a mouse event such as a click" });
 
 export const pickMouseEvent = ({ pageX, pageY, screenX, screenY, clientX, clientY }: MouseEvent) => ({
   pageX,

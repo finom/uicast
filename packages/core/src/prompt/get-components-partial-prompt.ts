@@ -63,29 +63,36 @@ const describeUrlProps = (policy: UrlPolicy | undefined): string => {
   return `## URL Props\n\nURL-format props (\`format uri\`, \`format uri-reference\`) take only:\n${allowed.join("\n")}\n\nOther URLs fail element.`;
 };
 
-// A callback payload carrying a `$id` is a common event; two different payloads under one `$id` throw.
+// A payload with an `id` converts to a root `$ref` into `$defs`; the def's key is the event's name.
+const eventName = (schema: JSONSchema): string | undefined => {
+  const name = schema.$ref?.startsWith("#/$defs/") ? schema.$ref.slice("#/$defs/".length) : undefined;
+  return name && schema.$defs?.[name] ? name : undefined;
+};
+
+// A callback payload with an `id` is a common event; two different payloads under one `id` throw.
 const commonEvents = (defs: ComponentDefinition[]): Map<string, JSONSchema> => {
   const events = new Map<string, { schema: JSONSchema; fingerprint: string }>();
   for (const def of defs) {
     for (const spec of Object.values(def.callbacks ?? {})) {
       const schema = specToJSONSchema(spec);
-      if (!schema.$id) continue;
+      const name = eventName(schema);
+      if (!name) continue;
       const fingerprint = JSON.stringify(schema);
-      const known = events.get(schema.$id);
+      const known = events.get(name);
       if (known && known.fingerprint !== fingerprint) {
         throw new Error(
-          `Two callbacks declare the event "${schema.$id}" with different payloads — a shared \`$id\` must name one shape.`,
+          `Two callbacks declare the event "${name}" with different payloads — a shared \`id\` must name one shape.`,
         );
       }
-      if (!known) events.set(schema.$id, { schema, fingerprint });
+      if (!known) events.set(name, { schema, fingerprint });
     }
   }
   return new Map([...events].map(([id, { schema }]) => [id, schema]));
 };
 
 /**
- * The component menu, from your definitions. A payload with a `$id` prints once, under `## Common Events`; a URL
- * prop adds `## URL Props`. Throws on a duplicate name, or on two different payloads with one `$id`.
+ * The component menu, from your definitions. A payload with an `id` prints once, under `## Common Events`; a URL
+ * prop adds `## URL Props`. Throws on a duplicate name, or on two different payloads with one `id`.
  *
  * @example
  * getComponentsPartialPrompt({ definitions: defs });
@@ -106,11 +113,12 @@ export function getComponentsPartialPrompt({ definitions: defs, urlPolicy, note 
   // One registry for the block: a `$def` shared by an event payload and a prop prints once.
   const shared = collectSharedTypes();
   const events = commonEvents(visible);
-  const eventLines = [...events].flatMap(([id, schema]) => {
+  const eventLines = [...events].flatMap(([name, schema]) => {
     const refs = shared.add(schema);
-    const tail = dashTail(schema.description);
-    const fields = describeFields(schema, "  ", refs);
-    return fields.length ? [`- ${id}${tail}`, ...fields] : [`- ${id}: ${typeOf(schema, refs)}${tail}`];
+    const payload = schema.$defs?.[name] as JSONSchema;
+    const tail = dashTail(payload.description);
+    const fields = describeFields(payload, "  ", refs);
+    return fields.length ? [`- ${name}${tail}`, ...fields] : [`- ${name}: ${typeOf(payload, refs)}${tail}`];
   });
 
   let hasUrlProps = false;
@@ -121,7 +129,8 @@ export function getComponentsPartialPrompt({ definitions: defs, urlPolicy, note 
     const handlers = Object.entries(callbacks ?? {}).flatMap(([callback, spec]) => {
       const schema = specToJSONSchema(spec);
       const refs = shared.add(schema);
-      if (schema.$id && events.has(schema.$id)) return [`    - ${callback}(evt: ${schema.$id})`];
+      const event = eventName(schema);
+      if (event && events.has(event)) return [`    - ${callback}(evt: ${event})`];
       // The description documents the handler, not its `evt`.
       const tail = dashTail(schema.description);
       if (schema.type === "null") return [`    - ${callback}()${tail}`];

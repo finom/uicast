@@ -2,7 +2,7 @@ import type { KeyboardEvent } from "react";
 import z from "zod";
 
 /**
- * The payload of a key callback: `key`, `code`, the modifier flags and `repeat`. Its `$id`, `KeyboardEvent`, prints it
+ * The payload of a key callback: `key`, `code`, the modifier flags and `repeat`. Its `id`, `KeyboardEvent`, prints it
  * once in the prompt, under `## Common Events`.
  *
  * @example
@@ -22,7 +22,7 @@ export const keyboardEventSchema = z
     shiftKey: z.boolean().meta({ description: "Whether Shift was held" }),
     repeat: z.boolean().meta({ description: "Whether the key is auto-repeating from being held down" }),
   })
-  .meta({ $id: "KeyboardEvent", description: "Callback for a keyboard key event (keydown / keyup)" });
+  .meta({ id: "KeyboardEvent", description: "Callback for a keyboard key event (keydown / keyup)" });
 
 export const pickKeyboardEvent = ({ key, code, altKey, ctrlKey, metaKey, shiftKey, repeat }: KeyboardEvent) => ({
   key,

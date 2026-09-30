@@ -99,7 +99,7 @@ Typical response here: around 10 entries. Hint about ambition, not quota.
 The components the model may use, from your [definitions](/def).
 
 It emits `# Available Components` and `## Component Details`. Three more appear
-only when needed: `## Common Events` for a payload with a `$id`,
+only when needed: `## Common Events` for a payload with an `id`,
 `## Shared Types` for a schema with an id, and `## URL Props` for a URL prop.
 
 | Option | Default | <nobr>What it does</nobr> |
@@ -109,7 +109,7 @@ only when needed: `## Common Events` for a payload with a `$id`,
 | `note` | none | Your text, added as `## Note`. |
 
 It throws when two definitions have the same name, or when two different
-payloads have the same `$id`.
+payloads have the same `id`.
 
 ```ts
 const StatDef = createComponentDefinition({

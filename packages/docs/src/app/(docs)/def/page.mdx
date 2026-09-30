@@ -127,7 +127,7 @@ The implementation calls it as `onPress(){:ts}`.
 
 ### Shared events
 A payload many components fire, like `onClick`'s, would print under each one.
-A JSON Schema `$id` prints it once:
+An `id`, as on any shared type, prints it once:
 
 ```ts
 // src/uicast-catalog/events/keyboard.ts
@@ -136,7 +136,7 @@ export const keyboardEventSchema = z
     key: z.string().meta({ description: 'The key value (e.g. "Enter", "a")' }),
     repeat: z.boolean().meta({ description: "Whether the key is auto-repeating" }),
   })
-  .meta({ $id: "KeyboardEvent", description: "Fires on a key press" });
+  .meta({ id: "KeyboardEvent", description: "Fires on a key press" });
 
 // in every def that fires it
 createComponentDefinition({
@@ -145,7 +145,7 @@ createComponentDefinition({
 });
 ```
 
-`getComponentsPartialPrompt` finds the `$id` on its own, and each handler
+`getComponentsPartialPrompt` finds the `id` on its own, and each handler
 becomes one line, `onKeyDown(evt: KeyboardEvent){:ts}`:
 
 ```md
@@ -156,8 +156,8 @@ becomes one line, `onKeyDown(evt: KeyboardEvent){:ts}`:
   - repeat: boolean — Whether the key is auto-repeating
 ```
 
-A payload without a `$id` prints inline under each handler. Two different
-payloads with the same `$id` throw at prompt assembly.
+A payload without an `id` prints inline under each handler. Two different
+payloads with the same `id` throw at prompt assembly.
 
 The implementation still passes that exact payload, not the React event:
 

@@ -49,9 +49,9 @@ describe("getComponentsPartialPrompt — hidden filter", () => {
 });
 
 describe("getComponentsPartialPrompt — common events", () => {
-  const onClick = z.object({ x: z.number() }).meta({ $id: "MouseEvent", description: "fires on click" });
+  const onClick = z.object({ x: z.number() }).meta({ id: "MouseEvent", description: "fires on click" });
 
-  it("hoists a `$id` payload once and references it per component", () => {
+  it("hoists an `id` payload once and references it per component", () => {
     const A = createComponentDefinition({
       name: "A",
       description: "a",
@@ -72,7 +72,7 @@ describe("getComponentsPartialPrompt — common events", () => {
     expect(out.split("- x: number").length - 1).toBe(1);
   });
 
-  it("hoists a `$id` payload even when only one component uses it", () => {
+  it("hoists an `id` payload even when only one component uses it", () => {
     const A = createComponentDefinition({
       name: "A",
       description: "a",
@@ -85,7 +85,7 @@ describe("getComponentsPartialPrompt — common events", () => {
     expect(out).toContain("onClick(evt: MouseEvent)");
   });
 
-  it("inlines a callback whose payload has no `$id`", () => {
+  it("inlines a callback whose payload has no `id`", () => {
     const A = createComponentDefinition({
       name: "A",
       description: "a",
@@ -100,18 +100,18 @@ describe("getComponentsPartialPrompt — common events", () => {
     expect(out).toContain("      - x: number");
   });
 
-  it("throws when two callbacks name the same `$id` with different payloads", () => {
+  it("throws when two callbacks name the same `id` with different payloads", () => {
     const A = createComponentDefinition({
       name: "A",
       description: "a",
       props: z.object({}),
-      callbacks: { onX: z.object({ x: z.number() }).meta({ $id: "dup" }) },
+      callbacks: { onX: z.object({ x: z.number() }).meta({ id: "dup" }) },
     });
     const B = createComponentDefinition({
       name: "B",
       description: "b",
       props: z.object({}),
-      callbacks: { onX: z.object({ y: z.string() }).meta({ $id: "dup" }) },
+      callbacks: { onX: z.object({ y: z.string() }).meta({ id: "dup" }) },
     });
     expect(() => getComponentsPartialPrompt({ definitions: [A, B] })).toThrow(/"dup" with different payloads/);
   });

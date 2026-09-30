@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- The `/events` schemas, `KeyboardEvent` and `MouseEvent`, are named by `id`, as core now reads a common event.
 - `DateTime.value`'s description names only `Date.parse()`: expressions have no `Date.now()`.
 - `src/components/ui` holds the current shadcn radix-nova registry items, with only their import paths changed. The two local edits moved to implementations: `Table` puts its `content-visibility` on a wrapper, and `DataGrid` passes its max height to the scroll viewport.
 - `KanbanBoard` is built on Kibo UI's Kanban. Cards show their borders, and a tag is a tinted chip with a colored dot.
