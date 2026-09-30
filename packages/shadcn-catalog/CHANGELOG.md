@@ -70,6 +70,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `PieChart`'s `centerLabel` sits at the center of the ring. It was centered on the chart's box, which the legend makes taller, so the label sat low.
 - `SearchInput`, `TimePicker` and `NumberInput` keep what the user types when no step writes it back. They showed only `value`, so without such a step typing did nothing.
 - `ScrollArea` with `orientation: "horizontal"` scrolls sideways only. It scrolled both ways, as `both` does.
 - Child entries placed straight in `Card`, `TabContent`, `AccordionItem` or a `Modal` with `side` touched. They sit in a column with a 16px gap now.

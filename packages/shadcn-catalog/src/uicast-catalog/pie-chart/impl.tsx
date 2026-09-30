@@ -1,5 +1,5 @@
 import { createComponentImplementation } from "@uicast/react";
-import { Cell, Legend, Pie, PieChart as RechartsPieChart, Tooltip } from "recharts";
+import { Cell, Label, Legend, Pie, PieChart as RechartsPieChart, Tooltip } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors, defaultChartColors } from "../../lib/chart-colors";
 import { blockSkeleton } from "../../lib/skeletons";
@@ -12,19 +12,7 @@ export const PieChartImpl = createComponentImplementation({
   render: ({ data, colors, height, donut, showLabels, centerLabel }, { entry, loading }) => {
     const palette = chartColors(colors, SLICE_COLORS);
     return (
-      <ChartFrame
-        entry={entry}
-        loading={loading}
-        height={height}
-        overlay={
-          donut &&
-          centerLabel && (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="text-lg font-semibold">{centerLabel}</span>
-            </div>
-          )
-        }
-      >
+      <ChartFrame entry={entry} loading={loading} height={height}>
         <RechartsPieChart>
           <Pie
             isAnimationActive={false}
@@ -40,6 +28,10 @@ export const PieChartImpl = createComponentImplementation({
             {data.map((_, i) => (
               <Cell key={i} fill={palette[i % palette.length]} />
             ))}
+            {donut && centerLabel ? (
+              // At the pie's own center: the legend takes height from the frame, so the frame's center sits lower.
+              <Label value={centerLabel} position="center" className="fill-foreground text-lg font-semibold" />
+            ) : null}
           </Pie>
           <Tooltip />
           <Legend />
