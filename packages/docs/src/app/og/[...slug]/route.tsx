@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { ImageResponse } from "next/og";
+import meta from "@/app/_meta.global";
 import { OgCard } from "@/components/og-card";
 import { docsPages } from "@/lib/docs-pages";
 import { ogImage } from "@/lib/site";
@@ -35,9 +36,12 @@ export async function GET(_: Request, { params }: { params: Promise<{ slug: stri
     asset("geist-mono-medium.ttf"),
   ]);
   const index = page.route === "/";
+  const folder = meta[page.route.split("/")[1]];
+  const section = typeof folder === "object" && "items" in folder ? String(folder.title) : undefined;
   return new ImageResponse(
     <OgCard
       lockup={`data:image/svg+xml;base64,${lockup.toString("base64")}`}
+      section={section}
       text={index ? "The expression-driven generative UI framework." : page.title}
       footer={index ? "github.com/finom/uicast" : `uicast.dev${page.route}`}
     />,

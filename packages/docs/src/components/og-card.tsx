@@ -1,5 +1,16 @@
 // The social card, 1280×640, in `next/og`'s subset of CSS: the lockup, one line of text and a footer over a faint grid.
-export function OgCard({ lockup, text, footer }: { lockup: string; text: string; footer: string }) {
+// A page in a sidebar section reads "Section / Page".
+export function OgCard({
+  lockup,
+  section,
+  text,
+  footer,
+}: {
+  lockup: string;
+  section?: string;
+  text: string;
+  footer: string;
+}) {
   return (
     <div
       style={{
@@ -28,7 +39,13 @@ export function OgCard({ lockup, text, footer }: { lockup: string; text: string;
       >
         {/* biome-ignore lint/performance/noImgElement: next/og draws plain elements only. */}
         <img src={lockup} alt="uicast" width={487} height={96} />
-        <div style={{ maxWidth: 620, fontSize: 34, lineHeight: 1.4, color: "#a1a1aa" }}>{text}</div>
+        <div
+          style={{ display: "flex", flexWrap: "wrap", maxWidth: 700, fontSize: 34, lineHeight: 1.4, color: "#a1a1aa" }}
+        >
+          {section && <span style={{ color: "#6b6b73" }}>{section}</span>}
+          {section && <span style={{ padding: "0 18px", color: "#9d8cff" }}>/</span>}
+          <span style={{ maxWidth: 620 }}>{text}</span>
+        </div>
       </div>
       <svg
         width={600}
