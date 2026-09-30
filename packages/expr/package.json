@@ -9,7 +9,7 @@
     "url": "git+https://github.com/finom/uicast.git",
     "directory": "packages/expr"
   },
-  "homepage": "https://github.com/finom/uicast#readme",
+  "homepage": "https://uicast.dev",
   "keywords": [
     "expression",
     "expression-language",
