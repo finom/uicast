@@ -1,6 +1,6 @@
-# @uicast/docs
-
-Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
+<h1 align="center">@uicast/docs</h1>
+<p align="center">Part of <a href="https://github.com/finom/uicast"><strong>uicast</strong></a>, the expression-driven generative UI framework.</p>
+<p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 
 The **uicast** documentation site, [uicast.dev](https://uicast.dev). Built with [Nextra](https://nextra.site/) and exported as static files.
 

@@ -1,4 +1,5 @@
-# uicast Next.js starter
+<h1 align="center">uicast Next.js starter</h1>
+<p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 
 The [getting started](https://uicast.dev/getting-started) app: type a prompt and get a UI built from the [reference catalog](https://uicast.dev/react/reference-catalog), with data from one host function.
 

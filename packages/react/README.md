@@ -1,8 +1,7 @@
-# @uicast/react
-
-[![npm](https://img.shields.io/npm/v/@uicast/react)](https://www.npmjs.com/package/@uicast/react)
-
-Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
+<h1 align="center">@uicast/react</h1>
+<p align="center">Part of <a href="https://github.com/finom/uicast"><strong>uicast</strong></a>, the expression-driven generative UI framework.</p>
+<p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
+<p align="center"><a href="https://www.npmjs.com/package/@uicast/react"><img src="https://img.shields.io/npm/v/@uicast/react.svg?color=brightgreen" alt="npm version"></a> <a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
 
 Renders **uicast** documents in React, with your component implementations.
 

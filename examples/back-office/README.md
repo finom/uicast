@@ -1,6 +1,6 @@
-# @uicast/back-office
-
-Part of [**uicast**](https://github.com/finom/uicast), the expression-driven generative UI framework.
+<h1 align="center">@uicast/back-office</h1>
+<p align="center">Part of <a href="https://github.com/finom/uicast"><strong>uicast</strong></a>, the expression-driven generative UI framework.</p>
+<p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 
 A back office for **Warehouse**, a made-up store: suppliers, products, customers, orders and a stock ledger in Postgres. The shell (sidebar, chat panel) is hand-written. Every page and chat answer is a **uicast** document a model writes against `@uicast/shadcn-catalog`, rendered live. A page is stored as rows of entries, so nothing is built or deployed per generation.
 

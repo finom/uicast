@@ -1,8 +1,7 @@
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/finom/uicast/badge)](https://scorecard.dev/viewer/?uri=github.com/finom/uicast) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15106/badge)](https://www.bestpractices.dev/projects/15106)
-
-# uicast
-
-**The expression-driven generative UI framework.**
+<h1 align="center">uicast</h1>
+<p align="center">The expression-driven generative UI framework.</p>
+<p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
+<p align="center"><a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/uicast-hero-dark.svg">
