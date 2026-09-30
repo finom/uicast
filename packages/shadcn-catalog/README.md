@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://uicast.dev/uicast-logo-dark.svg">
-    <img alt="" src="https://uicast.dev/uicast-logo.svg" width="64">
+    <img alt="" src="https://uicast.dev/uicast-logo.svg" width="54">
   </picture>
 </p>
 <h1 align="center">@uicast/shadcn-catalog</h1>
