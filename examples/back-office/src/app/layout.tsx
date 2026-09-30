@@ -4,6 +4,8 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/toaster";
 import { loadSidebar } from "@/lib/sidebar";
 import { Providers } from "./providers";
+// Formulas in chat replies, drawn by Streamdown's math plugin.
+import "katex/dist/katex.min.css";
 import "./globals.css";
 
 export const metadata = { title: "Warehouse — uicast demo" };
