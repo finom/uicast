@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { expect, it } from "vitest";
-import { Evaluator } from "../index";
+import { Evaluator } from "../src/index";
 
 // corpus.test.ts pins chosen cases; this runs random ones. Receivers are typed: reading a name on a number,
 // or a string key on an array, is refused by design where JS answers undefined.

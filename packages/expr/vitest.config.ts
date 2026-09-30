@@ -3,7 +3,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   test: {
     environment: "node",
-    include: ["src/**/*.test.ts"],
+    // The fuzz test sits in test/: Scorecard skips files under src/test/ when it looks for one.
+    include: ["src/**/*.test.ts", "test/**/*.test.ts"],
     benchmark: { include: ["src/**/*.bench.ts"] },
     coverage: {
       provider: "v8",
