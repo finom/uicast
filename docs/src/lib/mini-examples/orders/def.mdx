@@ -1,0 +1,68 @@
+```ts localpath="docs/src/lib/mini-examples/orders/def.ts"
+import z from "zod";
+import { createComponentDefinition } from "@uicast/core";
+
+// card/def.ts
+export const CardDef = createComponentDefinition({
+  name: "Card",
+  description: "A bordered container.",
+});
+
+// heading/def.ts
+export const HeadingDef = createComponentDefinition({
+  name: "Heading",
+  description: "A section heading.",
+  props: z.object({
+    text: z.string().meta({ description: "The heading text" }),
+  }),
+});
+
+// button/def.ts
+export const ButtonDef = createComponentDefinition({
+  name: "Button",
+  description: "A click target.",
+  props: z.object({
+    label: z.string().meta({ description: "Button text" }),
+  }),
+  callbacks: {
+    onClick: z.null().meta({ description: "Fires when pressed" }),
+  },
+});
+
+// product-row/def.ts
+export const ProductRowDef = createComponentDefinition({
+  name: "ProductRow",
+  description: "One product: its name, unit price, and an editable quantity.",
+  props: z.object({
+    name: z.string().meta({ description: "Product name" }),
+    price: z.number().meta({ description: "Unit price, in dollars" }),
+    qty: z.number().meta({ description: "Quantity in the cart" }),
+  }),
+  callbacks: {
+    onQtyChange: z.object({
+      value: z.number().meta({ description: "The new quantity" }),
+    }),
+    onEdit: z.null().meta({ description: "Fires when the edit button is pressed" }),
+  },
+});
+
+// edit-dialog/def.ts
+export const EditDialogDef = createComponentDefinition({
+  name: "EditDialog",
+  description: "A modal editing a product's name and unit price.",
+  props: z.object({
+    name: z.string().meta({ description: "The product name being edited" }),
+    price: z.number().meta({ description: "The unit price being edited" }),
+  }),
+  callbacks: {
+    onNameChange: z.object({
+      value: z.string().meta({ description: "The new name" }),
+    }),
+    onPriceChange: z.object({
+      value: z.number().meta({ description: "The new price" }),
+    }),
+    onSave: z.null().meta({ description: "Fires on Save" }),
+    onCancel: z.null().meta({ description: "Fires on Cancel" }),
+  },
+});
+```

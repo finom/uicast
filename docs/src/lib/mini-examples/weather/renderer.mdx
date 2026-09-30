@@ -1,0 +1,18 @@
+```tsx localpath="docs/src/lib/mini-examples/weather/renderer.tsx"
+import { Evaluator } from "@uicast/expr";
+import { EntriesRenderer, RendererProvider } from "@uicast/react";
+import { WeatherCardImpl } from "./impl";
+import { getWeather } from "./tools";
+import weatherEntries from "./entries.json";
+
+const implementations = [WeatherCardImpl];
+const evaluator = new Evaluator({ functions: [getWeather] });
+
+export function Weather() {
+  return (
+    <RendererProvider implementations={implementations} evaluator={evaluator}>
+      <EntriesRenderer entries={weatherEntries} />
+    </RendererProvider>
+  );
+}
+```

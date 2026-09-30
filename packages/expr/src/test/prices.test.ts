@@ -49,11 +49,12 @@ describe("step prices", () => {
     expect([...ALLOWED_METHOD_NAMES].filter((name) => !measured(name))).toEqual([]);
   });
 
-  it(`keep every operation within ${MAX_RATIO}× a plain step's time`, () => {
+  // A shared CI machine is noisy: a retry measures again before the test fails.
+  it(`keep every operation within ${MAX_RATIO}× a plain step's time`, { retry: 2, timeout: 60_000 }, () => {
     const plain = median(PLAIN.map(nsPerStep));
     const over = WORKLOADS.map(([name, source]) => ({ name, ratio: nsPerStep(source) / plain })).filter(
       ({ ratio }) => ratio > MAX_RATIO,
     );
     expect(over).toEqual([]);
-  }, 60_000);
+  });
 });

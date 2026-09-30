@@ -1,0 +1,38 @@
+```tsx localpath="docs/src/lib/mini-examples/weather/impl.tsx"
+import { createComponentImplementation } from "@uicast/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { WeatherCardDef } from "./def";
+
+const CITIES = ["Amsterdam", "Tokyo", "Oslo"];
+
+export const WeatherCardImpl = createComponentImplementation({
+  def: WeatherCardDef,
+  render: ({ city, tempC, condition, onCity }) => (
+    <Card className="w-55">
+      <CardContent className="grid gap-3 text-center">
+        <Select value={city} onValueChange={(value) => onCity({ city: value })}>
+          <SelectTrigger size="sm" className="justify-self-center">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {CITIES.map((name) => (
+              <SelectItem key={name} value={name}>
+                {name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {tempC === undefined ? (
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        ) : (
+          <>
+            <div className="text-3xl font-semibold">{tempC}°C</div>
+            <div className="text-sm text-muted-foreground">{condition}</div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  ),
+});
+```

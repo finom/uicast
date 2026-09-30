@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/uicast-logo-dark.svg">
-    <img alt="" src="packages/docs/public/uicast-logo.svg" width="64">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/public/uicast-logo-dark.svg">
+    <img alt="" src="docs/public/uicast-logo.svg" width="54">
   </picture>
 </p>
 <h1 align="center">uicast</h1>
@@ -10,9 +10,9 @@
 <p align="center"><a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/uicast-hero-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="packages/docs/public/uicast-hero-light.svg">
-  <img alt="Your components and your functions become one prompt; the model answers with a screen built from those same components." src="packages/docs/public/uicast-hero-light.svg" width="936">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/public/uicast-hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/public/uicast-hero-light.svg">
+  <img alt="Your components and your functions become one prompt; the model answers with a screen built from those same components." src="docs/public/uicast-hero-light.svg" width="936">
 </picture>
 
 **uicast** renders a user interface that a language model writes at run time. You register components and functions. The model answers a request with a document that uses them, and the renderer shows it line by line as it streams. A document is data: it is never compiled or added to your bundle, so you can store it and render it again.
@@ -23,8 +23,8 @@ The logic in a document is written as expressions: JavaScript expressions over J
 
 <a href="https://www.starlingmx.com/">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/sponsors/starling-mx-dark.png">
-    <img alt="Starling MX" src="packages/docs/public/sponsors/starling-mx-light.png" height="28">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/public/sponsors/starling-mx-dark.png">
+    <img alt="Starling MX" src="docs/public/sponsors/starling-mx-light.png" height="28">
   </picture>
 </a>
 
