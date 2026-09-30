@@ -29,16 +29,16 @@ const refuses = (ev: Evaluator, source: string, ...contexts: EvaluatorContexts):
 };
 
 describe("check", () => {
-  class NoClock extends Evaluator {
+  class NoLocale extends Evaluator {
     protected override check(source: string) {
       super.check(source);
-      if (source.includes("Date.now")) throw new ExpressionError("Date.now() is not allowed here");
+      if (source.includes("toLocale")) throw new ExpressionError("Locale methods are not allowed here");
     }
   }
 
   it("adds a rule on top of the language's", () => {
-    const ev = new NoClock();
-    expect(() => ev.validate("Date.now()")).toThrow(/not allowed here/);
+    const ev = new NoLocale();
+    expect(() => ev.validate("(1).toLocaleString()")).toThrow(/not allowed here/);
     expect(refuses(ev, "new Date(0)")).toBe(true);
     expect(ev.eval("Date.parse('1970-01-01T00:00:00Z')")).toBe(0);
   });

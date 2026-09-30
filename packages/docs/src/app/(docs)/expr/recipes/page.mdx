@@ -1,0 +1,71 @@
+# Recipes
+
+## Predictability
+
+An expression has no clock and no random numbers. Without host functions, the
+same scopes give the same result: in the browser and on the server, today and
+next year. Two results still depend on the machine:
+
+- The locale methods (`toLocaleString`, `toLocaleUpperCase`,
+  `toLocaleLowerCase`, `localeCompare`) follow its default locale when the
+  expression passes none.
+- `Date.parse` reads a date-time without an offset, such as
+  `"2026-09-30T10:00"`, in its time zone.
+
+A random value and the time come from host functions. The prompt tells the
+model to call one in a step and store the result, so the value is taken once,
+and the elements that read it re-run only when it changes.
+
+## Random values
+
+```ts
+import { standardTool } from "standard-tool";
+import z from "zod";
+
+export const random = standardTool({
+  name: "random",
+  description: "A random number from 0 up to, not including, 1.",
+  outputSchema: z.number(),
+  execute: () => Math.random(),
+});
+```
+
+Bind it like any other [host function](/expr/functions), in the evaluator and
+in the prompt:
+
+```ts
+const evaluator = new Evaluator({ functions: [random, ...tools] });
+const functionsPrompt = getFunctionsPartialPrompt({ functions: [random, ...tools] });
+```
+
+A tip picked once, when the element mounts:
+
+```jsonc
+{ "key": "tip", "component": "Typography",
+  "seed": [{ "set": "scopes.root.pick", "expr": "random()" }],
+  "props": { "expr": "({ text: scopes.root.tips[Math.floor(scopes.root.pick * scopes.root.tips.length)] })" } }
+```
+
+## The time
+
+```ts
+export const now = standardTool({
+  name: "now",
+  description: "The current time: milliseconds since 1970-01-01 UTC.",
+  outputSchema: z.number(),
+  execute: () => Date.now(),
+});
+```
+
+An order's age in days, from the time taken when the element mounts:
+
+```jsonc
+{ "key": "age", "component": "Badge",
+  "seed": [{ "set": "scopes.root.now", "expr": "now()" }],
+  "props": { "expr": "({ text: Math.round((scopes.root.now - Date.parse(scopes.root.order.createdAt)) / 86400000) + 'd' })" } }
+```
+
+The stored time does not move. A display that counts ("3 minutes ago") belongs
+in a component that updates itself, such as the reference catalog's
+[`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time)
+with `format: "relative"`.

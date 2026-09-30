@@ -39,7 +39,7 @@ const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void 
   if (!ALLOWED_NODES.has(node.type)) {
     throw new ExpressionError(
       node.type === "NewExpression"
-        ? '"new" is not part of the expression language — every value is JSON. A date is an ISO string, or a timestamp from Date.parse(text) or Date.now()'
+        ? '"new" is not part of the expression language — every value is JSON. A date is an ISO string, or a timestamp from Date.parse(text)'
         : `"${node.type}" is not part of the expression language`,
     );
   }

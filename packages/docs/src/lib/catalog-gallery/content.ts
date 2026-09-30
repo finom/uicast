@@ -51,7 +51,7 @@ export const content: Record<string, Example> = {
   ],
 
   DateTime: [
-    { key: "dt", component: "DateTime", seed: [{ set: "scopes.root.updatedAt", expr: "Date.now() - 3 * 60 * 60 * 1000" }], props: { expr: "({ value: scopes.root.updatedAt, format: 'relative', prefix: 'Updated' })" } },
+    { key: "dt", component: "DateTime", props: { literal: { value: "2026-09-30T09:00:00Z", format: "relative", prefix: "Updated" } } },
   ],
 
   DescriptionList: [

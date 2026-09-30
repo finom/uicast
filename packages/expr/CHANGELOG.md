@@ -77,6 +77,7 @@ Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuil
 
 ### Removed
 
+- **Breaking: `Date.now()`.** An expression reads no clock, so the same data gives the same result. The time comes from a host function, as a random value does.
 - **`Intl`.** The locale methods take a locale and options, as in JS: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })`. A locale is a string or an array of strings, and options are an object of strings, numbers and booleans, so the engine never runs a getter or a `toString` while reading them.
 - **Breaking: `new`, and with it `Date` values, `Set` and `Map`.** Every value in an expression is JSON. A date is an ISO string, or a timestamp: `Date.now()`, `Date.parse(text)` and `Date.UTC(...)` stay, and return numbers. `Object.keys(Object.groupBy(rows, r => r.tag))` lists the distinct tags, and an object does a `Map`'s job. A date in the viewer's format is not something an expression can write; a component or the host formats it.
 - **`forEach`.** It runs a callback for its effect, and a callback here has none.

@@ -173,7 +173,6 @@ export const WORKLOADS: [string, string][] = [
   ["parseInt", each(`Number.parseInt(r.s, 10)`)],
   ["fromCharCode", each(`String.fromCharCode(72, r.i % 100 + 20)`)],
   ["fromCodePoint", each(`String.fromCodePoint(128512, r.i % 100 + 20)`)],
-  ["now", each(`Date.now()`)],
   ["parse date", each(`Date.parse(r.text)`)],
   ["UTC", each(`Date.UTC(2020, r.i % 12, 1)`)],
   ["Number()", each(`Number(r.s)`)],

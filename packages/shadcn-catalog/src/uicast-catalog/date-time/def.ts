@@ -20,7 +20,7 @@ export const DateTimeDef = createComponentDefinition({
       ])
       .meta({
         description:
-          "The moment: an ISO date-time ('2026-09-23T14:30:00Z'), an ISO date ('2026-09-23', shown as that day in every time zone), or a timestamp in milliseconds, as Date.now() and Date.parse() give.",
+          "The moment: an ISO date-time ('2026-09-23T14:30:00Z'), an ISO date ('2026-09-23', shown as that day in every time zone), or a timestamp in milliseconds, as Date.parse() gives.",
       }),
     format: z
       .union([

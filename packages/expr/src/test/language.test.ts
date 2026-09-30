@@ -117,7 +117,6 @@ describe("the language", () => {
   });
 
   it("has no new: every value is JSON, and a date is a string or a timestamp", () => {
-    expect(run(`Date.now() > 0`)).toBe(true);
     expect(run(`Date.parse("1970-01-02T00:00:00Z")`)).toBe(86_400_000);
     for (const expr of [
       `new Date(0)`,

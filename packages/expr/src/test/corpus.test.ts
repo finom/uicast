@@ -16,8 +16,8 @@ describe("the interpreter agrees with plain JavaScript", () => {
   }
 });
 
-// `Date.now` differs between two calls; the engine under test has no `Math.sumPrecise` (standard-library.test.ts has it).
-const NOT_IN_CORPUS = ["now", "sumPrecise"];
+// The engine under test has no `Math.sumPrecise` (standard-library.test.ts has it).
+const NOT_IN_CORPUS = ["sumPrecise"];
 
 it("has a case for every method", () => {
   const called = (name: string) => CORPUS.some((expr) => expr.includes(`.${name}(`) || expr.includes(`[\`${name}\`]`));

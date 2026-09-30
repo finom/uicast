@@ -110,8 +110,8 @@ Left out on purpose:
 - **`Intl`.** The locale methods still take a locale and options:
   `price.toLocaleString(undefined, { style: "currency", currency: "USD" }){:ts}`.
 - **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
-  an ISO string or a timestamp from `Date.parse(text){:ts}` or `Date.now(){:ts}`; format
-  it in a component (see
+  an ISO string or a timestamp from `Date.parse(text){:ts}`; format it in a
+  component (see
   [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time)).
   An object does a `Map`'s job, and
   `Object.keys(Object.groupBy(rows, r => r.tag)){:ts}` lists distinct tags.
@@ -130,17 +130,18 @@ scopes.root.rows.map(r => r.status === "paid" ? "green" : "red")
 scopes.root.rows.map(r => { switch (r.status) { case "paid": return "green" } })
 ```
 
-Expressions are also **stateless**: no `Math.random` (a random value comes
-from a host function) and nowhere to keep a counter. `Date.now(){:ts}` changes on
-every re-evaluation, so the prompt tells the model to take it once in a step and
-read it back:
+Expressions are also **stateless**: no `Math.random`, no `Date.now`, and nowhere
+to keep a counter. Without host functions, the same scopes give the same result.
+A random value or the time comes from a host function, and the prompt tells the
+model to call it in a step and read the result back
+([Recipes](/expr/recipes)):
 
 ```jsonc
-// ❌ a new timestamp every render pass
+// ❌ refused: the language has no clock
 { "props": { "expr": "({ text: 'Draft ' + Date.now() })" } }
 
-// ✅ produced once, read back from the path
-{ "seed": [{ "set": "scopes.root.draftId", "expr": "Date.now()" }],
+// ✅ taken once by a host function, read back from the path
+{ "seed": [{ "set": "scopes.root.draftId", "expr": "now()" }],
   "props": { "expr": "({ text: 'Draft ' + scopes.root.draftId })" } }
 ```
 

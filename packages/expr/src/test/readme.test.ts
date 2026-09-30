@@ -43,13 +43,17 @@ describe("README", () => {
     expect(() => ev.eval("[x => x]")).toThrow(/only be written as a method's callback/);
   });
 
-  it("random values come from a host function; the time is in the language", () => {
+  it("random values and the time come from host functions", () => {
     const ev = new Evaluator({
-      functions: [{ name: "random", description: "A random number in [0, 1)", execute: () => Math.random() }],
+      functions: [
+        { name: "random", description: "A random number in [0, 1)", execute: () => Math.random() },
+        { name: "now", description: "Milliseconds since 1970-01-01 UTC", execute: () => Date.now() },
+      ],
     });
     expect(ev.eval<number>("random()")).toBeLessThan(1);
+    expect(typeof ev.eval("now()")).toBe("number");
     expect(() => ev.eval("Math.random()")).toThrow(/"Math.random\(\)" is not available/);
-    expect(typeof ev.eval("Date.now()")).toBe("number");
+    expect(() => ev.eval("Date.now()")).toThrow(/"Date.now\(\)" is not available/);
   });
 
   it("the constructor options", () => {

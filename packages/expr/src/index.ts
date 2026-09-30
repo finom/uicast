@@ -151,7 +151,7 @@ export class Evaluator implements ExpressionEvaluator {
    * @example
    * protected override check(source: string) {
    *   super.check(source);
-   *   if (source.includes("Date.now")) throw new ExpressionError("Date.now() is not allowed here");
+   *   if (source.includes("toLocale")) throw new ExpressionError("Locale methods are not allowed here");
    * }
    */
   protected check(source: string): void {

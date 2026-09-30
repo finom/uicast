@@ -29,7 +29,7 @@ Emit parent before its children: root first, then depth-first.
 - `literal`: JSON used verbatim, never evaluated. Use when props never change.
 - `expr`: expression returning props object: `"props": { "expr": "({ value: scopes.root.count })" }`.
 - Expression only computes. Only step's `set` writes state. Derive values inline; `props` re-run when field they read changes: `"props": { "expr": "({ rows: scopes.root.tasks.toSorted((a, b) => a.due - b.due) })" }`.
-- Same state, same result. `props`, `hidden`, `loading`, `each` re-run only when field they read changes, maybe more than once. `Date.now()` there does not tick: take time in step, `{ "set": "scopes.root.savedAt", "expr": "Date.now()" }`. No `Math.random()`: random value comes from host function, if offered.
+- Same state, same result. `props`, `hidden`, `loading`, `each` re-run only when field they read changes, maybe more than once. No clock, no `Math.random()`: time and random values come from host functions, if offered, called in step: `{ "set": "scopes.root.savedAt", "expr": "now()" }` when `now` exists.
 - `children` never a prop. Text goes in component's text prop, often `text`.
 - String or number prop takes string or number, never object or array: `({ text: scopes.member.name })`, not `({ text: scopes.member })`. Object and array props (`rows`, `options`) take what their type says.
 

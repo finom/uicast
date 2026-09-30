@@ -11,6 +11,7 @@ const meta: MetaRecord = {
     items: {
       index: "The expression evaluator",
       functions: "Host functions",
+      recipes: "Recipes",
       "custom-expr": "Custom evaluator",
     },
   },

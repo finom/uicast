@@ -131,15 +131,14 @@ step hold **one expression** in a [subset of JavaScript](/expr). Two rules.
 { "expr": "scopes.root.count = 1" }                          // ❌ rejected: assignment
 ```
 
-**The same state must give the same result.** `props`, `hidden`, `loading` and
-`each` run again only when a scope field they read changes. The time is not a
-scope field: props showing `Date.now(){:ts}` keep the time of their last run, and
-jump when an unrelated field changes. So the prompt has the model take the time
-once, in a step, and store it:
+**The same state gives the same result.** `props`, `hidden`, `loading` and
+`each` run again only when a scope field they read changes. The language has no
+clock and no random numbers, so nothing else changes what they show. The time
+comes from a host function, taken once in a step and stored
+([Recipes](/expr/recipes)):
 
 ```jsonc
-{ "props": { "expr": "({ text: 'Saved at ' + Date.now() })" } }  // ⚠️ runs, but jumps whenever the props re-run
-{ "set": "scopes.root.savedAt", "expr": "Date.now()" }           // ✅ taken on save; props read scopes.root.savedAt
+{ "set": "scopes.root.savedAt", "expr": "now()" }  // ✅ taken on save; props read scopes.root.savedAt
 ```
 
 ## Nothing runs on its own

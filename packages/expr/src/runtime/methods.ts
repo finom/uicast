@@ -464,7 +464,7 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
   Number: nativeTable(Number, NAMESPACE_METHOD_NAMES.Number),
   String: nativeTable(String, NAMESPACE_METHOD_NAMES.String),
   Date: nullProto({
-    ...nativeTable(Date, ["now", "UTC"]),
+    ...nativeTable(Date, ["UTC"]),
     parse: (_r, [text], budget) => {
       chargeDateText(text, budget);
       return Date.parse(String(text));

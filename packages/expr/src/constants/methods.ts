@@ -32,7 +32,7 @@ export const NAMESPACE_METHOD_NAMES: Readonly<Record<string, ReadonlySet<string>
   Array: new Set(["isArray", "from", "of"]),
   Number: new Set(["isInteger", "isFinite", "isNaN", "isSafeInteger", "parseFloat", "parseInt"]),
   String: new Set(["fromCharCode", "fromCodePoint"]),
-  Date: new Set(["now", "parse", "UTC"]),
+  Date: new Set(["parse", "UTC"]),
 });
 
 // The validator refuses a written call outside it, so both back ends refuse the same set.
