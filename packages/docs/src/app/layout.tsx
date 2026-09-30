@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://uicast.dev"),
   title: { default: "uicast", template: "%s — uicast" },
   description: "The expression-driven generative UI framework.",
+  // The image is each page's own, from the MDX wrapper.
+  openGraph: { siteName: "uicast", type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 // suppressHydrationWarning lets next-themes set the `class` on <html>. Nextra's <Head> injects the CSS vars its chrome

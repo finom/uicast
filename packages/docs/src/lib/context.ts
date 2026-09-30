@@ -1,6 +1,5 @@
 import { namesOf } from "@/components/catalog-groups";
-
-export const SITE = "https://uicast.dev";
+import { SITE } from "@/lib/site";
 
 // Live components on the docs pages, each with a Markdown stand-in the context route builds.
 export const BLOCKS = [

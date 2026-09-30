@@ -1,19 +1,19 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { getFunctionsPartialPrompt } from "@uicast/core/prompt";
-import { normalizePages } from "nextra/normalize-pages";
-import { getPageMap } from "nextra/page-map";
 import { ALT } from "@/components/hero-illustration";
 import { EXAMPLES } from "@/components/replay/examples";
 import { functions } from "@/components/replay/functions";
 import { STEPS } from "@/components/steps";
-import { type Blocks, fence, pageMarkdown, SITE } from "@/lib/context";
+import { type Blocks, fence, pageMarkdown } from "@/lib/context";
+import { docsPages } from "@/lib/docs-pages";
 import { parts as counter } from "@/lib/mini-examples/counter";
 import { PROV } from "@/lib/mini-examples/entry-variants";
 import type { CodePart } from "@/lib/mini-examples/mini-example";
 import { parts as orders } from "@/lib/mini-examples/orders";
 import { parts as tracker } from "@/lib/mini-examples/tracker";
 import { parts as weather } from "@/lib/mini-examples/weather";
+import { SITE } from "@/lib/site";
 
 // Every docs page in sidebar order, as one Markdown file for an LLM. The static export writes it to a file.
 export const dynamic = "force-static";
@@ -50,14 +50,10 @@ export async function GET() {
     WeatherExample: await miniExample("weather", weather),
     OrdersExample: await miniExample("orders", orders),
   };
-  const { flatDocsDirectories } = normalizePages({ list: await getPageMap(), route: "/" });
-  const pages = await Promise.all(
-    flatDocsDirectories.map(async ({ route }) => {
-      const url = SITE + route;
-      const mdx = await readFile(path.join(SRC, "app/(docs)", route, "page.mdx"), "utf8");
-      return `Page: ${url}\n\n${pageMarkdown(mdx, url, blocks)}`;
-    }),
-  );
+  const pages = (await docsPages()).map(({ route, mdx }) => {
+    const url = SITE + route;
+    return `Page: ${url}\n\n${pageMarkdown(mdx, url, blocks)}`;
+  });
   const body = pages.join("\n\n---\n\n");
   const header = [
     "---",
