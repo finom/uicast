@@ -1,8 +1,7 @@
 # Assembling the prompt
 
 The system prompt is a list of blocks. A builder function makes each block, and
-your app joins them. This is the chat endpoint of the
-[example app](/example-app):
+your app joins them. For a chat endpoint:
 
 ```ts
 import {
@@ -28,14 +27,15 @@ const system = [
 
 A page builder uses `kind: "page"{:ts}` and leaves out the fence block.
 
-Build the prompt from the same components and functions your page uses. Then
-the model uses only what your page has.
+Build the prompt from the same components and functions your page uses. The
+prompt then lists only what your page has. A component or function the page
+lacks fails with an error.
 
 ## Order
 
-Keep the order above. The rules come first, and each later block refers to
-earlier ones. Every block starts with its own `#` heading, so the blocks join
-with a blank line.
+Put the fence block last: it changes the output format the first block sets.
+Every block starts with its own `#` heading, so the blocks join with a blank
+line.
 
 ## Adding your own text
 
@@ -62,7 +62,7 @@ It emits `# Output Format`, `# Rules` and `# Expression Context`.
 
 | Option | Default | <nobr>What it does</nobr> |
 | --- | --- | --- |
-| `maxListItems` | `100` | The most items one list shows. The model pages or filters past it. |
+| `maxListItems` | `100` | The prompt tells the model to show at most this many items in a list, and to add pages for the rest. The renderer has no limit of its own. |
 | `note` | none | Your text, added as `## Note`. |
 
 ### `getScopePartialPrompt`

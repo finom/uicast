@@ -339,11 +339,13 @@ prompt's `# Expression Context`:
 
 ```ts
 getCommonInstructionsPartialPrompt({
-  note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro'); read-only.",
+  note: "scopes.userCtx holds the signed-in user: name (string), plan ('free' | 'pro').",
 });
 ```
 
-Nothing checks that the note matches the scope; keep them in sync.
+Nothing checks that the note matches the scope; keep them in sync. Steps can
+write its fields, as they write `root`'s, so a value you read back from it may
+come from the model.
 
 ## Where to go next
 

@@ -189,7 +189,8 @@ The host can also supply state.
 [`<RendererProvider init>`](/react/renderer#init--preload-state-for-the-group)
 preloads `scopes.root` once, before any entry evaluates, and can
 [expose extra named scopes](/react/renderer#extra-named-scopes) (read as
-`scopes.userCtx.name`): proxies the host keeps and can update later.
+`scopes.userCtx.name`): proxies the host keeps and can update later. Steps can
+write them too, as they write `root`.
 
 Declare each extra scope in the `note` of `getCommonInstructionsPartialPrompt`,
 which lands as a `## Note` under the prompt's `# Expression Context`. The note
