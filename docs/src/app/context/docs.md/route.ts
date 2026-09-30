@@ -15,7 +15,7 @@ import { parts as tracker } from "@/lib/mini-examples/tracker";
 import { parts as weather } from "@/lib/mini-examples/weather";
 import { SITE } from "@/lib/site";
 
-// Every docs page in sidebar order, as one Markdown file for an LLM. The static export writes it to a file.
+// The sidebar's docs pages in order, as one Markdown file for an LLM. The static export writes it to a file.
 export const dynamic = "force-static";
 
 const SRC = path.join(process.cwd(), "src");
@@ -50,10 +50,12 @@ export async function GET() {
     WeatherExample: await miniExample("weather", weather),
     OrdersExample: await miniExample("orders", orders),
   };
-  const pages = (await docsPages()).map(({ route, mdx }) => {
-    const url = SITE + route;
-    return `Page: ${url}\n\n${pageMarkdown(mdx, url, blocks)}`;
-  });
+  const pages = (await docsPages())
+    .filter(({ hidden }) => !hidden)
+    .map(({ route, mdx }) => {
+      const url = SITE + route;
+      return `Page: ${url}\n\n${pageMarkdown(mdx, url, blocks)}`;
+    });
   const body = pages.join("\n\n---\n\n");
   const header = [
     "---",
