@@ -59,7 +59,9 @@ const asKey = (key: unknown): string | number => {
   if (typeof key === "number" || typeof key === "string") return key;
   if (typeof key === "symbol") return reject("A symbol cannot be used as a property key here");
   if (key === null || key === undefined || typeof key === "object") {
-    return reject(`A ${typeName(key)} cannot be used as a property key`);
+    const kind = typeName(key);
+    const named = key == null ? kind : `${/^[aeiou]/i.test(kind) ? "an" : "a"} ${kind}`;
+    return reject(`Cannot use ${named} as a property key`);
   }
   return String(key);
 };

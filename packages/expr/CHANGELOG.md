@@ -54,6 +54,7 @@ Initial release. Extracted from `@uicast/core`'s expression evaluator and rebuil
 
 ### Fixed
 
+- A non-string property key's message reads "Cannot use undefined as a property key"; it said "A undefined cannot be used".
 - Three places where the interpreter answered differently from JavaScript, found by a fuzz run: an object pattern with no names, or only a rest element, accepted `null` and `undefined`; `JSON.stringify` with a key array printed the keys in the object's order and kept items that are not strings or numbers; and `padStart`, `padEnd`, `includes`, `indexOf`, `lastIndexOf` and number conversion of an array read an argument JavaScript never reads, or skipped a conversion that throws.
 - **`JSON.stringify`, `join`, `toString` and `toLocaleString` on arrays are charged before the string exists.** They were charged after, once the engine had built it: stringifying 100,000 references to a one-megabyte string blocked for 29 seconds before failing. The output size is now counted from the value first, the way `replaceAll` is charged.
 - **`{ ["__proto__"]: x }` is an own property.** A computed key spelled as a literal was folded to a written one and assigned, which set the prototype. It defines an own key now, as JS does, and the case is in the corpus.
