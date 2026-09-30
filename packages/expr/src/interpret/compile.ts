@@ -108,6 +108,10 @@ const compilePattern = (pattern: acorn.Pattern, cx: Cx): Binder => {
           : { key: propertyKey(prop, cx), bind: compilePattern(prop.value, cx) },
       );
       return (value, frame, rt) => {
+        // JS refuses null and undefined even when the pattern reads no name.
+        if (value === null || value === undefined) {
+          throw new ExpressionError(`Cannot destructure ${value}`, "expression-runtime");
+        }
         const taken: string[] = [];
         for (const prop of props) {
           if ("rest" in prop) {

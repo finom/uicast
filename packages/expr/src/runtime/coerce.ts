@@ -55,22 +55,11 @@ export const chargeDateText = (v: unknown, budget: Budget): void => {
   else chargeText(v, budget);
 };
 
-// JS's ToNumber, charged. An array answers as JS would without joining: `[5]` is 5, `[]` is 0, two items are NaN.
+// JS's ToNumber, charged. An array joins into text first, so an item that has no text throws, as in JS.
 export const num = (v: unknown, budget: Budget): number => {
   if (typeof v === "number") return v;
-  if (!Array.isArray(v)) {
-    chargeNumber(v, budget);
-    return Number(v);
-  }
-  let only: unknown = v;
-  while (Array.isArray(only)) {
-    if (only.length !== 1) return only.length === 0 ? 0 : Number.NaN;
-    only = only[0];
-  }
-  if (only === null || only === undefined) return 0;
-  const text = String(only);
-  budget.tick(textCost(text.length));
-  return Number(text);
+  chargeNumber(v, budget);
+  return Number(v);
 };
 
 // JS's ToIntegerOrInfinity: NaN is 0.

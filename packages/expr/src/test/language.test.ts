@@ -427,4 +427,15 @@ describe("pinned against plain JS", () => {
   it("a trailing line comment ends at the end of the expression", () => {
     expect(run("1 + 2 // sum")).toBe(3);
   });
+  it("matches JS where a fuzz run found drift", () => {
+    const empty = "Object.groupBy([], x => 1)";
+    expect(() => run("[null].map(({}) => 1)")).toThrow(/Cannot destructure null/);
+    expect(() => run("[undefined].map(({ ...rest }) => rest)")).toThrow(/Cannot destructure undefined/);
+    expect(run(`JSON.stringify({ b: 1, a: 2 }, ["a", "b"])`)).toBe('{"a":2,"b":1}');
+    expect(run(`JSON.stringify([{ b: 1, a: 2, c: 3 }], ["a", 1, "a", null, ["b"]])`)).toBe('[{"a":2}]');
+    expect(run(`"ab".padEnd(0, ${empty})`)).toBe("ab");
+    const starts = ["includes", "indexOf", "lastIndexOf"].map((m) => run(`[].${m}(1, ${empty})`));
+    expect(starts).toEqual([false, -1, -1]);
+    expect(() => run(`"a".slice([${empty}, 0])`)).toThrow();
+  });
 });

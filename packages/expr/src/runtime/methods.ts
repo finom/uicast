@@ -38,6 +38,11 @@ const asText = (v: unknown, budget: Budget): string => {
 };
 const optString = (v: unknown, budget: Budget): string | undefined => (v === undefined ? undefined : asText(v, budget));
 
+const replacerKeys = (replacer: unknown[], budget: Budget): string[] => {
+  budget.tick(replacer.length);
+  return [...new Set(replacer.filter((k) => typeof k === "string" || typeof k === "number").map(String))];
+};
+
 // A relative position clamped into [0, length], as slice and toSpliced read it.
 const clampIndex = (v: unknown, length: number, budget: Budget): number => {
   const n = toInteger(v, budget);
@@ -168,16 +173,18 @@ const ARRAY_METHODS: Methods = nullProto({
     budget.tick(textCost(size));
     return a.map((v) => (v === null || v === undefined ? "" : String(v))).join(separator);
   },
+  // JS reads the start position only when the array has items.
   includes: (a: unknown[], [v, from], budget) => {
     budget.tick(a.length);
-    return a.includes(v, optNum(from, budget));
+    return a.length > 0 && a.includes(v, optNum(from, budget));
   },
   indexOf: (a: unknown[], [v, from], budget) => {
     budget.tick(a.length);
-    return a.indexOf(v, optNum(from, budget));
+    return a.length === 0 ? -1 : a.indexOf(v, optNum(from, budget));
   },
   lastIndexOf: (a: unknown[], args, budget) => {
     budget.tick(a.length);
+    if (a.length === 0) return -1;
     return args.length < 2 ? a.lastIndexOf(args[0]) : a.lastIndexOf(args[0], num(args[1], budget));
   },
   at: (a: unknown[], [i], budget) => a.at(num(i, budget)),
@@ -362,8 +369,15 @@ const STRING_METHODS: Methods = nullProto({
     return s.lastIndexOf(search, optNum(position, budget));
   },
   normalize: (s: string, [form], budget) => rewritten(s, budget).normalize(optString(form, budget)),
-  padStart: (s: string, [n, pad], budget) => s.padStart(padLength(n, budget), optString(pad, budget)),
-  padEnd: (s: string, [n, pad], budget) => s.padEnd(padLength(n, budget), optString(pad, budget)),
+  // JS reads the filler only when there is something to fill.
+  padStart: (s: string, [n, pad], budget) => {
+    const length = padLength(n, budget);
+    return length <= s.length ? s : s.padStart(length, optString(pad, budget));
+  },
+  padEnd: (s: string, [n, pad], budget) => {
+    const length = padLength(n, budget);
+    return length <= s.length ? s : s.padEnd(length, optString(pad, budget));
+  },
   repeat: (s: string, [n], budget) => {
     const count = toInteger(n, budget);
     if (!Number.isFinite(count) || count < 0) return fail(`repeat count ${String(n)} is not valid`);
@@ -481,15 +495,19 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
       const size = jsonSize(value, indentWidth(space, budget), 0, budget, globals);
       budget.string(size);
       budget.tick(PRICES.json + textCost(size));
-      // A function replacer would take a function, so it is dropped; an array one is JS's key allow-list.
-      const allowed = Array.isArray(replacer) ? new Set(replacer.map(String)) : null;
+      // A function replacer would take a function, so it is dropped. An array one lists the keys each object prints, in
+      // its order: its strings and numbers, each once, as JS builds the list.
+      const keys = Array.isArray(replacer) ? replacerKeys(replacer, budget) : null;
       // With neither to handle, the engine's own fast path prints it.
-      if (!allowed && !globals.found) return JSON.stringify(value, null, space as string | number | undefined);
+      if (!keys && !globals.found) return JSON.stringify(value, null, space as string | number | undefined);
       return JSON.stringify(
         value,
-        function (this: unknown, key: string, v: unknown) {
-          if (allowed && key !== "" && !Array.isArray(this) && !allowed.has(key)) return undefined;
-          return asJson(v);
+        (_key: string, v: unknown) => {
+          const out = asJson(v);
+          if (!keys || out === null || typeof out !== "object" || !isPlainObject(out)) return out;
+          budget.tick(keys.length);
+          const obj = out as Record<string, unknown>;
+          return Object.fromEntries(keys.filter((k) => Object.hasOwn(obj, k)).map((k) => [k, obj[k]]));
         },
         space as string | number | undefined,
       );
