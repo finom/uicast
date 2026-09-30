@@ -3,8 +3,8 @@
 @import "react-loading-skeleton/dist/skeleton.css";
 
 /* Tailwind scans this package only; the catalog's and Streamdown's classes live outside it. */
-@source "../../../shadcn-catalog/src/**/*.{ts,tsx}";
-@source "../../../../node_modules/streamdown/dist/*.js";
+@source "../../../packages/shadcn-catalog/src/**/*.{ts,tsx}";
+@source "../../../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
