@@ -2,7 +2,6 @@ import { getPageMap } from "nextra/page-map";
 import { DiscordIcon } from "nextra/icons";
 import { Footer, Layout, Navbar } from "nextra-theme-docs";
 import type { ReactNode } from "react";
-import { BetaBadge } from "../../components/beta-badge";
 import "nextra-theme-docs/style.css";
 // Preflight lives in @layer base, which Nextra's unlayered stylesheet outranks, so the docs chrome keeps its look.
 import "../globals.css";
@@ -14,12 +13,7 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
     <Layout
       navbar={
         <Navbar
-          logo={
-            <b className="flex items-center gap-2 text-lg">
-              uicast
-              <BetaBadge />
-            </b>
-          }
+          logo={<b className="text-lg">uicast</b>}
           projectLink="https://github.com/finom/uicast"
           chatLink="https://discord.com/invite/qdT8WEHUuP"
           chatIcon={<DiscordIcon width="24" aria-label="Discord server" />}

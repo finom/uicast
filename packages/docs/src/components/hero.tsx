@@ -1,15 +1,11 @@
 import Link from "next/link";
 import { GitHubIcon } from "nextra/icons";
-import { BetaBadge } from "./beta-badge";
 
 // The `h1` is real markup for the outline; `clear-both` keeps the block clear of Nextra's floated "Copy page" control.
 export function Hero() {
   return (
     <div className="clear-both mb-12 flex flex-col items-center gap-4 border-b pb-12 pt-6 text-center">
-      <h1 className="flex flex-wrap items-center justify-center gap-3 text-5xl font-bold tracking-tight sm:text-6xl">
-        uicast
-        <BetaBadge />
-      </h1>
+      <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">uicast</h1>
       <p className="text-balance text-lg font-medium text-muted-foreground sm:text-xl">
         The expression-driven generative UI framework
       </p>
