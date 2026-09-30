@@ -21,7 +21,7 @@ function collect(entry: Record<string, unknown>, out: string[]): void {
 describe("every shipped document validates against the current language", () => {
   // Cross-package on purpose: nothing else fails when a language change breaks these documents.
   const read = (path: string): Record<string, unknown>[] =>
-    JSON.parse(readFileSync(new URL(`../../../../docs/src/${path}`, import.meta.url), "utf8"));
+    JSON.parse(readFileSync(new URL(`../../../../../docs/src/${path}`, import.meta.url), "utf8"));
   const sources: [string, Record<string, unknown>[]][] = [];
   for (const name of ["orders", "kanban", "warehouses", "delivery", "shop", "loan", "wifi"]) {
     sources.push([`replay:${name}`, read(`components/replay/${name}.json`)]);
