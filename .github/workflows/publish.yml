@@ -1,0 +1,60 @@
+name: Publish
+
+on:
+  push:
+    tags: ["*-v*"]
+
+permissions: read-all
+
+# Tags of one release publish one after another; a later run finds the versions already on npm.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm trusted publishing (OIDC), which adds provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build
+      # A mistyped tag would otherwise publish whatever versions the tree holds.
+      - name: Check the tag matches its package
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          dir="${TAG%-v*}"
+          version="$(node -p "require('./packages/$dir/package.json').version")"
+          if [ "$TAG" != "$dir-v$version" ]; then
+            echo "tag $TAG does not match packages/$dir at $version" >&2
+            exit 1
+          fi
+      - name: Publish every version not yet on npm
+        run: |
+          for dir in expr core react shadcn-catalog streamdown; do
+            name="$(node -p "require('./packages/$dir/package.json').name")"
+            version="$(node -p "require('./packages/$dir/package.json').version")"
+            if [ -n "$(npm view "$name@$version" version 2>/dev/null)" ]; then
+              echo "$name@$version is on npm"
+              continue
+            fi
+            # A prerelease goes to the dist-tag its id names (0.3.0-beta.1 → beta), a release to latest.
+            case "$version" in
+              *-*) tag="${version#*-}"; tag="${tag%%.*}" ;;
+              *) tag=latest ;;
+            esac
+            npm publish --workspace "packages/$dir" --access public --tag "$tag"
+          done

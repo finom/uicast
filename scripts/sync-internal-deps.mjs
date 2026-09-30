@@ -1,28 +1,31 @@
-// Exact pins: `*` does not resolve on the registry when only prerelease versions exist.
+// Internal ranges are carets on the current version: `^0.3.0` takes every 0.3.x, so a patch needs no dependent release.
+// The lockfile's own entries follow by hand; `npm install` would re-resolve the whole tree.
 import { readFileSync, writeFileSync } from "node:fs";
 
-const read = (dir) => JSON.parse(readFileSync(`./packages/${dir}/package.json`, "utf8"));
-const versions = {
-  "@uicast/expr": read("expr").version,
-  "@uicast/core": read("core").version,
-  "@uicast/react": read("react").version,
-  "@uicast/shadcn-catalog": read("shadcn-catalog").version,
-  "@uicast/streamdown": read("streamdown").version,
+const DIRS = ["expr", "core", "react", "shadcn-catalog", "streamdown"];
+const read = (path) => JSON.parse(readFileSync(path, "utf8"));
+const write = (path, data) => writeFileSync(path, `${JSON.stringify(data, null, 2)}\n`);
+
+const manifests = { "": read("./package.json") };
+const ranges = {};
+for (const dir of DIRS) {
+  const manifest = read(`./packages/${dir}/package.json`);
+  manifests[`packages/${dir}`] = manifest;
+  ranges[manifest.name] = `^${manifest.version}`;
+}
+
+const sync = (deps = {}) => {
+  for (const name of Object.keys(deps)) if (name in ranges) deps[name] = ranges[name];
 };
 
-for (const dir of ["core", "react", "shadcn-catalog", "streamdown"]) {
-  const path = `./packages/${dir}/package.json`;
-  const manifest = read(dir);
-  let changed = false;
-  for (const deps of [manifest.dependencies, manifest.peerDependencies]) {
-    if (!deps) continue;
-    for (const name of Object.keys(deps)) {
-      if (name in versions && deps[name] !== versions[name]) {
-        deps[name] = versions[name];
-        changed = true;
-      }
-    }
+const lock = read("./package-lock.json");
+for (const [path, manifest] of Object.entries(manifests)) {
+  const entry = lock.packages[path];
+  for (const target of [manifest, entry]) {
+    sync(target.dependencies);
+    sync(target.peerDependencies);
   }
-  if (changed) writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(`${dir}: ${changed ? "pinned" : "up to date"}`);
+  if (path) entry.version = manifest.version;
+  write(path ? `./${path}/package.json` : "./package.json", manifest);
 }
+write("./package-lock.json", lock);

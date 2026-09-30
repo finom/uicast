@@ -36,13 +36,12 @@
   ],
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "node -e \"if (!process.env.CI) throw new Error('Publish from CI: PACKAGE=<dir> npm run patch or minor tags a release, and the tag publishes it')\" && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run",
-    "typecheck": "tsc --noEmit",
-    "npm-publish": "if [ -z \"$NPM_TAG\" ]; then echo 'Error: NPM_TAG is not set'; exit 1; fi; npm publish --tag=$NPM_TAG"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "acorn": "^8.16.0"
