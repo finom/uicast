@@ -4,7 +4,7 @@ description: "Integrate uicast (LLM-generated UI, streamed as JSONL and rendered
 license: MIT
 metadata:
   author: Andrey Gubanov
-  version: "0.2"
+  version: "0.3"
 ---
 
 # uicast integration
@@ -73,7 +73,7 @@ export const StatCardDef = createComponentDefinition({
 - `.default()` applied before render and printed in prompt.
 - No `children` field in props or payloads: reserved for child entries, throws. Text content: `text`, `title`, `label`.
 - Callback payload = what entry steps read as `evt`. `onChange: z.strictObject({ value: z.string().meta({ description: "Current text" }) })` → model writes `evt.value`. `z.null()` → no payload, handler takes no argument.
-- Payload shared by many components: `.meta({ $id: "MouseEvent" })` → printed once under `## Common Events`. One `$id` = one shape, else prompt builder throws. With catalog: reuse its `mouseEventSchema`, `keyboardEventSchema` from `@uicast/shadcn-catalog/events` (React-free).
+- Payload shared by many components: `.meta({ id: "MouseEvent" })` → printed once under `## Common Events`. One `id` = one shape, else prompt builder throws. With catalog: reuse its `mouseEventSchema`, `keyboardEventSchema` from `@uicast/shadcn-catalog/events` (React-free).
 - `hidden: true` → out of prompt, still renders.
 - Schemas: Standard Schema with JSON Schema output. Zod 4.2+, Valibot, ArkType.
 
@@ -178,6 +178,7 @@ export const tools = [listProducts, deleteProduct];
 - One argument, `inputSchema`. Object with described fields. All fields optional → `.optional()` on object.
 - `outputSchema` whenever UI shows result. Without it prompt prints `=> unknown`: model may only call for effect, then refetch. Never `z.void()`: no JSON Schema, throws.
 - Validators and defaults print in prompt; model calls within them.
+- Expressions have no clock and no `Math.random()`. Document needing time or random value calls host function in a step: offer `now` / `random` tools (`outputSchema: z.number()`).
 - List functions: page window (`limit`/`offset` or `page`), sort, filters in; `{ items, total }` out. Model pages and filters through them. Sums and counts: own functions.
 - `title` (optional): human label model may reuse on button.
 - Name: JS identifier, unique; not `scopes`, `evt`, `currentValue`, or global like `Math`. `Evaluator` and prompt builder throw otherwise.
