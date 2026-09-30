@@ -3,8 +3,8 @@ import type { ComponentEntry } from "@uicast/core";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@uicast/shadcn-catalog/ui/dialog";
 import { type JsonToken, tokenizeJson } from "@/lib/json-tokens";
 
-// Tuned to read on the dialog's `bg-muted/40` panel in both themes.
-const TOKEN_CLASS: Record<JsonToken["kind"], string> = {
+// Tuned to read on a `bg-muted` tint in both themes.
+export const TOKEN_CLASS: Record<JsonToken["kind"], string> = {
   key: "text-sky-700 dark:text-sky-300",
   str: "text-emerald-700 dark:text-emerald-300",
   num: "text-amber-700 dark:text-amber-400",

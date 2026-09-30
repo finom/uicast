@@ -45,7 +45,7 @@
         "../react/src/index.ts"
       ],
       "@uicast/shadcn-catalog": ["../shadcn-catalog/src/index.ts"],
-      "@uicast/shadcn-catalog/all/impls": ["../shadcn-catalog/src/all/impls.ts"],
+      "@uicast/shadcn-catalog/*/impls": ["../shadcn-catalog/src/*/impls.ts"],
       "@uicast/shadcn-catalog/*/defs": ["../shadcn-catalog/src/*/defs.ts"],
       "@uicast/shadcn-catalog/ui/*": ["../shadcn-catalog/src/components/ui/*"]
     }

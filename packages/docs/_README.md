@@ -20,7 +20,7 @@ The site imports the other packages from their source, so a change in `packages/
 
 - Pages are MDX under `src/app/(docs)/`. The sidebar order is in `src/app/_meta.global.tsx`.
 - A code fence with `localpath="<path from the repo root>"` gets that file's content on `predev` and `prebuild`, so samples stay in sync with the code.
-- `src/demo/` holds the replays at `/replays`. Each plays a prewritten document entry by entry, the way a model response streams: Inventory, a CRUD dashboard over an in-browser database, and Groovebox, Palette studio and Flow board, built from custom components with their own event payloads. They run in the browser, with no backend.
+- `src/components/replay/` holds the demo at the top of the index page. Each of its prompts plays a prewritten document entry by entry, the way a model response streams, over data kept in memory. It runs in the browser, with no backend.
 - `src/lib/mini-examples/` holds the small live examples inside the pages.
 
 ## License

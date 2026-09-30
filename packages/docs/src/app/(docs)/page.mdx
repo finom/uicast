@@ -2,8 +2,10 @@
 title: The expression-driven generative UI framework
 ---
 
+import { Bleed } from "nextra/components";
 import { Hero } from "@/components/hero";
 import { HeroIllustration } from "@/components/hero-illustration";
+import { Replay } from "@/components/replay/replay";
 import { Steps } from "@/components/steps";
 import { CounterExample } from "@/lib/mini-examples/counter";
 import { TrackerExample } from "@/lib/mini-examples/tracker";
@@ -17,26 +19,36 @@ import { WeatherExample } from "@/lib/mini-examples/weather";
   <HeroIllustration />
 </div>
 
+## The model as your front-end developer
+
 **uicast is a UI framework whose language is written by models, not people.**
 It gives a model what JSX gives a developer — components, state, events — but
 is built to be reliable to generate rather than easy to maintain. The model's
 output is data: the engine turns it into a working front-end app, with no build
 or deploy step per page.
 
-<CounterExample />
+{/* Bleed widens by 6rem a side from 2xl, which runs into the table of contents. */}
+<Bleed className="mb-12 2xl:-mx-8">
+  <Replay />
+</Bleed>
+
+## Expressions hold the logic
 
 What makes **uicast** different is **expressions**: computed values, visibility
 and event handling are JavaScript, run by a [closed-grammar interpreter](/expr).
+
+<CounterExample />
+
 Structured generation offers a fixed set of bindings and operators instead, so a
-new computation needs new host code.
+calculation outside that set needs a code change.
 
-| Approach | Predictability | Expressiveness | Safety |
+| Approach | Predictability | Expressiveness | Model code |
 | --- | --- | --- | --- |
-| Raw code generation | low | unlimited | low |
-| **uicast** | high | high | high |
-| Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | guaranteed |
+| Raw code generation | low | unlimited | any |
+| **uicast** | high | high | expressions |
+| Structured generation ([json-render](https://github.com/vercel-labs/json-render), [A2UI](https://a2ui.org)) | deterministic | limited | none |
 
-## Is it safe?
+## The expression evaluator
 
 Expressions run on an [interpreter](/expr) for a **fraction of JavaScript**: a
 closed grammar, an allow-list of methods and globals, a check on every property
@@ -57,15 +69,16 @@ document.cookie                                      // ❌ throws — so do "wi
                                                      //    "localStorage", "eval", …
 ```
 
-## The model works from a developer's brief
+## The prompt is generated from your code
 
-The model gets the brief you would give a new front-end developer: your
-components and your endpoints, generated from your code.
+**uicast** prints the model's list of components and functions from your
+component definitions and function schemas. Change a prop or a function, and
+the prompt changes with it.
 
 ```md
 # Available Components
 
-Card, Heading, Typography, Badge, Button, Table, TableRow, TableCell
+Alert, Badge, BarChart, Button, Calendar, Card, Checkbox, DescriptionList, EmptyState, Field, FieldLabel, FlexCol, FlexRow, Grid, Heading, Input, KanbanBoard, LineChart, LocationMap, Modal, NumberInput, Pagination, Picture, PieChart, QRCode, SearchInput, Select, Slider, Stat, Switch, Table, TableBody, TableCell, TableHead, TableHeader, TableRow, ToggleGroup, Typography
 
 ## Component Details
 
@@ -80,20 +93,30 @@ Card, Heading, Typography, Badge, Button, Table, TableRow, TableCell
 
 # Available Functions
 
-listOrders, refundOrder
+listOrders, refundOrder, updateOrder, listProducts, placeOrder, listWarehouses, getSlots, bookSlot
 
 ## Function Details
 
-- listOrders() => { id: number; customer: string; total: number }[]: Every order, newest first.
-- refundOrder({ id: number }) => unknown: Refund one order.
+- listOrders() => {
+    id: number /* integer */;
+    customer: string;
+    total: number;
+    status: "pending" | "paid" | "shipped" | "refunded";
+  }[]: Every order this week, newest first.
+- refundOrder({
+    id: number /* integer */;
+  }) => unknown: Refund one order.
+
+… one entry per function …
 ```
 
 > Show this week's orders, with refund buttons.
 
-Both lists are closed: the model picks components from your **catalog** and
-calls only your **functions**, each a
-[`standard-tool`](https://standard-tool.js.org/). The descriptions are the ones
-you wrote on props and schema fields. See [Assembling the prompt](/prompt).
+It is the first prompt in the demo at the top. Both lists are closed: the
+model picks components from your **catalog** and calls only your
+**functions**, each a [`standard-tool`](https://standard-tool.js.org/). The
+descriptions are the ones you wrote on props and schema fields. See
+[Assembling the prompt](/prompt).
 
 ## Events carry declared payloads
 

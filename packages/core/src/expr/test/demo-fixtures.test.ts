@@ -1,11 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { Evaluator } from "@uicast/expr";
-// Cross-package on purpose: the docs package has no test runner, and nothing else fails when a language change breaks these documents.
-import { boardLines } from "../../../../docs/src/demo/board/board.lines";
-import { colorLines } from "../../../../docs/src/demo/color/color.lines";
-import { inventoryLines } from "../../../../docs/src/demo/inventory/inventory.lines";
-import { studioLines } from "../../../../docs/src/demo/studio/studio.lines";
 
 const ev = new Evaluator();
 
@@ -24,19 +19,15 @@ function collect(entry: Record<string, unknown>, out: string[]): void {
 }
 
 describe("every shipped document validates against the current language", () => {
-  const sources: [string, Record<string, unknown>[]][] = [
-    ["board", boardLines as never],
-    ["color", colorLines as never],
-    ["inventory", inventoryLines as never],
-    ["studio", studioLines as never],
-  ];
+  // Cross-package on purpose: nothing else fails when a language change breaks these documents.
+  const read = (path: string): Record<string, unknown>[] =>
+    JSON.parse(readFileSync(new URL(`../../../../docs/src/${path}`, import.meta.url), "utf8"));
+  const sources: [string, Record<string, unknown>[]][] = [];
+  for (const name of ["orders", "kanban", "warehouses", "delivery", "shop", "loan", "wifi"]) {
+    sources.push([`replay:${name}`, read(`components/replay/${name}.json`)]);
+  }
   for (const name of ["counter", "tracker", "weather", "orders"]) {
-    sources.push([
-      `mini:${name}`,
-      JSON.parse(
-        readFileSync(new URL(`../../../../docs/src/lib/mini-examples/${name}/entries.json`, import.meta.url), "utf8"),
-      ),
-    ]);
+    sources.push([`mini:${name}`, read(`lib/mini-examples/${name}/entries.json`)]);
   }
 
   for (const [name, entries] of sources) {

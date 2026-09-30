@@ -1,0 +1,73 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.ssid", "literal": "Office Guest" },
+      { "set": "scopes.root.security", "literal": "WPA" },
+      { "set": "scopes.root.password", "literal": "welcome-2026" }
+    ],
+    "children": ["heading", "body"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Guest Wi-Fi" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": { "literal": { "text": "A card guests scan to join", "variant": "muted" } }
+  },
+  { "key": "body", "component": "Grid", "props": { "literal": { "columns": "2", "gap": "6" } }, "children": ["form", "card"] },
+  {
+    "key": "form",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "4" } },
+    "children": ["ssid", "security", "password"]
+  },
+  { "key": "ssid", "component": "Field", "children": ["ssid-label", "ssid-input"] },
+  { "key": "ssid-label", "component": "FieldLabel", "props": { "literal": { "text": "Network name" } } },
+  {
+    "key": "ssid-input",
+    "component": "Input",
+    "props": { "expr": "({ value: scopes.root.ssid })" },
+    "callbacks": { "onChange": [{ "set": "scopes.root.ssid", "expr": "evt.value" }] }
+  },
+  { "key": "security", "component": "Field", "children": ["security-label", "security-select"] },
+  { "key": "security-label", "component": "FieldLabel", "props": { "literal": { "text": "Security" } } },
+  {
+    "key": "security-select",
+    "component": "Select",
+    "props": {
+      "expr": "({ value: scopes.root.security, options: [{ label: 'WPA/WPA2', value: 'WPA' }, { label: 'WEP', value: 'WEP' }, { label: 'None', value: 'nopass' }] })"
+    },
+    "callbacks": { "onChange": [{ "set": "scopes.root.security", "expr": "evt.value" }] }
+  },
+  {
+    "key": "password",
+    "component": "Field",
+    "hidden": "scopes.root.security === 'nopass'",
+    "children": ["password-label", "password-input"]
+  },
+  { "key": "password-label", "component": "FieldLabel", "props": { "literal": { "text": "Password" } } },
+  {
+    "key": "password-input",
+    "component": "Input",
+    "props": { "expr": "({ value: scopes.root.password })" },
+    "callbacks": { "onChange": [{ "set": "scopes.root.password", "expr": "evt.value" }] }
+  },
+  {
+    "key": "card",
+    "component": "Card",
+    "props": {
+      "expr": "({ title: scopes.root.ssid, description: scopes.root.security === 'nopass' ? 'Open network' : 'Password: ' + scopes.root.password })"
+    },
+    "children": ["qr"]
+  },
+  {
+    "key": "qr",
+    "component": "QRCode",
+    "props": {
+      "expr": "({ size: 140, value: 'WIFI:T:' + scopes.root.security + ';S:' + scopes.root.ssid + ';' + (scopes.root.security === 'nopass' ? '' : 'P:' + scopes.root.password + ';') + ';' })"
+    }
+  }
+]

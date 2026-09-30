@@ -1,0 +1,71 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.day", "expr": "getSlots({})" },
+      { "set": "scopes.root.first", "expr": "scopes.root.day.date" },
+      { "set": "scopes.root.booked", "literal": null }
+    ],
+    "children": ["heading", "row", "done"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Schedule delivery" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": { "literal": { "text": "Pick a day, then a time", "variant": "muted" } }
+  },
+  {
+    "key": "row",
+    "component": "FlexRow",
+    "props": { "literal": { "gap": "4", "wrap": true, "align": "start" } },
+    "children": ["calendar", "times"]
+  },
+  {
+    "key": "calendar",
+    "component": "Calendar",
+    "props": { "expr": "({ selected: scopes.root.day.date, min: scopes.root.first })" },
+    "callbacks": {
+      "onSelect": [
+        { "set": "scopes.root.booked", "literal": null },
+        { "set": "scopes.root.day", "expr": "getSlots({ date: evt.date })" }
+      ]
+    }
+  },
+  {
+    "key": "times",
+    "component": "Card",
+    "props": {
+      "expr": "({ title: scopes.root.day.label, description: scopes.root.day.slots.filter(s => s.free).length + ' slots free' })"
+    },
+    "children": ["slots"]
+  },
+  { "key": "slots", "component": "Grid", "props": { "literal": { "columns": "2", "gap": "2" } }, "children": ["slot"] },
+  {
+    "key": "slot",
+    "component": "Button",
+    "each": "scopes.root.day.slots",
+    "as": "slot",
+    "keyBy": "time",
+    "props": {
+      "expr": "({ text: scopes.slot.time, size: 'sm', variant: scopes.slot.time === scopes.root.booked ? 'default' : 'outline', disabled: !scopes.slot.free || !!scopes.root.booked })"
+    },
+    "callbacks": {
+      "onClick": [
+        { "confirm": "Book this delivery slot?", "expr": "bookSlot({ date: scopes.root.day.date, time: scopes.slot.time })" },
+        { "set": "scopes.root.booked", "expr": "scopes.slot.time" },
+        { "set": "scopes.root.day", "expr": "getSlots({ date: scopes.root.day.date })" }
+      ]
+    }
+  },
+  {
+    "key": "done",
+    "component": "Alert",
+    "hidden": "!scopes.root.booked",
+    "props": {
+      "expr": "({ status: 'success', title: 'Delivery booked', description: scopes.root.day.label + ' at ' + scopes.root.booked })"
+    }
+  }
+]

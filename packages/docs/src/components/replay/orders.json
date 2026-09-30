@@ -1,0 +1,94 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.orders", "expr": "listOrders()" },
+      { "set": "scopes.root.status", "literal": "all" }
+    ],
+    "children": ["header", "stats", "table"]
+  },
+  {
+    "key": "header",
+    "component": "FlexRow",
+    "props": { "literal": { "justify": "between", "align": "center" } },
+    "children": ["heading", "filter"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Orders" } } },
+  { "key": "subtitle", "component": "Typography", "props": { "literal": { "text": "This week", "variant": "muted" } } },
+  {
+    "key": "filter",
+    "component": "ToggleGroup",
+    "props": {
+      "expr": "({ value: scopes.root.status, variant: 'outline', size: 'sm', items: [{ value: 'all', label: 'All' }, { value: 'paid', label: 'Paid' }, { value: 'shipped', label: 'Shipped' }, { value: 'refunded', label: 'Refunded' }] })"
+    },
+    "callbacks": { "onChange": [{ "set": "scopes.root.status", "expr": "evt.value || currentValue" }] }
+  },
+  {
+    "key": "stats",
+    "component": "Grid",
+    "props": { "literal": { "columns": "3", "gap": "3" } },
+    "children": ["revenue", "count", "refunded"]
+  },
+  {
+    "key": "revenue",
+    "component": "Stat",
+    "props": {
+      "expr": "({ label: 'Revenue', value: '$' + scopes.root.orders.filter(o => ['paid', 'shipped'].includes(o.status)).reduce((sum, o) => sum + o.total, 0).toFixed(2) })"
+    }
+  },
+  {
+    "key": "count",
+    "component": "Stat",
+    "props": { "expr": "({ label: 'Orders', value: scopes.root.orders.length })" }
+  },
+  {
+    "key": "refunded",
+    "component": "Stat",
+    "props": {
+      "expr": "({ label: 'Refunded', value: '$' + scopes.root.orders.filter(o => o.status === 'refunded').reduce((sum, o) => sum + o.total, 0).toFixed(2) })"
+    }
+  },
+  { "key": "table", "component": "Table", "children": ["head", "body"] },
+  { "key": "head", "component": "TableHeader", "children": ["head-row"] },
+  { "key": "head-row", "component": "TableRow", "children": ["h-customer", "h-total", "h-status", "h-action"] },
+  { "key": "h-customer", "component": "TableHead", "props": { "literal": { "text": "Customer" } } },
+  { "key": "h-total", "component": "TableHead", "props": { "literal": { "text": "Total" } } },
+  { "key": "h-status", "component": "TableHead", "props": { "literal": { "text": "Status" } } },
+  { "key": "h-action", "component": "TableHead", "props": { "literal": { "text": "" } } },
+  { "key": "body", "component": "TableBody", "children": ["row"] },
+  {
+    "key": "row",
+    "component": "TableRow",
+    "each": "scopes.root.orders.filter(o => scopes.root.status === 'all' || o.status === scopes.root.status)",
+    "as": "order",
+    "keyBy": "id",
+    "children": ["customer", "total", "status", "action"]
+  },
+  { "key": "customer", "component": "TableCell", "props": { "expr": "({ text: scopes.order.customer })" } },
+  { "key": "total", "component": "TableCell", "props": { "expr": "({ text: '$' + scopes.order.total.toFixed(2) })" } },
+  { "key": "status", "component": "TableCell", "children": ["badge"] },
+  {
+    "key": "badge",
+    "component": "Badge",
+    "props": {
+      "expr": "({ text: scopes.order.status, variant: { paid: 'secondary', shipped: 'default', pending: 'outline', refunded: 'destructive' }[scopes.order.status] })"
+    }
+  },
+  { "key": "action", "component": "TableCell", "children": ["refund"] },
+  {
+    "key": "refund",
+    "component": "Button",
+    "props": {
+      "expr": "({ text: 'Refund', variant: 'outline', size: 'sm', disabled: !['paid', 'shipped'].includes(scopes.order.status) })"
+    },
+    "callbacks": {
+      "onClick": [
+        { "confirm": "Refund this order?", "expr": "refundOrder({ id: scopes.order.id })" },
+        { "set": "scopes.root.orders", "expr": "listOrders()" }
+      ]
+    }
+  }
+]

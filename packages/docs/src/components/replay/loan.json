@@ -1,0 +1,80 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "4" } },
+    "seed": [
+      { "set": "scopes.root.amount", "literal": 300000 },
+      { "set": "scopes.root.rate", "literal": 5.5 },
+      { "set": "scopes.root.years", "literal": 25 }
+    ],
+    "children": ["heading", "top", "chart"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Mortgage calculator" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": { "literal": { "text": "Monthly payment and payoff", "variant": "muted" } }
+  },
+  { "key": "top", "component": "Grid", "props": { "literal": { "columns": "2", "gap": "6" } }, "children": ["inputs", "stats"] },
+  { "key": "inputs", "component": "FlexCol", "props": { "literal": { "gap": "4" } }, "children": ["amount", "rate", "years"] },
+  { "key": "amount", "component": "Field", "children": ["amount-label", "amount-slider"] },
+  {
+    "key": "amount-label",
+    "component": "FieldLabel",
+    "props": { "expr": "({ text: 'Amount: $' + scopes.root.amount.toLocaleString() })" }
+  },
+  {
+    "key": "amount-slider",
+    "component": "Slider",
+    "props": { "expr": "({ value: scopes.root.amount, min: 50000, max: 1000000, step: 10000 })" },
+    "callbacks": { "onChange": [{ "set": "scopes.root.amount", "expr": "evt.value" }] }
+  },
+  { "key": "rate", "component": "Field", "children": ["rate-label", "rate-slider"] },
+  {
+    "key": "rate-label",
+    "component": "FieldLabel",
+    "props": { "expr": "({ text: 'Rate: ' + scopes.root.rate.toFixed(1) + '%' })" }
+  },
+  {
+    "key": "rate-slider",
+    "component": "Slider",
+    "props": { "expr": "({ value: scopes.root.rate, min: 1, max: 10, step: 0.1 })" },
+    "callbacks": { "onChange": [{ "set": "scopes.root.rate", "expr": "evt.value" }] }
+  },
+  { "key": "years", "component": "Field", "children": ["years-label", "years-slider"] },
+  {
+    "key": "years-label",
+    "component": "FieldLabel",
+    "props": { "expr": "({ text: 'Term: ' + scopes.root.years + ' years' })" }
+  },
+  {
+    "key": "years-slider",
+    "component": "Slider",
+    "props": { "expr": "({ value: scopes.root.years, min: 5, max: 30 })" },
+    "callbacks": { "onChange": [{ "set": "scopes.root.years", "expr": "evt.value" }] }
+  },
+  { "key": "stats", "component": "FlexCol", "props": { "literal": { "gap": "4" } }, "children": ["monthly", "interest"] },
+  {
+    "key": "monthly",
+    "component": "Stat",
+    "props": {
+      "expr": "({ label: 'Monthly payment', value: '$' + Math.round(scopes.root.amount * scopes.root.rate / 1200 / (1 - (1 + scopes.root.rate / 1200) ** -(scopes.root.years * 12))).toLocaleString() })"
+    }
+  },
+  {
+    "key": "interest",
+    "component": "Stat",
+    "props": {
+      "expr": "({ label: 'Total interest', value: '$' + Math.round(scopes.root.amount * scopes.root.rate / 1200 / (1 - (1 + scopes.root.rate / 1200) ** -(scopes.root.years * 12)) * scopes.root.years * 12 - scopes.root.amount).toLocaleString() })"
+    }
+  },
+  {
+    "key": "chart",
+    "component": "LineChart",
+    "props": {
+      "expr": "({ data: Array.from({ length: scopes.root.years + 1 }, (_, year) => ({ year, balance: Math.round(scopes.root.amount * ((1 + scopes.root.rate / 1200) ** (scopes.root.years * 12) - (1 + scopes.root.rate / 1200) ** (year * 12)) / ((1 + scopes.root.rate / 1200) ** (scopes.root.years * 12) - 1)) })), xKey: 'year', yKeys: ['balance'], height: 160, curved: true, filled: true })"
+    }
+  }
+]

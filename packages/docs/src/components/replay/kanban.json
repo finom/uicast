@@ -1,0 +1,44 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.orders", "expr": "listOrders()" },
+      {
+        "set": "scopes.root.columns",
+        "expr": "['paid', 'shipped'].map(status => ({ id: status, title: { paid: 'To ship', shipped: 'Shipped' }[status], cards: scopes.root.orders.filter(o => o.status === status).map(o => ({ id: String(o.id), title: o.customer, description: '#' + o.id + ' · $' + o.total.toFixed(2) })) }))"
+      }
+    ],
+    "children": ["header", "board"]
+  },
+  {
+    "key": "header",
+    "component": "FlexRow",
+    "props": { "literal": { "justify": "between", "align": "center" } },
+    "children": ["heading", "count"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Fulfillment" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": { "literal": { "text": "Drag orders between columns", "variant": "muted" } }
+  },
+  {
+    "key": "count",
+    "component": "Badge",
+    "props": { "expr": "({ text: scopes.root.columns[0].cards.length + ' to ship', variant: 'secondary' })" }
+  },
+  {
+    "key": "board",
+    "component": "KanbanBoard",
+    "props": { "expr": "({ columns: scopes.root.columns })" },
+    "callbacks": {
+      "onCardMove": [
+        { "set": "scopes.root.columns", "expr": "evt.columns" },
+        { "expr": "updateOrder({ id: Number(evt.cardId), status: evt.toColumnId })" }
+      ]
+    }
+  }
+]

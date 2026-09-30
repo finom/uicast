@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import Skeleton from "react-loading-skeleton";
 import type { StandardToolV0 } from "standard-tool";
 import type { ComponentEntry } from "@uicast/core";
@@ -19,6 +19,8 @@ const DefaultSkeleton = () => (
   />
 );
 const DEFAULT_COMPONENTS = { defaultSkeleton: DefaultSkeleton, confirm: ConfirmModal, error: RenderError };
+// The shop's product photos.
+const URL_POLICY = { hosts: ["images.unsplash.com"] };
 
 type RenderCanvasProps = {
   lines: ComponentEntry[];
@@ -28,7 +30,14 @@ type RenderCanvasProps = {
   onHoverKey: (key: string | null) => void;
 };
 
-export function RenderCanvas({ lines, catalog, functions, outlineKey, onHoverKey }: RenderCanvasProps) {
+// Memoized: the player re-renders on every typing tick, and the document only changes per line.
+export const RenderCanvas = memo(function RenderCanvas({
+  lines,
+  catalog,
+  functions,
+  outlineKey,
+  onHoverKey,
+}: RenderCanvasProps) {
   // One evaluator per tool set: it holds the parse cache.
   const evaluator = useMemo(() => new Evaluator({ functions }), [functions]);
   // Every catalog renderer stamps its root with `data-key`, so a hovered node maps back to its line.
@@ -45,10 +54,15 @@ export function RenderCanvas({ lines, catalog, functions, outlineKey, onHoverKey
         }}
         onMouseLeave={() => onHoverKey(null)}
       >
-        <RendererProvider implementations={catalog} evaluator={evaluator} fallbackComponents={DEFAULT_COMPONENTS}>
+        <RendererProvider
+          implementations={catalog}
+          evaluator={evaluator}
+          fallbackComponents={DEFAULT_COMPONENTS}
+          urlPolicy={URL_POLICY}
+        >
           <EntriesRenderer entries={lines} />
         </RendererProvider>
       </div>
     </>
   );
-}
+});

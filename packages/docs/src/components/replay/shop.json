@@ -1,0 +1,112 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.products", "expr": "listProducts()" },
+      { "set": "scopes.root.cart", "literal": [] },
+      { "set": "scopes.root.placed", "literal": null }
+    ],
+    "children": ["header", "done", "grid"]
+  },
+  {
+    "key": "header",
+    "component": "FlexRow",
+    "props": { "literal": { "justify": "between", "align": "center" } },
+    "children": ["heading", "checkout"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Shop" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": {
+      "expr": "({ variant: 'muted', text: scopes.root.cart.length ? scopes.root.cart.length + ' in cart' : 'Your cart is empty' })"
+    }
+  },
+  {
+    "key": "checkout",
+    "component": "Button",
+    "props": {
+      "expr": "({ icon: 'ShoppingCart', text: 'Checkout $' + scopes.root.cart.reduce((sum, id) => sum + scopes.root.products.find(p => p.id === id).price, 0).toFixed(2), disabled: !scopes.root.cart.length })"
+    },
+    "callbacks": {
+      "onClick": [
+        { "confirm": "Place this order?", "set": "scopes.root.placed", "expr": "placeOrder({ productIds: scopes.root.cart })" },
+        { "set": "scopes.root.cart", "literal": [] }
+      ]
+    }
+  },
+  {
+    "key": "done",
+    "component": "Alert",
+    "hidden": "!scopes.root.placed",
+    "props": {
+      "expr": "({ status: 'success', title: 'Order placed', description: 'Order #' + scopes.root.placed?.id + ' is confirmed.' })"
+    }
+  },
+  { "key": "grid", "component": "Grid", "props": { "literal": { "columns": "3", "gap": "4" } }, "children": ["product"] },
+  {
+    "key": "product",
+    "component": "FlexCol",
+    "each": "scopes.root.products",
+    "as": "product",
+    "keyBy": "id",
+    "props": { "literal": { "gap": "2" } },
+    "children": ["photo", "text", "controls"]
+  },
+  {
+    "key": "photo",
+    "component": "Picture",
+    "props": { "expr": "({ src: scopes.product.image, alt: scopes.product.name, height: 'lg' })" }
+  },
+  { "key": "text", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["name", "price"] },
+  { "key": "name", "component": "Typography", "props": { "expr": "({ text: scopes.product.name, variant: 'small' })" } },
+  {
+    "key": "price",
+    "component": "Typography",
+    "props": { "expr": "({ text: '$' + scopes.product.price.toFixed(2), variant: 'muted' })" }
+  },
+  {
+    "key": "controls",
+    "component": "FlexRow",
+    "props": { "literal": { "align": "center", "gap": "3" } },
+    "children": ["remove", "qty", "add"]
+  },
+  {
+    "key": "remove",
+    "component": "Button",
+    "hidden": "!scopes.root.cart.includes(scopes.product.id)",
+    "props": { "literal": { "icon": "Minus", "size": "sm", "variant": "outline", "tooltip": "Remove one" } },
+    "callbacks": {
+      "onClick": [
+        {
+          "set": "scopes.root.cart",
+          "expr": "scopes.root.cart.toSpliced(scopes.root.cart.indexOf(scopes.product.id), 1)"
+        }
+      ]
+    }
+  },
+  {
+    "key": "qty",
+    "component": "Typography",
+    "hidden": "!scopes.root.cart.includes(scopes.product.id)",
+    "props": {
+      "expr": "({ variant: 'small', text: String(scopes.root.cart.filter(id => id === scopes.product.id).length) })"
+    }
+  },
+  {
+    "key": "add",
+    "component": "Button",
+    "props": {
+      "expr": "scopes.root.cart.includes(scopes.product.id) ? { icon: 'Plus', size: 'sm', variant: 'outline', tooltip: 'Add one' } : { icon: 'Plus', size: 'sm', variant: 'outline', text: 'Add' }"
+    },
+    "callbacks": {
+      "onClick": [
+        { "set": "scopes.root.cart", "expr": "[...scopes.root.cart, scopes.product.id]" },
+        { "set": "scopes.root.placed", "literal": null }
+      ]
+    }
+  }
+]

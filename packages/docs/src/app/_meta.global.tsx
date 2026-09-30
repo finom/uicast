@@ -4,8 +4,6 @@ import type { MetaRecord } from "nextra";
 const meta: MetaRecord = {
   index: "Introduction",
   "getting-started": "Getting started",
-  // `type: "page"` puts Replays in the navbar; the /replays/[slug] players render full-bleed on their own.
-  replays: { title: "Replays", type: "page" },
   skill: "Agent skill",
   concepts: "Concepts",
   expr: {

@@ -1,0 +1,44 @@
+[
+  {
+    "key": "root",
+    "component": "FlexCol",
+    "props": { "literal": { "gap": "3" } },
+    "seed": [
+      { "set": "scopes.root.warehouses", "expr": "listWarehouses()" },
+      { "set": "scopes.root.selected", "expr": "scopes.root.warehouses[0]" }
+    ],
+    "children": ["heading", "map", "details"]
+  },
+  { "key": "heading", "component": "FlexCol", "props": { "literal": { "gap": "0" } }, "children": ["title", "subtitle"] },
+  { "key": "title", "component": "Heading", "props": { "literal": { "level": "4", "text": "Warehouses" } } },
+  {
+    "key": "subtitle",
+    "component": "Typography",
+    "props": {
+      "expr": "({ variant: 'muted', text: scopes.root.warehouses.length + ' sites · ' + scopes.root.warehouses.reduce((sum, w) => sum + w.units, 0).toLocaleString() + ' units · click a pin' })"
+    }
+  },
+  {
+    "key": "map",
+    "component": "LocationMap",
+    "props": {
+      "expr": "({ width: 380, height: 190, markers: scopes.root.warehouses.map(w => ({ lat: w.lat, lng: w.lng, label: w.city, active: w.city === scopes.root.selected.city })) })"
+    },
+    "callbacks": {
+      "onMarkerClick": [{ "set": "scopes.root.selected", "expr": "scopes.root.warehouses.find(w => w.city === evt.label)" }]
+    }
+  },
+  {
+    "key": "details",
+    "component": "Card",
+    "props": { "expr": "({ title: scopes.root.selected.city })" },
+    "children": ["stock"]
+  },
+  {
+    "key": "stock",
+    "component": "DescriptionList",
+    "props": {
+      "expr": "({ columns: '3', items: [{ label: 'Units in stock', value: scopes.root.selected.units.toLocaleString() }, { label: 'Low-stock items', value: String(scopes.root.selected.lowStockItems) }, { label: 'Shipped today', value: String(scopes.root.selected.shippedToday) }] })"
+    }
+  }
+]

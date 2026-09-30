@@ -153,9 +153,3 @@
   }
 }
 
-/* The demo player fills the viewport below the navbar, so the docs footer would scroll the page.
-   Nextra's footer sits inside a plain wrapper div. */
-body:has(main[data-demo-surface]) div:has(> footer) {
-  display: none;
-}
-
