@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Bar, BarChart, CartesianGrid, Cell, ReferenceLine, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { WaterfallChartDef } from "./def";
 
 export const WaterfallChartImpl = createComponentImplementation({
@@ -41,5 +41,5 @@ export const WaterfallChartImpl = createComponentImplementation({
       </ChartFrame>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

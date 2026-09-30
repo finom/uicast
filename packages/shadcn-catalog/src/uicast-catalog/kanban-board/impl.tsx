@@ -6,7 +6,7 @@ import { Badge } from "../../components/ui/badge";
 import { KanbanBoard, KanbanCard, KanbanCards, KanbanHeader, KanbanProvider } from "../../components/ui/kanban";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { useMirror } from "../../lib/use-mirror";
 import { type KanbanCard as BoardCard, type KanbanColumn, KanbanBoardDef } from "./def";
 
@@ -135,5 +135,5 @@ export const KanbanBoardImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  skeleton: blockSkeleton(320),
+  skeleton: () => <BlockSkeleton height={320} />,
 });

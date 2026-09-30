@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Calendar as ShadcnCalendar } from "../../components/ui/calendar";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { CalendarDef } from "./def";
 
 // `new Date("YYYY-MM-DD")` parses as UTC midnight, the previous day in negative-offset timezones.
@@ -36,5 +36,5 @@ export const CalendarImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

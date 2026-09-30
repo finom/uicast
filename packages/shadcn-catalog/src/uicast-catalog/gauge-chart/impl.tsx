@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { busy, cn } from "../../lib/utils";
 import { GaugeChartDef } from "./def";
 
@@ -45,5 +45,5 @@ export const GaugeChartImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

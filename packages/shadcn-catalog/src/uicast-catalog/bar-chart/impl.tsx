@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { BarChartDef } from "./def";
 
 export const BarChartImpl = createComponentImplementation({
@@ -52,5 +52,5 @@ export const BarChartImpl = createComponentImplementation({
       </ChartFrame>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

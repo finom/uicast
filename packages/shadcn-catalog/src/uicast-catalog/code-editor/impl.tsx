@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { use } from "react";
 import { cn } from "../../lib/utils";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { FieldLabelId } from "../field/impl";
 import { CodeEditorDef } from "./def";
 
@@ -37,5 +37,5 @@ export const CodeEditorImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(240),
+  skeleton: () => <BlockSkeleton height={240} />,
 });

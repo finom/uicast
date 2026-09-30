@@ -5,7 +5,7 @@ import { Button } from "../../components/ui/button";
 import { ChevronRight, ChevronDown } from "lucide-react";
 import { iconNode } from "../../lib/icon-node";
 import { clickByKeyboard } from "../../lib/utils";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { type TreeNode, TreeViewDef } from "./def";
 
 function TreeNodeComponent({
@@ -112,5 +112,5 @@ export const TreeViewImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(240),
+  skeleton: () => <BlockSkeleton height={240} />,
 });

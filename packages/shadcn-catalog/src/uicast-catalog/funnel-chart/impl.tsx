@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Funnel, LabelList, FunnelChart as RechartsFunnelChart, Tooltip } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { FunnelChartDef } from "./def";
 
 const STAGE_COLORS = [
@@ -38,5 +38,5 @@ export const FunnelChartImpl = createComponentImplementation({
       </ChartFrame>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

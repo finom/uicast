@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Cell, Label, Legend, Pie, PieChart as RechartsPieChart, Tooltip } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors, defaultChartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { PieChartDef } from "./def";
 
 const SLICE_COLORS = [...defaultChartColors, "#ffbb28", "#ff8042", "#a4de6c", "#d0ed57"];
@@ -39,5 +39,5 @@ export const PieChartImpl = createComponentImplementation({
       </ChartFrame>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

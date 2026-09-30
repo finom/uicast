@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Tooltip, Treemap, type TreemapNode } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { defaultChartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { TreemapChartDef } from "./def";
 
 const TILE_COLORS = [...defaultChartColors, "#ff6b6b", "#a855f7"];
@@ -46,5 +46,5 @@ export const TreemapChartImpl = createComponentImplementation({
       </Treemap>
     </ChartFrame>
   ),
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { Legend, PolarAngleAxis, PolarGrid, Radar, RadarChart as RechartsRadarChart, Tooltip } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { chartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { RadarChartDef } from "./def";
 
 export const RadarChartImpl = createComponentImplementation({
@@ -31,5 +31,5 @@ export const RadarChartImpl = createComponentImplementation({
       </ChartFrame>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

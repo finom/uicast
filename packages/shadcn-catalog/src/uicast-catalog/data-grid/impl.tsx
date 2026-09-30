@@ -4,7 +4,7 @@ import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { clickByKeyboard, cn } from "../../lib/utils";
 import { DataGridDef } from "./def";
 import { columnWidth } from "../../lib/sizes";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 
 export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
@@ -45,5 +45,5 @@ export const DataGridImpl = createComponentImplementation({
       </ScrollArea>
     </div>
   ),
-  skeleton: blockSkeleton(320),
+  skeleton: () => <BlockSkeleton height={320} />,
 });

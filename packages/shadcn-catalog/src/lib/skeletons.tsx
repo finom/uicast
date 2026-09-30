@@ -4,7 +4,7 @@ import { Skeleton } from "../components/ui/skeleton";
 type Children = { children?: ReactNode };
 
 // A bar at the component's usual height, for a component drawn from data rather than children.
-export const blockSkeleton = (height: number) => () => <Skeleton className="w-full" style={{ height }} />;
+export const BlockSkeleton = ({ height }: { height: number }) => <Skeleton className="w-full" style={{ height }} />;
 
 export const StackSkeleton = ({ children }: Children) => <div className="flex flex-col gap-2">{children}</div>;
 

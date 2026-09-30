@@ -1,6 +1,6 @@
 import { QRCodeSVG } from "qrcode.react";
 import { createComponentImplementation } from "@uicast/react";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { QRCodeDef } from "./def";
 
 const SWATCH = { white: "#ffffff", black: "#000000" } as const;
@@ -22,5 +22,5 @@ export const QRCodeImpl = createComponentImplementation({
       />
     </div>
   ),
-  skeleton: blockSkeleton(160),
+  skeleton: () => <BlockSkeleton height={160} />,
 });

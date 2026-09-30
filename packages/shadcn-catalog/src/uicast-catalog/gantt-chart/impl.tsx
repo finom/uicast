@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { busy, cn } from "../../lib/utils";
 import { GanttChartDef } from "./def";
 
@@ -63,5 +63,5 @@ export const GanttChartImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

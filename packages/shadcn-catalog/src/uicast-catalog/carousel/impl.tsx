@@ -8,7 +8,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "../../components/ui/carousel";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { CarouselDef } from "./def";
 
 export const CarouselImpl = createComponentImplementation({
@@ -60,5 +60,5 @@ export const CarouselImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(240),
+  skeleton: () => <BlockSkeleton height={240} />,
 });

@@ -3,7 +3,7 @@ import { busy, cn } from "../../lib/utils";
 import { LineChart, Line, Area, AreaChart, ResponsiveContainer } from "recharts";
 import { SparklineDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 
 export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
@@ -49,5 +49,5 @@ export const SparklineImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(40),
+  skeleton: () => <BlockSkeleton height={40} />,
 });

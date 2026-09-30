@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { useState } from "react";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { clickByKeyboard, cn } from "../../lib/utils";
 import { VirtualListDef } from "./def";
 
@@ -50,5 +50,5 @@ export const VirtualListImpl = createComponentImplementation({
       </div>
     );
   },
-  skeleton: blockSkeleton(320),
+  skeleton: () => <BlockSkeleton height={320} />,
 });

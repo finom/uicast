@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { MapPin, Minus, Plus } from "lucide-react";
 import { useRef, useState } from "react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { cn } from "../../lib/utils";
 import { LocationMapDef } from "./def";
 import {
@@ -160,5 +160,5 @@ export const LocationMapImpl = createComponentImplementation({
       </TooltipProvider>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

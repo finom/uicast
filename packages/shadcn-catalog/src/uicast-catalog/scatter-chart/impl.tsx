@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { CartesianGrid, ScatterChart as RechartsScatterChart, Scatter, Tooltip, XAxis, YAxis, ZAxis } from "recharts";
 import { ChartFrame } from "../../lib/chart-frame";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { ScatterChartDef } from "./def";
 
 export const ScatterChartImpl = createComponentImplementation({
@@ -25,5 +25,5 @@ export const ScatterChartImpl = createComponentImplementation({
       </RechartsScatterChart>
     </ChartFrame>
   ),
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { height as toHeight, width as toWidth } from "../../lib/sizes";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { PictureDef } from "./def";
 
 const RADII = { none: "rounded-none", sm: "rounded-sm", md: "rounded-md", lg: "rounded-lg", full: "rounded-full" };
@@ -19,5 +19,5 @@ export const PictureImpl = createComponentImplementation({
       data-key={entry.key}
     />
   ),
-  skeleton: blockSkeleton(200),
+  skeleton: () => <BlockSkeleton height={200} />,
 });

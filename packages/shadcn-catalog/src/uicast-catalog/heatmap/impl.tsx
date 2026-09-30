@@ -2,7 +2,7 @@ import { createComponentImplementation } from "@uicast/react";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { HeatmapDef } from "./def";
 import { CHART_COLORS } from "../../lib/chart-colors";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 
 // `hex` is one of CHART_COLORS: `#rrggbb`.
 function hexToRgb(hex: string) {
@@ -76,5 +76,5 @@ export const HeatmapImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  skeleton: blockSkeleton(300),
+  skeleton: () => <BlockSkeleton height={300} />,
 });

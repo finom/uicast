@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { diffLines } from "diff";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
-import { blockSkeleton } from "../../lib/skeletons";
+import { BlockSkeleton } from "../../lib/skeletons";
 import { cn } from "../../lib/utils";
 import { DiffViewerDef } from "./def";
 
@@ -80,5 +80,5 @@ export const DiffViewerImpl = createComponentImplementation({
       </ScrollArea>
     );
   },
-  skeleton: blockSkeleton(240),
+  skeleton: () => <BlockSkeleton height={240} />,
 });
