@@ -4,19 +4,6 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.0] - 2026-09-30
 
-### Added
-
-- A JSDoc comment with an example on every public export, `/prompt` included, shown on hover.
-- `ssr` on `createFenceRenderer`: `true` renders blocks in a server pass too, so their seeds run and host functions are called on the server. Off by default: a block renders after hydration.
-- `getFencePartialPrompt({ note? })`: `note` appends host-specific context as the section's trailing `## Note`, matching every other **uicast** prompt partial.
-- `FencePromptOptions`, the options type of `getFencePartialPrompt`, is exported from `@uicast/streamdown/prompt`, as core exports its builders' option types.
-- Initial public beta of the Streamdown plugin: uicast entries ride inside `uicast` code fences in Markdown chat replies, plus the matching fence prompt partial.
-
-### Changed
-
-- **A block draws its skeleton until the page hydrates**, as `DocumentSkeleton` draws it, instead of nothing. A server pass without `ssr` now sends the block's shape, so the page does not jump when the block renders. A block created in the browser renders at once; before, it drew nothing for one frame.
-- **Breaking: `showSourceToggle` is `sourceToggle`, a component you pass.** It gets `showSource` and `onShowSourceChange` (the exported `SourceToggleProps`) and is drawn as-is above each block; the built-in buttons and their styles are gone. The source shows in Streamdown's `CodeBlock` instead of a styled `<pre>`.
-- The fence prompt says entry, not element, for a line the model writes.
-- `getFencePartialPrompt` is about 40% shorter, with the same rules in terse wording.
+The first release. Earlier changes are in the [pre-release changelog](https://github.com/finom/uicast/blob/a2eaa7703496f7679efd56f5309ee08a1dd4209b/packages/streamdown/CHANGELOG.md).
