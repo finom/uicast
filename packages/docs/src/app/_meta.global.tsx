@@ -10,8 +10,8 @@ const meta: MetaRecord = {
     title: "Expressions",
     items: {
       index: "The expression evaluator",
-      "custom-expr": "Custom evaluator",
       functions: "Host functions",
+      "custom-expr": "Custom evaluator",
     },
   },
   def: "Component definition",
