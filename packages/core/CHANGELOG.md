@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
+- The prompt asks for a `confirm` on the first step of every callback that deletes or cannot be undone. It explained the field but not when to use it.
 - **Breaking: a common event is named by `id`, not `$id`.** A callback payload with `.meta({ id })` prints once under `## Common Events`: the same `id` that names any shared type. A `$id` no longer names an event.
 - The prompt offers no `Date.now()`. The time comes from a host function, if the host binds one, called in a step.
 - **A shorter prompt.** Each rule is stated once, in terse wording: the common instructions are about 60% shorter, the expressions block about 35%, and the scope, edit and recovery text about 40%. `# Overview` is part of `# Output Format`. Three rules the engine never had are gone: a list may be the root, an object literal needs no parentheses, and a list's `as` only has to differ from the scopes around it.

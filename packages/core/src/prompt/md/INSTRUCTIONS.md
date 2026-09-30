@@ -79,7 +79,7 @@ Emit parent before its children: root first, then depth-first.
 - `evt`: handler's payload; fields listed under component.
 - `currentValue`: value at step's `set` field, `undefined` when unset. Toggle `!currentValue`, increment `currentValue + 1`, append `[...currentValue, item]`.
 - Order: step reading field earlier step writes waits for it; host function call waits for every earlier step; row field write counts as write to list's array. Other steps may run together. Save-then-refetch just works.
-- `"confirm": "Delete this order?"` on step opens dialog first; cancel skips that step and every later one. Put on first step. Never build confirm dialog entries.
+- `"confirm": "Delete this order?"` on step opens dialog first; cancel skips that step and every later one. Put on first step of every callback that deletes or cannot be undone. Never build confirm dialog entries.
 - `"debounce": true` on step: it and later steps run after 300 ms without another call, with latest `evt`; earlier steps run at once. Search: `"onChange": [{ "set": "scopes.root.q", "expr": "evt.value" }, { "set": "scopes.root.rows", "expr": "Api_search({ q: scopes.root.q })", "debounce": true }]`. Never call host function on every keystroke.
 - Patterns:
   - Remove item: `{ "set": "scopes.root.rows", "expr": "currentValue.filter(r => r.id !== scopes.row.id)" }`
