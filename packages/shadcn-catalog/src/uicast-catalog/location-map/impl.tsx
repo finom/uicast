@@ -137,17 +137,16 @@ export const LocationMapImpl = createComponentImplementation({
                     onClick={() => onMarkerClick(marker)}
                   >
                     {marker.active && (
-                      <span className="absolute bottom-full left-1/2 mb-0.5 -translate-x-1/2 whitespace-nowrap rounded bg-background/90 px-1.5 py-0.5 text-xs font-medium shadow-sm">
+                      <span className="absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap rounded bg-background/90 px-1.5 py-0.5 text-xs font-medium shadow-sm">
                         {name}
                       </span>
                     )}
                     <MapPin
-                      className={
-                        // Fixed reds: the tiles stay light in a dark theme.
-                        marker.active
-                          ? "size-8 fill-red-600 text-red-600 drop-shadow"
-                          : "size-6 fill-red-400 text-red-400"
-                      }
+                      className={cn(
+                        // Grows from its tip, which stays on the point. Fixed reds: the tiles stay light in a dark theme.
+                        "size-6 origin-bottom transition-all duration-200",
+                        marker.active ? "scale-120 fill-red-600 text-red-600 drop-shadow" : "fill-red-400 text-red-400",
+                      )}
                     />
                   </button>
                 </TooltipTrigger>
