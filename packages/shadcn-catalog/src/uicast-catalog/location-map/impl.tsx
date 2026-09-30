@@ -118,11 +118,12 @@ export const LocationMapImpl = createComponentImplementation({
                       </span>
                     )}
                     <MapPin
-                      className={cn(
-                        // The tiles stay light in a dark theme, where `--destructive` turns pale, so the pins keep one red.
-                        "fill-red-600 drop-shadow",
-                        marker.active ? "size-8 text-red-900" : "size-6 text-red-600",
-                      )}
+                      className={
+                        marker.active
+                          ? // A fixed red: `--destructive` turns pale in a dark theme, over tiles that stay light.
+                            "size-8 fill-red-600 text-red-900 drop-shadow"
+                          : "size-6 fill-destructive text-destructive"
+                      }
                     />
                   </button>
                 </TooltipTrigger>
