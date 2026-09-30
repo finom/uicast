@@ -38,7 +38,10 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
       footer={
         <Footer>
           <span>
-            MIT © {new Date().getFullYear()}{" "}
+            <a href="https://github.com/finom/uicast/blob/main/LICENSE" target="_blank" rel="noreferrer">
+              MIT
+            </a>{" "}
+            © {new Date().getFullYear()}{" "}
             <a href="https://github.com/finom" target="_blank" rel="noreferrer">
               Andrey Gubanov
             </a>
