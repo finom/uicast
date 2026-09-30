@@ -9,12 +9,8 @@ import {
   type ComponentEntry,
   type EntryError,
 } from "@uicast/core";
-import {
-  type ComponentImplementation,
-  createComponentImplementation,
-  type FallbackComponents,
-  type Scopes,
-} from "@uicast/react";
+import { type ComponentImplementation, createComponentImplementation, type FallbackComponents } from "@uicast/react";
+import type { Scopes } from "@uicast/react/types";
 import { EntryRenderer } from "@uicast/react/render/entry-renderer";
 import { createElementsStore, ElementsStoreProvider } from "@uicast/react/providers/elements-store";
 import { RendererRegistryProvider } from "@uicast/react/providers/renderer-provider";

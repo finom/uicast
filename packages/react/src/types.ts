@@ -19,8 +19,7 @@ export type Debouncers = Map<string, { cancel: () => void }>;
  * The second argument of an implementation's `render`.
  *
  * @example
- * const render = ({ text }: { text: string }, { loading }: RenderContext) =>
- *   <Button disabled={loading}>{text}</Button>;
+ * createComponentImplementation({ def, render: ({ text }, { loading }) => <Button disabled={loading}>{text}</Button> });
  */
 export type RenderContext = {
   /** The entry being rendered, unevaluated. */
@@ -138,7 +137,7 @@ export type Scopes = { root: ReactiveProxy } & Record<string, ReactiveProxy>;
  * What `init` receives.
  *
  * @example
- * const init = ({ scopes }: InitContext) => { scopes.root.theme = "dark"; };
+ * const init: InitFn = ({ scopes }) => { scopes.root.theme = "dark"; };
  */
 export type InitContext = {
   /** The live scopes. `scopes.root.x = …` preloads state; `scopes.userCtx = createProxyScope(…)` adds a scope. */

@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Changed
 
-- `Scopes` types `root` as always present, so `scopes.root` needs no check under `noUncheckedIndexedAccess`.
+- The `scopes` that `render` and `init` get type `root` as always present, so `scopes.root` needs no check under `noUncheckedIndexedAccess`.
 - **Breaking: `ErrorComponentProps` has no `elementKey`.** Read `error.elementKey`: the element's error boundary sets it when the code that threw did not.
 - **Each list item has two scopes.** `scopes.<as>` is the item and nothing else: `scopes.<as>.name` reads the element's field. `scopes.$<as>` is the row: the runtime's read-only `index`, `id` and `value` (a primitive item), and the row's own state. Row state starts empty, stays out of the data, and a write to it re-renders only that row. It is kept by id, so it survives a reorder, a refetch and a filter that hides the row and shows it again, nested lists included; it lasts as long as the list. `scopes.<as>.item` / `.index` / `.id` and `childScopes` are gone; state read outside the row lives at root keyed by the row's `id`. A write to an item field never changes the item: it puts an edited copy into the array `each` reads, and in a nested list into every array above it. The host's objects stay untouched, frozen data can be edited, and a component given the array or the whole item sees the edit. Only the edited row and the readers whose result changed re-render. Rows with duplicate `keyBy` values no longer share a scope.
 - **Structural props memo.** An element's evaluated props are compared structurally with the last render's, and the implementation's `render` runs as a memoized component of its own, so it is not called again when nothing it receives changed. Callbacks and the children slot are stable across an element's own re-renders for the same reason. A throw from `render` reaches the element's boundary and is classified `implementation` there.
@@ -27,6 +27,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Breaking: `placeholder` is `skeleton`.** An implementation's is `createComponentImplementation({ def, render, skeleton })`; the provider's, drawn where an implementation has none, is `fallbackComponents.defaultSkeleton`; their props type is `SkeletonComponentProps`. The name no longer collides with the `placeholder` prop of an input.
 - **While an async seed loads, an element draws the skeleton of its subtree**, as `DocumentSkeleton` draws that part: its `skeleton` with its children's inside, and three items for a list. Before, it rendered itself with its own skeleton in the children slot, and a container drew an empty box. Nothing is evaluated for the skeleton, so a prop that reads the loading data no longer fails before the data arrives. The element follows its own `hidden`; below it, an element with `hidden` is left out. An entry that streams in while it waits joins the skeleton.
 - **Breaking:** `ComponentImplementation` is `{ def, skeleton }`; `render` is gone from it. What the renderer runs an implementation with stays inside `@uicast/react`. `<RendererProvider>` throws for an implementation that `createComponentImplementation` did not make, including one made by a second copy of `@uicast/react`.
+
+### Removed
+
+- **Breaking: the types `RenderContext`, `EntriesRendererProps`, `RendererProviderProps`, `InitContext` and `Scopes`.** TypeScript infers each where it is used: `render`'s second argument, the props of `<EntriesRenderer>` and `<RendererProvider>`, and the argument of an `InitFn`.
 
 ### Fixed
 
