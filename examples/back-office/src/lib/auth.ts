@@ -1,4 +1,4 @@
-import { randomBytes } from "node:crypto";
+import { randomInt } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
@@ -57,9 +57,8 @@ const ANIMALS = [
 ];
 
 function randomSlug(): string {
-  const pick = (arr: readonly string[]) => arr[randomBytes(1)[0] % arr.length];
-  const n = (randomBytes(2).readUInt16BE(0) % 90) + 10;
-  return `${pick(ADJECTIVES)}-${pick(ANIMALS)}-${n}`;
+  const pick = (arr: readonly string[]) => arr[randomInt(arr.length)];
+  return `${pick(ADJECTIVES)}-${pick(ANIMALS)}-${randomInt(10, 100)}`;
 }
 
 async function uniqueSlug(): Promise<string> {
