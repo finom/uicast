@@ -23,6 +23,8 @@ const setup: CodePart[] = [
   { name: "Renderer", file: "renderer.tsx", prov: "glue", node: <RendererMdx /> },
 ];
 
+export const parts = { entry: entriesPart(weatherEntries), setup };
+
 export function WeatherExample() {
-  return <MiniExample entry={entriesPart(weatherEntries)} result={<Weather />} setup={setup} />;
+  return <MiniExample {...parts} result={<Weather />} />;
 }

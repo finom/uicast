@@ -2,13 +2,8 @@
 import { ChevronRight } from "lucide-react";
 import { type MouseEvent, type ReactNode, useEffect, useState } from "react";
 import { type JsonToken, tokenizeJson } from "../json-tokens";
+import { PROV } from "./entry-variants";
 
-const PROV = {
-  you: "you provide",
-  gen: "generated from definition",
-  llm: "the LLM generates",
-  glue: "you mount it",
-} as const;
 type Prov = keyof typeof PROV;
 type Lang = "json" | "md";
 

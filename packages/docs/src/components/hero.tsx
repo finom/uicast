@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { FileTextIcon } from "lucide-react";
 import { GitHubIcon } from "nextra/icons";
 
 // The `h1` is real markup for the outline; `clear-both` keeps the block clear of Nextra's floated "Copy page" control.
@@ -29,6 +30,15 @@ export function Hero() {
           GitHub
         </a>
       </div>
+      <a
+        href="/context/docs.md"
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"
+      >
+        <FileTextIcon className="size-4" />
+        Docs as LLM context
+      </a>
     </div>
   );
 }

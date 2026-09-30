@@ -17,6 +17,8 @@ const setup: CodePart[] = [
   { name: "Renderer", file: "renderer.tsx", prov: "glue", node: <RendererMdx /> },
 ];
 
+export const parts = { entry: entriesPart(trackerEntries), setup };
+
 export function TrackerExample() {
-  return <MiniExample entry={entriesPart(trackerEntries)} result={<Tracker />} setup={setup} />;
+  return <MiniExample {...parts} result={<Tracker />} />;
 }

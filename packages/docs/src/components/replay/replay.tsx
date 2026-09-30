@@ -1,7 +1,6 @@
 "use client";
 import { RotateCcwIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ComponentEntry } from "@uicast/core";
 import {
   CalendarImpl,
   DescriptionListImpl,
@@ -13,16 +12,10 @@ import { KanbanBoardImpl } from "@uicast/shadcn-catalog/data/impls";
 import { impls as essential } from "@uicast/shadcn-catalog/essential/impls";
 import { SliderImpl, ToggleGroupImpl } from "@uicast/shadcn-catalog/forms/impls";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
-import delivery from "./delivery.json";
 import { functions, resetData } from "./functions";
-import kanban from "./kanban.json";
-import loan from "./loan.json";
-import orders from "./orders.json";
+import { EXAMPLES } from "./examples";
 import { RenderCanvas } from "./render-canvas";
-import shop from "./shop.json";
 import { StreamPanel } from "./stream-panel";
-import warehouses from "./warehouses.json";
-import wifi from "./wifi.json";
 
 // biome-ignore format: one component group a line
 const CATALOG = [
@@ -31,16 +24,6 @@ const CATALOG = [
   SliderImpl, ToggleGroupImpl,
   KanbanBoardImpl,
 ];
-
-const EXAMPLES = [
-  { label: "Orders", prompt: "Show this week's orders, with refund buttons.", entries: orders },
-  { label: "Kanban", prompt: "Orders to ship, as a kanban I can drag.", entries: kanban },
-  { label: "Map", prompt: "Map our warehouses. Click one to see its stock.", entries: warehouses },
-  { label: "Delivery", prompt: "Let customers book a delivery slot.", entries: delivery },
-  { label: "Shop", prompt: "A shop page for our coffee, with a cart.", entries: shop },
-  { label: "Loan", prompt: "Loan calculator with a payoff chart.", entries: loan },
-  { label: "Wi-Fi QR", prompt: "A QR code our guests scan to join the Wi-Fi.", entries: wifi },
-].map(({ entries, ...example }) => ({ ...example, lines: entries as ComponentEntry[] }));
 
 const ENTRY_MS = 400;
 

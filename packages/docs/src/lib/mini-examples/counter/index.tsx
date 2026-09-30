@@ -17,6 +17,8 @@ const setup: CodePart[] = [
   { name: "Renderer", file: "renderer.tsx", prov: "glue", node: <RendererMdx /> },
 ];
 
+export const parts = { entry: entriesPart(counterEntries), setup };
+
 export function CounterExample() {
-  return <MiniExample entry={entriesPart(counterEntries)} result={<Counter />} setup={setup} />;
+  return <MiniExample {...parts} result={<Counter />} />;
 }

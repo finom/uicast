@@ -2,6 +2,13 @@ import type { CodePart, CodeVariant } from "./mini-example";
 
 // Not in `mini-example.tsx`: that file is `"use client"`, and a server component cannot call a function exported from it.
 
+export const PROV = {
+  you: "you provide",
+  gen: "generated from definition",
+  llm: "the LLM generates",
+  glue: "you mount it",
+} as const;
+
 // A node prints on one line when it fits; `JSON.stringify(…, null, 2)` would put every `children` key on its own line.
 const WIDTH = 64;
 

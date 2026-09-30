@@ -1,4 +1,4 @@
-const STEPS = [
+export const STEPS = [
   {
     title: "Define components, functions",
     body: "Your design system and your endpoints, each behind a schema: the closed set the model builds from.",

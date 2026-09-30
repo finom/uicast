@@ -23,6 +23,8 @@ const setup: CodePart[] = [
   { name: "Renderer", file: "renderer.tsx", prov: "glue", node: <RendererMdx /> },
 ];
 
+export const parts = { entry: entriesPart(orderEntries), setup };
+
 export function OrdersExample() {
-  return <MiniExample entry={entriesPart(orderEntries)} result={<OrdersLoader />} setup={setup} />;
+  return <MiniExample {...parts} result={<OrdersLoader />} />;
 }

@@ -14,7 +14,7 @@ const GROUPS = { all, essential, layout, content, data, charts, forms, navigatio
 
 type Group = keyof typeof GROUPS;
 
-const namesOf = (group: Group) => GROUPS[group].defs.map((def) => def.name).sort();
+export const namesOf = (group: Group) => GROUPS[group].defs.map((def) => def.name).sort();
 
 export function GroupSize({ group }: { group: Group }) {
   return namesOf(group).length;
