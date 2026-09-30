@@ -3,6 +3,7 @@ import { createCustomer, deleteCustomer, getCustomer, listCustomers, updateCusto
 import { createOrder, deleteOrder, getOrder, listOrders, updateOrder } from "./orders";
 import { createProduct, deleteProduct, getProduct, listProducts, updateProduct } from "./products";
 import { createStockMovement, listStockMovements } from "./stock-movements";
+import { now } from "./now";
 import { getSalesSummary, getStockSummary } from "./summaries";
 import { createSupplier, deleteSupplier, getSupplier, listSuppliers, updateSupplier } from "./suppliers";
 
@@ -32,4 +33,5 @@ export const domainTools: StandardToolV0[] = [
   createStockMovement,
   getSalesSummary,
   getStockSummary,
+  now,
 ];

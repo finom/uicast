@@ -318,7 +318,7 @@ const salesEntries: ComponentEntry[] = [
       { set: "scopes.root.busy", literal: false },
       { set: "scopes.root.selected", literal: {} },
       { set: "scopes.root.expanded", literal: {} },
-      { set: "scopes.root.now", expr: "Date.now()" },
+      { set: "scopes.root.now", expr: "now()" },
       { set: "scopes.root.month", expr: "getSalesSummary({ days: 30 })" },
       { set: "scopes.root.week", expr: "getSalesSummary({ days: 7 })" },
       { set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 8 })" },
@@ -526,7 +526,7 @@ const customersEntries: ComponentEntry[] = [
       { set: "scopes.root.newName", literal: "" },
       { set: "scopes.root.newCompany", literal: "" },
       { set: "scopes.root.newEmail", literal: "" },
-      { set: "scopes.root.now", expr: "Date.now()" },
+      { set: "scopes.root.now", expr: "now()" },
       { set: "scopes.root.year", expr: "getSalesSummary({ days: 365 })" },
       { set: "scopes.root.top", expr: "listCustomers({ sort: 'lifetime', order: 'desc', limit: 1 })" },
       { set: "scopes.root.busy", literal: true },
@@ -924,7 +924,7 @@ const topCustomersFence = j([
 ]);
 
 const agingFence = j([
-  { key: "age-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.pending", expr: "listOrders({ status: 'pending', sort: 'createdAt', order: 'asc' })" }, { set: "scopes.root.now", expr: "Date.now()" }], children: ["age-table"] },
+  { key: "age-root", component: "FlexCol", props: { literal: { gap: "4" } }, seed: [{ set: "scopes.root.pending", expr: "listOrders({ status: 'pending', sort: 'createdAt', order: 'asc' })" }, { set: "scopes.root.now", expr: "now()" }], children: ["age-table"] },
   { key: "age-table", component: "Table", children: ["age-head", "age-body"] },
   { key: "age-head", component: "TableHeader", children: ["age-hrow"] },
   { key: "age-hrow", component: "TableRow", children: ["age-h1", "age-h2", "age-h3", "age-h4", "age-h5"] },

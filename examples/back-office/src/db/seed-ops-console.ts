@@ -46,7 +46,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
       { set: "scopes.root.accountsBusy", literal: false },
       { set: "scopes.root.movementsBusy", literal: false },
       { set: "scopes.root.supplierBusy", literal: false },
-      { set: "scopes.root.now", expr: "Date.now()" },
+      { set: "scopes.root.now", expr: "now()" },
       { set: "scopes.root.stock", expr: "getStockSummary()" },
       { set: "scopes.root.sales", expr: "getSalesSummary({ days: 30 })" },
       { set: "scopes.root.suppliers", expr: "listSuppliers()" },
