@@ -22,7 +22,7 @@ export const BarChartImpl = createComponentImplementation({
     const Chart = lineKeys.length ? ComposedChart : RechartsBarChart;
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <Chart data={data}>
+        <Chart data={data} aria-label="Bar chart">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xKey} />
           <YAxis />

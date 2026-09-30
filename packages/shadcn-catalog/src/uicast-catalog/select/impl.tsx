@@ -1,6 +1,6 @@
 import { createComponentImplementation } from "@uicast/react";
 import { Check, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { use, useState } from "react";
 import { Button } from "../../components/ui/button";
 import {
   Command,
@@ -20,6 +20,7 @@ import {
 } from "../../components/ui/select";
 import { RequiredValue } from "../../lib/form";
 import { cn } from "../../lib/utils";
+import { FieldLabelId } from "../field/impl";
 import { SelectDef } from "./def";
 
 export const SelectImpl = createComponentImplementation({
@@ -39,6 +40,7 @@ export const SelectImpl = createComponentImplementation({
     { entry },
   ) => {
     const [open, setOpen] = useState(false);
+    const labelId = use(FieldLabelId);
 
     if (!searchable) {
       return (
@@ -51,7 +53,7 @@ export const SelectImpl = createComponentImplementation({
             if (option) onChange(option);
           }}
         >
-          <SelectTrigger className="w-full" data-key={entry.key}>
+          <SelectTrigger className="w-full" aria-labelledby={labelId} data-key={entry.key}>
             <SelectValue placeholder={placeholder} />
           </SelectTrigger>
           <SelectContent position="popper">
@@ -73,6 +75,7 @@ export const SelectImpl = createComponentImplementation({
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-labelledby={labelId}
             // Looks like the plain Select's trigger.
             className={cn("w-full justify-between font-normal", !selected && "text-muted-foreground")}
             disabled={disabled}

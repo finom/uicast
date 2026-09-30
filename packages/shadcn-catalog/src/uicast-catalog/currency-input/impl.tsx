@@ -1,7 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useState } from "react";
+import { use, useState } from "react";
 import { InputGroup, InputGroupAddon, InputGroupInput, InputGroupText } from "../../components/ui/input-group";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { FieldLabelId } from "../field/impl";
 import { CurrencyInputDef } from "./def";
 
 // Any other currency shows its code.
@@ -34,6 +35,7 @@ export const CurrencyInputImpl = createComponentImplementation({
           inputMode="decimal"
           value={draft ?? (value === undefined ? "" : amount.format(value))}
           placeholder={placeholder}
+          aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           required={required}
           onFocus={() => setDraft(value === undefined ? "" : String(value))}

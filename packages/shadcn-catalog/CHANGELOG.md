@@ -72,6 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- Accessible names. A `FieldLabel` names its control (`aria-labelledby`), and a failing field's message describes it (`aria-describedby`). Icon-only buttons have labels: the SearchInput clear, CodeBlock copy, Toast close, Alert dismiss, Badge remove and DropdownMenu trigger buttons, the Pagination arrows and the Sidebar toggle. The current page in Pagination and Sidebar and the current Stepper step carry `aria-current`. Each chart is named by its type, and GaugeChart and Sparkline read out their values.
 - `PieChart`'s `centerLabel` sits at the center of the ring. It was centered on the chart's box, which the legend makes taller, so the label sat low.
 - `SearchInput`, `TimePicker` and `NumberInput` keep what the user types when no step writes it back. They showed only `value`, so without such a step typing did nothing.
 - `ScrollArea` with `orientation: "horizontal"` scrolls sideways only. It scrolled both ways, as `both` does.

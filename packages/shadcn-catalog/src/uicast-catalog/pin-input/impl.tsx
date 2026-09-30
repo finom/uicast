@@ -1,7 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
-import { useRef } from "react";
+import { use, useRef } from "react";
 import { Input } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { FieldLabelId } from "../field/impl";
 import { PinInputDef } from "./def";
 
 export const PinInputImpl = createComponentImplementation({
@@ -42,6 +43,7 @@ export const PinInputImpl = createComponentImplementation({
             inputMode={type === "numeric" ? "numeric" : "text"}
             maxLength={1}
             value={chars[i] ?? ""}
+            aria-labelledby={use(FieldLabelId)}
             disabled={disabled}
             className="size-12 text-center text-lg font-semibold"
             onChange={(e) => handleInput(i, e.target.value)}

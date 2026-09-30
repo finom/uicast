@@ -1,6 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { cn } from "../../lib/utils";
 import { blockSkeleton } from "../../lib/skeletons";
+import { FieldLabelId } from "../field/impl";
 import { CodeEditorDef } from "./def";
 
 export const CodeEditorImpl = createComponentImplementation({
@@ -25,6 +27,7 @@ export const CodeEditorImpl = createComponentImplementation({
         <textarea
           value={value}
           placeholder={placeholder}
+          aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           onChange={(e) => onChange({ value: e.target.value })}
           className="flex-1 resize-none bg-transparent p-3 leading-6 focus:outline-none text-foreground placeholder:text-muted-foreground"

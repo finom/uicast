@@ -1,9 +1,11 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { useMirror } from "../../lib/use-mirror";
 import { Search, X, Loader2 } from "lucide-react";
+import { FieldLabelId } from "../field/impl";
 import { SearchInputDef } from "./def";
 
 export const SearchInputImpl = createComponentImplementation({
@@ -19,6 +21,7 @@ export const SearchInputImpl = createComponentImplementation({
         <Input
           value={value}
           placeholder={placeholder}
+          aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           onChange={(e) => {
             setValue(e.target.value);
@@ -39,6 +42,7 @@ export const SearchInputImpl = createComponentImplementation({
               variant="ghost"
               size="icon"
               className="size-7"
+              aria-label="Clear search"
               onClick={() => {
                 setValue("");
                 onClear();

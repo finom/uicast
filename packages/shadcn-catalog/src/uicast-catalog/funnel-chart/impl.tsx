@@ -26,6 +26,7 @@ export const FunnelChartImpl = createComponentImplementation({
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
         <RechartsFunnelChart
+          aria-label="Funnel chart"
           // The stage names sit right of the funnel, and the widest stage spans the whole chart.
           margin={{ right: 120 }}
         >

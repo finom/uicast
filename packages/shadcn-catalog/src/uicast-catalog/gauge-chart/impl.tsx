@@ -24,7 +24,13 @@ export const GaugeChartImpl = createComponentImplementation({
         aria-busy={loading || undefined}
         data-key={entry.key}
       >
-        <svg width="200" height={height} viewBox="0 0 200 120" aria-hidden="true">
+        <svg
+          width="200"
+          height={height}
+          viewBox="0 0 200 120"
+          role="img"
+          aria-label={label ? `${label}: ${value}` : `${value}`}
+        >
           <path d={TRACK} fill="none" stroke="var(--color-muted)" strokeWidth={STROKE_WIDTH} strokeLinecap="round" />
           <path d={arc} fill="none" stroke={CHART_COLORS[color]} strokeWidth={STROKE_WIDTH} strokeLinecap="round" />
           <text x={CX} y={CY - 10} textAnchor="middle" className="text-2xl font-bold" fill="currentColor">

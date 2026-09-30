@@ -1,7 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { FunctionSquare } from "lucide-react";
 import { Input } from "../../components/ui/input";
 import { useMirror } from "../../lib/use-mirror";
+import { FieldLabelId } from "../field/impl";
 import { FormulaBarDef } from "./def";
 
 export const FormulaBarImpl = createComponentImplementation({
@@ -26,6 +28,7 @@ export const FormulaBarImpl = createComponentImplementation({
           }}
           onKeyDown={(e) => e.key === "Enter" && onSubmit({ value })}
           placeholder={placeholder}
+          aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           className="border-0 focus-visible:ring-0 font-mono text-sm"
         />

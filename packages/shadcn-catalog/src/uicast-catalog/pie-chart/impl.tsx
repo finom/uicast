@@ -13,7 +13,7 @@ export const PieChartImpl = createComponentImplementation({
     const palette = chartColors(colors, SLICE_COLORS);
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <RechartsPieChart>
+        <RechartsPieChart aria-label={donut ? "Donut chart" : "Pie chart"}>
           <Pie
             isAnimationActive={false}
             data={data}

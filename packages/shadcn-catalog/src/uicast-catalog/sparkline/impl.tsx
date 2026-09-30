@@ -9,6 +9,8 @@ export const SparklineImpl = createComponentImplementation({
   def: SparklineDef,
   render: ({ data, width, height, color, filled }, { entry, loading }) => {
     const chartData = data.map((value) => ({ value }));
+    // Recharts makes a chart a tab stop for its tooltip; a sparkline has none, so it is a named image instead.
+    const image = { role: "img", tabIndex: -1, "aria-label": data.join(", ") };
 
     return (
       <div
@@ -19,7 +21,7 @@ export const SparklineImpl = createComponentImplementation({
       >
         <ResponsiveContainer width="100%" height="100%">
           {filled ? (
-            <AreaChart data={chartData}>
+            <AreaChart data={chartData} {...image}>
               <Area
                 type="monotone"
                 dataKey="value"
@@ -32,7 +34,7 @@ export const SparklineImpl = createComponentImplementation({
               />
             </AreaChart>
           ) : (
-            <LineChart data={chartData}>
+            <LineChart data={chartData} {...image}>
               <Line
                 type="monotone"
                 dataKey="value"

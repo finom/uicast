@@ -11,7 +11,7 @@ export const RadarChartImpl = createComponentImplementation({
     const palette = chartColors(colors);
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <RechartsRadarChart data={data}>
+        <RechartsRadarChart data={data} aria-label="Radar chart">
           <PolarGrid />
           <PolarAngleAxis dataKey={dataKey} />
           <Tooltip />

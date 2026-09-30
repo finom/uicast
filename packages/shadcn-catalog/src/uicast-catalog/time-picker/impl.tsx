@@ -1,6 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Input } from "../../components/ui/input";
 import { useMirror } from "../../lib/use-mirror";
+import { FieldLabelId } from "../field/impl";
 import { TimePickerDef } from "./def";
 
 export const TimePickerImpl = createComponentImplementation({
@@ -13,6 +15,7 @@ export const TimePickerImpl = createComponentImplementation({
         value={value}
         min={min}
         max={max}
+        aria-labelledby={use(FieldLabelId)}
         disabled={disabled}
         onChange={(e) => {
           setValue(e.target.value);

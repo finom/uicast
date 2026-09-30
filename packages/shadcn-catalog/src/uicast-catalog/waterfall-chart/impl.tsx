@@ -21,7 +21,7 @@ export const WaterfallChartImpl = createComponentImplementation({
 
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <BarChart data={bars}>
+        <BarChart data={bars} aria-label="Waterfall chart">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />

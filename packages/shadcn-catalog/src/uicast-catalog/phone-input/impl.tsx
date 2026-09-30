@@ -1,7 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Input } from "../../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { FieldLabelId } from "../field/impl";
 import { PhoneInputDef } from "./def";
 import { type CallingCode, CALLING_CODES } from "../../lib/country-codes";
 
@@ -27,7 +29,7 @@ export const PhoneInputImpl = createComponentImplementation({
           }
           disabled={disabled}
         >
-          <SelectTrigger className="w-25">
+          <SelectTrigger className="w-25" aria-label="Country code">
             <SelectValue placeholder="Code" />
           </SelectTrigger>
           <SelectContent>
@@ -42,6 +44,7 @@ export const PhoneInputImpl = createComponentImplementation({
           type="tel"
           value={phoneValue}
           placeholder={placeholder}
+          aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           onChange={(e) =>
             onChange({

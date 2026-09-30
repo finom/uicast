@@ -43,6 +43,7 @@ export const ToastImpl = createComponentImplementation({
             variant="ghost"
             size="icon"
             className="shrink-0 size-6 -mr-1 -mt-1"
+            aria-label="Close"
             onClick={() => onClose()}
           >
             <X className="size-4" />

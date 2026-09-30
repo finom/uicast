@@ -18,6 +18,7 @@ export const BadgeImpl = createComponentImplementation({
         <button
           type="button"
           className="ml-0.5 rounded-full p-0.5 outline-none hover:bg-foreground/20"
+          aria-label="Remove"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();

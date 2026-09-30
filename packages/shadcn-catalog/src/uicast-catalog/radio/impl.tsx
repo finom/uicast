@@ -1,7 +1,8 @@
-import { useId } from "react";
+import { use, useId } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
 import { Label } from "../../components/ui/label";
+import { FieldLabelId } from "../field/impl";
 import { RadioDef } from "./def";
 
 export const RadioImpl = createComponentImplementation({
@@ -14,6 +15,7 @@ export const RadioImpl = createComponentImplementation({
         value={value}
         onValueChange={(v) => onChange({ value: v })}
         disabled={disabled}
+        aria-labelledby={use(FieldLabelId)}
         className={orientation === "horizontal" ? "flex flex-row gap-4" : "grid gap-2"}
         data-key={entry.key}
       >

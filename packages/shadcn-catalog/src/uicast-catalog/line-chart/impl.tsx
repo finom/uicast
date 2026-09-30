@@ -25,7 +25,7 @@ export const LineChartImpl = createComponentImplementation({
     const Chart = areas ? RechartsAreaChart : RechartsLineChart;
     return (
       <ChartFrame entry={entry} loading={loading} height={height}>
-        <Chart data={data}>
+        <Chart data={data} aria-label={areas ? "Area chart" : "Line chart"}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xKey} />
           <YAxis />

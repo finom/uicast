@@ -1,6 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Textarea as ShadcnTextarea } from "../../components/ui/textarea";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { FieldLabelId } from "../field/impl";
 import { TextareaDef } from "./def";
 
 export const TextareaImpl = createComponentImplementation({
@@ -12,6 +14,7 @@ export const TextareaImpl = createComponentImplementation({
     <ShadcnTextarea
       value={value}
       placeholder={placeholder}
+      aria-labelledby={use(FieldLabelId)}
       disabled={disabled}
       required={required}
       rows={rows}

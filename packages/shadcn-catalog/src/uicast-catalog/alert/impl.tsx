@@ -38,6 +38,7 @@ export const AlertImpl = createComponentImplementation({
               type="button"
               variant="ghost"
               size="icon-xs"
+              aria-label="Dismiss"
               onClick={() => {
                 setVisible(false);
                 onDismiss();

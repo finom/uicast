@@ -52,7 +52,13 @@ function TreeNodeComponent({
     >
       {row(
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-5 p-0" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-5 p-0"
+            aria-label={node.label}
+            onClick={(e) => e.stopPropagation()}
+          >
             {isExpanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
           </Button>
         </CollapsibleTrigger>,

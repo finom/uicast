@@ -45,6 +45,8 @@ export const StepperImpl = createComponentImplementation({
                     isCurrent && "border-2 border-primary text-primary",
                     !isCompleted && !isCurrent && "text-muted-foreground",
                   )}
+                  aria-label={step.label}
+                  aria-current={isCurrent ? "step" : undefined}
                   onClick={() => onStepClick({ step: i })}
                 >
                   {isCompleted ? <Check className="size-4" /> : i + 1}

@@ -1,7 +1,9 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Input } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
 import { useMirror } from "../../lib/use-mirror";
+import { FieldLabelId } from "../field/impl";
 import { NumberInputDef } from "./def";
 
 export const NumberInputImpl = createComponentImplementation({
@@ -21,6 +23,7 @@ export const NumberInputImpl = createComponentImplementation({
         disabled={disabled}
         required={required}
         placeholder={placeholder}
+        aria-labelledby={use(FieldLabelId)}
         onChange={(e) => {
           // An empty field, or one partly typed ("-"), reads as NaN.
           const next = Number.isNaN(e.target.valueAsNumber) ? undefined : e.target.valueAsNumber;

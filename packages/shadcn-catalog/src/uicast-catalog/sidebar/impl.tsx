@@ -21,7 +21,13 @@ export const SidebarImpl = createComponentImplementation({
         data-key={entry.key}
       >
         <div className="flex items-center justify-end p-2">
-          <Button type="button" variant="ghost" size="icon" onClick={() => onToggleCollapse({ collapsed: !collapsed })}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={() => onToggleCollapse({ collapsed: !collapsed })}
+          >
             {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
           </Button>
         </div>
@@ -44,6 +50,8 @@ export const SidebarImpl = createComponentImplementation({
                       item.active && "font-medium",
                       collapsed && "justify-center px-2",
                     )}
+                    aria-label={collapsed ? item.label : undefined}
+                    aria-current={item.active ? "page" : undefined}
                     onClick={() =>
                       onNavigate({
                         sectionIndex: si,

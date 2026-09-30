@@ -17,7 +17,7 @@ export const DropdownMenuImpl = createComponentImplementation({
           {triggerLabel ? (
             <Button variant="outline">{triggerLabel}</Button>
           ) : (
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" aria-label="More options">
               <MoreHorizontal className="size-4" />
             </Button>
           )}

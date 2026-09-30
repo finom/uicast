@@ -1,8 +1,10 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { Upload } from "lucide-react";
 import { FileUploadDef } from "./def";
 import { acceptAttribute } from "../../lib/file-kinds";
 import { cn } from "../../lib/utils";
+import { FieldLabelId } from "../field/impl";
 
 export const FileUploadImpl = createComponentImplementation({
   def: FileUploadDef,
@@ -20,6 +22,7 @@ export const FileUploadImpl = createComponentImplementation({
         type="file"
         accept={accept && acceptAttribute(accept)}
         multiple={multiple}
+        aria-labelledby={use(FieldLabelId)}
         disabled={disabled}
         className="sr-only"
         onChange={(e) => {

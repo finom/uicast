@@ -20,16 +20,23 @@ export const PaginationImpl = createComponentImplementation({
     const atStart = currentPage <= 1;
     const atEnd = totalPages === undefined ? !hasNext : currentPage >= totalPages;
     const moreAfter = totalPages === undefined ? hasNext : pages[pages.length - 1] < totalPages;
-    const arrow = (Icon: LucideIcon, page: number, disabled: boolean) => (
-      <Button type="button" variant="outline" size="icon" disabled={disabled} onClick={() => onPageChange({ page })}>
+    const arrow = (Icon: LucideIcon, label: string, page: number, disabled: boolean) => (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        disabled={disabled}
+        aria-label={label}
+        onClick={() => onPageChange({ page })}
+      >
         <Icon className="size-4" />
       </Button>
     );
 
     return (
       <nav className="flex items-center gap-1" aria-label="Pagination" data-key={entry.key}>
-        {showFirstLast && arrow(ChevronsLeft, 1, atStart)}
-        {arrow(ChevronLeft, currentPage - 1, atStart)}
+        {showFirstLast && arrow(ChevronsLeft, "First page", 1, atStart)}
+        {arrow(ChevronLeft, "Previous page", currentPage - 1, atStart)}
         {pages[0] > 1 && ELLIPSIS}
         {pages.map((page) => (
           <Button
@@ -37,14 +44,15 @@ export const PaginationImpl = createComponentImplementation({
             key={page}
             variant={page === currentPage ? "default" : "outline"}
             size="icon"
+            aria-current={page === currentPage ? "page" : undefined}
             onClick={() => onPageChange({ page })}
           >
             {page}
           </Button>
         ))}
         {moreAfter && ELLIPSIS}
-        {arrow(ChevronRight, currentPage + 1, atEnd)}
-        {showFirstLast && totalPages !== undefined && arrow(ChevronsRight, totalPages, atEnd)}
+        {arrow(ChevronRight, "Next page", currentPage + 1, atEnd)}
+        {showFirstLast && totalPages !== undefined && arrow(ChevronsRight, "Last page", totalPages, atEnd)}
       </nav>
     );
   },

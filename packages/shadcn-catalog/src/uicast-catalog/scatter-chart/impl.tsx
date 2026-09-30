@@ -9,7 +9,7 @@ export const ScatterChartImpl = createComponentImplementation({
   def: ScatterChartDef,
   render: ({ data, xKey, yKey, sizeKey, name, color, height }, { entry, loading }) => (
     <ChartFrame entry={entry} loading={loading} height={height}>
-      <RechartsScatterChart>
+      <RechartsScatterChart aria-label="Scatter chart">
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey={xKey} type="number" name={xKey} />
         <YAxis dataKey={yKey} type="number" name={yKey} />

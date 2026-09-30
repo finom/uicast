@@ -1,10 +1,11 @@
-import { useRef, useState } from "react";
+import { use, useRef, useState } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { ChevronDown, X } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
 import { Command, CommandGroup, CommandItem, CommandList } from "../../components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "../../components/ui/popover";
+import { FieldLabelId } from "../field/impl";
 import { MultiSelectDef } from "./def";
 
 export const MultiSelectImpl = createComponentImplementation({
@@ -26,6 +27,7 @@ export const MultiSelectImpl = createComponentImplementation({
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-labelledby={use(FieldLabelId)}
             disabled={disabled}
             className="h-auto min-h-9 w-full justify-between gap-1 px-3 py-1"
             data-key={entry.key}

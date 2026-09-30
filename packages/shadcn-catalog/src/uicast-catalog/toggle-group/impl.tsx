@@ -1,6 +1,8 @@
 import { createComponentImplementation } from "@uicast/react";
+import { use } from "react";
 import { ToggleGroup, ToggleGroupItem } from "../../components/ui/toggle-group";
 import { iconNode } from "../../lib/icon-node";
+import { FieldLabelId } from "../field/impl";
 import { ToggleGroupDef } from "./def";
 
 export const ToggleGroupImpl = createComponentImplementation({
@@ -12,6 +14,7 @@ export const ToggleGroupImpl = createComponentImplementation({
       variant,
       size,
       disabled,
+      "aria-labelledby": use(FieldLabelId),
       "data-key": entry.key,
     };
     const children = items.map((item) => (
