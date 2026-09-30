@@ -12,7 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Tab reaches a `Card`, `Avatar`, `Badge` or `TableRow` with an `onClick`, a `DataGrid` row with `onRowClick`, a `VirtualList` or `Timeline` item with `onItemClick`, and a `TreeView` row with `onSelect`. Enter or Space clicks it.
 - `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
 - A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
-- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 107 components — layout, text, the table family, a form with its fields and the common controls, two charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
+- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 106 components — layout, text, the table family, a form with its fields and the common controls, two charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
 - Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card` and `Alert` draw the `title` in place of a bar. Without known props they draw as before.
@@ -58,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Table`, `Card`, `Stat`, `DescriptionList` and every chart render busy while `loading` is true: the content stays, dimmed and pulsing, with `aria-busy` set.
 - **Breaking: `Icon` and every `icon` prop take a name from a fixed set.** The catalog imports ~96 named icons instead of the whole lucide namespace, so a consumer bundle carries 8.6 KB gzipped instead of 175 KB. The names appear once in the prompt as the shared type `IconName`. `Icon.color` is a theme vocabulary (`default`, `muted`, `primary`, `destructive`, `success`, `warning`), not a Tailwind class fragment.
 - **Breaking: no prop takes free-form text where the value comes from a fixed set.** Chart colours are palette names (`ChartColor`), sizes are named (`Width`, `Height`, `ColumnWidth`) or pixel counts, code languages, currencies, locales, calling codes, file kinds, keyboard keys and filter operators are enums, and dates and times are `z.iso.date()` / `z.iso.time()` / `z.iso.datetime()`.
-- **Breaking: `TreeView.items` nests to any depth.** It was unrolled two levels deep and then `z.any()`. `FileUpload.accept` is now a list of kinds, not a comma-joined string. `Kbd.keys` and every menu `shortcut` are key-name arrays.
+- **Breaking: `TreeView.items` nests to any depth.** It was unrolled two levels deep and then `z.any()`. `Kbd.keys` and every menu `shortcut` are key-name arrays.
 - Numeric props carry their bounds: percentages are 0-100 (`ProgressBar.value` runs from 0 to `max`), indices and counts are non-negative integers, pixel dimensions are positive integers, and map coordinates are within their real ranges.
 - Callback payloads use `z.strictObject`, matching props.
 - `ScatterChart.nameKey` is `name`, a string: the series name in the tooltip. It was typed as a colour.
@@ -69,6 +69,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Removed
 
+- **Breaking: `FileUpload`.** Its `onChange` gave a document only the file names, sizes and types, so nothing could upload the file.
 - `Callout`: use `Alert`. Callout's `tip` and `note` variants have no counterpart; `info` is the closest.
 - **Breaking: `ChatThread`, `Collapsible`, `ConfirmDialog`, `CronBuilder`, `FilterBuilder`, `IconButton`, `MaskedInput`, `OrgChart`, `SankeyChart`, `SignaturePad`, `Skeleton`, `TagInput` and `VideoPlayer`.** `Accordion` covers `Collapsible`, a step's `confirm` covers `ConfirmDialog`, `Button` covers `IconButton`, and `MultiSelect` covers `TagInput`.
 - Props and callbacks nothing implemented: `CodeEditor.language`, `CurrencyInput.min` and `max`, `Field.disabled`, `FieldLabel.htmlFor`, `TreemapChart.data[].color`.

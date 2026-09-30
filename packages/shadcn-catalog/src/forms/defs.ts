@@ -10,7 +10,6 @@ import { DatePickerDef } from "../uicast-catalog/date-picker/def";
 import { FieldDef } from "../uicast-catalog/field/def";
 import { FieldDescriptionDef } from "../uicast-catalog/field-description/def";
 import { FieldLabelDef } from "../uicast-catalog/field-label/def";
-import { FileUploadDef } from "../uicast-catalog/file-upload/def";
 import { FormDef } from "../uicast-catalog/form/def";
 import { FormulaBarDef } from "../uicast-catalog/formula-bar/def";
 import { InputDef } from "../uicast-catalog/input/def";
@@ -40,7 +39,6 @@ export {
   FieldDef,
   FieldDescriptionDef,
   FieldLabelDef,
-  FileUploadDef,
   FormDef,
   FormulaBarDef,
   InputDef,
@@ -71,7 +69,6 @@ export const defs: ComponentDefinition[] = [
   FieldDef,
   FieldDescriptionDef,
   FieldLabelDef,
-  FileUploadDef,
   FormDef,
   FormulaBarDef,
   InputDef,

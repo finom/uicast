@@ -58,11 +58,6 @@ export const forms: Record<string, Example> = {
   ],
   FieldDescription: "Field",
   FieldLabel: "Field",
-  FileUpload: [
-    { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.fileNames", literal: "" }], children: ["upload", "picked"] },
-    { key: "upload", component: "FileUpload", props: { literal: { accept: ["csv", "spreadsheet"] } }, callbacks: { onChange: [{ set: "scopes.root.fileNames", expr: "evt.files.map(f => f.name).join(', ')" }] } },
-    { key: "picked", component: "Typography", props: { expr: "({ text: scopes.root.fileNames ? 'Selected: ' + scopes.root.fileNames : 'No file selected yet.', variant: 'muted' })" } },
-  ],
   Form: [
     { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.name", literal: "" }, { set: "scopes.root.email", literal: "" }, { set: "scopes.root.country", literal: "" }, { set: "scopes.root.notes", literal: "" }, { set: "scopes.root.added", literal: "" }], children: ["form", "added"] },
     { key: "form", component: "Form", props: { literal: { submitText: "Add supplier" } }, callbacks: { onSubmit: [{ set: "scopes.root.added", expr: "scopes.root.name" }] }, children: ["name-field", "email-field", "country-field", "notes-field"] },

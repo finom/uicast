@@ -3,7 +3,7 @@
 <p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 <p align="center"><a href="https://www.npmjs.com/package/@uicast/shadcn-catalog"><img src="https://img.shields.io/npm/v/@uicast/shadcn-catalog.svg?color=brightgreen" alt="npm version"></a> <a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
 
-A reference component catalog for **uicast**: 107 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
+A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
 
 ```sh
 npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @uicast/expr@beta
@@ -50,13 +50,13 @@ A group puts only its components into the prompt:
 
 | Group | Size | Tokens | What is in it |
 | --- | --- | --- | --- |
-| `all` | 107 | 19,100 | Every component. |
+| `all` | 106 | 18,900 | Every component. |
 | `essential` | 29 | 5,300 | Common components from every group, below. |
 | `layout` | 16 | 2,200 | Card, grid, flex row and column, tabs, accordion. |
 | `content` | 29 | 6,100 | Heading, typography, badge, avatar, timeline, alert, map. |
 | `data` | 10 | 1,600 | Table, data grid, virtual list, kanban board. |
 | `charts` | 12 | 2,400 | Bar, line, pie, scatter, funnel, heatmap. |
-| `forms` | 28 | 5,600 | Form, field, input, select, date picker, file upload, button. |
+| `forms` | 27 | 5,400 | Form, field, input, select, date picker, button. |
 | `navigation` | 7 | 2,300 | Sidebar, navigation menu, command menu, breadcrumb, pagination. |
 | `overlays` | 5 | 900 | Modal, popover, tooltip, dropdown menu. |
 

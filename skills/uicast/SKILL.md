@@ -24,7 +24,7 @@ Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: a
 | `@uicast/expr` | Expression evaluator; host functions bind on it. |
 | `@uicast/core` | Entry types, streaming helpers, errors; prompt builders in `@uicast/core/prompt`. |
 | `@uicast/react` | Renderer. |
-| `@uicast/shadcn-catalog` | 107 ready components. Optional. |
+| `@uicast/shadcn-catalog` | 106 ready components. Optional. |
 | `@uicast/streamdown` | `uicast` fences in Markdown chat replies. |
 
 Never import `@uicast/core/internal` or `@uicast/expr/internal`: plumbing, no semver.

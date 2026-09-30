@@ -10,7 +10,6 @@ import { DatePickerImpl } from "../uicast-catalog/date-picker/impl";
 import { FieldImpl } from "../uicast-catalog/field/impl";
 import { FieldDescriptionImpl } from "../uicast-catalog/field-description/impl";
 import { FieldLabelImpl } from "../uicast-catalog/field-label/impl";
-import { FileUploadImpl } from "../uicast-catalog/file-upload/impl";
 import { FormImpl } from "../uicast-catalog/form/impl";
 import { FormulaBarImpl } from "../uicast-catalog/formula-bar/impl";
 import { InputImpl } from "../uicast-catalog/input/impl";
@@ -40,7 +39,6 @@ export {
   FieldImpl,
   FieldDescriptionImpl,
   FieldLabelImpl,
-  FileUploadImpl,
   FormImpl,
   FormulaBarImpl,
   InputImpl,
@@ -71,7 +69,6 @@ export const impls: ComponentImplementation[] = [
   FieldImpl,
   FieldDescriptionImpl,
   FieldLabelImpl,
-  FileUploadImpl,
   FormImpl,
   FormulaBarImpl,
   InputImpl,
