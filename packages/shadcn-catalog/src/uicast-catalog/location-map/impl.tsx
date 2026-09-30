@@ -143,10 +143,10 @@ export const LocationMapImpl = createComponentImplementation({
                     )}
                     <MapPin
                       className={
+                        // Fixed reds: the tiles stay light in a dark theme.
                         marker.active
-                          ? // A fixed red: `--destructive` turns pale in a dark theme, over tiles that stay light.
-                            "size-8 fill-red-600 text-red-900 drop-shadow"
-                          : "size-6 fill-destructive text-destructive"
+                          ? "size-8 fill-red-600 text-red-600 drop-shadow"
+                          : "size-6 fill-red-400 text-red-400"
                       }
                     />
                   </button>
