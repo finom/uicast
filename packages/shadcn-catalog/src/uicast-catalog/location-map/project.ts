@@ -2,6 +2,11 @@
 
 export const TILE_SIZE = 256;
 
+// Tile servers serve zoom 0 (the whole world on one tile) to 19 (single buildings).
+export const MAX_ZOOM = 19;
+// A city: the zoom for one point, and the closest a fitted view goes.
+export const DEFAULT_ZOOM = 13;
+
 // ≈ 85.0511°: the square Mercator world ends here, and so do the tiles.
 export const MAX_LATITUDE = (Math.atan(Math.sinh(Math.PI)) * 180) / Math.PI;
 
@@ -21,6 +26,41 @@ export const project = ({ lat, lng }: Coordinates, zoom: number): Point => {
     x: ((lng + 180) / 360) * worldSize(zoom),
     y: (0.5 - Math.log((1 + sin) / (1 - sin)) / (4 * Math.PI)) * worldSize(zoom),
   };
+};
+
+// The inverse of `project`.
+export const unproject = ({ x, y }: Point, zoom: number): Coordinates => {
+  const size = worldSize(zoom);
+  return {
+    lat: (Math.atan(Math.sinh(Math.PI * (1 - (2 * y) / size))) * 180) / Math.PI,
+    lng: (x / size) * 360 - 180,
+  };
+};
+
+// The view that shows every point inside the box less `padding`. No points: the whole world.
+export const fitView = (
+  points: Coordinates[],
+  width: number,
+  height: number,
+  padding: { x: number; top: number; bottom: number },
+) => {
+  if (points.length === 0) return { center: { lat: 0, lng: 0 }, zoom: 0 };
+  const xs = points.map((point) => project(point, 0).x);
+  const ys = points.map((point) => project(point, 0).y);
+  const [left, right, top, bottom] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  // Each zoom level doubles the spans; take the largest that fits. One point spans nothing and fits at any zoom.
+  const room = Math.min(
+    Math.max(1, width - 2 * padding.x) / (right - left),
+    Math.max(1, height - padding.top - padding.bottom) / (bottom - top),
+  );
+  const zoom = Math.max(0, Math.min(DEFAULT_ZOOM, Math.floor(Math.log2(room))));
+  // The points' middle goes to the middle of the padded box, off the box's own middle when top and bottom differ.
+  const scale = 2 ** zoom;
+  const middle = {
+    x: ((left + right) / 2) * scale,
+    y: ((top + bottom) / 2) * scale - (padding.top - padding.bottom) / 2,
+  };
+  return { center: unproject(middle, zoom), zoom };
 };
 
 // A point across the antimeridian is placed on the copy of the world nearer the center.

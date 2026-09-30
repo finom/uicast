@@ -1,5 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { MAX_LATITUDE, offsetFromCenter, project, TILE_SIZE, tilesAround } from "../project";
+import {
+  DEFAULT_ZOOM,
+  fitView,
+  MAX_LATITUDE,
+  offsetFromCenter,
+  project,
+  TILE_SIZE,
+  tilesAround,
+  unproject,
+} from "../project";
 
 const BERLIN = { lat: 52.52, lng: 13.405 };
 const ORIGIN = { lat: 0, lng: 0 };
@@ -76,5 +85,50 @@ describe("tilesAround", () => {
     const tiles = tilesAround({ lat: 85, lng: 0 }, 1, TILE_SIZE, 4 * TILE_SIZE);
     expect(tiles.every((tile) => tile.y >= 0 && tile.y < 2)).toBe(true);
     expect(new Set(tiles.map((tile) => tile.y))).toEqual(new Set([0, 1]));
+  });
+});
+
+describe("unproject", () => {
+  it("inverts project", () => {
+    for (const zoom of [0, 4, 13]) {
+      const back = unproject(project(BERLIN, zoom), zoom);
+      expect(back.lat).toBeCloseTo(BERLIN.lat, 9);
+      expect(back.lng).toBeCloseTo(BERLIN.lng, 9);
+    }
+  });
+});
+
+describe("fitView", () => {
+  const PARIS = { lat: 48.86, lng: 2.35 };
+  const WARSAW = { lat: 52.23, lng: 21.01 };
+
+  const PADDING = { x: 40, top: 56, bottom: 8 };
+
+  it("shows the whole world with no points", () => {
+    expect(fitView([], 400, 300, PADDING)).toEqual({ center: { lat: 0, lng: 0 }, zoom: 0 });
+  });
+
+  it("puts one point in the middle of the padded box, at the default zoom", () => {
+    const { center, zoom } = fitView([BERLIN], 400, 300, PADDING);
+    expect(zoom).toBe(DEFAULT_ZOOM);
+    const { x, y } = offsetFromCenter(BERLIN, center, zoom);
+    expect(x).toBeCloseTo(0, 3);
+    // Halfway between 56 px from the top and 8 px from the bottom: 24 px below the box's middle.
+    expect(y).toBeCloseTo(24, 3);
+  });
+
+  it("takes the largest zoom that keeps every point inside the padding", () => {
+    const points = [PARIS, BERLIN, WARSAW];
+    const { center, zoom } = fitView(points, 380, 190, PADDING);
+    const offsets = points.map((point) => offsetFromCenter(point, center, zoom));
+    const [xs, ys] = [offsets.map(({ x }) => x), offsets.map(({ y }) => y)];
+    // The box runs from -190 to 190 across and from -95 to 95 down.
+    expect(Math.min(...xs)).toBeGreaterThanOrEqual(-150);
+    expect(Math.max(...xs)).toBeLessThanOrEqual(150);
+    expect(Math.min(...ys)).toBeGreaterThanOrEqual(-39);
+    expect(Math.max(...ys)).toBeLessThanOrEqual(87);
+    // One zoom level more doubles the spans, and one no longer fits.
+    const span = (values: number[]) => 2 * (Math.max(...values) - Math.min(...values));
+    expect(span(xs) > 300 || span(ys) > 126).toBe(true);
   });
 });

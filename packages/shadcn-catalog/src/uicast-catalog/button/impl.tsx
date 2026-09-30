@@ -23,9 +23,9 @@ export const ButtonImpl = createComponentImplementation({
         aria-label={square ? tooltip : undefined}
         onClick={(e) => onClick(pickMouseEvent(e))}
         data-key={entry.key}
-        // w-fit: a column or a grid cell would stretch it to the full width.
-        // shadcn's lg only adds height; the text and the icon grow with it here.
-        className={cn("w-fit", size === "lg" && "text-base [&_svg:not([class*='size-'])]:size-5")}
+        // w-fit: a column or a grid cell would stretch it to the full width. A square button has a set width,
+        // which w-fit would shrink to the icon. shadcn's lg only adds height; the text and the icon grow with it here.
+        className={cn(!square && "w-fit", size === "lg" && "text-base [&_svg:not([class*='size-'])]:size-5")}
       >
         {Icon && <Icon data-icon="inline-start" />}
         {label}

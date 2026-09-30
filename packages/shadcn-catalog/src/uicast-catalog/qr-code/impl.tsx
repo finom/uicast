@@ -10,7 +10,7 @@ export const QRCodeImpl = createComponentImplementation({
   def: QRCodeDef,
   render: ({ value, size, bgColor, fgColor }, { entry }) => (
     // The margin is the quiet zone a scanner needs around the code.
-    <div className="inline-block overflow-hidden rounded-lg border" data-key={entry.key}>
+    <div className="inline-block w-fit overflow-hidden rounded-lg border" data-key={entry.key}>
       <QRCodeSVG
         value={value}
         size={size}

@@ -16,16 +16,25 @@ const formatLocalDate = (date: Date): string =>
 
 export const CalendarImpl = createComponentImplementation({
   def: CalendarDef,
-  render: ({ selected, disabled, onSelect }, { entry }) => (
-    <div data-key={entry.key}>
-      <ShadcnCalendar
-        mode="single"
-        selected={selected ? parseLocalDate(selected) : undefined}
-        onSelect={(date) => date && onSelect({ date: formatLocalDate(date) })}
-        disabled={disabled}
-        className="rounded-md border"
-      />
-    </div>
-  ),
+  render: ({ selected, min, max, disabled, onSelect }, { entry }) => {
+    // Opens on the selected month, else on the earliest selectable one.
+    const month = selected ?? min;
+    return (
+      <div data-key={entry.key}>
+        <ShadcnCalendar
+          mode="single"
+          selected={selected ? parseLocalDate(selected) : undefined}
+          defaultMonth={month ? parseLocalDate(month) : undefined}
+          onSelect={(date) => date && onSelect({ date: formatLocalDate(date) })}
+          disabled={[
+            disabled,
+            ...(min ? [{ before: parseLocalDate(min) }] : []),
+            ...(max ? [{ after: parseLocalDate(max) }] : []),
+          ]}
+          className="rounded-md border"
+        />
+      </div>
+    );
+  },
   skeleton: blockSkeleton(300),
 });

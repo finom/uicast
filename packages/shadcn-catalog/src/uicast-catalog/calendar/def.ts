@@ -9,6 +9,8 @@ export const CalendarDef = createComponentDefinition({
     selected: z.iso.date().optional().meta({
       description: "The selected date.",
     }),
+    min: z.iso.date().optional().meta({ description: "Earliest selectable date." }),
+    max: z.iso.date().optional().meta({ description: "Latest selectable date." }),
     disabled: z.boolean().default(false).meta({
       description: "Whether the calendar is disabled",
     }),
