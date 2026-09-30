@@ -2,7 +2,7 @@
 
 ## Reporting
 
-Use GitHub's private vulnerability reporting on this repository (**Security → Report a vulnerability**). Do not open a public issue. Include the package (for example `@uicast/expr`) and a minimal reproducing expression or document.
+Use GitHub's private vulnerability reporting on this repository: [Report a vulnerability](https://github.com/finom/uicast/security/advisories/new). Do not open a public issue. Include the package (for example `@uicast/expr`) and a minimal reproducing expression or document.
 
 ## Scope
 
@@ -10,7 +10,7 @@ In scope: `@uicast/expr` evaluator escapes, membrane or budget bypasses, prototy
 
 Out of scope: what an `Evaluator` subclass that sets `toFunction` can reach (it runs expressions as JavaScript, by design), and anything a host's own functions permit — authorization is the host's.
 
-The threat model is documented on the docs site's Security model page.
+The threat model is on the docs site: [Security model](https://uicast.dev/security).
 
 ## Terms
 
