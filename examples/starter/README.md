@@ -1,3 +1,9 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://uicast.dev/uicast-logo-dark.svg">
+    <img alt="" src="https://uicast.dev/uicast-logo.svg" width="64">
+  </picture>
+</p>
 <h1 align="center">uicast Next.js starter</h1>
 <p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 

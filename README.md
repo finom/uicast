@@ -1,3 +1,9 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="packages/docs/public/uicast-logo-dark.svg">
+    <img alt="" src="packages/docs/public/uicast-logo.svg" width="64">
+  </picture>
+</p>
 <h1 align="center">uicast</h1>
 <p align="center">The expression-driven generative UI framework.</p>
 <p align="center"><a href="https://uicast.dev">uicast.dev</a></p>

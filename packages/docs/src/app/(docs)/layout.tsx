@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { getPageMap } from "nextra/page-map";
 import { DiscordIcon } from "nextra/icons";
 import { Footer, Layout, Navbar } from "nextra-theme-docs";
@@ -13,7 +14,13 @@ export default async function DocsLayout({ children }: { children: ReactNode }) 
     <Layout
       navbar={
         <Navbar
-          logo={<b className="text-lg">uicast</b>}
+          logo={
+            <b className="flex items-center gap-2 text-lg">
+              <Image src="/uicast-logo.svg" alt="" width={24} height={24} className="dark:hidden" />
+              <Image src="/uicast-logo-dark.svg" alt="" width={24} height={24} className="hidden dark:block" />
+              uicast
+            </b>
+          }
           projectLink="https://github.com/finom/uicast"
           chatLink="https://discord.com/invite/qdT8WEHUuP"
           chatIcon={<DiscordIcon width="24" aria-label="Discord server" />}

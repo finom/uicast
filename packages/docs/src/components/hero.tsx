@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { GitHubIcon } from "nextra/icons";
 
@@ -5,6 +6,8 @@ import { GitHubIcon } from "nextra/icons";
 export function Hero() {
   return (
     <div className="clear-both mb-12 flex flex-col items-center gap-4 border-b pb-12 pt-6 text-center">
+      <Image src="/uicast-logo.svg" alt="" width={64} height={64} className="dark:hidden" />
+      <Image src="/uicast-logo-dark.svg" alt="" width={64} height={64} className="hidden dark:block" />
       <h1 className="text-5xl font-bold tracking-tight sm:text-6xl">uicast</h1>
       <p className="text-balance text-lg font-medium text-muted-foreground sm:text-xl">
         The expression-driven generative UI framework
