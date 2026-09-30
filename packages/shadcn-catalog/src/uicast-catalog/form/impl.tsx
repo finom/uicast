@@ -2,13 +2,11 @@ import { createComponentImplementation } from "@uicast/react";
 import { LoaderCircle } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
-import { FieldErrors } from "../../lib/form";
+import { FieldErrors, REACHABLE } from "../../lib/form";
 import { FormDef } from "./def";
 
 const FIELD = '[data-slot="field"]';
 const INVALID = "input:invalid, select:invalid, textarea:invalid";
-// Select and Checkbox are checked through a hidden stand-in, so focus goes to what the user can reach.
-const REACHABLE = ":is(input, select, textarea, button):not([tabindex='-1'])";
 
 // The message of the first failing control in each Field.
 const fieldErrors = (form: HTMLFormElement) => {

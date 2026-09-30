@@ -2,21 +2,28 @@ import { createComponentImplementation } from "@uicast/react";
 import { Input } from "../../components/ui/input";
 import { Button } from "../../components/ui/button";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { useMirror } from "../../lib/use-mirror";
 import { Search, X, Loader2 } from "lucide-react";
 import { SearchInputDef } from "./def";
 
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
-  render: ({ value, placeholder, disabled, loading, onChange, onClear, onSubmit, onKeyDown, onKeyUp }, { entry }) => {
-    const strValue = value ?? "";
+  render: (
+    { value: initialValue, placeholder, disabled, onChange, onClear, onSubmit, onKeyDown, onKeyUp },
+    { entry, loading },
+  ) => {
+    const [value, setValue] = useMirror(initialValue ?? "");
     return (
       <div className="relative flex items-center" data-key={entry.key}>
         <Search className="absolute left-3 size-4 text-muted-foreground" />
         <Input
-          value={strValue}
+          value={value}
           placeholder={placeholder}
           disabled={disabled}
-          onChange={(e) => onChange({ value: e.target.value })}
+          onChange={(e) => {
+            setValue(e.target.value);
+            onChange({ value: e.target.value });
+          }}
           onKeyDown={(e) => {
             onKeyDown(pickKeyboardEvent(e));
             if (e.key === "Enter") onSubmit({ value: e.currentTarget.value });
@@ -26,8 +33,17 @@ export const SearchInputImpl = createComponentImplementation({
         />
         <div className="absolute right-1 flex items-center gap-1">
           {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
-          {strValue && !loading && (
-            <Button type="button" variant="ghost" size="icon" className="size-7" onClick={() => onClear()}>
+          {value && !loading && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-7"
+              onClick={() => {
+                setValue("");
+                onClear();
+              }}
+            >
               <X className="size-4" />
             </Button>
           )}

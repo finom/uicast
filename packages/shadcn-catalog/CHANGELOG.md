@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
 - A JSDoc comment with an example on `ConfirmModal`, `RenderError` and the `/events` schemas, shown on hover.
-- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 107 components — layout, text, the table family, the common form controls, three charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
+- `@uicast/shadcn-catalog/essential/defs` and `/essential/impls`: 29 of the 107 components — layout, text, the table family, a form with its fields and the common controls, two charts, and the few states a page needs. The prompt they render is about a quarter of the whole catalog's.
 - `PieChart.centerLabel`: text in the hole of a donut chart, such as a total. Ignored unless `donut` is true.
 - A `skeleton` on 67 implementations, so `DocumentSkeleton` from `@uicast/react` draws them. A skeleton given children renders its own tag; given none it fills the slot inside a real element, which is how the renderer calls it.
 - Skeletons draw from `knownProps`. `Grid`, `FlexCol` and `FlexRow` follow the columns, gap, alignment and wrap; `Card` and `Alert` draw the `title` in place of a bar. Without known props they draw as before.
@@ -18,8 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `TableHead.width`: a named column width. A column holding inputs or buttons has no intrinsic width, and an auto-layout table would give it almost none.
 - `EmptyState.icon`: an icon in place of the default folder.
 - `Calendar.min` and `Calendar.max`: the earliest and latest dates a user can pick, as on `DatePicker`. The calendar opens on the month of `selected`, or of `min` when nothing is selected.
-- `Form`: holds the fields and draws its own submit button (`submitText`). On submit the browser checks every field, each `Field` whose control fails shows the browser's message, and the first gets focus. `onSubmit` runs only when all pass, and the button shows a spinner until its steps finish.
-- `required` on `Input`, `Textarea`, `CurrencyInput`, `Select` and `Checkbox`. The `FieldLabel` of a required control shows a red asterisk.
+- `Form`: holds the fields and draws its own submit button (`submitText`). On submit the browser checks every field, each `Field` whose control fails shows the browser's message and marks the control `aria-invalid`, which draws its border red, and the first gets focus. `onSubmit` runs only when all pass, and the button shows a spinner until its steps finish.
+- `required` on `Input`, `Textarea`, `NumberInput`, `CurrencyInput`, `Select` and `Checkbox`. The `FieldLabel` of a required control shows a red asterisk.
 
 ### Changed
 
@@ -28,6 +28,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - `Carousel` is built on shadcn's Carousel (Embla). The arrows sit outside the slides instead of over them. It adds the `embla-carousel-react` dependency.
 - `Alert` takes child entries below its description, its `title` is optional, and its icon shows the status color. It covers what `Callout` did.
 - `EmptyState` shows a folder icon instead of an inbox.
+- **Breaking: `NumberInput.value` is optional, and `onChange` sends no `value` while the field holds no number.** It sent 0, so a cleared field could not stay empty.
+- **Breaking: `SearchInput` has no `loading` prop.** It shows its spinner while the entry's `loading` is true.
 - `Button` is as wide as its label. In a column or a grid cell it stretched to the full width.
 - `QRCode` is as wide as the code. In a column it stretched to the full width, and its border with it.
 - `RadarChart` draws no radius axis; its numbers crossed the plot.
@@ -56,7 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Breaking: four components are renamed so that no component shares a name with a JavaScript or browser global:** `Map` is `LocationMap`, `Image` is `Picture`, `Text` is `Typography`, `Highlight` is `HighlightedText`. Their exports follow (`TypographyDef`, `TypographyImpl`, …). A catalog test fails on any such name.
 - **Breaking: `LocationMap` draws map tiles itself.** 256-px raster tiles fill the `width` × `height` box, placed by the Web Mercator formula from `center` and `zoom`, and pins are placed by the same formula. It was an openstreetmap.org iframe over a fixed ±0.05° box, with pins placed by a different rule that missed their spot. `zoom` runs from 0 to 19 and changes what the map shows; `width` and `height` are at most 2048. A drag pans the map, and its + and − buttons or a double-click zoom it. Without `center`, the map fits every marker. Pins are buttons named by their label, which shows on hover or focus, and always on a marker with `active`. The tiles come from OpenStreetMap, and their credit is always shown.
 - **Breaking: `Link` renders an `<a href>`.** A click opens `href`, and `external` opens it in a new tab (`target="_blank" rel="noopener noreferrer"`). `href` is required; `onClick` and `disabled` are gone. A link navigates; an action is a `Button`.
-- Descriptions match what renders: `Popover` (the trigger is a button labelled `triggerLabel`; every child renders in the panel), `PhoneInput.value` (without the calling code), `NotificationBadge.count` (0 hides the badge unless `showZero`), `HighlightedText.color` (four named colours, no CSS colour), `PieChart.colors` and `FunnelChart.colors` (one per slice or stage), `Sidebar` (collapses to icons; its sections do not collapse), `TreemapChart` (one rectangle per item, not nested), `TruncatedText` (a Show more toggle, no tooltip), `WaterfallChart.data[].isTotal` (the running total; its value is ignored), `ScrollArea.orientation` (vertical scrolling is always on), `Pagination` (without `totalPages`, the pages up to the current one).
+- Descriptions match what renders: `Popover` (the trigger is a button labelled `triggerLabel`; every child renders in the panel), `PhoneInput.value` (without the calling code), `NotificationBadge.count` (0 hides the badge unless `showZero`), `HighlightedText.color` (four named colours, no CSS colour), `PieChart.colors` and `FunnelChart.colors` (one per slice or stage), `Sidebar` (collapses to icons; its sections do not collapse), `TreemapChart` (one rectangle per item, not nested), `TruncatedText` (a Show more toggle, no tooltip), `WaterfallChart.data[].isTotal` (the running total; its value is ignored), `Pagination` (without `totalPages`, the pages up to the current one).
 
 ### Removed
 
@@ -68,6 +70,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `SearchInput`, `TimePicker` and `NumberInput` keep what the user types when no step writes it back. They showed only `value`, so without such a step typing did nothing.
+- `ScrollArea` with `orientation: "horizontal"` scrolls sideways only. It scrolled both ways, as `both` does.
 - Child entries placed straight in `Card`, `TabContent`, `AccordionItem` or a `Modal` with `side` touched. They sit in a column with a 16px gap now.
 - A closed `Modal`, `Toast` or `CommandMenu` added an empty gap to the column or grid around it. Its placeholder is hidden now.
 - A button inside a form submitted it: `Button`, `Rating`, `CopyButton`, `CodeBlock`, `Alert`, `Toast`, `Pagination`, `Stepper`, `TruncatedText` and `Sidebar` render `type="button"` now.

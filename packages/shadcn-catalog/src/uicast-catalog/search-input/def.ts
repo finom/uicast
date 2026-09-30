@@ -5,7 +5,7 @@ import { keyboardEventSchema } from "../../events/keyboard";
 export const SearchInputDef = createComponentDefinition({
   name: "SearchInput",
   description:
-    "A search input with a search icon, clear button, and optional loading state. Use SearchInput for search bars, filter inputs, or any text search functionality.",
+    "A search input with a search icon and a clear button. It shows a spinner while the entry's `loading` is true. Use SearchInput for search bars, filter inputs, or any text search functionality.",
   props: z.strictObject({
     value: z.string().optional().meta({ description: "The current search text." }),
     placeholder: z.string().default("Search...").meta({
@@ -13,9 +13,6 @@ export const SearchInputDef = createComponentDefinition({
     }),
     disabled: z.boolean().default(false).meta({
       description: "Whether the input is disabled",
-    }),
-    loading: z.boolean().default(false).meta({
-      description: "Whether to show a loading spinner",
     }),
   }),
   callbacks: {

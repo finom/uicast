@@ -353,7 +353,7 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: {
       onChange: [
         { set: "scopes.prod.price", expr: "evt.value" },
-        { expr: "updateProduct({ id: scopes.prod.id, price: evt.value })" },
+        { expr: "evt.value != null && updateProduct({ id: scopes.prod.id, price: evt.value })" },
       ],
     },
   },

@@ -51,10 +51,10 @@ A group puts only its components into the prompt:
 
 | Group | Size | Tokens | What is in it |
 | --- | --- | --- | --- |
-| `all` | 107 | 19,000 | Every component. |
-| `essential` | 29 | 5,500 | Common components from every group, below. |
+| `all` | 107 | 19,100 | Every component. |
+| `essential` | 29 | 5,300 | Common components from every group, below. |
 | `layout` | 16 | 2,200 | Card, grid, flex row and column, tabs, accordion. |
-| `content` | 29 | 6,000 | Heading, typography, badge, avatar, timeline, alert, map. |
+| `content` | 29 | 6,100 | Heading, typography, badge, avatar, timeline, alert, map. |
 | `data` | 10 | 1,600 | Table, data grid, virtual list, kanban board. |
 | `charts` | 12 | 2,400 | Bar, line, pie, scatter, funnel, heatmap. |
 | `forms` | 28 | 5,600 | Form, field, input, select, date picker, file upload, button. |
@@ -77,10 +77,10 @@ The essentials:
 | Group | Components |
 | --- | --- |
 | `layout` | `Card` `FlexRow` `FlexCol` `Grid` |
-| `content` | `Heading` `Typography` `Badge` `Stat` `Alert` `EmptyState` `DescriptionList` |
+| `content` | `Heading` `Typography` `Badge` `Stat` `Alert` `EmptyState` |
 | `data` | `Table` `TableHeader` `TableBody` `TableRow` `TableHead` `TableCell` |
-| `charts` | `BarChart` `LineChart` `PieChart` |
-| `forms` | `Input` `NumberInput` `Select` `Checkbox` `Switch` `SearchInput` `Button` |
+| `charts` | `BarChart` `LineChart` |
+| `forms` | `Form` `Field` `FieldLabel` `Input` `NumberInput` `Select` `Checkbox` `Switch` `Button` |
 | `navigation` | `Pagination` |
 | `overlays` | `Modal` |
 

@@ -2,10 +2,16 @@
 import { RotateCcwIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ComponentEntry } from "@uicast/core";
-import { CalendarImpl, LocationMapImpl, PictureImpl, QRCodeImpl } from "@uicast/shadcn-catalog/content/impls";
+import {
+  CalendarImpl,
+  DescriptionListImpl,
+  LocationMapImpl,
+  PictureImpl,
+  QRCodeImpl,
+} from "@uicast/shadcn-catalog/content/impls";
 import { KanbanBoardImpl } from "@uicast/shadcn-catalog/data/impls";
 import { impls as essential } from "@uicast/shadcn-catalog/essential/impls";
-import { FieldImpl, FieldLabelImpl, SliderImpl, ToggleGroupImpl } from "@uicast/shadcn-catalog/forms/impls";
+import { SliderImpl, ToggleGroupImpl } from "@uicast/shadcn-catalog/forms/impls";
 import { Button } from "@uicast/shadcn-catalog/ui/button";
 import delivery from "./delivery.json";
 import { functions, resetData } from "./functions";
@@ -21,8 +27,8 @@ import wifi from "./wifi.json";
 // biome-ignore format: one component group a line
 const CATALOG = [
   ...essential,
-  CalendarImpl, LocationMapImpl, PictureImpl, QRCodeImpl,
-  FieldImpl, FieldLabelImpl, SliderImpl, ToggleGroupImpl,
+  CalendarImpl, DescriptionListImpl, LocationMapImpl, PictureImpl, QRCodeImpl,
+  SliderImpl, ToggleGroupImpl,
   KanbanBoardImpl,
 ];
 

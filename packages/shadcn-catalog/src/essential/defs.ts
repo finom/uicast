@@ -7,10 +7,12 @@ import { BarChartDef } from "../uicast-catalog/bar-chart/def";
 import { ButtonDef } from "../uicast-catalog/button/def";
 import { CardDef } from "../uicast-catalog/card/def";
 import { CheckboxDef } from "../uicast-catalog/checkbox/def";
-import { DescriptionListDef } from "../uicast-catalog/description-list/def";
 import { EmptyStateDef } from "../uicast-catalog/empty-state/def";
+import { FieldDef } from "../uicast-catalog/field/def";
+import { FieldLabelDef } from "../uicast-catalog/field-label/def";
 import { FlexColDef } from "../uicast-catalog/flex-col/def";
 import { FlexRowDef } from "../uicast-catalog/flex-row/def";
+import { FormDef } from "../uicast-catalog/form/def";
 import { GridDef } from "../uicast-catalog/grid/def";
 import { HeadingDef } from "../uicast-catalog/heading/def";
 import { InputDef } from "../uicast-catalog/input/def";
@@ -18,8 +20,6 @@ import { LineChartDef } from "../uicast-catalog/line-chart/def";
 import { ModalDef } from "../uicast-catalog/modal/def";
 import { NumberInputDef } from "../uicast-catalog/number-input/def";
 import { PaginationDef } from "../uicast-catalog/pagination/def";
-import { PieChartDef } from "../uicast-catalog/pie-chart/def";
-import { SearchInputDef } from "../uicast-catalog/search-input/def";
 import { SelectDef } from "../uicast-catalog/select/def";
 import { StatDef } from "../uicast-catalog/stat/def";
 import { SwitchDef } from "../uicast-catalog/switch/def";
@@ -38,10 +38,12 @@ export {
   ButtonDef,
   CardDef,
   CheckboxDef,
-  DescriptionListDef,
   EmptyStateDef,
+  FieldDef,
+  FieldLabelDef,
   FlexColDef,
   FlexRowDef,
+  FormDef,
   GridDef,
   HeadingDef,
   InputDef,
@@ -49,8 +51,6 @@ export {
   ModalDef,
   NumberInputDef,
   PaginationDef,
-  PieChartDef,
-  SearchInputDef,
   SelectDef,
   StatDef,
   SwitchDef,
@@ -70,10 +70,12 @@ export const defs: ComponentDefinition[] = [
   ButtonDef,
   CardDef,
   CheckboxDef,
-  DescriptionListDef,
   EmptyStateDef,
+  FieldDef,
+  FieldLabelDef,
   FlexColDef,
   FlexRowDef,
+  FormDef,
   GridDef,
   HeadingDef,
   InputDef,
@@ -81,8 +83,6 @@ export const defs: ComponentDefinition[] = [
   ModalDef,
   NumberInputDef,
   PaginationDef,
-  PieChartDef,
-  SearchInputDef,
   SelectDef,
   StatDef,
   SwitchDef,

@@ -7,10 +7,12 @@ import { BarChartImpl } from "../uicast-catalog/bar-chart/impl";
 import { ButtonImpl } from "../uicast-catalog/button/impl";
 import { CardImpl } from "../uicast-catalog/card/impl";
 import { CheckboxImpl } from "../uicast-catalog/checkbox/impl";
-import { DescriptionListImpl } from "../uicast-catalog/description-list/impl";
 import { EmptyStateImpl } from "../uicast-catalog/empty-state/impl";
+import { FieldImpl } from "../uicast-catalog/field/impl";
+import { FieldLabelImpl } from "../uicast-catalog/field-label/impl";
 import { FlexColImpl } from "../uicast-catalog/flex-col/impl";
 import { FlexRowImpl } from "../uicast-catalog/flex-row/impl";
+import { FormImpl } from "../uicast-catalog/form/impl";
 import { GridImpl } from "../uicast-catalog/grid/impl";
 import { HeadingImpl } from "../uicast-catalog/heading/impl";
 import { InputImpl } from "../uicast-catalog/input/impl";
@@ -18,8 +20,6 @@ import { LineChartImpl } from "../uicast-catalog/line-chart/impl";
 import { ModalImpl } from "../uicast-catalog/modal/impl";
 import { NumberInputImpl } from "../uicast-catalog/number-input/impl";
 import { PaginationImpl } from "../uicast-catalog/pagination/impl";
-import { PieChartImpl } from "../uicast-catalog/pie-chart/impl";
-import { SearchInputImpl } from "../uicast-catalog/search-input/impl";
 import { SelectImpl } from "../uicast-catalog/select/impl";
 import { StatImpl } from "../uicast-catalog/stat/impl";
 import { SwitchImpl } from "../uicast-catalog/switch/impl";
@@ -38,10 +38,12 @@ export {
   ButtonImpl,
   CardImpl,
   CheckboxImpl,
-  DescriptionListImpl,
   EmptyStateImpl,
+  FieldImpl,
+  FieldLabelImpl,
   FlexColImpl,
   FlexRowImpl,
+  FormImpl,
   GridImpl,
   HeadingImpl,
   InputImpl,
@@ -49,8 +51,6 @@ export {
   ModalImpl,
   NumberInputImpl,
   PaginationImpl,
-  PieChartImpl,
-  SearchInputImpl,
   SelectImpl,
   StatImpl,
   SwitchImpl,
@@ -70,10 +70,12 @@ export const impls: ComponentImplementation[] = [
   ButtonImpl,
   CardImpl,
   CheckboxImpl,
-  DescriptionListImpl,
   EmptyStateImpl,
+  FieldImpl,
+  FieldLabelImpl,
   FlexColImpl,
   FlexRowImpl,
+  FormImpl,
   GridImpl,
   HeadingImpl,
   InputImpl,
@@ -81,8 +83,6 @@ export const impls: ComponentImplementation[] = [
   ModalImpl,
   NumberInputImpl,
   PaginationImpl,
-  PieChartImpl,
-  SearchInputImpl,
   SelectImpl,
   StatImpl,
   SwitchImpl,

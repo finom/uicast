@@ -279,7 +279,7 @@ const inventoryEntries: ComponentEntry[] = [
   {
     key: "rcv-save",
     component: "Button",
-    props: { expr: "({ text: 'Receive ' + scopes.root.rcvQty + ' units' })" },
+    props: { expr: "({ text: 'Receive ' + (scopes.root.rcvQty ?? 0) + ' units', disabled: !scopes.root.rcvQty })" },
     callbacks: {
       onClick: [
         { expr: "createStockMovement({ productId: Number(scopes.root.rcvProductId), qty: scopes.root.rcvQty, reason: 'received', note: scopes.root.rcvNote })" },
@@ -877,7 +877,7 @@ const receiveCardFence = j([
   { key: "rcv-qty-field", component: "Field", children: ["rcv-label", "rcv-qty"] },
   { key: "rcv-label", component: "FieldLabel", props: { literal: { text: "Units received" } } },
   { key: "rcv-qty", component: "NumberInput", props: { expr: "({ value: scopes.root.shelfQty, min: 1, step: 1 })" }, callbacks: { onChange: [{ set: "scopes.root.shelfQty", expr: "evt.value" }] } },
-  { key: "rcv-go", component: "Button", props: { expr: "({ text: 'Receive ' + scopes.root.shelfQty + ' units' })" }, callbacks: { onClick: [
+  { key: "rcv-go", component: "Button", props: { expr: "({ text: 'Receive ' + (scopes.root.shelfQty ?? 0) + ' units', disabled: !scopes.root.shelfQty })" }, callbacks: { onClick: [
     { expr: "createStockMovement({ productId: scopes.root.shelf.items[0]?.id ?? 0, qty: scopes.root.shelfQty, reason: 'received', note: 'PO from chat' })" },
     { set: "scopes.root.shelf", expr: "listProducts({ q: 'SKU-SHLF-12', limit: 1 })" },
   ] } },
