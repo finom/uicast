@@ -15,7 +15,7 @@ Here are your open orders:
 ````
 
 ```sh
-npm install @uicast/streamdown@beta streamdown
+npm install @uicast/streamdown streamdown
 ```
 
 Needs Streamdown 2.5 and React 19.2.

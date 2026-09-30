@@ -6,7 +6,7 @@
 Renders **uicast** documents in React, with your component implementations.
 
 ```sh
-npm install @uicast/react@beta @uicast/core@beta @uicast/expr@beta
+npm install @uicast/react @uicast/core @uicast/expr
 ```
 
 Needs React 19.2.

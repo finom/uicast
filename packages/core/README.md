@@ -6,7 +6,7 @@
 The engine of **uicast**, without React: component definitions, the entry format, reactive scopes, error classification and the prompt builders. [`@uicast/react`](https://www.npmjs.com/package/@uicast/react) renders on top of it.
 
 ```sh
-npm install @uicast/core@beta @uicast/expr@beta
+npm install @uicast/core @uicast/expr
 ```
 
 ## Define a component

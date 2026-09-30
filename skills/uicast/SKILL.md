@@ -14,10 +14,10 @@ Model streams JSONL **entries**; each names a component you register; **uicast**
 ## Install
 
 ```bash
-npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
+npm install @uicast/expr @uicast/core @uicast/react @uicast/shadcn-catalog standard-tool zod
 ```
 
-Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown@beta streamdown`. React 19.2. Packages are beta: `@beta` tag.
+Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown streamdown`. React 19.2.
 
 | Package | Role |
 | --- | --- |

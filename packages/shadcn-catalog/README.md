@@ -6,7 +6,7 @@
 A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
 
 ```sh
-npm install @uicast/shadcn-catalog@beta @uicast/core@beta @uicast/react@beta @uicast/expr@beta
+npm install @uicast/shadcn-catalog @uicast/core @uicast/react @uicast/expr
 ```
 
 Needs React 19.2.

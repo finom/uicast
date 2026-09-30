@@ -154,10 +154,10 @@ See the [security model](https://uicast.dev/security) and [SECURITY.md](SECURITY
 ## Install
 
 ```sh
-npm install @uicast/expr@beta @uicast/core@beta @uicast/react@beta @uicast/shadcn-catalog@beta standard-tool zod
+npm install @uicast/expr @uicast/core @uicast/react @uicast/shadcn-catalog standard-tool zod
 ```
 
-The packages are beta, under the `beta` dist-tag. `@uicast/react` needs React 19.2.
+`@uicast/react` needs React 19.2.
 
 Or start from a Next.js app with all of it wired:
 
