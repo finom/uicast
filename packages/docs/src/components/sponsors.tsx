@@ -4,12 +4,13 @@ import Image from "next/image";
 export function Sponsors() {
   return (
     <div className="mb-12 flex flex-col items-center gap-4">
-      <p className="text-lg font-medium text-muted-foreground">Sponsors</p>
+      <p className="text-base font-medium text-muted-foreground">Sponsors</p>
       <a
         href="https://www.starlingmx.com/"
         target="_blank"
         rel="noreferrer"
-        className="rounded-xl border bg-card px-6 py-4 transition-colors hover:bg-accent"
+        // The bird's legs hang below the wordmark; the uneven padding centers the wordmark.
+        className="rounded-xl border bg-card px-6 pt-5 pb-3 transition-colors hover:bg-accent"
       >
         <Image
           src="/sponsors/starling-mx.png"
