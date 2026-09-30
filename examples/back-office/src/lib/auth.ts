@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { randomBytes, randomInt } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { db } from "@/db";
