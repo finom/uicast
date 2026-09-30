@@ -15,12 +15,23 @@ export const FieldImpl = createComponentImplementation({
     const invalid = !!error;
     const labelId = useId();
     const errorId = useId();
-    // The control is another entry's element, so the flag and the message link go on through the DOM.
+    // The control and the description are other entries' elements and can stream in after the Field,
+    // so the flag and the links go on through the DOM, again on every change inside the Field.
     useEffect(() => {
-      const control = invalid ? node?.querySelector(REACHABLE) : null;
-      control?.setAttribute("aria-invalid", "true");
-      control?.setAttribute("aria-describedby", errorId);
+      if (!node) return;
+      let control: Element | null = null;
+      const link = () => {
+        control = node.querySelector(REACHABLE);
+        const description = node.querySelector("[data-slot=field-description]")?.id;
+        const describedBy = [description, invalid && errorId].filter(Boolean).join(" ");
+        if (invalid) control?.setAttribute("aria-invalid", "true");
+        if (describedBy) control?.setAttribute("aria-describedby", describedBy);
+      };
+      link();
+      const observer = new MutationObserver(link);
+      observer.observe(node, { childList: true, subtree: true });
       return () => {
+        observer.disconnect();
         control?.removeAttribute("aria-invalid");
         control?.removeAttribute("aria-describedby");
       };

@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `LocationMap` pans with the arrow keys and zooms with + and - once it has focus.
 - `ProgressBar.label`: what the bar measures, shown above it. The bar takes it as its accessible name, or the `Field`'s label inside a `Field`.
 - Tab reaches a `Card`, `Avatar`, `Badge` or `TableRow` with an `onClick`, a `DataGrid` row with `onRowClick`, a `VirtualList` or `Timeline` item with `onItemClick`, and a `TreeView` row with `onSelect`. Enter or Space clicks it.
 - `@uicast/shadcn-catalog/ui/kanban`: Kibo UI's Kanban (MIT), which `KanbanBoard` renders. It adds the `tunnel-rat` dependency.
@@ -78,6 +79,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Fixed
 
+- `Field` links its `FieldDescription` to the control, so a screen reader reads the hint with it, also when either streams in after the Field.
+- `KanbanBoard` names the column a card is dragged over. Over another card it said "undefined".
+- `Spinner` is a status region; without a `label` it reads "Loading".
+- `NotificationBadge`'s dot carries its count for screen readers.
+- `ScrollArea` takes focus, so the arrow keys scroll it.
+- `DiffViewer`'s split view marks added and removed lines with + and -, as the unified view does.
+- `Heatmap` keeps a hidden value in its cell, for screen readers and on hover.
+- `Rating` reads the stars up to its value as pressed.
+- `TreemapChart` shows each tile's value under its name when the tile has room. It showed only on hover.
 - `ProgressBar` gives screen readers its value. shadcn's `Progress` used it only to draw the bar.
 - `Slider`'s thumb takes the `Field`'s label as its name. A range keeps Radix's own "Minimum" and "Maximum".
 - Accessible names. A `FieldLabel` names its control (`aria-labelledby`), and a failing field's message describes it (`aria-describedby`). Icon-only buttons have labels: the SearchInput clear, CodeBlock copy, Toast close, Alert dismiss, Badge remove and DropdownMenu trigger buttons, the Pagination arrows and the Sidebar toggle. The current page in Pagination and Sidebar and the current Stepper step carry `aria-current`. Each chart is named by its type, and GaugeChart and Sparkline read out their values.

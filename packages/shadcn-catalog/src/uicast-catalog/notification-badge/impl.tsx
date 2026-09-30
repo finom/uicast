@@ -19,7 +19,9 @@ export const NotificationBadgeImpl = createComponentImplementation({
               "absolute -top-1 -right-1 z-10 size-2.5 rounded-full ring-2 ring-background",
               DOT_COLORS[variant],
             )}
-          />
+          >
+            <span className="sr-only">{count > max ? `${max}+` : count}</span>
+          </span>
         ) : (
           <Badge
             variant={variant}

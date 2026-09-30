@@ -58,13 +58,14 @@ export const HeatmapImpl = createComponentImplementation({
                     <td
                       key={col}
                       className="p-2 text-center text-xs border"
+                      title={showValues ? undefined : String(val)}
                       style={{
                         backgroundColor: bg,
                         color: t > 0.5 ? "#fff" : "#000",
                         minWidth: 40,
                       }}
                     >
-                      {showValues ? val : ""}
+                      {showValues ? val : <span className="sr-only">{val}</span>}
                     </td>
                   );
                 })}

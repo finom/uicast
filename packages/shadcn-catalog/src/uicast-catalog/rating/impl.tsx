@@ -24,6 +24,7 @@ export const RatingImpl = createComponentImplementation({
           )}
           disabled={disabled}
           aria-label={`${i + 1} of ${max} stars`}
+          aria-pressed={i < value}
           onClick={() => onChange({ value: i + 1 })}
         >
           <Star

@@ -26,6 +26,14 @@ const FIT_PADDING = { x: 40, top: 56, bottom: 8 };
 
 type View = { center: { lat: number; lng: number }; zoom: number };
 
+const PAN_STEP = 64;
+const PAN_KEYS: Record<string, [number, number]> = {
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0],
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+};
+
 // Pins, the zoom buttons and the credit link take their own clicks; the rest of the box pans and zooms.
 const onControl = (target: EventTarget) => (target as Element).closest("button, a") !== null;
 
@@ -56,11 +64,27 @@ export const LocationMapImpl = createComponentImplementation({
     return (
       <TooltipProvider>
         <div
-          role="group"
+          // An application: a screen reader passes the arrow keys through to the map.
+          role="application"
           aria-label="Map"
-          className="relative max-w-full cursor-grab touch-none overflow-hidden rounded-lg border bg-muted select-none active:cursor-grabbing"
+          className="relative max-w-full cursor-grab touch-none overflow-hidden rounded-lg border bg-muted outline-none select-none focus-visible:ring-[3px] focus-visible:ring-ring/50 active:cursor-grabbing"
           style={{ width, height }}
           data-key={entry.key}
+          // Arrow keys pan, + and - zoom; keys from a pin or a zoom button pass by.
+          // biome-ignore lint/a11y/noNoninteractiveTabindex: the key handler below makes it interactive.
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.target !== e.currentTarget) return;
+            const pan = PAN_KEYS[e.key];
+            if (pan) {
+              const at = project(view.center, view.zoom);
+              const to = { x: at.x + pan[0] * PAN_STEP, y: at.y + pan[1] * PAN_STEP };
+              moveTo({ center: unproject(to, view.zoom), zoom: view.zoom });
+            } else if (e.key === "+" || e.key === "=") zoomBy(1);
+            else if (e.key === "-") zoomBy(-1);
+            else return;
+            e.preventDefault();
+          }}
           onPointerDown={(e) => {
             if (onControl(e.target)) return;
             e.currentTarget.setPointerCapture(e.pointerId);

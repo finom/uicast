@@ -1,4 +1,13 @@
-import { closestCorners, type DragEndEvent, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import {
+  type Announcements,
+  closestCorners,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  type UniqueIdentifier,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { createComponentImplementation } from "@uicast/react";
 import { useMemo, useRef } from "react";
@@ -39,6 +48,21 @@ export const KanbanBoardImpl = createComponentImplementation({
       useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
     );
 
+    // Kibo's own announcements name a column only when the drag is over the column itself, and say "undefined" over a card.
+    const nameOf = (id: UniqueIdentifier) => items.find((item) => item.id === id)?.name;
+    const columnOf = (id: UniqueIdentifier) =>
+      board.find((column) => column.id === id || column.cards.some((card) => card.id === id))?.title;
+    const announcements: Announcements = {
+      onDragStart: ({ active }) => `Picked up the card "${nameOf(active.id)}" from the "${columnOf(active.id)}" column`,
+      onDragOver: ({ active, over }) =>
+        over ? `Dragged the card "${nameOf(active.id)}" over the "${columnOf(over.id)}" column` : undefined,
+      onDragEnd: ({ active, over }) =>
+        over
+          ? `Dropped the card "${nameOf(active.id)}" into the "${columnOf(over.id)}" column`
+          : `Dropped the card "${nameOf(active.id)}"`,
+      onDragCancel: ({ active }) => `Cancelled dragging the card "${nameOf(active.id)}"`,
+    };
+
     const handleDragEnd = ({ active, over }: DragEndEvent) => {
       const start = origin.current;
       origin.current = null;
@@ -70,6 +94,7 @@ export const KanbanBoardImpl = createComponentImplementation({
           columns={board.map((column) => ({ id: column.id, name: column.title, count: column.cards.length }))}
           data={items}
           sensors={sensors}
+          accessibility={{ announcements }}
           // Kibo's closestCenter often picks the whole column over a card in it, so a card lands at the column's end.
           collisionDetection={closestCorners}
           // Columns keep 12rem and narrow boards scroll; the padding keeps the drop ring inside the clipping viewport.

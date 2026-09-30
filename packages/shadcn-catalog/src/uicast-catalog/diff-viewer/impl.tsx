@@ -47,6 +47,7 @@ const Side = ({ title, rows, side }: { title: string; rows: Row[]; side: "old" |
         <span className="inline-block w-8 text-muted-foreground text-right mr-2 select-none text-xs">
           {side === "old" ? row.oldLineNum : row.newLineNum}
         </span>
+        <span className="inline-block w-4 text-muted-foreground select-none">{MARKERS[row.type]}</span>
         {row.line}
       </div>
     ))}
