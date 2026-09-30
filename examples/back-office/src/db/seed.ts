@@ -112,8 +112,7 @@ async function updateSeedContent(userId: string): Promise<void> {
           or(eq(pages.seedId, page.seedId), and(isNull(pages.seedId), eq(pages.title, page.title))),
         ),
       );
-    const usage = page.usage ?? { inputTokens: 0, outputTokens: 0, costUsd: 0, model: null };
-    const values = { userId, seedId: page.seedId, title: page.title, prompt: page.prompt, ...usage };
+    const values = { userId, seedId: page.seedId, title: page.title, prompt: page.prompt, ...page.usage };
     const [row] = existing
       ? await db.update(pages).set(values).where(eq(pages.id, existing.id)).returning()
       : await db.insert(pages).values(values).returning();

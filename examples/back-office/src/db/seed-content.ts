@@ -777,8 +777,8 @@ const customersEntries: ComponentEntry[] = [
   },
 ];
 
-// `seedId` is the page's URL id; `prompt` and `usage` are null for a page written by hand.
-export const SEED_PAGES: { seedId: string; title: string; prompt: string | null; entries: ComponentEntry[]; usage: SeedUsage | null }[] = [
+// `seedId` is the page's URL id; `prompt` is null for a page written by hand.
+export const SEED_PAGES: { seedId: string; title: string; prompt: string | null; entries: ComponentEntry[]; usage: SeedUsage }[] = [
   {
     seedId: "seed-page-inventory",
     title: "Inventory & restock",
@@ -814,7 +814,7 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   {
     seedId: "seed-page-slow",
     title: "Slow seeds",
-    usage: null,
+    usage: run(36200, 1800),
     prompt: null,
     entries: slowSeedsEntries,
   },
