@@ -9,6 +9,12 @@ export const metadata: Metadata = {
   // The image is each page's own, from the MDX wrapper.
   openGraph: { siteName: "uicast", type: "website" },
   twitter: { card: "summary_large_image" },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml", media: "(prefers-color-scheme: light)" },
+      { url: "/favicon-dark.svg", type: "image/svg+xml", media: "(prefers-color-scheme: dark)" },
+    ],
+  },
 };
 
 // suppressHydrationWarning lets next-themes set the `class` on <html>. Nextra's <Head> injects the CSS vars its chrome
