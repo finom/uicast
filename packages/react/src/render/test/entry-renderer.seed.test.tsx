@@ -60,7 +60,7 @@ describe("EntryRenderer — seed", () => {
     expect(count).toBe(1);
 
     act(() => {
-      scopes.root.$$set("other", "force-rerender");
+      scopes.root.$set("other", "force-rerender");
     });
     expect(count).toBe(1);
     expect(container.textContent).toContain("1");

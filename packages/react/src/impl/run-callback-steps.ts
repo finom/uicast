@@ -101,7 +101,7 @@ async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, el
     settled.forEach((result, i) => {
       if (result.status === "fulfilled") {
         const { write } = evaluated[i];
-        if (write) write.scope.$$set(write.field, result.value);
+        if (write) write.scope.$set(write.field, result.value);
       } else if (firstError === null) {
         firstError = result.reason;
       }

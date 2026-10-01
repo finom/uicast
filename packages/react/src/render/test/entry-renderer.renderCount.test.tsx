@@ -193,7 +193,7 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
     expect(counts.rows).toBe(2);
 
     act(() => {
-      scopes.root.$$set("suffix", "!");
+      scopes.root.$set("suffix", "!");
     });
     expect(counts.rows).toBe(4);
     expect(eachEvals.count).toBe(1);
@@ -205,7 +205,7 @@ describe("EntryRenderer — list container vs item subscriptions", () => {
     expect(counts.rows).toBe(2);
 
     act(() => {
-      scopes.root.$$set("items", [{ label: "c" }, { label: "d" }]);
+      scopes.root.$set("items", [{ label: "c" }, { label: "d" }]);
     });
     expect(container.textContent).toContain("c");
     expect(container.textContent).toContain("d");
@@ -240,7 +240,7 @@ describe("EntryRenderer — props memo", () => {
     });
     expect(counts.rows).toBe(200);
     act(() => {
-      scopes.root.$$set("expanded", { 7: true });
+      scopes.root.$set("expanded", { 7: true });
     });
     expect(container.querySelectorAll("div").length).toBe(201);
     expect(container.textContent).toContain("open");

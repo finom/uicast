@@ -10,10 +10,10 @@ describe("createProxyScope — reads", () => {
     expect(Object.isFrozen(state.user)).toBe(false);
   });
 
-  it("exposes $$emitter and $$set", () => {
+  it("exposes $emitter and $set", () => {
     const state = createProxyScope({});
-    expect(typeof state.$$emitter).toBe("object");
-    expect(typeof state.$$set).toBe("function");
+    expect(typeof state.$emitter).toBe("object");
+    expect(typeof state.$set).toBe("function");
   });
 });
 
@@ -21,7 +21,7 @@ describe("createProxyScope — writes", () => {
   it("emits the field on assignment", () => {
     const state = createProxyScope<{ count: number }>({ count: 0 });
     const spy = vi.fn();
-    state.$$emitter.on("count", spy);
+    state.$emitter.on("count", spy);
     state.count = 1;
     expect(spy).toHaveBeenCalledTimes(1);
   });
@@ -29,7 +29,7 @@ describe("createProxyScope — writes", () => {
   it("a nested assignment is a plain write: nothing emits", () => {
     const state = createProxyScope<{ user: { name: string } }>({ user: { name: "Ada" } });
     const spy = vi.fn();
-    state.$$emitter.on("user", spy);
+    state.$emitter.on("user", spy);
     state.user.name = "Hopper";
     expect(state.user.name).toBe("Hopper");
     expect(spy).not.toHaveBeenCalled();
@@ -39,7 +39,7 @@ describe("createProxyScope — writes", () => {
   it("does not emit a same-value write", () => {
     const state = createProxyScope<{ count: number }>({ count: 5 });
     const spy = vi.fn();
-    state.$$emitter.on("count", spy);
+    state.$emitter.on("count", spy);
     state.count = 5;
     expect(spy).not.toHaveBeenCalled();
     expect(countEmits(state)).toBe(0);
@@ -49,28 +49,28 @@ describe("createProxyScope — writes", () => {
     const state = createProxyScope<{ products: unknown[]; orders: unknown[] }>({ products: [], orders: [] });
     const products = vi.fn();
     const orders = vi.fn();
-    state.$$emitter.on("products", products);
-    state.$$emitter.on("orders", orders);
-    state.$$set("products", [1]);
+    state.$emitter.on("products", products);
+    state.$emitter.on("orders", orders);
+    state.$set("products", [1]);
     expect(products).toHaveBeenCalledOnce();
     expect(orders).not.toHaveBeenCalled();
   });
 
-  it("$$set with { default: true } writes only while the field is undefined", () => {
+  it("$set with { default: true } writes only while the field is undefined", () => {
     const state = createProxyScope<{ count?: number; x: null | number }>({ x: null });
-    state.$$set("count", 1, { default: true });
-    state.$$set("count", 99, { default: true });
+    state.$set("count", 1, { default: true });
+    state.$set("count", 99, { default: true });
     expect(state.count).toBe(1);
-    state.$$set("x", 5, { default: true });
+    state.$set("x", 5, { default: true });
     expect(state.x).toBeNull();
-    state.$$set("count", 99);
+    state.$set("count", 99);
     expect(state.count).toBe(99);
   });
 
-  it("$$set refuses a dotted field and a prototype key", () => {
+  it("$set refuses a dotted field and a prototype key", () => {
     const state = createProxyScope<Record<string, unknown>>({});
-    expect(() => state.$$set("a.b", 1)).toThrow(/has no dots/);
-    expect(() => state.$$set("__proto__", {})).toThrow(/prototype chain/);
+    expect(() => state.$set("a.b", 1)).toThrow(/has no dots/);
+    expect(() => state.$set("__proto__", {})).toThrow(/prototype chain/);
     expect(Object.getPrototypeOf(state)).toBe(Object.prototype);
   });
 
@@ -108,8 +108,8 @@ describe("createRowScope", () => {
   });
 
   it("a primitive or array element has no writable fields", () => {
-    expect(() => row("blue").proxy.$$set("x", 1)).toThrow(/holds a string/);
-    expect(() => row([1]).proxy.$$set("x", 1)).toThrow(/holds an array/);
+    expect(() => row("blue").proxy.$set("x", 1)).toThrow(/holds a string/);
+    expect(() => row([1]).proxy.$set("x", 1)).toThrow(/holds an array/);
   });
 
   it("a write puts a copy in a new source array, changes nothing in place, and emits", () => {
@@ -117,9 +117,9 @@ describe("createRowScope", () => {
     const scope = row(element);
     const rows = scope.root.rows;
     const spy = vi.fn();
-    scope.proxy.$$emitter.on("qty", () => spy("qty"));
-    scope.root.$$emitter.on("rows", () => spy("rows"));
-    scope.proxy.$$set("qty", 2);
+    scope.proxy.$emitter.on("qty", () => spy("qty"));
+    scope.root.$emitter.on("rows", () => spy("rows"));
+    scope.proxy.$set("qty", 2);
     expect(element.qty).toBe(1);
     expect(rows).toEqual([{ qty: 1 }]);
     expect(scope.root.rows).toEqual([{ qty: 2 }]);
@@ -131,7 +131,7 @@ describe("createRowScope", () => {
 
   it("the row's own write already moved it; a new item from elsewhere moves it", () => {
     const scope = row({ qty: 1 });
-    scope.proxy.$$set("qty", 2);
+    scope.proxy.$set("qty", 2);
     expect(scope.retarget((scope.root.rows as unknown[])[0])).toBe(false);
     expect(scope.retarget({ qty: 9 })).toBe(true);
     expect(scope.proxy.qty).toBe(9);
@@ -140,7 +140,7 @@ describe("createRowScope", () => {
   it("a frozen item is copied, never changed", () => {
     const element = Object.freeze({ qty: 1 });
     const scope = row(element);
-    scope.proxy.$$set("qty", 2);
+    scope.proxy.$set("qty", 2);
     expect(scope.root.rows).toEqual([{ qty: 2 }]);
     expect(element.qty).toBe(1);
   });
@@ -157,10 +157,10 @@ describe("createRowScope", () => {
     line.retarget(lineElement);
     line.see({ root, order: order.proxy }, ["scopes.order.lines"]);
     const spy = vi.fn();
-    root.$$emitter.on("orders", () => spy("orders"));
-    order.proxy.$$emitter.on("lines", () => spy("lines"));
+    root.$emitter.on("orders", () => spy("orders"));
+    order.proxy.$emitter.on("lines", () => spy("lines"));
 
-    line.proxy.$$set("qty", 2);
+    line.proxy.$set("qty", 2);
     expect(root.orders).toEqual([{ id: "A", lines: [{ qty: 2 }, { qty: 5 }] }, other]);
     expect((root.orders as unknown[])[1]).toBe(other);
     expect(orderElement.lines[0]).toBe(lineElement);
@@ -185,7 +185,7 @@ describe("createRowScope", () => {
       const scope = createRowScope();
       scope.retarget(element);
       scope.see({ root }, [read]);
-      scope.proxy.$$set("n", 2);
+      scope.proxy.$set("n", 2);
       expect(JSON.stringify(pick(root)), read).toContain('"n":2');
       expect(element.n).toBe(1);
     }
@@ -197,7 +197,7 @@ describe("createRowScope", () => {
     const found = createRowScope();
     found.retarget(element);
     found.see({ root: deep }, ["scopes.root.a"]);
-    found.proxy.$$set("n", 2);
+    found.proxy.$set("n", 2);
     expect(JSON.stringify(deep.a)).toBe('{"b":{"c":{"d":{"e":[{"n":2}]}}}}');
 
     const loop: Record<string, unknown> = { rows: [] };
@@ -205,7 +205,7 @@ describe("createRowScope", () => {
     const cyclic = createRowScope();
     cyclic.retarget({ n: 1 });
     cyclic.see({ root: createProxyScope({ loop }) }, ["scopes.root.loop"]);
-    expect(() => cyclic.proxy.$$set("n", 2)).toThrow(/built a new object/);
+    expect(() => cyclic.proxy.$set("n", 2)).toThrow(/built a new object/);
   });
 
   it("skips what `each` reads that does not hold the item", () => {
@@ -214,7 +214,7 @@ describe("createRowScope", () => {
     const scope = createRowScope();
     scope.retarget(element);
     scope.see({ root }, ["scopes.root.q", "scopes.nope.rows", "scopes.root", "scopes.root.rows"]);
-    scope.proxy.$$set("n", 2);
+    scope.proxy.$set("n", 2);
     expect(root.q).toBe("x");
     expect(root.rows).toEqual([{ n: 2 }]);
   });
@@ -223,12 +223,12 @@ describe("createRowScope", () => {
     const orphan = createRowScope();
     orphan.retarget({ qty: 1 });
     orphan.see({ root: createProxyScope({ rows: [{ qty: 1 }] }) }, ["scopes.root.rows"]);
-    expect(() => orphan.proxy.$$set("qty", 2)).toThrow(/built a new object/);
+    expect(() => orphan.proxy.$set("qty", 2)).toThrow(/built a new object/);
 
     const dropped = row({ qty: 1 });
     dropped.detach();
     try {
-      dropped.proxy.$$set("qty", 2);
+      dropped.proxy.$set("qty", 2);
       expect.unreachable();
     } catch (err) {
       expect(EntryError.is(err) && err.reason).toBe("unknown-reference");
@@ -238,8 +238,8 @@ describe("createRowScope", () => {
 
   it("two writes in a row build on each other", () => {
     const scope = row({ a: 1, b: 1 });
-    scope.proxy.$$set("a", 2);
-    scope.proxy.$$set("b", 2);
+    scope.proxy.$set("a", 2);
+    scope.proxy.$set("b", 2);
     expect(scope.root.rows).toEqual([{ a: 2, b: 2 }]);
   });
 
@@ -249,14 +249,14 @@ describe("createRowScope", () => {
     const scope = createRowScope();
     scope.retarget(element);
     scope.see({ root }, ["scopes.root.rows"]);
-    scope.proxy.$$set("n", 2);
+    scope.proxy.$set("n", 2);
     expect(root.rows).toEqual([{ n: 2 }, { n: 2 }]);
   });
 
   it("retarget is silent", () => {
     const scope = row({ qty: 1 });
     const spy = vi.fn();
-    scope.proxy.$$emitter.on("*", spy);
+    scope.proxy.$emitter.on("*", spy);
     scope.retarget({ qty: 9 });
     expect(scope.proxy.qty).toBe(9);
     expect(spy).not.toHaveBeenCalled();
@@ -264,8 +264,8 @@ describe("createRowScope", () => {
 
   it("refuses prototype keys; every other name is the element's", () => {
     const { proxy } = row({});
-    expect(() => proxy.$$set("__proto__", {})).toThrow(/prototype chain/);
-    proxy.$$set("index", 1);
+    expect(() => proxy.$set("__proto__", {})).toThrow(/prototype chain/);
+    proxy.$set("index", 1);
     expect(proxy.index).toBe(1);
   });
 
@@ -297,7 +297,7 @@ describe("createRowState", () => {
   it("keeps the runtime's fields out of a copy", () => {
     const { proxy } = state({}, 1, 7);
     expect({ ...proxy }).toEqual({});
-    proxy.$$set("open", true);
+    proxy.$set("open", true);
     expect({ ...proxy }).toEqual({ open: true });
     expect(Object.hasOwn(proxy, "id")).toBe(true);
     expect(Object.getOwnPropertyDescriptor(proxy, "id")).toMatchObject({ writable: false, enumerable: false });
@@ -306,40 +306,40 @@ describe("createRowState", () => {
   it("writes its own fields and emits them, and refuses the runtime's", () => {
     const { proxy } = state({});
     const spy = vi.fn();
-    proxy.$$emitter.on("open", spy);
-    proxy.$$set("open", true);
-    proxy.$$set("open", false, { default: true });
+    proxy.$emitter.on("open", spy);
+    proxy.$set("open", true);
+    proxy.$set("open", false, { default: true });
     expect(proxy.open).toBe(true);
     proxy.open = false;
     expect(spy).toHaveBeenCalledTimes(2);
     for (const field of ["index", "id", "value"]) {
       try {
-        proxy.$$set(field, 1);
+        proxy.$set(field, 1);
         expect.unreachable();
       } catch (err) {
         expect(EntryError.is(err) && err.reason).toBe("guardrail-violation");
       }
     }
-    expect(() => proxy.$$set("__proto__", {})).toThrow(/prototype chain/);
+    expect(() => proxy.$set("__proto__", {})).toThrow(/prototype chain/);
   });
 
   it("retarget is silent", () => {
     const scope = state({}, 0);
     const spy = vi.fn();
-    scope.proxy.$$emitter.on("*", spy);
+    scope.proxy.$emitter.on("*", spy);
     scope.retarget({}, 4, "b");
     expect(scope.proxy.index).toBe(4);
     expect(spy).not.toHaveBeenCalled();
   });
 });
 
-describe("createProxyScope — $$emitter", () => {
+describe("createProxyScope — $emitter", () => {
   it("calls a field's handlers and every '*' handler", () => {
     const scope = createProxyScope<Record<string, unknown>>({});
     const a = vi.fn();
     const any = vi.fn();
-    scope.$$emitter.on("foo", a);
-    scope.$$emitter.on("*", any);
+    scope.$emitter.on("foo", a);
+    scope.$emitter.on("*", any);
     scope.foo = 1;
     scope.bar = 1;
     expect(a).toHaveBeenCalledTimes(1);
@@ -349,7 +349,7 @@ describe("createProxyScope — $$emitter", () => {
   it("on() returns an unsubscribe function", () => {
     const scope = createProxyScope<Record<string, unknown>>({});
     const spy = vi.fn();
-    scope.$$emitter.on("foo", spy)();
+    scope.$emitter.on("foo", spy)();
     scope.foo = 1;
     expect(spy).not.toHaveBeenCalled();
   });

@@ -22,11 +22,11 @@ runtime's own ([below](#item-scopes)).
 ```ts
 const root = createProxyScope<{ count: number; user?: { name: string } }>({ count: 0 });
 
-root.$$emitter.on("user", () => { /* … */ });   // subscribe to a field
+root.$emitter.on("user", () => { /* … */ });   // subscribe to a field
 
 root.count = 1;                             // write — emits "count"
-root.$$set("user", { name: "Ada" });         // the same, as a call
-root.$$set("count", 0, { default: true });   // no-op — writes only if unset
+root.$set("user", { name: "Ada" });         // the same, as a call
+root.$set("count", 0, { default: true });   // no-op — writes only if unset
 root.user.name = "Hopper";                  // ⚠️ a plain write into plain data — nobody hears it
 ```
 

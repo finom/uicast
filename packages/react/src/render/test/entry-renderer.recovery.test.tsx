@@ -180,7 +180,7 @@ describe("EntryRenderer — error recovery via re-emission", () => {
     expect(container.textContent).toContain("x=seeded");
 
     act(() => {
-      scopes.root.$$set("x", "changed");
+      scopes.root.$set("x", "changed");
     });
     expect(container.textContent).toContain("x=changed");
 

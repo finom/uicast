@@ -37,24 +37,24 @@ function createEmitter(): Emitter {
 type SetOptions = { default?: boolean };
 
 /**
- * A scope: its fields as plain properties, plus `$$emitter` and `$$set`. A write to a field emits it; a write inside
+ * A scope: its fields as plain properties, plus `$emitter` and `$set`. A write to a field emits it; a write inside
  * a field's value changes plain data and emits nothing.
  *
  * @example
  * const root: ReactiveProxy = createProxyScope();
- * const off = root.$$emitter.on("user", () => console.log(root.user));
+ * const off = root.$emitter.on("user", () => console.log(root.user));
  */
 type ReactiveProxy<T extends object = Record<string, unknown>> = T & {
-  /** Field subscriptions, e.g. `scope.$$emitter.on("user", handler)`, which returns the unsubscribe function. */
-  $$emitter: Pick<Emitter, "on">;
+  /** Field subscriptions, e.g. `scope.$emitter.on("user", handler)`, which returns the unsubscribe function. */
+  $emitter: Pick<Emitter, "on">;
   /** Writes a field, like assignment. `{ default: true }` writes only while it is undefined (first writer wins). */
-  $$set: (field: string, value: unknown, options?: SetOptions) => void;
+  $set: (field: string, value: unknown, options?: SetOptions) => void;
 };
 
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object";
 
 // Every scope's emitter is `createEmitter`'s, so the count is there.
-const countEmits = (scope: ReactiveProxy): number => (scope.$$emitter as Emitter).emits;
+const countEmits = (scope: ReactiveProxy): number => (scope.$emitter as Emitter).emits;
 
 function assertField(field: string): void {
   if (PROTOTYPE_KEYS.has(field)) {
@@ -79,7 +79,7 @@ function assertField(field: string): void {
  *
  * @example
  * userCtx.plan = "free"; // emits "plan"
- * userCtx.$$set("plan", "pro", { default: true }); // no-op: "plan" is set
+ * userCtx.$set("plan", "pro", { default: true }); // no-op: "plan" is set
  */
 function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> {
   const emitter = createEmitter();
@@ -96,8 +96,8 @@ function createProxyScope<T extends object>(bag: T = {} as T): ReactiveProxy<T> 
 
   return new Proxy(bag, {
     get(target, prop, receiver) {
-      if (prop === "$$emitter") return emitter;
-      if (prop === "$$set") return write;
+      if (prop === "$emitter") return emitter;
+      if (prop === "$set") return write;
       return Reflect.get(target, prop, receiver);
     },
     set(target, prop, value) {
@@ -243,7 +243,7 @@ function createRowScope(): RowScope {
         { reason: "unknown-reference" },
       );
     }
-    for (const [scope, fields] of next) for (const [name, replaced] of fields) scope.$$set(name, replaced);
+    for (const [scope, fields] of next) for (const [name, replaced] of fields) scope.$set(name, replaced);
     element = copy;
     emitter.emit(field);
   };
@@ -252,8 +252,8 @@ function createRowScope(): RowScope {
     {},
     {
       get(_, prop) {
-        if (prop === "$$emitter") return emitter;
-        if (prop === "$$set") return write;
+        if (prop === "$emitter") return emitter;
+        if (prop === "$set") return write;
         if (typeof prop !== "string") return undefined;
         return isObject(element) ? element[prop] : undefined;
       },
@@ -311,12 +311,12 @@ function createRowState(): RowState {
     if (ROW_FIELDS.has(field)) {
       throw new EntryError(`Cannot set "${field}": the runtime owns it.`, { reason: "guardrail-violation" });
     }
-    scope.$$set(field, value, options);
+    scope.$set(field, value, options);
   };
 
   const proxy = new Proxy(scope, {
     get(target, prop, receiver) {
-      if (prop === "$$set") return write;
+      if (prop === "$set") return write;
       if (typeof prop === "string" && ROW_FIELDS.has(prop)) return runtime[prop];
       return Reflect.get(target, prop, receiver);
     },

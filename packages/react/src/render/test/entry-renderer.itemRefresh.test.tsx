@@ -35,7 +35,7 @@ describe("EntryRenderer — item proxy refresh", () => {
       expect(container.textContent).toContain("one");
 
       act(() => {
-        scopes.root.$$set("items", [
+        scopes.root.$set("items", [
           { id: 1, label: "one*" },
           { id: 2, label: "two" },
         ]);

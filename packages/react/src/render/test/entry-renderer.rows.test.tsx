@@ -231,7 +231,7 @@ describe("EntryRenderer — row windows", () => {
     });
     expect(container.textContent).toBe("Ada;");
     act(() => {
-      scopes.root.$$set("items", [{ id: 1, name: "Hopper" }]);
+      scopes.root.$set("items", [{ id: 1, name: "Hopper" }]);
     });
     expect(container.textContent).toBe("Hopper;");
   });
@@ -409,9 +409,9 @@ describe("EntryRenderer — row state", () => {
     await act(async () => {
       fireEvent.click(getByText("a"));
     });
-    act(() => scopes.root.$$set("q", "b"));
+    act(() => scopes.root.$set("q", "b"));
     expect(container.textContent).toBe("b");
-    act(() => scopes.root.$$set("q", ""));
+    act(() => scopes.root.$set("q", ""));
     expect(container.textContent).toBe("a openb");
   });
 
@@ -450,9 +450,9 @@ describe("EntryRenderer — row state", () => {
     });
     // B's line 1 has the same id in another order, so it stays closed.
     expect(container.textContent).toBe("A1+;A2;B1;");
-    act(() => scopes.root.$$set("hidden", "A"));
+    act(() => scopes.root.$set("hidden", "A"));
     expect(container.textContent).toBe("B1;");
-    act(() => scopes.root.$$set("hidden", null));
+    act(() => scopes.root.$set("hidden", null));
     expect(container.textContent).toBe("A1+;A2;B1;");
   });
 });

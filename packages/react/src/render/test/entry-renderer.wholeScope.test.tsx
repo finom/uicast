@@ -10,7 +10,7 @@ describe("EntryRenderer — whole-scope reads", () => {
     ];
     const { container, scopes } = mountEntries(lines, { rootScope: { a: 1 } });
     expect(container.textContent).toBe("1");
-    act(() => scopes.root.$$set("b", 2));
+    act(() => scopes.root.$set("b", 2));
     expect(container.textContent).toBe("2");
   });
 

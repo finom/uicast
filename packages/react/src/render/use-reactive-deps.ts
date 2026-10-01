@@ -38,7 +38,7 @@ export function useReactiveDeps(element: ComponentEntry | undefined, scopes: Sco
     for (const dep of deps) {
       const [targetScope, field] = parseScope(dep);
       // A scope that does not exist (a wrong `as`, usually) has nothing to subscribe to.
-      if (Object.hasOwn(scopes, targetScope)) unsubscribers.push(scopes[targetScope].$$emitter.on(field, wake));
+      if (Object.hasOwn(scopes, targetScope)) unsubscribers.push(scopes[targetScope].$emitter.on(field, wake));
     }
 
     // Catches a write between the render above and this line; settles in one extra pass.

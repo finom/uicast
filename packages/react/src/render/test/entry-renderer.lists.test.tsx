@@ -48,7 +48,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).toContain("x");
 
     act(() => {
-      scopes.root.$$set("items", [{ label: "y" }, { label: "z" }]);
+      scopes.root.$set("items", [{ label: "y" }, { label: "z" }]);
     });
     expect(container.textContent).toContain("y");
     expect(container.textContent).toContain("z");
@@ -98,7 +98,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).toContain("avocado");
 
     act(() => {
-      scopes.root.$$set("search", "a");
+      scopes.root.$set("search", "a");
     });
     expect(container.textContent).toContain("apple");
     expect(container.textContent).toContain("avocado");
@@ -144,7 +144,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).toContain("2:false");
 
     act(() => {
-      scopes.root.$$set("items", [{ id: 2 }, { id: 1 }]);
+      scopes.root.$set("items", [{ id: 2 }, { id: 1 }]);
     });
     expect(container.textContent).toContain("1:true");
     expect(container.textContent).toContain("2:false");
@@ -186,7 +186,7 @@ describe("EntryRenderer — lists", () => {
     expect(container.textContent).toContain("b:false");
 
     act(() => {
-      scopes.root.$$set("items", ["b", "a"]);
+      scopes.root.$set("items", ["b", "a"]);
     });
     expect(container.textContent).toContain("b:true");
     expect(container.textContent).toContain("a:false");

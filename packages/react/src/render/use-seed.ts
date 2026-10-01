@@ -27,7 +27,7 @@ type SeedResult = {
 // React can throw a render away before it mounts; the next render of the same entry and scopes adopts its seed.
 const attempts = new WeakMap<Scopes, WeakMap<ComponentEntry, SeedAttempt>>();
 
-// A `$$set` wake can land before this, so the gate is cleared explicitly.
+// A `$set` wake can land before this, so the gate is cleared explicitly.
 const settle = (attempt: SeedAttempt): void => {
   attempt.pending = null;
   attempt.wake?.();
@@ -85,12 +85,12 @@ export function useSeed({
           return { scope, field: step.field, value };
         });
         if (evaluated.every((e) => !(e.value instanceof Promise))) {
-          for (const e of evaluated) e.scope.$$set(e.field, e.value, { default: true });
+          for (const e of evaluated) e.scope.$set(e.field, e.value, { default: true });
           return null;
         }
         return Promise.all(
           evaluated.map(async (e) => {
-            e.scope.$$set(e.field, await e.value, { default: true });
+            e.scope.$set(e.field, await e.value, { default: true });
           }),
         );
       };
