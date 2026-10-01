@@ -60,8 +60,8 @@ const Tile = ({ x, y, width, height, name, value, index, depth }: TreemapNode) =
 
 export const TreemapChartImpl = createComponentImplementation({
   def: TreemapChartDef,
-  render: ({ data, height }, { entry, loading }) => (
-    <ChartFrame entry={entry} loading={loading} height={height}>
+  render: ({ data, height }, { entry, busy }) => (
+    <ChartFrame entry={entry} busy={busy} height={height}>
       <Treemap isAnimationActive={false} data={data} dataKey="value" nameKey="name" content={Tile} aria-label="Treemap">
         <Tooltip />
       </Treemap>

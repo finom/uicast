@@ -85,8 +85,8 @@ import { StatCardDef } from "./def";
 
 export const StatCardImpl = createComponentImplementation({
   def: StatCardDef,
-  render: ({ label, value, trend, onClick, children }, { loading }) => (
-    <button type="button" onClick={() => onClick()} aria-busy={loading}>
+  render: ({ label, value, trend, onClick, children }, { busy }) => (
+    <button type="button" onClick={() => onClick()} aria-busy={busy}>
       {label}: <strong>{value}</strong> {trend === "up" ? "▲" : trend === "down" ? "▼" : "–"}
       {children}
     </button>
@@ -99,7 +99,7 @@ export const StatCardImpl = createComponentImplementation({
 - Every declared callback is async function, always callable, wired or not.
 - Pass declared payload, never React event: `onChange={(e) => onChange({ value: e.target.value })}`. Schema parses it before steps run; rejected payload → `implementation` error, steps skipped.
 - `children`: rendered child elements. Place them.
-- Second argument: `{ entry, loading, scopes }`. `loading` true → show busy, keep content in place. Controls may ignore it.
+- Second argument: `{ entry, busy, scopes }`. `busy` true → show busy, keep content in place. Controls may ignore it.
 - `skeleton` (optional): drawn while child not streamed yet or seed loading. Got `children` (even `null`) → draw element's own box around them; no `children` → fill one child's slot. No skeleton and no `fallbackComponents.defaultSkeleton` → nothing drawn.
 - `render` may use hooks.
 

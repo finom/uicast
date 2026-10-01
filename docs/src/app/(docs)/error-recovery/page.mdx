@@ -13,7 +13,7 @@ asks for the fix.
 ## Containment: the error slot
 
 Every element renders inside its own error boundary. If its `props`, `hidden`,
-`loading`, `each` or `seed` throws, or its implementation does, only that element is
+`busy`, `each` or `seed` throws, or its implementation does, only that element is
 replaced by the `error` slot.
 
 A corrected re-emit retries a failed `seed`, filling only paths still unset

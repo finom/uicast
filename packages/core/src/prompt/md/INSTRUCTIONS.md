@@ -10,7 +10,7 @@ Entry fields:
 - `children` — child keys, in render order.
 - `seed` — steps run once, at mount.
 - `callbacks` — steps run on events: `{ "onClick": [...] }`.
-- `hidden`, `loading` — bare expressions.
+- `hidden`, `busy` — bare expressions.
 - `each`, `as`, `keyBy` — make entry a list.
 
 Emit parent before its children: root first, then depth-first.
@@ -29,7 +29,7 @@ Emit parent before its children: root first, then depth-first.
 - `literal`: JSON used verbatim, never evaluated. Use when props never change.
 - `expr`: expression returning props object: `"props": { "expr": "({ value: scopes.root.count })" }`.
 - Expression only computes. Only step's `set` writes state. Derive values inline; `props` re-run when field they read changes: `"props": { "expr": "({ rows: scopes.root.tasks.toSorted((a, b) => a.due - b.due) })" }`.
-- Same state, same result. `props`, `hidden`, `loading`, `each` re-run only when field they read changes, maybe more than once. No clock, no `Math.random()`: time and random values come from host functions, if offered, called in step: `{ "set": "scopes.root.savedAt", "expr": "now()" }` when `now` exists.
+- Same state, same result. `props`, `hidden`, `busy`, `each` re-run only when field they read changes, maybe more than once. No clock, no `Math.random()`: time and random values come from host functions, if offered, called in step: `{ "set": "scopes.root.savedAt", "expr": "now()" }` when `now` exists.
 - `children` never a prop. Text goes in component's text prop, often `text`.
 - String or number prop takes string or number, never object or array: `({ text: scopes.member.name })`, not `({ text: scopes.member })`. Object and array props (`rows`, `options`) take what their type says.
 
@@ -60,7 +60,7 @@ Emit parent before its children: root first, then depth-first.
 
 ## 5. Reactivity
 
-- Automatic. `props`, `hidden`, `loading`, `each` subscribe to every `scopes.X.Y` they read; write re-renders readers. Reading whole scope (`Object.keys(scopes.root)`) subscribes to all its fields. `seed`, `callbacks` never subscribe.
+- Automatic. `props`, `hidden`, `busy`, `each` subscribe to every `scopes.X.Y` they read; write re-renders readers. Reading whole scope (`Object.keys(scopes.root)`) subscribes to all its fields. `seed`, `callbacks` never subscribe.
 - Write wakes readers below it: writing `scopes.root.user` wakes reader of `scopes.root.user.name`.
 - Write to item field puts edited copy of item into array `each` reads, and in nested list into arrays above. `{ "set": "scopes.row.qty", "expr": "evt.value" }` updates `scopes.root.rows`, so totals and filters reading it update. Live total inline in props: `scopes.root.rows.reduce((s, r) => s + r.qty * r.price, 0)`.
 - So `each` reads data itself, or `filter`, `toSorted`, `slice` of it. When `each` builds new objects (`rows.map(r => ({ ...r, total: r.qty * r.price }))`), row writes fail: compute per-row values in `props`.
@@ -86,14 +86,14 @@ Emit parent before its children: root first, then depth-first.
   - Edit row field: `{ "set": "scopes.row.qty", "expr": "evt.value" }`
   - Edit row from outside its list, replacing array: `{ "set": "scopes.root.rows", "expr": "currentValue.map(r => r.id === scopes.root.selectedId ? { ...r, qty: 0 } : r)" }`
 
-## 8. Hidden and loading
+## 8. Hidden and busy
 
 - `hidden`: bare expression, not `{ "expr": ... }`. Truthy hides element. Hidden element keeps state, and its expressions still run: guard them, `scopes.root.user?.name`.
-- `loading`: bare expression. Truthy shows component busy, content kept. For refreshes; first load shows skeleton by itself. Set flag, call, clear flag: `{ "loading": "scopes.root.busy" }` and `"onClick": [{ "set": "scopes.root.busy", "literal": true }, { "set": "scopes.root.rows", "expr": "Api_list()" }, { "set": "scopes.root.busy", "literal": false }]`. Seed `busy: false` on root.
+- `busy`: bare expression. Truthy shows component busy, content kept. For refreshes; first load shows skeleton by itself. Set flag, call, clear flag: `{ "busy": "scopes.root.busy" }` and `"onClick": [{ "set": "scopes.root.busy", "literal": true }, { "set": "scopes.root.rows", "expr": "Api_list()" }, { "set": "scopes.root.busy", "literal": false }]`. Seed `busy: false` on root.
 
 ## 9. Host functions
 
-- Listed under **Available Functions**. Call in `seed` and `callbacks` steps only, never in `props`, `hidden`, `loading`, `each`.
+- Listed under **Available Functions**. Call in `seed` and `callbacks` steps only, never in `props`, `hidden`, `busy`, `each`.
 - One argument matching documented input; none when no input: `Api_list()`, `Api_delete({ id: scopes.row.id })`, never `Api_delete(scopes.row.id)`.
 - Call is step's result: whole expression, `?:` branch, or right side of `&&`, `||`, `??` (`scopes.root.q ? Api_search({ q: scopes.root.q }) : []`). Runtime awaits it, writes result to `set`. Read result in later step or in `props`. Rejected: `Api_list().length`, `[A(), B()]`, `ids.map(id => Api_get({ id }))`. Many ids: call one function taking all.
 - Function offers window, sort or filters (limit, offset, page, cursor, sort, filter fields): use them. Fetch slice you render; refetch when page or filter changes. Never filter or sort fetched slice in expression unless it holds every matching row (`total <= limit`). Read returned totals instead of summing rows.

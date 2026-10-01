@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const busy = (loading: boolean): string => (loading ? "animate-pulse opacity-60 pointer-events-none" : "");
+export const busyClass = (busy: boolean): string => (busy ? "animate-pulse opacity-60 pointer-events-none" : "");
 
 // For an element that handles clicks: Tab reaches it, and Enter or Space clicks it. Keys from a control inside it pass by.
 export const clickByKeyboard = (active: boolean) =>

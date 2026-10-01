@@ -64,16 +64,16 @@ Every site, in one product search (`scopes.root.products` is seeded higher up):
   "props": { "expr": "({ text: scopes.row.name })" } }
 ```
 
-`props` is a [value source](/entry/value-sources); `hidden`, `loading` and
+`props` is a [value source](/entry/value-sources); `hidden`, `busy` and
 `each` are bare strings. Inside `callbacks`, an expression also sees `evt`. A `set` step
 also sees [`currentValue`](/entry/value-sources#valuesourceassignment), the
 value at that path now.
 
 Only `seed` and `callbacks` await a result, so only they may call host
-[`functions`](/expr/functions). A host call in `props`, `hidden`, `loading` or `each` is
+[`functions`](/expr/functions). A host call in `props`, `hidden`, `busy` or `each` is
 rejected into the error slot.
 
-A scope path read in `props`, `hidden`, `loading` or `each` subscribes the element to it.
+A scope path read in `props`, `hidden`, `busy` or `each` subscribes the element to it.
 The paths are found in the expression text; nothing is declared. See
 [Reactivity &amp; Dependencies](/entry/reactivity).
 

@@ -7,7 +7,7 @@ import { WaterfallChartDef } from "./def";
 
 export const WaterfallChartImpl = createComponentImplementation({
   def: WaterfallChartDef,
-  render: ({ data, height, positiveColor, negativeColor, totalColor }, { entry, loading }) => {
+  render: ({ data, height, positiveColor, negativeColor, totalColor }, { entry, busy }) => {
     // Each bar floats on an invisible `base` bar stacked under it.
     let running = 0;
     const bars = data.map(({ name, value, isTotal }) => {
@@ -20,7 +20,7 @@ export const WaterfallChartImpl = createComponentImplementation({
     });
 
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <BarChart data={bars} aria-label="Waterfall chart">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />

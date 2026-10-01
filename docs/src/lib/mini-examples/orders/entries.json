@@ -2,7 +2,7 @@
   {
     "key": "card",
     "component": "Card",
-    "loading": "scopes.root.busy",
+    "busy": "scopes.root.busy",
     "seed": [{ "set": "scopes.root.busy", "literal": false }, { "set": "scopes.root.products", "expr": "listProducts()" }],
     "children": ["title", "refresh", "rows", "total", "editor"]
   },

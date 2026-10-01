@@ -75,8 +75,8 @@ const parseSpec = (
  * @example
  * createComponentImplementation({
  *   def: SearchInputDef,
- *   render: ({ value, onChange }, { loading }) =>
- *     <Input value={value} disabled={loading} onChange={(e) => onChange({ value: e.target.value })} />,
+ *   render: ({ value, onChange }, { busy }) =>
+ *     <Input value={value} disabled={busy} onChange={(e) => onChange({ value: e.target.value })} />,
  * });
  */
 export const createComponentImplementation = <
@@ -166,7 +166,7 @@ export const createComponentImplementation = <
 
   const evaluateFlag = (
     entry: ComponentEntry,
-    flag: "hidden" | "loading",
+    flag: "hidden" | "busy",
     scopes: Scopes,
     evaluator: ExpressionEvaluator,
   ): unknown => {
@@ -234,7 +234,7 @@ export const createComponentImplementation = <
     evaluate: (entry, scopes, evaluator, urlPolicy) => ({
       props: evaluateProps(entry, scopes, evaluator, urlPolicy),
       hidden: evaluateFlag(entry, "hidden", scopes, evaluator),
-      loading: evaluateFlag(entry, "loading", scopes, evaluator),
+      busy: evaluateFlag(entry, "busy", scopes, evaluator),
     }),
     callbacks: buildCallbacks,
   });

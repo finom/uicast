@@ -20,7 +20,7 @@ function expressionsOf(entry: ComponentEntry): string[] {
   const sources: (ValueSource | undefined)[] = [entry.props, ...(entry.seed ?? [])];
   for (const steps of Object.values(entry.callbacks ?? {})) sources.push(...steps);
   const exprs = sources.flatMap((source) => (source && "expr" in source ? [source.expr] : []));
-  for (const field of [entry.hidden, entry.loading, entry.each]) if (typeof field === "string") exprs.push(field);
+  for (const field of [entry.hidden, entry.busy, entry.each]) if (typeof field === "string") exprs.push(field);
   return exprs;
 }
 

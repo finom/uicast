@@ -17,14 +17,14 @@ import { LineChartDef } from "./def";
 
 export const LineChartImpl = createComponentImplementation({
   def: LineChartDef,
-  render: ({ data, xKey, yKeys, colors, height, curved, filled, stacked }, { entry, loading }) => {
+  render: ({ data, xKey, yKeys, colors, height, curved, filled, stacked }, { entry, busy }) => {
     const palette = chartColors(colors);
     const type = curved ? "monotone" : "linear";
     // Stacking needs areas: lines do not stack.
     const areas = filled || stacked;
     const Chart = areas ? RechartsAreaChart : RechartsLineChart;
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <Chart data={data} aria-label={areas ? "Area chart" : "Line chart"}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xKey} />

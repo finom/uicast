@@ -2,7 +2,7 @@ import type { ExpressionEvaluator } from "@uicast/expr";
 import { type ComponentEntry, isComponentListEntry } from "../types";
 import { depKey } from "../scope/parse-scope";
 
-// "render": props, hidden, loading (a list item's part); "each": the container's; "all": both.
+// "render": props, hidden, busy (a list item's part); "each": the container's; "all": both.
 export type DepsPart = "all" | "render" | "each";
 
 // Entries are immutable, so cached reads never go stale.
@@ -22,7 +22,7 @@ export function extractDeps(entry: ComponentEntry, evaluator: ExpressionEvaluato
   if (part !== "each") {
     if (entry.props && "expr" in entry.props && entry.props.expr) add(entry.props.expr);
     if (entry.hidden) add(entry.hidden);
-    if (entry.loading) add(entry.loading);
+    if (entry.busy) add(entry.busy);
   }
 
   // `each` reads both the list and anything its filter touches (e.g. a search term).

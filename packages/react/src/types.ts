@@ -19,13 +19,13 @@ export type Debouncers = Map<string, { cancel: () => void }>;
  * The second argument of an implementation's `render`.
  *
  * @example
- * createComponentImplementation({ def, render: ({ text }, { loading }) => <Button disabled={loading}>{text}</Button> });
+ * createComponentImplementation({ def, render: ({ text }, { busy }) => <Button disabled={busy}>{text}</Button> });
  */
 export type RenderContext = {
   /** The entry being rendered, unevaluated. */
   entry: ComponentEntry;
-  /** The entry's `loading` expression, evaluated; `false` when it has none. */
-  loading: boolean;
+  /** The entry's `busy` expression, evaluated; `false` when it has none. */
+  busy: boolean;
   /**
    * The scopes the entry's expressions read: `root` and, inside a list, each item's two. It is for debugging; state
    * changes go through callbacks.

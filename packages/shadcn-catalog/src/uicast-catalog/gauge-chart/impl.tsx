@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { CHART_COLORS } from "../../lib/chart-colors";
 import { BlockSkeleton } from "../../lib/skeletons";
-import { busy, cn } from "../../lib/utils";
+import { busyClass, cn } from "../../lib/utils";
 import { GaugeChartDef } from "./def";
 
 // A half ring in a 200 × 120 box, drawn from the left end clockwise.
@@ -14,14 +14,14 @@ const TRACK = `${START} A ${RADIUS} ${RADIUS} 0 0 1 ${CX + RADIUS} ${CY}`;
 
 export const GaugeChartImpl = createComponentImplementation({
   def: GaugeChartDef,
-  render: ({ value, min, max, label, color, height }, { entry, loading }) => {
+  render: ({ value, min, max, label, color, height }, { entry, busy }) => {
     const degrees = Math.min(Math.max((value - min) / (max - min), 0), 1) * 180;
     const end = Math.PI - (degrees * Math.PI) / 180;
     const arc = `${START} A ${RADIUS} ${RADIUS} 0 0 1 ${CX + RADIUS * Math.cos(end)} ${CY - RADIUS * Math.sin(end)}`;
     return (
       <div
-        className={cn("flex flex-col items-center", busy(loading))}
-        aria-busy={loading || undefined}
+        className={cn("flex flex-col items-center", busyClass(busy))}
+        aria-busy={busy || undefined}
         data-key={entry.key}
       >
         <svg

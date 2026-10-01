@@ -6,8 +6,8 @@ import { ButtonDef, CardDef, EditDialogDef, HeadingDef, ProductRowDef } from "./
 // card/impl.tsx
 export const CardImpl = createComponentImplementation({
   def: CardDef,
-  render: ({ children }, { loading }) => (
-    <Card className={loading ? "w-72 animate-pulse opacity-60" : "w-72"} aria-busy={loading || undefined}>
+  render: ({ children }, { busy }) => (
+    <Card className={busy ? "w-72 animate-pulse opacity-60" : "w-72"} aria-busy={busy || undefined}>
       <CardContent className="grid gap-2">{children}</CardContent>
     </Card>
   ),

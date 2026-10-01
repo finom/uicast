@@ -12,7 +12,7 @@ The dynamic fields are JavaScript [expressions](/expr) over the document's
 Every field, used once:
 
 ```jsonl
-{"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"loading":"scopes.root.busy","children":["task-rows","empty-note","refresh"]}
+{"key":"task-card","component":"Card","props":{"literal":{"title":"Tasks"}},"seed":[{"set":"scopes.root.tasks","expr":"listTasks()"}],"busy":"scopes.root.busy","children":["task-rows","empty-note","refresh"]}
 {"key":"task-rows","component":"Typography","each":"scopes.root.tasks","as":"task","keyBy":"id","props":{"expr":"({ text: scopes.task.title })"}}
 {"key":"empty-note","component":"Typography","hidden":"scopes.root.tasks.length > 0","props":{"literal":{"text":"No tasks yet"}}}
 {"key":"refresh","component":"Button","props":{"literal":{"text":"Refresh"}},"callbacks":{"onClick":[{"set":"scopes.root.busy","literal":true},{"set":"scopes.root.tasks","expr":"listTasks()"},{"set":"scopes.root.busy","literal":false}]}}
@@ -26,7 +26,7 @@ interface ComponentEntry {
   component: string;    // catalog component name — required
   props?: ValueSource;  // the props object
   hidden?: Expression;  // truthy → hidden
-  loading?: Expression; // truthy → busy
+  busy?: Expression;    // truthy → busy
   children?: string[];  // child keys, in render order
   seed?: ValueSourceAssignment[];  // initial state, once at mount
   callbacks?: Record<string, CallbackValueSourceAssignment[]>;  // event → steps
@@ -100,15 +100,15 @@ truthy. Reactive, like `props`.
 `hidden` does not unmount: it hides the subtree inside React's
 [`<Activity>`](https://react.dev/reference/react/Activity).
 
-### `loading`
+### `busy`
 
 A bare expression, like `hidden`. While it is truthy the element is busy: the
 React binding hands it to the implementation as
-[`context.loading`](/react#the-render-function). Set it from the callback that
+[`context.busy`](/react#the-render-function). Set it from the callback that
 refetches:
 
 ```jsonc
-{ "key": "rows", "component": "Table", "loading": "scopes.root.busy", "children": ["head", "body"] }
+{ "key": "rows", "component": "Table", "busy": "scopes.root.busy", "children": ["head", "body"] }
 { "key": "search", "component": "SearchInput", "callbacks": { "onChange": [
   { "set": "scopes.root.q", "expr": "evt.value" },
   { "set": "scopes.root.busy", "literal": true, "debounce": true },
@@ -118,7 +118,7 @@ refetches:
 ```
 
 The host call is a barrier, so the flag clears after the rows land. A first
-load through `seed` shows the [skeleton](/react#skeleton) instead; `loading`
+load through `seed` shows the [skeleton](/react#skeleton) instead; `busy`
 is for refreshes.
 
 ### `seed`

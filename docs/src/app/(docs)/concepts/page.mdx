@@ -121,7 +121,7 @@ elements it wakes. See [Reactivity](/entry/reactivity).
 
 ## Expressions compute; `set` changes
 
-`props.expr`, `hidden`, `loading`, `each`, and the `expr` of every `seed` or `callbacks`
+`props.expr`, `hidden`, `busy`, `each`, and the `expr` of every `seed` or `callbacks`
 step hold **one expression** in a [subset of JavaScript](/expr). Two rules.
 
 **An expression only computes.** Only a step's `set` writes state:
@@ -132,7 +132,7 @@ step hold **one expression** in a [subset of JavaScript](/expr). Two rules.
 { "expr": "scopes.root.count = 1" }                          // ❌ rejected: assignment
 ```
 
-**The same state gives the same result.** `props`, `hidden`, `loading` and
+**The same state gives the same result.** `props`, `hidden`, `busy` and
 `each` run again only when a scope field they read changes. The language has no
 clock and no random numbers, so nothing else changes what they show. The time
 comes from a host function, taken once in a step and stored
@@ -174,7 +174,7 @@ parent's `as` fails as `invalid-list`:
 Lists side by side may share a name: an `invoices` list and a `quotes` list can
 each hold a list with `"as": "line"`.
 
-**`props`, `hidden`, `loading` and `each` cannot call host functions.** The call
+**`props`, `hidden`, `busy` and `each` cannot call host functions.** The call
 fails in the element's error slot. Host functions run in `seed` and
 `callbacks`, where the engine waits for the result, so there is no `await`:
 `listProducts(){:ts}`, never `await listProducts(){:ts}`.

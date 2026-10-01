@@ -20,11 +20,11 @@ const STAGE_COLORS = [
 
 export const FunnelChartImpl = createComponentImplementation({
   def: FunnelChartDef,
-  render: ({ data, colors, height }, { entry, loading }) => {
+  render: ({ data, colors, height }, { entry, busy }) => {
     const palette = chartColors(colors, STAGE_COLORS);
     const stages = data.map((d, i) => ({ ...d, fill: palette[i % palette.length] }));
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <RechartsFunnelChart
           aria-label="Funnel chart"
           // The stage names sit right of the funnel, and the widest stage spans the whole chart.

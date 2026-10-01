@@ -14,7 +14,7 @@ export type ImplementationEngine = {
     scopes: Scopes,
     evaluator: ExpressionEvaluator,
     urlPolicy: UrlPolicy | undefined,
-  ) => { props: unknown; hidden: unknown; loading: unknown };
+  ) => { props: unknown; hidden: unknown; busy: unknown };
   // One handler per callback the def declares, wired or not.
   callbacks: (
     entry: ComponentEntry,

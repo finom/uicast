@@ -89,11 +89,11 @@ const EntryRendererInner = ({
   // A fault is thrown below, inside this element's own boundary, so the hook order never changes.
   let props: unknown = null;
   let hidden: unknown = false;
-  let loading: unknown = false;
+  let busy: unknown = false;
   let fault: unknown = null;
   if (element && engine && !isListContainer && !shapeError) {
     try {
-      ({ props, hidden, loading } = engine.evaluate(element, scopes, evaluator, urlPolicy));
+      ({ props, hidden, busy } = engine.evaluate(element, scopes, evaluator, urlPolicy));
     } catch (err) {
       fault = err;
     }
@@ -119,11 +119,8 @@ const EntryRendererInner = ({
     [element, engine, isListContainer, shapeError, scopes, confirm, evaluator, onError],
   );
 
-  const isLoading = Boolean(loading);
-  const context = useMemo(
-    () => (element ? { entry: element, loading: isLoading, scopes } : null),
-    [element, isLoading, scopes],
-  );
+  const isBusy = Boolean(busy);
+  const context = useMemo(() => (element ? { entry: element, busy: isBusy, scopes } : null), [element, isBusy, scopes]);
 
   const Skeleton = impl?.skeleton ?? fallbackComponents?.defaultSkeleton;
   // What each child's slot shows until that child's entry streams in.

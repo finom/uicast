@@ -138,10 +138,10 @@ The field updates on every keystroke; the request goes out once, 300 ms after
 the last one.
 
 **Busy while refreshing**: a flag around the fetch drives the table's
-[`loading`](/entry#loading):
+[`busy`](/entry#busy):
 
 ```jsonc
-{ "key": "rows", "component": "Table", "loading": "scopes.root.busy", "children": ["head", "body"] }
+{ "key": "rows", "component": "Table", "busy": "scopes.root.busy", "children": ["head", "body"] }
 { "callbacks": { "onPageChange": [
   { "set": "scopes.root.page", "expr": "evt.page" },
   { "set": "scopes.root.busy", "literal": true },

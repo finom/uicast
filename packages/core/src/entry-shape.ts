@@ -43,7 +43,7 @@ const stepsFault = (steps: unknown, at: string, setRequired: boolean): string | 
   return null;
 };
 
-const STRING_FIELDS = ["hidden", "loading", "each", "as", "keyBy"] as const;
+const STRING_FIELDS = ["hidden", "busy", "each", "as", "keyBy"] as const;
 
 const shapeFault = (entry: RawEntry): string | null => {
   if (entry.props !== undefined) {

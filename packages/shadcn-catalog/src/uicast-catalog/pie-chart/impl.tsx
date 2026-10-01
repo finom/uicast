@@ -9,10 +9,10 @@ const SLICE_COLORS = [...defaultChartColors, "#ffbb28", "#ff8042", "#a4de6c", "#
 
 export const PieChartImpl = createComponentImplementation({
   def: PieChartDef,
-  render: ({ data, colors, height, donut, showLabels, centerLabel }, { entry, loading }) => {
+  render: ({ data, colors, height, donut, showLabels, centerLabel }, { entry, busy }) => {
     const palette = chartColors(colors, SLICE_COLORS);
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <RechartsPieChart aria-label={donut ? "Donut chart" : "Pie chart"}>
           <Pie
             isAnimationActive={false}

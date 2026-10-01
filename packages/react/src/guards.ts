@@ -20,7 +20,7 @@ export const refusePromise = (value: unknown, slot: string, elementKey: string):
   // Refused, so nothing awaits it: swallow its rejection.
   value.catch(() => {});
   throw new EntryError(
-    `"${slot}" of ${elementKey} evaluated to a Promise — host functions and await are not allowed in props/hidden/loading/each; move the call to seed or a callback step`,
+    `"${slot}" of ${elementKey} evaluated to a Promise — host functions and await are not allowed in props/hidden/busy/each; move the call to seed or a callback step`,
     { reason: "guardrail-violation", elementKey },
   );
 };

@@ -118,7 +118,7 @@ and only in [`seed`](/entry#seed) and [`callbacks`](/entry#callbacks):
   ] } }
 ```
 
-`props`, `hidden`, `loading` and `each` evaluate synchronously, so a host call
+`props`, `hidden`, `busy` and `each` evaluate synchronously, so a host call
 there is refused, and the element shows its error slot (`guardrail-violation`):
 
 ```jsonc

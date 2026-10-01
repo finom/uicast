@@ -63,7 +63,7 @@ export interface ComponentEntry {
   /** An expression; truthy hides the element. Reactive. */
   hidden?: Expression;
   /** An expression; truthy renders the element as busy. Reactive, like `hidden`. */
-  loading?: Expression;
+  busy?: Expression;
   /** Steps per event, e.g. `{ onClick: [{ set: "scopes.root.open", expr: "!currentValue" }] }`. */
   callbacks?: Record<string, CallbackValueSourceAssignment[]>;
   /** Child keys, in render order. */

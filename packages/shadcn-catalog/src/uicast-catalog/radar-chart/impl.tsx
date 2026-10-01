@@ -7,10 +7,10 @@ import { RadarChartDef } from "./def";
 
 export const RadarChartImpl = createComponentImplementation({
   def: RadarChartDef,
-  render: ({ data, dataKey, valueKeys, colors, height }, { entry, loading }) => {
+  render: ({ data, dataKey, valueKeys, colors, height }, { entry, busy }) => {
     const palette = chartColors(colors);
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <RechartsRadarChart data={data} aria-label="Radar chart">
           <PolarGrid />
           <PolarAngleAxis dataKey={dataKey} />

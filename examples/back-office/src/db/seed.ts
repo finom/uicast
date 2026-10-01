@@ -67,7 +67,7 @@ function validateEntries(where: string, entries: ComponentEntry[]): void {
     };
     vs(entry.props);
     if (typeof entry.hidden === "string") exprs.push(entry.hidden);
-    if (typeof entry.loading === "string") exprs.push(entry.loading);
+    if (typeof entry.busy === "string") exprs.push(entry.busy);
     if (typeof entry.each === "string") exprs.push(entry.each);
     for (const step of entry.seed ?? []) vs(step);
     for (const steps of Object.values(entry.callbacks ?? {})) for (const step of steps) vs(step);

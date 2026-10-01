@@ -136,7 +136,7 @@ returns a Promise. It can only be called where the engine awaits it:
     ] } }
   ```
 
-`props`, `hidden`, `loading` and `each` run synchronously on every render, so a host call
+`props`, `hidden`, `busy` and `each` run synchronously on every render, so a host call
 there goes to the element's error slot. **Derived values in `props`, effects
 in `seed` and `callbacks`.**
 

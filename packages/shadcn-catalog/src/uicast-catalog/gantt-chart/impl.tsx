@@ -2,19 +2,19 @@ import { createComponentImplementation } from "@uicast/react";
 import { ScrollArea, ScrollBar } from "../../components/ui/scroll-area";
 import { CHART_COLORS, defaultChartColors } from "../../lib/chart-colors";
 import { BlockSkeleton } from "../../lib/skeletons";
-import { busy, cn } from "../../lib/utils";
+import { busyClass, cn } from "../../lib/utils";
 import { GanttChartDef } from "./def";
 
 const STICKY = "sticky left-0 z-10 bg-background px-3 py-2";
 
 export const GanttChartImpl = createComponentImplementation({
   def: GanttChartDef,
-  render: ({ tasks, totalUnits }, { entry, loading }) => {
+  render: ({ tasks, totalUnits }, { entry, busy }) => {
     const units = Array.from({ length: totalUnits }, (_, i) => i + 1);
     return (
       <ScrollArea
-        className={cn("rounded-md border", busy(loading))}
-        aria-busy={loading || undefined}
+        className={cn("rounded-md border", busyClass(busy))}
+        aria-busy={busy || undefined}
         data-key={entry.key}
       >
         <table className="w-full border-collapse text-sm">

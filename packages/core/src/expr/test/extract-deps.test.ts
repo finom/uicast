@@ -20,11 +20,11 @@ const list = (patch: Partial<ComponentListEntry>): ComponentListEntry => ({
   ...patch,
 });
 
-describe("extractDeps — reads from loading", () => {
-  it("subscribes to the loading expression like hidden", () => {
-    expect(extractDeps(element({ loading: "scopes.root.busy" }))).toEqual(["scopes.root.busy"]);
-    expect(extractDeps(element({ loading: "scopes.root.busy" }), "render")).toEqual(["scopes.root.busy"]);
-    expect(extractDeps(list({ loading: "scopes.root.busy" }), "each")).toEqual(["scopes.root.rows"]);
+describe("extractDeps — reads from busy", () => {
+  it("subscribes to the busy expression like hidden", () => {
+    expect(extractDeps(element({ busy: "scopes.root.busy" }))).toEqual(["scopes.root.busy"]);
+    expect(extractDeps(element({ busy: "scopes.root.busy" }), "render")).toEqual(["scopes.root.busy"]);
+    expect(extractDeps(list({ busy: "scopes.root.busy" }), "each")).toEqual(["scopes.root.rows"]);
   });
 });
 

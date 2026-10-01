@@ -11,7 +11,7 @@ whether the reads drive subscriptions or ordering.
 
 ## Reactive sites: subscriptions
 
-`props.expr`, `hidden`, `loading` and `each` re-evaluate when state changes. Each read
+`props.expr`, `hidden`, `busy` and `each` re-evaluate when state changes. Each read
 becomes a subscription to a field, and a write to that field re-renders exactly
 the elements that read it, at any depth.
 

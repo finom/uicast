@@ -41,7 +41,7 @@ is rejected. Edit a row through its scope, or replace the array
 **`currentValue`** is the value now at the `set` path, the one about to be
 replaced, so a read-modify-write never names the path twice. Only `set` defines
 it, so a bare [`props`](/entry#props), [`hidden`](/entry#hidden),
-[`loading`](/entry#loading) or [`each`](/entry#each) expression cannot use it:
+[`busy`](/entry#busy) or [`each`](/entry#each) expression cannot use it:
 
 ```jsonc
 // ❌ no `set` here — throws: "currentValue" is not available in expressions

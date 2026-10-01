@@ -1,15 +1,15 @@
 import { createComponentImplementation } from "@uicast/react";
-import { cn, busy } from "../../lib/utils";
+import { cn, busyClass } from "../../lib/utils";
 import { COLUMNS } from "../../lib/layout";
 import { StackSkeleton } from "../../lib/skeletons";
 import { DescriptionListDef } from "./def";
 
 export const DescriptionListImpl = createComponentImplementation({
   def: DescriptionListDef,
-  render: ({ items, layout, columns }, { entry, loading }) => (
+  render: ({ items, layout, columns }, { entry, busy }) => (
     <dl
-      className={cn("grid gap-4", COLUMNS[columns], busy(loading))}
-      aria-busy={loading || undefined}
+      className={cn("grid gap-4", COLUMNS[columns], busyClass(busy))}
+      aria-busy={busy || undefined}
       data-key={entry.key}
     >
       {items.map((item, i) => (

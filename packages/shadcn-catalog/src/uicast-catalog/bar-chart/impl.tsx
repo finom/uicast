@@ -17,11 +17,11 @@ import { BarChartDef } from "./def";
 
 export const BarChartImpl = createComponentImplementation({
   def: BarChartDef,
-  render: ({ data, xKey, yKeys, lineKeys = [], colors, height, stacked }, { entry, loading }) => {
+  render: ({ data, xKey, yKeys, lineKeys = [], colors, height, stacked }, { entry, busy }) => {
     const palette = chartColors(colors);
     const Chart = lineKeys.length ? ComposedChart : RechartsBarChart;
     return (
-      <ChartFrame entry={entry} loading={loading} height={height}>
+      <ChartFrame entry={entry} busy={busy} height={height}>
         <Chart data={data} aria-label="Bar chart">
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey={xKey} />

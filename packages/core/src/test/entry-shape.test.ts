@@ -30,7 +30,7 @@ describe("entryShapeError", () => {
     ],
     ['{"key":"a","component":"Box","props":{"expr":5}}', '"props.expr" must be an expression string, got a number.'],
     ['{"key":"a","component":"Box","hidden":{"expr":"x"}}', '"hidden" must be a string, got an object.'],
-    ['{"key":"a","component":"Box","loading":true}', '"loading" must be a string, got a boolean.'],
+    ['{"key":"a","component":"Box","busy":true}', '"busy" must be a string, got a boolean.'],
     ['{"key":"a","component":"Box","each":["x"],"as":"row"}', '"each" must be a string, got an array.'],
     ['{"key":"a","component":"Box","each":"scopes.root.rows"}', 'A list needs "as"'],
     ['{"key":"a","component":"Box","each":"scopes.root.rows","as":"$row"}', 'starts with "$"'],
@@ -47,7 +47,7 @@ describe("entryShapeError", () => {
 
   it.each([
     '{"key":"a","component":"Box"}',
-    '{"key":"a","component":"Box","props":{"literal":null},"hidden":"false","loading":"scopes.root.busy"}',
+    '{"key":"a","component":"Box","props":{"literal":null},"hidden":"false","busy":"scopes.root.busy"}',
     '{"key":"a","component":"Box","seed":[{"set":"scopes.root.x","expr":"1"},{"set":"scopes.root.y","literal":[1]}]}',
     '{"key":"a","component":"Box","callbacks":{"onClick":[{"expr":"del()","confirm":"Sure?"},{"set":"scopes.root.q","expr":"evt.value","debounce":true}]}}',
     '{"key":"a","component":"Box","callbacks":{"onClick":[{"set":"scopes.root.x"}]}}',

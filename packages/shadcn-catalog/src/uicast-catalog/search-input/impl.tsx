@@ -12,7 +12,7 @@ export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
   render: (
     { value: initialValue, placeholder, disabled, onChange, onClear, onSubmit, onKeyDown, onKeyUp },
-    { entry, loading },
+    { entry, busy },
   ) => {
     const [value, setValue] = useMirror(initialValue ?? "");
     return (
@@ -35,8 +35,8 @@ export const SearchInputImpl = createComponentImplementation({
           className="pl-9 pr-16"
         />
         <div className="absolute right-1 flex items-center gap-1">
-          {loading && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
-          {value && !loading && (
+          {busy && <Loader2 className="size-4 animate-spin text-muted-foreground" />}
+          {value && !busy && (
             <Button
               type="button"
               variant="ghost"

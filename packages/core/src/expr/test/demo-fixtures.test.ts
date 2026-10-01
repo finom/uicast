@@ -10,7 +10,7 @@ function collect(entry: Record<string, unknown>, out: string[]): void {
   };
   vs(entry.props);
   if (typeof entry.hidden === "string") out.push(entry.hidden);
-  if (typeof entry.loading === "string") out.push(entry.loading);
+  if (typeof entry.busy === "string") out.push(entry.busy);
   if (typeof entry.each === "string") out.push(entry.each);
   for (const step of (entry.seed as unknown[]) ?? []) vs(step);
   for (const steps of Object.values((entry.callbacks as Record<string, unknown[]>) ?? {})) {
