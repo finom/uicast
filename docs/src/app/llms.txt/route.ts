@@ -14,7 +14,7 @@ export async function GET() {
   const body = [
     "# uicast",
     `> ${index.description}`,
-    `All these pages in one Markdown file: ${SITE}/context/docs.md`,
+    `All these pages in one Markdown file: ${SITE}/llms-full.txt`,
     ...Array.from(sections, ([section, links]) => `## ${section}\n\n${links.join("\n")}`),
   ].join("\n\n");
   return new Response(`${body}\n`, { headers: { "Content-Type": "text/plain; charset=utf-8" } });

@@ -32,7 +32,7 @@ export function Hero() {
         </a>
       </div>
       <a
-        href="/context/docs.md"
+        href="/llms-full.txt"
         target="_blank"
         rel="noreferrer"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground"

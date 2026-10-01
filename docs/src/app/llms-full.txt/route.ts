@@ -66,5 +66,5 @@ export async function GET() {
     `est_tokens: ${Math.ceil(body.length / 4)}`,
     "---",
   ].join("\n");
-  return new Response(`${header}\n\n${body}\n`, { headers: { "Content-Type": "text/markdown; charset=utf-8" } });
+  return new Response(`${header}\n\n${body}\n`, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 }
