@@ -3,7 +3,7 @@ import { defs } from "@uicast/shadcn-catalog/all/defs";
 import { and, eq, isNull, notInArray, or, sql } from "drizzle-orm";
 import { db } from "./index";
 import { chatMessages, chats, componentEntries, pages, suppliers, users } from "./schema";
-import { insertSeedChats, SEED_CHATS, SEED_PAGES } from "./seed-content";
+import { insertSeedChats, pageUsage, SEED_CHATS, SEED_PAGES } from "./seed-content";
 import { insertStarterData, STARTER_SUPPLIERS } from "./starter-data";
 import { evaluator } from "@/lib/evaluator";
 import { SYSTEM_SLUG } from "@/lib/system-slug";
@@ -112,7 +112,7 @@ async function updateSeedContent(userId: string): Promise<void> {
           or(eq(pages.seedId, page.seedId), and(isNull(pages.seedId), eq(pages.title, page.title))),
         ),
       );
-    const values = { userId, seedId: page.seedId, title: page.title, prompt: page.prompt, ...page.usage };
+    const values = { userId, seedId: page.seedId, title: page.title, prompt: page.prompt, ...pageUsage(page) };
     const [row] = existing
       ? await db.update(pages).set(values).where(eq(pages.id, existing.id)).returning()
       : await db.insert(pages).values(values).returning();

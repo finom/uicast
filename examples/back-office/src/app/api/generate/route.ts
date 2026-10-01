@@ -6,9 +6,8 @@ import { z } from "zod";
 import { componentEntries, pages } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
-import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser, PROMPT_CACHING } from "@/lib/openrouter";
+import { caching, chargedUsd, GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
 import { buildSystemPrompt } from "@/lib/system-prompt";
-import { computeCostUsd } from "@/lib/pricing";
 
 export const maxDuration = 300;
 
@@ -80,7 +79,8 @@ export async function POST(req: Request) {
           system,
           messages,
           maxOutputTokens: MAX_OUTPUT_TOKENS,
-          providerOptions: PROMPT_CACHING,
+          // A new page's prompt is never sent again, so the cheaper 5-minute write; an edit soon after reads it.
+          providerOptions: caching(`page-${page.id}`),
           onError: ({ error }) => {
             streamError = error;
           },
@@ -107,13 +107,13 @@ export async function POST(req: Request) {
           await db.delete(componentEntries).where(inArray(componentEntries.id, staleIds));
         }
 
-        // An estimate: OpenRouter's invoice is authoritative. Billing must not fail a finished run.
+        // Billing must not fail a finished run.
         try {
-          // One step, no tools. Its own usage keeps OpenRouter's raw cache-write count; `result.usage` drops it.
+          // One step, no tools. Its own usage keeps OpenRouter's raw report, cost included; `result.usage` drops it.
           const [{ usage }] = await result.steps;
           const inputTokens = usage.inputTokens ?? 0;
           const outputTokens = usage.outputTokens ?? 0;
-          const costUsd = computeCostUsd(GENERATION_MODEL, usage);
+          const costUsd = chargedUsd(usage);
           await db
             .update(pages)
             .set({

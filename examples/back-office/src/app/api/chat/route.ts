@@ -12,8 +12,7 @@ import { z } from "zod";
 import { chatMessages, chats } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
-import { GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser, PROMPT_CACHING } from "@/lib/openrouter";
-import { computeCostUsd } from "@/lib/pricing";
+import { caching, chargedUsd, GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
 export const maxDuration = 300;
@@ -93,7 +92,8 @@ export async function POST(req: Request) {
     system: buildSystemPrompt("answer", getFencePartialPrompt()),
     messages: await convertToModelMessages(uiMessages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
-    providerOptions: PROMPT_CACHING,
+    // A chat's next turn often comes minutes later, so its cache lasts an hour.
+    providerOptions: caching(id, "1h"),
   });
   let costUsd: number | null = 0;
 
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     generateMessageId: () => crypto.randomUUID(),
     messageMetadata: ({ part }) => {
       if (part.type === "finish-step") {
-        const stepCost = computeCostUsd(GENERATION_MODEL, part.usage);
+        const stepCost = chargedUsd(part.usage);
         costUsd = costUsd === null || stepCost === null ? null : costUsd + stepCost;
       }
       if (part.type !== "finish") return undefined;

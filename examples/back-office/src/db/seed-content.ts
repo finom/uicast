@@ -1,6 +1,7 @@
 // biome-ignore-all format: one entry or row per line
 import type { ComponentEntry } from "@uicast/core";
-import { priceUsd } from "@/lib/pricing";
+import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
+import { buildSystemPrompt } from "@/lib/system-prompt";
 import { db } from "./index";
 import { chatMessages, chats } from "./schema";
 import { opsConsoleEntries } from "./seed-ops-console";
@@ -8,16 +9,18 @@ import { slowSeedsEntries } from "./seed-slow-seeds";
 
 // The demo user's pages and chats. New accounts start empty.
 
-// What a generation cost, and the model that ran it.
-type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number; model: string };
+// What a run cost, and the model that ran it. Counted from the seed's own text and priced like a live run.
+type SeedUsage = { inputTokens: number; outputTokens: number; costUsd: number; model: string | null };
 const OPUS = "anthropic/claude-opus-5.5";
+// OpenRouter's Opus 5.5 rates, USD per 1M tokens. A 5-minute cache write is 1.25× the input price, a 1-hour one 2×.
+const RATE = { output: 20, cacheRead: 0.2, write5m: 5, write1h: 8 };
+// Opus 5.5 counts these prompts at about 2.65 characters a token: the 108k-character page prompt ran as 41k.
+const tokens = (text: string) => Math.round(text.length / 2.65);
 
-// Priced like a live run: the prompt is written to the cache, except the `cached` tokens a chat's later reply
-// reads back from its previous reply's prompt.
-const run = (inputTokens: number, outputTokens: number, cached = 0): SeedUsage => ({
+const run = (inputTokens: number, outputTokens: number, cached: number, writeRate: number): SeedUsage => ({
   inputTokens,
   outputTokens,
-  costUsd: priceUsd(OPUS, { input: 0, output: outputTokens, cacheRead: cached, cacheWrite: inputTokens - cached }) ?? 0,
+  costUsd: (cached * RATE.cacheRead + (inputTokens - cached) * writeRate + outputTokens * RATE.output) / 1e6,
   model: OPUS,
 });
 
@@ -778,11 +781,12 @@ const customersEntries: ComponentEntry[] = [
 ];
 
 // `seedId` is the page's URL id; `prompt` is null for a page written by hand.
-export const SEED_PAGES: { seedId: string; title: string; prompt: string | null; entries: ComponentEntry[]; usage: SeedUsage }[] = [
+type SeedPage = { seedId: string; title: string; prompt: string | null; entries: ComponentEntry[] };
+
+export const SEED_PAGES: SeedPage[] = [
   {
     seedId: "seed-page-inventory",
     title: "Inventory & restock",
-    usage: run(37500, 4300),
     prompt:
       "I need one place to watch stock. Show me how much we have and what it's worth, which products are running low, and let me find any product fast. I want to fix a count from the table itself, peek at what moved recently, and book a delivery when it arrives.",
     entries: inventoryEntries,
@@ -790,7 +794,6 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   {
     seedId: "seed-page-sales",
     title: "Sales & revenue",
-    usage: run(36800, 3200),
     prompt:
       "Give me a sales page for Monday mornings: how much we made lately, the trend, who our best accounts are, and every order with its status. I should be able to narrow it down by status, period or customer, mark orders as paid or shipped, and cancel one with a warning first.",
     entries: salesEntries,
@@ -798,7 +801,6 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   {
     seedId: "seed-page-customers",
     title: "Customer accounts",
-    usage: run(37300, 3900),
     prompt:
       "A customer page for the account team: who buys from us, how much each has spent, and their order history. Let me look someone up, fix their details, add a new account, and remove one if needed.",
     entries: customersEntries,
@@ -806,7 +808,6 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   {
     seedId: "seed-page-ops",
     title: "Operations console (big one)",
-    usage: run(39600, 15800),
     prompt:
       "Put the whole operation on one page: the numbers at the top, a few charts, our suppliers and what we buy from each, the full catalog where I can adjust stock and prices on the spot, all orders with their status, every customer, and the stock ledger. One search box should work across all of it.",
     entries: opsConsoleEntries,
@@ -814,7 +815,6 @@ export const SEED_PAGES: { seedId: string; title: string; prompt: string | null;
   {
     seedId: "seed-page-slow",
     title: "Slow seeds",
-    usage: run(36200, 1800),
     prompt: null,
     entries: slowSeedsEntries,
   },
@@ -1042,7 +1042,7 @@ const guardedCancelFence = j([
 export const SEED_CHATS: {
   id: string;
   title: string;
-  turns: { role: "user" | "assistant"; text: string; usage?: SeedUsage }[];
+  turns: { role: "user" | "assistant"; text: string }[];
 }[] = [
   {
     id: "seed-chat-restock",
@@ -1054,7 +1054,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(36300, 620),
         text: `Three products are at or below 20 units:\n\n\`\`\`uicast\n${lowStockFence}\n\`\`\`\n\nThe one to worry about is the **Birch Standing Desk** — Nordform Werk runs a 21-day lead time, so an order placed today lands right at the start of the push. The other two have a week or less of lead.`,
       },
       {
@@ -1063,7 +1062,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(37900, 540, 36300),
         text: `Here's the bill, biggest line first:\n\n\`\`\`uicast\n${restockCostFence}\n\`\`\`\n\nTwo caveats: these are list prices, so the real POs should come in 30–45% lower at wholesale — and the desk line dominates because of its unit price, not its unit count.`,
       },
       {
@@ -1072,7 +1070,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(39600, 580, 37900),
         text: `Grouped by supplier, slowest lead first:\n\n\`\`\`uicast\n${poPlanFence}\n\`\`\`\n\nSend **Nordform Werk today** — nothing else is time-critical. Once the goods arrive, log them with the *Receive stock* drawer on the Inventory page so the ledger stays reconciled.`,
       },
       {
@@ -1081,7 +1078,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(41100, 410, 39600),
         text: `Here you go — adjust the count if the dock miscounted, then book it:\n\n\`\`\`uicast\n${receiveCardFence}\n\`\`\`\n\nThe stat above is live: it re-reads the product the moment the movement lands, so you'll see the stock jump when you click.`,
       },
       {
@@ -1090,7 +1086,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(42600, 390, 41100),
         text: `Hover a pin for the city and lead time:\n\n\`\`\`uicast\n${supplierMapFence}\n\`\`\`\n\nThe European suppliers mostly ship in 4–12 days and the Asian ones in 16–18. **Nordform Werk** is the exception: Hamburg, but 21 days, so that time goes into building the furniture, not shipping it.`,
       },
     ],
@@ -1102,13 +1097,11 @@ export const SEED_CHATS: {
       { role: "user", text: "Morning. Give me the revenue picture for the standup." },
       {
         role: "assistant",
-        usage: run(36100, 480),
         text: `Here's the headline view:\n\n\`\`\`uicast\n${revenueFence}\n\`\`\`\n\nDelivered orders carry most of the volume, and the open pipeline (pending + paid) is healthy. Nothing alarming in the mix.`,
       },
       { role: "user", text: "Who are our top three accounts right now?" },
       {
         role: "assistant",
-        usage: run(37500, 510, 36100),
         text: `By lifetime spend, excluding cancellations:\n\n\`\`\`uicast\n${topCustomersFence}\n\`\`\`\n\nWorth noting the top account got there on furniture — high ticket, low frequency. A repeat order there moves the quarter more than five accessory sales.`,
       },
       {
@@ -1117,7 +1110,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(39000, 540, 37500),
         text: `Current pending queue, oldest first — with the fix built in:\n\n\`\`\`uicast\n${agingFence}\n\`\`\`\n\nAnything in red has been waiting three days or more. The **Mark paid** buttons are live: click one and the row drops out of this queue, because the table re-reads the orders after the update.`,
       },
     ],
@@ -1132,7 +1124,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(35800, 830),
         text: `It's a working app surface, not a rendering. Try it — the button opens a real form:\n\n\`\`\`uicast\n${addProductFence}\n\`\`\`\n\nThe drawer, the inputs, the supplier dropdown and the save all run against the same API as the rest of the app. Save something and watch the catalog list above pick it up.`,
       },
       {
@@ -1141,7 +1132,6 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(37600, 560, 35800),
         text: `One click per row — each button books 25 units into the stock ledger and the badge updates in place:\n\n\`\`\`uicast\n${quickRestockFence}\n\`\`\`\n\nRows leave the list on their own once they cross 25 units, because the table re-reads the low-stock filter after every receive.`,
       },
       {
@@ -1150,26 +1140,56 @@ export const SEED_CHATS: {
       },
       {
         role: "assistant",
-        usage: run(39200, 520, 37600),
         text: `Cancelling an order asks first — click one:\n\n\`\`\`uicast\n${guardedCancelFence}\n\`\`\`\n\nThe confirmation is part of the callback itself: decline it and nothing after it runs, accept it and the update lands and the queue re-reads.`,
       },
     ],
   },
 ];
 
+// A page run writes its whole prompt to the 5-minute cache. A page written by hand had no run.
+export const pageUsage = ({ title, prompt, entries }: SeedPage): SeedUsage =>
+  prompt === null
+    ? { inputTokens: 0, outputTokens: 0, costUsd: 0, model: null }
+    : run(
+        tokens(buildSystemPrompt("page")) + tokens(`Page title: ${title}\n\n${prompt}`),
+        tokens(entries.map((entry) => JSON.stringify(entry)).join("\n")),
+        0,
+        RATE.write5m,
+      );
+
+// A chat's reply reads the previous reply's prompt from the chat's 1-hour cache and writes the turns since.
+function chatUsage(turns: (typeof SEED_CHATS)[number]["turns"]): (SeedUsage | null)[] {
+  let prompt = tokens(buildSystemPrompt("answer", getFencePartialPrompt()));
+  let cached = 0;
+  return turns.map(({ role, text }) => {
+    if (role === "user") {
+      prompt += tokens(text);
+      return null;
+    }
+    const usage = run(prompt, tokens(text), cached, RATE.write1h);
+    cached = prompt;
+    prompt += tokens(text);
+    return usage;
+  });
+}
+
 export async function insertSeedChats(userId: string): Promise<void> {
   for (const chat of SEED_CHATS) {
     const { id } = chat;
+    const usages = chatUsage(chat.turns);
     await db.insert(chats).values({ id, userId, title: chat.title });
     await db.insert(chatMessages).values(
-      chat.turns.map(({ role, text, usage }, i) => ({
-        chatId: id,
-        messageId: `${id}-${i}`,
-        role,
-        parts: [{ type: "text", text }],
-        metadata: usage ? { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, costUsd: usage.costUsd } : null,
-        model: usage?.model ?? null,
-      })),
+      chat.turns.map(({ role, text }, i) => {
+        const usage = usages[i];
+        return {
+          chatId: id,
+          messageId: `${id}-${i}`,
+          role,
+          parts: [{ type: "text", text }],
+          metadata: usage && { inputTokens: usage.inputTokens, outputTokens: usage.outputTokens, costUsd: usage.costUsd },
+          model: usage?.model ?? null,
+        };
+      }),
     );
   }
 }
