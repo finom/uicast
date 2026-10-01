@@ -21,12 +21,11 @@ const meta: MetaRecord = {
     items: {
       index: "Component implementation",
       renderer: "Provider & Renderer",
-      "reference-catalog": "Reference catalog",
       ssr: "Server rendering",
+      "reference-catalog": "Reference catalog",
+      "catalog-gallery": "Catalog Gallery",
     },
   },
-  // Linked from the reference catalog page and the catalog README, not from the menus.
-  "shadcn-catalog-gallery": { title: "Catalog gallery", display: "hidden" },
   events: "Event handling",
   prompt: "Assembling the prompt",
   streaming: "Streaming",

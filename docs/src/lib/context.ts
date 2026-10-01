@@ -14,7 +14,7 @@ export const BLOCKS = [
 export type Blocks = Record<(typeof BLOCKS)[number], string>;
 
 // Nothing here the file's header doesn't say.
-const DROPPED = ["Hero", "Sponsors"];
+const DROPPED = ["Hero", "Sponsors", "GallerySwitch"];
 // The tags go, the text inside stays.
 const UNWRAPPED = ["Bleed", "Callout", "ShowMore"];
 
@@ -42,6 +42,7 @@ export function pageMarkdown(mdx: string, url: string, blocks: Blocks): string {
     .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
     .replace(/<GroupSize group="(\w+)" \/>/g, (_, group) => String(namesOf(group).length))
     .replace(/<GroupNames group="(\w+)">[\s\S]*?<\/GroupNames>/g, (_, group) => namesOf(group).join(", "))
+    .replace(/<GalleryGroup group="(\w+)" \/>/g, (_, group) => namesOf(group).join(", "))
     .replace(/<([A-Z]\w*)[^>]*\/>/g, (_, name) => component(name))
     .replace(/<\/?([A-Za-z]\w*)[^>]*>/g, (tag, name) => {
       if (/^[a-z]/.test(name) || UNWRAPPED.includes(name)) return "";

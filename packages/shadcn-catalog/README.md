@@ -9,7 +9,7 @@
 <p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 <p align="center"><a href="https://www.npmjs.com/package/@uicast/shadcn-catalog"><img src="https://img.shields.io/npm/v/@uicast/shadcn-catalog.svg?color=brightgreen" alt="npm version"></a> <a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
 
-A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/shadcn-catalog-gallery) renders every component.
+A reference component catalog for **uicast**: 106 definition/implementation pairs over [shadcn/ui](https://ui.shadcn.com/) and Radix. Register all of it or some groups, or copy its layout for your own design system: one directory per component under [`src/uicast-catalog`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog), with a `def.ts` and an `impl.tsx`. The [gallery](https://uicast.dev/react/catalog-gallery) renders every component.
 
 ```sh
 npm install @uicast/shadcn-catalog @uicast/core @uicast/react @uicast/expr
@@ -109,7 +109,7 @@ The tile URL comes from the implementation, not the document, so `urlPolicy` doe
 
 ## Documentation
 
-[Reference catalog](https://uicast.dev/react/reference-catalog) · [Gallery](https://uicast.dev/shadcn-catalog-gallery) · [Component definition](https://uicast.dev/def) · [Component implementation](https://uicast.dev/react)
+[Reference catalog](https://uicast.dev/react/reference-catalog) · [Gallery](https://uicast.dev/react/catalog-gallery) · [Component definition](https://uicast.dev/def) · [Component implementation](https://uicast.dev/react)
 
 ## License
 
