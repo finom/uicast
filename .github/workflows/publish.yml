@@ -44,6 +44,7 @@ jobs:
           fi
       - name: Publish every version not yet on npm
         run: |
+          set -o pipefail
           for dir in expr core react shadcn-catalog streamdown; do
             name="$(node -p "require('./packages/$dir/package.json').name")"
             version="$(node -p "require('./packages/$dir/package.json').version")"
@@ -56,22 +57,32 @@ jobs:
               *-*) tag="${version#*-}"; tag="${tag%%.*}" ;;
               *) tag=latest ;;
             esac
-            npm publish --workspace "packages/$dir" --access public --tag "$tag"
+            # npm validates a new version for a few minutes, unseen by npm view, so a later run may try it again.
+            npm publish --workspace "packages/$dir" --access public --tag "$tag" 2>&1 | tee publish.log ||
+              grep -qE "previously (staged|published) version" publish.log
           done
       # The release carries the npm provenance as an in-toto file, which is what Scorecard's Signed-Releases reads.
       - name: A GitHub Release per pushed tag, with the npm provenance
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -o pipefail
           for dir in expr core react shadcn-catalog streamdown; do
             name="$(node -p "require('./packages/$dir/package.json').name")"
             version="$(node -p "require('./packages/$dir/package.json').version")"
             tag="$dir-v$version"
+            file="$tag.intoto.jsonl"
             gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --silent 2>/dev/null || continue
-            gh release view "$tag" >/dev/null 2>&1 && continue
-            curl -fsSL "https://registry.npmjs.org/-/npm/v1/attestations/${name/\//%2f}@$version" |
-              jq -c '.attestations[] | select(.predicateType | startswith("https://slsa.dev/provenance/")) | .bundle.dsseEnvelope' \
-                >"$tag.intoto.jsonl"
-            gh release create "$tag" "$tag.intoto.jsonl" --verify-tag --title "$name $version" \
-              --notes "[Changelog](https://github.com/$GITHUB_REPOSITORY/blob/$tag/packages/$dir/CHANGELOG.md) · [npm](https://www.npmjs.com/package/$name/v/$version)"
+            gh release view "$tag" --json assets --jq '.assets[].name' 2>/dev/null | grep -qxF "$file" && continue
+            # The attestations appear once npm serves the version, a few minutes after the publish.
+            curl -fsSL --retry 40 --retry-delay 15 --retry-all-errors \
+              "https://registry.npmjs.org/-/npm/v1/attestations/${name/\//%2f}@$version" |
+              jq -ce '.attestations[] | select(.predicateType | startswith("https://slsa.dev/provenance/")) | .bundle.dsseEnvelope' \
+                >"$file"
+            if gh release view "$tag" >/dev/null 2>&1; then
+              gh release upload "$tag" "$file" --clobber
+            else
+              gh release create "$tag" "$file" --verify-tag --title "$name $version" \
+                --notes "[Changelog](https://github.com/$GITHUB_REPOSITORY/blob/$tag/packages/$dir/CHANGELOG.md) · [npm](https://www.npmjs.com/package/$name/v/$version)"
+            fi
           done
