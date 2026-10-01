@@ -1,38 +1,46 @@
 ```tsx localpath="docs/src/lib/mini-examples/tracker/impl.tsx"
 import { createComponentImplementation } from "@uicast/react";
+import type { PointerEvent } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrackPadDef } from "./def";
 
 export const TrackPadImpl = createComponentImplementation({
   def: TrackPadDef,
-  render: ({ x, y, onMove, onLeave }) => (
-    <Card className="w-55">
-      <CardContent
-        className="relative grid h-40 cursor-crosshair touch-none place-items-center select-none"
-        onPointerMove={(e) => {
-          const rect = e.currentTarget.getBoundingClientRect();
-          onMove({
-            x: Math.round(e.clientX - rect.left),
-            y: Math.round(e.clientY - rect.top),
-          });
-        }}
-        onPointerLeave={() => onLeave()}
-      >
-        {x === undefined || y === undefined ? (
-          <span className="text-sm text-muted-foreground">Hover or tap here</span>
-        ) : (
-          <>
-            <span className="font-mono text-sm">
-              x: {x} · y: {y}
-            </span>
-            <span
-              className="pointer-events-none absolute size-1.5 -translate-1/2 rounded-full bg-foreground"
-              style={{ left: x, top: y }}
-            />
-          </>
-        )}
-      </CardContent>
-    </Card>
-  ),
+  render: ({ x, y, onMove, onLeave }) => {
+    const move = (e: PointerEvent<HTMLDivElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+      onMove({
+        x: Math.round(e.clientX - rect.left),
+        y: Math.round(e.clientY - rect.top),
+      });
+    };
+    return (
+      <Card className="w-55">
+        <CardContent
+          className="relative grid h-40 cursor-crosshair touch-none place-items-center select-none"
+          onPointerDown={move}
+          onPointerMove={move}
+          // A finger leaves the pad when it lifts, so only a mouse or a pen clears the point.
+          onPointerLeave={(e) => {
+            if (e.pointerType !== "touch") onLeave();
+          }}
+        >
+          {x === undefined || y === undefined ? (
+            <span className="text-sm text-muted-foreground">Hover or tap here</span>
+          ) : (
+            <>
+              <span className="font-mono text-sm">
+                x: {x} · y: {y}
+              </span>
+              <span
+                className="pointer-events-none absolute size-1.5 -translate-1/2 rounded-full bg-foreground"
+                style={{ left: x, top: y }}
+              />
+            </>
+          )}
+        </CardContent>
+      </Card>
+    );
+  },
 });
 ```
