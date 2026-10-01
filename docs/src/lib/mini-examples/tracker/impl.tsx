@@ -19,10 +19,7 @@ export const TrackPadImpl = createComponentImplementation({
           className="relative grid h-40 cursor-crosshair touch-none place-items-center select-none"
           onPointerDown={move}
           onPointerMove={move}
-          // A finger leaves the pad when it lifts, so only a mouse or a pen clears the point.
-          onPointerLeave={(e) => {
-            if (e.pointerType !== "touch") onLeave();
-          }}
+          onPointerLeave={() => onLeave()}
         >
           {x === undefined || y === undefined ? (
             <span className="text-sm text-muted-foreground">Hover or tap here</span>
