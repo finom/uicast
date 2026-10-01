@@ -87,15 +87,19 @@ throws outside a `<RendererProvider>`.
 
 ### Pass stable references
 
-`implementations`, `evaluator`, `fallbackComponents`, `urlPolicy` and `onError`
-must keep their identity across renders, or **every element re-renders**. Use
-module constants:
+Keep `implementations`, `evaluator`, `fallbackComponents`, `urlPolicy` and
+`onError` stable across renders where you can: a new identity re-renders every
+element. State is kept and seeds do not run again. Module constants are the
+simple case; a set that changes at run time goes in `useMemo`:
 
 ```tsx
 const implementations = [...impls, MyCard];                            // ✅ module scope
 const evaluator = new Evaluator({ functions: [listRows, deleteRow] }); // ✅ module scope
 
-// ❌ a fresh array each render — every node under it re-renders
+// ✅ in a component: a new array only when `extra` changes
+const implementations = useMemo(() => [...impls, ...extra], [extra]);
+
+// ⚠️ a fresh array each render — every node under it re-renders
 <RendererProvider evaluator={evaluator} implementations={[...impls, MyCard]}>…</RendererProvider>;
 ```
 
