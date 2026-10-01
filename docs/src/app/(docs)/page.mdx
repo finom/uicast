@@ -65,13 +65,15 @@ safe as what you put there.
 
 ```js
 // scopes.root.orders === [{ total: 2 }, { total: 3 }]
-scopes.root.orders.reduce((a, o) => a + o.total, 0)  // ✅ → 5
-listOrders()                                         // ✅ a host function you registered,
-                                                     //    callable in seed and callbacks
-fetch("/api/orders")                                 // ❌ throws — "fetch" is not
-                                                     //    available in expressions
-document.cookie                                      // ❌ throws — so do "window",
-                                                     //    "localStorage", "eval", …
+
+// ✅ → 5
+scopes.root.orders.reduce((a, o) => a + o.total, 0)
+// ✅ a host function you registered, callable in seed and callbacks
+listOrders()
+// ❌ throws — "fetch" is not available in expressions
+fetch("/api/orders")
+// ❌ throws — so do "window", "localStorage", "eval", …
+document.cookie
 ```
 
 ## The prompt is generated from your code
