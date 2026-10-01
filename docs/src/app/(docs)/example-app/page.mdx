@@ -6,8 +6,8 @@ description: "A back office for Warehouse, a made-up store: every page and chat 
 
 The example app is a back office for Warehouse, a made-up store. It has five
 Postgres tables: suppliers, products, customers, orders and a stock ledger. The
-sidebar and the chat panel are hand-written; every page and chat answer is a
-**uicast** document that a model writes with the
+sidebar and the chat panel are React components in the app's source; every page
+and chat answer is a **uicast** document that a model writes with the
 [reference catalog](/react/reference-catalog). It runs at
 [warehouse.uicast.dev](https://warehouse.uicast.dev). The code is in
 [`examples/back-office`](https://github.com/finom/uicast/tree/main/examples/back-office).
@@ -41,7 +41,7 @@ More details are in the app's
 ## Functions
 
 `src/tools/` has one [host function](/expr/functions) per REST endpoint. Each
-one calls the endpoint a hand-written front end would call, and shares the
+one calls the endpoint a conventional front end would call, and shares the
 route's schema from `src/db/zod.ts`:
 
 ```ts filename="src/tools/products.ts"
