@@ -18,7 +18,7 @@ export function ShowMore({ children, height = 240 }: { children: ReactNode; heig
         type="button"
         aria-expanded={open}
         onClick={() => setOpen(!open)}
-        className="mt-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        className="mt-2 cursor-pointer text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         {open ? "Show less" : "Show more"}
       </button>
