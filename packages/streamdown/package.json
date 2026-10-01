@@ -1,6 +1,6 @@
 {
   "name": "@uicast/streamdown",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "the uicast Streamdown plugin",
   "license": "MIT",
   "author": "Andrey Gubanov (https://github.com/finom)",
@@ -37,8 +37,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uicast/core": "^0.0.2",
-    "@uicast/react": "^0.0.2"
+    "@uicast/core": "^0.0.3",
+    "@uicast/react": "^0.0.3"
   },
   "peerDependencies": {
     "react": "^19.2.5",
