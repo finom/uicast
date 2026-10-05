@@ -6,8 +6,8 @@ export const DEFAULT_MAX_CACHE_SIZE = 500;
 // A nested expression cannot blow the validator's or a compiler's stack.
 export const MAX_AST_DEPTH = 100;
 
-// The interpreter's call slots; the method tables pass at most four (`reduce`).
-export const MAX_ARROW_PARAMS = 5;
+// The most arguments a method passes its callback: `reduce`'s accumulator, item, index and array.
+export const MAX_ARROW_PARAMS = 4;
 
 // Distinct locale-and-options pairs kept per Intl kind.
 export const INTL_CACHE_SIZE = 64;

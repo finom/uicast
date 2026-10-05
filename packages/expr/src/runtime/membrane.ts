@@ -129,6 +129,12 @@ export const chargeResult = (value: unknown, what: string, budget: Budget): unkn
   return value;
 };
 
+// Whether JS would find a method there. A value that is not plain data is not looked into.
+const hasJsMethod = (obj: object | string | number | boolean, key: string): boolean =>
+  typeof obj === "object" && !Array.isArray(obj) && !isPlainObject(obj)
+    ? true
+    : typeof (Object(obj) as Record<string, unknown>)[key] === "function";
+
 // The only way a method is ever reached.
 export const callMember = (obj: unknown, rawKey: unknown, args: unknown[], budget: Budget): unknown => {
   const key = String(asKey(rawKey));
@@ -137,8 +143,8 @@ export const callMember = (obj: unknown, rawKey: unknown, args: unknown[], budge
   }
   const impl = methodsOf(obj)?.[key];
   if (!impl) {
-    const where = obj instanceof Namespace ? obj.name : typeName(obj);
-    return reject(`"${key}" is not an available method on ${where}`);
+    const message = `"${key}" is not an available method on ${obj instanceof Namespace ? obj.name : typeName(obj)}`;
+    return hasJsMethod(obj, key) ? reject(message) : fail(message);
   }
   try {
     return chargeResult(impl(obj as never, args, budget), key, budget);
@@ -153,7 +159,7 @@ export const defineKey = (target: Record<string, unknown>, rawKey: unknown, valu
 };
 
 export const pushSpread = (out: unknown[], value: unknown, budget: Budget): void => {
-  if (!Array.isArray(value) && typeof value !== "string") reject("Only arrays and strings can be spread here");
+  if (!Array.isArray(value) && typeof value !== "string") fail("Only arrays and strings can be spread here");
   budget.growArray(out.length + value.length, value.length);
   out.push(...value);
 };

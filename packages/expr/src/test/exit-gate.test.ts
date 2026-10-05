@@ -108,6 +108,15 @@ describe("only JSON-shaped data leaves", () => {
     expect(() => ev.eval("d.toString()", context)).toThrow(/not an available method on Date/);
     expect(received).toBe("untouched");
   });
+
+  it("a getter that throws while the result is checked is refused, not raw", () => {
+    const o = {
+      get bad(): never {
+        throw new Error("boom");
+      },
+    };
+    expect(() => new Evaluator().eval("o", { o })).toThrow(/The result could not be checked: boom/);
+  });
 });
 
 describe("what a built-in throws is classified, not raw", () => {

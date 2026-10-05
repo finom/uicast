@@ -75,6 +75,9 @@ describe("check", () => {
     expect(refuses(ev, "new Date(0)")).toBe(true);
     expect(refuses(ev, "fetch")).toBe(true);
     expect(ev.eval("({}).constructor")).toBeUndefined();
+    expect(refuses(ev, "[1].map((...a) => a)")).toBe(true);
+    expect(refuses(ev, "({})[x => 1]")).toBe(true);
+    expect(ev.eval("[1, , 2]")).toEqual([1, undefined, 2]);
   });
 });
 

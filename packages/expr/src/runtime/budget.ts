@@ -39,10 +39,8 @@ export class Budget {
 
   private check(): void {
     if (this.steps >= this.limits.steps) exceeded(`Expression exceeded its step budget (${this.limits.steps} steps)`);
-    if (this.steps >= this.nextClockCheck) {
-      this.nextClockCheck = this.steps + CLOCK_EVERY;
-      this.clock();
-    }
+    this.nextClockCheck = this.steps + CLOCK_EVERY;
+    this.clock();
     this.nextCheck = Math.min(this.nextClockCheck, this.limits.steps);
   }
 

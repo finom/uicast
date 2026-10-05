@@ -248,8 +248,6 @@ export const BINARY_FNS: Record<string, BinaryFn> = {
     // biome-ignore lint/suspicious/noDoubleEquals: implementing JS's `!=` is the point
     return l != r;
   },
-  "===": (l, r) => l === r,
-  "!==": (l, r) => l !== r,
   "<": (l, r, budget) => {
     chargeComparison(l, r, budget);
     return (l as number) < (r as number);
@@ -542,18 +540,16 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
             return (frame, rt) => new Lambda((a, b) => run({ values: [a, b], parent: frame }, rt));
           case 3:
             return (frame, rt) => new Lambda((a, b, c) => run({ values: [a, b, c], parent: frame }, rt));
-          case 4:
-            return (frame, rt) => new Lambda((a, b, c, d) => run({ values: [a, b, c, d], parent: frame }, rt));
           default:
-            return (frame, rt) => new Lambda((a, b, c, d, e) => run({ values: [a, b, c, d, e], parent: frame }, rt));
+            return (frame, rt) => new Lambda((a, b, c, d) => run({ values: [a, b, c, d], parent: frame }, rt));
         }
       }
 
       const binders = params.map((param) => compilePattern(param, inner));
       return (frame, rt) =>
-        new Lambda((a, b, c, d, e) => {
+        new Lambda((a, b, c, d) => {
           const inFlight: Frame = { values: [], parent: frame };
-          const args = [a, b, c, d, e];
+          const args = [a, b, c, d];
           return run(inFlight, rt, () => {
             for (let i = 0; i < binders.length; i++) binders[i](args[i], inFlight, rt);
           });

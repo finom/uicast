@@ -25,7 +25,7 @@ describe("what it refuses before parsing", () => {
   });
 
   it("refuses anything that is not one expression", () => {
-    for (const source of ["1; 2", "const a = 1", "if (a) 1", "return 1", "a => { return 1 }"]) {
+    for (const source of ["1; 2", "const a = 1", "if (a) 1", "return 1", "a => { return 1 }", "1), (2"]) {
       expect(() => ev.eval(source), source).toThrow(ExpressionError);
     }
   });

@@ -110,7 +110,8 @@ Left out on purpose:
   refused before any call runs.
 - **`Intl`.** The locale methods still take a locale and options:
   `price.toLocaleString(undefined, { style: "currency", currency: "USD" }){:ts}`.
-- **`new`, so `Date` values, `Set` and `Map`.** Every value is JSON. A date is
+- **`new`, so `Date` values, `Set` and `Map`.** Every value is plain data:
+  anything JSON can hold, plus `undefined`, `NaN` and `Infinity`. A date is
   an ISO string or a timestamp from `Date.parse(text){:ts}`; format it in a
   component (see
   [`DateTime`](https://github.com/finom/uicast/tree/main/packages/shadcn-catalog/src/uicast-catalog/date-time)).

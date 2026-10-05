@@ -169,6 +169,37 @@ describe("failures", () => {
     }
   });
 
+  it("names a thrown non-Error in the message", () => {
+    const ev = new Evaluator({
+      functions: [
+        tool({
+          name: "f",
+          execute: () => {
+            throw "offline";
+          },
+        }),
+      ],
+    });
+    expect(() => ev.eval("f()")).toThrow('"f" failed: offline');
+  });
+
+  it("blames the host for a schema that throws or returns a thenable that is not a Promise", () => {
+    const schema = (validate: () => unknown) =>
+      ({ "~standard": { version: 1, vendor: "test", validate } }) as unknown as Schema;
+    const throwing = schema(() => {
+      throw new Error("schema bug");
+    });
+    // biome-ignore lint/suspicious/noThenProperty: a thenable that is not a Promise is the case under test
+    const thenable = schema(() => ({ then: () => {} }));
+    for (const [inputSchema, message] of [
+      [throwing, '"f" failed: schema bug'],
+      [thenable, '"f" schema returned a thenable that is not a Promise'],
+    ] as const) {
+      const ev = new Evaluator({ functions: [tool({ name: "f", inputSchema })] });
+      expect(() => ev.eval("f(1)")).toThrow(expect.objectContaining({ reason: "host-function", message }));
+    }
+  });
+
   it("classifies a rejected promise the same way", async () => {
     const boom = new Error("gone");
     const ev = new Evaluator({

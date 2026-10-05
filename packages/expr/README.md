@@ -51,7 +51,7 @@ One expression over the data you pass in. Nothing is declared, assigned, or run 
 | **Values** | numbers, strings, template literals, `true`, `false`, `null`, `undefined`; arrays and objects, with spread and computed keys |
 | **Reads** | `a.b`, `a[b]`, `a?.b`, `a?.[b]`: own properties of plain data only, so `({}).constructor` is `undefined` |
 | **Operators** | `+ - * / % **`, `== != === !==`, `< <= > >=`, `&& \|\| ??`, `! - + typeof`, `a ? b : c` |
-| **Callbacks** | An arrow with an expression body, only where a method takes a function: `rows.map(r => r.name)`, `Array.from({ length: 3 }, (_, i) => i)`. Up to five parameters, with destructuring and defaults. A global that takes one argument can stand in for it: `rows.filter(Boolean)`, `ids.map(Number)` |
+| **Callbacks** | An arrow with an expression body, only where a method takes a function: `rows.map(r => r.name)`, `Array.from({ length: 3 }, (_, i) => i)`. Up to four parameters, with destructuring and defaults. A global that takes one argument can stand in for it: `rows.filter(Boolean)`, `ids.map(Number)` |
 | **Globals** | `Math`, `JSON`, `Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `encodeURIComponent`, `decodeURIComponent`, `undefined`, `NaN`, `Infinity` |
 | **Methods** | The standard methods of arrays, strings and numbers, and the data functions of the globals, minus those that mutate, return an iterator, take a regular expression, exist only for a side effect, are legacy, or have no use in a UI. Locale methods take a locale and options: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })` |
 
@@ -74,7 +74,7 @@ One expression over the data you pass in. Nothing is declared, assigned, or run 
 |---|---|
 | Statements, loops, `function`, block bodies | A loop cannot be written, and nothing can call itself. |
 | Assignment and mutating methods (`push`, `sort`, …) | An expression computes a value; state changes belong to the host. |
-| `new`, so no `Date` objects, `Set` or `Map` | Every value is JSON. A date is an ISO string or a timestamp; an object does a `Map`'s job. |
+| `new`, so no `Date` objects, `Set` or `Map` | Every value is plain data: anything JSON can hold, plus `undefined`, `NaN` and `Infinity`. A date is an ISO string or a timestamp; an object does a `Map`'s job. |
 | Regular expressions | A match runs inside the engine, where the budget cannot stop it. |
 | `async` and `await` | A host function's promise can only be the whole result. |
 | `Math.random()`, `Date.now()` | The same data gives the same result. A random value or the time comes from a host function. |

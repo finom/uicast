@@ -33,7 +33,8 @@ describe("constants and runtime tables agree", () => {
 
   it("the operator tables", () => {
     expect(sorted(Object.keys(UNARY_FNS))).toEqual(sorted(ALLOWED_UNARY));
-    expect(sorted(Object.keys(BINARY_FNS))).toEqual(sorted(ALLOWED_BINARY));
+    // The compiler writes `===` and `!==` in place.
+    expect(sorted([...Object.keys(BINARY_FNS), "===", "!=="])).toEqual(sorted(ALLOWED_BINARY));
   });
 
   it("the globals and the callable ones", () => {

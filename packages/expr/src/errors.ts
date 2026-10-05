@@ -7,7 +7,7 @@
 export type ExpressionErrorReason =
   // Did not parse, or parsed as something other than one expression.
   | "expression-syntax"
-  // Parsed, but uses a construct or a member the grammar does not allow.
+  // Text the language does not allow, or a value it refuses where JavaScript would take it, such as a function.
   | "guardrail-violation"
   // Named something that was never handed in.
   | "unknown-reference"
@@ -17,7 +17,7 @@ export type ExpressionErrorReason =
   | "invalid-arguments"
   // A host function threw, or its output schema rejected what it returned.
   | "host-function"
-  // Allowed expression, wrong values (property of `null`, malformed JSON).
+  // Allowed text, wrong values, failing where JavaScript fails too: a property of `null`, malformed JSON.
   | "expression-runtime";
 
 export const messageOf = (err: unknown): string => (err instanceof Error ? err.message : String(err));

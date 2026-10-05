@@ -15,7 +15,9 @@ type MethodImpl = (recv: never, args: unknown[], budget: Budget) => unknown;
 type Methods = Readonly<Record<string, MethodImpl>>;
 
 const requireString = (v: unknown, method: string): string =>
-  typeof v === "string" ? v : fail(`"${method}" needs a string argument here — regular expressions are not available`);
+  typeof v === "string"
+    ? v
+    : reject(`"${method}" needs a string argument here — regular expressions are not available`);
 
 const optNum = (v: unknown, budget: Budget): number | undefined => (v === undefined ? undefined : num(v, budget));
 

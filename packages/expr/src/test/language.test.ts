@@ -163,6 +163,9 @@ describe("the language", () => {
     expect(facts.freeIds).toContain("scopes");
     expect([...ev.memberReads(source, "scopes")].sort()).toEqual(["scopes.root.count", "scopes.root.products"]);
     expect([...ev.memberReads(`data.a + data.b + other.c`, "data")].sort()).toEqual(["data.a", "data.b"]);
+    const chained = ev.memberReads(`(scopes.a?.b).c`, "scopes");
+    expect(chained).toEqual(["scopes.a.b.c"]);
+    expect(ev.memberReads(`(scopes.a?.b).c`, "scopes")).toBe(chained);
   });
 });
 
@@ -233,6 +236,12 @@ describe("a function is written only where a method takes one", () => {
       expect(() => ev.validate(expr), expr).toThrow(/only a global that takes one argument/);
     }
     expect(() => run(`rows[k](Math)`, { rows: [1], k: "map" })).toThrow(/"Math" cannot be passed as a callback/);
+  });
+
+  it("takes at most four parameters, none of them rest", () => {
+    expect(run(`rows.reduce((acc, r, i, all) => acc + all.length, 0)`, rows)).toBe(4);
+    expect(() => ev.validate(`rows.map((a, b, c, d, e) => a)`)).toThrow(/at most 4 parameters/);
+    expect(() => ev.validate(`rows.map((...all) => all)`)).toThrow(/Rest parameters/);
   });
 
   it("refuses one anywhere else", () => {
@@ -321,6 +330,11 @@ describe("a host call stands only where its value is the result", () => {
     expect(calls).toBe(0);
     // A parameter named like the function shadows it.
     expect(counted.eval(`ids.map(deleteOrder => deleteOrder)`, { ids: [1] })).toEqual([1]);
+  });
+
+  it("takes one argument, never a spread", () => {
+    expect(() => withTools.validate(`save(1, 2)`)).toThrow(/takes a single argument/);
+    expect(() => withTools.validate(`save(...[1])`)).toThrow(/cannot be called with a spread argument/);
   });
 
   it("refuses a promise held in data as part of the result or a host function's input", () => {
@@ -458,5 +472,66 @@ describe("pinned against plain JS", () => {
     const starts = ["includes", "indexOf", "lastIndexOf"].map((m) => run(`[].${m}(1, ${empty})`));
     expect(starts).toEqual([false, -1, -1]);
     expect(() => run(`"a".slice([${empty}, 0])`)).toThrow();
+  });
+});
+
+describe("the reason says whether JavaScript fails too", () => {
+  const context = { x: 5, o: {}, s: Symbol("s"), fns: [() => 1], rows: [1], k: "map" };
+  const reasonOf = (expr: string) => {
+    try {
+      run(expr, context);
+    } catch (err) {
+      return (err as ExpressionError).reason;
+    }
+  };
+  const jsFails = (expr: string) => {
+    try {
+      new Function(...Object.keys(context), `"use strict"; return (${expr})`)(...Object.values(context));
+      return false;
+    } catch {
+      return true;
+    }
+  };
+
+  it("expression-runtime where it fails", () => {
+    for (const expr of [
+      "[...5]",
+      "'5'.toFixed(2)",
+      "[5].map(([a]) => a)",
+      "Object.keys(null)",
+      "[].reduce((a, b) => a)",
+      "[1].with(5, 0)",
+      "(1).toLocaleString(null)",
+      "(1).toLocaleString('en', null)",
+      "(1).toLocaleString(['en', 5])",
+      "x()",
+      "(1)()",
+      "(true ? Math : Number)()",
+      "rows[k](Math)",
+    ]) {
+      expect(reasonOf(expr), expr).toBe("expression-runtime");
+      expect(jsFails(expr), expr).toBe(true);
+    }
+  });
+
+  it("guardrail-violation where it runs", () => {
+    for (const expr of [
+      "[1].toLocaleString()",
+      "(1).toLocaleString(5)",
+      "'a1'.replace(1, 'x')",
+      "'a1'.split(null)",
+      "Object.keys(1)",
+      "o[null]",
+      "o[undefined]",
+      "o[{}]",
+      "o[s]",
+      "o[Math]",
+      "fns.map(f => 1)",
+      "(true ? Date : Number)()",
+      "rows[k](parseInt)",
+    ]) {
+      expect(reasonOf(expr), expr).toBe("guardrail-violation");
+      expect(jsFails(expr), expr).toBe(false);
+    }
   });
 });

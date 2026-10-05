@@ -1,12 +1,16 @@
 import { INTL_CACHE_SIZE } from "../constants/limits";
 import type { Budget } from "./budget";
 import { JSON_SCALAR_WIDTH } from "./coerce";
-import { isPlainObject, reject } from "./values";
+import { fail, isPlainObject, reject } from "./values";
 
 // Intl objects are immutable, so one per locale and options serves every caller. Building one is slow and steps barely
 // count it, so a build checks the clock.
 
 type Locales = string | string[] | undefined;
+
+const LOCALE_MESSAGE = 'A locale is a string, as "en-US", or an array of them';
+const OPTIONS_MESSAGE =
+  'Locale options are an object of strings, numbers and booleans, as { style: "currency", currency: "USD" }';
 
 // The engine reads locales and options itself, running any getter or `toString` it meets, so only plain values reach it.
 // It checks each tag of a list against the tags it kept, in time of the list's square.
@@ -14,7 +18,8 @@ export const localeList = (locales: unknown, budget: Budget): Locales => {
   let list: Locales;
   if (locales === undefined || typeof locales === "string") list = locales;
   else if (Array.isArray(locales) && locales.every((tag): tag is string => typeof tag === "string")) list = locales;
-  else return reject('A locale is a string, as "en-US", or an array of them');
+  // JS fails on `null` and on an array of anything but tags too, and takes any other value as no locale.
+  else return (locales === null || Array.isArray(locales) ? fail : reject)(LOCALE_MESSAGE);
   if (Array.isArray(list)) budget.tick(list.length * list.length);
   return list;
 };
@@ -31,7 +36,8 @@ const checkOptions = (options: unknown): void => {
   ) {
     return;
   }
-  reject('Locale options are an object of strings, numbers and booleans, as { style: "currency", currency: "USD" }');
+  // JS fails on `null` too.
+  (options === null ? fail : reject)(OPTIONS_MESSAGE);
 };
 
 // The cache key, tagged so `2` and `"2"`, or `undefined` and `null`, never share an entry.

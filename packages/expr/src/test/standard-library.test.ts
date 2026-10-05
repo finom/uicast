@@ -22,6 +22,17 @@ describe("locale-aware calls", () => {
     expect(() => ev.eval(`(1).toLocaleString(null)`)).toThrow();
     expect(ev.eval(`(1).toLocaleString(undefined)`)).toBe((1).toLocaleString());
   });
+
+  it("format the same after the formatter cache drops its oldest entries", () => {
+    const format = (digits: number, fraction: number) =>
+      ev.eval(`(1).toLocaleString("en", { minimumIntegerDigits: ${digits}, minimumFractionDigits: ${fraction} })`);
+    expect(format(3, 0)).toBe("001");
+    for (let digits = 1; digits <= 21; digits++) {
+      for (let fraction = 0; fraction <= 3; fraction++) format(digits, fraction);
+    }
+    expect(format(3, 0)).toBe("001");
+    expect(format(2, 1)).toBe("01.0");
+  });
 });
 
 describe("size caps follow what JS builds", () => {

@@ -5,13 +5,14 @@ import {
   CONSTANT_GLOBALS,
   NAMESPACE_GLOBALS,
   nullProto,
+  OBJECT_NAMESPACES,
 } from "../constants/globals";
 import { CALLBACK_ARGUMENT } from "../constants/methods";
 import { ExpressionError } from "../errors";
 import type { Budget } from "./budget";
 import { chargeNumber } from "./coerce";
 import { chargeResult } from "./membrane";
-import { fail, Lambda, Namespace, runtimeFault } from "./values";
+import { fail, Lambda, Namespace, reject, runtimeFault } from "./values";
 
 type GlobalFn = (...args: unknown[]) => unknown;
 const platform = (name: string): unknown => (globalThis as Record<string, unknown>)[name];
@@ -53,7 +54,7 @@ export const unknownName = (name: string): never => {
 
 export const callGlobal = (name: string, args: unknown[], budget: Budget): unknown => {
   const fn = GLOBAL_FUNCTIONS[name];
-  if (fn === undefined) return fail(`"${name}" is not callable`);
+  if (fn === undefined) return (OBJECT_NAMESPACES.has(name) ? fail : reject)(`"${name}" cannot be called`);
   for (const arg of args) chargeNumber(arg, budget);
   try {
     return chargeResult(fn(...args), name, budget);

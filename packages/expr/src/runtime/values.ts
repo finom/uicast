@@ -1,8 +1,8 @@
 import { globalCallbackMessage, OBJECT_NAMESPACES } from "../constants/globals";
 import { ExpressionError, messageOf } from "../errors";
 
-// Positional slots, no arguments array per call; the method tables fill at most four.
-type LambdaCall = (a?: unknown, b?: unknown, c?: unknown, d?: unknown, e?: unknown) => unknown;
+// Positional slots, no arguments array per call.
+type LambdaCall = (a?: unknown, b?: unknown, c?: unknown, d?: unknown) => unknown;
 
 export class Lambda {
   constructor(readonly call: LambdaCall) {}
@@ -66,7 +66,7 @@ export const plainData = (value: unknown, where: string): object => {
 // Checked before the first element as well, so an empty array refuses a non-function, as in JS.
 export const checkCallback = (f: unknown): void => {
   if (f instanceof Lambda) return;
-  if (f instanceof Namespace) fail(globalCallbackMessage(f.name));
+  if (f instanceof Namespace) (OBJECT_NAMESPACES.has(f.name) ? fail : reject)(globalCallbackMessage(f.name));
   fail(`Expected a function here, got ${typeName(f)}`);
 };
 
