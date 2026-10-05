@@ -53,18 +53,18 @@ One expression over the data you pass in. Nothing is declared, assigned, or run 
 | **Operators** | `+ - * / % **`, `== != === !==`, `< <= > >=`, `&& \|\| ??`, `! - + typeof`, `a ? b : c` |
 | **Callbacks** | An arrow with an expression body, only where a method takes a function: `rows.map(r => r.name)`, `Array.from({ length: 3 }, (_, i) => i)`. Up to five parameters, with destructuring and defaults. A global that takes one argument can stand in for it: `rows.filter(Boolean)`, `ids.map(Number)` |
 | **Globals** | `Math`, `JSON`, `Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `encodeURIComponent`, `decodeURIComponent`, `undefined`, `NaN`, `Infinity` |
-| **Methods** | The standard methods of arrays, strings and numbers, and the data functions of the globals, minus those that mutate, return an iterator, take a regular expression, exist only for a side effect, or are legacy. Locale methods take a locale and options: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })` |
+| **Methods** | The standard methods of arrays, strings and numbers, and the data functions of the globals, minus those that mutate, return an iterator, take a regular expression, exist only for a side effect, are legacy, or have no use in a UI. Locale methods take a locale and options: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })` |
 
 <details>
 <summary>Every method</summary>
 
 **Methods.**
 
-- Array: `.map()` `.filter()` `.reduce()` `.reduceRight()` `.find()` `.findIndex()` `.findLast()` `.findLastIndex()` `.some()` `.every()` `.slice()` `.concat()` `.join()` `.includes()` `.indexOf()` `.lastIndexOf()` `.at()` `.flat()` `.flatMap()` `.toSorted()` `.toReversed()` `.toSpliced()` `.with()` `.toString()` `.toLocaleString()` `.valueOf()`, and `.length`
-- String: `.at()` `.charAt()` `.charCodeAt()` `.codePointAt()` `.startsWith()` `.endsWith()` `.includes()` `.indexOf()` `.lastIndexOf()` `.slice()` `.substring()` `.concat()` `.split()` `.replace()` `.replaceAll()` `.repeat()` `.padStart()` `.padEnd()` `.toLowerCase()` `.toUpperCase()` `.toLocaleLowerCase()` `.toLocaleUpperCase()` `.trim()` `.trimStart()` `.trimEnd()` `.normalize()` `.isWellFormed()` `.toWellFormed()` `.localeCompare()` `.toString()` `.toLocaleString()` `.valueOf()`, and `.length`
+- Array: `.map()` `.filter()` `.reduce()` `.reduceRight()` `.find()` `.findIndex()` `.findLast()` `.findLastIndex()` `.some()` `.every()` `.slice()` `.concat()` `.join()` `.includes()` `.indexOf()` `.lastIndexOf()` `.at()` `.flat()` `.flatMap()` `.toSorted()` `.toReversed()` `.toSpliced()` `.with()` `.toString()` `.valueOf()`, and `.length`
+- String: `.at()` `.charAt()` `.charCodeAt()` `.codePointAt()` `.startsWith()` `.endsWith()` `.includes()` `.indexOf()` `.lastIndexOf()` `.slice()` `.substring()` `.concat()` `.split()` `.replace()` `.replaceAll()` `.repeat()` `.padStart()` `.padEnd()` `.toLowerCase()` `.toUpperCase()` `.toLocaleLowerCase()` `.toLocaleUpperCase()` `.trim()` `.trimStart()` `.trimEnd()` `.normalize()` `.localeCompare()` `.toString()` `.toLocaleString()` `.valueOf()`, and `.length`
 - Number: `.toFixed()` `.toExponential()` `.toPrecision()` `.toString()` `.toLocaleString()` `.valueOf()`
 
-**Static.** `Math.abs()` `Math.ceil()` `Math.floor()` `Math.round()` `Math.trunc()` `Math.sign()` `Math.sqrt()` `Math.cbrt()` `Math.pow()` `Math.min()` `Math.max()` `Math.hypot()` `Math.log()` `Math.log2()` `Math.log10()` `Math.log1p()` `Math.exp()` `Math.expm1()` `Math.sin()` `Math.cos()` `Math.tan()` `Math.asin()` `Math.acos()` `Math.atan()` `Math.atan2()` `Math.sinh()` `Math.cosh()` `Math.tanh()` `Math.asinh()` `Math.acosh()` `Math.atanh()` `Math.fround()` `Math.f16round()` `Math.clz32()` `Math.imul()` `Math.sumPrecise()` and the `Math` constants (`Math.PI`, …); `JSON.parse()` `JSON.stringify()`; `Object.keys()` `Object.values()` `Object.entries()` `Object.fromEntries()` `Object.groupBy()` `Object.hasOwn()` `Object.is()`; `Array.isArray()` `Array.from()` `Array.of()`; `Number.isInteger()` `Number.isFinite()` `Number.isNaN()` `Number.isSafeInteger()` `Number.parseInt()` `Number.parseFloat()` and the `Number` constants (`Number.MAX_SAFE_INTEGER`, …); `String.fromCharCode()` `String.fromCodePoint()`; `Date.parse()` `Date.UTC()`.
+**Static.** `Math.abs()` `Math.ceil()` `Math.floor()` `Math.round()` `Math.trunc()` `Math.sign()` `Math.sqrt()` `Math.cbrt()` `Math.pow()` `Math.min()` `Math.max()` `Math.hypot()` `Math.log()` `Math.log2()` `Math.log10()` `Math.log1p()` `Math.exp()` `Math.expm1()` `Math.sin()` `Math.cos()` `Math.tan()` `Math.asin()` `Math.acos()` `Math.atan()` `Math.atan2()` `Math.sinh()` `Math.cosh()` `Math.tanh()` `Math.asinh()` `Math.acosh()` `Math.atanh()` and the `Math` constants (`Math.PI`, …); `JSON.parse()` `JSON.stringify()`; `Object.keys()` `Object.values()` `Object.entries()` `Object.fromEntries()` `Object.groupBy()` `Object.hasOwn()` `Object.is()`; `Array.isArray()` `Array.from()` `Array.of()`; `Number.isInteger()` `Number.isFinite()` `Number.isNaN()` `Number.isSafeInteger()` `Number.parseInt()` `Number.parseFloat()` and the `Number` constants (`Number.MAX_SAFE_INTEGER`, …); `String.fromCharCode()` `String.fromCodePoint()`; `Date.parse()` `Date.UTC()`.
 
 </details>
 
@@ -80,10 +80,11 @@ One expression over the data you pass in. Nothing is declared, assigned, or run 
 | `Math.random()`, `Date.now()` | The same data gives the same result. A random value or the time comes from a host function. |
 | `forEach`, iterators, generators | A callback has no effect to run, and a function is never a value. |
 | `Intl` | The locale methods take its locales and options. |
+| `Math.fround()`, `Math.f16round()`, `Math.clz32()`, `Math.imul()`, `Math.sumPrecise()`, `isWellFormed()`, `toWellFormed()`, an array's `toLocaleString()`, a `JSON.stringify` replacer | A UI has no use for them. |
 
 Also left out: `this`, `eval`, BigInt, `in`, `instanceof`, bitwise operators, `f?.()`, rest parameters, holes (`[1, , 2]`), typed arrays, `Temporal`.
 
-**Where it differs from JavaScript:** `typeof nope` throws instead of answering `"undefined"`, `Object.keys(1)` is refused instead of boxing, and a missing global is an error, not `undefined`.
+**Where it differs from JavaScript:** `typeof nope` throws instead of answering `"undefined"`, `Object.keys(1)` is refused instead of boxing, `JSON.stringify(Math)` is refused instead of printing `{}`, and a missing global is an error, not `undefined`.
 
 **Engines:** ES2022. The newer methods (`findLast`, `toSorted`, `Object.groupBy`, …) are implemented here, so an older engine gives the same answers.
 

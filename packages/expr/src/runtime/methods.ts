@@ -1,11 +1,10 @@
-import { nullProto, OBJECT_NAMESPACES } from "../constants/globals";
+import { nullProto } from "../constants/globals";
 import { MAX_FLAT_DEPTH, MAX_MARK_RUN } from "../constants/limits";
 import { NAMESPACE_METHOD_NAMES } from "../constants/methods";
 import { type Budget, exceeded } from "./budget";
 import { collator, localeList, numberFormat } from "./intl";
-import { f16round, sumPrecise } from "./numeric";
 import { chargeNumber, chargeText, joinedSize, jsonSize, num, toInteger, toLength } from "./coerce";
-import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData } from "./values";
+import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData, reject } from "./values";
 
 // The membrane charges the result's size; a method charges the work it does, and output that can outgrow its input
 // before producing it.
@@ -26,11 +25,6 @@ const asText = (v: unknown, budget: Budget): string => {
   return String(v);
 };
 const optString = (v: unknown, budget: Budget): string | undefined => (v === undefined ? undefined : asText(v, budget));
-
-const replacerKeys = (replacer: unknown[], budget: Budget): string[] => {
-  budget.tick(replacer.length);
-  return [...new Set(replacer.filter((k) => typeof k === "string" || typeof k === "number").map(String))];
-};
 
 // A relative position clamped into [0, length], as slice and toSpliced read it.
 const clampIndex = (v: unknown, length: number, budget: Budget): number => {
@@ -114,12 +108,6 @@ const arrayLike = (source: Record<string, unknown>, budget: Budget): unknown[] =
   const out: unknown[] = [];
   for (let i = 0; i < length; i++) out.push(Object.hasOwn(source, i) ? source[i] : undefined);
   return out;
-};
-
-// What JS's stringify does to a global: omitted, or `{}` for the object namespaces.
-const asJson = (v: unknown): unknown => {
-  if (v instanceof Namespace) return OBJECT_NAMESPACES.has(v.name) ? {} : undefined;
-  return v;
 };
 
 // JS boxes a primitive receiver; this language refuses it, and null throws in both.
@@ -241,14 +229,10 @@ const ARRAY_METHODS: Methods = nullProto({
     for (let i = 0; i < a.length; i++) out.push(i === at ? value : a[i]);
     return out;
   },
-  // `toString` and `toLocaleString` collide with Object.prototype's members, so the literal loses contextual typing on them.
+  // `toString` collides with Object.prototype's member, so the literal loses contextual typing on it.
   toString: (a: unknown[], _args: unknown[], budget: Budget) => {
     budget.checkString(joinedSize(a, budget) + a.length);
     return a.toString();
-  },
-  toLocaleString: (a: unknown[], [locales, options]: unknown[], budget: Budget) => {
-    budget.checkString(joinedSize(a, budget) + a.length);
-    return localeJoin(a, locales, options, budget);
   },
   valueOf: (a: unknown[]) => a,
 });
@@ -272,37 +256,6 @@ const sortAsText = (a: unknown[], budget: Budget): unknown[] => {
   for (let i = 0; i < missing; i++) out.push(undefined);
   return out;
 };
-
-// Array.prototype.toLocaleString element by element, so each number is charged its formatting.
-const localeJoin = (a: readonly unknown[], locales: unknown, options: unknown, budget: Budget): string => {
-  let out = "";
-  for (let i = 0; i < a.length; i++) {
-    if (i > 0) out += ",";
-    out += localeText(a[i], locales, options, budget);
-  }
-  return out;
-};
-
-const localeText = (item: unknown, locales: unknown, options: unknown, budget: Budget): string => {
-  if (typeof item === "number") return formatNumber(item, [locales, options], budget);
-  if (Array.isArray(item)) return localeJoin(item, locales, options, budget);
-  // Nothing else reads the locale.
-  return [item].toLocaleString();
-};
-
-// The offset of the first lone surrogate at or after `from`, or -1.
-const loneSurrogate = (s: string, from: number): number => {
-  for (let i = from; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    if (c < 0xd800 || c > 0xdfff) continue;
-    const pairs = c <= 0xdbff && i + 1 < s.length && (s.charCodeAt(i + 1) & 0xfc00) === 0xdc00;
-    if (!pairs) return i;
-    i++;
-  }
-  return -1;
-};
-
-const REPLACEMENT_CHARACTER = "�";
 
 // Charge one pass over `s` and hand it back.
 const read = (s: string, budget: Budget): string => {
@@ -419,17 +372,6 @@ const STRING_METHODS: Methods = nullProto({
   trim: (s: string, _args, budget) => read(s, budget).trim(),
   trimStart: (s: string, _args, budget) => read(s, budget).trimStart(),
   trimEnd: (s: string, _args, budget) => read(s, budget).trimEnd(),
-  isWellFormed: (s: string, _args, budget) => loneSurrogate(read(s, budget), 0) === -1,
-  toWellFormed: (s: string, _args, budget) => {
-    read(s, budget);
-    let out = "";
-    let from = 0;
-    for (let i = loneSurrogate(s, 0); i !== -1; i = loneSurrogate(s, i + 1)) {
-      out += s.slice(from, i) + REPLACEMENT_CHARACTER;
-      from = i + 1;
-    }
-    return from === 0 ? s : out + s.slice(from);
-  },
   localeCompare: (s: string, [v, locales, options], budget) => {
     const other = asText(v, budget);
     budget.text(s.length + other.length);
@@ -455,17 +397,8 @@ const NUMBER_METHODS: Methods = nullProto({
   toLocaleString: formatNumber,
 });
 
-const MATH_OWN: Methods = {
-  f16round: (_r, [x], budget) => f16round(num(x, budget)),
-  sumPrecise: (_r, [items], budget) => {
-    const list = itemsOf(items, "Math.sumPrecise", budget);
-    budget.tick(list.length);
-    return sumPrecise(list);
-  },
-};
-
 const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
-  Math: nullProto({ ...nativeTable(Math, NAMESPACE_METHOD_NAMES.Math), ...MATH_OWN }),
+  Math: nativeTable(Math, NAMESPACE_METHOD_NAMES.Math),
   Number: nativeTable(Number, NAMESPACE_METHOD_NAMES.Number),
   String: nativeTable(String, NAMESPACE_METHOD_NAMES.String),
   Date: nullProto({
@@ -482,25 +415,11 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
       return JSON.parse(source);
     },
     stringify: (_r, [value, replacer, space], budget) => {
-      const globals = { found: false };
-      const size = jsonSize(value, indentWidth(space, budget), 0, budget, globals);
-      budget.checkString(size);
-      // A function replacer would take a function, so it is dropped. An array one lists the keys each object prints, in
-      // its order: its strings and numbers, each once, as JS builds the list.
-      const keys = Array.isArray(replacer) ? replacerKeys(replacer, budget) : null;
-      // With neither to handle, the engine's own fast path prints it.
-      if (!keys && !globals.found) return JSON.stringify(value, null, space as string | number | undefined);
-      return JSON.stringify(
-        value,
-        (_key: string, v: unknown) => {
-          const out = asJson(v);
-          if (!keys || out === null || typeof out !== "object" || !isPlainObject(out)) return out;
-          budget.tick(keys.length);
-          const obj = out as Record<string, unknown>;
-          return Object.fromEntries(keys.filter((k) => Object.hasOwn(obj, k)).map((k) => [k, obj[k]]));
-        },
-        space as string | number | undefined,
-      );
+      if (replacer !== undefined && replacer !== null) {
+        reject("JSON.stringify takes no replacer — pass null, as in JSON.stringify(value, null, 2)");
+      }
+      budget.checkString(jsonSize(value, indentWidth(space, budget), 0, budget));
+      return JSON.stringify(value, null, space as string | number | undefined);
     },
   }),
   Object: nullProto({

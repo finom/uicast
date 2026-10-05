@@ -383,6 +383,32 @@ describe("cut syntax — recognizable JS the language deliberately refuses", () 
       expect(() => run(expr), expr).toThrow(/not an available method/);
     }
   });
+
+  it("has no method that no UI needs", () => {
+    for (const expr of [
+      `Math.fround(1.5)`,
+      `Math.f16round(1.5)`,
+      `Math.clz32(1)`,
+      `Math.imul(3, 4)`,
+      `Math.sumPrecise([1])`,
+    ]) {
+      expect(() => run(expr), expr).toThrow(/is not available/);
+    }
+    for (const expr of [`"a".isWellFormed()`, `"a".toWellFormed()`]) {
+      expect(() => run(expr), expr).toThrow(/not an available method/);
+    }
+    expect(() => run(`[1234.5].toLocaleString()`)).toThrow(/"toLocaleString" is not an available method on array/);
+    expect(run(`(1234.5).toLocaleString("en-US")`)).toBe("1,234.5");
+  });
+
+  it("has no JSON.stringify replacer, and stringifies no global", () => {
+    expect(() => run(`JSON.stringify({ a: 1 }, ["a"])`)).toThrow(/takes no replacer/);
+    for (const expr of [`JSON.stringify(Math)`, `JSON.stringify({ a: [JSON] })`, `JSON.stringify([Date])`]) {
+      expect(() => run(expr), expr).toThrow(/contains a (Math|JSON|Date), which is not plain data/);
+    }
+    expect(run(`JSON.stringify({ a: 1 }, null, 2)`)).toBe('{\n  "a": 1\n}');
+    expect(run(`JSON.stringify({ a: 1 }, undefined)`)).toBe('{"a":1}');
+  });
 });
 
 describe("evaluation plumbing", () => {
@@ -409,9 +435,6 @@ describe("pinned against plain JS", () => {
     expect(run('[9, 8]["1"]')).toBe(8);
     expect(() => run('[9, 8]["0" + "1"]')).toThrow(ExpressionError);
   });
-  it("toLocaleString takes a locale", () => {
-    expect(run("[1234.5].toLocaleString('de')")).toBe([1234.5].toLocaleString("de"));
-  });
   it("valueOf on a number", () => {
     expect(run("(1).valueOf()")).toBe(1);
   });
@@ -431,8 +454,6 @@ describe("pinned against plain JS", () => {
     const empty = "Object.groupBy([], x => 1)";
     expect(() => run("[null].map(({}) => 1)")).toThrow(/Cannot destructure null/);
     expect(() => run("[undefined].map(({ ...rest }) => rest)")).toThrow(/Cannot destructure undefined/);
-    expect(run(`JSON.stringify({ b: 1, a: 2 }, ["a", "b"])`)).toBe('{"a":2,"b":1}');
-    expect(run(`JSON.stringify([{ b: 1, a: 2, c: 3 }], ["a", 1, "a", null, ["b"]])`)).toBe('[{"a":2}]');
     expect(run(`"ab".padEnd(0, ${empty})`)).toBe("ab");
     const starts = ["includes", "indexOf", "lastIndexOf"].map((m) => run(`[].${m}(1, ${empty})`));
     expect(starts).toEqual([false, -1, -1]);

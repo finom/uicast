@@ -8,11 +8,7 @@ const NEWER: [object, string][] = [
     Array.prototype,
     name,
   ]),
-  [String.prototype, "isWellFormed"],
-  [String.prototype, "toWellFormed"],
   [Object, "groupBy"],
-  [Math, "f16round"],
-  [Math, "sumPrecise"],
 ];
 
 type Outcome = { value: unknown } | { error: string };

@@ -16,10 +16,7 @@ describe("the interpreter agrees with plain JavaScript", () => {
   }
 });
 
-// The engine under test has no `Math.sumPrecise` (standard-library.test.ts has it).
-const NOT_IN_CORPUS = ["sumPrecise"];
-
 it("has a case for every method", () => {
   const called = (name: string) => CORPUS.some((expr) => expr.includes(`.${name}(`) || expr.includes(`[\`${name}\`]`));
-  expect([...ALLOWED_METHOD_NAMES].filter((name) => !called(name) && !NOT_IN_CORPUS.includes(name))).toEqual([]);
+  expect([...ALLOWED_METHOD_NAMES].filter((name) => !called(name))).toEqual([]);
 });

@@ -420,7 +420,6 @@ describe("single operations the step counter could not see", () => {
       "[a].toSorted()",
       "JSON.stringify(a)",
       "JSON.stringify([a], null, 2)",
-      "a.toLocaleString()",
       "(5).toLocaleString(a)",
     ]) {
       expect(() => ev.eval(expr, { a }), expr).toThrow(exceeded);

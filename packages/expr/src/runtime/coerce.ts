@@ -34,16 +34,6 @@ export const chargeNumber = (v: unknown, budget: Budget): void => {
   else chargeText(v, budget);
 };
 
-// Two strings compare at memory speed; any other pair converts to numbers first.
-export const chargeCompare = (l: unknown, r: unknown, budget: Budget): void => {
-  if (typeof l === "string" && typeof r === "string") {
-    budget.text(Math.min(l.length, r.length));
-    return;
-  }
-  chargeNumber(l, budget);
-  chargeNumber(r, budget);
-};
-
 // JS's ToNumber, charged. An array joins into text first, so an item that has no text throws, as in JS.
 export const num = (v: unknown, budget: Budget): number => {
   if (typeof v === "number") return v;
@@ -75,28 +65,22 @@ const jsonStringSize = (s: string): number => {
   return size;
 };
 
-// `globals` notes a Math or JSON value, which only a replacer prints as JS does.
-export const jsonSize = (
-  value: unknown,
-  indent: number,
-  depth: number,
-  budget: Budget,
-  globals: { found: boolean } = { found: false },
-): number => {
+// A global is refused, where JS would print `{}` for Math and JSON and drop the others.
+export const jsonSize = (value: unknown, indent: number, depth: number, budget: Budget): number => {
   budget.tick(1);
   if (typeof value === "string") {
     budget.text(value.length);
     return jsonStringSize(value);
   }
-  if (value instanceof Namespace) globals.found = true;
+  if (value instanceof Namespace) reject(`JSON.stringify's value contains a ${value.name}, which is not plain data`);
   if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
   const newline = 1 + indent * (depth + 1);
   let size = 2;
   if (Array.isArray(value)) {
-    for (const item of value) size += newline + 1 + jsonSize(item, indent, depth + 1, budget, globals);
+    for (const item of value) size += newline + 1 + jsonSize(item, indent, depth + 1, budget);
   } else if (isPlainObject(value)) {
     for (const [key, item] of Object.entries(value)) {
-      size += newline + key.length + 4 + jsonSize(item, indent, depth + 1, budget, globals);
+      size += newline + key.length + 4 + jsonSize(item, indent, depth + 1, budget);
     }
   }
   return size;

@@ -4,6 +4,17 @@ All notable changes to this package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+- `Math.fround()`, `Math.f16round()`, `Math.clz32()`, `Math.imul()`, `Math.sumPrecise()`, `isWellFormed()`, `toWellFormed()`, and an array's `toLocaleString()`.
+- The `JSON.stringify` replacer: anything other than `null` or `undefined` is refused.
+
+### Changed
+
+- `JSON.stringify` refuses a global in its value (`JSON.stringify(Math)`), where JS prints `{}`.
+
 ## [0.0.5] - 2026-10-05
 
 ### Changed

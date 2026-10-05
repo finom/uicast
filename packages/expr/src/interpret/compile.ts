@@ -1,7 +1,7 @@
 import type * as acorn from "acorn";
 import { ExpressionError } from "../errors";
 import type { Budget } from "../runtime/budget";
-import { chargeCompare, chargeNumber, chargeText } from "../runtime/coerce";
+import { chargeNumber, chargeText } from "../runtime/coerce";
 import { callGlobal, lookupName, withGlobalCallback } from "../runtime/globals";
 import { callMember, defineKey, getMember, getStaticMember, pushSpread, spreadInto } from "../runtime/membrane";
 import { type HostFunction, Lambda, Namespace, typeOf } from "../runtime/values";
@@ -197,12 +197,14 @@ const chargeArithmetic = (l: unknown, r: unknown, budget: Budget): void => {
   chargeNumber(l, budget);
   chargeNumber(r, budget);
 };
-const chargeRelational = (l: unknown, r: unknown, budget: Budget): void => {
-  if (typeof l !== "number" || typeof r !== "number") chargeCompare(l, r, budget);
+// Two strings compare as they are, up to the shorter one.
+const chargeComparison = (l: unknown, r: unknown, budget: Budget): void => {
+  if (typeof l === "string" && typeof r === "string") budget.text(Math.min(l.length, r.length));
+  else chargeArithmetic(l, r, budget);
 };
 // `x == null` converts nothing.
 const chargeEquality = (l: unknown, r: unknown, budget: Budget): void => {
-  if (l !== null && l !== undefined && r !== null && r !== undefined) chargeCompare(l, r, budget);
+  if (l !== null && l !== undefined && r !== null && r !== undefined) chargeComparison(l, r, budget);
 };
 
 export const BINARY_FNS: Record<string, BinaryFn> = {
@@ -249,19 +251,19 @@ export const BINARY_FNS: Record<string, BinaryFn> = {
   "===": (l, r) => l === r,
   "!==": (l, r) => l !== r,
   "<": (l, r, budget) => {
-    chargeRelational(l, r, budget);
+    chargeComparison(l, r, budget);
     return (l as number) < (r as number);
   },
   "<=": (l, r, budget) => {
-    chargeRelational(l, r, budget);
+    chargeComparison(l, r, budget);
     return (l as number) <= (r as number);
   },
   ">": (l, r, budget) => {
-    chargeRelational(l, r, budget);
+    chargeComparison(l, r, budget);
     return (l as number) > (r as number);
   },
   ">=": (l, r, budget) => {
-    chargeRelational(l, r, budget);
+    chargeComparison(l, r, budget);
     return (l as number) >= (r as number);
   },
 };

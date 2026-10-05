@@ -120,6 +120,10 @@ Left out on purpose:
   values.
 - **`in`, bitwise operators, `x?.(){:ts}`, `instanceof`, tagged templates, `this`.**
   None shapes a display value.
+- **Methods a UI has no use for.** `Math.fround(){:ts}`, `Math.f16round(){:ts}`,
+  `Math.clz32(){:ts}`, `Math.imul(){:ts}`, `Math.sumPrecise(){:ts}`,
+  `.isWellFormed(){:ts}`, `.toWellFormed(){:ts}`, an array's `.toLocaleString(){:ts}`,
+  and a `JSON.stringify` replacer.
 
 A callback body is one expression too, never a block:
 
