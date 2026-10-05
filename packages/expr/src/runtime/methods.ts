@@ -48,7 +48,8 @@ const occurrences = (s: string, sub: string): number => {
 
 // The most one replacement can lengthen the text. `$&` inserts the match, and `` $` `` and `$'` up to the whole
 // receiver; any other `$` stays one character.
-const replacementGrowth = (s: string, pattern: string, to: string): number => {
+const replacementGrowth = (s: string, pattern: string, to: string, budget: Budget): number => {
+  budget.text(to.length);
   const inserted = occurrences(to, "$&") * pattern.length + (occurrences(to, "$`") + occurrences(to, "$'")) * s.length;
   return Math.max(0, to.length + inserted - pattern.length);
 };
@@ -368,7 +369,7 @@ const STRING_METHODS: Methods = nullProto({
     chargeSearch(s, pattern, budget);
     return s.lastIndexOf(pattern, optNum(position, budget));
   },
-  normalize: (s: string, [form], budget) => read(markSafe(s), budget).normalize(optString(form, budget)),
+  normalize: (s: string, [form], budget) => markSafe(read(s, budget)).normalize(optString(form, budget)),
   padStart: (s: string, args, budget) => pad(s, args, budget, false),
   padEnd: (s: string, args, budget) => pad(s, args, budget, true),
   repeat: (s: string, [n], budget) => {
@@ -389,14 +390,14 @@ const STRING_METHODS: Methods = nullProto({
     const pattern = requireString(from, "replace");
     const replacement = asText(to, budget);
     chargeSearch(s, pattern, budget);
-    budget.checkString(s.length + replacementGrowth(s, pattern, replacement));
+    budget.checkString(s.length + replacementGrowth(s, pattern, replacement, budget));
     return s.replace(pattern, replacement);
   },
   replaceAll: (s: string, [from, to], budget) => {
     const pattern = requireString(from, "replaceAll");
     const replacement = asText(to, budget);
     chargeSearch(s, pattern, budget);
-    budget.checkString(s.length + occurrences(s, pattern) * replacementGrowth(s, pattern, replacement));
+    budget.checkString(s.length + occurrences(s, pattern) * replacementGrowth(s, pattern, replacement, budget));
     return s.replaceAll(pattern, replacement);
   },
   slice: (s: string, [start, end], budget) => s.slice(optNum(start, budget), optNum(end, budget)),
@@ -430,8 +431,10 @@ const STRING_METHODS: Methods = nullProto({
     return from === 0 ? s : out + s.slice(from);
   },
   localeCompare: (s: string, [v, locales, options], budget) => {
-    const other = markSafe(asText(v, budget));
-    budget.text(markSafe(s).length + other.length);
+    const other = asText(v, budget);
+    budget.text(s.length + other.length);
+    markSafe(s);
+    markSafe(other);
     if (locales === undefined && options === undefined) return s.localeCompare(other);
     return collator(locales, options, budget).compare(s, other);
   },

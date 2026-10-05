@@ -84,7 +84,10 @@ export const jsonSize = (
   globals: { found: boolean } = { found: false },
 ): number => {
   budget.tick(1);
-  if (typeof value === "string") return jsonStringSize(value);
+  if (typeof value === "string") {
+    budget.text(value.length);
+    return jsonStringSize(value);
+  }
   if (value instanceof Namespace) globals.found = true;
   if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
   const newline = 1 + indent * (depth + 1);
