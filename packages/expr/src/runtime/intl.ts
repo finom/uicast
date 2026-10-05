@@ -1,23 +1,21 @@
-import { INTL_CACHE_SIZE, PRICES } from "../constants/limits";
+import { INTL_CACHE_SIZE } from "../constants/limits";
 import type { Budget } from "./budget";
-import { JSON_SCALAR_WIDTH, textCost } from "./coerce";
+import { JSON_SCALAR_WIDTH } from "./coerce";
 import { isPlainObject, reject } from "./values";
 
-// Intl objects are immutable, so one per locale and options serves every caller. Each distinct pair is charged
-// a build once per evaluation, cached or not, so the step count does not depend on what ran before.
+// Intl objects are immutable, so one per locale and options serves every caller. Building one is slow and steps barely
+// count it, so a build checks the clock.
 
 type Locales = string | string[] | undefined;
 
-const tagCount = (locales: Locales): number => (Array.isArray(locales) ? Math.max(locales.length, 1) : 1);
-
 // The engine reads locales and options itself, running any getter or `toString` it meets, so only plain values reach it.
-// Charged per tag: the engine resolves every tag in a list.
+// It checks each tag of a list against the tags it kept, in time of the list's square.
 export const localeList = (locales: unknown, budget: Budget): Locales => {
   let list: Locales;
   if (locales === undefined || typeof locales === "string") list = locales;
   else if (Array.isArray(locales) && locales.every((tag): tag is string => typeof tag === "string")) list = locales;
   else return reject('A locale is a string, as "en-US", or an array of them');
-  budget.tick(PRICES.locale * tagCount(list));
+  if (Array.isArray(list)) budget.tick(list.length * list.length);
   return list;
 };
 
@@ -44,7 +42,6 @@ const keyOf = (kind: string, locales: unknown, options: unknown, budget: Budget)
     const length = name.length + (typeof value === "string" ? value.length : JSON_SCALAR_WIDTH);
     size += length;
     budget.growString(size, length);
-    budget.tick(textCost(length));
     if (typeof value === "number") return `n${value}`;
     if (typeof value === "string") return `s${value}`;
     if (value === undefined) return "u";
@@ -64,10 +61,10 @@ const cached = <T>(
   checkOptions(options);
   const list = localeList(locales, budget);
   const key = keyOf(kind, list, options, budget);
-  budget.once(key, PRICES.intlBuild * tagCount(list));
   let value = cache.get(key);
   if (value === undefined) {
     value = build();
+    budget.clock();
     if (cache.size >= INTL_CACHE_SIZE) {
       const oldest = cache.keys().next().value;
       if (oldest !== undefined) cache.delete(oldest);

@@ -12,34 +12,13 @@ export const MAX_ARROW_PARAMS = 5;
 // Distinct locale-and-options pairs kept per Intl kind.
 export const INTL_CACHE_SIZE = 64;
 
-// Characters the engine scans or copies for one step.
-export const CHARS_PER_STEP = 64;
+// A built-in costs a step per item it walks or builds, and a step per this many characters it reads or writes.
+// The counts are rough: the clock, not the step limit, bounds time.
+export const CHARS_PER_STEP = 16;
 
-// Characters the engine rewrites or builds one by one for one step: case, normalization, JSON, parsing.
-export const TEXT_CHARS_PER_STEP = 4;
-
-// Allocating is time too: a new string costs a step per 2^10 characters, a new array a step per 2^3 items.
-export const STRING_ALLOCATION_SHIFT = 10;
-export const ARRAY_ALLOCATION_SHIFT = 3;
-
-// Steps an operation costs beyond its written nodes: its time over a plain step's, as
-// test/prices.test.ts measures it. So the step limit, not the clock, ends a long evaluation on any device.
-export const PRICES = Object.freeze({
-  // Any method or global function call, before its own work.
-  call: 2,
-  // A number formatted or two strings compared through a locale.
-  locale: 32,
-  // Building an Intl object, per locale tag it reads: charged once per distinct locale and options in an evaluation.
-  intlBuild: 2_000,
-  // A date read from text (plus a step per character).
-  dateText: 64,
-  // An item hashed into its group by Object.groupBy.
-  hash: 4,
-  // A number added by Math.sumPrecise, or rounded by Math.f16round.
-  exactNumber: 8,
-  // A JSON.parse or JSON.stringify call, before its size.
-  json: 32,
-});
+// Longest run of combining marks normalize and localeCompare take: putting a run in order takes time of its square.
+// Unicode's stream-safe text (UAX #15) has no longer runs.
+export const MAX_MARK_RUN = 30;
 
 // A pathologically nested host value cannot overflow the stack.
 export const MAX_FLAT_DEPTH = 32;
@@ -55,9 +34,12 @@ export const MAX_DATA_DEPTH = 256;
  * new Evaluator({ budget: { steps: 200_000, ms: 50 } });
  */
 export type BudgetOptions = {
-  /** Evaluation steps: each node is a step, and a call adds its work (a sort about n·log n). Default 1_000_000. */
+  /**
+   * Steps of work: each node, each item a built-in walks or builds, and every 16 characters it reads or writes.
+   * Default 1_000_000.
+   */
   steps?: number;
-  /** Wall-clock milliseconds, a backstop to `steps`. Default 100. */
+  /** Wall-clock milliseconds, checked every 2048 steps and after each formatter build. Default 100. */
   ms?: number;
   /** Longest string any operation may produce. Default 1_000_000. */
   maxStringLength?: number;

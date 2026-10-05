@@ -1,5 +1,5 @@
 import { MATH_CONSTANTS, NUMBER_CONSTANTS } from "../constants/globals";
-import { MAX_DATA_DEPTH, PRICES } from "../constants/limits";
+import { MAX_DATA_DEPTH } from "../constants/limits";
 import { ExpressionError, messageOf } from "../errors";
 import type { Budget } from "./budget";
 import { methodsOf } from "./methods";
@@ -140,7 +140,6 @@ export const callMember = (obj: unknown, rawKey: unknown, args: unknown[], budge
     const where = obj instanceof Namespace ? obj.name : typeName(obj);
     return reject(`"${key}" is not an available method on ${where}`);
   }
-  budget.tick(PRICES.call);
   try {
     return chargeResult(impl(obj as never, args, budget), key, budget);
   } catch (err) {

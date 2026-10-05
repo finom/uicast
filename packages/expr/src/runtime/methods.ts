@@ -1,25 +1,14 @@
 import { nullProto, OBJECT_NAMESPACES } from "../constants/globals";
-import { MAX_FLAT_DEPTH, PRICES } from "../constants/limits";
+import { MAX_FLAT_DEPTH, MAX_MARK_RUN } from "../constants/limits";
 import { NAMESPACE_METHOD_NAMES } from "../constants/methods";
-import type { Budget } from "./budget";
+import { type Budget, exceeded } from "./budget";
 import { collator, localeList, numberFormat } from "./intl";
 import { f16round, sumPrecise } from "./numeric";
-import {
-  chargeDateText,
-  chargeNumber,
-  chargeText,
-  joinedSize,
-  jsonSize,
-  num,
-  scanCost,
-  textCost,
-  toInteger,
-  toLength,
-} from "./coerce";
+import { chargeNumber, chargeText, joinedSize, jsonSize, num, toInteger, toLength } from "./coerce";
 import { checkCallback, fail, invoke, isPlainObject, Lambda, Namespace, plainData } from "./values";
 
-// The membrane charges each call and the result's size; a method charges only its own proportional work,
-// and output that can outgrow its input before producing it.
+// The membrane charges the result's size; a method charges the work it does, and output that can outgrow its input
+// before producing it.
 // Methods newer than ES2022 are written out here, so an engine without them still runs them.
 
 // `recv` is `never` so each table can type its own receiver.
@@ -57,8 +46,12 @@ const occurrences = (s: string, sub: string): number => {
   return count;
 };
 
-// A replacement string may hold `$&`, `` $` `` and `$'`, each expanding to up to the whole receiver.
-const replacementBound = (s: string, to: string): number => to.length + occurrences(to, "$") * s.length;
+// The most one replacement can lengthen the text. `$&` inserts the match, and `` $` `` and `$'` up to the whole
+// receiver; any other `$` stays one character.
+const replacementGrowth = (s: string, pattern: string, to: string): number => {
+  const inserted = occurrences(to, "$&") * pattern.length + (occurrences(to, "$`") + occurrences(to, "$'")) * s.length;
+  return Math.max(0, to.length + inserted - pattern.length);
+};
 
 // The indent JSON.stringify applies per level: a number or a string's length, clamped to 10.
 const indentWidth = (space: unknown, budget: Budget): number => {
@@ -117,7 +110,6 @@ const nativeTable = (target: object, names: Iterable<string>): Methods =>
 const arrayLike = (source: Record<string, unknown>, budget: Budget): unknown[] => {
   const length = Object.hasOwn(source, "length") ? toLength(source.length, budget) : 0;
   budget.array(length);
-  budget.tick(length);
   const out: unknown[] = [];
   for (let i = 0; i < length; i++) out.push(Object.hasOwn(source, i) ? source[i] : undefined);
   return out;
@@ -163,14 +155,12 @@ const ARRAY_METHODS: Methods = nullProto({
   concat: (a: unknown[], args, budget) => {
     let length = a.length;
     for (const arg of args) length += Array.isArray(arg) ? arg.length : 1;
-    budget.growArray(length, length);
+    budget.checkArray(length);
     return a.concat(...args);
   },
   join: (a: unknown[], [sep], budget) => {
     const separator = sep === undefined ? "," : asText(sep, budget);
-    const size = joinedSize(a, budget) + a.length * separator.length;
-    budget.string(size);
-    budget.tick(textCost(size));
+    budget.checkString(joinedSize(a, budget) + a.length * separator.length);
     return a.map((v) => (v === null || v === undefined ? "" : String(v))).join(separator);
   },
   // JS reads the start position only when the array has items.
@@ -193,8 +183,7 @@ const ARRAY_METHODS: Methods = nullProto({
     const max = depth === undefined ? 1 : Math.min(toInteger(depth, budget), MAX_FLAT_DEPTH);
     const out: unknown[] = [];
     const push = (items: unknown[], level: number): void => {
-      budget.growArray(out.length + items.length, items.length);
-      budget.tick(items.length);
+      budget.checkArray(out.length + items.length);
       for (let i = 0; i < items.length; i++) {
         if (!(i in items)) continue; // flat() drops holes
         const item = items[i];
@@ -211,7 +200,7 @@ const ARRAY_METHODS: Methods = nullProto({
     for (let i = 0; i < a.length; i++) {
       const v = invoke(f, a[i], i, a);
       const delta = Array.isArray(v) ? v.length : 1;
-      budget.growArray(out.length + delta, delta);
+      budget.checkArray(out.length + delta);
       if (Array.isArray(v)) out.push(...v);
       else out.push(v);
     }
@@ -253,13 +242,11 @@ const ARRAY_METHODS: Methods = nullProto({
   },
   // `toString` and `toLocaleString` collide with Object.prototype's members, so the literal loses contextual typing on them.
   toString: (a: unknown[], _args: unknown[], budget: Budget) => {
-    const size = joinedSize(a, budget) + a.length;
-    budget.string(size);
-    budget.tick(textCost(size));
+    budget.checkString(joinedSize(a, budget) + a.length);
     return a.toString();
   },
   toLocaleString: (a: unknown[], [locales, options]: unknown[], budget: Budget) => {
-    budget.string(joinedSize(a, budget) + a.length);
+    budget.checkString(joinedSize(a, budget) + a.length);
     return localeJoin(a, locales, options, budget);
   },
   valueOf: (a: unknown[]) => a,
@@ -275,7 +262,8 @@ const sortAsText = (a: unknown[], budget: Budget): unknown[] => {
     else keyed.push({ key: asText(value, budget), value });
   }
   keyed.sort((x, y) => {
-    budget.tick(1 + scanCost(Math.min(x.key.length, y.key.length)));
+    budget.tick(1);
+    budget.text(Math.min(x.key.length, y.key.length));
     if (x.key < y.key) return -1;
     return x.key > y.key ? 1 : 0;
   });
@@ -315,28 +303,35 @@ const loneSurrogate = (s: string, from: number): number => {
 
 const REPLACEMENT_CHARACTER = "�";
 
-// Charge one pass over `s` (a scan, or a rewrite character by character) and hand it back.
-const scanned = (s: string, budget: Budget): string => {
-  budget.tick(scanCost(s.length));
-  return s;
-};
-const rewritten = (s: string, budget: Budget): string => {
-  budget.tick(textCost(s.length));
+// Charge one pass over `s` and hand it back.
+const read = (s: string, budget: Budget): string => {
+  budget.text(s.length);
   return s;
 };
 
-// The length padStart and padEnd build, charged before they build it.
-const padLength = (n: unknown, budget: Budget): number => {
-  const target = toLength(n, budget);
-  budget.string(target);
-  budget.tick(scanCost(target));
-  return target;
+// The engine's search can compare the whole pattern at each position of the text.
+const chargeSearch = (s: string, pattern: string, budget: Budget): void =>
+  budget.text(s.length * Math.max(pattern.length, 1));
+
+// Putting a run of combining marks in order takes time of its square, inside the engine where no step counts it.
+const LONG_MARK_RUN = new RegExp(`\\p{M}{${MAX_MARK_RUN + 1}}`, "u");
+const markSafe = (s: string): string =>
+  LONG_MARK_RUN.test(s) ? exceeded(`Text has more than ${MAX_MARK_RUN} combining marks in a row`) : s;
+
+// As in JS: the filler is read only when there is something to fill, and an empty one fills nothing.
+const pad = (s: string, [n, filler]: unknown[], budget: Budget, atEnd: boolean): string => {
+  const length = toLength(n, budget);
+  if (length <= s.length) return s;
+  const fill = optString(filler, budget);
+  if (fill === "") return s;
+  budget.checkString(length);
+  return atEnd ? s.padEnd(length, fill) : s.padStart(length, fill);
 };
 
-// The locales a case change reads; the change is charged a rewrite plus a locale lookup.
+// The locales a case change reads.
 const caseLocales = (s: string, locales: unknown, budget: Budget) => {
   const list = locales === undefined ? undefined : localeList(locales, budget);
-  budget.tick(PRICES.locale + textCost(s.length));
+  budget.text(s.length);
   return list;
 };
 
@@ -350,61 +345,58 @@ const STRING_METHODS: Methods = nullProto({
   codePointAt: (s: string, [i], budget) => s.codePointAt(num(i, budget)),
   endsWith: (s: string, [v, end], budget) => {
     const suffix = asText(v, budget);
-    budget.tick(scanCost(suffix.length));
+    budget.text(suffix.length);
     return s.endsWith(suffix, optNum(end, budget));
   },
   startsWith: (s: string, [v, position], budget) => {
     const prefix = asText(v, budget);
-    budget.tick(scanCost(prefix.length));
+    budget.text(prefix.length);
     return s.startsWith(prefix, optNum(position, budget));
   },
-  includes: (s: string, [v, position], budget) =>
-    scanned(s, budget).includes(asText(v, budget), optNum(position, budget)),
-  indexOf: (s: string, [v, position], budget) =>
-    scanned(s, budget).indexOf(asText(v, budget), optNum(position, budget)),
-  // The engine searches backwards naively: every position can compare the whole search text.
+  includes: (s: string, [v, position], budget) => {
+    const pattern = asText(v, budget);
+    chargeSearch(s, pattern, budget);
+    return s.includes(pattern, optNum(position, budget));
+  },
+  indexOf: (s: string, [v, position], budget) => {
+    const pattern = asText(v, budget);
+    chargeSearch(s, pattern, budget);
+    return s.indexOf(pattern, optNum(position, budget));
+  },
   lastIndexOf: (s: string, [v, position], budget) => {
-    const search = asText(v, budget);
-    budget.tick(scanCost(s.length * Math.max(search.length, 1)));
-    return s.lastIndexOf(search, optNum(position, budget));
+    const pattern = asText(v, budget);
+    chargeSearch(s, pattern, budget);
+    return s.lastIndexOf(pattern, optNum(position, budget));
   },
-  normalize: (s: string, [form], budget) => rewritten(s, budget).normalize(optString(form, budget)),
-  // JS reads the filler only when there is something to fill.
-  padStart: (s: string, [n, pad], budget) => {
-    const length = padLength(n, budget);
-    return length <= s.length ? s : s.padStart(length, optString(pad, budget));
-  },
-  padEnd: (s: string, [n, pad], budget) => {
-    const length = padLength(n, budget);
-    return length <= s.length ? s : s.padEnd(length, optString(pad, budget));
-  },
+  normalize: (s: string, [form], budget) => read(markSafe(s), budget).normalize(optString(form, budget)),
+  padStart: (s: string, args, budget) => pad(s, args, budget, false),
+  padEnd: (s: string, args, budget) => pad(s, args, budget, true),
   repeat: (s: string, [n], budget) => {
     const count = toInteger(n, budget);
     if (!Number.isFinite(count) || count < 0) return fail(`repeat count ${String(n)} is not valid`);
-    budget.string(s.length * count);
-    budget.tick(scanCost(s.length * count));
+    budget.checkString(s.length * count);
     return s.repeat(count);
   },
   concat: (s: string, args, budget) => {
     const parts = args.map((arg) => asText(arg, budget));
     let length = s.length;
     for (const part of parts) length += part.length;
-    budget.string(length);
+    budget.checkString(length);
     return s.concat(...parts);
   },
   // String patterns only. A regular expression would put ReDoS inside the regex engine, where no step counter can see it.
   replace: (s: string, [from, to], budget) => {
     const pattern = requireString(from, "replace");
     const replacement = asText(to, budget);
-    budget.tick(scanCost(s.length));
-    budget.string(s.length + replacementBound(s, replacement));
+    chargeSearch(s, pattern, budget);
+    budget.checkString(s.length + replacementGrowth(s, pattern, replacement));
     return s.replace(pattern, replacement);
   },
   replaceAll: (s: string, [from, to], budget) => {
     const pattern = requireString(from, "replaceAll");
     const replacement = asText(to, budget);
-    budget.tick(s.length);
-    budget.string(s.length + occurrences(s, pattern) * replacementBound(s, replacement));
+    chargeSearch(s, pattern, budget);
+    budget.checkString(s.length + occurrences(s, pattern) * replacementGrowth(s, pattern, replacement));
     return s.replaceAll(pattern, replacement);
   },
   slice: (s: string, [start, end], budget) => s.slice(optNum(start, budget), optNum(end, budget)),
@@ -414,21 +406,21 @@ const STRING_METHODS: Methods = nullProto({
     if (max === 0) return [];
     if (sep === undefined) return [s];
     const separator = requireString(sep, "split");
-    budget.tick(s.length);
+    chargeSearch(s, separator, budget);
     const parts = separator === "" ? s.length : occurrences(s, separator) + 1;
-    budget.array(max === undefined ? parts : Math.min(parts, max));
+    budget.checkArray(max === undefined ? parts : Math.min(parts, max));
     return s.split(separator, max);
   },
-  toLowerCase: (s: string, _args, budget) => rewritten(s, budget).toLowerCase(),
-  toUpperCase: (s: string, _args, budget) => rewritten(s, budget).toUpperCase(),
+  toLowerCase: (s: string, _args, budget) => read(s, budget).toLowerCase(),
+  toUpperCase: (s: string, _args, budget) => read(s, budget).toUpperCase(),
   toLocaleLowerCase: (s: string, [locales], budget) => s.toLocaleLowerCase(caseLocales(s, locales, budget)),
   toLocaleUpperCase: (s: string, [locales], budget) => s.toLocaleUpperCase(caseLocales(s, locales, budget)),
-  trim: (s: string, _args, budget) => scanned(s, budget).trim(),
-  trimStart: (s: string, _args, budget) => scanned(s, budget).trimStart(),
-  trimEnd: (s: string, _args, budget) => scanned(s, budget).trimEnd(),
-  isWellFormed: (s: string, _args, budget) => loneSurrogate(rewritten(s, budget), 0) === -1,
+  trim: (s: string, _args, budget) => read(s, budget).trim(),
+  trimStart: (s: string, _args, budget) => read(s, budget).trimStart(),
+  trimEnd: (s: string, _args, budget) => read(s, budget).trimEnd(),
+  isWellFormed: (s: string, _args, budget) => loneSurrogate(read(s, budget), 0) === -1,
   toWellFormed: (s: string, _args, budget) => {
-    rewritten(s, budget);
+    read(s, budget);
     let out = "";
     let from = 0;
     for (let i = loneSurrogate(s, 0); i !== -1; i = loneSurrogate(s, i + 1)) {
@@ -438,8 +430,8 @@ const STRING_METHODS: Methods = nullProto({
     return from === 0 ? s : out + s.slice(from);
   },
   localeCompare: (s: string, [v, locales, options], budget) => {
-    const other = asText(v, budget);
-    budget.tick(PRICES.locale + textCost(Math.min(s.length, other.length)));
+    const other = markSafe(asText(v, budget));
+    budget.text(markSafe(s).length + other.length);
     if (locales === undefined && options === undefined) return s.localeCompare(other);
     return collator(locales, options, budget).compare(s, other);
   },
@@ -447,7 +439,6 @@ const STRING_METHODS: Methods = nullProto({
 
 // Without a locale or options, the engine's own default formatter.
 const formatNumber = (n: number, [locales, options]: unknown[], budget: Budget): string => {
-  budget.tick(PRICES.locale);
   if (locales === undefined && options === undefined) return n.toLocaleString();
   return numberFormat(locales, options, budget).format(n);
 };
@@ -462,13 +453,10 @@ const NUMBER_METHODS: Methods = nullProto({
 });
 
 const MATH_OWN: Methods = {
-  f16round: (_r, [x], budget) => {
-    budget.tick(PRICES.exactNumber);
-    return f16round(num(x, budget));
-  },
+  f16round: (_r, [x], budget) => f16round(num(x, budget)),
   sumPrecise: (_r, [items], budget) => {
     const list = itemsOf(items, "Math.sumPrecise", budget);
-    budget.tick(PRICES.exactNumber * (list.length + 1));
+    budget.tick(list.length);
     return sumPrecise(list);
   },
 };
@@ -480,21 +468,20 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
   Date: nullProto({
     ...nativeTable(Date, ["UTC"]),
     parse: (_r, [text], budget) => {
-      chargeDateText(text, budget);
+      chargeNumber(text, budget);
       return Date.parse(String(text));
     },
   }),
   JSON: nullProto({
     parse: (_r, [text], budget) => {
       const source = asText(text, budget);
-      budget.tick(PRICES.json + textCost(source.length));
+      budget.text(source.length);
       return JSON.parse(source);
     },
     stringify: (_r, [value, replacer, space], budget) => {
       const globals = { found: false };
       const size = jsonSize(value, indentWidth(space, budget), 0, budget, globals);
-      budget.string(size);
-      budget.tick(PRICES.json + textCost(size));
+      budget.checkString(size);
       // A function replacer would take a function, so it is dropped. An array one lists the keys each object prints, in
       // its order: its strings and numbers, each once, as JS builds the list.
       const keys = Array.isArray(replacer) ? replacerKeys(replacer, budget) : null;
@@ -525,7 +512,7 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
       const pairs = itemsOf(source, "Object.fromEntries", budget);
       const out: Record<string, unknown> = {};
       for (const pair of pairs) {
-        budget.tick(PRICES.call);
+        budget.tick(1);
         if (!Array.isArray(pair)) return fail("Object.fromEntries needs [key, value] pairs");
         Object.defineProperty(out, asText(pair[0], budget), {
           value: pair[1],
@@ -541,7 +528,6 @@ const NAMESPACE_METHODS: Readonly<Record<string, Methods>> = nullProto({
       const list = itemsOf(items, "Object.groupBy", budget);
       checkCallback(f);
       budget.array(list.length);
-      budget.tick(PRICES.hash * list.length);
       const out: Record<string, unknown[]> = Object.create(null);
       for (let i = 0; i < list.length; i++) {
         const key = asText(invoke(f, list[i], i), budget);

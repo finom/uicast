@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
 
 const ev = new Evaluator();
@@ -370,10 +370,38 @@ describe("single operations the step counter could not see", () => {
   it("a BigInt literal is refused before it runs", () => {
     expect(() => new Evaluator().eval("7n ** 300000000n > 0n")).toThrow(/BigInt/);
   });
-  it("lastIndexOf is charged for its naive search: every position can compare the whole search text", () => {
+  it("a search is charged the text's length times the pattern's: the engine can compare that much", () => {
     const s = "a".repeat(100_000);
     expect(() => new Evaluator({ budget: { steps: 1000 } }).eval("s.lastIndexOf('b')", { s })).toThrow(exceeded);
-    expect(() => new Evaluator().eval("s.lastIndexOf(t)", { s, t: `${"a".repeat(10_000)}b` })).toThrow(exceeded);
+    // V8 takes over a second on each of these.
+    const ev = new Evaluator();
+    const context = { s: "a".repeat(1_000_000), t: `ab${"a".repeat(5_000)}` };
+    for (const expr of [
+      "s.includes(t)",
+      "s.indexOf(t)",
+      "s.lastIndexOf(t)",
+      "s.split(t)",
+      "s.replace(t, '')",
+      "s.replaceAll(t, '')",
+    ]) {
+      expect(() => ev.eval(expr, context), expr).toThrow(exceeded);
+    }
+    const rows = Array.from({ length: 1_000 }, (_, i) => `${"word ".repeat(40)}${i}`);
+    expect(ev.eval("rows.filter(r => r.includes('word 999')).length", { rows })).toBe(1);
+  });
+  it("normalize and localeCompare refuse more than 30 combining marks in a row: the engine orders a run in time of its square", () => {
+    const ev = new Evaluator();
+    const s = `a${"\u0301".repeat(30)}`;
+    expect(ev.eval("s.normalize('NFD')", { s })).toBe(s.normalize("NFD"));
+    expect(ev.eval("s.localeCompare('a')", { s })).toBe(s.localeCompare("a"));
+    for (const expr of [
+      "('a' + '\u0301'.repeat(40000)).normalize()",
+      "(s + '\u0301').normalize('NFKC')",
+      "(s + '\u0301').localeCompare('a')",
+      "'a'.localeCompare(s + '\u0301', 'en')",
+    ]) {
+      expect(() => ev.eval(expr, { s }), expr).toThrow(exceeded);
+    }
   });
   it("replaceAll is charged by its output", () => {
     expect(() => new Evaluator().eval("'a'.repeat(100000).replaceAll('a', 'b'.repeat(1000)).length")).toThrow(exceeded);
@@ -401,6 +429,19 @@ describe("single operations the step counter could not see", () => {
     expect(ev.eval("JSON.stringify({ a: [1, { b: 's' }] }, null, 2)")).toBe(
       JSON.stringify({ a: [1, { b: "s" }] }, null, 2),
     );
+  });
+  it("JSON.stringify counts escapes, so an oversized result is refused before the engine builds it", () => {
+    const ev = new Evaluator();
+    const stringify = vi.spyOn(JSON, "stringify");
+    try {
+      for (const s of ['"'.repeat(600_000), "\u0001".repeat(200_000), "\ud800".repeat(200_000)]) {
+        expect(() => ev.eval("JSON.stringify(s)", { s })).toThrow(exceeded);
+      }
+      expect(stringify).not.toHaveBeenCalled();
+    } finally {
+      stringify.mockRestore();
+    }
+    expect(ev.eval("JSON.stringify(s).length", { s: "😀".repeat(400_000) })).toBe(800_002);
   });
   it("a conversion is charged by what it reads: a string parses, an array joins", () => {
     const s = "1".repeat(100_000);

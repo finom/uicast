@@ -155,20 +155,21 @@ Every expression stops: evaluation throws when the budget runs out. Only
 built-in methods iterate, and `Evaluator` implements each one, so every
 iteration is charged:
 
-- a **step counter** (1,000,000 by default): a callback invocation costs its
-  body's node count, a call costs its work (a sort about n·log n steps);
+- a **step counter** (1,000,000 by default): each node is a step, and a
+  built-in adds a step per item it walks or builds (a sort, about n·log n) and
+  per 16 characters it reads or writes;
 - a **wall-clock deadline** (100 ms), on a clock the expression cannot read or
-  move;
+  move, checked every 2048 steps and after each locale formatter is built;
 - **allocation caps**, so `"x".repeat(1e9){:ts}` is refused, not attempted;
 - an **AST depth limit**, so nested source cannot overflow the compiler;
 - a **source-length limit** (`maxSourceLength`, 1000 characters by default),
   checked before parsing. The prompt states it to the model.
 
-The step counter is the contract. Each operation is priced by its measured
-time, and a test keeps each within 4× a plain step, so a long evaluation stops
-at the same step on any device. The clock is a backstop: in Chrome at 6× CPU
-slowdown (a mid-range phone) the step limit still fires first; at 12×, locale
-formatting or comparing two long strings can reach the clock first.
+Steps count work roughly; the clock bounds time. One built-in call cannot be
+stopped halfway, so it is charged its worst case before it runs: a text search,
+the text's length times the pattern's. `normalize(){:ts}` and
+`localeCompare(){:ts}` refuse text with more than 30 combining marks in a row,
+where the engine's time grows with the square of the run.
 
 ## When an expression is rejected
 

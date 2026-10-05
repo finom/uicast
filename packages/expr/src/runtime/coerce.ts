@@ -1,12 +1,8 @@
-import { CHARS_PER_STEP, PRICES, TEXT_CHARS_PER_STEP } from "../constants/limits";
 import type { Budget } from "./budget";
 import { isPlainObject, Namespace, reject } from "./values";
 
 // The engine's own conversions run in time of their input: an array joins into text, a string parses into a number.
 // Each is charged here before the engine runs it.
-
-export const scanCost = (length: number): number => Math.ceil(length / CHARS_PER_STEP);
-export const textCost = (length: number): number => Math.ceil(length / TEXT_CHARS_PER_STEP);
 
 // Widest a JSON scalar prints: `-1.7976931348623157e+308` is 24 characters.
 export const JSON_SCALAR_WIDTH = 24;
@@ -30,29 +26,22 @@ export const chargeText = (v: unknown, budget: Budget): void => {
   if (!Array.isArray(v)) return;
   const size = joinedSize(v, budget);
   budget.string(size);
-  budget.tick(textCost(size));
 };
 
 // Turning a value into a number: a string parses in time of its length, an array joins first.
 export const chargeNumber = (v: unknown, budget: Budget): void => {
-  if (typeof v === "string") budget.tick(textCost(v.length));
+  if (typeof v === "string") budget.text(v.length);
   else chargeText(v, budget);
 };
 
 // Two strings compare at memory speed; any other pair converts to numbers first.
 export const chargeCompare = (l: unknown, r: unknown, budget: Budget): void => {
   if (typeof l === "string" && typeof r === "string") {
-    budget.tick(scanCost(Math.min(l.length, r.length)));
+    budget.text(Math.min(l.length, r.length));
     return;
   }
   chargeNumber(l, budget);
   chargeNumber(r, budget);
-};
-
-// The engine reads a date string at up to a step per character.
-export const chargeDateText = (v: unknown, budget: Budget): void => {
-  if (typeof v === "string") budget.tick(PRICES.dateText + v.length);
-  else chargeText(v, budget);
 };
 
 // JS's ToNumber, charged. An array joins into text first, so an item that has no text throws, as in JS.
@@ -74,6 +63,18 @@ export const toLength = (v: unknown, budget: Budget): number => {
   return n > 0 ? Math.min(n, Number.MAX_SAFE_INTEGER) : 0;
 };
 
+// Quotes, backslashes, control characters and lone surrogates print escaped, up to six characters each (`\u0001`).
+const jsonStringSize = (s: string): number => {
+  let size = s.length + 2;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    if (c < 0x20 || c === 0x22 || c === 0x5c) size += 5;
+    else if (c >= 0xd800 && c <= 0xdbff && (s.charCodeAt(i + 1) & 0xfc00) === 0xdc00) i++;
+    else if (c >= 0xd800 && c <= 0xdfff) size += 5;
+  }
+  return size;
+};
+
 // `globals` notes a Math or JSON value, which only a replacer prints as JS does.
 export const jsonSize = (
   value: unknown,
@@ -83,7 +84,7 @@ export const jsonSize = (
   globals: { found: boolean } = { found: false },
 ): number => {
   budget.tick(1);
-  if (typeof value === "string") return value.length + 2;
+  if (typeof value === "string") return jsonStringSize(value);
   if (value instanceof Namespace) globals.found = true;
   if (value === null || typeof value !== "object") return JSON_SCALAR_WIDTH;
   const newline = 1 + indent * (depth + 1);

@@ -113,13 +113,13 @@ Each evaluation spends from a budget, set per evaluator with `budget: { … }`, 
 
 | Option | Default | What it counts |
 |---|---|---|
-| `steps` | 1000000 | Each node evaluated is a step. A call adds its work: a sort costs about n·log n steps. |
-| `ms` | 100 | Milliseconds, checked every 2048 steps. |
+| `steps` | 1000000 | Each node evaluated is a step. A built-in adds a step per item it walks or builds (a sort, about n·log n) and per 16 characters it reads or writes. |
+| `ms` | 100 | Milliseconds, checked every 2048 steps and after each locale formatter is built. |
 | `maxStringLength` | 1000000 | Characters in one string. |
 | `maxArrayLength` | 100000 | Elements in one array. |
 | `maxTotalAllocation` | 10000000 | Characters and elements built in one evaluation. |
 
-Each operation is priced by its measured time, so an evaluation stops at the same step on any device. The clock is a backstop.
+Steps count work roughly; the clock bounds time. One built-in call can't be stopped halfway, so it is charged its worst case before it runs: a text search, the text's length times the pattern's. `normalize()` and `localeCompare()` refuse text with more than 30 combining marks in a row, where the engine's time grows with the square of the run.
 
 ## Host functions
 

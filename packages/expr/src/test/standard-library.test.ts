@@ -1,5 +1,4 @@
-import { describe, expect, it } from "vitest";
-import { PRICES } from "../constants/limits";
+import { describe, expect, it, vi } from "vitest";
 import { Evaluator } from "../index";
 
 const ev = new Evaluator();
@@ -31,12 +30,16 @@ describe("Math.sumPrecise", () => {
 });
 
 describe("locale-aware calls", () => {
-  it("charge building a locale's Intl object once per evaluation, whether it was cached or not", () => {
-    ev.eval(`(1).toLocaleString("fr-FR")`);
-    const tight = new Evaluator({ budget: { steps: PRICES.intlBuild } });
-    expect(() => tight.eval(`(1).toLocaleString("fr-FR")`)).toThrow(/step budget/);
-    const roomy = new Evaluator({ budget: { steps: PRICES.intlBuild + 8 * PRICES.locale + 200 } });
-    expect(roomy.eval(`[1, 2, 3].map(n => n.toLocaleString("fr-FR")).length`)).toBe(3);
+  it("check the clock after building a formatter, which steps barely count", () => {
+    let t = 1;
+    const now = vi.spyOn(Date, "now").mockImplementation(() => (t += 101));
+    try {
+      expect(() => ev.eval(`[7, 8].map(n => (1).toLocaleString("en", { minimumIntegerDigits: n }))`)).toThrow(
+        /time budget/,
+      );
+    } finally {
+      now.mockRestore();
+    }
   });
 
   it("keep options apart that JSON would print alike", () => {
@@ -44,5 +47,40 @@ describe("locale-aware calls", () => {
     expect(() => ev.eval(`(1.5).toLocaleString("en", { maximumFractionDigits: NaN })`)).toThrow();
     expect(() => ev.eval(`(1).toLocaleString(null)`)).toThrow();
     expect(ev.eval(`(1).toLocaleString(undefined)`)).toBe((1).toLocaleString());
+  });
+});
+
+describe("size caps follow what JS builds", () => {
+  it("padStart and padEnd with an empty filler return the text unchanged", () => {
+    expect(ev.eval("'ab'.padStart(1e7, '')")).toBe("ab");
+    expect(ev.eval("'ab'.padEnd(1e7, '')")).toBe("ab");
+    expect(ev.eval("'ab'.padStart(5, 'xy')")).toBe("xyxab");
+    expect(() => ev.eval("'ab'.padStart(1e7)")).toThrow(/string of/);
+  });
+
+  it("counts a method's result once, when it returns", () => {
+    const tight = new Evaluator({ budget: { maxTotalAllocation: 1_000 } });
+    const context = { s: "a".repeat(600), a: Array(600).fill("x"), b: Array(300).fill(1), c: Array(300).fill("x") };
+    for (const expr of [
+      "'x'.repeat(600)",
+      "'x'.padStart(600)",
+      "'x'.concat(s)",
+      "s.replaceAll('a', 'b')",
+      "s.split('')",
+      "a.join('')",
+      "c.toString()",
+      "b.concat(b)",
+      "[b, b].flat()",
+      "a.flatMap((x) => x)",
+      "JSON.stringify(s)",
+    ]) {
+      expect(() => tight.eval(expr, context), expr).not.toThrow();
+    }
+    expect(() => tight.eval("[s.repeat(1), s.repeat(1)]", context)).toThrow(/total allocation/);
+  });
+
+  it("a replacement's `$` adds a whole copy only in `$&`, `` $` `` and `$'`", () => {
+    expect(ev.eval("s.replaceAll(',', ' $').length", { s: "a,".repeat(100_000) })).toBe(300_000);
+    expect(() => ev.eval("s.replaceAll('b', '$`')", { s: "ab".repeat(1_000) })).toThrow(/string of/);
   });
 });
