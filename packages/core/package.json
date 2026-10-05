@@ -1,6 +1,6 @@
 {
   "name": "@uicast/core",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "The framework-agnostic engine of uicast, the expression-driven generative UI framework: entry format, guarded expressions (allow-list, not a sandbox), reactive scopes, and prompt builders.",
   "license": "MIT",
   "author": "Andrey Gubanov (https://github.com/finom)",
@@ -56,6 +56,6 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@uicast/expr": "^0.0.3"
+    "@uicast/expr": "^0.0.4"
   }
 }

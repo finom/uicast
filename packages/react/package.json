@@ -1,6 +1,6 @@
 {
   "name": "@uicast/react",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "the React binding for uicast",
   "license": "MIT",
   "author": "Andrey Gubanov (https://github.com/finom)",
@@ -33,7 +33,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uicast/core": "^0.0.3"
+    "@uicast/core": "^0.0.4"
   },
   "peerDependencies": {
     "react": "^19.2.5",
