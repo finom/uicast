@@ -16,7 +16,9 @@ const manifest = () => JSON.parse(readFileSync(`packages/${dir}/package.json`, "
 if (read("git status --porcelain")) throw new Error("The tree is not clean; the release makes its own commit.");
 // A range bump from an earlier run counts as a change, so a package that depends on a released one goes through.
 const last = `${dir}-v${manifest().version}`;
-if (!read(`git diff --name-only ${last} -- packages/${dir}`)) throw new Error(`packages/${dir} is unchanged since ${last}`);
+if (!read(`git diff --name-only ${last} -- packages/${dir}`)) {
+  throw new Error(`packages/${dir} is unchanged since ${last}`);
+}
 
 sh("npm test && npm run typecheck && npm run lint && npm run build");
 sh(`npm version ${type} --no-git-tag-version --prefix packages/${dir}`);
