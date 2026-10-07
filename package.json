@@ -34,13 +34,13 @@
     "cmdk": "^1.1.1",
     "diff": "^9.0.0",
     "embla-carousel-react": "^8.6.0",
-    "lucide-react": "^1.48.0",
+    "lucide-react": "^1.52.0",
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
-    "react-day-picker": "^10.0.1",
-    "react-resizable-panels": "^4.14.1",
+    "react-day-picker": "^10.0.2",
+    "react-resizable-panels": "^4.14.2",
     "recharts": "^3.8.1",
-    "streamdown": "^2.5.0",
+    "streamdown": "^2.7.0",
     "tailwind-merge": "^3.5.0",
     "tunnel-rat": "^0.1.2",
     "zod": "~4.6.5"
@@ -50,9 +50,9 @@
     "react-dom": "^19.2.5"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.2",
+    "@biomejs/biome": "^2.5.15",
     "@testing-library/react": "^16.3.0",
-    "@types/node": "^26.6.3",
+    "@types/node": "^26.6.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.13.0",
@@ -60,9 +60,9 @@
     "happy-dom": "^20.9.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "tsc-alias": "^1.9.2",
+    "tsc-alias": "^1.9.7",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   },
   "overrides": {
     "zod": "$zod",

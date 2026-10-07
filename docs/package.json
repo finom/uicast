@@ -22,15 +22,15 @@
     "@uicast/react": "*",
     "@uicast/shadcn-catalog": "*",
     "acorn": "^8.18.0",
-    "lucide-react": "^1.48.0",
-    "next": "^16.3.6",
+    "lucide-react": "^1.52.0",
+    "next": "^16.3.8",
     "nextra": "^4.6.1",
     "nextra-theme-docs": "^4.6.1",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-loading-skeleton": "^3.5.0",
     "standard-tool": "^0.1.0",
-    "streamdown": "^2.5.0"
+    "streamdown": "^2.7.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
