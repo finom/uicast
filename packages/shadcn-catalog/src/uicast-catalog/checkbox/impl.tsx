@@ -1,14 +1,16 @@
 import { use, useId } from "react";
 import { createComponentImplementation } from "@uicast/react";
 import { Checkbox as ShadcnCheckbox } from "../../components/ui/checkbox";
+import { useMirror } from "../../lib/use-mirror";
 import { FieldLabelId } from "../field/impl";
 import { CheckboxDef } from "./def";
 
 export const CheckboxImpl = createComponentImplementation({
   def: CheckboxDef,
-  render: ({ checked, disabled, required, label, onChange }, { entry }) => {
+  render: ({ checked: initialChecked, disabled, required, label, onChange }, { entry }) => {
     // Per instance, not `entry.key`: list items share one entry key.
     const id = useId();
+    const [checked, setChecked] = useMirror(initialChecked);
     const fieldLabelId = use(FieldLabelId);
     return (
       <div className="flex items-center gap-2" data-key={entry.key}>
@@ -18,7 +20,10 @@ export const CheckboxImpl = createComponentImplementation({
           checked={checked}
           disabled={disabled}
           required={required}
-          onCheckedChange={(v) => onChange({ checked: v === true })}
+          onCheckedChange={(v) => {
+            setChecked(v === true);
+            onChange({ checked: v === true });
+          }}
         />
         {label && (
           <label

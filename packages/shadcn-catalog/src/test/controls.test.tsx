@@ -108,3 +108,46 @@ describe("Rating", () => {
     expect(fills).toEqual(["100%", "100%", "100%", "100%", "20%"]);
   });
 });
+
+describe("controls with literal props", () => {
+  const literal = (component: string, props: Record<string, unknown> = {}) =>
+    mount([{ key: "c", component, props: { literal: props } }]);
+
+  it.each(["Checkbox", "Switch"])("%s toggles", async (component) => {
+    const { getByRole } = await literal(component);
+    fireEvent.click(getByRole(component === "Switch" ? "switch" : "checkbox"));
+    expect(getByRole(component === "Switch" ? "switch" : "checkbox").getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("Rating takes a click", async () => {
+    const { container, getByLabelText } = await literal("Rating");
+    fireEvent.click(getByLabelText("3 of 5 stars"));
+    expect(container.querySelectorAll('[aria-pressed="true"]')).toHaveLength(3);
+  });
+
+  it.each(["single", "multiple"])("ToggleGroup %s takes a click", async (type) => {
+    const items = [
+      { value: "a", label: "A" },
+      { value: "b", label: "B" },
+    ];
+    const { getByText } = await literal("ToggleGroup", { type, items });
+    fireEvent.click(getByText("B"));
+    expect(getByText("B").closest("button")?.getAttribute("data-state")).toBe("on");
+  });
+
+  it("PinInput keeps a digit", async () => {
+    const { container } = await literal("PinInput");
+    const first = container.querySelector("input") as HTMLInputElement;
+    fireEvent.change(first, { target: { value: "7" } });
+    expect(first.value).toBe("7");
+  });
+
+  it("ColorPicker keeps typed text and takes a full hex", async () => {
+    const { container } = await literal("ColorPicker", { value: "#000000" });
+    const [color, text] = container.querySelectorAll("input");
+    fireEvent.change(text, { target: { value: "#ff" } });
+    expect([text.value, color.value]).toEqual(["#ff", "#000000"]);
+    fireEvent.change(text, { target: { value: "#ff5500" } });
+    expect([text.value, color.value]).toEqual(["#ff5500", "#ff5500"]);
+  });
+});

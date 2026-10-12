@@ -2,13 +2,18 @@ import { createComponentImplementation } from "@uicast/react";
 import { use, useRef } from "react";
 import { Input } from "../../components/ui/input";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { useMirror } from "../../lib/use-mirror";
 import { FieldLabelId } from "../field/impl";
 import { PinInputDef } from "./def";
 
 export const PinInputImpl = createComponentImplementation({
   def: PinInputDef,
-  render: ({ value, length, mask, disabled, type, onChange, onComplete, onKeyDown, onKeyUp }, { entry }) => {
+  render: (
+    { value: initialValue, length, mask, disabled, type, onChange, onComplete, onKeyDown, onKeyUp },
+    { entry },
+  ) => {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [value, setValue] = useMirror(initialValue);
     const chars = value.split("").slice(0, length);
 
     const handleInput = (index: number, char: string) => {
@@ -19,6 +24,7 @@ export const PinInputImpl = createComponentImplementation({
       while (newChars.length < length) newChars.push("");
       newChars[index] = char;
       const newValue = newChars.join("");
+      setValue(newValue);
       onChange({ value: newValue });
 
       if (char && index < length - 1) {
