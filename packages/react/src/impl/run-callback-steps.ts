@@ -19,8 +19,12 @@ type Run = {
   elementKey: string;
 };
 
+// The newest run of each callback, per element (its `debouncers`).
+const newestRuns = new WeakMap<Debouncers, Map<string, symbol>>();
+
 // `confirm` and host calls are barriers; a declined `confirm` resolves early. From the first `debounce` step on,
 // the steps wait `CALLBACK_DEBOUNCE_MS` of quiet, and a newer call of the same callback replaces a pending run.
+// A newer call also stops a run already past its wait: an older answer that lands later is dropped.
 export async function runCallbackSteps({
   steps,
   callbackName,
@@ -40,14 +44,20 @@ export async function runCallbackSteps({
   const now = debounceAt === -1 ? parsed : parsed.slice(0, debounceAt);
   const later = debounceAt === -1 ? [] : parsed.slice(debounceAt);
 
-  await runWaves(now, run);
+  const runs = newestRuns.get(debouncers) ?? new Map<string, symbol>();
+  newestRuns.set(debouncers, runs);
+  const token = Symbol(callbackName);
+  runs.set(callbackName, token);
+  const isNewest = () => runs.get(callbackName) === token;
+
+  if (!(await runWaves(now, run, isNewest))) return;
   if (later.length === 0) return;
 
   debouncers.get(callbackName)?.cancel();
   await new Promise<void>((resolve, reject) => {
     const timer = setTimeout(() => {
       debouncers.delete(callbackName);
-      runWaves(later, run).then(resolve, reject);
+      runWaves(later, run, isNewest).then(() => resolve(), reject);
     }, CALLBACK_DEBOUNCE_MS);
     // A replaced or unmounted run resolves as done: nothing ran, nothing failed.
     debouncers.set(callbackName, {
@@ -60,7 +70,12 @@ export async function runCallbackSteps({
   });
 }
 
-async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, elementKey }: Run): Promise<void> {
+// Resolves `false` when the run stopped: a declined `confirm`, or a newer run of the callback.
+async function runWaves(
+  steps: Step[],
+  { payload, scopes, confirm, evaluator, elementKey }: Run,
+  isNewest: () => boolean,
+): Promise<boolean> {
   // An invalid expression is no barrier: it fails classified when evaluated.
   const callsHostFunction = (expr: string | undefined): boolean => {
     if (!expr) return false;
@@ -81,7 +96,7 @@ async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, el
   for (const wave of waves) {
     if (wave[0].confirm) {
       const confirmed = await confirm(wave[0].confirm);
-      if (!confirmed) return;
+      if (!confirmed || !isNewest()) return false;
     }
     const evaluated = wave.map((step) => {
       const write = step.target && {
@@ -97,6 +112,7 @@ async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, el
     });
     // Successful writes land in step order before the first rejection fails the run.
     const settled = await Promise.allSettled(evaluated.map((e) => e.value));
+    if (!isNewest()) return false;
     let firstError: unknown = null;
     settled.forEach((result, i) => {
       if (result.status === "fulfilled") {
@@ -108,6 +124,7 @@ async function runWaves(steps: Step[], { payload, scopes, confirm, evaluator, el
     });
     if (firstError !== null) throw firstError;
   }
+  return true;
 }
 
 // Every field a write to `scope` also emits on, transitively.
