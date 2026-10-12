@@ -303,7 +303,7 @@ const { data: entries = [] } = useQuery({
     },
   }),
 });
-// <Generated entries={entries} />
+// <Generated key={prompt} entries={entries} />: new prompt = new provider; kept one keeps old page's state
 ```
 
 - Each new line needs new array. `entries.push(x)` renders nothing.

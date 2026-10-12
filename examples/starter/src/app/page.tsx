@@ -66,7 +66,7 @@ export default function Home() {
         <Input value={draft} onChange={(e) => setDraft(e.target.value)} />
         <Button type="submit">Generate</Button>
       </form>
-      <Generated prompt={prompt} />
+      <Generated key={prompt} prompt={prompt} />
     </QueryClientProvider>
   );
 }

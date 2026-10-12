@@ -208,13 +208,17 @@ export default function Home() {
         <Input value={draft} onChange={(e) => setDraft(e.target.value)} />
         <Button type="submit">Generate</Button>
       </form>
-      <Generated prompt={prompt} />
+      <Generated key={prompt} prompt={prompt} />
     </QueryClientProvider>
   );
 }
 ```
 
 > Show the latest orders, with a status filter.
+
+`key={prompt}` gives each prompt a new `RendererProvider`. A provider kept
+across prompts keeps the first page's state, and a seed never overwrites state,
+so the next page would show the old data.
 
 The page fills in from the top, parents before children. A child that has not
 arrived shows its parent's [skeleton](/react#skeleton), or `defaultSkeleton`.
