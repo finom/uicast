@@ -97,3 +97,14 @@ describe("DatePicker", () => {
     expect(input.value).toBe("2024-03-15");
   });
 });
+
+describe("Rating", () => {
+  it("fills a fraction of a star", async () => {
+    const { container } = await mount([{ key: "r", component: "Rating", props: { literal: { value: 4.2 } } }]);
+    expect(container.querySelectorAll('[aria-pressed="true"]')).toHaveLength(4);
+    const fills = [...container.querySelectorAll("button")].map(
+      (button) => button.querySelector<HTMLElement>("span > span")?.style.width ?? "0%",
+    );
+    expect(fills).toEqual(["100%", "100%", "100%", "100%", "20%"]);
+  });
+});
