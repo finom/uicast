@@ -84,3 +84,16 @@ describe("CurrencyInput", () => {
     getByText(String(expected));
   });
 });
+
+describe("DatePicker", () => {
+  it("keeps a partly typed date", async () => {
+    const { container } = await mount(bound("DatePicker", "2024-01-15"));
+    const input = container.querySelector("input") as HTMLInputElement;
+    // A browser reads a partly typed date as "".
+    fireEvent.change(input, { target: { value: "" } });
+    expect(input.value).toBe("");
+    fireEvent.change(input, { target: { value: "2024-03-15" } });
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    expect(input.value).toBe("2024-03-15");
+  });
+});
