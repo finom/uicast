@@ -42,8 +42,9 @@ const suggestPalette = standardTool({
   [Undeclared returns](#undeclared-returns).
 - **`execute(input){:ts}`**: your logic, sync or async. See [Errors](#errors).
 
-Schemas are `StandardSchemaV1 & StandardJSONSchemaV1{:ts}`: Zod 4.2+, Valibot and
-ArkType qualify.
+Schemas are `StandardSchemaV1 & StandardJSONSchemaV1{:ts}`: Zod 4.2+ and ArkType
+qualify, and Valibot through `toStandardJsonSchema(){:ts}` from
+`@valibot/to-json-schema`.
 
 ### Errors
 

@@ -33,7 +33,7 @@ export const StatDef = createComponentDefinition({
 });
 ```
 
-`props` and each payload in `callbacks` are schemas that implement [Standard Schema](https://standardschema.dev/schema) and [Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+, Valibot or ArkType. Every `description` reaches the model word for word.
+`props` and each payload in `callbacks` are schemas that implement [Standard Schema](https://standardschema.dev/schema) and [Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+, ArkType, or Valibot through `toStandardJsonSchema()` from `@valibot/to-json-schema`. Every `description` reaches the model word for word.
 
 ## Build the prompt
 

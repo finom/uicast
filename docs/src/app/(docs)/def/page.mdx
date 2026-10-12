@@ -22,7 +22,8 @@ interface ComponentDefinition {
 `props` and each callback are schemas that implement both
 [Standard Schema](https://standardschema.dev/schema) and
 [Standard JSON Schema](https://standardschema.dev/json-schema): Zod 4.2+,
-Valibot or ArkType (the examples use Zod). The prompt prints the JSON Schema as
+ArkType, or Valibot through `toStandardJsonSchema(){:ts}` from
+`@valibot/to-json-schema` (the examples use Zod). The prompt prints the JSON Schema as
 a TypeScript-like signature; the implementation gets the inferred type.
 
 ```ts filename="src/uicast-catalog/badge/def.ts"
