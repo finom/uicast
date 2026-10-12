@@ -46,3 +46,41 @@ describe("bound text fields", () => {
     expect(input.value).toBe("Adxa");
   });
 });
+
+describe("CurrencyInput", () => {
+  const currency = (props: Record<string, unknown>): ComponentEntry[] => [
+    { key: "root", component: "FlexCol", children: ["field", "stored"] },
+    {
+      key: "field",
+      component: "CurrencyInput",
+      props: { expr: `({ ...${JSON.stringify(props)}, value: scopes.root.value })` },
+      callbacks: { onChange: [{ set: "scopes.root.value", expr: "evt.value" }] },
+    },
+    { key: "stored", component: "Typography", props: { expr: "({ text: String(scopes.root.value) })" } },
+  ];
+
+  it.each([
+    ["en-US", "USD", "1,500", 1500],
+    ["en-US", "USD", "1,234.5", 1234.5],
+    ["de-DE", "EUR", "1.500", 1500],
+    ["de-DE", "EUR", "24,99", 24.99],
+    ["de-DE", "JPY", "1.500", 1500],
+    ["fr-FR", "EUR", "1 500,25", 1500.25],
+    ["sv-SE", "SEK", "\u22121 500,5", -1500.5],
+  ])("%s %s reads %j as %d", async (locale, code, text, expected) => {
+    const { container, getByText } = await mount(currency({ locale, currency: code }));
+    const input = container.querySelector("input") as HTMLInputElement;
+    const type = async (value: string) => {
+      fireEvent.change(input, { target: { value } });
+      await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    };
+    fireEvent.focus(input);
+    await type(text);
+    getByText(String(expected));
+    // On focus the draft is the stored value in the locale's format, so it reads back the same.
+    fireEvent.blur(input);
+    fireEvent.focus(input);
+    await type(input.value);
+    getByText(String(expected));
+  });
+});

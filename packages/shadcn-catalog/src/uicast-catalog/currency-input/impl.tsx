@@ -26,6 +26,15 @@ export const CurrencyInputImpl = createComponentImplementation({
     const money = new Intl.NumberFormat(locale, { style: "currency", currency });
     const { minimumFractionDigits, maximumFractionDigits } = money.resolvedOptions();
     const amount = new Intl.NumberFormat(locale, { minimumFractionDigits, maximumFractionDigits });
+    const plain = new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 20 });
+    const mark = plain.formatToParts(1.1).find((part) => part.type === "decimal")?.value ?? ".";
+    // The locale's format: group separators drop out ("1,500" is 1500 in en-US), its decimal mark splits.
+    const parse = (text: string) => {
+      const [whole, fraction = ""] = text.split(mark);
+      const digits = (part: string) => part.replace(/\D/g, "");
+      const sign = /^\s*[-\u2212]/.test(text) ? -1 : 1;
+      return sign * Number(`${digits(whole)}.${digits(fraction)}`) || 0;
+    };
     return (
       <InputGroup data-key={entry.key}>
         <InputGroupAddon>
@@ -38,11 +47,11 @@ export const CurrencyInputImpl = createComponentImplementation({
           aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
           required={required}
-          onFocus={() => setDraft(value === undefined ? "" : String(value))}
+          onFocus={() => setDraft(value === undefined ? "" : plain.format(value))}
           onBlur={() => setDraft(undefined)}
           onChange={(e) => {
             setDraft(e.target.value);
-            const next = Number.parseFloat(e.target.value.replace(",", ".")) || 0;
+            const next = parse(e.target.value);
             onChange({ value: next, formatted: money.format(next) });
           }}
           onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
