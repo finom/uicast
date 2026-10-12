@@ -3,6 +3,7 @@ import { use } from "react";
 import { Input } from "../../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { pickKeyboardEvent } from "../../events/keyboard";
+import { useMirror } from "../../lib/use-mirror";
 import { FieldLabelId } from "../field/impl";
 import { PhoneInputDef } from "./def";
 import { type CallingCode, CALLING_CODES } from "../../lib/country-codes";
@@ -14,7 +15,7 @@ export const PhoneInputImpl = createComponentImplementation({
       code,
       country: CALLING_CODES[code],
     }));
-    const phoneValue = value ?? "";
+    const [phoneValue, setPhoneValue] = useMirror(value ?? "");
 
     return (
       <div className="flex gap-2" data-key={entry.key}>
@@ -46,13 +47,14 @@ export const PhoneInputImpl = createComponentImplementation({
           placeholder={placeholder}
           aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
-          onChange={(e) =>
+          onChange={(e) => {
+            setPhoneValue(e.target.value);
             onChange({
               value: e.target.value,
               countryCode,
               fullNumber: `${countryCode} ${e.target.value}`,
-            })
-          }
+            });
+          }}
           onKeyDown={(e) => onKeyDown(pickKeyboardEvent(e))}
           onKeyUp={(e) => onKeyUp(pickKeyboardEvent(e))}
           className="flex-1"

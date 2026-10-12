@@ -2,12 +2,14 @@ import { createComponentImplementation } from "@uicast/react";
 import { use } from "react";
 import { cn } from "../../lib/utils";
 import { BlockSkeleton } from "../../lib/skeletons";
+import { useMirror } from "../../lib/use-mirror";
 import { FieldLabelId } from "../field/impl";
 import { CodeEditorDef } from "./def";
 
 export const CodeEditorImpl = createComponentImplementation({
   def: CodeEditorDef,
-  render: ({ value, placeholder, disabled, minHeight, showLineNumbers, onChange }, { entry }) => {
+  render: ({ value: initialValue, placeholder, disabled, minHeight, showLineNumbers, onChange }, { entry }) => {
+    const [value, setValue] = useMirror(initialValue);
     const lineCount = value.split("\n").length;
 
     return (
@@ -29,7 +31,10 @@ export const CodeEditorImpl = createComponentImplementation({
           placeholder={placeholder}
           aria-labelledby={use(FieldLabelId)}
           disabled={disabled}
-          onChange={(e) => onChange({ value: e.target.value })}
+          onChange={(e) => {
+            setValue(e.target.value);
+            onChange({ value: e.target.value });
+          }}
           className="flex-1 resize-none bg-transparent p-3 leading-6 focus:outline-none text-foreground placeholder:text-muted-foreground"
           style={{ minHeight }}
           spellCheck={false}
