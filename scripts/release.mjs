@@ -20,11 +20,17 @@ if (!read(`git diff --name-only ${last} -- packages/${dir}`)) {
   throw new Error(`packages/${dir} is unchanged since ${last}`);
 }
 
+// the GitHub Release carries this section
+const [major, minor, patch] = manifest().version.split(".").map(Number);
+const next = type === "minor" ? `${major}.${minor + 1}.0` : `${major}.${minor}.${patch + 1}`;
+sh(`node scripts/changelog-section.mjs packages/${dir}/CHANGELOG.md ${next} >/dev/null`);
+
 sh("npm test && npm run typecheck && npm run lint && npm run build");
 sh(`npm version ${type} --no-git-tag-version --prefix packages/${dir}`);
 sh("node scripts/sync-internal-deps.mjs");
 
 const { name, version } = manifest();
+if (version !== next) throw new Error(`npm version gave ${version}, not ${next}`);
 sh(`git commit -am "chore(release): ${name}@${version}"`);
 sh("git push");
 sh(`git tag ${dir}-v${version} && git push origin ${dir}-v${version}`);
