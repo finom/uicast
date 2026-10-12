@@ -377,7 +377,7 @@ Model output is untrusted, and so is data the model read (page text, function re
 
 - Document can call every function you give it, with any input its schema allows. Give `deleteProduct` → it can delete products. Expose only what user needs; check permissions on server for every call. Never count on prompt.
 - Component props are model-written:
-  - URL into `src`, `href`, `poster` only through prop declared `z.url()`: `urlPolicy` checks it before `render`. Plain string prop there is unchecked (`javascript:` link, data leaked through image URL).
+  - URL into `src`, `href`, `poster` only through prop declared `z.string().meta({ format: "uri-reference" })` (`z.url()` refuses relative): `urlPolicy` checks it before `render`. Plain string prop there is unchecked (`javascript:` link, data leaked through image URL).
   - Never put document text where it runs: `dangerouslySetInnerHTML`, `<style>`, `srcDoc`, `on*` attributes, raw CSS strings. Style object with fixed keys fine: `style={{ width }}`.
 - Evaluator needs no CSP `unsafe-eval`.
 
@@ -392,4 +392,4 @@ Model output is untrusted, and so is data the model read (page text, function re
 - `catalog.css` not imported: catalog unstyled.
 - Catalog component replaced by appending, not filtering: duplicate names throw.
 - Entries array mutated in place.
-- String prop rendered into `href` or `src` without `z.url()`; document text in `dangerouslySetInnerHTML`.
+- String prop rendered into `href` or `src` without URL format; document text in `dangerouslySetInnerHTML`.

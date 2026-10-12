@@ -134,7 +134,7 @@ A model wrote every prop your implementation gets. The [evaluator](/expr) checks
 expressions, not what your JSX does with their results. Follow three rules:
 
 - **Put URLs only in URL props.** Declare the prop as a URL in the
-  [definition](/def) (`z.url(){:ts}`), and
+  [definition](/def) (`z.string().meta({ format: "uri-reference" }){:ts}`), and
   [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) checks
   it before `render` runs. A plain string prop in `src`, `href` or `poster` is
   checked by nothing.

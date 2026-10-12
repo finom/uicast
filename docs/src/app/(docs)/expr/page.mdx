@@ -252,7 +252,7 @@ only the data and functions you give them. Two things are still up to you:
 | | Risk | <nobr>What you do</nobr> |
 | --- | --- | --- |
 | **Functions** | A document can call every function you give it. If you give it `deleteProduct`, it can delete products. | Give only the functions it needs. Check permissions on the server. |
-| **URLs** | A document can put your data into an image URL. The browser sends the data when it loads the image. | Declare URL props with `z.url(){:ts}`. Then [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) blocks other sites. |
+| **URLs** | A document can put your data into an image URL. The browser sends the data when it loads the image. | Declare URL props with `z.string().meta({ format: "uri-reference" }){:ts}`. Then [`urlPolicy`](/react/renderer#urlpolicy--the-urls-a-document-may-load) blocks other sites. |
 
 The [Security model](/security) page has more, including the
 [rules for components](/react#props-the-document-controls).

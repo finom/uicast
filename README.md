@@ -152,7 +152,7 @@ The [`@uicast/expr` README](packages/expr) lists what is in the language and why
 A document is untrusted input: a model wrote it, and a saved document runs in other people's browsers. The evaluator checks expressions. These stay your job:
 
 - **Functions.** A document can call every function you bind. Bind only what it needs, and authorize every call on the server.
-- **Components.** A document writes every prop. Declare URL props with `z.url()`, so [`urlPolicy`](https://uicast.dev/react/renderer#urlpolicy--the-urls-a-document-may-load) checks them, and never put document text where it can run.
+- **Components.** A document writes every prop. Declare URL props with `z.string().meta({ format: "uri-reference" })`, so [`urlPolicy`](https://uicast.dev/react/renderer#urlpolicy--the-urls-a-document-may-load) checks them, and never put document text where it can run.
 - **Instructions in data.** A function result the model reads, as in a chat, can carry instructions the user never gave. The prompt tells the model to follow only the user, but that is not a boundary: check permissions in your functions.
 
 See the [security model](https://uicast.dev/security) and [SECURITY.md](SECURITY.md).

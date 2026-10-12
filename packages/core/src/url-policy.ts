@@ -3,7 +3,7 @@ import { isSchemaObject, type JSONSchema, resolvePointer } from "./json-schema";
 // An `<img src>` fetches on render, so the destination is checked, not the string that built it.
 
 /**
- * Which URLs a prop declared as a URL (`z.url()`) may hold. An object changes the default rules field by field; a
+ * Which URLs a prop declared as a URL (`format: "uri-reference"`) may hold. An object changes the default rules field by field; a
  * predicate replaces them.
  *
  * @example
