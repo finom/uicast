@@ -51,7 +51,7 @@ Emit parent before its children: root first, then depth-first.
 
 - `scopes.root`: page state.
 - List with `"as": "row"` gives each item two scopes:
-  - `scopes.row` — item itself: `scopes.row.name` reads its `name`.
+  - `scopes.row` — object item itself: `scopes.row.name` reads its `name`. String or number item: only `scopes.$row.value`; reading `scopes.row` fails.
   - `scopes.$row` — row: `index` (0-based), `id` (`keyBy` value, else index), `value` (item, when array holds strings or numbers). These three read-only. Host call takes data field, `scopes.row.id`.
 - `as` names new scope: never `root`, host scope, or enclosing list's `as`; no leading `$`.
 - Row's own UI state (expanded, editing, draft) goes in `scopes.$row`: starts unset, stays out of data, write re-renders only that row. Toggle: `{ "set": "scopes.$row.open", "expr": "!currentValue" }`. Only row and its children see it.

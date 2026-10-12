@@ -222,10 +222,10 @@ An `each` that evaluates to `undefined` renders zero rows, not an error.
 
 ### `as`
 The name of each item's scopes, on the list entry and its whole subtree.
-`scopes.<as>` is the item itself. `scopes.$<as>` is the row: `index`, `id`
-(from [`keyBy`](#keyby)), `value` for a primitive item, and the row's
-[own state](/entry/state#per-row-state). So an `as` cannot start with `$`. See
-[State &amp; Scopes](/entry/state#item-scopes).
+`scopes.<as>` is the item itself, when it is an object. `scopes.$<as>` is the
+row: `index`, `id` (from [`keyBy`](#keyby)), `value` for an item that is a
+string or a number, and the row's [own state](/entry/state#per-row-state). So an
+`as` cannot start with `$`. See [State &amp; Scopes](/entry/state#item-scopes).
 
 `as` **must be a new scope name**: not `root`, and not the `as` of a list this
 one sits inside. A reused name fails as `invalid-list` in the list's

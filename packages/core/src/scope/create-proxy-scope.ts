@@ -191,6 +191,12 @@ const itemOfWindow = new WeakMap<object, () => unknown>();
 const unwrapRows = (value: unknown): unknown =>
   rebuild(value, (part) => (isObject(part) ? (itemOfWindow.get(part)?.() ?? part) : part), MAX_DATA_DEPTH);
 
+// A row window over a string, a number or null: it has no fields, and `scopes.$<as>.value` holds the item.
+const holdsPrimitive = (scope: unknown): boolean => {
+  const item = isObject(scope) ? itemOfWindow.get(scope) : undefined;
+  return item !== undefined && !isObject(item());
+};
+
 // The fields a row's write replaces: those its list's `each` reads. Empty for a root-kind scope.
 const getForwardTargets = (proxy: ReactiveProxy): ForwardTarget[] => forwardTargetsByProxy.get(proxy)?.() ?? [];
 
@@ -348,6 +354,7 @@ export {
   createRowState,
   countEmits,
   getForwardTargets,
+  holdsPrimitive,
   unwrapRows,
   type ReactiveProxy,
   type RowScope,

@@ -2,7 +2,7 @@ import type { ValueSource } from "../types";
 import { EntryError } from "../entry-error";
 import { CONTEXT_NAMES } from "../constants";
 import type { ExpressionErrorReason, ExpressionEvaluator } from "@uicast/expr";
-import { unwrapRows } from "../scope/create-proxy-scope";
+import { holdsPrimitive, unwrapRows } from "../scope/create-proxy-scope";
 
 // Identifier validity is the evaluator's own check; this screens only uicast's names.
 const screened = new WeakSet<ExpressionEvaluator>();
@@ -47,12 +47,20 @@ export const evaluate = (
   try {
     screen(evaluator);
     const source = expr.expr;
+    const reads = evaluator.memberReads(source, "scopes");
+    const scopes = context.scopes as Record<string, unknown> | undefined;
+    for (const read of reads) {
+      const name = read.split(".")[1];
+      if (name && holdsPrimitive(scopes?.[name])) {
+        throw new EntryError(`Items of this list are not objects: read the item as scopes.$${name}.value`, {
+          reason: "unknown-reference",
+        });
+      }
+    }
     const result = evaluator.eval(source, context);
     // Only a read of a whole scope (`scopes.row`) can put a row window in the result.
     const data = (value: unknown) =>
-      evaluator.memberReads(source, "scopes").some((read) => read.indexOf(".", "scopes.".length) === -1)
-        ? unwrapRows(value)
-        : value;
+      reads.some((read) => read.indexOf(".", "scopes.".length) === -1) ? unwrapRows(value) : value;
     return result instanceof Promise
       ? result.then(data, (err) => {
           throw wrapEvalError(err);

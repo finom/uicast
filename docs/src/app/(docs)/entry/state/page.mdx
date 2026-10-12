@@ -71,7 +71,8 @@ With `"as": "order"`:
 
 `index` is the zero-based position in the `each` result, and `id` the key
 `keyBy` picked (the index without `keyBy`). When the array holds strings or
-numbers, the item is `value`. An `as` cannot start with `$`.
+numbers, the item is `value`, and a read of `scopes.<as>` fails as
+`unknown-reference`. An `as` cannot start with `$`.
 
 **A write to the item replaces it in the array.** The item itself never
 changes. `set: "scopes.order.price"{:ts}` does, behind the scenes:

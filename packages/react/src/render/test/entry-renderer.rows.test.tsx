@@ -62,6 +62,22 @@ describe("EntryRenderer — row windows", () => {
     consoleError.mockRestore();
   });
 
+  it.each([
+    "({ text: scopes.row })",
+    "({ text: scopes.row === 'red' ? 'yes' : 'no' })",
+    "({ text: scopes.row.length })",
+  ])("on a primitive item, %s fails and names `$<as>.value`", (expr) => {
+    const seen: EntryError[] = [];
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    mountEntries([{ key: "root", component: "Box", children: ["rows"] }, list({ keyBy: undefined, props: { expr } })], {
+      rootScope: { items: ["red"] },
+      onError: (e) => seen.push(e),
+    });
+    consoleError.mockRestore();
+    expect(seen[0]?.reason).toBe("unknown-reference");
+    expect(seen[0]?.message).toContain("scopes.$row.value");
+  });
+
   it("a write to the index, id or value of `$<as>` is refused at mount", () => {
     const seen: EntryError[] = [];
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});

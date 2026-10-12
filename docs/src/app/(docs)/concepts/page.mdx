@@ -197,7 +197,7 @@ it leaves out event handlers, which definitions and entries list separately as
 | --- | --- |
 | **uicast document** | One complete UI: a flat list of entries that form a tree. The **root** is the entry no other entry lists in `children`; nothing else marks it. Streamed as JSONLines, one entry per line. |
 | **entry** | One line of the stream: the JSON for one node. What mounts from it is its **element**. See [Entry fields](/entry). |
-| **list** | An entry that repeats once per array item, marked by [`each`](/entry). `as` names two scopes per **item**: `scopes.<as>` is the item itself, and `scopes.$<as>` its row, with `index`, `id` and the row's own state. |
+| **list** | An entry that repeats once per array item, marked by [`each`](/entry). `as` names two scopes per **item**: `scopes.<as>` is the item itself, when it is an object, and `scopes.$<as>` its row, with `index`, `id`, `value` (a string or number item) and the row's own state. |
 | **scope** | Named state that elements read and subscribe to: `scopes.root` for the whole document, plus two per list item, the item and its row. Scopes stack but never nest. See [State &amp; Scopes](/entry/state). |
 | **expression** | One expression in a subset of JavaScript, run against the scopes. It is the only part of a document that computes. Run by [`@uicast/expr`](/expr): a closed grammar, every read checked at run time, no `new Function`. |
 | **value source** | How a value is produced: `{ "literal": … }{:ts}` verbatim, or `{ "expr": … }{:ts}` evaluated. See [Value Sources](/entry/value-sources). |
