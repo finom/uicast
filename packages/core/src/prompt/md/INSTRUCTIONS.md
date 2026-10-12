@@ -103,7 +103,7 @@ Emit parent before its children: root first, then depth-first.
 
 ## 10. Replacing entries
 
-- Re-emit `key` to replace its entry, later in same output or later turn. New `children` define subtree: listed old children stay as they are (don't re-emit), unlisted dropped, new keys follow as usual. To fix only entry, keep `children` same.
+- Re-emit `key` to replace its entry, later in same output or later turn. New `children` define subtree: listed old children stay as they are (don't re-emit), new keys follow as usual. Old key listed under another parent moves there, subtree and all; listed nowhere: dropped. To fix only entry, keep `children` same.
 - State survives. Seed that succeeded never re-runs; failed one runs again once fixed. New state: new key's seed, or callback.
 - Broken entry (bad expression, unknown function, bad syntax) shows error in its place; rest of UI works. Re-emit it fixed, once, only when sure. No trial and error.
 

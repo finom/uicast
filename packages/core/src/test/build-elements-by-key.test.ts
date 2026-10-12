@@ -69,4 +69,39 @@ describe("buildElementsByKey", () => {
     expect(map.c).toBeDefined();
     expect(map.b).toBeUndefined();
   });
+
+  it("keeps old keys an edit moves, in either line order", () => {
+    const edits: [page: ComponentEntry[], edit: ComponentEntry[]][] = [
+      // wrap: the table goes into a new card
+      [
+        [e("page", ["title", "table"]), e("title"), e("table", ["row"]), e("row")],
+        [e("page", ["title", "card"]), e("card", ["table"])],
+      ],
+      // move out: save goes from the card up to the page
+      [
+        [e("page", ["card"]), e("card", ["field", "save"]), e("field"), e("save")],
+        [e("page", ["card", "save"]), e("card", ["field"])],
+      ],
+      // move across: x goes from a to b
+      [
+        [e("page", ["a", "b"]), e("a", ["x"]), e("x", ["x1"]), e("x1"), e("b")],
+        [e("a"), e("b", ["x"])],
+      ],
+    ];
+    for (const [page, edit] of edits) {
+      for (const lines of [
+        [...page, ...edit],
+        [...page, ...edit.toReversed()],
+      ]) {
+        const keys = [...new Set(lines.map((line) => line.key))].sort();
+        expect(Object.keys(buildElementsByKey(lines)).sort()).toEqual(keys);
+      }
+    }
+  });
+
+  it("keeps the children of a moved key that is re-emitted too", () => {
+    const page = [e("page", ["title", "table"]), e("title"), e("table", ["row"]), e("row")];
+    const map = buildElementsByKey([...page, e("page", ["title", "card"]), e("card", ["table"]), e("table", ["row"])]);
+    expect(map.row).toBeDefined();
+  });
 });

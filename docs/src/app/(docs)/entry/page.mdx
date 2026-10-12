@@ -269,8 +269,9 @@ Later in the same stream:
 ```
 
 `refresh` and `task-rows` are not re-emitted, but the new `children` name them,
-so they survive with their subtrees, reordered. A key left out of `children` is
-dropped: omission is the delete.
+so they survive with their subtrees, reordered. A key no entry names any more is
+dropped: omission is the delete. Naming an old key under another parent moves it,
+with its subtree.
 
 State seeded above the replaced subtree is untouched, and the re-emitted
 entry's `seed` does not re-run, so state the user changed survives. Use this to
