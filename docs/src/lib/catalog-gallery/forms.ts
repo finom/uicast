@@ -125,7 +125,7 @@ export const forms: Record<string, Example> = {
   ],
   SearchInput: [
     { key: "root", component: "FlexCol", props: { literal: { gap: "2" } }, seed: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.products", literal: [{ id: 1, name: "Walnut Bookshelf" }, { id: 2, name: "Birch Standing Desk" }, { id: 3, name: "Oak Dining Chair" }, { id: 4, name: "Linen Floor Lamp" }, { id: 5, name: "Walnut Side Table" }] }], children: ["search", "hit", "none"] },
-    { key: "search", component: "SearchInput", props: { expr: "({ value: scopes.root.q, placeholder: 'Search products…' })" }, callbacks: { onChange: [{ set: "scopes.root.q", expr: "evt.value" }], onClear: [{ set: "scopes.root.q", literal: "" }] } },
+    { key: "search", component: "SearchInput", props: { expr: "({ value: scopes.root.q, placeholder: 'Search products…' })" }, callbacks: { onChange: [{ set: "scopes.root.q", expr: "evt.value" }] } },
     { key: "hit", component: "Typography", each: "scopes.root.products.filter(p => p.name.toLowerCase().includes(scopes.root.q.toLowerCase()))", as: "product", keyBy: "id", props: { expr: "({ text: scopes.product.name, as: 'div' })" } },
     { key: "none", component: "Typography", hidden: "scopes.root.products.some(p => p.name.toLowerCase().includes(scopes.root.q.toLowerCase()))", props: { expr: "({ text: 'No products match ' + scopes.root.q + '.', variant: 'muted' })" } },
   ],

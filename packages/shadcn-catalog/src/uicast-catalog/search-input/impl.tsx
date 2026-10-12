@@ -10,10 +10,7 @@ import { SearchInputDef } from "./def";
 
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
-  render: (
-    { value: initialValue, placeholder, disabled, onChange, onClear, onSubmit, onKeyDown, onKeyUp },
-    { entry, busy },
-  ) => {
+  render: ({ value: initialValue, placeholder, disabled, onChange, onSubmit, onKeyDown, onKeyUp }, { entry, busy }) => {
     const [value, setValue] = useMirror(initialValue ?? "");
     return (
       <div className="relative flex items-center" data-key={entry.key}>
@@ -45,7 +42,7 @@ export const SearchInputImpl = createComponentImplementation({
               aria-label="Clear search"
               onClick={() => {
                 setValue("");
-                onClear();
+                onChange({ value: "" });
               }}
             >
               <X className="size-4" />

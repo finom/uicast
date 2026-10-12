@@ -114,7 +114,6 @@ const inventoryEntries: ComponentEntry[] = [
     callbacks: {
       onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { set: "scopes.root.page", literal: 1, debounce: true }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 25, offset: (scopes.root.page - 1) * 25, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, category: scopes.root.cat === 'all' ? undefined : scopes.root.cat, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.busy", literal: false }],
       onSubmit: [{ set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 25, offset: (scopes.root.page - 1) * 25, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, category: scopes.root.cat === 'all' ? undefined : scopes.root.cat, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.busy", literal: false }],
-      onClear: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.products", expr: "listProducts({ limit: 25, offset: (scopes.root.page - 1) * 25, sort: scopes.root.sortKey, order: scopes.root.sortDesc ? 'desc' : 'asc', q: scopes.root.q || undefined, category: scopes.root.cat === 'all' ? undefined : scopes.root.cat, stockAtMost: scopes.root.lowOnly ? 20 : undefined })" }, { set: "scopes.root.busy", literal: false }],
     },
   },
   {
@@ -578,7 +577,6 @@ const customersEntries: ComponentEntry[] = [
     callbacks: {
       onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { set: "scopes.root.page", literal: 1, debounce: true }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: "listCustomers({ limit: 20, offset: (scopes.root.page - 1) * 20, sort: scopes.root.sortKey, order: scopes.root.sortKey === 'orders' || scopes.root.sortKey === 'lifetime' ? 'desc' : 'asc', q: scopes.root.q || undefined })" }, { set: "scopes.root.busy", literal: false }],
       onSubmit: [{ set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: "listCustomers({ limit: 20, offset: (scopes.root.page - 1) * 20, sort: scopes.root.sortKey, order: scopes.root.sortKey === 'orders' || scopes.root.sortKey === 'lifetime' ? 'desc' : 'asc', q: scopes.root.q || undefined })" }, { set: "scopes.root.busy", literal: false }],
-      onClear: [{ set: "scopes.root.q", literal: "" }, { set: "scopes.root.page", literal: 1 }, { set: "scopes.root.busy", literal: true }, { set: "scopes.root.customers", expr: "listCustomers({ limit: 20, offset: (scopes.root.page - 1) * 20, sort: scopes.root.sortKey, order: scopes.root.sortKey === 'orders' || scopes.root.sortKey === 'lifetime' ? 'desc' : 'asc', q: scopes.root.q || undefined })" }, { set: "scopes.root.busy", literal: false }],
     },
   },
   {

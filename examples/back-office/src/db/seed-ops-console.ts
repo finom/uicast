@@ -76,7 +76,6 @@ export const opsConsoleEntries: ComponentEntry[] = [
     callbacks: {
       onChange: [{ set: "scopes.root.q", expr: "evt.value" }, { ...SEARCH_STEPS[0], debounce: true }, ...SEARCH_STEPS.slice(1)],
       onSubmit: SEARCH_STEPS,
-      onClear: [{ set: "scopes.root.q", literal: "" }, ...SEARCH_STEPS],
     },
   },
   {

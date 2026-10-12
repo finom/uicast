@@ -21,9 +21,6 @@ export const SearchInputDef = createComponentDefinition({
     onChange: z.strictObject({
       value: z.string().meta({ description: "The current search value" }),
     }),
-    onClear: z.null().meta({
-      description: "Callback when the clear button is clicked",
-    }),
     onSubmit: z.strictObject({
       value: z.string().meta({ description: "The search value on submit" }),
     }),

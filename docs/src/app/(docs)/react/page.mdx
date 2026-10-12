@@ -62,15 +62,12 @@ The second is the **render context**:
 ```tsx filename="src/uicast-catalog/search-input/impl.tsx"
 export const SearchInputImpl = createComponentImplementation({
   def: SearchInputDef,
-  render: ({ value, onChange, onClear, onKeyDown }) => (
-    <div>
-      <Input
-        value={String(value ?? "")}
-        onChange={(e) => onChange({ value: e.target.value })}
-        onKeyDown={(e) => onKeyDown({ key: e.key, repeat: e.repeat })}
-      />
-      <button onClick={() => onClear()}>clear</button>
-    </div>
+  render: ({ value, onChange, onKeyDown }) => (
+    <Input
+      value={String(value ?? "")}
+      onChange={(e) => onChange({ value: e.target.value })}
+      onKeyDown={(e) => onKeyDown({ key: e.key, repeat: e.repeat })}
+    />
   ),
 });
 ```

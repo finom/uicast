@@ -188,3 +188,17 @@ describe("clickable containers", () => {
     },
   );
 });
+
+describe("SearchInput", () => {
+  it("clear fires onChange", async () => {
+    const { getByLabelText, getByText } = await mount([
+      { key: "root", component: "FlexCol", children: ["field", "state"] },
+      { ...bound("SearchInput", "oak")[0] },
+      { key: "state", component: "Typography", props: { expr: "({ text: 'q=' + scopes.root.value })" } },
+    ]);
+    getByText("q=oak");
+    fireEvent.click(getByLabelText("Clear search"));
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+    getByText("q=");
+  });
+});

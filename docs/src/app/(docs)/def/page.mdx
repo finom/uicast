@@ -95,7 +95,6 @@ createComponentDefinition({
     onChange: z.strictObject({
       value: z.string().meta({ description: "The current value" }),
     }),
-    onClear: z.null().meta({ description: "Clear button clicked" }),
     onKeyDown: keyboardEventSchema,
   },
 });
@@ -108,7 +107,6 @@ prints:
   Event handlers:
     - onChange(evt)
       - value: string — The current value
-    - onClear() — Clear button clicked
     - onKeyDown(evt: KeyboardEvent)
 ```
 
