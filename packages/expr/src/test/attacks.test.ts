@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
+import { Evaluator, ExpressionError } from "../index";
+import type { StandardToolV0 } from "standard-tool";
 
 const ev = new Evaluator();
 

@@ -1,7 +1,8 @@
-import type { StandardToolV0 } from "@uicast/expr";
+import type { ExpressionEvaluator } from "@uicast/expr";
 import { ALLOWED_GLOBALS, hostFunctionNameFault } from "@uicast/expr/internal";
 import { CONTEXT_NAMES } from "../constants";
 import { specToJSONSchema } from "../json-schema";
+import type { CombinedSpec } from "../types";
 import { joinSections, noteSection, unwrapParens } from "./format";
 import { jsonSchemaToTs } from "./json-schema-to-ts";
 import { collectSharedTypes, type SharedTypes } from "./shared-types";
@@ -14,7 +15,7 @@ import { collectSharedTypes, type SharedTypes } from "./shared-types";
  */
 export type FunctionsPromptOptions = {
   /** Your host functions: the array the evaluator binds. An empty one adds nothing. */
-  functions: StandardToolV0[];
+  functions: ExpressionEvaluator["functions"];
   /** Your text, appended verbatim as this section's trailing `## Note`. */
   note?: string;
 };
@@ -30,7 +31,7 @@ const functionNameFault = (name: string): string | null => {
 
 // A schema with no JSON Schema form (`z.void()`) throws: an authoring error.
 // One field per line inside the Markdown bullet, so per-field descriptions stay readable.
-const schemaToTs = (schema: StandardToolV0["inputSchema"], fallback: string, shared: SharedTypes): string => {
+const schemaToTs = (schema: CombinedSpec | undefined, fallback: string, shared: SharedTypes): string => {
   if (!schema) return fallback;
   const jsonSchema = specToJSONSchema(schema);
   return jsonSchemaToTs(jsonSchema, { multiline: "  ", namedRefs: shared.add(jsonSchema) });

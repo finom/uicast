@@ -1,7 +1,8 @@
 import { act, render } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { z } from "zod";
-import { Evaluator, type StandardToolV0 } from "@uicast/expr";
+import { Evaluator } from "@uicast/expr";
+import type { StandardToolV0 } from "standard-tool";
 import {
   createComponentDefinition,
   createProxyScope,

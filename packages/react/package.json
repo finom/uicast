@@ -48,7 +48,7 @@
     "happy-dom": "^20.9.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "standard-tool": "^0.1.0",
+    "standard-tool": "^0.1.1",
     "vitest": "^5.0.3",
     "zod": "~4.6.5"
   },

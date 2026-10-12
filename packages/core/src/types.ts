@@ -1,4 +1,4 @@
-import type { StandardJSONSchemaV1, StandardSchemaV1 } from "@uicast/expr";
+import type { StandardJSONSchemaV1, StandardSchemaV1 } from "@standard-schema/spec";
 
 type Expression = string;
 

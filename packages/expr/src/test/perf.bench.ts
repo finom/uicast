@@ -1,5 +1,6 @@
 import { test } from "vitest";
-import { Evaluator, type StandardToolV0 } from "../index";
+import { Evaluator } from "../index";
+import type { StandardToolV0 } from "standard-tool";
 import { BUDGET, cases, rows, scopes, WAVE_EXPRS } from "./bench-cases";
 
 // The subclass the Custom evaluator docs page shows.

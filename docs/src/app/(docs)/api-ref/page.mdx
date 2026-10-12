@@ -67,9 +67,9 @@ The [expression language](/expr).
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
 Types: `EvaluatorOptions`, `EvaluatorContexts`, `BudgetOptions`,
-`ExpressionFacts`, `ExpressionErrorReason`, and `StandardToolV0` with
-`StandardSchemaV1` / `StandardJSONSchemaV1`, copied verbatim from
-`standard-tool` and the Standard Schema spec. A `standard-tool` tool fits as is.
+`ExpressionFacts`, `ExpressionErrorReason`. `functions` takes
+`standard-tool`'s `StandardToolV0`: import the type from `standard-tool`, and
+the schema types from `@standard-schema/spec`.
 
 `@uicast/expr/internal` is shared with core, with **no semver guarantee**.
 Don't build on it.

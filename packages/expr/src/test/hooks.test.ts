@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Evaluator, type EvaluatorContexts, ExpressionError, type StandardToolV0 } from "../index";
+import { Evaluator, type EvaluatorContexts, ExpressionError } from "../index";
+import type { StandardToolV0 } from "standard-tool";
 import { CORPUS, SCOPES } from "./corpus";
 
 // Each protected method is one step a subclass can change or skip.

@@ -12,7 +12,6 @@ import { validateExpression } from "./syntax/validate";
 
 export type { BudgetOptions, ExpressionFacts };
 export { ExpressionError, type ExpressionErrorReason } from "./errors";
-export type { StandardJSONSchemaV1, StandardSchemaV1, StandardToolV0 } from "./host/standard-tool";
 
 /**
  * The objects of named values an expression reads. Later contexts win over earlier ones.

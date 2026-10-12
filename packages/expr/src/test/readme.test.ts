@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { Evaluator, ExpressionError, type StandardToolV0 } from "../index";
+import { Evaluator, ExpressionError } from "../index";
+import type { StandardToolV0 } from "standard-tool";
 import { ALLOWED_GLOBALS } from "../constants/globals";
 import { DEFAULT_BUDGET } from "../constants/limits";
 import { METHOD_NAMES, NAMESPACE_METHOD_NAMES } from "../constants/methods";

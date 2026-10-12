@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { Evaluator, ExpressionError, type StandardToolV0 } from "@uicast/expr";
+import { Evaluator, ExpressionError } from "@uicast/expr";
+import type { StandardToolV0 } from "standard-tool";
 import type { ValueSource } from "../../types";
 import { EntryError } from "../../entry-error";
 import { evaluate as evaluateWith } from "../evaluate";
