@@ -3,6 +3,7 @@ import { pickMouseEvent } from "../../events/mouse";
 import { FolderOpenIcon } from "lucide-react";
 import { ICONS } from "../../lib/icons";
 import { PanelSkeleton } from "../../lib/skeletons";
+import { ownClick } from "../../lib/utils";
 import { EmptyStateDef } from "./def";
 
 export const EmptyStateImpl = createComponentImplementation({
@@ -12,7 +13,7 @@ export const EmptyStateImpl = createComponentImplementation({
     return (
       <div
         className="flex flex-col items-center justify-center py-12 text-center"
-        onClick={(e) => onClick(pickMouseEvent(e))}
+        onClick={ownClick((e) => onClick(pickMouseEvent(e)))}
         data-key={entry.key}
       >
         <Icon className="size-12 text-muted-foreground mb-4" />

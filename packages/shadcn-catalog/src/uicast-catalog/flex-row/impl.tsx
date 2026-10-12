@@ -1,7 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { ALIGN, GAP, JUSTIFY } from "../../lib/layout";
-import { cn } from "../../lib/utils";
+import { cn, ownClick } from "../../lib/utils";
 import { FlexRowDef } from "./def";
 
 // The skeleton's layout when its props are not known yet.
@@ -20,7 +20,7 @@ const layout = ({ gap, align, justify, wrap, equalWidth }: typeof DEFAULTS) =>
 export const FlexRowImpl = createComponentImplementation({
   def: FlexRowDef,
   render: ({ children, onClick, ...props }, { entry }) => (
-    <div className={layout(props)} onClick={(e) => onClick(pickMouseEvent(e))} data-key={entry.key}>
+    <div className={layout(props)} onClick={ownClick((e) => onClick(pickMouseEvent(e)))} data-key={entry.key}>
       {children}
     </div>
   ),

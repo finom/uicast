@@ -1,6 +1,7 @@
 import { createComponentImplementation } from "@uicast/react";
 import { pickMouseEvent } from "../../events/mouse";
 import { COLUMNS, GAP } from "../../lib/layout";
+import { ownClick } from "../../lib/utils";
 import { GridDef } from "./def";
 
 // The skeleton's layout when its props are not known yet.
@@ -11,7 +12,7 @@ const layout = ({ columns, gap }: typeof DEFAULTS) => `grid ${COLUMNS[columns]} 
 export const GridImpl = createComponentImplementation({
   def: GridDef,
   render: ({ children, onClick, ...props }, { entry }) => (
-    <div className={layout(props)} onClick={(e) => onClick(pickMouseEvent(e))} data-key={entry.key}>
+    <div className={layout(props)} onClick={ownClick((e) => onClick(pickMouseEvent(e)))} data-key={entry.key}>
       {children}
     </div>
   ),

@@ -151,3 +151,40 @@ describe("controls with literal props", () => {
     expect([text.value, color.value]).toEqual(["#ff5500", "#ff5500"]);
   });
 });
+
+describe("clickable containers", () => {
+  const flag = (field: string) => [{ set: `scopes.root.${field}`, literal: true }];
+  const entries = (component: string): ComponentEntry[] => [
+    { key: "root", component: "FlexCol", children: ["box", "state"] },
+    { key: "box", component, callbacks: { onClick: flag("opened") }, children: ["text", "delete", "toggle"] },
+    { key: "text", component: "Typography", props: { literal: { text: "Order 7" } } },
+    {
+      key: "delete",
+      component: "Button",
+      props: { literal: { text: "Delete" } },
+      callbacks: { onClick: flag("deleted") },
+    },
+    { key: "toggle", component: "Switch", props: { literal: { label: "Paid" } } },
+    {
+      key: "state",
+      component: "Typography",
+      props: { expr: "({ text: 'opened ' + !!scopes.root.opened + ', deleted ' + !!scopes.root.deleted })" },
+    },
+  ];
+  const click = async (element: Element) => {
+    fireEvent.click(element);
+    await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
+  };
+
+  it.each(["Card", "FlexRow", "FlexCol", "Grid", "EmptyState"])(
+    "%s leaves a click on a control to it",
+    async (component) => {
+      const { getByText, getByRole } = await mount(entries(component));
+      await click(getByText("Delete"));
+      await click(getByRole("switch"));
+      getByText("opened false, deleted true");
+      await click(getByText("Order 7"));
+      getByText("opened true, deleted true");
+    },
+  );
+});
