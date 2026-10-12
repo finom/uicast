@@ -104,4 +104,20 @@ describe("confirm", () => {
     fireEvent.click(screen.getByText("Confirm"));
     await expect(second).resolves.toBe(true);
   });
+
+  it("runs on an engine before ES2024, with no Promise.withResolvers", async () => {
+    const native = Promise.withResolvers;
+    Reflect.deleteProperty(Promise, "withResolvers");
+    try {
+      const { result } = renderHook(() => useConfirm(), { wrapper: hostWith(Modal) });
+      let answer!: Promise<boolean>;
+      act(() => {
+        answer = result.current("Archive?");
+      });
+      fireEvent.click(screen.getByText("Confirm"));
+      await expect(answer).resolves.toBe(true);
+    } finally {
+      Promise.withResolvers = native;
+    }
+  });
 });

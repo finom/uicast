@@ -26,15 +26,17 @@ export const ConfirmHost = ({
   const lastMessage = useRef("");
   if (pending) lastMessage.current = pending.message;
 
-  const modalConfirm = useCallback<ConfirmFn>((message) => {
-    const { promise, resolve } = Promise.withResolvers<boolean>();
-    // A newer confirm resolves an unanswered one `false`, so its callback chain unblocks.
-    setPending((prev) => {
-      prev?.resolve(false);
-      return { message, resolve };
-    });
-    return promise;
-  }, []);
+  const modalConfirm = useCallback<ConfirmFn>(
+    (message) =>
+      new Promise<boolean>((resolve) => {
+        // A newer confirm resolves an unanswered one `false`, so its callback chain unblocks.
+        setPending((prev) => {
+          prev?.resolve(false);
+          return { message, resolve };
+        });
+      }),
+    [],
+  );
 
   const settle = (confirmed: boolean) => {
     pending?.resolve(confirmed);
