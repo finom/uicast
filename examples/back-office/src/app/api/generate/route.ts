@@ -76,7 +76,7 @@ export async function POST(req: Request) {
         let streamError: unknown = null;
         const result = streamText({
           model,
-          system,
+          instructions: system,
           messages,
           maxOutputTokens: MAX_OUTPUT_TOKENS,
           // A new page's prompt is never sent again, so the cheaper 5-minute write; an edit soon after reads it.

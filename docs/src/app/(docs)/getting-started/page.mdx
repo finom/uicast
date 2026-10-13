@@ -126,7 +126,7 @@ const system = [
 export async function POST(req: Request) {
   const { prompt } = await req.json();
   // A bare model id resolves through the Vercel AI Gateway — set AI_GATEWAY_API_KEY.
-  const result = streamText({ model: "anthropic/claude-opus-5.5", system, prompt });
+  const result = streamText({ model: "anthropic/claude-opus-5.5", instructions: system, prompt });
 
   return createTextStreamResponse({
     stream: result.textStream,

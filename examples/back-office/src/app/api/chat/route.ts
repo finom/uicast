@@ -89,7 +89,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model,
-    system: buildSystemPrompt("answer", getFencePartialPrompt()),
+    instructions: buildSystemPrompt("answer", getFencePartialPrompt()),
     messages: await convertToModelMessages(uiMessages),
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     // A chat's next turn often comes minutes later, so its cache lasts an hour.
