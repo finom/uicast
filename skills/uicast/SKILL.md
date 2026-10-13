@@ -4,20 +4,24 @@ description: "Integrate uicast (LLM-generated UI, streamed as JSONL and rendered
 license: MIT
 metadata:
   author: Andrey Gubanov
-  version: "0.3"
+  version: "0.4"
 ---
 
 # uicast integration
 
 Model streams JSONL **entries**; each names a component you register; **uicast** renders them live. You own components, host functions and prompt. Model writes entries; prompt teaches it how. Never write entries yourself.
 
+This file lists every export, option, payload shape and CSS path ([API reference](#api-reference)). Package sources and `.d.ts` files add nothing: no need to open `node_modules/@uicast/*`.
+
 ## Install
 
 ```bash
-npm install @uicast/expr @uicast/core @uicast/react @uicast/shadcn-catalog standard-tool zod
+npm install @uicast/expr @uicast/core @uicast/react @uicast/shadcn-catalog standard-tool zod@~4.6
 ```
 
-Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown streamdown`. React 19.2.
+- Page streaming below also uses `ai` and `@tanstack/react-query`. Chat surface: add `@uicast/streamdown streamdown`.
+- Peers: `react` and `react-dom` ^19.2.5; `streamdown` ^2.5. All `@uicast/*` at one version.
+- Catalog depends on `zod` ~4.6: same range in app = one copy.
 
 | Package | Role |
 | --- | --- |
@@ -73,7 +77,7 @@ export const StatCardDef = createComponentDefinition({
 - `.default()` applied before render and printed in prompt.
 - No `children` field in props or payloads: reserved for child entries, throws. Text content: `text`, `title`, `label`.
 - Callback payload = what entry steps read as `evt`. `onChange: z.strictObject({ value: z.string().meta({ description: "Current text" }) })` → model writes `evt.value`. `z.null()` → no payload, handler takes no argument.
-- Payload shared by many components: `.meta({ id: "MouseEvent" })` → printed once under `## Common Events`. One `id` = one shape, else prompt builder throws. With catalog: reuse its `mouseEventSchema`, `keyboardEventSchema` from `@uicast/shadcn-catalog/events` (React-free).
+- Payload shared by many components: `.meta({ id: "MouseEvent" })` → printed once under `## Common Events`. One `id` = one shape, else prompt builder throws. With catalog: reuse its `mouseEventSchema` (`pageX`, `pageY`, `screenX`, `screenY`, `clientX`, `clientY`: numbers) and `keyboardEventSchema` (`key`, `code`: strings; `altKey`, `ctrlKey`, `metaKey`, `shiftKey`, `repeat`: booleans) from `@uicast/shadcn-catalog/events` (React-free). Impl picks exactly those fields off React event.
 - `hidden: true` → out of prompt, still renders.
 - Schemas: Standard Schema with JSON Schema output. Zod 4.2+, ArkType; Valibot through `toStandardJsonSchema()` (`@valibot/to-json-schema`).
 
@@ -102,6 +106,7 @@ export const StatCardImpl = createComponentImplementation({
 - Second argument: `{ entry, busy, scopes }`. `busy` true → show busy, keep content in place. Controls may ignore it.
 - `skeleton` (optional): drawn while child not streamed yet or seed loading. Got `children` (even `null`) → draw element's own box around them; no `children` → fill one child's slot. No skeleton and no `fallbackComponents.defaultSkeleton` → nothing drawn.
 - `render` may use hooks.
+- Markup: compose catalog primitives (`@uicast/shadcn-catalog/ui/<name>`, styled by `catalog.css`, see [Catalog](#catalog)) or your own.
 
 Layout, one folder per component:
 
@@ -126,7 +131,11 @@ import { impls } from "@uicast/shadcn-catalog/all/impls"; // renderer
 @import "@uicast/shadcn-catalog/catalog.css"; /* always */
 ```
 
-- Styles read CSS variables (`var(--card)`): your theme restyles the catalog, status colors included (`--success`, `--warning`, `--info`, `--destructive`; `catalog.css` defaults the first three).
+- `catalog.css`: precompiled Tailwind, every utility catalog components and `ui/*` use. Works without Tailwind in app.
+- `theme.css`: preflight + shadcn palette as plain variables: `--background`, `--foreground`, `--card`, `--popover`, `--primary`, `--secondary`, `--muted`, `--accent`, `--destructive` (each also `-foreground`), `--border`, `--input`, `--ring`, `--radius`, `--chart-1`…`--chart-5`, `--sidebar-*`; `.dark` class switches them. No `@theme` block.
+- Styles read those variables (`var(--card)`): your theme restyles the catalog, status colors included (`--success`, `--warning`, `--info`, `--destructive`; `catalog.css` defaults the first three).
+- Own Tailwind v4 classes on palette (`bg-muted` in your impl) without `shadcn init`: map once, `@theme inline { --color-muted: var(--muted); --color-card: var(--card); /* … */ }`. `shadcn init` writes this already.
+- Primitives, `@uicast/shadcn-catalog/ui/<name>`, shadcn/ui API (radix-nova style): `accordion alert aspect-ratio avatar badge breadcrumb button calendar card carousel checkbox collapsible command dialog dropdown-menu input-group input kanban label navigation-menu popover progress radio-group resizable scroll-area select separator sheet skeleton slider switch table tabs textarea toggle-group toggle tooltip`.
 - Smaller prompt: `essential/defs` + `essential/impls` (29 components, about quarter of prompt), or groups: `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays`, each `<group>/defs` + `<group>/impls`.
 - Extend: `[...defs, MyDef]`, `[...impls, MyImpl]`.
 - Replace component: filter its name out of BOTH arrays, then append yours. Duplicate names throw.
@@ -174,6 +183,7 @@ export const deleteProduct = standardTool({
 export const tools = [listProducts, deleteProduct];
 ```
 
+- `standardTool({ name, title?, description, inputSchema?, outputSchema?, execute })`. Returned `execute` is async: validates input (your `execute` gets parsed value, defaults filled), then output (mismatch throws).
 - `execute` runs where renderer runs: browser. Fetch your API. DB client or secret here ships to client bundle.
 - One argument, `inputSchema`. Object with described fields. All fields optional → `.optional()` on object.
 - `outputSchema` whenever UI shows result. Without it prompt prints `=> unknown`: model may only call for effect, then refetch. Never `z.void()`: no JSON Schema, throws.
@@ -245,7 +255,8 @@ export function Generated({ entries }: { entries: ComponentEntry[] }) {
 - One provider = one shared `root` scope for every renderer under it. Place high: one per state universe.
 - `fallbackComponents`: `defaultSkeleton` (else nothing drawn), `confirm` (else `window.confirm`), `error` (else plain div).
 - `init={({ scopes }) => { scopes.root.user = currentUser; }}`: runs once, before entries evaluate. Returns promise → renderers show skeleton until resolved.
-- `urlPolicy`: URLs a URL-format prop may load. Default: relative, same origin, raster `data:` images. Widen: `{ hosts: ["cdn.example.com"] }`.
+- `onError(error: EntryError)`: `error.reason`, `error.fault`, `error.message`, `error.elementKey` (`string | undefined`). Once per failure, callback failures included.
+- `urlPolicy` (type `UrlPolicy` from `@uicast/core`): URLs a URL-format prop may load. Object `{ allowRelative?, allowSameOrigin?, allowDataImages?, hosts?, origin? }` (first three default `true`; `hosts`: extra http/https hosts, exact or `*.example.com`, apex not included; `origin`: page origin for SSR) or predicate `(url: string) => boolean`. Default: relative, same origin, raster `data:` images. Widen: `{ hosts: ["cdn.example.com"] }`.
 
 **Host scope the model reads** (signed-in user, app context):
 
@@ -276,7 +287,8 @@ import { system } from "@/prompt";
 
 export async function POST(req: Request) {
   const { prompt } = await req.json();
-  const result = streamText({ model: "anthropic/claude-opus-5.5", system, prompt });
+  // ai 7 option name; ai 6: `system`
+  const result = streamText({ model: "anthropic/claude-opus-5.5", instructions: system, prompt });
   return createTextStreamResponse({
     stream: result.textStream,
     headers: { "content-type": "application/jsonl; charset=utf-8" },
@@ -360,6 +372,9 @@ const plugins = { renderers: [createFenceRenderer()] }; // module scope
 - Blocks render after mount. `createFenceRenderer({ ssr: true })` renders them in server pass too: full-render rules of §6 apply.
 - `createFenceRenderer({ sourceToggle: MyToggle })`: your toggle above each block, props `showSource`, `onShowSourceChange`; switches block to its source.
 - Streamdown wrapper (AI Elements' `Response`): passing `plugins` replaces its defaults. Re-add them beside fence renderer.
+- Streamdown styles with Tailwind classes: Tailwind must scan it. In your CSS, path relative to that file: `@source "../node_modules/streamdown/dist/*.js";` (from `src/app/globals.css`: `../../node_modules/…`).
+- Prompt: §3 builders with `kind: "answer"`, then `getFencePartialPrompt()`. Each fence is own document: keys per fence, `root` shared. Fence prompt already tells model: change earlier UI = new complete fence.
+- Recovery: collect `fault === "document"` failures in `onError` (module-scope handler), wait for reply to finish (`useChat` `status === "ready"`), then `sendMessage({ text: getErrorRecoveryPrompt({ failures }) })`. Model answers with new fixed fence; broken block stays. Skip errors without `elementKey`; cap rounds (1–2) per key.
 
 ## 8. Errors
 
@@ -369,7 +384,7 @@ const plugins = { renderers: [createFenceRenderer()] }; // module scope
   - `"environment"`: your code (`host-function`, `host-init`, `implementation`). Report it.
   - `"unknown"`: either (`expression-runtime`, `unknown`).
 - Failure stays in its element; siblings, parents, state untouched.
-- **Recovery loop** (optional): collect document faults, send `getErrorRecoveryPrompt({ failures: [{ key: error.elementKey, message: error.message, reason: error.reason }] })` as user turn, append reply's entries to same document. Re-emitted key resets element and retries failed seed.
+- **Recovery loop** (optional): collect document faults, send `getErrorRecoveryPrompt({ failures: [{ key: error.elementKey, message: error.message, reason: error.reason }] })` (returns string; `RenderFailure` = `{ key: string; message: string; reason?: EntryErrorReason }`) as user turn, append reply's entries to same document. Re-emitted key resets element and retries failed seed. Chat: see §7.
 
 ## 9. Security: your part
 
@@ -380,6 +395,22 @@ Model output is untrusted, and so is data the model read (page text, function re
   - URL into `src`, `href`, `poster` only through prop declared `z.string().meta({ format: "uri-reference" })` (`z.url()` refuses relative): `urlPolicy` checks it before `render`. Plain string prop there is unchecked (`javascript:` link, data leaked through image URL).
   - Never put document text where it runs: `dangerouslySetInnerHTML`, `<style>`, `srcDoc`, `on*` attributes, raw CSS strings. Style object with fixed keys fine: `style={{ width }}`.
 - Evaluator needs no CSP `unsafe-eval`.
+
+## API reference
+
+| Import | Exports |
+| --- | --- |
+| `@uicast/core` | `createComponentDefinition`, `createProxyScope(obj)`, `streamJsonLines<T>(source: ReadableStream \| AsyncIterable<string \| Uint8Array>)` → `AsyncGenerator<T>`, `isComponentEntry`, `buildElementsByKey(entries)`, `EntryError` (`EntryError.is(x)`); types `ComponentEntry`, `ComponentDefinition`, `EntryErrorReason`, `EntryFault`, `UrlPolicy`, `ReactiveProxy`, `ExpressionEvaluator` |
+| `@uicast/core/prompt` | `getCommonInstructionsPartialPrompt({ maxListItems?, note? })`, `getScopePartialPrompt({ kind, approxEntries?, note? })`, `getComponentsPartialPrompt({ definitions, urlPolicy?, note? })`, `getFunctionsPartialPrompt({ functions, note? })`, `getExpressionsPartialPrompt({ maxLength?, note? })`, `getEditRequestPrompt({ request, missingKeys? })`, `getErrorRecoveryPrompt({ failures })`; all return `string`; types `RenderFailure` and each `…PromptOptions` |
+| `@uicast/expr` | `new Evaluator({ functions?, maxSourceLength?, maxCacheSize?, budget? })`, `ExpressionError` |
+| `@uicast/react` | `RendererProvider` (`implementations`, `evaluator`, `fallbackComponents?`, `urlPolicy?`, `onError?`, `init?`), `EntriesRenderer` (`entries`), `DocumentSkeleton` (`entries`), `createComponentImplementation({ def, render, skeleton? })`; types `InitFn`, `FallbackComponents`, `ErrorComponentProps` (`{ error }`), `ConfirmComponentProps` (`{ open, message, onConfirm, onCancel }`), `SkeletonComponentProps` (`{ reason, entry, knownProps?, children? }`), `ComponentImplementation` |
+| `@uicast/streamdown` | `createFenceRenderer({ sourceToggle?, ssr? })`; types `SourceToggleProps` (`{ showSource, onShowSourceChange }`), `FenceRendererOptions` |
+| `@uicast/streamdown/prompt` | `getFencePartialPrompt({ note? })` |
+| `@uicast/shadcn-catalog` | `ConfirmModal`, `RenderError` |
+| `@uicast/shadcn-catalog/events` | `mouseEventSchema`, `keyboardEventSchema` |
+| `@uicast/shadcn-catalog/<group>/defs`, `/<group>/impls` | `defs`, `impls` arrays; groups `all`, `essential`, `layout`, `content`, `data`, `charts`, `forms`, `navigation`, `overlays` |
+| `@uicast/shadcn-catalog/ui/<name>` | shadcn primitives, list in [Catalog](#catalog) |
+| `@uicast/shadcn-catalog/catalog.css`, `/theme.css` | styles, see [Catalog](#catalog) |
 
 ## Traps
 
