@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@standard-schema/spec": "^1.1.0",
-    "acorn": "^8.16.0"
+    "acorn": "^8.19.0"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.2",
