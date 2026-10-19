@@ -1,0 +1,10 @@
+{
+  "name": "globby",
+  "version": "11.1.0",
+  "private": true,
+  "description": "The globby.sync calls tsc-alias makes, on tinyglobby: globby's fast-glob pulls braces, which has an advisory with no fix",
+  "main": "./index.cjs",
+  "dependencies": {
+    "tinyglobby": "^0.2.17"
+  }
+}
