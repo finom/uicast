@@ -36,7 +36,7 @@
     "cmdk": "^1.1.1",
     "diff": "^9.0.0",
     "embla-carousel-react": "^8.6.0",
-    "lucide-react": "^1.52.0",
+    "lucide-react": "^1.59.0",
     "qrcode.react": "^4.2.0",
     "radix-ui": "^1.4.3",
     "react-day-picker": "^10.0.2",
@@ -48,8 +48,8 @@
     "zod": "~4.6.5"
   },
   "peerDependencies": {
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.15",
@@ -59,12 +59,12 @@
     "@types/react-dom": "^19.2.3",
     "axe-core": "^4.13.0",
     "glob": "^13.0.6",
-    "happy-dom": "^20.9.0",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
+    "happy-dom": "^21.0.3",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "tsc-alias": "^1.9.7",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.3"
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "zod": "$zod",
