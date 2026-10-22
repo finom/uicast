@@ -33,8 +33,8 @@ const suggestPalette = standardTool({
 
 - **`name`**: what the model calls, a valid JS identifier.
 - **`description`**: what it does; the model reads it to decide when to call.
-- **`title`** *(optional)*: a human label printed before the description. The
-  model can reuse it for a button or heading.
+- **`title`** *(optional)*: a human label printed before the description,
+  unless it is the same text. The model can reuse it for a button or heading.
 - **`inputSchema`** *(optional)*: the single argument, validated on each call
   and printed as the signature in the prompt. Omit it for no argument.
 - **`outputSchema`** *(optional)*: the same for the return value. Omitted

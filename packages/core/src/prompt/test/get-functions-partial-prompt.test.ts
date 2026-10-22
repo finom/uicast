@@ -115,6 +115,18 @@ describe("getFunctionsPartialPrompt", () => {
     );
   });
 
+  it("prints a title that repeats the description once", () => {
+    const listOrders = standardTool({
+      name: "listOrders",
+      title: "List orders",
+      description: "List orders",
+      execute: async () => undefined,
+    });
+    const prompt = getFunctionsPartialPrompt({ functions: [listOrders] });
+    expect(prompt).toContain("- listOrders() => unknown: List orders");
+    expect(prompt).not.toContain("List orders — List orders");
+  });
+
   it("prints shared types after the function details, not before", () => {
     const Person = z.object({ id: z.string(), name: z.string().optional() }).meta({ id: "Person" });
     const getOwner = standardTool({

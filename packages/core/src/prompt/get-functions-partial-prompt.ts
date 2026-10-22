@@ -62,7 +62,8 @@ export function getFunctionsPartialPrompt({ functions, note }: FunctionsPromptOp
     // `name(A & B)`, not `name((A & B))`.
     const params = unwrapParens(schemaToTs(inputSchema, "", shared));
     const output = schemaToTs(outputSchema, "unknown", shared);
-    return `- ${name}(${params}) => ${output}: ${title ? `${title} — ` : ""}${description}`;
+    const label = title && title !== description ? `${title} — ` : "";
+    return `- ${name}(${params}) => ${output}: ${label}${description}`;
   });
   const sharedLines = shared.lines();
   const block = joinSections(
