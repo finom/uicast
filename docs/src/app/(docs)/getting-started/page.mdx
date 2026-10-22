@@ -9,7 +9,45 @@ expose. This guide uses the shadcn reference catalog, so there are no components
 to write first. The examples use Next.js; any React app with a server route
 works.
 
-## Fast lane
+## With an agent
+
+**uicast** ships an [Agent Skill](https://agentskills.io): one
+[`SKILL.md`](https://github.com/finom/uicast/tree/main/skills/uicast) for the
+developer side — definitions and implementations, host functions, prompt
+assembly, mounting, page and chat streaming, server rendering, errors and
+security. The entry format the model emits is not in it; that comes from the
+[assembled prompt](/prompt) at run time.
+
+The [skills CLI](https://skills.sh) detects the agents you use and installs the
+skill for each:
+
+```sh
+npx skills add finom/uicast
+```
+
+It supports Claude Code, Cursor, Codex, Gemini CLI, OpenCode, Copilot and most
+other clients. To install by hand, copy the
+[`skills/uicast`](https://github.com/finom/uicast/tree/main/skills/uicast)
+folder to where your client looks for skills; the
+[client showcase](https://agentskills.io/clients) links each client's setup
+instructions.
+
+Then ask your agent:
+
+```md
+Add uicast to this app. Wrap our existing API endpoints as host functions,
+register the shadcn reference catalog, and add a page where a prompt
+generates a UI over that data.
+```
+
+For a chat that answers with generated UIs:
+
+```md
+Add a chat to this app that answers with uicast UIs, built from the shadcn
+reference catalog and our existing API endpoints.
+```
+
+## From the starter app
 
 The app this guide builds, ready to run:
 
@@ -94,8 +132,9 @@ export const tools = [listOrders];
 `description` reaches the model word for word. See
 [Host functions](/expr/functions).
 
-`/api/orders` stands for your own API. The [fast lane](#fast-lane) app ships a
-stand-in route with 23 orders in memory, `src/app/api/orders/route.ts`.
+`/api/orders` stands for your own API. The
+[starter app](#from-the-starter-app) ships a stand-in route with 23 orders in
+memory, `src/app/api/orders/route.ts`.
 
 ## 3. Generate on the server
 

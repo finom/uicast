@@ -17,6 +17,8 @@ export async function docsPages() {
   const rank = (route: string) => (sidebar.includes(route) ? sidebar.indexOf(route) : sidebar.length);
   return Promise.all(
     files(pageMap)
+      // The landing at "/" is a React page outside the docs.
+      .filter(({ route }) => route !== "/")
       .sort((a, b) => rank(a.route) - rank(b.route))
       .map(async ({ route, frontMatter }) => ({
         route,

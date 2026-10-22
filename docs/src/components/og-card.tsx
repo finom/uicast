@@ -18,11 +18,11 @@ export function OgCard({
         height: 640,
         display: "flex",
         position: "relative",
-        backgroundColor: "#0c0c0d",
+        backgroundColor: "#15121f",
         backgroundImage:
           "linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px)",
         backgroundSize: "40px 40px",
-        fontFamily: "Geist",
+        fontFamily: "Instrument Sans",
       }}
     >
       <div
@@ -38,12 +38,12 @@ export function OgCard({
         }}
       >
         {/* biome-ignore lint/performance/noImgElement: next/og draws plain elements only. */}
-        <img src={lockup} alt="uicast" width={487} height={96} />
+        <img src={lockup} alt="uicast" width={440} height={104} />
         <div
-          style={{ display: "flex", flexWrap: "wrap", maxWidth: 700, fontSize: 34, lineHeight: 1.4, color: "#a1a1aa" }}
+          style={{ display: "flex", flexWrap: "wrap", maxWidth: 700, fontSize: 34, lineHeight: 1.4, color: "#c3c0d4" }}
         >
-          {section && <span style={{ color: "#6b6b73" }}>{section}</span>}
-          {section && <span style={{ padding: "0 18px", color: "#9d8cff" }}>/</span>}
+          {section && <span style={{ color: "#8e87a8" }}>{section}</span>}
+          {section && <span style={{ padding: "0 18px", color: "#a795ff" }}>/</span>}
           <span style={{ maxWidth: 620 }}>{text}</span>
         </div>
       </div>
@@ -51,7 +51,7 @@ export function OgCard({
         width={600}
         height={600}
         viewBox="0 0 24 24"
-        fill="#f4f4f2"
+        fill="#ecebf3"
         style={{ position: "absolute", right: -60, top: 20, opacity: 0.07 }}
       >
         <title>uicast</title>
@@ -72,10 +72,10 @@ export function OgCard({
           position: "absolute",
           left: 96,
           bottom: 48,
-          fontFamily: "Geist Mono",
+          fontFamily: "IBM Plex Mono",
           fontWeight: 500,
           fontSize: 22,
-          color: "#6b6b73",
+          color: "#8e87a8",
         }}
       >
         {footer}

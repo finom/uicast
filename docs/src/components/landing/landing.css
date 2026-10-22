@@ -1,0 +1,307 @@
+/* The landing's own rules, scoped to its root so the docs pages keep theirs. Dark mode follows the system setting. */
+body:has(.uc-landing) {
+  margin: 0;
+  background: #fff8f1;
+}
+@media (prefers-color-scheme: dark) {
+  /* html too: Nextra paints it cream unless next-themes sets .dark, which the landing doesn't use. */
+  html:has(.uc-landing),
+  body:has(.uc-landing) {
+    background: #15121f;
+  }
+}
+html:has(.uc-landing) {
+  scroll-behavior: smooth;
+}
+/* Page colors. The screen and phone mockups keep their own theme in both modes. */
+.uc-landing {
+  color-scheme: light;
+  --l-bg: #fff8f1;
+  --l-card: #ffffff;
+  --l-card-soft: rgba(255, 255, 255, 0.6);
+  --l-ink: #1d1730;
+  --l-text: #3b3550;
+  --l-muted: #5e5873;
+  --l-muted2: #6b6580;
+  --l-line: #efe4d8;
+  --l-tint: #eee9ff;
+  --l-tint-ink: #3f2d8f;
+  --l-accent: #6e56cf;
+  --l-accent-text: #5a43b8;
+  --l-accent-hover: #3f2d8f;
+  --l-band: #f3edff;
+  --l-track: #f1ece6;
+  --l-bar: #e6deff;
+  --l-deep: #15121f;
+  --l-dark-card: #1d1730;
+  --l-phone: #1d1730;
+  --l-logo-top: #314158;
+  --l-logo-bottom: #6e56cf;
+  --l-shadow: rgba(60, 40, 120, 0.14);
+  --l-shadow-strong: rgba(60, 40, 120, 0.2);
+  --l-ring: transparent;
+  --l-tile: #ffffff;
+  --l-tile-strong: #1d1730;
+  --l-tile-strong-ink: #fff8f1;
+  --l-coral: #ff6b4a;
+  --l-coral-soft: #ffe7e0;
+  --l-blue: #2e8be6;
+  --l-blue-soft: #e0efff;
+  --l-green: #1f9e7e;
+  --l-green-soft: #ddf6ee;
+  --l-violet: #6e56cf;
+  --l-violet-soft: #eee9ff;
+  --l-amber-soft: #fff1c9;
+}
+@media (prefers-color-scheme: dark) {
+  .uc-landing {
+    color-scheme: dark;
+    --l-bg: #15121f;
+    --l-card: #1e1a2c;
+    --l-card-soft: #1a1727;
+    --l-ink: #ecebf3;
+    --l-text: #c3c0d4;
+    --l-muted: #a9a5bd;
+    --l-muted2: #8e87a8;
+    --l-line: #2a2540;
+    --l-tint: #2a2447;
+    --l-tint-ink: #c9bcff;
+    --l-accent: #a795ff;
+    --l-accent-text: #b9a8ff;
+    --l-accent-hover: #d9cfff;
+    --l-band: #1b1728;
+    --l-track: #2a2540;
+    --l-bar: #3a3255;
+    --l-deep: #0e0c16;
+    --l-dark-card: #231e36;
+    --l-phone: #3a3255;
+    --l-logo-top: #f4f4f2;
+    --l-logo-bottom: #9d8cff;
+    --l-shadow: rgba(0, 0, 0, 0.2);
+    --l-shadow-strong: rgba(0, 0, 0, 0.45);
+    --l-ring: #2a2540;
+    --l-tile: #2a2540;
+    --l-tile-strong: #a795ff;
+    --l-tile-strong-ink: #15121f;
+    --l-coral: #ff7b5c;
+    --l-coral-soft: color-mix(in oklab, #ff6b4a 20%, #1e1a2c);
+    --l-blue: #4da8ff;
+    --l-blue-soft: color-mix(in oklab, #4da8ff 20%, #1e1a2c);
+    --l-green: #2ec4a0;
+    --l-green-soft: color-mix(in oklab, #2ec4a0 20%, #1e1a2c);
+    --l-violet: #a795ff;
+    --l-violet-soft: color-mix(in oklab, #a795ff 22%, #1e1a2c);
+    --l-amber-soft: color-mix(in oklab, #ffc53d 20%, #1e1a2c);
+  }
+}
+.uc-landing,
+.uc-landing *,
+.uc-landing *::before,
+.uc-landing *::after {
+  box-sizing: border-box;
+}
+.uc-landing a {
+  color: var(--l-accent-text);
+}
+.uc-landing a:hover {
+  color: var(--l-accent-hover);
+}
+.uc-landing button,
+.uc-landing input {
+  font: inherit;
+}
+.uc-landing button {
+  -webkit-tap-highlight-color: transparent;
+}
+.uc-landing button:focus-visible,
+.uc-landing a:focus-visible,
+.uc-landing input:focus-visible {
+  outline: 2px solid var(--l-accent);
+  outline-offset: 2px;
+}
+.uc-landing button:disabled {
+  cursor: not-allowed;
+}
+.uc-landing input[type="range"] {
+  width: 100%;
+}
+.uc-landing input[type="range"],
+.uc-landing input[type="checkbox"] {
+  accent-color: #6e56cf;
+}
+@keyframes uc-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes uc-shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+@keyframes uc-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+@keyframes uc-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--r, 0deg));
+  }
+}
+@keyframes uc-line {
+  0% {
+    background: rgba(198, 255, 61, 0.22);
+  }
+  100% {
+    background: transparent;
+  }
+}
+@keyframes uc-burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(0.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--x), var(--y)) scale(1.2);
+  }
+}
+@keyframes uc-caret {
+  50% {
+    opacity: 0;
+  }
+}
+.uc-landing .pop {
+  animation: uc-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.uc-landing .skel {
+  background: linear-gradient(
+    90deg,
+    rgba(130, 110, 190, 0.1) 0,
+    rgba(130, 110, 190, 0.22) 50%,
+    rgba(130, 110, 190, 0.1) 100%
+  );
+  background-size: 800px 100%;
+  animation: uc-shimmer 1.2s linear infinite;
+  border-radius: 12px;
+}
+.uc-landing .fresh {
+  animation: uc-line 1.2s ease-out both;
+}
+.uc-landing .sticker {
+  position: absolute;
+  animation: uc-float 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.uc-landing .burst {
+  position: absolute;
+  left: 120px;
+  top: 4px;
+  font-size: 22px;
+  animation: uc-burst 1s ease-out both;
+  pointer-events: none;
+}
+.uc-landing .b1 { --x: -90px; --y: -80px; }
+.uc-landing .b2 { --x: -40px; --y: -110px; animation-delay: 0.05s; }
+.uc-landing .b3 { --x: 10px; --y: -120px; animation-delay: 0.1s; }
+.uc-landing .b4 { --x: 60px; --y: -100px; }
+.uc-landing .b5 { --x: 110px; --y: -70px; animation-delay: 0.08s; }
+.uc-landing .b6 { --x: 150px; --y: -20px; animation-delay: 0.12s; }
+.uc-landing .b7 { --x: -130px; --y: -20px; animation-delay: 0.04s; }
+.uc-landing .b8 { --x: 30px; --y: -60px; animation-delay: 0.15s; }
+.uc-landing .caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  background: currentColor;
+  vertical-align: -2px;
+  margin-left: 2px;
+  animation: uc-caret 1s steps(1) infinite;
+}
+.uc-landing .hscroll {
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.uc-landing .hscroll::-webkit-scrollbar {
+  display: none;
+}
+@media (max-width: 1100px) {
+  .uc-landing .sticker {
+    display: none !important;
+  }
+}
+@media (max-width: 760px) {
+  .uc-landing .split > div {
+    padding: 12px !important;
+    font-size: 14px !important;
+    overflow-wrap: break-word;
+    min-width: 0;
+  }
+  .uc-landing .navanchor,
+  .uc-landing .navgithub {
+    display: none !important;
+  }
+  .uc-landing .navdemo {
+    padding: 8px 14px !important;
+  }
+  .uc-landing .herodot {
+    display: none;
+  }
+  .uc-landing .docpane {
+    max-height: 300px !important;
+  }
+  .uc-landing .reqrow {
+    flex-wrap: nowrap !important;
+  }
+  .uc-landing .reqcard {
+    flex: 0 0 240px !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html:has(.uc-landing) {
+    scroll-behavior: auto;
+  }
+  .uc-landing * {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.uc-landing .ltipkey {
+  cursor: help;
+  text-decoration: underline dotted rgba(167, 149, 255, 0.55);
+  text-underline-offset: 3px;
+}
+.uc-landing .ltip {
+  position: fixed;
+  z-index: 50;
+  width: max-content;
+  max-width: min(230px, calc(100vw - 32px));
+  padding: 7px 10px;
+  background: #ecebf3;
+  color: #15121f;
+  border-radius: 8px;
+  font: 450 12px/1.45 var(--font-sans);
+  box-shadow: 0 8px 24px rgba(15, 15, 35, 0.3);
+  pointer-events: none;
+  transform: translateY(-100%);
+}

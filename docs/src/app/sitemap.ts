@@ -5,5 +5,6 @@ import { SITE } from "@/lib/site";
 export const dynamic = "force-static";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return (await docsPages()).map(({ route, lastModified }) => ({ url: SITE + route, lastModified }));
+  const pages = (await docsPages()).map(({ route, lastModified }) => ({ url: SITE + route, lastModified }));
+  return [{ url: `${SITE}/` }, ...pages];
 }

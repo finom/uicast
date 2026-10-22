@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, Instrument_Sans, Unbounded } from "next/font/google";
 import type { ReactNode } from "react";
 import { Head } from "nextra/components";
+
+const display = Unbounded({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
+const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://uicast.dev"),
@@ -21,15 +26,20 @@ export const metadata: Metadata = {
 // paints with; without it the mobile nav has no background.
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
+    <html
+      lang="en"
+      dir="ltr"
+      suppressHydrationWarning
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <Head
-        // The logo's accent: #6e56cf light, #9d8cff dark.
+        // Links in the landing's violet: #5a43b8 on cream, #a795ff on ink.
         color={{
-          hue: { light: 252, dark: 249 },
-          saturation: { light: 55.8, dark: 100 },
-          lightness: { light: 57.5, dark: 77.5 },
+          hue: { light: 252, dark: 250 },
+          saturation: { light: 46.6, dark: 100 },
+          lightness: { light: 49.2, dark: 79.2 },
         }}
-        backgroundColor={{ light: "#ffffff", dark: "#0a0a0a" }}
+        backgroundColor={{ light: "#fff8f1", dark: "#15121f" }}
       />
       <body>{children}</body>
     </html>

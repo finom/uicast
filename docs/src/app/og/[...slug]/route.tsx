@@ -22,32 +22,34 @@ const unkerned = (font: Buffer) => {
 };
 
 export async function generateStaticParams() {
-  return (await docsPages()).map(({ route }) => ({ slug: ogImage(route).split("/").slice(2) }));
+  return ["/", ...(await docsPages()).map(({ route }) => route)].map((route) => ({
+    slug: ogImage(route).split("/").slice(2),
+  }));
 }
 
 export async function GET(_: Request, { params }: { params: Promise<{ slug: string[] }> }) {
   const path = `/og/${(await params).slug.join("/")}`;
-  const page = (await docsPages()).find(({ route }) => ogImage(route) === path);
-  if (!page) return new Response(null, { status: 404 });
-  const [lockup, geist, geistMono] = await Promise.all([
+  const index = path === ogImage("/");
+  const page = index ? undefined : (await docsPages()).find(({ route }) => ogImage(route) === path);
+  if (!index && !page) return new Response(null, { status: 404 });
+  const [lockup, sans, mono] = await Promise.all([
     asset("lockup.svg"),
-    asset("geist-regular.ttf"),
-    asset("geist-mono-medium.ttf"),
+    asset("instrument-sans-regular.ttf"),
+    asset("ibm-plex-mono-medium.ttf"),
   ]);
-  const index = page.route === "/";
   return new ImageResponse(
     <OgCard
       lockup={`data:image/svg+xml;base64,${lockup.toString("base64")}`}
-      section={sectionOf(page.route)}
-      text={index ? "The expression-driven generative UI framework." : page.title}
-      footer={index ? "github.com/finom/uicast" : `uicast.dev${page.route}`}
+      section={page && sectionOf(page.route)}
+      text={page ? page.title : "The expression-driven generative UI framework."}
+      footer={page ? `uicast.dev${page.route}` : "github.com/finom/uicast"}
     />,
     {
       width: 1280,
       height: 640,
       fonts: [
-        { name: "Geist", data: unkerned(geist), weight: 400 },
-        { name: "Geist Mono", data: unkerned(geistMono), weight: 500 },
+        { name: "Instrument Sans", data: unkerned(sans), weight: 400 },
+        { name: "IBM Plex Mono", data: unkerned(mono), weight: 500 },
       ],
     },
   );

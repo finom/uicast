@@ -1,10 +1,9 @@
-<p align="center">
+<h1 align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/public/uicast-logo-dark.svg">
-    <img alt="" src="docs/public/uicast-logo.svg" width="54">
+    <source media="(prefers-color-scheme: dark)" srcset="docs/public/logo-text-dark.svg">
+    <img alt="uicast" src="docs/public/logo-text.svg" width="212">
   </picture>
-</p>
-<h1 align="center">uicast</h1>
+</h1>
 <p align="center">The expression-driven generative UI framework.</p>
 <p align="center"><a href="https://uicast.dev">uicast.dev</a></p>
 <p align="center"><a href="https://scorecard.dev/viewer/?uri=github.com/finom/uicast"><img src="https://api.scorecard.dev/projects/github.com/finom/uicast/badge" alt="OpenSSF Scorecard"></a> <a href="https://www.bestpractices.dev/projects/15106"><img src="https://www.bestpractices.dev/projects/15106/badge" alt="OpenSSF Best Practices"></a> <a href="https://github.com/finom/uicast/actions/workflows/ci.yml"><img src="https://github.com/finom/uicast/actions/workflows/ci.yml/badge.svg" alt="CI"></a></p>
@@ -196,7 +195,7 @@ The full documentation is at [uicast.dev](https://uicast.dev). To start:
 - [Entry fields](https://uicast.dev/entry): every field an entry can have.
 - [Example app](https://uicast.dev/example-app): a back office where every table, form and detail view is generated.
 
-Coding agents can install the [agent skill](https://uicast.dev/skill): `npx skills add finom/uicast`.
+Coding agents can install the [agent skill](https://uicast.dev/getting-started#with-an-agent): `npx skills add finom/uicast`.
 
 ## Development
 

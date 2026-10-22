@@ -66,82 +66,115 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Canonical shadcn (neutral) light theme. */
+/* The landing's look over Nextra and the shadcn tokens: cream and ink, one violet. */
 :root {
+  /* Nextra reads --x-font-*; the root layout sets --font-display, --font-sans and --font-mono. */
+  --x-font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  --x-font-mono: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* --uc-accent marks and fills; small text takes --uc-accent-text, 4.5:1 or more on cream. */
+  --uc-bg: #fff8f1;
+  --uc-ink: #1d1730;
+  --uc-text: #3b3550;
+  --uc-muted: #5e5873;
+  --uc-line: #efe4d8;
+  --uc-panel: #ffffff;
+  --uc-sunk: #f6efe7;
+  --uc-tint: #eee9ff;
+  --uc-accent: #6e56cf;
+  --uc-accent-text: #5a43b8;
+
+  /* The tint behind the active sidebar item. */
+  --x-color-primary-100: var(--uc-tint);
+
+  /* Nextra's gray scales: cream at the light end, the landing's violet inks at the dark end. */
+  --x-color-gray-50: #fbf6f0;
+  --x-color-gray-100: #f3ece4;
+  --x-color-gray-200: #e8dfd4;
+  --x-color-gray-300: #c3c0d4;
+  --x-color-gray-400: #a9a5bd;
+  --x-color-gray-500: #8e87a8;
+  --x-color-gray-600: #6b6580;
+  --x-color-gray-700: #3b3550;
+  --x-color-gray-800: #2a2540;
+  --x-color-gray-900: #1e1a2c;
+  --x-color-neutral-50: #fbf6f0;
+  --x-color-neutral-100: #f3ece4;
+  --x-color-neutral-200: #e8dfd4;
+  --x-color-neutral-300: #c3c0d4;
+  --x-color-neutral-400: #a9a5bd;
+  --x-color-neutral-500: #8e87a8;
+  --x-color-neutral-600: #6b6580;
+  --x-color-neutral-700: #3b3550;
+  --x-color-neutral-800: #2a2540;
+  --x-color-neutral-900: #1e1a2c;
+  --x-color-slate-50: #fbf6f0;
+  --x-color-slate-100: #f3ece4;
+  --x-color-slate-200: #e8dfd4;
+  --x-color-slate-700: #3b3550;
+  --x-color-slate-900: #1e1a2c;
+
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --background: var(--uc-bg);
+  --foreground: var(--uc-ink);
+  --card: var(--uc-panel);
+  --card-foreground: var(--uc-ink);
+  --popover: var(--uc-panel);
+  --popover-foreground: var(--uc-ink);
+  --primary: var(--uc-accent);
+  --primary-foreground: #ffffff;
+  --secondary: var(--uc-sunk);
+  --secondary-foreground: var(--uc-ink);
+  --muted: var(--uc-sunk);
+  --muted-foreground: var(--uc-muted);
+  --accent: var(--uc-sunk);
+  --accent-foreground: var(--uc-ink);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.627 0.194 149.214);
   --warning: oklch(0.769 0.188 70.08);
   --info: oklch(0.546 0.245 262.881);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
+  --border: var(--uc-line);
+  --input: var(--uc-line);
+  --ring: var(--uc-accent);
+  --chart-1: #6e56cf;
+  --chart-2: #2ec4a0;
+  --chart-3: #ff6b4a;
+  --chart-4: #8e77f0;
   --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: var(--uc-bg);
+  --sidebar-foreground: var(--uc-ink);
+  --sidebar-primary: var(--uc-accent);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--uc-sunk);
+  --sidebar-accent-foreground: var(--uc-ink);
+  --sidebar-border: var(--uc-line);
+  --sidebar-ring: var(--uc-accent);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --uc-bg: #15121f;
+  --uc-ink: #ecebf3;
+  --uc-text: #c3c0d4;
+  --uc-muted: #a9a5bd;
+  --uc-line: #2a2540;
+  --uc-panel: #1e1a2c;
+  --uc-sunk: #1b1728;
+  --uc-tint: #2a2447;
+  --uc-accent: #a795ff;
+  --uc-accent-text: #b9a8ff;
+
+  --primary-foreground: #14111f;
   --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.985 0 0);
   --success: oklch(0.723 0.219 149.579);
   --warning: oklch(0.828 0.189 84.429);
   --info: oklch(0.707 0.165 254.624);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --input: #2e2843;
+  --chart-1: #a795ff;
+  --chart-2: #2ec4a0;
+  --chart-3: #ff6b4a;
+  --chart-4: #c6ff3d;
+  --sidebar-primary-foreground: #14111f;
 }
 
 @layer base {
@@ -153,3 +186,35 @@
   }
 }
 
+
+/* Headings in the landing's display face. */
+article h1,
+article h2,
+article h3 {
+  font-family: var(--font-display), var(--x-font-sans);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+article h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Code blocks sit on the panel, with the cream line around them. */
+.nextra-code pre {
+  background-color: var(--uc-panel);
+}
+
+/* The navbar on the page color, with a line under it, as on the landing. */
+.nextra-navbar-blur {
+  background-color: var(--uc-bg) !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 1px 0 var(--uc-line) !important;
+}
+
+.nextra-search input {
+  border: 1px solid var(--uc-line);
+  background-color: var(--uc-panel);
+  color: var(--uc-ink);
+}

@@ -1,7 +1,14 @@
 "use client";
 import { ChevronRight } from "lucide-react";
 import { type MouseEvent, type ReactNode, useEffect, useState } from "react";
-import { type JsonToken, tokenizeJson } from "../json-tokens";
+import {
+  EXPRESSION_KEYS,
+  type ExpressionToken,
+  type JsonToken,
+  tokenizeExpression,
+  tokenizeJson,
+} from "../json-tokens";
+import { KEY_TIPS } from "../key-tips";
 import { PROV } from "./entry-variants";
 
 type Prov = keyof typeof PROV;
@@ -22,32 +29,30 @@ export type CodePart = {
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const attr = (s: string) => esc(s).replace(/"/g, "&quot;");
 
-const KEY_TIPS: Record<string, string> = {
-  key: "Unique id for this element.",
-  component: "Which registered component this entry renders.",
-  seed: "Initializes scope state once, when the element mounts.",
-  props: "Props for the component: a literal value or an expr.",
-  hidden: "Bare expression — the element hides when it is truthy.",
-  callbacks: "Event handlers; their assignments run on user actions.",
-  children: "Keys of child elements, in render order.",
-  each: "List source — the array this element iterates over.",
-  as: "Names each item's two scopes: the item and its row.",
-  keyBy: "Item field used as the stable key for list items.",
-  set: "The scope path this assignment writes to.",
-  expr: "A JavaScript expression, evaluated against scope.",
-  literal: "A value used verbatim — never evaluated.",
-  confirm: "Prompts the user to confirm before the assignment runs.",
-  onClick: "An event handler; its assignments run on click.",
-};
-
 const TOKEN_CLASS: Record<JsonToken["kind"], string> = {
-  key: "tk-str",
+  key: "tk-prop",
   str: "tk-str",
   num: "tk-num",
   bool: "tk-kw",
   null: "tk-kw",
   punct: "tk-punct",
 };
+
+const EXPRESSION_CLASS: Record<ExpressionToken["kind"], string> = {
+  scope: "tk-kw",
+  ident: "tk-ident",
+  fn: "tk-fn",
+  str: "tk-str",
+  num: "tk-num",
+  kw: "tk-kw",
+  punct: "tk-punct",
+};
+
+// A JSON string holding an expression, colored as JavaScript; escapes stay as written.
+const expressionHtml = (json: string) =>
+  `<span class="tk-punct">"</span>${tokenizeExpression(JSON.parse(json))
+    .map(({ text, kind }) => `<span class="${EXPRESSION_CLASS[kind]}">${esc(JSON.stringify(text).slice(1, -1))}</span>`)
+    .join("")}<span class="tk-punct">"</span>`;
 
 function highlight(code: string, lang: Lang): string {
   if (lang === "md") {
@@ -61,10 +66,13 @@ function highlight(code: string, lang: Lang): string {
       })
       .join("\n");
   }
+  let key = "";
   return tokenizeJson(code)
     .map(({ text, kind }) => {
-      const tip = kind === "key" && KEY_TIPS[text.slice(1, -1)];
-      if (tip) return `<span class="tk-str tk-key" data-tip="${attr(tip)}">${esc(text)}</span>`;
+      if (kind === "key") key = text.slice(1, -1);
+      if (kind === "str" && EXPRESSION_KEYS.has(key)) return expressionHtml(text);
+      const tip = kind === "key" && KEY_TIPS[key];
+      if (tip) return `<span class="tk-prop tk-key" data-tip="${attr(tip)}">${esc(text)}</span>`;
       return `<span class="${TOKEN_CLASS[kind]}">${esc(text)}</span>`;
     })
     .join("");
@@ -218,7 +226,7 @@ const CSS = `
   --surface:#fff;--border:#e8e8ef;--text:#1b1c22;--muted:#6c6e7b;--faint:#9b9da9;
   --accent:#5650e6;--accent-soft:#ecebff;--teal:#0c8a72;--teal-soft:#e0f4ef;--warn:#bf5a12;--warn-soft:#f7e6d4;--slate:#5f6675;--slate-soft:#edeef3;
   --code-bg:#f7f7fb;--code-border:#ececf2;--app-bg:#f3f4f8;--app-grid:rgba(24,24,52,.045);
-  --tok-comment:#8e909c;--tok-str:#0c8a72;--tok-num:#bf5a12;--tok-kw:#8a4fd6;--tok-fn:#2f6fd0;--tok-punct:#a6a8b4;
+  --tok-comment:#8e909c;--tok-prop:#4a45c9;--tok-str:#0c8a72;--tok-num:#bf5a12;--tok-kw:#8a4fd6;--tok-fn:#2f6fd0;--tok-punct:#a6a8b4;
   display:block;position:relative;background:var(--surface);border:1px solid var(--border);border-radius:16px;
   padding:26px 26px 22px;margin:26px 0;box-shadow:0 1px 2px rgba(20,20,40,.03);
   color:var(--text);font-family:'IBM Plex Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
@@ -227,7 +235,7 @@ const CSS = `
   --surface:#161821;--border:#272a36;--text:#e7e8ef;--muted:#9b9eac;--faint:#6a6d7c;
   --accent:#a39dff;--accent-soft:#262356;--teal:#4fd2b4;--teal-soft:#103a31;--warn:#e0975a;--warn-soft:#3a2614;--slate:#a4abbd;--slate-soft:#252834;
   --code-bg:#101218;--code-border:#23252f;--app-bg:#0a0b0f;--app-grid:rgba(255,255,255,.045);
-  --tok-comment:#6a6d7c;--tok-str:#7fd6b8;--tok-num:#e0975a;--tok-kw:#cb98f0;--tok-fn:#82aaff;--tok-punct:#5d6070;
+  --tok-comment:#6a6d7c;--tok-prop:#a39dff;--tok-str:#7fd6b8;--tok-num:#e0975a;--tok-kw:#cb98f0;--tok-fn:#82aaff;--tok-punct:#5d6070;
 }
 .mini-example .mx-hero{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch}
 .mini-example .mx-card{border:1px solid var(--code-border);border-radius:12px;overflow:hidden;background:var(--code-bg);display:flex;flex-direction:column;min-width:0}
@@ -265,6 +273,9 @@ const CSS = `
 .mini-example .mx-mdx span[style*="24292E"]{--shiki-light:var(--text)!important;--shiki-dark:var(--text)!important}
 .mini-example .mx-mdx span[style*="22863A"]{--shiki-light:var(--tok-fn)!important;--shiki-dark:var(--tok-fn)!important}
 .mini-example .tk-str{color:var(--tok-str)}
+.mini-example .tk-prop{color:var(--tok-prop)}
+.mini-example .tk-fn{color:var(--tok-fn)}
+.mini-example .tk-ident{color:var(--text)}
 .mini-example .tk-num{color:var(--tok-num)}
 .mini-example .tk-kw{color:var(--tok-kw)}
 .mini-example .tk-punct{color:var(--tok-punct)}

@@ -2,9 +2,9 @@ import type { MetaRecord } from "nextra";
 
 // streamdown precedes error recovery: recovery's chat section assumes the fence model.
 const meta: MetaRecord = {
-  index: { title: "Introduction", theme: { breadcrumb: false } },
+  index: { display: "hidden" },
+  about: { title: "About", theme: { breadcrumb: false } },
   "getting-started": "Getting started",
-  skill: "Agent skill",
   concepts: "Concepts",
   expr: {
     title: "Expressions",
@@ -44,16 +44,6 @@ const meta: MetaRecord = {
   security: "Security model",
   "api-ref": "API reference",
   roadmap: "Roadmap",
-  "standard-tool": {
-    title: "standard-tool",
-    type: "page",
-    href: "https://standard-tool.js.org/",
-  },
-  warehouse: {
-    title: "Example app",
-    type: "page",
-    href: "https://warehouse.uicast.dev",
-  },
 };
 
 export default meta;

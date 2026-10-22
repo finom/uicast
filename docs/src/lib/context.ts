@@ -14,7 +14,7 @@ export const BLOCKS = [
 export type Blocks = Record<(typeof BLOCKS)[number], string>;
 
 // Nothing here the file's header doesn't say.
-const DROPPED = ["Hero", "Sponsors", "GallerySwitch"];
+const DROPPED = ["Sponsors", "GallerySwitch"];
 // The tags go, the text inside stays.
 const UNWRAPPED = ["Bleed", "Callout", "ShowMore"];
 

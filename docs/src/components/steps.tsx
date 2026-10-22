@@ -15,7 +15,7 @@ export const STEPS = [
 
 export function Steps() {
   return (
-    <div className="mb-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
+    <div className="mt-10 mb-12 grid gap-8 sm:grid-cols-3 sm:gap-6">
       {STEPS.map(({ title, body }, i) => (
         <div key={title}>
           <p className="font-mono text-xs text-muted-foreground">{String(i + 1).padStart(2, "0")}</p>
