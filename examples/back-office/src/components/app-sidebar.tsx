@@ -131,6 +131,9 @@ export function AppSidebar({ mobile = false, initial }: { mobile?: boolean; init
         <a className="hover:text-foreground" href="https://uicast.dev" target="_blank" rel="noreferrer">
           Docs
         </a>
+        <a className="hover:text-foreground" href="https://uicast.dev/example-app" target="_blank" rel="noreferrer">
+          Run your own
+        </a>
         <a className="hover:text-foreground" href="https://github.com/finom/uicast" target="_blank" rel="noreferrer">
           GitHub
         </a>

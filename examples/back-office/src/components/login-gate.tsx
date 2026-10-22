@@ -74,11 +74,11 @@ export function LoginGate({
         ·{" "}
         <a
           className="underline hover:text-foreground"
-          href="https://github.com/finom/uicast/tree/main/examples/back-office"
+          href="https://uicast.dev/example-app"
           target="_blank"
           rel="noreferrer"
         >
-          source of this demo
+          run or deploy your own copy
         </a>
       </p>
     </div>
