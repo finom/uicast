@@ -5,11 +5,12 @@ import { clickByKeyboard, cn } from "../../lib/utils";
 import { DataGridDef } from "./def";
 import { columnWidth } from "../../lib/sizes";
 import { BlockSkeleton } from "../../lib/skeletons";
+import { CSV_HOST, DownloadCsvButton } from "../../lib/download-button";
 
 export const DataGridImpl = createComponentImplementation({
   def: DataGridDef,
   render: ({ columns, rows, maxHeight, striped, onRowClick }, { entry }) => (
-    <div className="rounded-md border overflow-hidden" data-key={entry.key}>
+    <div className={cn("rounded-md border overflow-hidden", CSV_HOST)} data-key={entry.key}>
       {/* The viewport fills the root's height, and a root with only a max height has none. */}
       <ScrollArea style={{ maxHeight }} className="*:data-[slot=scroll-area-viewport]:max-h-[inherit]">
         {/* Not the ui Table: its overflow wrapper would become the sticky header's scroll container. */}
@@ -43,6 +44,14 @@ export const DataGridImpl = createComponentImplementation({
         </table>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
+      <DownloadCsvButton
+        name={entry.key}
+        surface="muted"
+        rows={() => [
+          columns.map((col) => col.header),
+          ...rows.map((row) => columns.map((col) => String(row[col.key] ?? ""))),
+        ]}
+      />
     </div>
   ),
   skeleton: () => <BlockSkeleton height={320} />,
