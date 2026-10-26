@@ -69,9 +69,6 @@
   "overrides": {
     "zod": "$zod",
     "@xmldom/xmldom": "^0.9.12",
-    "nextra-theme-docs": {
-      "zod": "4.3.6"
-    },
     "@shikijs/twoslash": {
       "typescript": "6.0.3"
     },

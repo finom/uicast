@@ -7,9 +7,9 @@
   "type": "module",
   "scripts": {
     "update-mdx-snippets": "node scripts/update-mdx-snippets.mjs",
-    "predev": "npm run update-mdx-snippets",
+    "predev": "node scripts/patch-nextra-layout.mjs && npm run update-mdx-snippets",
     "dev": "next dev",
-    "prebuild": "npm run update-mdx-snippets",
+    "prebuild": "node scripts/patch-nextra-layout.mjs && npm run update-mdx-snippets",
     "build": "next build",
     "test": "vitest run",
     "postbuild": "pagefind --site .next/server/app --output-path public/_pagefind && cp -R public/_pagefind out/_pagefind",
