@@ -19,6 +19,14 @@ type Run = {
   elementKey: string;
 };
 
+// A bad address fails classified before any step runs.
+const parseSteps = (steps: CallbackValueSourceAssignment[], elementKey: string): Step[] =>
+  steps.map((step) => ({ ...step, target: step.set ? parseSetAddress(step.set, elementKey) : null }));
+
+// Every step at once, with no debounce. Resolves `false` when the user declined a `confirm`.
+export const runStepsNow = ({ steps, ...run }: Run & { steps: CallbackValueSourceAssignment[] }): Promise<boolean> =>
+  runWaves(parseSteps(steps, run.elementKey), run, () => true);
+
 // The newest run of each callback, per element (its `debouncers`).
 const newestRuns = new WeakMap<Debouncers, Map<string, symbol>>();
 
@@ -35,11 +43,7 @@ export async function runCallbackSteps({
   callbackName: string;
   debouncers: Debouncers;
 }): Promise<void> {
-  // A bad address fails classified before any step runs.
-  const parsed: Step[] = steps.map((step) => ({
-    ...step,
-    target: step.set ? parseSetAddress(step.set, run.elementKey) : null,
-  }));
+  const parsed = parseSteps(steps, run.elementKey);
   const debounceAt = parsed.findIndex((step) => step.debounce);
   const now = debounceAt === -1 ? parsed : parsed.slice(0, debounceAt);
   const later = debounceAt === -1 ? [] : parsed.slice(debounceAt);

@@ -21,6 +21,7 @@
       "@uicast/core": ["../../packages/core/src/index.ts"],
       "@uicast/core/internal": ["../../packages/core/src/internal.ts"],
       "@uicast/core/prompt": ["../../packages/core/src/prompt/index.ts"],
+      "@uicast/core/tool": ["../../packages/core/src/tool/index.ts"],
       "@uicast/react": ["../../packages/react/src/index.ts"],
       "@uicast/shadcn-catalog": ["../../packages/shadcn-catalog/src/index.ts"],
       "@uicast/shadcn-catalog/all/defs": ["../../packages/shadcn-catalog/src/all/defs.ts"],

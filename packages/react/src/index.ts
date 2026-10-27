@@ -11,3 +11,4 @@ export { createComponentImplementation } from "./impl/create-component-implement
 export { DocumentSkeleton } from "./render/document-skeleton";
 export { EntriesRenderer } from "./render/entries-renderer";
 export { RendererProvider } from "./providers/renderer-provider";
+export { useExprTool } from "./use-expr-tool";

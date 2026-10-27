@@ -41,6 +41,9 @@
       "@uicast/core/prompt": [
         "../packages/core/src/prompt/index.ts"
       ],
+      "@uicast/core/tool": [
+        "../packages/core/src/tool/index.ts"
+      ],
       "@uicast/react": [
         "../packages/react/src/index.ts"
       ],

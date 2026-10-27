@@ -19,6 +19,7 @@
       "@uicast/expr/internal": ["./packages/expr/src/internal.ts"],
       "@uicast/core/internal": ["./packages/core/src/internal.ts"],
       "@uicast/core/prompt": ["./packages/core/src/prompt/index.ts"],
+      "@uicast/core/tool": ["./packages/core/src/tool/index.ts"],
       "@uicast/react": ["./packages/react/src/index.ts"],
       "@uicast/react/*": ["./packages/react/src/*"],
       "@uicast/streamdown": ["./packages/streamdown/src/index.ts"],

@@ -1,0 +1,116 @@
+---
+description: "The expr tool lets the model act on the UI it wrote, as the user would: read its state, write it and call host functions."
+---
+
+# The `expr` tool
+
+The model can act on the UI it wrote, as the user would: read its state, write
+it and call host functions. After a table of products, "select the five lowest"
+marks five rows, and "download them" calls a download function with those rows.
+
+`exprTool(){:ts}` from `@uicast/core/tool` is the tool to give the model, a
+`StandardToolV0` from [standard-tool](https://github.com/finom/standard-tool)
+with zod input and output schemas. It has no `execute` of its own: the browser
+runs each call through `useExprTool(){:ts}` from `@uicast/react`, against the
+`root` scope every `<EntriesRenderer>` under the provider shares, and the answer
+goes back to the model.
+
+## What the model sends
+
+A call holds `steps`, a `read` expression, or both. The steps are the ones a
+[callback](/events) runs, and the steps run first:
+
+```json
+{
+  "steps": [
+    {
+      "set": "scopes.root.selected",
+      "expr": "scopes.root.products.items.slice(0, 5).reduce((m, p) => ({ ...m, [p.id]: true }), {})"
+    }
+  ],
+  "read": "Object.keys(scopes.root.selected).length"
+}
+```
+
+- Steps run under the same rules as in a callback: the same budget, the same
+  `set` addresses, and a step with `confirm` asks the user first.
+- A step with no `set` runs for its effect, such as a host-function call:
+  `downloadCsv({ rows: scopes.root.products.items.filter(p => scopes.root.selected[p.id]) }){:ts}`.
+- Only `scopes.root` is reachable. There is no `evt` and no row scope.
+- The tool changes state, not structure. A write shows on screen only where an
+  element reads that path. To add a column, the model sends new entries instead.
+
+## What the model gets back
+
+- `{ value }`: the value of `read`, as JSON, at most 8,000 characters;
+- `{}`: the steps ran and there was no `read`;
+- `{ declined: true }`: the user cancelled a `confirm`, so that step and the ones
+  after it did not run;
+- `{ error: { reason, message } }`: the
+  [reason](/error-recovery#classification-entryerror-and-onerror) of the step or
+  read that failed, or of an input the schema refused, for the model to fix the
+  call.
+
+## The server
+
+The tool's description holds only its own rules. The system prompt carries the
+rest, as for any document: the core partials describe steps and expressions, and
+`getFunctionsPartialPrompt({ functions }){:ts}` lists the host functions a step
+may call. Pass it the same functions the browser's `Evaluator` binds.
+`exprTool({ note }){:ts}` appends your text as a `## Note`. With the AI SDK as
+the example:
+
+```ts
+import { exprTool } from "@uicast/core/tool";
+import { streamText, tool } from "ai";
+
+const expr = exprTool(); // module scope
+const tools = {
+  [expr.name]: tool({ description: expr.description, inputSchema: expr.inputSchema, outputSchema: expr.outputSchema }),
+};
+
+streamText({ model, system, messages, tools });
+```
+
+`expr.inputSchema` and `expr.outputSchema` are zod schemas, so any SDK that
+takes Standard Schema or zod accepts them. Calling `expr.execute(){:ts}` throws:
+the tool runs only in the browser.
+
+The AI SDK checks each call's input against `inputSchema` on the server, so an
+input the schema refuses never reaches the browser. By default the model then
+reads only "An error occurred."; to let it fix the call, return the refusal's
+message from `onError` of `toUIMessageStream`, as the
+[example app](/example-app) does.
+
+## The browser
+
+`useExprTool(){:ts}` returns a function that runs one call and resolves with the
+answer. Call it below `<RendererProvider>`:
+
+```tsx
+const runExprTool = useExprTool();
+
+useChat({
+  sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+  onToolCall: ({ toolCall }) => {
+    if (toolCall.toolName !== "expr") return;
+    runExprTool(toolCall.input).then((output) =>
+      addToolOutput({ tool: "expr", toolCallId: toolCall.toolCallId, output }),
+    );
+  },
+});
+```
+
+When `useChat` sits above the provider, as in the
+[example app](/example-app), a small component under the provider passes the
+runner up through a ref.
+
+State the tool writes lives in memory, like the user's clicks: a reload starts
+from the seeds again.
+
+## Where to go next
+
+- [Event handling](/events) — the steps a call holds.
+- [Streamdown plugin](/streamdown) — UI inside Markdown chat replies, where the
+  tool is most often used.
+- [Host functions](/expr/functions) — the functions a step may call.

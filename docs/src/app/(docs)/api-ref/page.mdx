@@ -8,7 +8,7 @@ Five packages, published as compiled ESM with type declarations.
 
 | Package | What it is |
 | --- | --- |
-| [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders. No React. |
+| [`@uicast/core`](#uicastcore) | The engine: entry types, reactive scopes, the prompt builders, the `expr` tool. No React. |
 | [`@uicast/expr`](#uicastexpr) | The expression evaluator: closed grammar, runtime membrane, budget. No **uicast** imports. |
 | [`@uicast/react`](#uicastreact) | The React binding: the renderer and the implementation factory. |
 | [`@uicast/shadcn-catalog`](#uicastshadcn-catalog) | A reference catalog: 106 def/impl pairs over shadcn/ui. |
@@ -56,6 +56,14 @@ Types: one options type per builder (`ComponentsPromptOptions`,
 `ScopePromptOptions`, …) and `RenderFailure`. `note?` is host text, rendered
 verbatim as the section's trailing `## Note`.
 
+### `@uicast/core/tool` — tool module
+
+| Export | What it does |
+|---|---|
+| `exprTool({ note? }){:ts}` | The `expr` tool, a `StandardToolV0` with zod input and output schemas: the model reads and writes the state of the UI it wrote and calls host functions. Its calls run in the browser through `useExprTool(){:ts}`. See [The `expr` tool](/expr-tool). |
+
+Types: `ExprToolOptions`, `ExprToolInput`, `ExprToolOutput`.
+
 ## `@uicast/expr`
 
 The [expression language](/expr).
@@ -83,6 +91,7 @@ Re-exports nothing from core — import from both.
 | `<RendererProvider>` | Holds the implementations, the evaluator (with host functions bound), fallback UI and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
 | `<DocumentSkeleton entries>` | The document's shape from the entries alone, drawn with the provider's implementations and `fallbackComponents.defaultSkeleton`. Evaluates nothing, so it renders in a server pass. See [Server rendering](/react/ssr#document-skeleton). |
+| `useExprTool(){:ts}` | Runs the `expr` tool's calls against the provider's state and returns the answer for the model. See [The `expr` tool](/expr-tool). |
 | `createComponentImplementation({ def, render, skeleton? }){:ts}` | The React half of a component pair: `{ def, skeleton }{:ts}`, to register. See [impl](/react). |
 
 Types: `ComponentImplementation`, `FallbackComponents`, `SkeletonComponentProps`,

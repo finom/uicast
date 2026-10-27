@@ -250,7 +250,6 @@ describe("a function is written only where a method takes one", () => {
       `[x => x]`,
       `({ f: x => x })`,
       `typeof (x => x)`,
-      `(x => x)(1)`,
       `true ? x => 1 : x => 2`,
       `rows.map(r => x => x)`,
       `rows.map((r = x => x) => r)`,
@@ -262,6 +261,14 @@ describe("a function is written only where a method takes one", () => {
       `[f => f(f)].map(f => f(f))`,
     ]) {
       expect(() => ev.validate(expr), expr).toThrow(/can only be written as a method's callback/);
+    }
+  });
+
+  it("refuses one called where it is written, saying how to name a value", () => {
+    for (const expr of [`(x => x)(1)`, `((p) => p ? p.name : '')(rows.find(r => r))`, `rows.map(r => (x => x)(r))`]) {
+      expect(() => ev.validate(expr), expr).toThrow(
+        /cannot be called where it is written.*To name a value, map a one-item array/,
+      );
     }
   });
 });
