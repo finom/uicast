@@ -4,7 +4,7 @@ import { Activity, memo, type ReactElement, type ReactNode, Suspense, use, useEf
 import { refusePromise } from "../guards";
 import { engineOf } from "../impl/engine";
 import { useConfirm } from "../providers/confirm";
-import { useElement } from "../providers/elements-store";
+import { slotId, useElement, useSlot } from "../providers/elements-store";
 import { ErrorBoundary } from "../providers/error-boundary";
 import { useRendererRegistry } from "../providers/renderer-provider";
 import type { Debouncers, InitFn, RenderContext, Scopes } from "../types";
@@ -50,6 +50,8 @@ type EntryRendererProps = {
   ancestors?: ReadonlySet<string>;
   // Rendering once per list item; without it the element would dispatch back to ListEntryRenderer forever.
   asListItem?: boolean;
+  // The parent's `children` slot this renders in; unset for the root and for list items.
+  slot?: string;
 };
 
 const EntryRendererInner = ({
@@ -134,17 +136,19 @@ const EntryRendererInner = ({
   const children = useMemo(
     () =>
       childKeys?.length
-        ? childKeys.map((childKey) => (
+        ? childKeys.map((childKey, index) => (
             <EntryRenderer
-              key={childKey}
+              // A repeated key needs its own React key; the first keeps the plain one, so a reorder keeps state.
+              key={childKeys.indexOf(childKey) === index ? childKey : `${childKey}#${index}`}
               elementKey={childKey}
               scopes={scopes}
               fallback={slotSkeleton}
               ancestors={lineage}
+              slot={slotId(elementKey, index)}
             />
           ))
         : null,
-    [childKeys, scopes, slotSkeleton, lineage],
+    [childKeys, scopes, slotSkeleton, lineage, elementKey],
   );
 
   // The slot stays mounted; `useElement` wakes it when the entry arrives.
@@ -226,7 +230,38 @@ const EntryRendererInner = ({
   );
 };
 
-export const EntryRenderer = memo(EntryRendererInner);
+// A key listed in a second place renders only in the first: repeated listings would multiply the subtree.
+const RepeatedListing = ({ elementKey, renderedIn }: { elementKey: string; renderedIn?: string }): ReactElement => {
+  const { fallbackComponents, onError } = useRendererRegistry();
+  const parent = renderedIn?.slice(renderedIn.indexOf(":") + 1);
+  const error = new EntryError(
+    `"${elementKey}" already renders under "${parent}": an entry is listed in children once`,
+    { reason: "guardrail-violation", elementKey },
+  );
+  return (
+    <ErrorBoundary
+      errorComponent={fallbackComponents?.error}
+      elementKey={elementKey}
+      resetToken={renderedIn}
+      onError={onError}
+      reason="guardrail-violation"
+    >
+      <ThrowError error={error} />
+    </ErrorBoundary>
+  );
+};
+
+// A separate component, so a listing that takes over the slot mounts the element fresh.
+const SlottedEntryRenderer = (props: EntryRendererProps): ReactElement => {
+  const renderedIn = useSlot(props.elementKey);
+  // A cycle repeats a key too; the inner renderer names it as a cycle.
+  if (props.slot !== undefined && props.slot !== renderedIn && !props.ancestors?.has(props.elementKey)) {
+    return <RepeatedListing elementKey={props.elementKey} renderedIn={renderedIn} />;
+  }
+  return <EntryRendererInner {...props} />;
+};
+
+export const EntryRenderer = memo(SlottedEntryRenderer);
 
 const ListEntryRendererInner = ({
   list,

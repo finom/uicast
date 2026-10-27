@@ -163,4 +163,28 @@ describe("DocumentSkeleton", () => {
     expect(html).toContain("<i>text</i>");
     expect(execute).not.toHaveBeenCalled();
   });
+
+  it("draws a key listed twice once", () => {
+    const entries: ComponentEntry[] = [{ key: "page", component: "Group", children: ["l6"] }];
+    for (let i = 6; i > 0; i--)
+      entries.push({ key: `l${i}`, component: "Group", children: [`l${i - 1}`, `l${i - 1}`] });
+    entries.push({ key: "l0", component: "Text" });
+    expect(draw(entries).match(/<i>text<\/i>/g)).toHaveLength(1);
+  });
+
+  // Each list level draws a few rows; nested lists would multiply them.
+  it("draws rows for the outermost list only", () => {
+    const entries: ComponentEntry[] = [];
+    for (let i = 6; i > 0; i--) {
+      entries.push({
+        key: `l${i}`,
+        component: "Group",
+        each: "scopes.root.rows",
+        as: `r${i}`,
+        children: [`l${i - 1}`],
+      });
+    }
+    entries.push({ key: "l0", component: "Text" });
+    expect(draw(entries).match(/<i>text<\/i>/g)).toHaveLength(3);
+  });
 });
