@@ -31,6 +31,10 @@
     "./prompt": {
       "types": "./dist/prompt/index.d.ts",
       "default": "./dist/prompt/index.js"
+    },
+    "./tool": {
+      "types": "./dist/tool/index.d.ts",
+      "default": "./dist/tool/index.js"
     }
   },
   "files": [

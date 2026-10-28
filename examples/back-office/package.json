@@ -41,6 +41,7 @@
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "shiki": "^4.5.0",
     "standard-tool": "^0.1.1",
     "streamdown": "^2.7.1",
     "tailwind-merge": "^3.7.0",

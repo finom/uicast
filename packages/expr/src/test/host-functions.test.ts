@@ -42,6 +42,26 @@ describe("construction", () => {
   });
 });
 
+describe("withFunctions", () => {
+  it("swaps the host functions, keeping the class and the options", () => {
+    class Tagged extends Evaluator {}
+    const ev = new Tagged({ functions: [tool({ name: "load" }), tool({ name: "save" })], budget: { steps: 50 } });
+    const readOnly = ev.withFunctions([tool({ name: "load", execute: () => "loaded" })]);
+    expect(readOnly).toBeInstanceOf(Tagged);
+    expect(readOnly.functions.map((t) => t.name)).toEqual(["load"]);
+    expect(readOnly.eval("load()")).toBe("loaded");
+    expect(() => readOnly.eval("save(1)")).toThrow(/"save" is not available/);
+    expect(() => readOnly.eval("Array.from({ length: 100 }, (_, i) => i)")).toThrow(/budget/);
+    expect(ev.eval("save(1)")).toBe(1);
+  });
+
+  it("refuses the same names the constructor refuses", () => {
+    expect(() => new Evaluator().withFunctions([tool({ name: "a" }), tool({ name: "a" })])).toThrow(
+      /Duplicate host function name/,
+    );
+  });
+});
+
 describe("staying synchronous", () => {
   const sync = (opts: { input?: boolean; output?: boolean }) =>
     new Evaluator({

@@ -16,6 +16,9 @@ class FunctionEvaluator extends Evaluator {
 // A toy language: the source is a key into `scopes`, or a host-function name.
 class ToyEvaluator implements ExpressionEvaluator {
   constructor(readonly functions: readonly StandardToolV0[] = [tool("now")]) {}
+  withFunctions(functions: readonly StandardToolV0[]): ToyEvaluator {
+    return new ToyEvaluator(functions);
+  }
   validate(source: string): ExpressionFacts {
     return { freeIds: [source], toolCalls: source === "now" ? ["now"] : [] };
   }

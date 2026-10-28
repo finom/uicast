@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `@uicast/core/tool`: `exprTool({ read, functions, note })`, a tool the model calls to run steps on the UI's state in the browser; `read` is off by default ([#39](https://github.com/finom/uicast/pull/39)).
+
 ### Changed
 
 - All expressions of one update share a 1 s budget; past it they fail as `budget-exceeded` ([#38](https://github.com/finom/uicast/pull/38)).

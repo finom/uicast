@@ -111,6 +111,13 @@ const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void 
           'An optional call ("?.()") is not allowed — make the receiver optional instead: a?.b()',
         );
       }
+      // `((p) => …)(x)` names a value; say how to do without, not only that the arrow is misplaced.
+      if (callee.type === "ArrowFunctionExpression") {
+        throw new ExpressionError(
+          "A function cannot be called where it is written: it is only passed to a method, as in rows.map(r => r.name). " +
+            "To name a value, map a one-item array: [rows.find(r => r.id === id)].map(r => r ? r.name : '')[0]",
+        );
+      }
       // Written method names are grammar, not interpreter tables — both back ends must refuse the same calls.
       if (callee.type === "MemberExpression") {
         const name = writtenName(callee.property, callee.computed);

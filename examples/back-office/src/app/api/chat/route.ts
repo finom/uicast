@@ -1,11 +1,14 @@
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
+  InvalidToolInputError,
   isTextUIPart,
   streamText,
   toUIMessageStream,
+  tool,
   type UIMessage,
 } from "ai";
+import { exprTool } from "@uicast/core/tool";
 import { getFencePartialPrompt } from "@uicast/streamdown/prompt";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
@@ -13,9 +16,25 @@ import { chatMessages, chats } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
 import { caching, chargedUsd, GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
+import { exprToolFunctions } from "@/lib/expr-tool-functions";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
 export const maxDuration = 300;
+
+// No `execute`: the browser runs its calls (`useExprTool` in the chat view) and sends the answer back.
+const expr = exprTool({ read: true, functions: exprToolFunctions });
+const tools = {
+  [expr.name]: tool({ description: expr.description, inputSchema: expr.inputSchema, outputSchema: expr.outputSchema }),
+};
+
+// The model reads why its tool input was refused, to fix the call; other errors stay masked. The SDK reports a
+// refused input twice: as the error, then as its text.
+const REFUSED_INPUT = "AI_InvalidToolInputError: ";
+const refusedInputMessage = (error: unknown): string => {
+  if (InvalidToolInputError.isInstance(error)) return error.message;
+  if (typeof error === "string" && error.startsWith(REFUSED_INPUT)) return error.slice(REFUSED_INPUT.length);
+  return "An error occurred.";
+};
 
 // Only the fields this route reads are validated; the rest round-trips through useChat.
 const chatInput = z.object({
@@ -91,6 +110,7 @@ export async function POST(req: Request) {
     model,
     instructions: buildSystemPrompt("answer", getFencePartialPrompt()),
     messages: await convertToModelMessages(uiMessages),
+    tools,
     maxOutputTokens: MAX_OUTPUT_TOKENS,
     // A chat's next turn often comes minutes later, so its cache lasts an hour.
     providerOptions: caching(id, "1h"),
@@ -101,6 +121,7 @@ export async function POST(req: Request) {
     stream: result.stream,
     originalMessages: uiMessages,
     generateMessageId: () => crypto.randomUUID(),
+    onError: refusedInputMessage,
     messageMetadata: ({ part }) => {
       if (part.type === "finish-step") {
         const stepCost = chargedUsd(part.usage);
