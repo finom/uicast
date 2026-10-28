@@ -63,6 +63,6 @@
     "@standard-schema/spec": "^1.1.0"
   },
   "peerDependencies": {
-    "@uicast/expr": "^0.0.5"
+    "@uicast/expr": "^0.0.6"
   }
 }
