@@ -1,6 +1,6 @@
 {
   "name": "@uicast/shadcn-catalog",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "the uicast component catalog over shadcn/Radix",
   "license": "MIT",
   "author": "Andrey Gubanov (https://github.com/finom)",
