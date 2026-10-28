@@ -1,6 +1,6 @@
 import type { ValueSource } from "../types";
 import { EntryError } from "../entry-error";
-import { CONTEXT_NAMES } from "../constants";
+import { CONTEXT_NAMES, UPDATE_BUDGET_MS } from "../constants";
 import type { ExpressionErrorReason, ExpressionEvaluator } from "@uicast/expr";
 import { holdsPrimitive, unwrapRows } from "../scope/create-proxy-scope";
 
@@ -24,6 +24,14 @@ const isExpressionError = (err: unknown): err is { reason: ExpressionErrorReason
   typeof err === "object" &&
   err !== null &&
   (err as { uicastExpressionError?: unknown }).uicastExpressionError === true;
+
+// Time spent since the last microtask checkpoint; a render runs its expressions in one synchronous run.
+let spent = 0;
+let resetQueued = false;
+const reset = () => {
+  spent = 0;
+  resetQueued = false;
+};
 
 export const wrapEvalError = (err: unknown): EntryError => {
   if (EntryError.is(err)) return err;
@@ -57,7 +65,22 @@ export const evaluate = (
         });
       }
     }
-    const result = evaluator.eval(source, context);
+    if (spent > UPDATE_BUDGET_MS) {
+      throw new EntryError(`The page's expressions took over ${UPDATE_BUDGET_MS} ms in one update`, {
+        reason: "budget-exceeded",
+      });
+    }
+    if (!resetQueued) {
+      resetQueued = true;
+      queueMicrotask(reset);
+    }
+    const start = performance.now();
+    let result: unknown;
+    try {
+      result = evaluator.eval(source, context);
+    } finally {
+      spent += performance.now() - start;
+    }
     // Only a read of a whole scope (`scopes.row`) can put a row window in the result.
     const data = (value: unknown) =>
       reads.some((read) => read.indexOf(".", "scopes.".length) === -1) ? unwrapRows(value) : value;

@@ -3,3 +3,6 @@ export const CALLBACK_DEBOUNCE_MS = 300;
 
 // A host function may not take one of these: it would shadow the context.
 export const CONTEXT_NAMES: ReadonlySet<string> = new Set(["scopes", "evt", "currentValue"]);
+
+// Wall time all expressions of one synchronous run may take together, so no document freezes the page.
+export const UPDATE_BUDGET_MS = 1_000;
