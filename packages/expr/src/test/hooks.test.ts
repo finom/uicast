@@ -170,7 +170,7 @@ const REFUSED = [
   "[1].map(() => { while (true) {} })",
   "[1].map(x => { let i = 0; return i })",
   "[1].map(function f(n) { return f(n) })",
-  "(() => 1)()",
+  "(() => x => x)()",
   "scopes.root.x = 1",
   "scopes.root.x++",
   "delete scopes.root.x",

@@ -179,6 +179,15 @@ describe("denial of service", () => {
     expect(blocked).toBe(true);
   });
 
+  it("charges an arrow called where it is written like a callback", () => {
+    const rows = Array.from({ length: 5_000 }, (_, i) => i);
+    const source = "(r => r.map(n => n + 1).length)(scopes.rows)";
+    expect(ev.eval(source, { scopes: { rows } })).toBe(5_000);
+    expect(() => new Evaluator({ budget: { steps: 2_000 } }).eval(source, { scopes: { rows } })).toThrow(
+      expect.objectContaining({ reason: "budget-exceeded" }),
+    );
+  });
+
   it("caps allocation across the whole evaluation, not just per operation", () => {
     const rows = Array.from({ length: 5000 }, (_, i) => i);
     const result = attempt("scopes.rows.map(x => scopes.rows.slice()).length", {

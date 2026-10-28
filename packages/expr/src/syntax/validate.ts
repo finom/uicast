@@ -73,7 +73,8 @@ const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void 
     case "ArrowFunctionExpression":
       if (!isCallback) {
         throw new ExpressionError(
-          `A function can only be written as a method's callback, as in rows.map(r => r.name). Methods that take one: ${CALLBACK_METHODS}`,
+          "A function can only be written as a method's callback, as in rows.map(r => r.name), or called where it is written, " +
+            `as in (r => r ? r.name : "")(rows[0]). Methods that take one: ${CALLBACK_METHODS}`,
         );
       }
       // No block body: with it go every statement, every declaration, and the last way to write a loop or a self-reference.
@@ -111,13 +112,6 @@ const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void 
           'An optional call ("?.()") is not allowed — make the receiver optional instead: a?.b()',
         );
       }
-      // `((p) => …)(x)` names a value; say how to do without, not only that the arrow is misplaced.
-      if (callee.type === "ArrowFunctionExpression") {
-        throw new ExpressionError(
-          "A function cannot be called where it is written: it is only passed to a method, as in rows.map(r => r.name). " +
-            "To name a value, map a one-item array: [rows.find(r => r.id === id)].map(r => r ? r.name : '')[0]",
-        );
-      }
       // Written method names are grammar, not interpreter tables — both back ends must refuse the same calls.
       if (callee.type === "MemberExpression") {
         const name = writtenName(callee.property, callee.computed);
@@ -135,11 +129,14 @@ const validateNode = (node: acorn.AnyNode, depth = 0, isCallback = false): void 
   }
 
   const callback = node.type === "CallExpression" ? callbackArgument(node) : undefined;
+  // `(r => …)(x)` names a value: the arrow runs once, here, and is never a value — the same rules as a callback.
+  const applied =
+    node.type === "CallExpression" && node.callee.type === "ArrowFunctionExpression" ? node.callee : undefined;
   for (const child of childNodes(node)) {
     // A non-computed member property or object key is a name, not an expression.
     if (node.type === "MemberExpression" && !node.computed && child === node.property) continue;
     if (node.type === "Property" && !node.computed && child === node.key) continue;
-    validateNode(child, depth + 1, child === callback);
+    validateNode(child, depth + 1, child === callback || child === applied);
   }
 };
 

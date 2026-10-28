@@ -51,7 +51,7 @@ One expression over the data you pass in. Nothing is declared, assigned, or run 
 | **Values** | numbers, strings, template literals, `true`, `false`, `null`, `undefined`; arrays and objects, with spread and computed keys |
 | **Reads** | `a.b`, `a[b]`, `a?.b`, `a?.[b]`: own properties of plain data only, so `({}).constructor` is `undefined` |
 | **Operators** | `+ - * / % **`, `== != === !==`, `< <= > >=`, `&& \|\| ??`, `! - + typeof`, `a ? b : c` |
-| **Callbacks** | An arrow with an expression body, only where a method takes a function: `rows.map(r => r.name)`, `Array.from({ length: 3 }, (_, i) => i)`. Up to four parameters, with destructuring and defaults. A global that takes one argument can stand in for it: `rows.filter(Boolean)`, `ids.map(Number)` |
+| **Arrows** | An arrow with an expression body, in two places only: where a method takes a function, `rows.map(r => r.name)`, `Array.from({ length: 3 }, (_, i) => i)`; and called where it is written, which names a value, `(r => r ? r.name : "")(rows.find(r => r.id === id))`. Up to four parameters, with destructuring and defaults. A global that takes one argument can stand in for it: `rows.filter(Boolean)`, `ids.map(Number)` |
 | **Globals** | `Math`, `JSON`, `Object`, `Array`, `Number`, `String`, `Boolean`, `Date`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `encodeURIComponent`, `decodeURIComponent`, `undefined`, `NaN`, `Infinity` |
 | **Methods** | The standard methods of arrays, strings and numbers, and the data functions of the globals, minus those that mutate, return an iterator, take a regular expression, exist only for a side effect, are legacy, or have no use in a UI. Locale methods take a locale and options: `price.toLocaleString(undefined, { style: "currency", currency: "USD" })` |
 

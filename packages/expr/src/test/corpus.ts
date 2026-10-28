@@ -303,4 +303,18 @@ export const CORPUS = [
   `[1, 2].join([";"])`,
   `[3, 1, undefined, 2, 10].toSorted()`,
   `[[2], [10], [1]].toSorted()`,
+  // An arrow called where it is written names a value.
+  `(p => p ? p.name + " · " + p.price : "none")(scopes.root.products.find(p => p.sku === "G-2"))`,
+  `(p => p ? p.name : "none")(scopes.root.products.find(p => p.sku === "X"))`,
+  `(() => 1 + 2)()`,
+  `((a, b) => a * b)(6, 7)`,
+  `((a, b) => [a, b])(1)`,
+  `(a => a)(1, 2, 3)`,
+  `((a, b, c) => a + b + c)(...[1, 2, 3])`,
+  `(({ name, stock = 5 }) => name + stock)(scopes.root.products[2])`,
+  `(([first, ...rest]) => rest.length + first)([4, 5, 6])`,
+  `((n = 10) => n * 2)()`,
+  `scopes.root.products.map(p => (s => s > 10 ? "ok" : "low")(p.stock))`,
+  `(total => ({ total, avg: total / 3 }))(scopes.root.products.reduce((s, p) => s + p.price, 0))`,
+  `(u => (t => t.length)(u.tags))(scopes.root.user)`,
 ];

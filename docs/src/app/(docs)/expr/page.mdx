@@ -89,7 +89,7 @@ validation.
 | Calls | methods, host functions |
 | Operators | arithmetic, comparison, `===`/`==`, `&&`, `\|\|`, `??`, `!`, `-`, `+`, `typeof`, `? :` |
 | Literals | arrays and objects, with spread and computed keys |
-| Functions | arrow functions with an **expression body**, only as a method's callback; parameters may destructure |
+| Functions | arrow functions with an **expression body**, only as a method's callback or called where written; parameters may destructure |
 
 Left out on purpose:
 
@@ -102,7 +102,9 @@ Left out on purpose:
 - **Regular expressions.** Catastrophic backtracking runs outside the budget.
   Text search goes through `.includes(){:ts}`, `.startsWith(){:ts}`, `.split(){:ts}` and `.replaceAll(){:ts}`.
 - **Functions as values.** An arrow is only a method's callback, as in
-  `rows.map(r => r.name){:ts}`: never stored, returned or called. A global that
+  `rows.map(r => r.name){:ts}`, or called where it is written, which names a
+  value: `(r => r ? r.name : ""){:ts}` applied to `rows.find(…){:ts}`. It is never
+  stored or returned, and has no name to call itself by. A global that
   takes one argument can replace it: `rows.filter(Boolean){:ts}`.
 - **`await`.** The runtime awaits a host call, so the call must be the result:
   the whole expression, a branch of `?:`, or the right side of `??`, `||`,

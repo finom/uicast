@@ -264,11 +264,29 @@ describe("a function is written only where a method takes one", () => {
     }
   });
 
-  it("refuses one called where it is written, saying how to name a value", () => {
-    for (const expr of [`(x => x)(1)`, `((p) => p ? p.name : '')(rows.find(r => r))`, `rows.map(r => (x => x)(r))`]) {
-      expect(() => ev.validate(expr), expr).toThrow(
-        /cannot be called where it is written.*To name a value, map a one-item array/,
-      );
+  it("runs one called where it is written, which names a value", () => {
+    const rows = [
+      { id: 1, name: "a" },
+      { id: 2, name: "b" },
+    ];
+    expect(run(`(r => r ? r.name : "")(rows.find(r => r.id === 2))`, { rows })).toBe("b");
+    expect(run(`(r => r ? r.name : "none")(rows.find(r => r.id === 9))`, { rows })).toBe("none");
+    expect(run(`rows.map(r => (n => n + n)(r.name))`, { rows })).toEqual(["aa", "bb"]);
+    expect(run(`(({ id }, [x]) => id + x)(rows[0], [5])`, { rows })).toBe(6);
+  });
+
+  it("keeps a called arrow to a callback's rules", () => {
+    for (const [expr, message] of [
+      [`(f => f)(x => x)`, /can only be written as a method's callback/],
+      [`(f => f(1))(x => x)`, /can only be written as a method's callback/],
+      [`(() => x => x)()`, /can only be written as a method's callback/],
+      [`(x => { return x })(1)`, /single expression/],
+      [`(async x => x)(1)`, /cannot be async/],
+      [`((...a) => a)(1)`, /Rest parameters/],
+      [`((a, b, c, d, e) => a)(1)`, /at most 4 parameters/],
+      [`(x => x)?.(1)`, /optional call/],
+    ] as const) {
+      expect(() => ev.validate(expr), expr).toThrow(message);
     }
   });
 });
@@ -308,6 +326,7 @@ describe("a host call stands only where its value is the result", () => {
       "`${getOrder({ id: 1 })}`",
       `JSON.stringify(getOrder({ id: 1 }))`,
       `getOrder(getOrder({ id: 1 }))`,
+      `(o => o)(getOrder({ id: 1 }))`,
     ]) {
       expect(() => counted.eval(expr), expr).toThrow(/must be the result itself/);
     }
@@ -321,6 +340,7 @@ describe("a host call stands only where its value is the result", () => {
     });
     for (const expr of [
       `ids.find(id => deleteOrder({ id }))`,
+      `(id => deleteOrder({ id }))(1)`,
       `ids.filter(id => deleteOrder({ id }))`,
       `ids.some(id => deleteOrder({ id }))`,
       `ids.map(id => deleteOrder({ id }))`,
