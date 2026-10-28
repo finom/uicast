@@ -426,6 +426,12 @@ const compileNode = (node: acorn.AnyNode, cx: Cx): Thunk => {
         };
       }
 
+      // `(r => …)(x)`: the validator allows an arrow as a callee, so the call is its only use.
+      if (node.callee.type === "ArrowFunctionExpression") {
+        const lambda = compileNode(node.callee, cx);
+        return (frame, rt) => (lambda(frame, rt) as Lambda).call(...evalArgs(frame, rt));
+      }
+
       const calleeName = node.callee.type === "Identifier" ? node.callee.name : null;
       // The validator allows a host function only here, so the call binds now.
       if (calleeName !== null && slotOf(calleeName, cx.lexical) === null && cx.tools[calleeName] !== undefined) {

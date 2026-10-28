@@ -41,6 +41,8 @@ describe("a function cannot leave an expression", () => {
   it("an arrow outside a method's callback is refused before it runs", () => {
     expect(refuses(new Evaluator(), "Object.values(x => x * 2)")).toBe(true);
     expect(refuses(new Evaluator(), "[x => x]")).toBe(true);
+    expect(refuses(new Evaluator(), "(() => x => x)()")).toBe(true);
+    expect(refuses(new Evaluator(), "(f => f)(x => x)")).toBe(true);
   });
 
   it("and not into a host function", () => {

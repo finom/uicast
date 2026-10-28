@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- An arrow called where it is written: `(r => r.name)(row)` ([#42](https://github.com/finom/uicast/pull/42)).
 - `withFunctions(functions)`: a new evaluator of the same class and options, with other host functions ([#39](https://github.com/finom/uicast/pull/39)).
 
 ### Removed
