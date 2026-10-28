@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `useExprTool({ read, functions })` runs an `exprTool` call in the browser ([#39](https://github.com/finom/uicast/pull/39)).
+
 ### Fixed
 
 - A key listed under two parents, or twice, renders only in its first slot; the others fail as `guardrail-violation` ([#38](https://github.com/finom/uicast/pull/38)).

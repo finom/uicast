@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- `withFunctions(functions)`: a new evaluator of the same class and options, with other host functions ([#39](https://github.com/finom/uicast/pull/39)).
+
 ### Removed
 
 - `Math.fround()`, `Math.f16round()`, `Math.clz32()`, `Math.imul()`, `Math.sumPrecise()`, `isWellFormed()`, `toWellFormed()`, and an array's `toLocaleString()`.
