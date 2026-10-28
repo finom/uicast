@@ -1,24 +1,31 @@
 ---
-description: "The expr tool lets the model act on the UI it wrote, as the user would: read its state, write it and call host functions."
+description: "The expr tool runs the model's expressions in the browser, on the UI it wrote: to change its state, call host functions and, when allowed, read values."
 ---
+
+import { Callout } from "nextra/components";
 
 # The `expr` tool
 
-The model can act on the UI it wrote, as the user would: read its state, write
-it and call host functions. After a table of products, "select the five lowest"
-marks five rows, and "download them" calls a download function with those rows.
+The `expr` tool runs expressions. The model sends steps, and the browser runs
+them on the state of the UI the model wrote.
 
-`exprTool(){:ts}` from `@uicast/core/tool` is the tool to give the model, a
-`StandardToolV0` from [standard-tool](https://github.com/finom/standard-tool)
-with zod input and output schemas. It has no `execute` of its own: the browser
-runs each call through `useExprTool(){:ts}` from `@uicast/react`, against the
-`root` scope every `<EntriesRenderer>` under the provider shares, and the answer
-goes back to the model.
+So the model can change what is on screen. After a table of products, "select
+the five lowest" marks five rows, and "download them" calls a download function
+with those rows. By default no value goes back to the model; with
+[`read`](#reading-values-back) on, a call can also read one.
+
+It has two halves:
+
+- `exprTool(){:ts}` from `@uicast/core/tool`: the tool you give the model on
+  the server, a `StandardToolV0`. It has no `execute` of its own.
+- `useExprTool(){:ts}` from `@uicast/react`: runs each call in the browser and
+  returns the answer.
 
 ## What the model sends
 
-A call holds `steps`, a `read` expression, or both. The steps are the ones a
-[callback](/events) runs, and the steps run first:
+A call holds `steps`, which run as a [callback](/events)'s steps do: each one
+computes a value and may write it to a field. With `read` on, it may also hold
+`read`, an expression whose value comes back after the steps:
 
 ```json
 {
@@ -40,10 +47,37 @@ A call holds `steps`, a `read` expression, or both. The steps are the ones a
 - The tool changes state, not structure. A write shows on screen only where an
   element reads that path. To add a column, the model sends new entries instead.
 
+## Its own functions
+
+By default the tool calls the same host functions as the UI. A UI can keep a
+write behind a button and a `confirm`; the tool has no button to press. To give
+it fewer functions, or others, pass them to both halves:
+
+```ts
+const exprFunctions = [listCustomers, getCustomer, downloadCsv]; // reads and a download, no writes
+
+exprTool({ functions: exprFunctions }); // on the server
+useExprTool({ functions: exprFunctions }); // in the browser
+```
+
+- The server describes them in the tool's own text, in the format of
+  `getFunctionsPartialPrompt(){:ts}`, and tells the model they replace the ones
+  in the system prompt.
+- The browser runs the tool's calls on
+  `evaluator.withFunctions(exprFunctions){:ts}`: a copy of the provider's
+  evaluator with these functions. A call that names one of the UI's other
+  functions gets `unknown-reference` before any step runs.
+- A function the UI doesn't have works too: the tool can call it, the UI can't.
+- `functions: []{:ts}` gives the tool no functions at all.
+
+Keep the array the same across renders, as a module-level constant: a new one
+makes a new evaluator.
+
 ## What the model gets back
 
-- `{ value }`: the value of `read`, as JSON, at most 8,000 characters;
-- `{}`: the steps ran and there was no `read`;
+- `{}`: the steps ran;
+- `{ value }`: the value of `read`, as JSON, at most 8,000 characters, only with
+  `read` on;
 - `{ declined: true }`: the user cancelled a `confirm`, so that step and the ones
   after it did not run;
 - `{ error: { reason, message } }`: the
@@ -51,14 +85,41 @@ A call holds `steps`, a `read` expression, or both. The steps are the ones a
   read that failed, or of an input the schema refused, for the model to fix the
   call.
 
+## Reading values back
+
+`read` is off by default. Turn it on in both halves:
+
+```ts
+exprTool({ read: true }); // on the server
+useExprTool({ read: true }); // in the browser
+```
+
+Without it, the tool's schema and text have no `read`, and the browser refuses a
+call that sends one with `invalid-entry`, before any step runs. Errors still go
+back, so the model can fix a call.
+
+<Callout type="warning">
+  With `read` on, data on screen reaches the model. A generated screen sends
+  nothing back: the values its expressions read stay in the browser. The value
+  of `read` is the tool's output, so it goes to the model's provider and stays
+  in the conversation.
+
+- Anything under `scopes.root` can be read, including what host functions
+  loaded into it.
+- `functions` limits what the tool can call, not what it can read.
+- Keep `read` off where the data on screen must not reach the model.
+</Callout>
+
 ## The server
 
 The tool's description holds only its own rules. The system prompt carries the
 rest, as for any document: the core partials describe steps and expressions, and
 `getFunctionsPartialPrompt({ functions }){:ts}` lists the host functions a step
 may call. Pass it the same functions the browser's `Evaluator` binds.
-`exprTool({ note }){:ts}` appends your text as a `## Note`. With the AI SDK as
-the example:
+`exprTool({ read, functions, note }){:ts}` takes the
+[`read` switch](#reading-values-back), the tool's
+[own functions](#its-own-functions), and appends `note` as a `## Note`. With the
+AI SDK as the example:
 
 ```ts
 import { exprTool } from "@uicast/core/tool";
@@ -72,9 +133,9 @@ const tools = {
 streamText({ model, system, messages, tools });
 ```
 
-`expr.inputSchema` and `expr.outputSchema` are zod schemas, so any SDK that
-takes Standard Schema or zod accepts them. Calling `expr.execute(){:ts}` throws:
-the tool runs only in the browser.
+`expr.inputSchema` and `expr.outputSchema` implement Standard Schema and
+Standard JSON Schema, so an SDK that takes either accepts them. Calling
+`expr.execute(){:ts}` throws: the tool runs only in the browser.
 
 The AI SDK checks each call's input against `inputSchema` on the server, so an
 input the schema refuses never reaches the browser. By default the model then
@@ -88,9 +149,13 @@ message from `onError` of `toUIMessageStream`, as the
 answer. Call it below `<RendererProvider>`:
 
 ```tsx
+import { useChat } from "@ai-sdk/react";
+import { useExprTool } from "@uicast/react";
+import { lastAssistantMessageIsCompleteWithToolCalls } from "ai";
+
 const runExprTool = useExprTool();
 
-useChat({
+const { addToolOutput } = useChat({
   sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
   onToolCall: ({ toolCall }) => {
     if (toolCall.toolName !== "expr") return;

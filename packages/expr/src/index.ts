@@ -49,6 +49,8 @@ export type EvaluatorOptions = {
 export interface ExpressionEvaluator {
   /** The host functions an expression may call. */
   readonly functions: readonly StandardToolV0[];
+  /** A new evaluator like this one, with these host functions in place of its own. */
+  withFunctions(functions: readonly StandardToolV0[]): ExpressionEvaluator;
   /** Checks a source without running it and reports its free names; throws on a refused source. */
   validate(source: string): ExpressionFacts;
   /** The static paths under `root` a source reads, e.g. `["scopes.root.rows"]` for root `"scopes"`. */
@@ -79,10 +81,12 @@ export class Evaluator implements ExpressionEvaluator {
   readonly #hostFunctions: Record<string, HostFunction>;
   readonly #analyzer: Analyzer<Run>;
   readonly #limits: Required<BudgetOptions>;
+  readonly #options: EvaluatorOptions;
   readonly #isHostFunction = (name: string): boolean => this.#hostFunctions[name] !== undefined;
   readonly #global = (name: string): unknown => this.resolveGlobal(name);
 
   constructor(options: EvaluatorOptions = {}) {
+    this.#options = options;
     this.functions = options.functions ?? [];
     this.#hostFunctions = bindTools(this.functions, (fn, input) => this.callHostFunction(fn, input));
     this.#analyzer = new Analyzer({
@@ -92,6 +96,18 @@ export class Evaluator implements ExpressionEvaluator {
       maxSourceLength: options.maxSourceLength ?? DEFAULT_MAX_SOURCE_LENGTH,
     });
     this.#limits = resolveLimits(options.budget);
+  }
+
+  /**
+   * A new evaluator of the same class and options, with these host functions in place of its own. A subclass
+   * whose constructor takes other arguments overrides it.
+   *
+   * @example
+   * const readOnly = evaluator.withFunctions([listCustomers, getCustomer]);
+   */
+  withFunctions(functions: readonly StandardToolV0[]): Evaluator {
+    const Self = this.constructor as new (options: EvaluatorOptions) => Evaluator;
+    return new Self({ ...this.#options, functions });
   }
 
   /**

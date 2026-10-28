@@ -2,7 +2,7 @@
 
 export { CALLBACK_DEBOUNCE_MS, EXPR_TOOL_MAX_READ } from "./constants";
 export { entryShapeError } from "./entry-shape";
-export { exprToolInput } from "./tool/schemas";
+export { exprToolSchemas } from "./tool/schemas";
 export { evaluate } from "./expr/evaluate";
 export { type DepsPart, extractDeps } from "./expr/extract-deps";
 export { planStepWaves } from "./expr/plan-step-waves";

@@ -29,10 +29,12 @@ const table: ComponentEntry[] = [
   },
 ];
 
-function mount(functions: ConstructorParameters<typeof Evaluator>[0] = {}) {
+type Tool = NonNullable<ConstructorParameters<typeof Evaluator>[0]>["functions"];
+
+function mount(functions: ConstructorParameters<typeof Evaluator>[0] = {}, toolFunctions?: Tool, read = true) {
   let run!: (input: unknown) => Promise<ExprToolOutput>;
   const Probe = () => {
-    run = useExprTool();
+    run = useExprTool({ read, functions: toolFunctions });
     return null;
   };
   const view = render(
@@ -103,6 +105,59 @@ describe("useExprTool", () => {
     );
   });
 
+  describe("with its own functions", () => {
+    const execute = vi.fn((input: { id: number }) => ({ id: input.id, name: "Ann" }));
+    const tool = (name: string) =>
+      standardTool({ name, description: name, inputSchema: z.object({ id: z.number() }), execute });
+    const [getCustomer, deleteCustomer, exportCustomer] = ["getCustomer", "deleteCustomer", "exportCustomer"].map(tool);
+    const ui = { functions: [getCustomer, deleteCustomer] };
+    const select = { set: "scopes.root.selected", literal: { 0: true } };
+    afterEach(() => execute.mockClear());
+
+    it("calls the provider's functions when given none", async () => {
+      const { call } = mount(ui);
+      expect(await call({ read: "deleteCustomer({ id: 1 })" })).toEqual({ value: { id: 1, name: "Ann" } });
+    });
+
+    it("calls only the ones it was given", async () => {
+      const { call } = mount(ui, [getCustomer]);
+      expect(await call({ read: "getCustomer({ id: 2 })" })).toEqual({ value: { id: 2, name: "Ann" } });
+      expect(execute).toHaveBeenCalledOnce();
+    });
+
+    it("refuses one of the provider's it wasn't given, before any step runs", async () => {
+      const { call, container } = mount(ui, [getCustomer]);
+      expect(await call({ steps: [select, { expr: "deleteCustomer({ id: 1 })" }] })).toEqual({
+        error: {
+          reason: "unknown-reference",
+          message: '"deleteCustomer": not available to the expr tool, which calls only getCustomer',
+        },
+      });
+      expect(execute).not.toHaveBeenCalled();
+      expect(container.textContent).toBe("a;b;c;d;");
+    });
+
+    it("calls none when given none", async () => {
+      const { call } = mount(ui, []);
+      expect(await call({ read: "getCustomer({ id: 1 })" })).toEqual({
+        error: {
+          reason: "unknown-reference",
+          message: '"getCustomer": not available to the expr tool, which calls no function',
+        },
+      });
+    });
+
+    it("calls one the UI doesn't have", async () => {
+      const { call } = mount(ui, [exportCustomer]);
+      expect(await call({ read: "exportCustomer({ id: 3 })" })).toEqual({ value: { id: 3, name: "Ann" } });
+    });
+  });
+
+  it("leaves an expression that doesn't parse to fail classified when it runs", async () => {
+    const { call } = mount({}, []);
+    expect(await call({ read: "deleteCustomer(" })).toMatchObject({ error: { reason: "expression-syntax" } });
+  });
+
   it("answers declined when the user cancels a confirm, and skips the step", async () => {
     window.confirm = vi.fn(() => false);
     const { call, container } = mount();
@@ -129,7 +184,30 @@ describe("useExprTool", () => {
   it("refuses a bad input before running anything", async () => {
     const { call } = mount();
     expect(await call({ read: 1 })).toEqual({
-      error: { reason: "invalid-entry", message: "read: Invalid input: expected string, received number" },
+      error: { reason: "invalid-entry", message: "read: Expected a string" },
+    });
+  });
+
+  describe("without read (the default)", () => {
+    it("runs steps and answers no value", async () => {
+      const { call, container } = mount({}, undefined, false);
+      expect(await call({ steps: [{ set: "scopes.root.selected", literal: { 2: true } }] })).toEqual({});
+      expect(container.textContent).toBe("a;b;c*;d;");
+    });
+
+    it("refuses a call that reads, before any step runs", async () => {
+      const { call, container } = mount({}, undefined, false);
+      expect(
+        await call({ steps: [{ set: "scopes.root.selected", literal: { 0: true } }], read: "scopes.root.rows" }),
+      ).toEqual({ error: { reason: "invalid-entry", message: "read: Off: this tool sends no value back" } });
+      expect(container.textContent).toBe("a;b;c;d;");
+    });
+
+    it("still answers errors, for the model to fix the call", async () => {
+      const { call } = mount({}, undefined, false);
+      expect(await call({ steps: [{ set: "scopes.root.x", expr: "scopes.root.rows.map(" }] })).toMatchObject({
+        error: { reason: "expression-syntax" },
+      });
     });
   });
 

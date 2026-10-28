@@ -16,12 +16,13 @@ import { chatMessages, chats } from "@/db/schema";
 import { db } from "@/db";
 import { requireUser } from "@/lib/api";
 import { caching, chargedUsd, GENERATION_MODEL, MAX_OUTPUT_TOKENS, modelForUser } from "@/lib/openrouter";
+import { exprToolFunctions } from "@/lib/expr-tool-functions";
 import { buildSystemPrompt } from "@/lib/system-prompt";
 
 export const maxDuration = 300;
 
 // No `execute`: the browser runs its calls (`useExprTool` in the chat view) and sends the answer back.
-const expr = exprTool();
+const expr = exprTool({ read: true, functions: exprToolFunctions });
 const tools = {
   [expr.name]: tool({ description: expr.description, inputSchema: expr.inputSchema, outputSchema: expr.outputSchema }),
 };

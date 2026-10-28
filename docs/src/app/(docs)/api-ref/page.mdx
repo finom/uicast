@@ -60,7 +60,7 @@ verbatim as the section's trailing `## Note`.
 
 | Export | What it does |
 |---|---|
-| `exprTool({ note? }){:ts}` | The `expr` tool, a `StandardToolV0` with zod input and output schemas: the model reads and writes the state of the UI it wrote and calls host functions. Its calls run in the browser through `useExprTool(){:ts}`. See [The `expr` tool](/expr-tool). |
+| `exprTool({ read?, functions?, note? }){:ts}` | The `expr` tool, a `StandardToolV0` with Standard Schema input and output schemas: the model writes the state of the UI it wrote and calls host functions: the UI's, or `functions` in their place, described in the tool's text. With `read: true{:ts}`, a call can also read a value back, and that value reaches the model; off by default. Its calls run in the browser through `useExprTool(){:ts}`. See [The `expr` tool](/expr-tool). |
 
 Types: `ExprToolOptions`, `ExprToolInput`, `ExprToolOutput`.
 
@@ -70,8 +70,8 @@ The [expression language](/expr).
 
 | Export | What it does |
 |---|---|
-| `Evaluator` | The interpreter: `eval`, `compile`, `validate`. `functions` binds [host functions](/expr/functions) at construction, so a call is checked before it runs; `budget` sets the limits. A subclass that sets `toFunction` runs expressions with `new Function` ([Custom evaluator](/expr/custom-expr)). |
-| `ExpressionEvaluator` | The interface `Evaluator` implements and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`. Implement it to plug in an evaluator for another language. |
+| `Evaluator` | The interpreter: `eval`, `compile`, `validate`. `functions` binds [host functions](/expr/functions) at construction, so a call is checked before it runs; `budget` sets the limits. `withFunctions(functions){:ts}` returns a copy with other functions, same class and options. A subclass that sets `toFunction` runs expressions with `new Function` ([Custom evaluator](/expr/custom-expr)). |
+| `ExpressionEvaluator` | The interface `Evaluator` implements and **uicast** types against: `eval`, `compile`, `validate`, `memberReads`, `functions`, `withFunctions`. Implement it to plug in an evaluator for another language. |
 | `ExpressionError` | Every refusal and fault, with a `reason`. |
 
 Types: `EvaluatorOptions`, `EvaluatorContexts`, `BudgetOptions`,
@@ -91,7 +91,7 @@ Re-exports nothing from core — import from both.
 | `<RendererProvider>` | Holds the implementations, the evaluator (with host functions bound), fallback UI and the shared `root` scope. See [Renderer](/react/renderer). |
 | `<EntriesRenderer entries>` | Mounts a document. Memoized on the array reference. |
 | `<DocumentSkeleton entries>` | The document's shape from the entries alone, drawn with the provider's implementations and `fallbackComponents.defaultSkeleton`. Evaluates nothing, so it renders in a server pass. See [Server rendering](/react/ssr#document-skeleton). |
-| `useExprTool(){:ts}` | Runs the `expr` tool's calls against the provider's state and returns the answer for the model. See [The `expr` tool](/expr-tool). |
+| `useExprTool({ read?, functions? }){:ts}` | Runs the `expr` tool's calls against the provider's state and returns the answer for the model. Without `read: true{:ts}`, a call that reads is refused before any step runs. With `functions`, the calls run on `evaluator.withFunctions(functions){:ts}`, and one naming another of the UI's functions is refused before any step runs. See [The `expr` tool](/expr-tool). |
 | `createComponentImplementation({ def, render, skeleton? }){:ts}` | The React half of a component pair: `{ def, skeleton }{:ts}`, to register. See [impl](/react). |
 
 Types: `ComponentImplementation`, `FallbackComponents`, `SkeletonComponentProps`,

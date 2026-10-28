@@ -36,6 +36,7 @@ import { PromptInput } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { showToast, toastCallbackFailure } from "@/components/toaster";
 import { evaluator } from "@/lib/evaluator";
+import { exprToolFunctions } from "@/lib/expr-tool-functions";
 import { pickChatSuggestions } from "@/lib/suggestions";
 import { cn } from "@/lib/utils";
 import { setApiOwner } from "@/tools/http";
@@ -117,7 +118,7 @@ type RunExprTool = (input: unknown) => Promise<ExprToolOutput>;
 
 // `useExprTool` needs the provider, which sits below `useChat`: this hands its runner up.
 function ExprToolBridge({ runner }: { runner: RefObject<RunExprTool | null> }) {
-  const run = useExprTool();
+  const run = useExprTool({ read: true, functions: exprToolFunctions });
   useEffect(() => {
     runner.current = run;
   }, [run, runner]);
