@@ -37,7 +37,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@uicast/core": "^0.0.5",
+    "@uicast/core": "^0.0.6",
     "@uicast/react": "^0.0.5"
   },
   "peerDependencies": {
