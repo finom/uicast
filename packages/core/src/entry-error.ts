@@ -48,7 +48,8 @@ export const FAULT_BY_REASON: Record<EntryErrorReason, EntryFault> = {
 export const REASON_DESCRIPTIONS: Record<EntryErrorReason, string> = {
   "expression-syntax": "expression doesn't parse",
   "guardrail-violation": "breaks guardrail rule: blocked syntax or API, or `set` not `scopes.<scope>.<field>`",
-  "budget-exceeded": "expression passed its step, time or allocation budget",
+  "budget-exceeded":
+    "expression passed its step, time or allocation budget, or the page's expressions together took too long",
   "unknown-reference": "name doesn't exist: unregistered function, blocked global, or unset scope path",
   "invalid-entry": "line field has wrong type, like `seed` not array of steps",
   "unknown-component": "no component with this name",

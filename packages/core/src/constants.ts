@@ -6,3 +6,6 @@ export const CONTEXT_NAMES: ReadonlySet<string> = new Set(["scopes", "evt", "cur
 
 // The longest `read` value the expr tool hands back, in JSON characters; the prompt tells the model.
 export const EXPR_TOOL_MAX_READ = 8_000;
+
+// Wall time all expressions of one synchronous run may take together, so no document freezes the page.
+export const UPDATE_BUDGET_MS = 1_000;

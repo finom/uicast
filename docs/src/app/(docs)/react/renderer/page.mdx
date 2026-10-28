@@ -238,6 +238,10 @@ const evaluator = new Evaluator({
 `unsafe-eval`. To change how it checks or runs expressions, see
 [Custom evaluator](/expr/custom-expr).
 
+The budget holds for one expression. The renderer also caps the expressions of
+one update together at one second; once they pass it, the rest of that update
+fails with `budget-exceeded`, so a list of costly rows can't freeze the page.
+
 The prop is typed `ExpressionEvaluator` (exported by `@uicast/expr` and
 `@uicast/core`); an evaluator for another language, with its own prompt, can
 implement it.

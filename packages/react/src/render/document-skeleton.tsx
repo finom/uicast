@@ -1,7 +1,7 @@
 import { buildElementsByKey, type ComponentEntry } from "@uicast/core";
 import { Fragment, type ReactElement, type ReactNode, useMemo } from "react";
 import { engineOf } from "../impl/engine";
-import { createElementsStore, ElementsStoreProvider, useElement } from "../providers/elements-store";
+import { createElementsStore, ElementsStoreProvider, slotId, useElement, useSlot } from "../providers/elements-store";
 import { useRendererRegistry } from "../providers/renderer-provider";
 
 // A list has no length yet; a few rows read as a list.
@@ -24,19 +24,36 @@ export function SubtreeSkeleton({
   elementKey,
   ancestors = NO_ANCESTORS,
   visible = false,
+  slot,
+  inList = false,
 }: {
   elementKey: string;
   ancestors?: ReadonlySet<string>;
   visible?: boolean;
+  // The parent's `children` slot; a key listed in another slot first draws only there.
+  slot?: string;
+  // Inside a list's rows, so a nested list draws one row, not a few per outer row.
+  inList?: boolean;
 }): ReactNode {
   const entry = useElement(elementKey);
+  const renderedIn = useSlot(elementKey);
   const { implementations, fallbackComponents, urlPolicy } = useRendererRegistry();
   if (!entry || (entry.hidden !== undefined && !visible)) return null;
   if (ancestors.size > MAX_DEPTH || ancestors.has(elementKey)) return null;
+  if (slot !== undefined && slot !== renderedIn) return null;
 
   const lineage = new Set(ancestors).add(elementKey);
   const keys = childKeys(entry);
-  const children = keys.map((key) => <SubtreeSkeleton key={key} elementKey={key} ancestors={lineage} />);
+  const rowsInside = inList || !!entry.each;
+  const children = keys.map((key, index) => (
+    <SubtreeSkeleton
+      key={keys.indexOf(key) === index ? key : `${key}#${index}`}
+      elementKey={key}
+      ancestors={lineage}
+      slot={slotId(elementKey, index)}
+      inList={rowsInside}
+    />
+  ));
 
   const impl = implementations[entry.component];
   const knownProps = impl ? engineOf(impl).knownProps(entry, urlPolicy) : undefined;
@@ -55,7 +72,7 @@ export function SubtreeSkeleton({
   else if (keys.length) self = children;
   else self = Fallback ? <Fallback reason="seeding" entry={entry} knownProps={knownProps} /> : null;
 
-  if (!entry.each) return self;
+  if (!entry.each || inList) return self;
   // Wrapping it would put a div where the parent expects its own child (a row inside a table).
   return (
     <>
