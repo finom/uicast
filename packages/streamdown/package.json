@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "@uicast/core": "^0.0.6",
-    "@uicast/react": "^0.0.5"
+    "@uicast/react": "^0.0.6"
   },
   "peerDependencies": {
     "react": "^19.2.5",

@@ -117,7 +117,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@uicast/core": "^0.0.6",
-    "@uicast/react": "^0.0.5",
+    "@uicast/react": "^0.0.6",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
