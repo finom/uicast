@@ -49,9 +49,9 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.5",
-    "fast-check": "^4.10.2",
+    "fast-check": "^4.11.0",
     "standard-tool": "^0.1.1",
-    "vitest": "^5.0.5"
+    "vitest": "^5.1.1"
   },
   "publishConfig": {
     "access": "public"
